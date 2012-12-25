@@ -72,7 +72,7 @@ class RenderXmlTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :render_with_object_location

@@ -8,5 +8,5 @@ class Organization < ActiveRecord::Base
   has_one :author, :primary_key => :name
   has_one :author_owned_essay_category, :through => :author, :source => :owned_essay_category
 
-  scope :clubs, { :from => 'clubs' }
+  scope :clubs, -> { from('clubs') }
 end

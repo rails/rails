@@ -1,8 +1,12 @@
+require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/logger_silence'
 require 'logger'
 
 module ActiveSupport
   class Logger < ::Logger
-    # Broadcasts logs to multiple loggers
+    include LoggerSilence
+
+    # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
         define_method(:add) do |*args, &block|

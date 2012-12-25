@@ -11,6 +11,8 @@ require 'active_support/xml_mini'
 
 class ValidationsTest < ActiveModel::TestCase
 
+  class CustomStrictValidationException < StandardError; end
+
   def setup
     Topic._validators.clear
   end
@@ -323,11 +325,23 @@ class ValidationsTest < ActiveModel::TestCase
     end
   end
 
+  def test_strict_validation_custom_exception
+    Topic.validates_presence_of :title, :strict => CustomStrictValidationException
+    assert_raises CustomStrictValidationException do
+      Topic.new.valid?
+    end
+  end
+
   def test_validates_with_bang
     Topic.validates! :title,  :presence => true
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
+  end
+
+  def test_validates_with_false_hash_value
+    Topic.validates :title,  :presence => false
+    assert Topic.new.valid?
   end
 
   def test_strict_validation_error_message
@@ -343,5 +357,20 @@ class ValidationsTest < ActiveModel::TestCase
     options = { :presence => true }
     Topic.validates :title, options
     assert_equal({ :presence => true }, options)
+  end
+
+  def test_dup_validity_is_independent
+    Topic.validates_presence_of :title
+    topic = Topic.new("title" => "Litterature")
+    topic.valid?
+
+    duped = topic.dup
+    duped.title = nil
+    assert duped.invalid?
+
+    topic.title = nil
+    duped.title = 'Mathematics'
+    assert topic.invalid?
+    assert duped.valid?
   end
 end

@@ -1,16 +1,16 @@
-require 'active_support/core_ext/module/delegation'
-require 'active_support/deprecation'
 
 module ActiveRecord
   module Querying
-    delegate :find, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
-    delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :scoped
-    delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped
-    delegate :find_each, :find_in_batches, :to => :scoped
+    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :to => :all
+    delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :all
+    delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, :to => :all
+    delegate :find_by, :find_by!, :to => :all
+    delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :all
+    delegate :find_each, :find_in_batches, :to => :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
-             :having, :create_with, :uniq, :references, :none, :to => :scoped
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
+             :having, :create_with, :uniq, :references, :none, :to => :all
+    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :ids, :to => :all
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -26,14 +26,13 @@ module ActiveRecord
     # MySQL specific terms will lock you to using that particular database engine or require you to
     # change your call if you switch engines.
     #
-    # ==== Examples
     #   # A simple SQL query spanning multiple tables
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   > [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
     #
     #   # You can use the same string replacement techniques as you can with ActiveRecord#find
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
-    #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
       logging_query_plan do
         result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
@@ -57,12 +56,12 @@ module ActiveRecord
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
     #
-    # ==== Examples
-    #
     #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
     def count_by_sql(sql)
-      sql = sanitize_conditions(sql)
-      connection.select_value(sql, "#{name} Count").to_i
+      logging_query_plan do
+        sql = sanitize_conditions(sql)
+        connection.select_value(sql, "#{name} Count").to_i
+      end
     end
   end
 end

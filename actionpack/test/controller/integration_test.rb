@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'action_controller/vendor/html-scanner'
+require 'action_view/vendor/html-scanner'
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -405,6 +405,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_request_with_bad_format
+    with_test_route_set do
+      xhr :get, '/get.php'
+      assert_equal 406, status
+      assert_response 406
+      assert_response :not_acceptable
+    end
+  end
+
   def test_get_with_query_string
     with_test_route_set do
       get '/get_with_params?foo=bar'
@@ -466,7 +475,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller
+          match ':action', :to => controller, :via => [:get, :post]
           get 'get/:action', :to => controller
         end
 
@@ -529,11 +538,26 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     @routes ||= ActionDispatch::Routing::RouteSet.new
   end
 
-  routes.draw do
-    match '',    :to => 'application_integration_test/test#index', :as => :empty_string
+  class MountedApp
+    def self.routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
+    end
 
-    match 'foo', :to => 'application_integration_test/test#index', :as => :foo
-    match 'bar', :to => 'application_integration_test/test#index', :as => :bar
+    routes.draw do
+      get 'baz', :to => 'application_integration_test/test#index', :as => :baz
+    end
+
+    def self.call(*)
+    end
+  end
+
+  routes.draw do
+    get '',    :to => 'application_integration_test/test#index', :as => :empty_string
+
+    get 'foo', :to => 'application_integration_test/test#index', :as => :foo
+    get 'bar', :to => 'application_integration_test/test#index', :as => :bar
+
+    mount MountedApp => '/mounted', :as => "mounted"
   end
 
   def app
@@ -544,6 +568,10 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal '/', empty_string_path
     assert_equal '/foo', foo_path
     assert_equal '/bar', bar_path
+  end
+
+  test "includes mounted helpers" do
+    assert_equal '/mounted/baz', mounted.baz_path
   end
 
   test "route helpers after controller access" do
@@ -604,5 +632,85 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal 'cjolly', request.filtered_parameters['username']
     assert_equal '[FILTERED]', request.filtered_parameters['password']
     assert_equal '[FILTERED]', request.filtered_env['rack.request.form_vars']
+  end
+end
+
+class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def index
+      render :text => "foo#index"
+    end
+
+    def show
+      render :text => "foo#show"
+    end
+
+    def edit
+      render :text => "foo#show"
+    end
+  end
+
+  class BarController < ActionController::Base
+    def default_url_options
+      { :host => "bar.com" }
+    end
+
+    def index
+      render :text => "foo#index"
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  routes.draw do
+    default_url_options :host => "foo.com"
+
+    scope :module => "url_options_integration_test" do
+      get "/foo" => "foo#index", :as => :foos
+      get "/foo/:id" => "foo#show", :as => :foo
+      get "/foo/:id/edit" => "foo#edit", :as => :edit_foo
+      get "/bar" => "bar#index", :as => :bars
+    end
+  end
+
+  test "session uses default url options from routes" do
+    assert_equal "http://foo.com/foo", foos_url
+  end
+
+  test "current host overrides default url options from routes" do
+    get "/foo"
+    assert_response :success
+    assert_equal "http://www.example.com/foo", foos_url
+  end
+
+  test "controller can override default url options from request" do
+    get "/bar"
+    assert_response :success
+    assert_equal "http://bar.com/foo", foos_url
+  end
+
+  test "test can override default url options" do
+    default_url_options[:host] = "foobar.com"
+    assert_equal "http://foobar.com/foo", foos_url
+
+    get "/bar"
+    assert_response :success
+    assert_equal "http://foobar.com/foo", foos_url
+  end
+
+  test "current request path parameters are recalled" do
+    get "/foo/1"
+    assert_response :success
+    assert_equal "/foo/1/edit", url_for(:action => 'edit', :only_path => true)
   end
 end

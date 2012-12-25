@@ -43,7 +43,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
     # TODO Add :on case, but below doesn't work, because then the validation isn't run for some reason
     #      even when using .save instead .valid?
-    # [ "given on condition",     {:on => :save},                {}]
+    # [ "given on condition",     {on: :save},                {}]
   ]
 
   # validates_uniqueness_of w/ mocha

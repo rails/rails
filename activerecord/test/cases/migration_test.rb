@@ -36,7 +36,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.initialize_schema_migrations_table
     ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
 
-    %w(things awesome_things prefix_things_suffix prefix_awesome_things_suffix).each do |table|
+    %w(things awesome_things prefix_things_suffix p_awesome_things_s ).each do |table|
       Thing.connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
@@ -54,6 +54,21 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.remove_column("people", "middle_name") rescue nil
     Person.connection.add_column("people", "first_name", :string, :limit => 40)
     Person.reset_column_information
+  end
+
+  def test_migrator_versions
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal 3, ActiveRecord::Migrator.current_version
+    assert_equal 3, ActiveRecord::Migrator.last_version
+    assert_equal false, ActiveRecord::Migrator.needs_migration?
+
+    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
+    assert_equal 0, ActiveRecord::Migrator.current_version
+    assert_equal 3, ActiveRecord::Migrator.last_version
+    assert_equal true, ActiveRecord::Migrator.needs_migration?
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -109,7 +124,7 @@ class MigrationTest < ActiveRecord::TestCase
       :value_of_e => BigDecimal("2.7182818284590452353602875")
     )
 
-    b = BigNumber.find(:first)
+    b = BigNumber.first
     assert_not_nil b
 
     assert_not_nil b.bank_balance
@@ -153,7 +168,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     GiveMeBigNumbers.down
-    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.first }
   end
 
   def test_filtering_migrations
@@ -165,13 +180,13 @@ class MigrationTest < ActiveRecord::TestCase
 
     Person.reset_column_information
     assert Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
 
     Person.reset_column_information
     assert !Person.column_methods_hash.include?(:last_name)
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
   class MockMigration < ActiveRecord::Migration
@@ -278,19 +293,19 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_rename_table_with_prefix_and_suffix
     assert !Thing.table_exists?
-    ActiveRecord::Base.table_name_prefix = 'prefix_'
-    ActiveRecord::Base.table_name_suffix = '_suffix'
+    ActiveRecord::Base.table_name_prefix = 'p_'
+    ActiveRecord::Base.table_name_suffix = '_s'
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
 
     assert Thing.create("content" => "hello world")
-    assert_equal "hello world", Thing.find(:first).content
+    assert_equal "hello world", Thing.first.content
 
     RenameThings.up
-    Thing.table_name = "prefix_awesome_things_suffix"
+    Thing.table_name = "p_awesome_things_s"
 
-    assert_equal "hello world", Thing.find(:first).content
+    assert_equal "hello world", Thing.first.content
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     ActiveRecord::Base.table_name_suffix = ''
@@ -306,10 +321,10 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_sequence_name
     WeNeedReminders.up
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert_equal "hello world", Reminder.find(:first).content
+    assert_equal "hello world", Reminder.first.content
 
     WeNeedReminders.down
-    assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     ActiveRecord::Base.table_name_suffix = ''
@@ -329,11 +344,7 @@ class MigrationTest < ActiveRecord::TestCase
     columns = Person.connection.columns(:binary_testings)
     data_column = columns.detect { |c| c.name == "data" }
 
-    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
-      assert_equal '', data_column.default
-    else
-      assert_nil data_column.default
-    end
+    assert_nil data_column.default
 
     Person.connection.drop_table :binary_testings rescue nil
   end
@@ -375,6 +386,27 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_out_of_range_limit_should_raise
+    skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+
+    Person.connection.drop_table :test_limits rescue nil
+    assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
+      Person.connection.create_table :test_integer_limits, :force => true do |t|
+        t.column :bigone, :integer, :limit => 10
+      end
+    end
+
+    unless current_adapter?(:PostgreSQLAdapter)
+      assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+        Person.connection.create_table :test_text_limits, :force => true do |t|
+          t.column :bigtext, :text, :limit => 0xfffffffff
+        end
+      end
+    end
+
+    Person.connection.drop_table :test_limits rescue nil
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
@@ -397,227 +429,6 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
     end
 
     connection.drop_table :values rescue nil
-  end
-end
-
-
-class ChangeTableMigrationsTest < ActiveRecord::TestCase
-  def setup
-    @connection = Person.connection
-    @connection.create_table :delete_me, :force => true do |t|
-    end
-  end
-
-  def teardown
-    Person.connection.drop_table :delete_me rescue nil
-  end
-
-  def test_references_column_type_adds_id
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, 'customer_id', :integer, {})
-      t.references :customer
-    end
-  end
-
-  def test_remove_references_column_type_removes_id
-    with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, 'customer_id')
-      t.remove_references :customer
-    end
-  end
-
-  def test_add_belongs_to_works_like_add_references
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, 'customer_id', :integer, {})
-      t.belongs_to :customer
-    end
-  end
-
-  def test_remove_belongs_to_works_like_remove_references
-    with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, 'customer_id')
-      t.remove_belongs_to :customer
-    end
-  end
-
-  def test_references_column_type_with_polymorphic_adds_type
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {})
-      @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {})
-      t.references :taggable, :polymorphic => true
-    end
-  end
-
-  def test_remove_references_column_type_with_polymorphic_removes_type
-    with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
-      @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
-      t.remove_references :taggable, :polymorphic => true
-    end
-  end
-
-  def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {:null => false})
-      @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {:null => false})
-      t.references :taggable, :polymorphic => true, :null => false
-    end
-  end
-
-  def test_remove_references_column_type_with_polymorphic_and_options_null_is_false_removes_table_flag
-    with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
-      @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
-      t.remove_references :taggable, :polymorphic => true, :null => false
-    end
-  end
-
-  def test_timestamps_creates_updated_at_and_created_at
-    with_change_table do |t|
-      @connection.expects(:add_timestamps).with(:delete_me)
-      t.timestamps
-    end
-  end
-
-  def test_remove_timestamps_creates_updated_at_and_created_at
-    with_change_table do |t|
-      @connection.expects(:remove_timestamps).with(:delete_me)
-      t.remove_timestamps
-    end
-  end
-
-  def string_column
-    if current_adapter?(:PostgreSQLAdapter)
-      "character varying(255)"
-    elsif current_adapter?(:OracleAdapter)
-      'VARCHAR2(255)'
-    else
-      'varchar(255)'
-    end
-  end
-
-  def integer_column
-    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
-      'int(11)'
-    elsif current_adapter?(:OracleAdapter)
-      'NUMBER(38)'
-    else
-      'integer'
-    end
-  end
-
-  def test_integer_creates_integer_column
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, :foo, integer_column, {})
-      @connection.expects(:add_column).with(:delete_me, :bar, integer_column, {})
-      t.integer :foo, :bar
-    end
-  end
-
-  def test_string_creates_string_column
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, :foo, string_column, {})
-      @connection.expects(:add_column).with(:delete_me, :bar, string_column, {})
-      t.string :foo, :bar
-    end
-  end
-
-  def test_column_creates_column
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, :bar, :integer, {})
-      t.column :bar, :integer
-    end
-  end
-
-  def test_column_creates_column_with_options
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, :bar, :integer, {:null => false})
-      t.column :bar, :integer, :null => false
-    end
-  end
-
-  def test_index_creates_index
-    with_change_table do |t|
-      @connection.expects(:add_index).with(:delete_me, :bar, {})
-      t.index :bar
-    end
-  end
-
-  def test_index_creates_index_with_options
-    with_change_table do |t|
-      @connection.expects(:add_index).with(:delete_me, :bar, {:unique => true})
-      t.index :bar, :unique => true
-    end
-  end
-
-  def test_index_exists
-    with_change_table do |t|
-      @connection.expects(:index_exists?).with(:delete_me, :bar, {})
-      t.index_exists?(:bar)
-    end
-  end
-
-  def test_index_exists_with_options
-    with_change_table do |t|
-      @connection.expects(:index_exists?).with(:delete_me, :bar, {:unique => true})
-      t.index_exists?(:bar, :unique => true)
-    end
-  end
-
-  def test_change_changes_column
-    with_change_table do |t|
-      @connection.expects(:change_column).with(:delete_me, :bar, :string, {})
-      t.change :bar, :string
-    end
-  end
-
-  def test_change_changes_column_with_options
-    with_change_table do |t|
-      @connection.expects(:change_column).with(:delete_me, :bar, :string, {:null => true})
-      t.change :bar, :string, :null => true
-    end
-  end
-
-  def test_change_default_changes_column
-    with_change_table do |t|
-      @connection.expects(:change_column_default).with(:delete_me, :bar, :string)
-      t.change_default :bar, :string
-    end
-  end
-
-  def test_remove_drops_single_column
-    with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, [:bar])
-      t.remove :bar
-    end
-  end
-
-  def test_remove_drops_multiple_columns
-    with_change_table do |t|
-      @connection.expects(:remove_column).with(:delete_me, [:bar, :baz])
-      t.remove :bar, :baz
-    end
-  end
-
-  def test_remove_index_removes_index_with_options
-    with_change_table do |t|
-      @connection.expects(:remove_index).with(:delete_me, {:unique => true})
-      t.remove_index :unique => true
-    end
-  end
-
-  def test_rename_renames_column
-    with_change_table do |t|
-      @connection.expects(:rename_column).with(:delete_me, :bar, :baz)
-      t.rename :bar, :baz
-    end
-  end
-
-  protected
-  def with_change_table
-    Person.connection.change_table :delete_me do |t|
-      yield t
-    end
   end
 end
 
@@ -723,7 +534,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # One query for columns (delete_me table)
       # One query for primary key (delete_me table)
       # One query to do the bulk change
-      assert_queries(3) do
+      assert_queries(3, :ignore_none => true) do
         with_bulk_change_table do |t|
           t.change :name, :string, :default => 'NONAME'
           t.change :birthdate, :datetime
@@ -882,8 +693,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_skipping_migrations
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
-    
-    sources = {} 
+
+    sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_name_collision"
 

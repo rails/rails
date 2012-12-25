@@ -3,7 +3,7 @@ require 'abstract_unit'
 module TestUrlGeneration
   class WithMountPoint < ActionDispatch::IntegrationTest
     Routes = ActionDispatch::Routing::RouteSet.new
-    Routes.draw { match "/foo", :to => "my_route_generating#index", :as => :foo }
+    include Routes.url_helpers
 
     class ::MyRouteGeneratingController < ActionController::Base
       include Routes.url_helpers
@@ -12,7 +12,11 @@ module TestUrlGeneration
       end
     end
 
-    include Routes.url_helpers
+    Routes.draw do
+      get "/foo", :to => "my_route_generating#index", :as => :foo
+
+      mount MyRouteGeneratingController.action(:index), at: '/bar'
+    end
 
     def _routes
       Routes
@@ -30,9 +34,14 @@ module TestUrlGeneration
       assert_equal "/bar/foo", foo_path(:script_name => "/bar")
     end
 
-    test "the request's SCRIPT_NAME takes precedence over the routes'" do
+    test "the request's SCRIPT_NAME takes precedence over the route" do
       get "/foo", {}, 'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes
       assert_equal "/new/foo", response.body
+    end
+
+    test "the request's SCRIPT_NAME wraps the mounted app's" do
+      get '/new/bar/foo', {}, 'SCRIPT_NAME' => '/new', 'PATH_INFO' => '/bar/foo', 'action_dispatch.routes' => Routes
+      assert_equal "/new/bar/foo", response.body
     end
 
     test "handling http protocol with https set" do

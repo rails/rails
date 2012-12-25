@@ -123,6 +123,18 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # This can happen in Internet Explorer when redirecting after multipart form submit.
+  test "does not raise EOFError on GET request with multipart content-type" do
+    with_routing do |set|
+      set.draw do
+        get ':action', to: 'multipart_params_parsing_test/test'
+      end
+      headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x" }
+      get "/parse", {}, headers
+      assert_response :ok
+    end
+  end
+
   private
     def fixture(name)
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
@@ -144,7 +156,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => 'multipart_params_parsing_test/test'
+          post ':action', :to => 'multipart_params_parsing_test/test'
         end
         yield
       end

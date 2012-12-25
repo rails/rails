@@ -4,8 +4,8 @@ require 'rails/generators/active_model'
 require 'active_record'
 
 module ActiveRecord
-  module Generators
-    class Base < Rails::Generators::NamedBase #:nodoc:
+  module Generators # :nodoc:
+    class Base < Rails::Generators::NamedBase # :nodoc:
       include Rails::Generators::Migration
 
       # Set the current directory as base for the inherited generators.
@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       # Implement the required interface for Rails::Generators::Migration.
-      def self.next_migration_number(dirname) #:nodoc:
+      def self.next_migration_number(dirname)
         next_migration_number = current_migration_number(dirname) + 1
         ActiveRecord::Migration.next_migration_number(next_migration_number)
       end

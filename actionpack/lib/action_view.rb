@@ -21,24 +21,24 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support/ruby/shim'
-require 'active_support/core_ext/class/attribute_accessors'
-
+require 'active_support'
+require 'active_support/rails'
 require 'action_pack'
 
 module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
-    autoload :AssetPaths
     autoload :Base
     autoload :Context
     autoload :CompiledTemplates, "action_view/context"
+    autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet
+    autoload :RecordIdentifier
+    autoload :RoutingUrlFor
     autoload :Template
-    autoload :TestCase
 
     autoload_under "renderer" do
       autoload :Renderer
@@ -70,15 +70,24 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :MissingRequestError
       autoload :TemplateError
       autoload :WrongEncodingError
     end
   end
 
+  autoload :TestCase
+
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
+
+  def self.eager_load!
+    super
+    ActionView::Template.eager_load!
+  end
 end
 
-require 'active_support/i18n'
 require 'active_support/core_ext/string/output_safety'
 
-I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+end

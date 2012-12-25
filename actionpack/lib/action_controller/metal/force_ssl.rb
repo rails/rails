@@ -22,7 +22,7 @@ module ActionController
       # an +:if+ or +:unless+ condition.
       #
       #     class AccountsController < ApplicationController
-      #       force_ssl :if => :ssl_configured?
+      #       force_ssl if: :ssl_configured?
       #
       #       def ssl_configured?
       #         !Rails.env.development?
@@ -32,22 +32,30 @@ module ActionController
       # ==== Options
       # * <tt>host</tt>   - Redirect to a different host name
       # * <tt>only</tt>   - The callback should be run only for this action
-      # * <tt>except<tt>  - The callback should be run for all actions except this action
+      # * <tt>except</tt> - The callback should be run for all actions except this action
       # * <tt>if</tt>     - A symbol naming an instance method or a proc; the callback
       #                     will be called only when it returns a true value.
       # * <tt>unless</tt> - A symbol naming an instance method or a proc; the callback
       #                     will be called only when it returns a false value.
       def force_ssl(options = {})
         host = options.delete(:host)
-        before_filter(options) do
-          unless request.ssl?
-            redirect_options = {:protocol => 'https://', :status => :moved_permanently}
-            redirect_options.merge!(:host => host) if host
-            redirect_options.merge!(:params => request.query_parameters)
-            flash.keep
-            redirect_to redirect_options
-          end
+        before_action(options) do
+          force_ssl_redirect(host)
         end
+      end
+    end
+
+    # Redirect the existing request to use the HTTPS protocol.
+    #
+    # ==== Parameters
+    # * <tt>host</tt> - Redirect to a different host name
+    def force_ssl_redirect(host = nil)
+      unless request.ssl?
+        redirect_options = {:protocol => 'https://', :status => :moved_permanently}
+        redirect_options.merge!(:host => host) if host
+        redirect_options.merge!(:params => request.query_parameters)
+        flash.keep if respond_to?(:flash)
+        redirect_to redirect_options
       end
     end
   end

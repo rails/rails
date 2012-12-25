@@ -7,10 +7,17 @@ require 'active_support/test_case'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
 
+# Config Rails backtrace in tests.
+require 'rails/backtrace_cleaner'
+MiniTest.backtrace_filter = Rails.backtrace_cleaner
+
 # Enable turn if it is available
 begin
   require 'turn'
-  MiniTest::Unit.use_natural_language_case_names = true
+
+  Turn.config do |c|
+    c.natural = true
+  end
 rescue LoadError
 end
 
@@ -18,16 +25,12 @@ if defined?(ActiveRecord::Base)
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"
-
-    setup do
-      ActiveRecord::IdentityMap.clear
-    end
   end
 
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
 
-  def create_fixtures(*table_names, &block)
-    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+  def create_fixtures(*fixture_set_names, &block)
+    FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, {}, &block)
   end
 end
 

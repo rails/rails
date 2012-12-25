@@ -4,20 +4,16 @@ require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/descendants_tracker'
 require 'active_support/time'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
-require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/object/blank'
-require 'active_support/deprecation'
+require 'active_support/core_ext/class/subclasses'
 require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
@@ -40,7 +36,7 @@ module ActiveRecord #:nodoc:
   # method is especially useful when you're receiving the data from somewhere else, like an
   # HTTP request. It works like this:
   #
-  #   user = User.new(:name => "David", :occupation => "Code Artist")
+  #   user = User.new(name: "David", occupation: "Code Artist")
   #   user.name # => "David"
   #
   # You can also use block initialization:
@@ -73,7 +69,7 @@ module ActiveRecord #:nodoc:
   #     end
   #
   #     def self.authenticate_safely_simply(user_name, password)
-  #       where(:user_name => user_name, :password => password).first
+  #       where(user_name: user_name, password: password).first
   #     end
   #   end
   #
@@ -91,27 +87,27 @@ module ActiveRecord #:nodoc:
   #
   #   Company.where(
   #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date",
-  #     { :id => 3, :name => "37signals", :division => "First", :accounting_date => '2005-01-01' }
+  #     { id: 3, name: "37signals", division: "First", accounting_date: '2005-01-01' }
   #   ).first
   #
   # Similarly, a simple hash without a statement will generate conditions based on equality with the SQL AND
   # operator. For instance:
   #
-  #   Student.where(:first_name => "Harvey", :status => 1)
+  #   Student.where(first_name: "Harvey", status: 1)
   #   Student.where(params[:student])
   #
   # A range may be used in the hash to use the SQL BETWEEN operator:
   #
-  #   Student.where(:grade => 9..12)
+  #   Student.where(grade: 9..12)
   #
   # An array may be used in the hash to use the SQL IN operator:
   #
-  #   Student.where(:grade => [9,11,12])
+  #   Student.where(grade: [9,11,12])
   #
   # When joining tables, nested hashes or keys written in the form 'table_name.column_name'
   # can be used to qualify the table name of a particular condition. For instance:
   #
-  #   Student.joins(:schools).where(:schools => { :category => 'public' })
+  #   Student.joins(:schools).where(schools: { category: 'public' })
   #   Student.joins(:schools).where('schools.category' => 'public' )
   #
   # == Overwriting default accessors
@@ -145,10 +141,10 @@ module ActiveRecord #:nodoc:
   # For example, an Active Record User with the <tt>name</tt> attribute has a <tt>name?</tt> method that you can call
   # to determine whether the user has a name:
   #
-  #   user = User.new(:name => "David")
+  #   user = User.new(name: "David")
   #   user.name? # => true
   #
-  #   anonymous = User.new(:name => "")
+  #   anonymous = User.new(name: "")
   #   anonymous.name? # => false
   #
   # == Accessing attributes before they have been typecasted
@@ -169,8 +165,8 @@ module ActiveRecord #:nodoc:
   # to <tt>find_by_</tt>, <tt>find_last_by_</tt>, or <tt>find_all_by_</tt> and thus produces finders
   # like <tt>Person.find_by_user_name</tt>, <tt>Person.find_all_by_last_name</tt>, and
   # <tt>Payment.find_by_transaction_id</tt>. Instead of writing
-  # <tt>Person.where(:user_name => user_name).first</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
-  # And instead of writing <tt>Person.where(:last_name => last_name).all</tt>, you just do
+  # <tt>Person.where(user_name: user_name).first</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # And instead of writing <tt>Person.where(last_name: last_name).all</tt>, you just do
   # <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
@@ -179,7 +175,7 @@ module ActiveRecord #:nodoc:
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
   #
-  #  Person.where(:user_name => user_name, :password => password).first
+  #  Person.where(user_name: user_name, password: password).first
   #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
   #
   # It's even possible to call these dynamic finder methods on relations and named scopes.
@@ -193,13 +189,16 @@ module ActiveRecord #:nodoc:
   # unless they are given in a block.
   #
   #   # No 'Summer' tag exists
-  #   Tag.find_or_create_by_name("Summer") # equal to Tag.create(:name => "Summer")
+  #   Tag.find_or_create_by_name("Summer") # equal to Tag.create(name: "Summer")
   #
   #   # Now the 'Summer' tag does exist
   #   Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
   #
   #   # Now 'Bob' exist and is an 'admin'
-  #   User.find_or_create_by_name('Bob', :age => 40) { |u| u.admin = true }
+  #   User.find_or_create_by_name('Bob', age: 40) { |u| u.admin = true }
+  #
+  # Adding an exclamation point (!) on to the end of <tt>find_or_create_by_</tt> will
+  # raise an <tt>ActiveRecord::RecordInvalid</tt> error if the new record is invalid.
   #
   # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without
   # saving it first. Protected attributes won't be set unless they are given in a block.
@@ -211,7 +210,7 @@ module ActiveRecord #:nodoc:
   # To find by a subset of the attributes to be used for instantiating a new object, pass a hash instead of
   # a list of parameters.
   #
-  #   Tag.find_or_create_by_name(:name => "rails", :creator => current_user)
+  #   Tag.find_or_create_by_name(name: "rails", creator: current_user)
   #
   # That will either find an existing tag named "rails", or create a new one while setting the
   # user that created it.
@@ -233,7 +232,7 @@ module ActiveRecord #:nodoc:
   #     serialize :preferences
   #   end
   #
-  #   user = User.create(:preferences => { "background" => "black", "display" => large })
+  #   user = User.create(preferences: { "background" => "black", "display" => large })
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   #
   # You can also specify a class option as the second parameter that'll raise an exception
@@ -243,7 +242,7 @@ module ActiveRecord #:nodoc:
   #     serialize :preferences, Hash
   #   end
   #
-  #   user = User.create(:preferences => %w( one two three ))
+  #   user = User.create(preferences: %w( one two three ))
   #   User.find(user.id).preferences    # raises SerializationTypeMismatch
   #
   # When you specify a class option, the default value for that attribute will be a new
@@ -268,9 +267,9 @@ module ActiveRecord #:nodoc:
   #   class Client < Company; end
   #   class PriorityClient < Client; end
   #
-  # When you do <tt>Firm.create(:name => "37signals")</tt>, this record will be saved in
+  # When you do <tt>Firm.create(name: "37signals")</tt>, this record will be saved in
   # the companies table with type = "Firm". You can then fetch this row again using
-  # <tt>Company.where(:name => '37signals').first</tt> and it will return a Firm object.
+  # <tt>Company.where(name: '37signals').first</tt> and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
@@ -301,28 +300,66 @@ module ActiveRecord #:nodoc:
   #   (or a bad spelling of an existing one).
   # * AssociationTypeMismatch - The object assigned to the association wasn't of the type
   #   specified in the association definition.
-  # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
-  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt>
-  #   before querying.
-  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
-  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
-  #   nothing was found, please check its documentation for further details.
-  # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
-  # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
-  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
-  #   AttributeAssignmentError
-  #   objects that should be inspected to determine which attributes triggered the errors.
   # * AttributeAssignmentError - An error occurred while doing a mass assignment through the
   #   <tt>attributes=</tt> method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute
   #   triggered the error.
+  # * ConnectionNotEstablished - No connection has been established. Use <tt>establish_connection</tt>
+  #   before querying.
+  # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
+  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
+  #   AttributeAssignmentError
+  #   objects that should be inspected to determine which attributes triggered the errors.
+  # * RecordInvalid - raised by save! and create! when the record is invalid.
+  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
+  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
+  #   nothing was found, please check its documentation for further details.
+  # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
+  # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
-    include ActiveRecord::Model
-  end
-end
+    extend ActiveModel::Naming
 
-ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy)
+    extend ActiveSupport::Benchmarkable
+    extend ActiveSupport::DescendantsTracker
+
+    extend ConnectionHandling
+    extend QueryCache::ClassMethods
+    extend Querying
+    extend Translation
+    extend DynamicMatchers
+    extend Explain
+
+    include Persistence
+    include ReadonlyAttributes
+    include ModelSchema
+    include Inheritance
+    include Scoping
+    include Sanitization
+    include AttributeAssignment
+    include ActiveModel::Conversion
+    include Integration
+    include Validations
+    include CounterCache
+    include Locking::Optimistic
+    include Locking::Pessimistic
+    include AttributeMethods
+    include Callbacks
+    include Timestamp
+    include Associations
+    include ActiveModel::SecurePassword
+    include AutosaveAssociation
+    include NestedAttributes
+    include Aggregations
+    include Transactions
+    include Reflection
+    include Serialization
+    include Store
+    include Core
+  end
+
+  ActiveSupport.run_load_hooks(:active_record, Base)
+end

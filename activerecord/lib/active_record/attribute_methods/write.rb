@@ -9,19 +9,24 @@ module ActiveRecord
 
       module ClassMethods
         protected
-          def define_method_attribute=(attr_name)
-            if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
-              generated_attribute_methods.module_eval("def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", __FILE__, __LINE__)
-            else
-              generated_attribute_methods.send(:define_method, "#{attr_name}=") do |new_value|
-                write_attribute(attr_name, new_value)
-              end
+
+        # See define_method_attribute in read.rb for an explanation of
+        # this code.
+        def define_method_attribute=(name)
+          safe_name = name.unpack('h*').first
+          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            def __temp__#{safe_name}=(value)
+              write_attribute(AttrNames::ATTR_#{safe_name}, value)
             end
-          end
+            alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
+            undef_method :__temp__#{safe_name}=
+          STR
+        end
       end
 
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings
-      # for fixnum and float columns are turned into +nil+.
+      # Updates the attribute identified by <tt>attr_name</tt> with the
+      # specified +value+. Empty strings for fixnum and float columns are
+      # turned into +nil+.
       def write_attribute(attr_name, value)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key

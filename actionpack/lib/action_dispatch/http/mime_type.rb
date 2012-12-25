@@ -1,11 +1,11 @@
 require 'set'
 require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/starts_ends_with'
 
 module Mime
   class Mimes < Array
     def symbols
-      @symbols ||= map {|m| m.to_sym }
+      @symbols ||= map { |m| m.to_sym }
     end
 
     %w(<< concat shift unshift push pop []= clear compact! collect!
@@ -24,9 +24,16 @@ module Mime
   EXTENSION_LOOKUP = {}
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
-  def self.[](type)
-    return type if type.is_a?(Type)
-    Type.lookup_by_extension(type.to_s)
+  class << self
+    def [](type)
+      return type if type.is_a?(Type)
+      Type.lookup_by_extension(type) || NullType.new
+    end
+
+    def fetch(type)
+      return type if type.is_a?(Type)
+      EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
+    end
   end
 
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
@@ -37,8 +44,8 @@ module Mime
   #
   #       respond_to do |format|
   #         format.html
-  #         format.ics { render :text => post.to_ics, :mime_type => Mime::Type["text/calendar"]  }
-  #         format.xml { render :xml => @people.to_xml }
+  #         format.ics { render text: post.to_ics, mime_type: Mime::Type["text/calendar"]  }
+  #         format.xml { render xml: @people }
   #       end
   #     end
   #   end
@@ -50,39 +57,96 @@ module Mime
     # i.e. following a link, getting an image or posting a form. CSRF protection
     # only needs to protect against these types.
     @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form, :text]
-    cattr_reader :browser_generated_types
     attr_reader :symbol
+
+    @register_callbacks = []
 
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
-      attr_accessor :order, :name, :q
+      attr_accessor :index, :name, :q
+      alias :to_s :name
 
-      def initialize(order, name, q=nil)
-        @order = order
-        @name = name.strip
-        q ||= 0.0 if @name == Mime::ALL # default wildcard match to end of list
+      def initialize(index, name, q = nil)
+        @index = index
+        @name = name
+        q ||= 0.0 if @name == Mime::ALL.to_s # default wildcard match to end of list
         @q = ((q || 1.0).to_f * 100).to_i
       end
 
-      def to_s
-        @name
-      end
-
       def <=>(item)
-        result = item.q <=> q
-        result = order <=> item.order if result == 0
+        result = item.q <=> @q
+        result = @index <=> item.index if result == 0
         result
       end
 
       def ==(item)
-        name == (item.respond_to?(:name) ? item.name : item)
+        @name == item.to_s
       end
     end
 
-    class << self
+    class AcceptList < Array #:nodoc:
+      def assort!
+        sort!
 
+        # Take care of the broken text/xml entry by renaming or deleting it
+        if text_xml_idx && app_xml_idx
+          app_xml.q = [text_xml.q, app_xml.q].max # set the q value to the max of the two
+          exchange_xml_items if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
+          delete_at(text_xml_idx)                 # delete text_xml from the list
+        elsif text_xml_idx
+          text_xml.name = Mime::XML.to_s
+        end
+
+        # Look for more specific XML-based types and sort them ahead of app/xml
+        if app_xml_idx
+          idx = app_xml_idx
+
+          while idx < length
+            type = self[idx]
+            break if type.q < app_xml.q
+
+            if type.name.ends_with? '+xml'
+              self[app_xml_idx], self[idx] = self[idx], app_xml
+              @app_xml_idx = idx
+            end
+            idx += 1
+          end
+        end
+
+        map! { |i| Mime::Type.lookup(i.name) }.uniq!
+        to_a
+      end
+
+      private
+        def text_xml_idx
+          @text_xml_idx ||= index('text/xml')
+        end
+
+        def app_xml_idx
+          @app_xml_idx ||= index(Mime::XML.to_s)
+        end
+
+        def text_xml
+          self[text_xml_idx]
+        end
+
+        def app_xml
+          self[app_xml_idx]
+        end
+
+        def exchange_xml_items
+          self[app_xml_idx], self[text_xml_idx] = text_xml, app_xml
+          @app_xml_idx, @text_xml_idx = text_xml_idx, app_xml_idx
+        end
+    end
+
+    class << self
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
-      Q_SEPARATOR_REGEXP = /;\s*q=/
+      PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
+
+      def register_callback(&block)
+        @register_callbacks << block
+      end
 
       def lookup(string)
         LOOKUP[string]
@@ -99,91 +163,51 @@ module Mime
       end
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
-        Mime.const_set(symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms))
+        Mime.const_set(symbol.upcase, Type.new(string, symbol, mime_type_synonyms))
 
-        SET << Mime.const_get(symbol.to_s.upcase)
+        new_mime = Mime.const_get(symbol.upcase)
+        SET << new_mime
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
         ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
+
+        @register_callbacks.each do |callback|
+          callback.call(new_mime)
+        end
       end
 
       def parse(accept_header)
         if accept_header !~ /,/
-          accept_header = accept_header.split(Q_SEPARATOR_REGEXP).first
-          if accept_header =~ TRAILING_STAR_REGEXP
-            parse_data_with_trailing_star($1)
-          else
-            [Mime::Type.lookup(accept_header)]
-          end
+          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
+          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)]
         else
-          # keep track of creation order to keep the subsequent sort stable
-          list, index = [], 0
-          accept_header.split(/,/).each do |header|
-            params, q = header.split(Q_SEPARATOR_REGEXP)
+          list, index = AcceptList.new, 0
+          accept_header.split(',').each do |header|
+            params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
             if params.present?
               params.strip!
 
-              if params =~ TRAILING_STAR_REGEXP
-                parse_data_with_trailing_star($1).each do |m|
-                  list << AcceptItem.new(index, m.to_s, q)
-                  index += 1
-                end
-              else
-                list << AcceptItem.new(index, params, q)
+              params = parse_trailing_star(params) || [params]
+
+              params.each do |m|
+                list << AcceptItem.new(index, m.to_s, q)
                 index += 1
               end
             end
           end
-          list.sort!
-
-          # Take care of the broken text/xml entry by renaming or deleting it
-          text_xml = list.index("text/xml")
-          app_xml = list.index(Mime::XML.to_s)
-
-          if text_xml && app_xml
-            # set the q value to the max of the two
-            list[app_xml].q = [list[text_xml].q, list[app_xml].q].max
-
-            # make sure app_xml is ahead of text_xml in the list
-            if app_xml > text_xml
-              list[app_xml], list[text_xml] = list[text_xml], list[app_xml]
-              app_xml, text_xml = text_xml, app_xml
-            end
-
-            # delete text_xml from the list
-            list.delete_at(text_xml)
-
-          elsif text_xml
-            list[text_xml].name = Mime::XML.to_s
-          end
-
-          # Look for more specific XML-based types and sort them ahead of app/xml
-
-          if app_xml
-            idx = app_xml
-            app_xml_type = list[app_xml]
-
-            while(idx < list.length)
-              type = list[idx]
-              break if type.q < app_xml_type.q
-              if type.name =~ /\+xml$/
-                list[app_xml], list[idx] = list[idx], list[app_xml]
-                app_xml = idx
-              end
-              idx += 1
-            end
-          end
-
-          list.map! { |i| Mime::Type.lookup(i.name) }.uniq!
-          list
+          list.assort!
         end
       end
 
-      # input: 'text'
-      # returned value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+      def parse_trailing_star(accept_header)
+        parse_data_with_trailing_star($1) if accept_header =~ TRAILING_STAR_REGEXP
+      end
+
+      # For an input of <tt>'text'</tt>, returns <tt>[Mime::JSON, Mime::XML, Mime::ICS,
+      # Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]</tt>.
       #
-      # input: 'application'
-      # returned value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]
+      # For an input of <tt>'application'</tt>, returns <tt>[Mime::HTML, Mime::JS,
+      # Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]</tt>.
       def parse_data_with_trailing_star(input)
         Mime::SET.select { |m| m =~ input }
       end
@@ -192,9 +216,9 @@ module Mime
       #
       # Usage:
       #
-      # Mime::Type.unregister(:mobile)
+      #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
-        symbol = symbol.to_s.upcase
+        symbol = symbol.upcase
         mime = Mime.const_get(symbol)
         Mime.instance_eval { remove_const(symbol) }
 
@@ -251,25 +275,47 @@ module Mime
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery. See
     # ActionController::RequestForgeryProtection.
     def verify_request?
+      ActiveSupport::Deprecation.warn "Mime::Type#verify_request? is deprecated and will be removed in Rails 4.1"
       @@browser_generated_types.include?(to_sym)
+    end
+
+    def self.browser_generated_types
+      ActiveSupport::Deprecation.warn "Mime::Type.browser_generated_types is deprecated and will be removed in Rails 4.1"
+      @@browser_generated_types
     end
 
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
     end
 
-    def respond_to?(method, include_private = false) #:nodoc:
-      super || method.to_s =~ /(\w+)\?$/
+
+    private
+
+    def to_ary; end
+    def to_a; end
+
+    def method_missing(method, *args)
+      if method.to_s.ends_with? '?'
+        method[0..-2].downcase.to_sym == to_sym
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method, include_private = false) #:nodoc:
+      method.to_s.ends_with? '?'
+    end
+  end
+  
+  class NullType
+    def nil?
+      true
     end
 
     private
-      def method_missing(method, *args)
-        if method.to_s =~ /(\w+)\?$/
-          $1.downcase.to_sym == to_sym
-        else
-          super
-        end
-      end
+    def method_missing(method, *args)
+      false if method.to_s.ends_with? '?'
+    end
   end
 end
 

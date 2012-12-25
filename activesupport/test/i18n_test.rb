@@ -97,4 +97,9 @@ class I18nTest < ActiveSupport::TestCase
     I18n.backend.store_translations 'en', :support => { :array => { :two_words_connector => default_two_words_connector } }
     I18n.backend.store_translations 'en', :support => { :array => { :last_word_connector => default_last_word_connector } }
   end
+
+  def test_to_sentence_with_empty_i18n_store
+    I18n.backend.store_translations 'empty', {}
+    assert_equal 'a, b, and c', %w[a b c].to_sentence(locale: 'empty')
+  end
 end

@@ -1,29 +1,29 @@
+require 'thread_safe'
 require 'active_support/concern'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveSupport
-  # \Callbacks are code hooks that are run at key points in an object's lifecycle.
-  # The typical use case is to have a base class define a set of callbacks relevant
-  # to the other functionality it supplies, so that subclasses can install callbacks
-  # that enhance or modify the base functionality without needing to override
-  # or redefine methods of the base class.
+  # Callbacks are code hooks that are run at key points in an object's lifecycle.
+  # The typical use case is to have a base class define a set of callbacks
+  # relevant to the other functionality it supplies, so that subclasses can
+  # install callbacks that enhance or modify the base functionality without
+  # needing to override or redefine methods of the base class.
   #
-  # Mixing in this module allows you to define the events in the object's lifecycle
-  # that will support callbacks (via +ClassMethods.define_callbacks+), set the instance
-  # methods, procs, or callback objects to be called (via +ClassMethods.set_callback+),
-  # and run the installed callbacks at the appropriate times (via +run_callbacks+).
+  # Mixing in this module allows you to define the events in the object's
+  # lifecycle that will support callbacks (via +ClassMethods.define_callbacks+),
+  # set the instance methods, procs, or callback objects to be called (via
+  # +ClassMethods.set_callback+), and run the installed callbacks at the
+  # appropriate times (via +run_callbacks+).
   #
-  # Three kinds of callbacks are supported: before callbacks, run before a certain event;
-  # after callbacks, run after the event; and around callbacks, blocks that surround the
-  # event, triggering it when they yield. Callback code can be contained in instance
-  # methods, procs or lambdas, or callback objects that respond to certain predetermined
-  # methods. See +ClassMethods.set_callback+ for details.
-  #
-  # ==== Example
+  # Three kinds of callbacks are supported: before callbacks, run before a
+  # certain event; after callbacks, run after the event; and around callbacks,
+  # blocks that surround the event, triggering it when they yield. Callback code
+  # can be contained in instance methods, procs or lambdas, or callback objects
+  # that respond to certain predetermined methods. See +ClassMethods.set_callback+
+  # for details.
   #
   #   class Record
   #     include ActiveSupport::Callbacks
@@ -54,7 +54,6 @@ module ActiveSupport
   #   saving...
   #   - save
   #   saved
-  #
   module Callbacks
     extend Concern
 
@@ -65,24 +64,24 @@ module ActiveSupport
     # Runs the callbacks for the given event.
     #
     # Calls the before and around callbacks in the order they were set, yields
-    # the block (if given one), and then runs the after callbacks in reverse order.
+    # the block (if given one), and then runs the after callbacks in reverse
+    # order.
     #
-    # If the callback chain was halted, returns +false+. Otherwise returns the result
-    # of the block, or +true+ if no block is given.
+    # If the callback chain was halted, returns +false+. Otherwise returns the
+    # result of the block, or +true+ if no block is given.
     #
     #   run_callbacks :save do
     #     save
     #   end
-    #
-    def run_callbacks(kind, key = nil, &block)
-      #TODO: deprecate key argument
-      self.class.__run_callbacks(kind, self, &block)
+    def run_callbacks(kind, &block)
+      runner_name = self.class.__define_callbacks(kind, self)
+      send(runner_name, &block)
     end
 
     private
 
     # A hook invoked everytime a before callback is halted.
-    # This can be overriden in AS::Callback implementors in order
+    # This can be overridden in AS::Callback implementors in order
     # to provide better debugging/logging.
     def halted_callback_hook(filter)
     end
@@ -133,6 +132,10 @@ module ActiveSupport
 
       def matches?(_kind, _filter)
         @kind == _kind && @filter == _filter
+      end
+
+      def duplicates?(other)
+        matches?(other.kind, other.filter)
       end
 
       def _update_filter(filter_options, new_options)
@@ -187,18 +190,17 @@ module ActiveSupport
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
       #
-      # For `around_save :filter_name, :if => :condition':
+      # For `set_callback :save, :around, :filter_name, if: :condition':
       #
-      # def _conditional_callback_save_17
-      #   if condition
-      #     filter_name do
+      #   def _conditional_callback_save_17
+      #     if condition
+      #       filter_name do
+      #         yield self
+      #       end
+      #     else
       #       yield self
       #     end
-      #   else
-      #     yield self
       #   end
-      # end
-      #
       def define_conditional_callback
         name = "_conditional_callback_#{@kind}_#{next_id}"
         @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
@@ -217,7 +219,7 @@ module ActiveSupport
 
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
-      # expression based on the options
+      # expression based on the options.
       def recompile_options!
         conditions = ["true"]
 
@@ -236,23 +238,22 @@ module ActiveSupport
       #
       #   Arrays::  Used in conditions. This is used to specify
       #             multiple conditions. Used internally to
-      #             merge conditions from skip_* filters
-      #   Symbols:: A method to call
-      #   Strings:: Some content to evaluate
-      #   Procs::   A proc to call with the object
-      #   Objects:: An object with a before_foo method on it to call
+      #             merge conditions from skip_* filters.
+      #   Symbols:: A method to call.
+      #   Strings:: Some content to evaluate.
+      #   Procs::   A proc to call with the object.
+      #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
       #
       # All of these objects are compiled into methods and handled
       # the same after this point:
       #
-      #   Arrays::  Merged together into a single filter
-      #   Symbols:: Already methods
-      #   Strings:: class_eval'ed into methods
-      #   Procs::   define_method'ed into methods
+      #   Arrays::  Merged together into a single filter.
+      #   Symbols:: Already methods.
+      #   Strings:: class_eval'ed into methods.
+      #   Procs::   define_method'ed into methods.
       #   Objects::
       #     a method is created that calls the before_foo method
       #     on the object.
-      #
       def _compile_filter(filter)
         method_name = "_callback_#{@kind}_#{next_id}"
         case filter
@@ -286,10 +287,15 @@ module ActiveSupport
 
       def _normalize_legacy_filter(kind, filter)
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
+          message = "Filter object with #filter method is deprecated. Define method corresponding " \
+                    "to filter type (#before, #after or #around)."
+          ActiveSupport::Deprecation.warn message
           filter.singleton_class.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{kind}(context, &block) filter(context, &block) end
           RUBY_EVAL
-        elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around
+        elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around && !filter.respond_to?(:around)
+          message = "Filter object with #before and #after methods is deprecated. Define #around method instead."
+          ActiveSupport::Deprecation.warn message
           def filter.around(context)
             should_continue = before(context)
             yield if should_continue
@@ -299,7 +305,7 @@ module ActiveSupport
       end
     end
 
-    # An Array with a compile method
+    # An Array with a compile method.
     class CallbackChain < Array #:nodoc:#
       attr_reader :name, :config
 
@@ -316,25 +322,48 @@ module ActiveSupport
         method << "value = nil"
         method << "halted = false"
 
-        callbacks = "value = yield if block_given? && !halted"
+        callbacks = "value = !halted && (!block_given? || yield)"
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
         method << callbacks
 
-        method << "halted ? false : (block_given? ? value : true)"
-        method.flatten.compact.join("\n")
+        method << "value"
+        method.join("\n")
+      end
+
+      def append(*callbacks)
+        callbacks.each { |c| append_one(c) }
+      end
+
+      def prepend(*callbacks)
+        callbacks.each { |c| prepend_one(c) }
+      end
+
+      private
+
+      def append_one(callback)
+        remove_duplicates(callback)
+        push(callback)
+      end
+
+      def prepend_one(callback)
+        remove_duplicates(callback)
+        unshift(callback)
+      end
+
+      def remove_duplicates(callback)
+        delete_if { |c| callback.duplicates?(c) }
       end
 
     end
 
     module ClassMethods
 
-      # This method runs callback chain for the given kind.
-      # If this called first time it creates a new callback method for the kind.
+      # This method defines callback chain method for the given kind
+      # if it was not yet defined.
       # This generated method plays caching role.
-      #
-      def __run_callbacks(kind, object, &blk) #:nodoc:
+      def __define_callbacks(kind, object) #:nodoc:
         name = __callback_runner_name(kind)
         unless object.respond_to?(name, true)
           str = object.send("_#{kind}_callbacks").compile
@@ -343,7 +372,7 @@ module ActiveSupport
             protected :#{name}
           RUBY_EVAL
         end
-        object.send(name, &blk)
+        name
       end
 
       def __reset_runner(symbol)
@@ -351,15 +380,22 @@ module ActiveSupport
         undef_method(name) if method_defined?(name)
       end
 
-      def __callback_runner_name(kind)
+      def __callback_runner_name_cache
+        @__callback_runner_name_cache ||= ThreadSafe::Cache.new {|cache, kind| cache[kind] = __generate_callback_runner_name(kind) }
+      end
+
+      def __generate_callback_runner_name(kind)
         "_run__#{self.name.hash.abs}__#{kind}__callbacks"
+      end
+
+      def __callback_runner_name(kind)
+        __callback_runner_name_cache[kind]
       end
 
       # This is used internally to append, prepend and skip callbacks to the
       # CallbackChain.
-      #
       def __update_callbacks(name, filters = [], block = nil) #:nodoc:
-        type = filters.first.in?([:before, :after, :around]) ? filters.shift : :before
+        type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 
@@ -373,8 +409,8 @@ module ActiveSupport
       # Install a callback for the given event.
       #
       #   set_callback :save, :before, :before_meth
-      #   set_callback :save, :after,  :after_meth, :if => :condition
-      #   set_callback :save, :around, lambda { |r| stuff; result = yield; stuff }
+      #   set_callback :save, :after,  :after_meth, if: :condition
+      #   set_callback :save, :around, ->(r, &block) { stuff; result = block.call; stuff }
       #
       # The second arguments indicates whether the callback is to be run +:before+,
       # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This
@@ -382,30 +418,29 @@ module ActiveSupport
       #
       #   set_callback :save, :before_meth
       #
-      # The callback can specified as a symbol naming an instance method; as a proc,
-      # lambda, or block; as a string to be instance evaluated; or as an object that
-      # responds to a certain method determined by the <tt>:scope</tt> argument to
-      # +define_callback+.
+      # The callback can specified as a symbol naming an instance method; as a
+      # proc, lambda, or block; as a string to be instance evaluated; or as an
+      # object that responds to a certain method determined by the <tt>:scope</tt>
+      # argument to +define_callback+.
       #
       # If a proc, lambda, or block is given, its body is evaluated in the context
       # of the current object. It can also optionally accept the current object as
       # an argument.
       #
-      # Before and around callbacks are called in the order that they are set; after
-      # callbacks are called in the reverse order.
-      # 
+      # Before and around callbacks are called in the order that they are set;
+      # after callbacks are called in the reverse order.
+      #
       # Around callbacks can access the return value from the event, if it
       # wasn't halted, from the +yield+ call.
       #
       # ===== Options
       #
-      # * <tt>:if</tt> - A symbol naming an instance method or a proc; the callback
-      #   will be called only when it returns a true value.
-      # * <tt>:unless</tt> - A symbol naming an instance method or a proc; the callback
-      #   will be called only when it returns a false value.
-      # * <tt>:prepend</tt> - If true, the callback will be prepended to the existing
-      #   chain rather than appended.
-      #
+      # * <tt>:if</tt> - A symbol naming an instance method or a proc; the
+      #   callback will be called only when it returns a +true+ value.
+      # * <tt>:unless</tt> - A symbol naming an instance method or a proc; the
+      #   callback will be called only when it returns a +false+ value.
+      # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
+      #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)
         mapped = nil
 
@@ -414,23 +449,19 @@ module ActiveSupport
             Callback.new(chain, filter, type, options.dup, self)
           end
 
-          filters.each do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) }
-          end
-
-          options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
+          options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
 
           target.send("_#{name}_callbacks=", chain)
         end
       end
 
-      # Skip a previously set callback. Like +set_callback+, <tt>:if</tt> or <tt>:unless</tt>
-      # options may be passed in order to control when the callback is skipped.
+      # Skip a previously set callback. Like +set_callback+, <tt>:if</tt> or
+      # <tt>:unless</tt> options may be passed in order to control when the
+      # callback is skipped.
       #
       #   class Writer < Person
-      #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
+      #      skip_callback :validate, :before, :check_membership, if: -> { self.age > 18 }
       #   end
-      #
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           filters.each do |filter|
@@ -449,7 +480,6 @@ module ActiveSupport
       end
 
       # Remove all set callbacks for the given event.
-      #
       def reset_callbacks(symbol)
         callbacks = send("_#{symbol}_callbacks")
 
@@ -472,24 +502,25 @@ module ActiveSupport
       #
       # ===== Options
       #
-      # * <tt>:terminator</tt> - Determines when a before filter will halt the callback
-      #   chain, preventing following callbacks from being called and the event from being
-      #   triggered. This is a string to be eval'ed. The result of the callback is available
-      #   in the <tt>result</tt> variable.
+      # * <tt>:terminator</tt> - Determines when a before filter will halt the
+      #   callback chain, preventing following callbacks from being called and
+      #   the event from being triggered. This is a string to be eval'ed. The
+      #   result of the callback is available in the +result+ variable.
       #
-      #     define_callbacks :validate, :terminator => "result == false"
+      #     define_callbacks :validate, terminator: 'result == false'
       #
       #   In this example, if any before validate callbacks returns +false+,
-      #   other callbacks are not executed. Defaults to "false", meaning no value
+      #   other callbacks are not executed. Defaults to +false+, meaning no value
       #   halts the chain.
       #
-      # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after callbacks should be terminated
-      #   by the <tt>:terminator</tt> option. By default after callbacks executed no matter
-      #   if callback chain was terminated or not.
-      #   Option makes sence only when <tt>:terminator</tt> option is specified.
+      # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
+      #   callbacks should be terminated by the <tt>:terminator</tt> option. By
+      #   default after callbacks executed no matter if callback chain was
+      #   terminated or not. Option makes sense only when <tt>:terminator</tt>
+      #   option is specified.
       #
-      # * <tt>:scope</tt> - Indicates which methods should be executed when an object
-      #   is used as a callback.
+      # * <tt>:scope</tt> - Indicates which methods should be executed when an
+      #   object is used as a callback.
       #
       #     class Audit
       #       def before(caller)
@@ -514,23 +545,23 @@ module ActiveSupport
       #       end
       #     end
       #
-      #   In the above case whenever you save an account the method <tt>Audit#before</tt> will
-      #   be called. On the other hand
+      #   In the above case whenever you save an account the method
+      #   <tt>Audit#before</tt> will be called. On the other hand
       #
-      #     define_callbacks :save, :scope => [:kind, :name]
+      #     define_callbacks :save, scope: [:kind, :name]
       #
-      #   would trigger <tt>Audit#before_save</tt> instead. That's constructed by calling
-      #   <tt>#{kind}_#{name}</tt> on the given instance. In this case "kind" is "before" and
-      #   "name" is "save". In this context +:kind+ and +:name+ have special meanings: +:kind+
-      #   refers to the kind of callback (before/after/around) and +:name+ refers to the
-      #   method on which callbacks are being defined.
+      #   would trigger <tt>Audit#before_save</tt> instead. That's constructed
+      #   by calling <tt>#{kind}_#{name}</tt> on the given instance. In this
+      #   case "kind" is "before" and "name" is "save". In this context +:kind+
+      #   and +:name+ have special meanings: +:kind+ refers to the kind of
+      #   callback (before/after/around) and +:name+ refers to the method on
+      #   which callbacks are being defined.
       #
       #   A declaration like
       #
-      #     define_callbacks :save, :scope => [:name]
+      #     define_callbacks :save, scope: [:name]
       #
       #   would call <tt>Audit#save</tt>.
-      #
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|

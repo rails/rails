@@ -16,26 +16,9 @@ require 'models/ship_part'
 require 'models/tag'
 require 'models/tagging'
 require 'models/treasure'
-require 'models/company'
 require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
-  def test_autosave_should_be_a_valid_option_for_has_one
-    assert ActiveRecord::Associations::Builder::HasOne.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_belongs_to
-    assert ActiveRecord::Associations::Builder::BelongsTo.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_has_many
-    assert ActiveRecord::Associations::Builder::HasMany.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_has_and_belongs_to_many
-    assert ActiveRecord::Associations::Builder::HasAndBelongsToMany.valid_options.include?(:autosave)
-  end
-
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end
@@ -87,7 +70,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_save_fails_for_invalid_has_one
-    firm = Firm.find(:first)
+    firm = Firm.first
     assert firm.valid?
 
     firm.build_account
@@ -99,7 +82,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_save_succeeds_for_invalid_has_one_with_validate_false
-    firm = Firm.find(:first)
+    firm = Firm.first
     assert firm.valid?
 
     firm.build_unvalidated_account
@@ -155,20 +138,20 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_not_resaved_when_unchanged
-    firm = Firm.find(:first, :include => :account)
+    firm = Firm.all.merge!(:includes => :account).first
     firm.name += '-changed'
     assert_queries(1) { firm.save! }
 
-    firm = Firm.find(:first)
-    firm.account = Account.find(:first)
-    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
+    firm = Firm.first
+    firm.account = Account.first
+    assert_queries(Firm.partial_writes? ? 0 : 1) { firm.save! }
 
-    firm = Firm.find(:first).dup
-    firm.account = Account.find(:first)
+    firm = Firm.first.dup
+    firm.account = Account.first
     assert_queries(2) { firm.save! }
 
-    firm = Firm.find(:first).dup
-    firm.account = Account.find(:first).dup
+    firm = Firm.first.dup
+    firm.account = Account.first.dup
     assert_queries(2) { firm.save! }
   end
 
@@ -228,7 +211,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_assignment_before_parent_saved
-    client = Client.find(:first)
+    client = Client.first
     apple = Firm.new("name" => "Apple")
     client.firm = apple
     assert_equal apple, client.firm
@@ -342,7 +325,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_build_and_then_save_parent_should_not_reload_target
-    client = Client.find(:first)
+    client = Client.first
     apple = client.build_firm(:name => "Apple")
     client.save!
     assert_no_queries { assert_equal apple, client.firm }
@@ -384,7 +367,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_invalid_adding_with_validate_false
-    firm = Firm.find(:first)
+    firm = Firm.first
     client = Client.new
     firm.unvalidated_clients_of_firm << client
 
@@ -397,7 +380,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_valid_adding_with_validate_false
     no_of_clients = Client.count
 
-    firm = Firm.find(:first)
+    firm = Firm.first
     client = Client.new("name" => "Apple")
 
     assert firm.valid?
@@ -627,7 +610,9 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice
     @pirate.ship.mark_for_destruction
     assert @pirate.save
-    @pirate.ship.expects(:destroy).never
+    class << @pirate.ship
+      def destroy; raise "Should not be called" end
+    end
     assert @pirate.save
   end
 
@@ -672,7 +657,9 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_a_parent_marked_for_destruction_should_not_be_destroyed_twice
     @ship.pirate.mark_for_destruction
     assert @ship.save
-    @ship.pirate.expects(:destroy).never
+    class << @ship.pirate
+      def destroy; raise "Should not be called" end
+    end
     assert @ship.save
   end
 
@@ -767,6 +754,16 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_equal before, @pirate.reload.birds
   end
 
+  def test_when_new_record_a_child_marked_for_destruction_should_not_affect_other_records_from_saving
+    @pirate = @ship.build_pirate(:catchphrase => "Arr' now I shall keep me eye on you matey!") # new record
+
+    3.times { |i| @pirate.birds.build(:name => "birds_#{i}") }
+    @pirate.birds[1].mark_for_destruction
+    @pirate.save!
+
+    assert_equal 2, @pirate.birds.reload.length
+  end
+
   # Add and remove callbacks tests for association collections.
   %w{ method proc }.each do |callback_type|
     define_method("test_should_run_add_callback_#{callback_type}s_for_has_many") do
@@ -858,7 +855,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
     before = @pirate.parrots.map { |c| c.mark_for_destruction ; c }
 
-    class << @pirate.parrots
+    class << @pirate.association(:parrots)
       def destroy(*args)
         super
         raise 'Oh noes!'
@@ -978,10 +975,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
-      expected = ActiveRecord::IdentityMap.enabled? ?
-        [nil, nil, '', ''] :
-        [nil, nil, nil, nil]
-      assert_equal expected, values
+      assert_equal [nil, nil, nil, nil], values
     else
       assert_equal ['', '', '', ''], values
     end
@@ -1077,8 +1071,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.save(:validate => false)
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
-      expected = ActiveRecord::IdentityMap.enabled? ?  [nil, ''] : [nil, nil]
-      assert_equal expected, [@ship.reload.name, @ship.pirate.catchphrase]
+      assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
     else
       assert_equal ['', ''], [@ship.reload.name, @ship.pirate.catchphrase]
     end
@@ -1267,7 +1260,7 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_not_load_the_associated_models_if_they_were_not_loaded_yet
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
 
-    @pirate.send(@association_name).class # hack to load the target
+    @pirate.send(@association_name).load_target
 
     assert_queries(3) do
       @pirate.catchphrase = 'Yarr'

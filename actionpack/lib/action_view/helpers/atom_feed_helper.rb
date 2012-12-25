@@ -2,7 +2,7 @@ require 'set'
 
 module ActionView
   # = Action View Atom Feed Helpers
-  module Helpers #:nodoc:
+  module Helpers
     module AtomFeedHelper
       # Adds easy defaults to writing Atom feeds with the Builder template engine (this does not work on ERB or any other
       # template languages).
@@ -12,7 +12,7 @@ module ActionView
       #   config/routes.rb:
       #     Basecamp::Application.routes.draw do
       #       resources :posts
-      #       root :to => "posts#index"
+      #       root to: "posts#index"
       #     end
       #
       #   app/controllers/posts_controller.rb:
@@ -37,7 +37,7 @@ module ActionView
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
-      #           entry.content(post.body, :type => 'html')
+      #           entry.content(post.body, type: 'html')
       #
       #           entry.author do |author|
       #             author.name("DHH")
@@ -69,7 +69,7 @@ module ActionView
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
-      #           entry.content(post.body, :type => 'html')
+      #           entry.content(post.body, type: 'html')
       #           entry.tag!('app:edited', Time.now)
       #
       #           entry.author do |author|
@@ -80,11 +80,11 @@ module ActionView
       #     end
       #
       # The Atom spec defines five elements (content rights title subtitle
-      # summary) which may directly contain xhtml content if :type => 'xhtml'
+      # summary) which may directly contain xhtml content if type: 'xhtml'
       # is specified as an attribute. If so, this helper will take care of
       # the enclosing div and xhtml namespace declaration. Example usage:
       #
-      #    entry.summary :type => 'xhtml' do |xhtml|
+      #    entry.summary type: 'xhtml' do |xhtml|
       #      xhtml.p pluralize(order.line_items.count, "line item")
       #      xhtml.p "Shipped to #{order.address}"
       #      xhtml.p "Paid by #{order.pay_type}"
@@ -124,7 +124,7 @@ module ActionView
         end
       end
 
-      class AtomBuilder
+      class AtomBuilder #:nodoc:
         XHTML_TAG_NAMES = %w(content rights title subtitle summary).to_set
 
         def initialize(xml)
@@ -149,7 +149,7 @@ module ActionView
 
           # True if the method name matches one of the five elements defined
           # in the Atom spec as potentially containing XHTML content and
-          # if :type => 'xhtml' is, in fact, specified.
+          # if type: 'xhtml' is, in fact, specified.
           def xhtml_block?(method, arguments)
             if XHTML_TAG_NAMES.include?(method.to_s)
               last = arguments.last
@@ -158,7 +158,7 @@ module ActionView
           end
       end
 
-      class AtomFeedBuilder < AtomBuilder
+      class AtomFeedBuilder < AtomBuilder #:nodoc:
         def initialize(xml, view, feed_options = {})
           @xml, @view, @feed_options = xml, view, feed_options
         end
@@ -176,6 +176,7 @@ module ActionView
         # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.
         # * <tt>:url</tt>: The URL for this entry. Defaults to the polymorphic_url for the record.
         # * <tt>:id</tt>: The ID for this entry. Defaults to "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}"
+        # * <tt>:type</tt>: The TYPE for this entry. Defaults to "text/html".
         def entry(record, options = {})
           @xml.entry do
             @xml.id(options[:id] || "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}")
@@ -188,7 +189,9 @@ module ActionView
               @xml.updated((options[:updated] || record.updated_at).xmlschema)
             end
 
-            @xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:url] || @view.polymorphic_url(record))
+            type = options.fetch(:type, 'text/html')
+
+            @xml.link(:rel => 'alternate', :type => type, :href => options[:url] || @view.polymorphic_url(record))
 
             yield AtomBuilder.new(@xml)
           end

@@ -68,7 +68,9 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
       begin
         $stderr = StringIO.new # suppress the log
         xml = "<person><name>David</name></pineapple>"
-        assert_raise(REXML::ParseException) { post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => false) }
+        exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => false) }
+        assert_equal REXML::ParseException, exception.original_exception.class
+        assert_equal exception.original_exception.message, exception.message
       ensure
         $stderr = STDERR
       end
@@ -106,7 +108,7 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::XmlParamsParsingTest::TestController
+          post ':action', :to => ::XmlParamsParsingTest::TestController
         end
         yield
       end
@@ -155,7 +157,7 @@ class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::RootLessXmlParamsParsingTest::TestController
+          post ':action', :to => ::RootLessXmlParamsParsingTest::TestController
         end
         yield
       end

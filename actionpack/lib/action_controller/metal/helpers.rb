@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-
 module ActionController
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
@@ -16,7 +14,6 @@ module ActionController
   # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
   #
-  # ==== Examples
   # The +to_s+ method from the \Time class can be wrapped in a helper method to display a custom message if
   # a \Time object is blank:
   #
@@ -52,6 +49,7 @@ module ActionController
   module Helpers
     extend ActiveSupport::Concern
 
+    class << self; attr_accessor :helpers_path; end
     include AbstractController::Helpers
 
     included do
@@ -92,12 +90,12 @@ module ActionController
       end
 
       def all_helpers_from_path(path)
-        helpers = []
-        Array(path).each do |_path|
-          extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+        helpers = Array(path).flat_map do |_path|
+          extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          names.sort!
+          names
         end
-        helpers.sort!
         helpers.uniq!
         helpers
       end

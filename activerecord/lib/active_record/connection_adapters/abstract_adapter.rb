@@ -2,9 +2,10 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
-require 'active_support/deprecation'
 require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'monitor'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -34,6 +35,12 @@ module ActiveRecord
       autoload :QueryCache
     end
 
+    autoload_at 'active_record/connection_adapters/abstract/transaction' do
+      autoload :ClosedTransaction
+      autoload :RealTransaction
+      autoload :SavepointTransaction
+    end
+
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
@@ -53,23 +60,22 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
       include MonitorMixin
+      include ColumnDumper
 
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use
+      attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
 
-        @active              = nil
         @connection          = connection
         @in_use              = false
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @last_use            = false
         @logger              = logger
-        @open_transactions   = 0
         @pool                = pool
         @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
@@ -84,6 +90,11 @@ module ActiveRecord
             @last_use = Time.now
           end
         end
+      end
+
+      def schema_cache=(cache)
+        cache.connection = self
+        @schema_cache = cache
       end
 
       def expire
@@ -156,12 +167,12 @@ module ActiveRecord
         false
       end
 
-      # QUOTING ==================================================
-
-      # Override to return the quoted table name. Defaults to column quoting.
-      def quote_table_name(name)
-        quote_column_name(name)
+      # Does this adapter support setting the isolation level for a transaction?
+      def supports_transaction_isolation?
+        false
       end
+
+      # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current
       # +binds+
@@ -182,19 +193,21 @@ module ActiveRecord
       # checking whether the database is actually capable of responding, i.e. whether
       # the connection isn't stale.
       def active?
-        @active != false
       end
 
       # Disconnects from the database if already connected, and establishes a
-      # new connection with the database.
+      # new connection with the database. Implementors should call super if they
+      # override the default implementation.
       def reconnect!
-        @active = true
+        clear_cache!
+        reset_transaction
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        @active = false
+        clear_cache!
+        reset_transaction
       end
 
       # Reset the state of this connection, directing the DBMS to clear
@@ -237,18 +250,22 @@ module ActiveRecord
         @connection
       end
 
-      attr_reader :open_transactions
+      def open_transactions
+        @transaction.number
+      end
 
       def increment_open_transactions
-        @open_transactions += 1
+        ActiveSupport::Deprecation.warn "#increment_open_transactions is deprecated and has no effect"
       end
 
       def decrement_open_transactions
-        @open_transactions -= 1
+        ActiveSupport::Deprecation.warn "#decrement_open_transactions is deprecated and has no effect"
       end
 
       def transaction_joinable=(joinable)
-        @transaction_joinable = joinable
+        message = "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
+        ActiveSupport::Deprecation.warn message
+        @transaction.joinable = joinable
       end
 
       def create_savepoint
@@ -279,26 +296,25 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name = "SQL", binds = [])
-          @instrumenter.instrument(
-            "sql.active_record",
-            :sql           => sql,
-            :name          => name,
-            :connection_id => object_id,
-            :binds         => binds) { yield }
-        rescue Exception => e
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
-          exception = translate_exception(e, message)
-          exception.set_backtrace e.backtrace
-          raise exception
-        end
+      def log(sql, name = "SQL", binds = [])
+        @instrumenter.instrument(
+          "sql.active_record",
+          :sql           => sql,
+          :name          => name,
+          :connection_id => object_id,
+          :binds         => binds) { yield }
+      rescue => e
+        message = "#{e.class.name}: #{e.message}: #{sql}"
+        @logger.error message if @logger
+        exception = translate_exception(e, message)
+        exception.set_backtrace e.backtrace
+        raise exception
+      end
 
-        def translate_exception(e, message)
-          # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
-        end
-
+      def translate_exception(exception, message)
+        # override in derived class
+        ActiveRecord::StatementInvalid.new(message)
+      end
     end
   end
 end

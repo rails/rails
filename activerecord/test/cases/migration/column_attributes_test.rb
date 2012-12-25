@@ -7,6 +7,14 @@ module ActiveRecord
 
       self.use_transactional_fixtures = false
 
+      def test_add_column_newline_default
+        string = "foo\nbar"
+        add_column 'test_models', 'command', :string, :default => string
+        TestModel.reset_column_information
+
+        assert_equal string, TestModel.new.command
+      end
+
       def test_add_remove_single_field_using_string_arguments
         refute TestModel.column_methods_hash.key?(:last_name)
 
@@ -54,17 +62,17 @@ module ActiveRecord
 
         # Do a manual insertion
         if current_adapter?(:OracleAdapter)
-          connection.execute "insert into test_models (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, sysdate, sysdate)"
+          connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
         elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', 0, 0)"
+          connection.execute "insert into test_models (wealth) values ('12345678901234567890.0123456789')"
         elsif current_adapter?(:PostgreSQLAdapter)
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values (12345678901234567890.0123456789, now(), now())"
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         else
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values (12345678901234567890.0123456789, 0, 0)"
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         end
 
         # SELECT
-        row = TestModel.find(:first)
+        row = TestModel.first
         assert_kind_of BigDecimal, row.wealth
 
         # If this assert fails, that means the SELECT is broken!
@@ -79,7 +87,7 @@ module ActiveRecord
         TestModel.create :wealth => BigDecimal.new("12345678901234567890.0123456789")
 
         # SELECT
-        row = TestModel.find(:first)
+        row = TestModel.first
         assert_kind_of BigDecimal, row.wealth
 
         # If these asserts fail, that means the INSERT (create function, or cast to SQL) is broken!
@@ -132,7 +140,7 @@ module ActiveRecord
           :birthday => 18.years.ago, :favorite_day => 10.days.ago,
           :moment_of_truth => "1782-10-10 21:40:18", :male => true
 
-        bob = TestModel.find(:first)
+        bob = TestModel.first
         assert_equal 'bob', bob.first_name
         assert_equal 'bobsen', bob.last_name
         assert_equal "I was born ....", bob.bio
@@ -174,7 +182,7 @@ module ActiveRecord
               assert_not_equal "Z", bob.moment_of_truth.zone
               # US/Eastern is -5 hours from GMT
               assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-              assert_match(/\A-05:?00\Z/, bob.moment_of_truth.zone) #ruby 1.8.6 uses HH:MM, prior versions use HHMM
+              assert_match(/\A-05:00\Z/, bob.moment_of_truth.zone)
               assert_equal DateTime::ITALY, bob.moment_of_truth.start
             end
           end
@@ -182,6 +190,16 @@ module ActiveRecord
 
         assert_instance_of TrueClass, bob.male?
         assert_kind_of BigDecimal, bob.wealth
+      end
+
+      def test_out_of_range_limit_should_raise
+        skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+
+        assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
+
+        unless current_adapter?(:PostgreSQLAdapter)
+          assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+        end
       end
     end
   end

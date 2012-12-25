@@ -19,7 +19,7 @@
 class Object
   # Can you safely dup this object?
   #
-  # False for +nil+, +false+, +true+, symbols, numbers, class and module objects;
+  # False for +nil+, +false+, +true+, symbol, and number objects;
   # true otherwise.
   def duplicable?
     true
@@ -31,7 +31,6 @@ class NilClass
   #
   #   nil.duplicable? # => false
   #   nil.dup         # => TypeError: can't dup NilClass
-  #
   def duplicable?
     false
   end
@@ -42,7 +41,6 @@ class FalseClass
   #
   #   false.duplicable? # => false
   #   false.dup         # => TypeError: can't dup FalseClass
-  #
   def duplicable?
     false
   end
@@ -53,7 +51,6 @@ class TrueClass
   #
   #   true.duplicable? # => false
   #   true.dup         # => TypeError: can't dup TrueClass
-  #
   def duplicable?
     false
   end
@@ -64,7 +61,6 @@ class Symbol
   #
   #   :my_symbol.duplicable? # => false
   #   :my_symbol.dup         # => TypeError: can't dup Symbol
-  #
   def duplicable?
     false
   end
@@ -75,32 +71,20 @@ class Numeric
   #
   #  3.duplicable? # => false
   #  3.dup         # => TypeError: can't dup Fixnum
-  #
   def duplicable?
     false
   end
 end
 
-class Class
-  # Classes are not duplicable:
-  #
-  #  c = Class.new # => #<Class:0x10328fd80>
-  #  c.dup         # => #<Class:0x10328fd80>
-  #
-  # Note +dup+ returned the same class object.
-  def duplicable?
-    false
-  end
-end
+require 'bigdecimal'
+class BigDecimal
+  begin
+    BigDecimal.new('4.56').dup
 
-class Module
-  # Modules are not duplicable:
-  #
-  #  m = Module.new # => #<Module:0x10328b6e0>
-  #  m.dup          # => #<Module:0x10328b6e0>
-  #
-  # Note +dup+ returned the same module object.
-  def duplicable?
-    false
+    def duplicable?
+      true
+    end
+  rescue TypeError
+    # can't dup, so use superclass implementation
   end
 end

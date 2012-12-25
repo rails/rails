@@ -55,6 +55,13 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_cookies({"user_name" => "david"}, req.cookie_jar)
   end
 
+  test "does not complain when Rails.application is nil" do
+    Rails.stubs(:application).returns(nil)
+    req = ActionDispatch::TestRequest.new
+
+    assert_equal false, req.env.empty?
+  end
+
   private
     def assert_cookies(expected, cookie_jar)
       assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))

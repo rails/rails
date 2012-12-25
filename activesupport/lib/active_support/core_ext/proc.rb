@@ -1,7 +1,10 @@
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/deprecation"
 
 class Proc #:nodoc:
   def bind(object)
+    ActiveSupport::Deprecation.warn 'Proc#bind is deprecated and will be removed in future versions'
+
     block, time = self, Time.now
     object.class_eval do
       method_name = "__bind_#{time.to_i}_#{time.usec}"

@@ -25,9 +25,15 @@ module ActionView
             add_default_name_and_id(options)
           end
 
-          hidden   = hidden_field_for_checkbox(options)
+          include_hidden = options.delete("include_hidden") { true }
           checkbox = tag("input", options)
-          hidden + checkbox
+
+          if include_hidden
+            hidden = hidden_field_for_checkbox(options)
+            hidden + checkbox
+          else
+            checkbox
+          end
         end
 
         private
@@ -35,17 +41,17 @@ module ActionView
         def checked?(value)
           case value
           when TrueClass, FalseClass
-            value
+            value == !!@checked_value
           when NilClass
             false
-          when Integer
-            value != 0
           when String
             value == @checked_value
-          when Array
-            value.include?(@checked_value)
           else
-            value.to_i != 0
+            if value.respond_to?(:include?)
+              value.include?(@checked_value)
+            else
+              value.to_i == @checked_value.to_i
+            end
           end
         end
 

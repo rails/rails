@@ -1,18 +1,17 @@
-require 'active_support/core_ext/class/attribute'
+require 'active_support/lazy_load_hooks'
 
 module ActiveRecord
   module Explain
     def self.extended(base)
-      # If a query takes longer than these many seconds we log its query plan
-      # automatically. nil disables this feature.
-      base.config_attribute :auto_explain_threshold_in_seconds, :global => true
+      base.mattr_accessor :auto_explain_threshold_in_seconds, instance_accessor: false
     end
 
-    # If auto explain is enabled, this method triggers EXPLAIN logging for the
-    # queries triggered by the block if it takes more than the threshold as a
-    # whole. That is, the threshold is not checked against each individual
-    # query, but against the duration of the entire block. This approach is
-    # convenient for relations.
+    # If the database adapter supports explain and auto explain is enabled,
+    # this method triggers EXPLAIN logging for the queries triggered by the
+    # block if it takes more than the threshold as a whole. That is, the
+    # threshold is not checked against each individual query, but against the
+    # duration of the entire block. This approach is convenient for relations.
+
     #
     # The available_queries_for_explain thread variable collects the queries
     # to be explained. If the value is nil, it means queries are not being
@@ -23,7 +22,7 @@ module ActiveRecord
 
       threshold = auto_explain_threshold_in_seconds
       current   = Thread.current
-      if threshold && current[:available_queries_for_explain].nil?
+      if connection.supports_explain? && threshold && current[:available_queries_for_explain].nil?
         begin
           queries = current[:available_queries_for_explain] = []
           start = Time.now
@@ -52,7 +51,7 @@ module ActiveRecord
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
     def exec_explain(queries) # :nodoc:
-      queries && queries.map do |sql, bind|
+      str = queries && queries.map do |sql, bind|
         [].tap do |msg|
           msg << "EXPLAIN for: #{sql}"
           unless bind.empty?
@@ -62,6 +61,12 @@ module ActiveRecord
           msg << connection.explain(sql, bind)
         end.join("\n")
       end.join("\n")
+
+      # Overriding inspect to be more human readable, specially in the console.
+      def str.inspect
+        self
+      end
+      str
     end
 
     # Silences automatic EXPLAIN logging for the duration of the block.
@@ -70,7 +75,7 @@ module ActiveRecord
     # the threshold is set to 0.
     #
     # As the name of the method suggests this only applies to automatic
-    # EXPLAINs, manual calls to +ActiveRecord::Relation#explain+ run.
+    # EXPLAINs, manual calls to <tt>ActiveRecord::Relation#explain</tt> run.
     def silence_auto_explain
       current = Thread.current
       original, current[:available_queries_for_explain] = current[:available_queries_for_explain], false

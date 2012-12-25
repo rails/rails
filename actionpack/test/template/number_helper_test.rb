@@ -33,6 +33,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("+18005551212", number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
     assert_equal("22-555-1212", number_to_phone(225551212))
     assert_equal("+45-22-555-1212", number_to_phone(225551212, :country_code => 45))
+    assert_equal '111&lt;script&gt;&lt;/script&gt;111&lt;script&gt;&lt;/script&gt;1111', number_to_phone(1111111111, :delimiter => "<script></script>")
   end
 
   def test_number_to_currency
@@ -47,6 +48,8 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("$1,234,567,890.50", number_to_currency("1234567890.50"))
     assert_equal("1,234,567,890.50 K&#269;", number_to_currency("1234567890.50", {:unit => "K&#269;", :format => "%n %u"}))
     assert_equal("1,234,567,890.50 - K&#269;", number_to_currency("-1234567890.50", {:unit => "K&#269;", :format => "%n %u", :negative_format => "%n - %u"}))
+    assert_equal '$1&lt;script&gt;&lt;/script&gt;01', number_to_currency(1.01, :separator => "<script></script>")
+    assert_equal '$1&lt;script&gt;&lt;/script&gt;000.00', number_to_currency(1000, :delimiter => "<script></script>")
   end
 
   def test_number_to_percentage
@@ -58,6 +61,8 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("123.4%", number_to_percentage(123.400, :precision => 3, :strip_insignificant_zeros => true))
     assert_equal("1.000,000%", number_to_percentage(1000, :delimiter => '.', :separator => ','))
     assert_equal("1000.000  %", number_to_percentage(1000, :format => "%n  %"))
+    assert_equal '1&lt;script&gt;&lt;/script&gt;010%', number_to_percentage(1.01, :separator => "<script></script>")
+    assert_equal '1&lt;script&gt;&lt;/script&gt;000.000%', number_to_percentage(1000, :delimiter => "<script></script>")
   end
 
   def test_number_with_delimiter
@@ -78,6 +83,8 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '12,345,678-05', number_with_delimiter(12345678.05, :separator => '-')
     assert_equal '12.345.678,05', number_with_delimiter(12345678.05, :separator => ',', :delimiter => '.')
     assert_equal '12.345.678,05', number_with_delimiter(12345678.05, :delimiter => '.', :separator => ',')
+    assert_equal '1&lt;script&gt;&lt;/script&gt;01', number_with_delimiter(1.01, :separator => "<script></script>")
+    assert_equal '1&lt;script&gt;&lt;/script&gt;000', number_with_delimiter(1000, :delimiter => "<script></script>")
   end
 
   def test_number_with_precision
@@ -96,11 +103,14 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("0.001", number_with_precision(0.00111, :precision => 3))
     assert_equal("10.00", number_with_precision(9.995, :precision => 2))
     assert_equal("11.00", number_with_precision(10.995, :precision => 2))
+    assert_equal("0.00", number_with_precision(-0.001, :precision => 2))
   end
 
   def test_number_with_precision_with_custom_delimiter_and_separator
     assert_equal '31,83',       number_with_precision(31.825, :precision => 2, :separator => ',')
     assert_equal '1.231,83',    number_with_precision(1231.825, :precision => 2, :separator => ',', :delimiter => '.')
+    assert_equal '1&lt;script&gt;&lt;/script&gt;010', number_with_precision(1.01, :separator => "<script></script>")
+    assert_equal '1&lt;script&gt;&lt;/script&gt;000.000', number_with_precision(1000, :delimiter => "<script></script>")
   end
 
   def test_number_with_precision_with_significant_digits
@@ -190,6 +200,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '1.0 KB',   number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_insignificant_zeros => false)
     assert_equal '1.012 KB',   number_to_human_size(kilobytes(1.0123), :precision => 3, :significant => false)
     assert_equal '1 KB',   number_to_human_size(kilobytes(1.0123), :precision => 0, :significant => true) #ignores significant it precision is 0
+    assert_equal '9&lt;script&gt;&lt;/script&gt;86 KB', number_to_human_size(10100, :separator => "<script></script>")
   end
 
   def test_number_to_human_size_with_custom_delimiter_and_separator
@@ -250,6 +261,9 @@ class NumberHelperTest < ActionView::TestCase
     #Spaces are stripped from the resulting string
     assert_equal '4', number_to_human(4, :units => {:unit => "", :ten => 'tens '})
     assert_equal '4.5  tens', number_to_human(45, :units => {:unit => "", :ten => ' tens   '})
+
+    assert_equal '1&lt;script&gt;&lt;/script&gt;01', number_to_human(1.01, :separator => "<script></script>")
+    assert_equal '100&lt;script&gt;&lt;/script&gt;000 Quadrillion', number_to_human(10**20, :delimiter => "<script></script>")
   end
 
   def test_number_to_human_with_custom_format
@@ -347,69 +361,39 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_helpers_should_raise_error_if_invalid_when_specified
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_human("x", :raise => true)
     end
-    begin
-      number_to_human("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_human_size("x", :raise => true)
     end
-    begin
-      number_to_human_size("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_with_precision("x", :raise => true)
     end
-    begin
-      number_with_precision("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_currency("x", :raise => true)
     end
-    begin
-      number_with_precision("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_percentage("x", :raise => true)
     end
-    begin
-      number_to_percentage("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_with_delimiter("x", :raise => true)
     end
-    begin
-      number_with_delimiter("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_phone("x", :raise => true)
     end
-    begin
-      number_to_phone("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
-
+    assert_equal "x", exception.number
   end
-
 end

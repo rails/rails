@@ -3,7 +3,7 @@ module ActionView
     class Builder
       # Default format used by Builder.
       class_attribute :default_format
-      self.default_format = Mime::XML
+      self.default_format = :xml
 
       def call(template)
         require_engine

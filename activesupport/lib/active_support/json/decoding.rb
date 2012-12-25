@@ -8,8 +8,13 @@ module ActiveSupport
 
   module JSON
     class << self
+      # Parses a JSON string (JavaScript Object Notation) into a hash.
+      # See www.json.org for more info.
+      #
+      #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
+      #   => {"team" => "rails", "players" => "36"}
       def decode(json, options ={})
-        data = MultiJson.decode(json, options)
+        data = MultiJson.load(json, options)
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
@@ -18,12 +23,12 @@ module ActiveSupport
       end
 
       def engine
-        MultiJson.engine
+        MultiJson.adapter
       end
       alias :backend :engine
 
       def engine=(name)
-        MultiJson.engine = name
+        MultiJson.use(name)
       end
       alias :backend= :engine=
 
@@ -34,6 +39,16 @@ module ActiveSupport
         self.backend = old_backend
       end
 
+      # Returns the class of the error that will be raised when there is an
+      # error in decoding JSON. Using this method means you won't directly
+      # depend on the ActiveSupport's JSON implementation, in case it changes
+      # in the future.
+      #
+      #   begin
+      #     obj = ActiveSupport::JSON.decode(some_string)
+      #   rescue ActiveSupport::JSON.parse_error
+      #     Rails.logger.warn("Attempted to decode invalid JSON: #{some_string}")
+      #   end
       def parse_error
         MultiJson::DecodeError
       end

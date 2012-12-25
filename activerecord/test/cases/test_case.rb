@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 ActiveSupport::Deprecation.silence do
   require 'active_record/test_case'
 end

@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/deprecation'
+require 'active_support/logger_silence'
 
 ActiveSupport::Deprecation.warn 'this file is deprecated and will be removed'
 
@@ -31,33 +32,15 @@ require 'logger'
 #
 #   logger.datetime_format = "%Y-%m-%d"
 #
-# Note: This logger is deprecated in favor of ActiveSupport::BufferedLogger
+# Note: This logger is deprecated in favor of ActiveSupport::Logger
 class Logger
-  ##
-  # :singleton-method:
-  # Set to false to disable the silencer
-  cattr_accessor :silencer
-  self.silencer = true
-
-  # Silences the logger for the duration of the block.
-  def silence(temporary_level = Logger::ERROR)
-    if silencer
-      begin
-        old_logger_level, self.level = level, temporary_level
-        yield self
-      ensure
-        self.level = old_logger_level
-      end
-    else
-      yield self
-    end
-  end
+  include LoggerSilence
 
   alias :old_datetime_format= :datetime_format=
   # Logging date-time format (string passed to +strftime+). Ignored if the formatter
   # does not respond to datetime_format=.
-  def datetime_format=(datetime_format)
-    formatter.datetime_format = datetime_format if formatter.respond_to?(:datetime_format=)
+  def datetime_format=(format)
+    formatter.datetime_format = format if formatter.respond_to?(:datetime_format=)
   end
 
   alias :old_datetime_format :datetime_format

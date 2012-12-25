@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   # = Active Record Has Many Through Association
@@ -38,6 +37,20 @@ module ActiveRecord
         super
       end
 
+      def concat_records(records)
+        ensure_not_nested
+
+        records = super
+
+        if owner.new_record? && records
+          records.flatten.each do |record|
+            build_through_record(record)
+          end
+        end
+
+        records
+      end
+
       def insert_record(record, validate = true, raise = false)
         ensure_not_nested
 
@@ -54,10 +67,6 @@ module ActiveRecord
         record
       end
 
-      # ActiveRecord::Relation#delete_all needs to support joins before we can use a
-      # SQL-only implementation.
-      alias delete_all_on_destroy delete_all
-
       private
 
         def through_association
@@ -73,7 +82,9 @@ module ActiveRecord
         # association
         def build_through_record(record)
           @through_records[record.object_id] ||= begin
-            through_record = through_association.build(construct_join_attributes(record))
+            ensure_mutable
+
+            through_record = through_association.build
             through_record.send("#{source_reflection.name}=", record)
             through_record
           end
@@ -85,10 +96,10 @@ module ActiveRecord
           @through_records.delete(record.object_id)
         end
 
-        def build_record(attributes, options = {})
+        def build_record(attributes)
           ensure_not_nested
 
-          record = super(attributes, options)
+          record = super(attributes)
 
           inverse = source_reflection.inverse_of
           if inverse
@@ -124,7 +135,12 @@ module ActiveRecord
         def delete_records(records, method)
           ensure_not_nested
 
-          scope = through_association.scoped.where(construct_join_attributes(*records))
+          # This is unoptimised; it will load all the target records
+          # even when we just want to delete everything.
+          records = load_target if records == :all
+
+          scope = through_association.scope
+          scope.where! construct_join_attributes(*records)
 
           case method
           when :destroy
@@ -136,6 +152,11 @@ module ActiveRecord
           end
 
           delete_through_records(records)
+
+          if source_reflection.options[:counter_cache]
+            counter = source_reflection.counter_cache_column
+            klass.decrement_counter counter, records.map(&:id)
+          end
 
           if through_reflection.macro == :has_many && update_through_counter?(method)
             update_counter(-count, through_reflection)
@@ -168,7 +189,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          scoped.all
+          scope.to_a
         end
 
         # NOTE - not sure that we can actually cope with inverses here

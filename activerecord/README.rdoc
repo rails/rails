@@ -49,10 +49,10 @@ A short rundown of some of the major features:
 * Aggregations of value objects.
 
    class Account < ActiveRecord::Base
-     composed_of :balance, :class_name => "Money",
-                 :mapping => %w(balance amount)
+     composed_of :balance, class_name: 'Money',
+                 mapping: %w(balance amount)
      composed_of :address,
-                 :mapping => [%w(address_street street), %w(address_city city)]
+                 mapping: [%w(address_street street), %w(address_city city)]
    end
 
   {Learn more}[link:classes/ActiveRecord/Aggregations/ClassMethods.html]
@@ -61,10 +61,10 @@ A short rundown of some of the major features:
 * Validation rules that can differ for new or existing objects.
 
     class Account < ActiveRecord::Base
-      validates_presence_of     :subdomain, :name, :email_address, :password
-      validates_uniqueness_of   :subdomain
-      validates_acceptance_of   :terms_of_service, :on => :create
-      validates_confirmation_of :password, :email_address, :on => :create
+      validates :subdomain, :name, :email_address, :password, presence: true
+      validates :subdomain, uniqueness: true
+      validates :terms_of_service, acceptance: true, on: :create
+      validates :password, :email_address, confirmation: true, on: :create
     end
 
   {Learn more}[link:classes/ActiveRecord/Validations.html]
@@ -78,17 +78,6 @@ A short rundown of some of the major features:
    end
 
   {Learn more}[link:classes/ActiveRecord/Callbacks.html]
-
-
-* Observers that react to changes in a model.
-
-   class CommentObserver < ActiveRecord::Observer
-     def after_create(comment) # is called just after Comment#save
-       CommentMailer.new_comment_email("david@loudthinking.com", comment).deliver
-     end
-   end
-
-  {Learn more}[link:classes/ActiveRecord/Observer.html]
 
 
 * Inheritance hierarchies.
@@ -124,15 +113,15 @@ A short rundown of some of the major features:
 * Database abstraction through simple adapters.
 
     # connect to SQLite3
-    ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => "dbfile.sqlite3")
+    ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'dbfile.sqlite3')
 
     # connect to MySQL with authentication
     ActiveRecord::Base.establish_connection(
-      :adapter  => "mysql2",
-      :host     => "localhost",
-      :username => "me",
-      :password => "secret",
-      :database => "activerecord"
+      adapter:  'mysql2',
+      host:     'localhost',
+      username: 'me',
+      password: 'secret',
+      database: 'activerecord'
     )
 
   {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
@@ -144,7 +133,7 @@ A short rundown of some of the major features:
 * Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
 
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
-    ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
+    ActiveRecord::Base.logger = Log4r::Logger.new('Application Log')
 
 
 * Database agnostic schema management with Migrations.
@@ -159,7 +148,7 @@ A short rundown of some of the major features:
           t.integer :position
         end
 
-        SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
+        SystemSetting.create name: 'notice', label: 'Use notice?', value: 1
       end
 
       def down

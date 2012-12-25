@@ -71,18 +71,18 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_count_honors_implicit_inner_joins
-    real_count = Author.scoped.to_a.sum{|a| a.posts.count }
-    assert_equal real_count, Author.count(:joins => :posts), "plain inner join count should match the number of referenced posts records"
+    real_count = Author.all.to_a.sum{|a| a.posts.count }
+    assert_equal real_count, Author.joins(:posts).count, "plain inner join count should match the number of referenced posts records"
   end
 
   def test_calculate_honors_implicit_inner_joins
-    real_count = Author.scoped.to_a.sum{|a| a.posts.count }
-    assert_equal real_count, Author.calculate(:count, 'authors.id', :joins => :posts), "plain inner join count should match the number of referenced posts records"
+    real_count = Author.all.to_a.sum{|a| a.posts.count }
+    assert_equal real_count, Author.joins(:posts).calculate(:count, 'authors.id'), "plain inner join count should match the number of referenced posts records"
   end
 
   def test_calculate_honors_implicit_inner_joins_and_distinct_and_conditions
-    real_count = Author.scoped.to_a.select {|a| a.posts.any? {|p| p.title =~ /^Welcome/} }.length
-    authors_with_welcoming_post_titles = Author.calculate(:count, 'authors.id', :joins => :posts, :distinct => true, :conditions => "posts.title like 'Welcome%'")
+    real_count = Author.all.to_a.select {|a| a.posts.any? {|p| p.title =~ /^Welcome/} }.length
+    authors_with_welcoming_post_titles = Author.all.merge!(:joins => :posts, :where => "posts.title like 'Welcome%'").calculate(:count, 'authors.id', :distinct => true)
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
   end
 

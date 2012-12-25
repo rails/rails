@@ -86,7 +86,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert !r.valid?
     assert r.errors[:topic].any?
 
-    r.topic = Topic.find :first
+    r.topic = Topic.first
     assert r.valid?
   end
 

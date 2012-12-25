@@ -1,13 +1,13 @@
 class BaseMailer < ActionMailer::Base
   self.mailer_name = "base_mailer"
 
-  default :to => 'system@test.lindsaar.net',
-          :from => 'jose@test.plataformatec.com',
-          :reply_to => 'mikel@test.lindsaar.net'
+  default to: 'system@test.lindsaar.net',
+          from: 'jose@test.plataformatec.com',
+          reply_to: 'mikel@test.lindsaar.net'
 
   def welcome(hash = {})
     headers['X-SPAM'] = "Not SPAM"
-    mail({:subject => "The first email on new API!"}.merge!(hash))
+    mail({subject: "The first email on new API!"}.merge!(hash))
   end
 
   def welcome_with_headers(hash = {})
@@ -16,7 +16,7 @@ class BaseMailer < ActionMailer::Base
   end
 
   def welcome_from_another_path(path)
-    mail(:template_name => "welcome", :template_path => path)
+    mail(template_name: "welcome", template_path: path)
   end
 
   def html_only(hash = {})
@@ -38,15 +38,15 @@ class BaseMailer < ActionMailer::Base
   end
 
   def attachment_with_hash
-    attachments['invoice.jpg'] = { :data => "\312\213\254\232)b",
-                                   :mime_type => "image/x-jpg",
-                                   :transfer_encoding => "base64" }
+    attachments['invoice.jpg'] = { data: "\312\213\254\232)b",
+                                   mime_type: "image/x-jpg",
+                                   transfer_encoding: "base64" }
     mail
   end
 
   def attachment_with_hash_default_encoding
-    attachments['invoice.jpg'] = { :data => "\312\213\254\232)b",
-                                   :mime_type => "image/x-jpg" }
+    attachments['invoice.jpg'] = { data: "\312\213\254\232)b",
+                                   mime_type: "image/x-jpg" }
     mail
   end
 
@@ -62,8 +62,8 @@ class BaseMailer < ActionMailer::Base
   def explicit_multipart(hash = {})
     attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
     mail(hash) do |format|
-      format.text { render :text => "TEXT Explicit Multipart" }
-      format.html { render :text => "HTML Explicit Multipart" }
+      format.text { render text: "TEXT Explicit Multipart" }
+      format.html { render text: "HTML Explicit Multipart" }
     end
   end
 
@@ -76,13 +76,13 @@ class BaseMailer < ActionMailer::Base
 
   def explicit_multipart_with_any(hash = {})
     mail(hash) do |format|
-      format.any(:text, :html){ render :text => "Format with any!" }
+      format.any(:text, :html){ render text: "Format with any!" }
     end
   end
 
   def explicit_multipart_with_options(include_html = false)
     mail do |format|
-      format.text(:content_transfer_encoding => "base64"){ render "welcome" }
+      format.text(content_transfer_encoding: "base64"){ render "welcome" }
       format.html{ render "welcome" } if include_html
     end
   end
@@ -95,24 +95,32 @@ class BaseMailer < ActionMailer::Base
   end
 
   def implicit_different_template(template_name='')
-    mail(:template_name => template_name)
+    mail(template_name: template_name)
   end
 
   def explicit_different_template(template_name='')
     mail do |format|
-      format.text { render :template => "#{mailer_name}/#{template_name}" }
-      format.html { render :template => "#{mailer_name}/#{template_name}" }
+      format.text { render template: "#{mailer_name}/#{template_name}" }
+      format.html { render template: "#{mailer_name}/#{template_name}" }
     end
   end
 
   def different_layout(layout_name='')
     mail do |format|
-      format.text { render :layout => layout_name }
-      format.html { render :layout => layout_name }
+      format.text { render layout: layout_name }
+      format.html { render layout: layout_name }
     end
   end
 
   def email_with_translations
-    mail :body => render("email_with_translations", :formats => [:html])
+    mail body: render("email_with_translations", formats: [:html])
+  end
+
+  def without_mail_call
+  end
+
+  def with_nil_as_return_value(hash = {})
+    mail(:template_name => "welcome")
+    nil
   end
 end

@@ -1,14 +1,13 @@
-require 'active_support/basic_object'
+require 'active_support/proxy_object'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/object/acts_like'
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
-  # Example:
   #
-  #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
-  class Duration < BasicObject
+  #   1.month.ago       # equivalent to Time.now.advance(months: -1)
+  class Duration < ProxyObject
     attr_accessor :value, :parts
 
     def initialize(value, parts) #:nodoc:
@@ -40,8 +39,8 @@ module ActiveSupport
     end
     alias :kind_of? :is_a?
 
-    # Returns true if <tt>other</tt> is also a Duration instance with the
-    # same <tt>value</tt>, or if <tt>other == value</tt>.
+    # Returns +true+ if +other+ is also a Duration instance with the
+    # same +value+, or if <tt>other == value</tt>.
     def ==(other)
       if Duration === other
         other.value == value
@@ -71,7 +70,7 @@ module ActiveSupport
     alias :until :ago
 
     def inspect #:nodoc:
-      consolidated = parts.inject(::Hash.new(0)) { |h,part| h[part.first] += part.last; h }
+      consolidated = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
       parts = [:years, :months, :days, :minutes, :seconds].map do |length|
         n = consolidated[length]
         "#{n} #{n == 1 ? length.to_s.singularize : length.to_s}" if n.nonzero?

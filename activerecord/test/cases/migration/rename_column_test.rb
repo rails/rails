@@ -18,7 +18,7 @@ module ActiveRecord
         rename_column "test_models", "girlfriend", "exgirlfriend"
 
         TestModel.reset_column_information
-        bob = TestModel.find(:first)
+        bob = TestModel.first
 
         assert_equal "bobette", bob.exgirlfriend
       end
@@ -33,7 +33,7 @@ module ActiveRecord
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.find(:all).map(&:nick_name)
+        assert_equal ['foo'], TestModel.all.map(&:nick_name)
       end
 
       # FIXME: another integration test.  We should decouple this from the
@@ -46,7 +46,7 @@ module ActiveRecord
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.find(:all).map(&:nick_name)
+        assert_equal ['foo'], TestModel.all.map(&:nick_name)
       end
 
       def test_rename_column_preserves_default_value_not_null
@@ -171,6 +171,16 @@ module ActiveRecord
         change_column "test_models", "administrator", :boolean, :default => false
         TestModel.reset_column_information
         refute TestModel.new.administrator?
+      end
+
+      def test_change_column_with_custom_index_name
+        add_column "test_models", "category", :string
+        add_index :test_models, :category, name: 'test_models_categories_idx'
+
+        assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
+        change_column "test_models", "category", :string, null: false, default: 'article'
+
+        assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
       end
 
       def test_change_column_default

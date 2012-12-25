@@ -22,6 +22,13 @@ module ActiveRecord
           assert_match %(EXPLAIN for: SELECT "audit_logs".* FROM "audit_logs"  WHERE "audit_logs"."developer_id" IN (1)), explain
           assert_match %(Seq Scan on audit_logs), explain
         end
+
+        def test_dont_explain_for_set_search_path
+          queries = Thread.current[:available_queries_for_explain] = []
+          ActiveRecord::Base.connection.schema_search_path = "public"
+          assert queries.empty?
+        end
+
       end
     end
   end

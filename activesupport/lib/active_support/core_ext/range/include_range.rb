@@ -5,7 +5,7 @@ class Range
   #  (1..5).include?(2..6) # => false
   #
   # The native Range#include? behavior is untouched.
-  #  ("a".."f").include?("c") # => true
+  #  ('a'..'f').include?('c') # => true
   #  (5..9).include?(11) # => false
   def include_with_range?(value)
     if value.is_a?(::Range)

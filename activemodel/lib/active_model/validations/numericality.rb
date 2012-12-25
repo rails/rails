@@ -1,8 +1,7 @@
 module ActiveModel
 
-  # == Active Model Numericality Validator
   module Validations
-    class NumericalityValidator < EachValidator
+    class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
                  :odd => :odd?, :even => :even?, :other_than => :!= }.freeze
@@ -79,50 +78,56 @@ module ActiveModel
     end
 
     module HelperMethods
-      # Validates whether the value of the specified attribute is numeric by trying to convert it to
-      # a float with Kernel.Float (if <tt>only_integer</tt> is false) or applying it to the regular expression
-      # <tt>/\A[\+\-]?\d+\Z/</tt> (if <tt>only_integer</tt> is set to true).
+      # Validates whether the value of the specified attribute is numeric by
+      # trying to convert it to a float with Kernel.Float (if <tt>only_integer</tt>
+      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\Z/</tt>
+      # (if <tt>only_integer</tt> is set to +true+).
       #
       #   class Person < ActiveRecord::Base
-      #     validates_numericality_of :value, :on => :create
+      #     validates_numericality_of :value, on: :create
       #   end
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
-      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
-      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
-      #   and <tt>:update</tt>.
-      # * <tt>:only_integer</tt> - Specifies whether the value has to be an integer, e.g. an integral value (default is +false+).
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is +false+). Notice that for fixnum and float columns empty strings are converted to +nil+.
-      # * <tt>:greater_than</tt> - Specifies the value must be greater than the supplied value.
-      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be greater than or equal the supplied value.
-      # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied value.
-      # * <tt>:less_than</tt> - Specifies the value must be less than the supplied value.
-      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less than or equal the supplied value.
-      # * <tt>:other_than</tt> - Specifies the value must be other than the supplied value.
+      # * <tt>:only_integer</tt> - Specifies whether the value has to be an
+      #   integer, e.g. an integral value (default is +false+).
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
+      #   +false+). Notice that for fixnum and float columns empty strings are
+      #   converted to +nil+.
+      # * <tt>:greater_than</tt> - Specifies the value must be greater than the
+      #   supplied value.
+      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be
+      #   greater than or equal the supplied value.
+      # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied
+      #   value.
+      # * <tt>:less_than</tt> - Specifies the value must be less than the
+      #   supplied value.
+      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less
+      #   than or equal the supplied value.
+      # * <tt>:other_than</tt> - Specifies the value must be other than the
+      #   supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       #
-      # The following checks can also be supplied with a proc or a symbol which corresponds to a method:
+      # There is also a list of default options supported by every validator:
+      # +:if+, +:unless+, +:on+ and +:strict+ .
+      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      #
+      # The following checks can also be supplied with a proc or a symbol which
+      # corresponds to a method:
+      #
       # * <tt>:greater_than</tt>
       # * <tt>:greater_than_or_equal_to</tt>
       # * <tt>:equal_to</tt>
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
       #
-      #   class Person < ActiveRecord::Base
-      #     validates_numericality_of :width, :less_than => Proc.new { |person| person.height }
-      #     validates_numericality_of :width, :greater_than => :minimum_weight
-      #   end
+      # For example:
       #
+      #   class Person < ActiveRecord::Base
+      #     validates_numericality_of :width, less_than: ->(person) { person.height }
+      #     validates_numericality_of :width, greater_than: :minimum_weight
+      #   end
       def validates_numericality_of(*attr_names)
         validates_with NumericalityValidator, _merge_attributes(attr_names)
       end

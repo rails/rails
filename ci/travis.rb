@@ -19,7 +19,6 @@ class Build
     'ap'   => 'actionpack',
     'am'   => 'actionmailer',
     'amo'  => 'activemodel',
-    'ares' => 'activeresource',
     'as'   => 'activesupport',
     'ar'   => 'activerecord'
   }
@@ -35,7 +34,6 @@ class Build
     self.options.update(options)
     Dir.chdir(dir) do
       announce(heading)
-      ENV['IM'] = identity_map?.inspect
       rake(*tasks)
     end
   end
@@ -46,7 +44,7 @@ class Build
 
   def heading
     heading = [gem]
-    heading << "with #{adapter} IM #{identity_map? ? 'enabled' : 'disabled'}" if activerecord?
+    heading << "with #{adapter}" if activerecord?
     heading << "in isolation" if isolated?
     heading.join(' ')
   end
@@ -62,17 +60,12 @@ class Build
   def key
     key = [gem]
     key << adapter if activerecord?
-    key << 'IM' if identity_map?
     key << 'isolated' if isolated?
     key.join(':')
   end
 
   def activerecord?
     gem == 'activerecord'
-  end
-
-  def identity_map?
-    options[:identity_map]
   end
 
   def isolated?
@@ -107,10 +100,6 @@ ENV['GEM'].split(',').each do |gem|
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!
 
-    if build.activerecord?
-      build.options[:identity_map] = true
-      results[build.key] = build.run!
-    end
   end
 end
 

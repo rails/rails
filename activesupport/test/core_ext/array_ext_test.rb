@@ -90,6 +90,12 @@ class ArrayExtToSentenceTests < ActiveSupport::TestCase
   def test_one_non_string_element
     assert_equal '1', [1].to_sentence
   end
+
+  def test_does_not_modify_given_hash
+    options = { words_connector: ' ' }
+    assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(options)
+    assert_equal({ words_connector: ' ' }, options)
+  end
 end
 
 class ArrayExtToSTests < ActiveSupport::TestCase
@@ -106,6 +112,14 @@ class ArrayExtToSTests < ActiveSupport::TestCase
 end
 
 class ArrayExtGroupingTests < ActiveSupport::TestCase
+  def setup
+    Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
+  end
+
+  def teardown
+    Fixnum.send :public, :/
+  end
+
   def test_in_groups_of_with_perfect_fit
     groups = []
     ('a'..'i').to_a.in_groups_of(3) do |group|

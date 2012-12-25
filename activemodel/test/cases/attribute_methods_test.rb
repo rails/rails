@@ -10,7 +10,7 @@ class ModelWithAttributes
   end
 
   def attributes
-    { :foo => 'value of foo' }
+    { :foo => 'value of foo', :baz => 'value of baz' }
   end
 
 private
@@ -76,6 +76,19 @@ private
   end
 end
 
+class ModelWithRubyKeywordNamedAttributes
+  include ActiveModel::AttributeMethods
+
+  def attributes
+    { :begin => 'value of begin', :end => 'value of end' }
+  end
+
+private
+  def attribute(name)
+    attributes[name.to_sym]
+  end
+end
+
 class ModelWithoutAttributesMethod
   include ActiveModel::AttributeMethods
 end
@@ -127,29 +140,54 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.send('a?b')
   end
 
+  test '#define_attribute_methods works passing multiple arguments' do
+    ModelWithAttributes.define_attribute_methods(:foo, :baz)
+
+    assert_equal "value of foo", ModelWithAttributes.new.foo
+    assert_equal "value of baz", ModelWithAttributes.new.baz
+  end
+
   test '#define_attribute_methods generates attribute methods' do
-    ModelWithAttributes.define_attribute_methods([:foo])
+    ModelWithAttributes.define_attribute_methods(:foo)
 
     assert_respond_to ModelWithAttributes.new, :foo
     assert_equal "value of foo", ModelWithAttributes.new.foo
   end
 
+  test '#alias_attribute generates attribute_aliases lookup hash' do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :foo
+      alias_attribute :bar, :foo
+    end
+
+    assert_equal({ "bar" => "foo" }, klass.attribute_aliases)
+  end
+
   test '#define_attribute_methods generates attribute methods with spaces in their names' do
-    ModelWithAttributesWithSpaces.define_attribute_methods([:'foo bar'])
+    ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
   end
 
   test '#alias_attribute works with attributes with spaces in their names' do
-    ModelWithAttributesWithSpaces.define_attribute_methods([:'foo bar'])
+    ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
     ModelWithAttributesWithSpaces.alias_attribute(:'foo_bar', :'foo bar')
 
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.foo_bar
   end
 
+  test '#alias_attribute works with attributes named as a ruby keyword' do
+    ModelWithRubyKeywordNamedAttributes.define_attribute_methods([:begin, :end])
+    ModelWithRubyKeywordNamedAttributes.alias_attribute(:from, :begin)
+    ModelWithRubyKeywordNamedAttributes.alias_attribute(:to, :end)
+
+    assert_equal "value of begin", ModelWithRubyKeywordNamedAttributes.new.from
+    assert_equal "value of end", ModelWithRubyKeywordNamedAttributes.new.to
+  end
+
   test '#undefine_attribute_methods removes attribute methods' do
-    ModelWithAttributes.define_attribute_methods([:foo])
+    ModelWithAttributes.define_attribute_methods(:foo)
     ModelWithAttributes.undefine_attribute_methods
 
     assert !ModelWithAttributes.new.respond_to?(:foo)
@@ -170,7 +208,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_deprecated { klass.attribute_method_suffix '' }
     assert_deprecated { klass.attribute_method_prefix '' }
 
-    klass.define_attribute_methods([:foo])
+    klass.define_attribute_methods(:foo)
 
     assert_equal 'value of foo', klass.new.foo
   end
@@ -188,6 +226,12 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_raises(NoMethodError) { m.protected_method }
   end
 
+  class ClassWithProtected
+    protected
+    def protected_method
+    end
+  end
+
   test 'should not interfere with respond_to? if the attribute has a private/protected method' do
     m = ModelWithAttributes2.new
     m.attributes = { 'private_method' => '<3', 'protected_method' => 'O_o' }
@@ -195,9 +239,11 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert !m.respond_to?(:private_method)
     assert m.respond_to?(:private_method, true)
 
+    c = ClassWithProtected.new
+
     # This is messed up, but it's how Ruby works at the moment. Apparently it will be changed
     # in the future.
-    assert m.respond_to?(:protected_method)
+    assert_equal c.respond_to?(:protected_method), m.respond_to?(:protected_method)
     assert m.respond_to?(:protected_method, true)
   end
 

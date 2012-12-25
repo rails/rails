@@ -42,7 +42,7 @@ module ActiveSupport
           klasses.each do |klass|
             fname = output_filename(klass)
             FileUtils.mkdir_p(File.dirname(fname))
-            file = File.open(fname, 'wb') do |file|
+            File.open(fname, 'wb') do |file|
               klass.new(@data).printProfile(file)
             end
           end

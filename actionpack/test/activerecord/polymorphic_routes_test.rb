@@ -25,6 +25,24 @@ class Series < ActiveRecord::Base
   self.table_name = 'projects'
 end
 
+class ModelDelegator < ActiveRecord::Base
+  self.table_name = 'projects'
+
+  def to_model
+    ModelDelegate.new
+  end
+end
+
+class ModelDelegate
+  def self.model_name
+    ActiveModel::Name.new(self)
+  end
+
+  def to_param
+    'overridden'
+  end
+end
+
 module Blog
   class Post < ActiveRecord::Base
     self.table_name = 'projects'
@@ -50,6 +68,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @bid = Bid.new
     @tax = Tax.new
     @fax = Fax.new
+    @delegator = ModelDelegator.new
     @series = Series.new
     @blog_post = Blog::Post.new
     @blog_blog = Blog::Blog.new
@@ -439,6 +458,13 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_routing_a_to_model_delegate
+    with_test_routes do
+      @delegator.save
+      assert_equal "http://example.com/model_delegates/overridden", polymorphic_url(@delegator)
+    end
+  end
+
   def with_namespaced_routes(name)
     with_routing do |set|
       set.draw do
@@ -469,6 +495,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
           resource :bid
         end
         resources :series
+        resources :model_delegates
       end
 
       self.class.send(:include, @routes.url_helpers)
@@ -516,5 +543,4 @@ class PolymorphicRoutesTest < ActionController::TestCase
       yield
     end
   end
-
 end

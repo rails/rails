@@ -2,7 +2,7 @@ begin
   require 'ruby-prof'
 rescue LoadError
   $stderr.puts 'Specify ruby-prof as application\'s dependency in Gemfile to run benchmarks.'
-  exit
+  raise
 end
 
 module ActiveSupport
@@ -18,6 +18,7 @@ module ActiveSupport
         end).freeze
 
       protected
+        remove_method :run_gc
         def run_gc
           GC.start
         end
@@ -28,6 +29,7 @@ module ActiveSupport
           @supported = @metric.measure_mode rescue false
         end
 
+        remove_method :run
         def run
           return unless @supported
 
@@ -36,9 +38,10 @@ module ActiveSupport
           RubyProf.pause
           full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           @data = RubyProf.stop
-          @total = @data.threads.values.sum(0) { |method_infos| method_infos.max.total_time }
+          @total = @data.threads.sum(0) { |thread| thread.methods.max.total_time }
         end
 
+        remove_method :record
         def record
           return unless @supported
 
@@ -78,6 +81,7 @@ module ActiveSupport
             self.class::Mode
           end
 
+          remove_method :profile
           def profile
             RubyProf.resume
             yield
@@ -86,6 +90,7 @@ module ActiveSupport
           end
 
           protected
+            remove_method :with_gc_stats
             def with_gc_stats
               GC::Profiler.enable
               GC.start

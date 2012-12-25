@@ -15,7 +15,7 @@ module ActiveRecord
           scope = super
           chain[1..-1].each do |reflection|
             scope = scope.merge(
-              reflection.klass.scoped.with_default_scope.
+              reflection.klass.all.with_default_scope.
                 except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )
           end
@@ -28,7 +28,7 @@ module ActiveRecord
         # methods which create and delete records on the association.
         #
         # We only support indirectly modifying through associations which has a belongs_to source.
-        # This is the "has_many :tags, :through => :taggings" situation, where the join model
+        # This is the "has_many :tags, through: :taggings" situation, where the join model
         # typically has a belongs_to on both side. In other words, associations which could also
         # be represented as has_and_belongs_to_many associations.
         #
@@ -37,9 +37,7 @@ module ActiveRecord
         # situation it is more natural for the user to just create or modify their join records
         # directly as required.
         def construct_join_attributes(*records)
-          if source_reflection.macro != :belongs_to
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
-          end
+          ensure_mutable
 
           join_attributes = {
             source_reflection.foreign_key =>
@@ -64,13 +62,19 @@ module ActiveRecord
         # properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.macro == :belongs_to
-            owner[through_reflection.foreign_key].to_s
+            owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s
           end
         end
 
         def foreign_key_present?
           through_reflection.macro == :belongs_to &&
           !owner[through_reflection.foreign_key].nil?
+        end
+
+        def ensure_mutable
+          if source_reflection.macro != :belongs_to
+            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+          end
         end
 
         def ensure_not_nested

@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 require 'rake/testtask'
 require 'rubygems/package_task'
 
@@ -9,9 +8,6 @@ require 'rbconfig'
 task :default => :test
 task :test => 'test:isolated'
 
-## This is required until the regular test task
-## below passes.  It's not ideal, but at least
-## we can see the failures
 namespace :test do
   task :isolated do
     dir = ENV["TEST_DIR"] || "**"
@@ -21,7 +17,8 @@ namespace :test do
         'test',
         'lib',
         "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib"
+        "#{File.dirname(__FILE__)}/../actionpack/lib",
+        "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
       ruby "-I#{dash_i.join ':'}", file
     end
@@ -44,18 +41,6 @@ task :update_readme do
   cp "./README.rdoc", readme
 end
 
-desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
-task :generate_guides do
-  ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
-  ruby "guides/rails_guides.rb"
-end
-
-# Validate guides -------------------------------------------------------------------------
-desc 'Validate guides, use ONLY=foo to process just "foo.html"'
-task :validate_guides do
-  ruby "guides/w3c_validator.rb"
-end
-
 # Generate GEM ----------------------------------------------------------------------------
 
 spec = eval(File.read('railties.gemspec'))
@@ -71,13 +56,4 @@ task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define
   Rake::Task['gem:push'].invoke
-end
-
-desc "Publish the guides"
-task :pguides => :generate_guides do
-  require 'rake/contrib/sshpublisher'
-  mkdir_p 'pkg'
-  `tar -czf pkg/guides.gz guides/output`
-  Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
-  `ssh web.rubyonrails.org 'cd /u/sites/guides.rubyonrails.org/public/ && tar -xvzf guides.gz && mv guides/output/* . && rm -rf guides*'`
 end

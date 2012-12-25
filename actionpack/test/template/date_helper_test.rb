@@ -19,58 +19,84 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def assert_distance_of_time_in_words(from, to=nil)
+    Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
+
     to ||= from
 
-    # 0..1 with include_seconds
-    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 0.seconds, true)
-    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 4.seconds, true)
-    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 5.seconds, true)
-    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 9.seconds, true)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 10.seconds, true)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 19.seconds, true)
-    assert_equal "half a minute", distance_of_time_in_words(from, to + 20.seconds, true)
-    assert_equal "half a minute", distance_of_time_in_words(from, to + 39.seconds, true)
-    assert_equal "less than a minute", distance_of_time_in_words(from, to + 40.seconds, true)
-    assert_equal "less than a minute", distance_of_time_in_words(from, to + 59.seconds, true)
-    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, true)
-    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, true)
+    # 0..1 minute with :include_seconds => true
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 0.seconds, :include_seconds => true)
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 4.seconds, :include_seconds => true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 5.seconds, :include_seconds => true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 9.seconds, :include_seconds => true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 10.seconds, :include_seconds => true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 19.seconds, :include_seconds => true)
+    assert_equal "half a minute", distance_of_time_in_words(from, to + 20.seconds, :include_seconds => true)
+    assert_equal "half a minute", distance_of_time_in_words(from, to + 39.seconds, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 40.seconds, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 59.seconds, :include_seconds => true)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, :include_seconds => true)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, :include_seconds => true)
 
-    # First case 0..1
+    # 0..1 minute with :include_seconds => false
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 4.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 5.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 9.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 10.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 19.seconds, :include_seconds => false)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 20.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 39.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 40.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 59.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, :include_seconds => false)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, :include_seconds => false)
+
+    # Note that we are including a 30-second boundary around the interval we
+    # want to test. For instance, "1 minute" is actually 30s to 1m29s. The
+    # reason for doing this is simple -- in `distance_of_time_to_words`, when we
+    # take the distance between our two Time objects in seconds and convert it
+    # to minutes, we round the number. So 29s gets rounded down to 0m, 30s gets
+    # rounded up to 1m, and 1m29s gets rounded down to 1m. A similar thing
+    # happens with the other cases.
+
+    # First case 0..1 minute
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds)
     assert_equal "less than a minute", distance_of_time_in_words(from, to + 29.seconds)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 30.seconds)
     assert_equal "1 minute", distance_of_time_in_words(from, to + 1.minutes + 29.seconds)
 
-    # 2..44
+    # 2 minutes up to 45 minutes
     assert_equal "2 minutes", distance_of_time_in_words(from, to + 1.minutes + 30.seconds)
     assert_equal "44 minutes", distance_of_time_in_words(from, to + 44.minutes + 29.seconds)
 
-    # 45..89
+    # 45 minutes up to 90 minutes
     assert_equal "about 1 hour", distance_of_time_in_words(from, to + 44.minutes + 30.seconds)
     assert_equal "about 1 hour", distance_of_time_in_words(from, to + 89.minutes + 29.seconds)
 
-    # 90..1439
+    # 90 minutes up to 24 hours
     assert_equal "about 2 hours", distance_of_time_in_words(from, to + 89.minutes + 30.seconds)
     assert_equal "about 24 hours", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 29.seconds)
 
-    # 1440..2519
+    # 24 hours up to 42 hours
     assert_equal "1 day", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 30.seconds)
     assert_equal "1 day", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 29.seconds)
 
-    # 2520..43199
+    # 42 hours up to 30 days
     assert_equal "2 days", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 30.seconds)
     assert_equal "3 days", distance_of_time_in_words(from, to + 2.days + 12.hours)
     assert_equal "30 days", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 29.seconds)
 
-    # 43200..86399
+    # 30 days up to 60 days
     assert_equal "about 1 month", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "about 1 month", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
+    assert_equal "about 1 month", distance_of_time_in_words(from, to + 44.days + 23.hours + 59.minutes + 29.seconds)
+    assert_equal "about 2 months", distance_of_time_in_words(from, to + 44.days + 23.hours + 59.minutes + 30.seconds)
+    assert_equal "about 2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
 
-    # 86400..525599
+    # 60 days up to 365 days
     assert_equal "2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 30.seconds)
     assert_equal "12 months", distance_of_time_in_words(from, to + 1.years - 31.seconds)
 
-    # > 525599
+    # >= 365 days
     assert_equal "about 1 year",    distance_of_time_in_words(from, to + 1.years - 30.seconds)
     assert_equal "about 1 year",    distance_of_time_in_words(from, to + 1.years + 3.months - 1.day)
     assert_equal "over 1 year",     distance_of_time_in_words(from, to + 1.years + 6.months)
@@ -95,12 +121,21 @@ class DateHelperTest < ActionView::TestCase
 
     # test to < from
     assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => false)
+
+  ensure
+    Fixnum.send :public, :/
   end
 
   def test_distance_in_words
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
+  end
+
+  def test_time_ago_in_words_passes_include_seconds
+    assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.ago, :include_seconds => true)
+    assert_equal "less than a minute", time_ago_in_words(15.seconds.ago, :include_seconds => false)
   end
 
   def test_distance_in_words_with_time_zones
@@ -125,13 +160,33 @@ class DateHelperTest < ActionView::TestCase
     start_date = Date.new 1982, 12, 3
     end_date = Date.new 2010, 11, 30
     assert_equal("almost 28 years", distance_of_time_in_words(start_date, end_date))
+    assert_equal("almost 28 years", distance_of_time_in_words(end_date, start_date))
   end
 
   def test_distance_in_words_with_integers
-    assert_equal "less than a minute", distance_of_time_in_words(59)
+    assert_equal "1 minute", distance_of_time_in_words(59)
     assert_equal "about 1 hour", distance_of_time_in_words(60*60)
-    assert_equal "less than a minute", distance_of_time_in_words(0, 59)
+    assert_equal "1 minute", distance_of_time_in_words(0, 59)
     assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
+    assert_equal "about 3 years", distance_of_time_in_words(10**8)
+    assert_equal "about 3 years", distance_of_time_in_words(0, 10**8)
+  end
+
+  def test_distance_in_words_with_times
+    assert_equal "1 minute", distance_of_time_in_words(30.seconds)
+    assert_equal "1 minute", distance_of_time_in_words(59.seconds)
+    assert_equal "2 minutes", distance_of_time_in_words(119.seconds)
+    assert_equal "2 minutes", distance_of_time_in_words(1.minute + 59.seconds)
+    assert_equal "3 minutes", distance_of_time_in_words(2.minute + 30.seconds)
+    assert_equal "44 minutes", distance_of_time_in_words(44.minutes + 29.seconds)
+    assert_equal "about 1 hour", distance_of_time_in_words(44.minutes + 30.seconds)
+    assert_equal "about 1 hour", distance_of_time_in_words(60.minutes)
+
+    # include seconds
+    assert_equal "half a minute", distance_of_time_in_words(39.seconds, 0, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(40.seconds, 0, :include_seconds => true)
+    assert_equal "less than a minute", distance_of_time_in_words(59.seconds, 0, :include_seconds => true)
+    assert_equal "1 minute", distance_of_time_in_words(60.seconds, 0, :include_seconds => true)
   end
 
   def test_time_ago_in_words
@@ -567,7 +622,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_minute_with_html_options
-    expected = expected = %(<select id="date_minute" name="date[minute]" class="selector" accesskey="M">\n)
+    expected = %(<select id="date_minute" name="date[minute]" class="selector" accesskey="M">\n)
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
@@ -711,7 +766,7 @@ class DateHelperTest < ActionView::TestCase
     # Since the order is incomplete nothing will be shown
     expected = %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
     expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
-    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="1" />\n)
 
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), :start_year => 2003, :end_year => 2005, :prefix => "date[first]", :order => [:day])
   end
@@ -943,9 +998,34 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     expected << %(<input type="hidden" id="date_first_month" name="date[first][month]" value="8" />\n)
-    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="16" />\n)
+    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="1" />\n)
 
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :discard_month => true, :discard_day => true, :start_year => 2003, :end_year => 2005, :prefix => "date[first]"})
+  end
+
+  def test_select_date_with_hidden
+    expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003"/>\n)
+    expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :prefix => "date[first]", :use_hidden => true })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { :date_separator => " / ", :prefix => "date[first]", :use_hidden => true })
+  end
+
+  def test_select_date_with_css_classes_option
+    expected =  %(<select id="date_first_year" name="date[first][year]" class="year">\n)
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<select id="date_first_month" name="date[first][month]" class="month">\n)
+    expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<select id="date_first_day" name="date[first][day]" class="day">\n)
+    expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]", :with_css_classes => true})
   end
 
   def test_select_datetime
@@ -1184,6 +1264,47 @@ class DateHelperTest < ActionView::TestCase
       :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year', :hour => 'Choose hour', :minute => 'Choose minute'})
   end
 
+  def test_select_datetime_with_custom_hours
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
+    expected << %(<option value="">Choose year</option>\n<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<select id="date_first_month" name="date[first][month]">\n)
+    expected << %(<option value="">Choose month</option>\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<select id="date_first_day" name="date[first][day]">\n)
+    expected << %(<option value="">Choose day</option>\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
+    expected << "</select>\n"
+
+    expected << " &mdash; "
+
+    expected << %(<select id="date_first_hour" name="date[first][hour]">\n)
+    expected << %(<option value="">Choose hour</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n)
+    expected << "</select>\n"
+
+    expected << " : "
+
+    expected << %(<select id="date_first_minute" name="date[first][minute]">\n)
+    expected << %(<option value="">Choose minute</option>\n<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :start_year => 2003, :end_year => 2005, :start_hour => 1, :end_hour => 9, :prefix => "date[first]",
+      :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year', :hour => 'Choose hour', :minute => 'Choose minute'})
+  end
+
+  def test_select_datetime_with_hidden
+    expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
+    expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+    expected << %(<input id="date_first_hour" name="date[first][hour]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_minute" name="date[first][minute]" type="hidden" value="4" />\n)
+
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :prefix => "date[first]", :use_hidden => true)
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :datetime_separator => "&mdash;", :date_separator => "/",
+      :time_separator => ":", :prefix => "date[first]", :use_hidden => true)
+  end
+
   def test_select_time
     expected = %(<input name="date[year]" id="date_year" value="2003" type="hidden" />\n)
     expected << %(<input name="date[month]" id="date_month" value="8" type="hidden" />\n)
@@ -1359,6 +1480,17 @@ class DateHelperTest < ActionView::TestCase
       :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
   end
 
+  def test_select_time_with_hidden
+    expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
+    expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_day" name="date[first][day]" type="hidden" value="16" />\n)
+    expected << %(<input id="date_first_hour" name="date[first][hour]" type="hidden" value="8" />\n)
+    expected << %(<input id="date_first_minute" name="date[first][minute]" type="hidden" value="4" />\n)
+
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :prefix => "date[first]", :use_hidden => true)
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :time_separator => ":", :prefix => "date[first]", :use_hidden => true)
+  end
+
   def test_date_select
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
@@ -1394,6 +1526,20 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order => [ :month, :year ])
+  end
+
+  def test_date_select_without_day_and_month
+    @post = Post.new
+    @post.written_on = Date.new(2004, 2, 29)
+
+    expected = "<input type=\"hidden\" id=\"post_written_on_2i\" name=\"post[written_on(2i)]\" value=\"2\" />\n"
+    expected << "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
+
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", :order => [ :year ])
   end
 
   def test_date_select_without_day_with_separator
@@ -2118,6 +2264,18 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, datetime_select("post", "updated_at", { :date_separator => " / ", :datetime_separator => " , ", :time_separator => " - ", :include_seconds => true })
   end
 
+  def test_datetime_select_with_integer
+    @post = Post.new
+    @post.updated_at = 3
+    datetime_select("post", "updated_at")
+  end
+
+  def test_datetime_select_with_infinity # Float
+    @post = Post.new
+    @post.updated_at = (-1.0/0)
+    datetime_select("post", "updated_at")
+  end
+
   def test_datetime_select_with_default_prompt
     @post = Post.new
     @post.updated_at = nil
@@ -2427,7 +2585,7 @@ class DateHelperTest < ActionView::TestCase
     1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
     expected << "</select>\n"
     expected << %{<input type="hidden" id="post_updated_at_2i" name="post[updated_at(2i)]" value="6" />\n}
-    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="15" />\n}
+    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="1" />\n}
 
     expected << " &mdash; "
 
@@ -2448,7 +2606,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = %{<input type="hidden" id="post_updated_at_1i" name="post[updated_at(1i)]" value="2004" />\n}
     expected << %{<input type="hidden" id="post_updated_at_2i" name="post[updated_at(2i)]" value="6" />\n}
-    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="15" />\n}
+    expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="1" />\n}
 
     expected << %{<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n}
     0.upto(23) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 15}>#{sprintf("%02d", i)}</option>\n) }
@@ -2467,7 +2625,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = %{<input type="hidden" id="post_updated_at_1i" disabled="disabled" name="post[updated_at(1i)]" value="2004" />\n}
     expected << %{<input type="hidden" id="post_updated_at_2i" disabled="disabled" name="post[updated_at(2i)]" value="6" />\n}
-    expected << %{<input type="hidden" id="post_updated_at_3i" disabled="disabled" name="post[updated_at(3i)]" value="15" />\n}
+    expected << %{<input type="hidden" id="post_updated_at_3i" disabled="disabled" name="post[updated_at(3i)]" value="1" />\n}
 
     expected << %{<select id="post_updated_at_4i" disabled="disabled" name="post[updated_at(4i)]">\n}
     0.upto(23) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 15}>#{sprintf("%02d", i)}</option>\n) }
@@ -2519,6 +2677,30 @@ class DateHelperTest < ActionView::TestCase
     expected << %{<input type="hidden" id="post_updated_at_5i" name="post[updated_at(5i)]" value="16" />\n}
 
     assert_dom_equal expected, datetime_select("post", "updated_at", :discard_minute => true)
+  end
+
+  def test_datetime_select_disabled_and_discard_minute
+    @post = Post.new
+    @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
+
+    expected = %{<select id="post_updated_at_1i" disabled="disabled" name="post[updated_at(1i)]">\n}
+    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_2i" disabled="disabled" name="post[updated_at(2i)]">\n}
+    1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_3i" disabled="disabled" name="post[updated_at(3i)]">\n}
+    1.upto(31) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 15}>#{i}</option>\n) }
+    expected << "</select>\n"
+
+    expected << " &mdash; "
+
+    expected << %{<select id="post_updated_at_4i" disabled="disabled" name="post[updated_at(4i)]">\n}
+    0.upto(23) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 15}>#{sprintf("%02d", i)}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<input type="hidden" id="post_updated_at_5i" disabled="disabled" name="post[updated_at(5i)]" value="16" />\n}
+
+    assert_dom_equal expected, datetime_select("post", "updated_at", :discard_minute => true, :disabled => true)
   end
 
   def test_datetime_select_invalid_order
@@ -2863,6 +3045,10 @@ class DateHelperTest < ActionView::TestCase
 
   def test_time_tag_with_given_text
     assert_match(/<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now'))
+  end
+
+  def test_time_tag_with_given_block
+    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ '<span>Right now</span>'.html_safe })
   end
 
   def test_time_tag_with_different_format

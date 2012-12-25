@@ -6,7 +6,7 @@ module ActiveRecord
         private
 
         def build_scope
-          super.order(preload_options[:order] || options[:order])
+          super.order(preload_scope.values[:order] || reflection_scope.values[:order])
         end
 
         def preload

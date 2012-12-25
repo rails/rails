@@ -71,6 +71,45 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
+  def test_schema_names
+    assert_equal ["public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
+  end
+
+  def test_create_schema
+    begin
+      @connection.create_schema "test_schema3"
+      assert @connection.schema_names.include? "test_schema3"
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
+  def test_raise_create_schema_with_existing_schema
+    begin
+      @connection.create_schema "test_schema3"
+      assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.create_schema "test_schema3"
+      end
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
+  def test_drop_schema
+    begin
+      @connection.create_schema "test_schema3"
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+    assert !@connection.schema_names.include?("test_schema3")
+  end
+
+  def test_raise_drop_schema_with_nonexisting_schema
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
   def test_schema_change_with_prepared_stmt
     altered = false
     @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
@@ -183,13 +222,13 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_raise_on_unquoted_schema_name
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raises(ActiveRecord::StatementInvalid) do
       with_schema_search_path '$user,public'
     end
   end
 
   def test_without_schema_search_path
-    assert_raise(ActiveRecord::StatementInvalid) { columns(TABLE_NAME) }
+    assert_raises(ActiveRecord::StatementInvalid) { columns(TABLE_NAME) }
   end
 
   def test_ignore_nil_schema_search_path

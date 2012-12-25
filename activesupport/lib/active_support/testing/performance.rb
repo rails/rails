@@ -1,9 +1,9 @@
 require 'fileutils'
-require 'rails/version'
 require 'active_support/concern'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
-require 'action_view/helpers/number_helper'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/number_helper'
 
 module ActiveSupport
   module Testing
@@ -61,7 +61,7 @@ module ActiveSupport
         ensure
           begin
             teardown
-            run_callbacks :teardown, :enumerator => :reverse_each
+            run_callbacks :teardown
           rescue Exception => e
             result = @runner.puke(self.class, method_name, e)
           end
@@ -70,7 +70,7 @@ module ActiveSupport
       end
 
       protected
-        # overridden by each implementation
+        # overridden by each implementation.
         def run_gc; end
 
         def run_warmup
@@ -114,7 +114,7 @@ module ActiveSupport
           end
       end
 
-      # overridden by each implementation
+      # overridden by each implementation.
       class Profiler < Performer
         def time_with_block
           before = Time.now
@@ -126,7 +126,7 @@ module ActiveSupport
         def record; end
       end
 
-      class Benchmarker < Performer     
+      class Benchmarker < Performer
         def initialize(*args)
           super
           @supported = @metric.respond_to?('measure')
@@ -148,26 +148,20 @@ module ActiveSupport
         end
 
         def environment
-          unless defined? @env
-            app = "#{$1}.#{$2}" if File.directory?('.git') && `git branch -v` =~ /^\* (\S+)\s+(\S+)/
-
-            rails = Rails::VERSION::STRING
-            if File.directory?('vendor/rails/.git')
-              Dir.chdir('vendor/rails') do
-                rails += ".#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
-              end
-            end
-
-            ruby = "#{RUBY_ENGINE}-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
-
-            @env = [app, rails, ruby, RUBY_PLATFORM] * ','
-          end
-
-          @env
+          @env ||= [].tap do |env|
+            env << "#{$1}.#{$2}" if File.directory?('.git') && `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+            env << rails_version if defined?(Rails::VERSION::STRING)
+            env << "#{RUBY_ENGINE}-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
+            env << RUBY_PLATFORM
+          end.join(',')
         end
 
         protected
-          HEADER = 'measurement,created_at,app,rails,ruby,platform'
+          if defined?(Rails::VERSION::STRING)
+            HEADER = 'measurement,created_at,app,rails,ruby,platform'
+          else
+            HEADER = 'measurement,created_at,app,ruby,platform'
+          end
 
           def with_output_file
             fname = output_filename
@@ -185,6 +179,18 @@ module ActiveSupport
           def output_filename
             "#{super}.csv"
           end
+
+          def rails_version
+            "rails-#{Rails::VERSION::STRING}#{rails_branch}"
+          end
+
+          def rails_branch
+            if File.directory?('vendor/rails/.git')
+              Dir.chdir('vendor/rails') do
+                ".#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+              end
+            end
+          end
       end
 
       module Metrics
@@ -195,7 +201,7 @@ module ActiveSupport
         end
 
         class Base
-          include ActionView::Helpers::NumberHelper
+          include ActiveSupport::NumberHelper
 
           attr_reader :total
 
@@ -207,7 +213,7 @@ module ActiveSupport
             @name ||= self.class.name.demodulize.underscore
           end
 
-          def benchmark            
+          def benchmark
             with_gc_stats do
               before = measure
               yield
@@ -215,11 +221,11 @@ module ActiveSupport
             end
           end
 
-          # overridden by each implementation
+          # overridden by each implementation.
           def profile; end
 
           protected
-            # overridden by each implementation
+            # overridden by each implementation.
             def with_gc_stats; end
         end
 
@@ -239,7 +245,7 @@ module ActiveSupport
 
         class Amount < Base
           def format(measurement)
-            number_with_delimiter(measurement.floor)
+            number_to_delimited(measurement.floor)
           end
         end
 

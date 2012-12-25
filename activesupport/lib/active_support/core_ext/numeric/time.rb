@@ -8,13 +8,13 @@ class Numeric
   # These methods use Time#advance for precise date calculations when using from_now, ago, etc.
   # as well as adding or subtracting their results from a Time object. For example:
   #
-  #   # equivalent to Time.now.advance(:months => 1)
+  #   # equivalent to Time.current.advance(months: 1)
   #   1.month.from_now
   #
-  #   # equivalent to Time.now.advance(:years => 2)
+  #   # equivalent to Time.current.advance(years: 2)
   #   2.years.from_now
   #
-  #   # equivalent to Time.now.advance(:months => 4, :years => 5)
+  #   # equivalent to Time.current.advance(months: 4, years: 5)
   #   (4.months + 5.years).from_now
   #
   # While these methods provide precise calculation when used as in the examples above, care
@@ -28,9 +28,9 @@ class Numeric
   #   1.year.to_f.from_now
   #
   # In such cases, Ruby's core
-  # Date[http://stdlib.rubyonrails.org/libdoc/date/rdoc/index.html] and
-  # Time[http://stdlib.rubyonrails.org/libdoc/time/rdoc/index.html] should be used for precision
-  # date and time arithmetic
+  # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+  # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+  # date and time arithmetic.
   def seconds
     ActiveSupport::Duration.new(self, [[:seconds, self]])
   end

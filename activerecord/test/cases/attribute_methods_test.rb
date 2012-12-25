@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
@@ -13,6 +12,8 @@ require 'models/contact'
 require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
+  include InTimeZone
+
   fixtures :topics, :developers, :companies, :computers
 
   def setup
@@ -30,9 +31,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t = Topic.new
     t.title = "hello there!"
     t.written_on = Time.now
+    t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
+    assert !t.attribute_present?("author_name")
   end
 
   def test_attribute_present_with_booleans
@@ -241,7 +244,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     # DB2 is not case-sensitive
     return true if current_adapter?(:DB2Adapter)
 
-    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
+    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
   def test_hashes_not_mangled
@@ -286,6 +289,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:title]
   end
 
+  def test_read_attribute_raises_missing_attribute_error_when_not_exists
+    computer = Computer.select('id').first
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
+  end
+
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
@@ -304,26 +313,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_read_write_boolean_attribute
     topic = Topic.new
-    # puts ""
-    # puts "New Topic"
-    # puts topic.inspect
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
-    # puts ""
   end
 
   def test_overridden_write_attribute
@@ -394,7 +394,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_query_attribute_with_custom_fields
     object = Company.find_by_sql(<<-SQL).first
-      SELECT c1.*, c2.ruby_type as string_value, c2.rating as int_value
+      SELECT c1.*, c2.type as string_value, c2.rating as int_value
         FROM companies c1, companies c2
        WHERE c1.firm_id = c2.id
          AND c1.id = 2
@@ -478,23 +478,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+      topic = Topic.all.merge!(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+      topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
+    Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+      topic = Topic.all.merge!(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+      topic = Topic.all.merge!(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end
@@ -728,11 +728,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Object.send(:undef_method, :title) # remove test method from object
   end
 
-  def test_list_of_serialized_attributes
-    assert_equal %w(content), Topic.serialized_attributes.keys
-    assert_equal %w(preferences), Contact.serialized_attributes.keys
-  end
-
   def test_instance_method_should_be_defined_on_the_base_class
     subklass = Class.new(Topic)
 
@@ -789,30 +784,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   private
+
   def cached_columns
-    Topic.columns.find_all { |column|
-      !Topic.serialized_attributes.include? column.name
-    }.map(&:name)
+    Topic.columns.map(&:name) - Topic.serialized_attributes.keys
   end
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
   end
 
-  def in_time_zone(zone)
-    old_zone  = Time.zone
-    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
-
-    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-    yield
-  ensure
-    Time.zone = old_zone
-    ActiveRecord::Base.time_zone_aware_attributes = old_tz
-  end
-
   def privatize(method_signature)
-    @target.class_eval <<-private_method
+    @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
       private
       def #{method_signature}
         "I'm private"

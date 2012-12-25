@@ -21,26 +21,6 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.backend = @old_backend
   end
 
-  def test_errors_add_on_empty_generates_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {})
-    @person.errors.add_on_empty :title
-  end
-
-  def test_errors_add_on_empty_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {:message => 'custom'})
-    @person.errors.add_on_empty :title, :message => 'custom'
-  end
-
-  def test_errors_add_on_blank_generates_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {})
-    @person.errors.add_on_blank :title
-  end
-
-  def test_errors_add_on_blank_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {:message => 'custom'})
-    @person.errors.add_on_blank :title, :message => 'custom'
-  end
-
   def test_full_message_encoding
     I18n.backend.store_translations('en', :errors => {
       :messages => { :too_short => '猫舌' }})
@@ -81,7 +61,7 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_confirmation_of on generated message #{name}" do
       Person.validates_confirmation_of :title, validation_options
       @person.title_confirmation = 'foo'
-      @person.errors.expects(:generate_message).with(:title, :confirmation, generate_message_options)
+      @person.errors.expects(:generate_message).with(:title_confirmation, :confirmation, generate_message_options.merge(:attribute => 'Title'))
       @person.valid?
     end
   end
@@ -141,7 +121,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_format_of on generated message #{name}" do
-      Person.validates_format_of :title, validation_options.merge(:with => /^[1-9][0-9]*$/)
+      Person.validates_format_of :title, validation_options.merge(:with => /\A[1-9][0-9]*\z/)
       @person.title = '72x'
       @person.errors.expects(:generate_message).with(:title, :invalid, generate_message_options.merge(:value => '72x'))
       @person.valid?
@@ -159,11 +139,33 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
+  # validates_inclusion_of using :within w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_inclusion_of using :within on generated message #{name}" do
+      Person.validates_inclusion_of :title, validation_options.merge(:within => %w(a b c))
+      @person.title = 'z'
+      @person.errors.expects(:generate_message).with(:title, :inclusion, generate_message_options.merge(:value => 'z'))
+      @person.valid?
+    end
+  end
+
   # validates_exclusion_of w/ mocha
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_exclusion_of generated message #{name}" do
       Person.validates_exclusion_of :title, validation_options.merge(:in => %w(a b c))
+      @person.title = 'a'
+      @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
+      @person.valid?
+    end
+  end
+
+  # validates_exclusion_of using :within w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_exclusion_of using :within generated message #{name}" do
+      Person.validates_exclusion_of :title, validation_options.merge(:within => %w(a b c))
       @person.title = 'a'
       @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
       @person.valid?
@@ -217,24 +219,29 @@ class I18nValidationTest < ActiveModel::TestCase
 
   # To make things DRY this macro is defined to define 3 tests for every validation case.
   def self.set_expectations_for_validation(validation, error_type, &block_that_sets_validation)
+    if error_type == :confirmation
+      attribute = :title_confirmation
+    else
+      attribute = :title
+    end
     # test "validates_confirmation_of finds custom model key translation when blank"
     test "#{validation} finds custom model key translation when #{error_type}" do
-      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {error_type => 'custom message'}}}}}}
+      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {attribute => {error_type => 'custom message'}}}}}}
       I18n.backend.store_translations 'en', :errors => {:messages => {error_type => 'global message'}}
 
       yield(@person, {})
       @person.valid?
-      assert_equal ['custom message'], @person.errors[:title]
+      assert_equal ['custom message'], @person.errors[attribute]
     end
 
     # test "validates_confirmation_of finds custom model key translation with interpolation when blank"
     test "#{validation} finds custom model key translation with interpolation when #{error_type}" do
-      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {error_type => 'custom message with %{extra}'}}}}}}
+      I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {attribute => {error_type => 'custom message with %{extra}'}}}}}}
       I18n.backend.store_translations 'en', :errors => {:messages => {error_type => 'global message'}}
 
       yield(@person, {:extra => "extra information"})
       @person.valid?
-      assert_equal ['custom message with extra information'], @person.errors[:title]
+      assert_equal ['custom message with extra information'], @person.errors[attribute]
     end
 
     # test "validates_confirmation_of finds global default key translation when blank"
@@ -243,7 +250,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
       yield(@person, {})
       @person.valid?
-      assert_equal ['global message'], @person.errors[:title]
+      assert_equal ['global message'], @person.errors[attribute]
     end
   end
 
@@ -286,7 +293,7 @@ class I18nValidationTest < ActiveModel::TestCase
   # validates_format_of w/o mocha
 
   set_expectations_for_validation "validates_format_of", :invalid do |person, options_to_merge|
-    Person.validates_format_of :title, options_to_merge.merge(:with => /^[1-9][0-9]*$/)
+    Person.validates_format_of :title, options_to_merge.merge(:with => /\A[1-9][0-9]*\z/)
   end
 
   # validates_inclusion_of w/o mocha

@@ -33,6 +33,45 @@ module ActiveSupport
     end
 
     module Isolation
+      require 'thread'
+
+      class ParallelEach
+        include Enumerable
+
+        # default to 2 cores
+        CORES = (ENV['TEST_CORES'] || 2).to_i
+
+        def initialize list
+          @list  = list
+          @queue = SizedQueue.new CORES
+        end
+
+        def grep pattern
+          self.class.new super
+        end
+
+        def each
+          threads = CORES.times.map {
+            Thread.new {
+              while job = @queue.pop
+                yield job
+              end
+            }
+          }
+          @list.each { |i| @queue << i }
+          CORES.times { @queue << nil }
+          threads.each(&:join)
+        end
+      end
+
+      def self.included(klass) #:nodoc:
+        klass.extend(Module.new {
+          def test_methods
+            ParallelEach.new super
+          end
+        })
+      end
+
       def self.forking_env?
         !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
       end

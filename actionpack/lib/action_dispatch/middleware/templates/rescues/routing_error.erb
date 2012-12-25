@@ -10,6 +10,16 @@
     </ol>
   </p>
 <% end %>
+<%= render template: "rescues/_trace" %>
+
+<h2>
+  Routes
+</h2>
+
 <p>
-  Try running <code>rake routes</code> for more information on available routes.
+  Routes match in priority from top to bottom
 </p>
+
+<%= render layout: "routes/route_wrapper" do %>
+  <%= render partial: "routes/route", collection: @routes %>
+<% end %>

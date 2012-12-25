@@ -1,6 +1,5 @@
 require 'securerandom'
 require 'active_support/core_ext/string/access'
-require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   # Makes a unique request id available to the action_dispatch.request_id env variable (which is then accessible through

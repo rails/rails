@@ -247,46 +247,33 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 end
 
 
-class TransactionObserverCallbacksTest < ActiveRecord::TestCase
+class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
-  fixtures :topics
 
-  class TopicWithObserverAttached < ActiveRecord::Base
+  class TopicWithSaveInCallback < ActiveRecord::Base
     self.table_name = :topics
-    def history
-      @history ||= []
+    after_commit :cache_topic, :on => :create
+    after_commit :call_update, :on => :update
+    attr_accessor :cached, :record_updated
+
+    def call_update
+      self.record_updated = true
+    end
+
+    def cache_topic
+      unless cached
+        self.cached = true
+        self.save
+      else
+        self.cached = false
+      end
     end
   end
 
-  class TopicWithObserverAttachedObserver < ActiveRecord::Observer
-    def after_commit(record)
-      record.history.push "after_commit"
-    end
-
-    def after_rollback(record)
-      record.history.push "after_rollback"
-    end
-  end
-
-  def test_after_commit_called
-    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithObserverAttached.new
-    topic.save!
-
-    assert_equal %w{ after_commit }, topic.history
-  end
-
-  def test_after_rollback_called
-    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithObserverAttached.new
-
-    Topic.transaction do
-      topic.save!
-      raise ActiveRecord::Rollback
-    end
-
-    assert_equal %w{ after_rollback }, topic.history
+  def test_after_commit_in_save
+    topic = TopicWithSaveInCallback.new()
+    topic.save
+    assert_equal true, topic.cached
+    assert_equal true, topic.record_updated
   end
 end

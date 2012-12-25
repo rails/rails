@@ -1,5 +1,4 @@
 require 'action_dispatch/http/mime_type'
-require 'active_support/core_ext/class/attribute'
 require 'erubis'
 
 module ActionView
@@ -13,6 +12,17 @@ module ActionView
         def add_text(src, text)
           return if text.empty?
           src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
+        end
+
+        # Erubis toggles <%= and <%== behavior when escaping is enabled.
+        # We override to always treat <%== as escaped.
+        def add_expr(src, code, indicator)
+          case indicator
+          when '=='
+            add_expr_escaped(src, code)
+          else
+            super
+          end
         end
 
         BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
@@ -48,6 +58,10 @@ module ActionView
         class_attribute :erb_implementation
         self.erb_implementation = Erubis
 
+        # Do not escape templates of these mime types.
+        class_attribute :escape_whitelist
+        self.escape_whitelist = ["text/plain"]
+
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
         def self.call(template)
@@ -79,6 +93,7 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
+            :escape => (self.class.escape_whitelist.include? template.type),
             :trim => (self.class.erb_trim_mode == "-")
           ).src
         end

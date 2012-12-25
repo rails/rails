@@ -1,9 +1,5 @@
-$:.unshift(File.dirname(__FILE__))
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-
 require 'minitest/autorun'
 require 'rbconfig'
-require 'active_support/core_ext/kernel/reporting'
 require 'abstract_unit'
 
 class TestIsolated < ActiveSupport::TestCase
@@ -13,7 +9,7 @@ class TestIsolated < ActiveSupport::TestCase
     define_method("test #{file}") do
       command = "#{ruby} -Ilib:test #{file}"
       result = silence_stderr { `#{command}` }
-      assert_block("#{command}\n#{result}") { $?.to_i.zero? }
+      assert $?.to_i.zero?, "#{command}\n#{result}"
     end
   end
 end

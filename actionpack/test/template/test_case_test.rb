@@ -64,18 +64,18 @@ module ActionView
       assert_equal 'Howdy!', from_another_helper
     end
 
-    test "determine_default_helper_class returns nil if name.sub(/Test$/, '').constantize resolves to a class" do
+    test "determine_default_helper_class returns nil if the test name constant resolves to a class" do
       assert_nil self.class.determine_default_helper_class("String")
     end
 
-    test "delegates notice to request.flash" do
-      view.request.flash.expects(:notice).with("this message")
-      view.notice("this message")
+    test "delegates notice to request.flash[:notice]" do
+      view.request.flash.expects(:[]).with(:notice)
+      view.notice
     end
 
-    test "delegates alert to request.flash" do
-      view.request.flash.expects(:alert).with("this message")
-      view.alert("this message")
+    test "delegates alert to request.flash[:alert]" do
+      view.request.flash.expects(:[]).with(:alert)
+      view.alert
     end
 
     test "uses controller lookup context" do
@@ -222,6 +222,25 @@ module ActionView
       end
     end
 
+    test "is able to use mounted routes" do
+      with_routing do |set|
+        app = Class.new do
+          def self.routes
+            @routes ||= ActionDispatch::Routing::RouteSet.new
+          end
+
+          routes.draw { get "bar", :to => lambda {} }
+
+          def self.call(*)
+          end
+        end
+
+        set.draw { mount app => "/foo", :as => "foo_app" }
+
+        assert_equal '/foo/bar', foo_app.bar_path
+      end
+    end
+
     test "named routes can be used from helper included in view" do
       with_routing do |set|
         set.draw { resources :contents }
@@ -277,6 +296,12 @@ module ActionView
   end
 
   class RenderTemplateTest < ActionView::TestCase
+    test "supports specifying templates with a Regexp" do
+      controller.controller_path = "fun"
+      render(:template => "fun/games/hello_world")
+      assert_template %r{\Afun/games/hello_world\Z}
+    end
+
     test "supports specifying partials" do
       controller.controller_path = "test"
       render(:template => "test/calling_partial_with_layout")
@@ -296,6 +321,14 @@ module ActionView
         assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
       end
     end
+
+    test 'supports different locals on the same partial' do
+      controller.controller_path = "test"
+      render(:template => "test/render_two_partials")
+      assert_template partial: '_partial', locals: { 'first' => '1' }
+      assert_template partial: '_partial', locals: { 'second' => '2' }
+    end
+
   end
 
   module AHelperWithInitialize

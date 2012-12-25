@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/string/output_safety.rb'
+require 'active_support/core_ext/string/output_safety'
 
 class ToQueryTest < ActiveSupport::TestCase
   def test_simple_conversion
@@ -28,12 +28,12 @@ class ToQueryTest < ActiveSupport::TestCase
 
   def test_nested_conversion
     assert_query_equal 'person%5Blogin%5D=seckar&person%5Bname%5D=Nicholas',
-      :person => ActiveSupport::OrderedHash[:login, 'seckar', :name, 'Nicholas']
+      :person => Hash[:login, 'seckar', :name, 'Nicholas']
   end
 
   def test_multiple_nested
     assert_query_equal 'account%5Bperson%5D%5Bid%5D=20&person%5Bid%5D=10',
-      ActiveSupport::OrderedHash[:account, {:person => {:id => 20}}, :person, {:id => 10}]
+      Hash[:account, {:person => {:id => 20}}, :person, {:id => 10}]
   end
 
   def test_array_values

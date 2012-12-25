@@ -1,86 +1,108 @@
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
-    class_attribute :valid_options
-    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :extend, :readonly, :validate, :references]
-
-    # Set by subclasses
-    class_attribute :macro
-
-    attr_reader :model, :name, :options, :reflection
-
-    def self.build(model, name, options)
-      new(model, name, options).build
+    class << self
+      attr_accessor :valid_options
     end
 
-    def initialize(model, name, options)
-      @model, @name, @options = model, name, options
+    self.valid_options = [:class_name, :foreign_key, :validate]
+
+    attr_reader :model, :name, :scope, :options, :reflection
+
+    def self.build(*args, &block)
+      new(*args, &block).build
+    end
+
+    def initialize(model, name, scope, options)
+      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
+
+      @model   = model
+      @name    = name
+
+      if scope.is_a?(Hash)
+        @scope   = nil
+        @options = scope
+      else
+        @scope   = scope
+        @options = options
+      end
+
+      if @scope && @scope.arity == 0
+        prev_scope = @scope
+        @scope = proc { instance_exec(&prev_scope) }
+      end
     end
 
     def mixin
       @model.generated_feature_methods
     end
 
+    include Module.new { def build; end }
+
     def build
       validate_options
-      reflection = model.create_reflection(self.class.macro, name, options, model)
       define_accessors
-      reflection
+      configure_dependency if options[:dependent]
+      @reflection = model.create_reflection(macro, name, scope, options, model)
+      super # provides an extension point
+      @reflection
     end
 
-    private
+    def macro
+      raise NotImplementedError
+    end
 
-      def validate_options
-        options.assert_valid_keys(self.class.valid_options)
-      end
+    def valid_options
+      Association.valid_options
+    end
 
-      def define_accessors
-        define_readers
-        define_writers
-      end
+    def validate_options
+      options.assert_valid_keys(valid_options)
+    end
 
-      def define_readers
-        name = self.name
-        mixin.redefine_method(name) do |*params|
-          association(name).reader(*params)
+    def define_accessors
+      define_readers
+      define_writers
+    end
+
+    def define_readers
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}(*args)
+          association(:#{name}).reader(*args)
         end
-      end
+      CODE
+    end
 
-      def define_writers
-        name = self.name
-        mixin.redefine_method("#{name}=") do |value|
-          association(name).writer(value)
+    def define_writers
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}=(value)
+          association(:#{name}).writer(value)
         end
+      CODE
+    end
+
+    def configure_dependency
+      unless valid_dependent_options.include? options[:dependent]
+        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
       end
 
-      def dependent_restrict_raises?
-        ActiveRecord::Base.dependent_restrict_raises == true
+      if options[:dependent] == :restrict
+        ActiveSupport::Deprecation.warn(
+          "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
+          "provides the same functionality."
+        )
       end
 
-      def dependent_restrict_deprecation_warning
-        if dependent_restrict_raises?
-          msg = "In the next release, `:dependent => :restrict` will not raise a `DeleteRestrictionError`. "\
-                "Instead, it will add an error on the model. To fix this warning, make sure your code " \
-                "isn't relying on a `DeleteRestrictionError` and then add " \
-                "`config.active_record.dependent_restrict_raises = false` to your application config."
-          ActiveSupport::Deprecation.warn msg
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{macro}_dependent_for_#{name}
+          association(:#{name}).handle_dependency
         end
-      end
+      CODE
 
-      def define_restrict_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          # has_many or has_one associations
-          if send(name).respond_to?(:exists?) ? send(name).exists? : !send(name).nil?
-            if dependent_restrict_raises?
-              raise ActiveRecord::DeleteRestrictionError.new(name)
-            else
-              key  = association(name).reflection.macro == :has_one ? "one" : "many"
-              errors.add(:base, :"restrict_dependent_destroy.#{key}",
-                         :record => self.class.human_attribute_name(name).downcase)
-              return false
-            end
-          end
-        end
-      end
+      model.before_destroy "#{macro}_dependent_for_#{name}"
+    end
+
+    def valid_dependent_options
+      raise NotImplementedError
+    end
   end
 end

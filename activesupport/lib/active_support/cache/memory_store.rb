@@ -135,8 +135,10 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options) # :nodoc:
+          entry.dup_value!
           synchronize do
             old_entry = @data[key]
+            return false if @data.key?(key) && options[:unless_exist]
             @cache_size -= old_entry.size if old_entry
             @cache_size += entry.size
             @key_access[key] = Time.now.to_f

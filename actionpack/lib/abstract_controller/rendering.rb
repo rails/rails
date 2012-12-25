@@ -49,9 +49,19 @@ module AbstractController
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          routes  = _routes  if respond_to?(:_routes)
-          helpers = _helpers if respond_to?(:_helpers)
-          ActionView::Base.prepare(routes, helpers)
+          routes = respond_to?(:_routes) && _routes
+          helpers = respond_to?(:_helpers) && _helpers
+
+          Class.new(ActionView::Base) do
+            if routes
+              include routes.url_helpers
+              include routes.mounted_helpers
+            end
+
+            if helpers
+              include helpers
+            end
+          end
         end
       end
     end
@@ -105,6 +115,7 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
+      lookup_context.rendered_format = nil if options[:formats]
       view_renderer.render(view_context, options)
     end
 

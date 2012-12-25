@@ -34,6 +34,12 @@ class Someone < Struct.new(:name, :place)
   delegate :street, :city, :to_f, :to => :place
   delegate :name=, :to => :place, :prefix => true
   delegate :upcase, :to => "place.city"
+  delegate :table_name, :to => :class
+  delegate :table_name, :to => :class, :prefix => true
+
+  def self.table_name
+    'some_table'
+  end
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
@@ -60,6 +66,14 @@ Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
 end
 
+class ParameterSet
+  delegate :[], :[]=, :to => :@params
+
+  def initialize
+    @params = {:foo => "bar"}
+  end
+end
+
 class Name
   delegate :upcase, :to => :@full_name
 
@@ -83,6 +97,17 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "Fred", @david.place.name
   end
 
+  def test_delegation_to_index_get_method
+    @params = ParameterSet.new
+    assert_equal "bar", @params[:foo]
+  end
+
+  def test_delegation_to_index_set_method
+    @params = ParameterSet.new
+    @params[:foo] = "baz"
+    assert_equal "baz", @params[:foo]
+  end
+
   def test_delegation_down_hierarchy
     assert_equal "CHICAGO", @david.upcase
   end
@@ -90,6 +115,11 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_instance_variable
     david = Name.new("David", "Hansson")
     assert_equal "DAVID HANSSON", david.upcase
+  end
+
+  def test_delegation_to_class_method
+    assert_equal 'some_table', @david.table_name
+    assert_equal 'some_table', @david.class_table_name
   end
 
   def test_missing_delegation_target
@@ -215,7 +245,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_local_constant_names
     ActiveSupport::Deprecation.silence do
-      assert_equal %w(Constant1 Constant3), Ab.local_constant_names
+      assert_equal %w(Constant1 Constant3), Ab.local_constant_names.sort.map(&:to_s)
     end
   end
 end

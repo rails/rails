@@ -64,7 +64,7 @@ module ActiveRecord
         spec.config[:reaping_frequency] = 0.0001
 
         pool = ConnectionPool.new spec
-        pool.timeout = 0
+        pool.dead_connection_timeout = 0
 
         conn = pool.checkout
         count = pool.connections.length

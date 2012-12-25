@@ -3,15 +3,15 @@ module ActionView
     module Tags
       class Label < Base #:nodoc:
         def initialize(object_name, method_name, template_object, content_or_options = nil, options = nil)
+          options ||= {}
+
           content_is_options = content_or_options.is_a?(Hash)
           if content_is_options
-            options = content_or_options
+            options.merge! content_or_options
             @content = nil
           else
             @content = content_or_options
           end
-
-          options ||= {}
 
           super(object_name, method_name, template_object, options)
         end
@@ -33,7 +33,7 @@ module ActionView
           options["for"] = name_and_id["id"] unless options.key?("for")
 
           if block_given?
-            @template_object.label_tag(name_and_id["id"], options, &block)
+            content = @template_object.capture(&block)
           else
             content = if @content.blank?
                         @object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
@@ -55,9 +55,9 @@ module ActionView
                         end
 
             content ||= @method_name.humanize
-
-            label_tag(name_and_id["id"], content, options)
           end
+
+          label_tag(name_and_id["id"], content, options)
         end
       end
     end

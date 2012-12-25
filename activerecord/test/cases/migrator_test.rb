@@ -84,6 +84,12 @@ module ActiveRecord
        end
     end
 
+    def test_finds_migrations_in_numbered_directory
+      migrations = ActiveRecord::Migrator.migrations [MIGRATIONS_ROOT + '/10_urban']
+      assert_equal 9, migrations[0].version
+      assert_equal 'AddExpressions', migrations[0].name
+    end
+
     def test_deprecated_constructor
       assert_deprecated do
         ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid")

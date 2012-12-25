@@ -1,41 +1,97 @@
 require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
 
 class Array
-  # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
-  # * <tt>:words_connector</tt> - The sign or word used to join the elements in arrays with two or more elements (default: ", ")
-  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
-  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
+  # Converts the array to a comma-separated sentence where the last element is
+  # joined by the connector word.
+  #
+  # You can pass the following options to change the default behaviour. If you
+  # pass an option key that doesn't exist in the list below, it will raise an
+  # <tt>ArgumentError</tt>.
+  #
+  # Options:
+  #
+  # * <tt>:words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two or more elements (default: ", ").
+  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two elements (default: " and ").
+  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
+  #   in arrays with three or more elements (default: ", and ").
+  # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
+  #   the connector options defined on the 'support.array' namespace in the
+  #   corresponding dictionary file.
+  #
+  #   [].to_sentence                      # => ""
+  #   ['one'].to_sentence                 # => "one"
+  #   ['one', 'two'].to_sentence          # => "one and two"
+  #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
+  #
+  #   ['one', 'two'].to_sentence(passing: 'invalid option')
+  #   # => ArgumentError: Unknown key :passing
+  #
+  #   ['one', 'two'].to_sentence(two_words_connector: '-')
+  #   # => "one-two"
+  #
+  #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
+  #   # => "one or two or at least three"
+  #
+  # Examples using <tt>:locale</tt> option:
+  #
+  #   # Given this locale dictionary:
+  #   # 
+  #   #   es:
+  #   #     support:
+  #   #       array:
+  #   #         words_connector: " o "
+  #   #         two_words_connector: " y "
+  #   #         last_word_connector: " o al menos "
+  #
+  #   ['uno', 'dos'].to_sentence(locale: :es)
+  #   # => "uno y dos"
+  #
+  #   ['uno', 'dos', 'tres'].to_sentence(locale: :es)
+  #   # => "uno o dos o al menos tres"
   def to_sentence(options = {})
-    if defined?(I18n)
-      default_words_connector     = I18n.translate(:'support.array.words_connector',     :locale => options[:locale])
-      default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
-      default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
-    else
-      default_words_connector     = ", "
-      default_two_words_connector = " and "
-      default_last_word_connector = ", and "
-    end
-
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
-    options.reverse_merge! :words_connector => default_words_connector, :two_words_connector => default_two_words_connector, :last_word_connector => default_last_word_connector
+
+    default_connectors = {
+      :words_connector     => ', ',
+      :two_words_connector => ' and ',
+      :last_word_connector => ', and '
+    }
+    if defined?(I18n)
+      i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
+      default_connectors.merge!(i18n_connectors)
+    end
+    options = default_connectors.merge!(options)
 
     case length
-      when 0
-        ""
-      when 1
-        self[0].to_s.dup
-      when 2
-        "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
-      else
-        "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
+    when 0
+      ''
+    when 1
+      self[0].to_s.dup
+    when 2
+      "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
+    else
+      "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
     end
   end
 
   # Converts a collection of elements into a formatted string by calling
-  # <tt>to_s</tt> on all elements and joining them:
+  # <tt>to_s</tt> on all elements and joining them. Having this model:
+  #
+  #   class Blog < ActiveRecord::Base
+  #     def to_s
+  #       title
+  #     end
+  #   end
+  #
+  #   Blog.all.map(&:title) #=> ["First Post", "Second Post", "Third post"]
+  #
+  # <tt>to_formatted_s</tt> shows us:
   #
   #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
   #
@@ -45,14 +101,14 @@ class Array
   #   Blog.all.to_formatted_s(:db) # => "1,2,3"
   def to_formatted_s(format = :default)
     case format
-      when :db
-        if respond_to?(:empty?) && self.empty?
-          "null"
-        else
-          collect { |element| element.id }.join(",")
-        end
+    when :db
+      if empty?
+        'null'
       else
-        to_default_s
+        collect { |element| element.id }.join(',')
+      end
+    else
+      to_default_s
     end
   end
   alias_method :to_default_s, :to_s
@@ -86,20 +142,20 @@ class Array
   #     </project>
   #   </projects>
   #
-  # Otherwise the root element is "records":
+  # Otherwise the root element is "objects":
   #
-  #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
+  #   [{ foo: 1, bar: 2}, { baz: 3}].to_xml
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
-  #   <records type="array">
-  #     <record>
+  #   <objects type="array">
+  #     <object>
   #       <bar type="integer">2</bar>
   #       <foo type="integer">1</foo>
-  #     </record>
-  #     <record>
+  #     </object>
+  #     <object>
   #       <baz type="integer">3</baz>
-  #     </record>
-  #   </records>
+  #     </object>
+  #   </objects>
   #
   # If the collection is empty the root element is "nil-classes" by default:
   #
@@ -110,7 +166,7 @@ class Array
   #
   # To ensure a meaningful root element use the <tt>:root</tt> option:
   #
-  #   customer_with_no_projects.projects.to_xml(:root => "projects")
+  #   customer_with_no_projects.projects.to_xml(root: 'projects')
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
@@ -120,7 +176,7 @@ class Array
   #
   # The +options+ hash is passed downwards:
   #
-  #   Message.all.to_xml(:skip_types => true)
+  #   Message.all.to_xml(skip_types: true)
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <messages>
@@ -138,27 +194,29 @@ class Array
 
     options = options.dup
     options[:indent]  ||= 2
-    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
-    options[:root]    ||= if first.class.to_s != "Hash" && all? { |e| e.is_a?(first.class) }
-      underscored = ActiveSupport::Inflector.underscore(first.class.name)
-      ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
-    else
-      "objects"
-    end
+    options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
+    options[:root]    ||= \
+      if first.class != Hash && all? { |e| e.is_a?(first.class) }
+        underscored = ActiveSupport::Inflector.underscore(first.class.name)
+        ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
+      else
+        'objects'
+      end
 
     builder = options[:builder]
     builder.instruct! unless options.delete(:skip_instruct)
 
     root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
     children = options.delete(:children) || root.singularize
+    attributes = options[:skip_types] ? {} : { type: 'array' }
 
-    attributes = options[:skip_types] ? {} : {:type => "array"}
-    return builder.tag!(root, attributes) if empty?
-
-    builder.__send__(:method_missing, root, attributes) do
-      each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
-      yield builder if block_given?
+    if empty?
+      builder.tag!(root, attributes)
+    else
+      builder.tag!(root, attributes) do
+        each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
+        yield builder if block_given?
+      end
     end
   end
-
 end

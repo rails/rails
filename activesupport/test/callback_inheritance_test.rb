@@ -29,7 +29,7 @@ class GrandParent
   end
 
   def dispatch
-    run_callbacks(:dispatch, action_name) do
+    run_callbacks :dispatch do
       @log << action_name
     end
     self

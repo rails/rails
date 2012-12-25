@@ -14,18 +14,16 @@ else
     extra_args_string = File.open(railsrc).read
     extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
     puts "Using #{extra_args.join(" ")} from #{railsrc}"
-    ARGV << extra_args
-    ARGV.flatten!
+    ARGV.insert(1, *extra_args)
   end
 end
 
-require 'rubygems' if ARGV.include?("--dev")
 require 'rails/generators'
 require 'rails/generators/rails/app/app_generator'
 
 module Rails
   module Generators
-    class AppGenerator
+    class AppGenerator # :nodoc:
       # We want to exit on failure to be kind to other libraries
       # This is only when accessing via CLI
       def self.exit_on_failure?

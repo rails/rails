@@ -11,7 +11,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def setup
     @developer = Developer.first
-    @developer.update_attribute(:updated_at, Time.now.prev_month)
+    @developer.update_columns(updated_at: Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
   end
 
@@ -114,9 +114,12 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
-    Pet.belongs_to :owner, :touch => :happy_at
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Pet'; end
+      belongs_to :owner, :touch => :happy_at
+    end
 
-    pet   = Pet.first
+    pet   = klass.first
     owner = pet.owner
     previously_owner_happy_at = owner.happy_at
 
@@ -124,42 +127,41 @@ class TimestampTest < ActiveRecord::TestCase
     pet.save
 
     assert_not_equal previously_owner_happy_at, pet.owner.happy_at
-  ensure
-    Pet.belongs_to :owner, :touch => true
   end
 
   def test_touching_a_record_with_a_belongs_to_that_uses_a_counter_cache_should_update_the_parent
-    Pet.belongs_to :owner, :counter_cache => :use_count, :touch => true
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Pet'; end
+      belongs_to :owner, :counter_cache => :use_count, :touch => true
+    end
 
-    pet = Pet.first
+    pet = klass.first
     owner = pet.owner
-    owner.update_attribute(:happy_at, 3.days.ago)
+    owner.update_columns(happy_at: 3.days.ago)
     previously_owner_updated_at = owner.updated_at
 
     pet.name = "I'm a parrot"
     pet.save
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
-  ensure
-    Pet.belongs_to :owner, :touch => true
   end
 
   def test_touching_a_record_touches_parent_record_and_grandparent_record
-    Toy.belongs_to :pet, :touch => true
-    Pet.belongs_to :owner, :touch => true
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, :touch => true
+    end
 
-    toy = Toy.first
+    toy = klass.first
     pet = toy.pet
     owner = pet.owner
     time = 3.days.ago
 
-    owner.update_column(:updated_at, time)
+    owner.update_columns(updated_at: time)
     toy.touch
     owner.reload
 
     assert_not_equal time, owner.updated_at
-  ensure
-    Toy.belongs_to :pet
   end
 
   def test_timestamp_attributes_for_create

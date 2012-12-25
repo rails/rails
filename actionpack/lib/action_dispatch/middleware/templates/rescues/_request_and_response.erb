@@ -12,8 +12,8 @@
 
   request_dump = clean_params.empty? ? 'None' : clean_params.inspect.gsub(',', ",\n")
 
-  def debug_hash(hash)
-    hash.sort_by { |k, v| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
+  def debug_hash(object)
+    object.to_hash.sort_by { |k, v| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
   end unless self.class.method_defined?(:debug_hash)
 %>
 

@@ -2,11 +2,9 @@
 
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/reverse_merge'
 
 module ActiveModel
-  # == Active Model Errors
+  # == Active \Model \Errors
   #
   # Provides a modified +Hash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
@@ -55,8 +53,8 @@ module ActiveModel
   # The above allows you to do:
   #
   #   p = Person.new
-  #   p.validate!             # => ["can not be nil"]
-  #   p.errors.full_messages  # => ["name can not be nil"]
+  #   person.validate!            # => ["can not be nil"]
+  #   person.errors.full_messages # => ["name can not be nil"]
   #   # etc..
   class Errors
     include Enumerable
@@ -77,33 +75,55 @@ module ActiveModel
       @messages = {}
     end
 
-    def initialize_dup(other)
+    def initialize_dup(other) # :nodoc:
       @messages = other.messages.dup
       super
     end
 
-    # Clear the messages
+    # Clear the error messages.
+    #
+    #   person.errors.full_messages # => ["name can not be nil"]
+    #   person.errors.clear
+    #   person.errors.full_messages # => []
     def clear
       messages.clear
     end
 
-    # Do the error messages include an error with key +error+?
-    def include?(error)
-      (v = messages[error]) && v.any?
+    # Returns +true+ if the error messages include an error for the given key
+    # +attribute+, +false+ otherwise.
+    #
+    #   person.errors.messages        # => {:name=>["can not be nil"]}
+    #   person.errors.include?(:name) # => true
+    #   person.errors.include?(:age)  # => false
+    def include?(attribute)
+      (v = messages[attribute]) && v.any?
     end
+    # aliases include?
     alias :has_key? :include?
 
-    # Get messages for +key+
+    # Get messages for +key+.
+    #
+    #   person.errors.messages   # => {:name=>["can not be nil"]}
+    #   person.errors.get(:name) # => ["can not be nil"]
+    #   person.errors.get(:age)  # => nil
     def get(key)
       messages[key]
     end
 
-    # Set messages for +key+ to +value+
+    # Set messages for +key+ to +value+.
+    #
+    #   person.errors.get(:name) # => ["can not be nil"]
+    #   person.errors.set(:name, ["can't be nil"])
+    #   person.errors.get(:name) # => ["can't be nil"]
     def set(key, value)
       messages[key] = value
     end
 
-    # Delete messages for +key+
+    # Delete messages for +key+. Returns the deleted messages.
+    #
+    #   person.errors.get(:name)    # => ["can not be nil"]
+    #   person.errors.delete(:name) # => ["can not be nil"]
+    #   person.errors.get(:name)    # => nil
     def delete(key)
       messages.delete(key)
     end
@@ -111,16 +131,16 @@ module ActiveModel
     # When passed a symbol or a name of a method, returns an array of errors
     # for the method.
     #
-    #   p.errors[:name]   # => ["can not be nil"]
-    #   p.errors['name']  # => ["can not be nil"]
+    #   person.errors[:name]  # => ["can not be nil"]
+    #   person.errors['name'] # => ["can not be nil"]
     def [](attribute)
       get(attribute.to_sym) || set(attribute.to_sym, [])
     end
 
     # Adds to the supplied attribute the supplied error message.
     #
-    #   p.errors[:name] = "must be set"
-    #   p.errors[:name] # => ['must be set']
+    #   person.errors[:name] = "must be set"
+    #   person.errors[:name] # => ['must be set']
     def []=(attribute, error)
       self[attribute] << error
     end
@@ -129,13 +149,13 @@ module ActiveModel
     # Yields the attribute and the error for that attribute. If the attribute
     # has more than one error message, yields once for each error message.
     #
-    #   p.errors.add(:name, "can't be blank")
-    #   p.errors.each do |attribute, errors_array|
+    #   person.errors.add(:name, "can't be blank")
+    #   person.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #   end
     #
-    #   p.errors.add(:name, "must be specified")
-    #   p.errors.each do |attribute, errors_array|
+    #   person.errors.add(:name, "must be specified")
+    #   person.errors.each do |attribute, error|
     #     # Will yield :name and "can't be blank"
     #     # then yield :name and "must be specified"
     #   end
@@ -147,54 +167,65 @@ module ActiveModel
 
     # Returns the number of error messages.
     #
-    #   p.errors.add(:name, "can't be blank")
-    #   p.errors.size # => 1
-    #   p.errors.add(:name, "must be specified")
-    #   p.errors.size # => 2
+    #   person.errors.add(:name, "can't be blank")
+    #   person.errors.size # => 1
+    #   person.errors.add(:name, "must be specified")
+    #   person.errors.size # => 2
     def size
       values.flatten.size
     end
 
-    # Returns all message values
+    # Returns all message values.
+    #
+    #   person.errors.messages # => {:name=>["can not be nil", "must be specified"]}
+    #   person.errors.values   # => [["can not be nil", "must be specified"]]
     def values
       messages.values
     end
 
-    # Returns all message keys
+    # Returns all message keys.
+    #
+    #   person.errors.messages # => {:name=>["can not be nil", "must be specified"]}
+    #   person.errors.keys     # => [:name]
     def keys
       messages.keys
     end
 
-    # Returns an array of error messages, with the attribute name included
+    # Returns an array of error messages, with the attribute name included.
     #
-    #   p.errors.add(:name, "can't be blank")
-    #   p.errors.add(:name, "must be specified")
-    #   p.errors.to_a # => ["name can't be blank", "name must be specified"]
+    #   person.errors.add(:name, "can't be blank")
+    #   person.errors.add(:name, "must be specified")
+    #   person.errors.to_a # => ["name can't be blank", "name must be specified"]
     def to_a
       full_messages
     end
 
     # Returns the number of error messages.
-    #   p.errors.add(:name, "can't be blank")
-    #   p.errors.count # => 1
-    #   p.errors.add(:name, "must be specified")
-    #   p.errors.count # => 2
+    #
+    #   person.errors.add(:name, "can't be blank")
+    #   person.errors.count # => 1
+    #   person.errors.add(:name, "must be specified")
+    #   person.errors.count # => 2
     def count
       to_a.size
     end
 
-    # Returns true if no errors are found, false otherwise.
+    # Returns +true+ if no errors are found, +false+ otherwise.
     # If the error message is a string it can be empty.
+    #
+    #   person.errors.full_messages # => ["name can not be nil"]
+    #   person.errors.empty?        # => false
     def empty?
       all? { |k, v| v && v.empty? && !v.is_a?(String) }
     end
+    # aliases empty?
     alias_method :blank?, :empty?
 
     # Returns an xml formatted representation of the Errors hash.
     #
-    #   p.errors.add(:name, "can't be blank")
-    #   p.errors.add(:name, "must be specified")
-    #   p.errors.to_xml
+    #   person.errors.add(:name, "can't be blank")
+    #   person.errors.add(:name, "must be specified")
+    #   person.errors.to_xml
     #   # =>
     #   #  <?xml version=\"1.0\" encoding=\"UTF-8\"?>
     #   #  <errors>
@@ -202,22 +233,29 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      to_a.to_xml options.reverse_merge(:root => "errors", :skip_types => true)
+      to_a.to_xml({ :root => "errors", :skip_types => true }.merge!(options))
     end
 
-    # Returns an Hash that can be used as the JSON representation for this object.
-    # Options:
-    # * <tt>:full_messages</tt> - determines if json object should contain 
-    #   full messages or not. Default: <tt>false</tt>.
+    # Returns a Hash that can be used as the JSON representation for this
+    # object. You can pass the <tt>:full_messages</tt> option. This determines
+    # if the json object should contain full messages or not (false by default).
+    #
+    #   person.as_json                      # => {:name=>["can not be nil"]}
+    #   person.as_json(full_messages: true) # => {:name=>["name can not be nil"]}
     def as_json(options=nil)
       to_hash(options && options[:full_messages])
     end
 
+    # Returns a Hash of attributes with their error messages. If +full_messages+
+    # is +true+, it will contain full messages (see +full_message+).
+    #
+    #   person.to_hash       # => {:name=>["can not be nil"]}
+    #   person.to_hash(true) # => {:name=>["name can not be nil"]}
     def to_hash(full_messages = false)
       if full_messages
         messages = {}
         self.messages.each do |attribute, array|
-          messages[attribute] = array.map{|message| full_message(attribute, message) }
+          messages[attribute] = array.map { |message| full_message(attribute, message) }
         end
         messages
       else
@@ -225,42 +263,76 @@ module ActiveModel
       end
     end
 
-    # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same
-    # +attribute+.
-    # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
+    # Adds +message+ to the error messages on +attribute+. More than one error
+    # can be added to the same +attribute+. If no +message+ is supplied,
+    # <tt>:invalid</tt> is assumed.
     #
-    # If +message+ is a symbol, it will be translated using the appropriate scope (see +generate_message+).
-    # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
+    #   person.errors.add(:name)
+    #   # => ["is invalid"]
+    #   person.errors.add(:name, 'must be implemented')
+    #   # => ["is invalid", "must be implemented"]
+    #
+    #   person.errors.messages
+    #   # => {:name=>["must be implemented", "is invalid"]}
+    #
+    # If +message+ is a symbol, it will be translated using the appropriate
+    # scope (see +generate_message+).
+    #
+    # If +message+ is a proc, it will be called, allowing for things like
+    # <tt>Time.now</tt> to be used within an error.
+    #
+    # If the <tt>:strict</tt> option is set to true will raise
+    # ActiveModel::StrictValidationFailed instead of adding the error.
+    # <tt>:strict</tt> option can also be set to any other exception.
+    #
+    #   person.errors.add(:name, nil, strict: true)
+    #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #   person.errors.add(:name, nil, strict: NameIsInvalid)
+    #   # => NameIsInvalid: name is invalid
+    #
+    #   person.errors.messages # => {}
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
-      if options[:strict]
-        raise ActiveModel::StrictValidationFailed, full_message(attribute, message)
+      if exception = options[:strict]
+        exception = ActiveModel::StrictValidationFailed if exception == true
+        raise exception, full_message(attribute, message)
       end
 
       self[attribute] << message
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that is empty.
+    # Will add an error message to each of the attributes in +attributes+
+    # that is empty.
+    #
+    #   person.errors.add_on_empty(:name)
+    #   person.errors.messages
+    #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
-      [attributes].flatten.each do |attribute|
+      Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
         add(attribute, :empty, options) if value.nil? || is_empty
       end
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
+    # Will add an error message to each of the attributes in +attributes+ that
+    # is blank (using Object#blank?).
+    #
+    #   person.errors.add_on_blank(:name)
+    #   person.errors.messages
+    #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
-      [attributes].flatten.each do |attribute|
+      Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         add(attribute, :blank, options) if value.blank?
       end
     end
 
-    # Returns true if an error on the attribute with the given message is present, false otherwise.
-    # +message+ is treated the same as for +add+.
-    #   p.errors.add :name, :blank
-    #   p.errors.added? :name, :blank # => true
+    # Returns +true+ if an error on the attribute with the given message is
+    # present, +false+ otherwise. +message+ is treated the same as for +add+.
+    #
+    #   person.errors.add :name, :blank
+    #   person.errors.added? :name, :blank # => true
     def added?(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
       self[attribute].include? message
@@ -268,25 +340,24 @@ module ActiveModel
 
     # Returns all the full error messages in an array.
     #
-    #   class Company
+    #   class Person
     #     validates_presence_of :name, :address, :email
-    #     validates_length_of :name, :in => 5..30
+    #     validates_length_of :name, in: 5..30
     #   end
     #
-    #   company = Company.create(:address => '123 First St.')
-    #   company.errors.full_messages # =>
-    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
+    #   person = Person.create(address: '123 First St.')
+    #   person.errors.full_messages
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
       map { |attribute, message| full_message(attribute, message) }
     end
 
     # Returns a full message for a given attribute.
     #
-    #   company.errors.full_message(:name, "is invalid")  # =>
-    #     "Name is invalid"
+    #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
       return message if attribute == :base
-      attr_name = attribute.to_s.gsub('.', '_').humanize
+      attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
       I18n.t(:"errors.format", {
         :default   => "%{attribute} %{message}",
@@ -299,10 +370,11 @@ module ActiveModel
     # (<tt>activemodel.errors.messages</tt>).
     #
     # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>,
-    # if it's not there, it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not
-    # there also, it returns the translation of the default message
-    # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name,
-    # translated attribute name and the value are available for interpolation.
+    # if it's not there, it's looked up in <tt>models.MODEL.MESSAGE</tt> and if
+    # that is not there also, it returns the translation of the default message
+    # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model
+    # name, translated attribute name and the value are available for
+    # interpolation.
     #
     # When using inheritance in your models, it will check all the inherited
     # models too, but only if the model itself hasn't been found. Say you have
@@ -318,7 +390,6 @@ module ActiveModel
     # * <tt>activemodel.errors.messages.blank</tt>
     # * <tt>errors.attributes.title.blank</tt>
     # * <tt>errors.messages.blank</tt>
-    #
     def generate_message(attribute, type = :invalid, options = {})
       type = options.delete(:message) if options[:message].is_a?(Symbol)
 
@@ -347,7 +418,7 @@ module ActiveModel
         :model => @base.class.model_name.human,
         :attribute => @base.class.human_attribute_name(attribute),
         :value => value
-      }.merge(options)
+      }.merge!(options)
 
       I18n.translate(key, options)
     end
@@ -356,9 +427,10 @@ module ActiveModel
     def normalize_message(attribute, message, options)
       message ||= :invalid
 
-      if message.is_a?(Symbol)
+      case message
+      when Symbol
         generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      elsif message.is_a?(Proc)
+      when Proc
         message.call
       else
         message
@@ -366,6 +438,21 @@ module ActiveModel
     end
   end
 
+  # Raised when a validation cannot be corrected by end users and are considered
+  # exceptional.
+  #
+  #   class Person
+  #     include ActiveModel::Validations
+  #
+  #     attr_accessor :name
+  #
+  #     validates_presence_of :name, strict: true
+  #   end
+  #
+  #   person = Person.new
+  #   person.name = nil
+  #   person.valid?
+  #   # => ActiveModel::StrictValidationFailed: Name can't be blank
   class StrictValidationFailed < StandardError
   end
 end

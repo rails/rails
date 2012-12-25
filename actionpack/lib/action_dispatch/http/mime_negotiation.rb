@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/attribute_accessors'
+
 module ActionDispatch
   module Http
     module MimeNegotiation
@@ -66,7 +68,7 @@ module ActionDispatch
       # that are not controlled by the extension.
       #
       #   class ApplicationController < ActionController::Base
-      #     before_filter :adjust_format_for_iphone
+      #     before_action :adjust_format_for_iphone
       #
       #     private
       #       def adjust_format_for_iphone
@@ -76,6 +78,27 @@ module ActionDispatch
       def format=(extension)
         parameters[:format] = extension.to_s
         @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
+      end
+
+      # Sets the \formats by string extensions. This differs from #format= by allowing you
+      # to set multiple, ordered formats, which is useful when you want to have a fallback.
+      #
+      # In this example, the :iphone format will be used if it's available, otherwise it'll fallback
+      # to the :html format.
+      #
+      #   class ApplicationController < ActionController::Base
+      #     before_action :adjust_format_for_iphone_with_html_fallback
+      #
+      #     private
+      #       def adjust_format_for_iphone_with_html_fallback
+      #         request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
+      #       end
+      #   end
+      def formats=(extensions)
+        parameters[:format] = extensions.first.to_s
+        @env["action_dispatch.request.formats"] = extensions.collect do |extension|
+          Mime::Type.lookup_by_extension(extension)
+        end
       end
 
       # Receives an array of mimes and return the first user sent mime that

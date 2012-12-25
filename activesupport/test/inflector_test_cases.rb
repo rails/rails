@@ -47,6 +47,7 @@ module InflectorTestCases
     "medium"      => "media",
     "stadium"     => "stadia",
     "analysis"    => "analyses",
+    "my_analysis" => "my_analyses",
 
     "node_child"  => "node_children",
     "child"       => "children",
@@ -109,7 +110,9 @@ module InflectorTestCases
 
     # regression tests against improper inflection regexes
     "|ice"        => "|ices",
-    "|ouse"       => "|ouses"
+    "|ouse"       => "|ouses",
+    "slice"       => "slices",
+    "police"      => "police"
   }
 
   CamelToUnderscore = {
@@ -211,16 +214,22 @@ module InflectorTestCases
   }
 
   MixtureToTitleCase = {
-    'active_record'       => 'Active Record',
-    'ActiveRecord'        => 'Active Record',
-    'action web service'  => 'Action Web Service',
-    'Action Web Service'  => 'Action Web Service',
-    'Action web service'  => 'Action Web Service',
-    'actionwebservice'    => 'Actionwebservice',
-    'Actionwebservice'    => 'Actionwebservice',
-    "david's code"        => "David's Code",
-    "David's code"        => "David's Code",
-    "david's Code"        => "David's Code"
+    'active_record'         => 'Active Record',
+    'ActiveRecord'          => 'Active Record',
+    'action web service'    => 'Action Web Service',
+    'Action Web Service'    => 'Action Web Service',
+    'Action web service'    => 'Action Web Service',
+    'actionwebservice'      => 'Actionwebservice',
+    'Actionwebservice'      => 'Actionwebservice',
+    "david's code"          => "David's Code",
+    "David's code"          => "David's Code",
+    "david's Code"          => "David's Code",
+    "sgt. pepper's"         => "Sgt. Pepper's",
+    "i've just seen a face" => "I've Just Seen A Face",
+    "maybe you'll be there" => "Maybe You'll Be There",
+    "¿por qué?"             => '¿Por Qué?',
+    "Fred’s"                => "Fred’s",
+    "Fred`s"                => "Fred`s"
   }
 
   OrdinalNumbers = {
@@ -299,5 +308,7 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
+    'cow'    => 'kine',
+    'zombie' => 'zombies',
   }
 end

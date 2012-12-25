@@ -11,30 +11,29 @@ class InfoControllerTest < ActionController::TestCase
 
   def setup
     Rails.application.routes.draw do
-      match '/rails/info/properties' => "rails/info#properties"
+      get '/rails/info/properties' => "rails/info#properties"
+      get '/rails/info/routes'     => "rails/info#routes"
     end
-    @request.stubs(:local? => true)
-    @controller.stubs(:consider_all_requests_local? => false)
+    @controller.stubs(:local_request? => true)
     @routes = Rails.application.routes
 
     Rails::InfoController.send(:include, @routes.url_helpers)
   end
 
   test "info controller does not allow remote requests" do
-    @request.stubs(:local? => false)
+    @controller.stubs(local_request?: false)
     get :properties
     assert_response :forbidden
   end
 
   test "info controller renders an error message when request was forbidden" do
-    @request.stubs(:local? => false)
+    @controller.stubs(local_request?: false)
     get :properties
     assert_select 'p'
   end
 
   test "info controller allows requests when all requests are considered local" do
-    @request.stubs(:local? => false)
-    @controller.stubs(:consider_all_requests_local? => true)
+    @controller.stubs(local_request?: true)
     get :properties
     assert_response :success
   end
@@ -48,4 +47,10 @@ class InfoControllerTest < ActionController::TestCase
     get :properties
     assert_select 'table'
   end
+
+  test "info controller renders with routes" do
+    get :routes
+    assert_response :success
+  end
+
 end

@@ -1,5 +1,3 @@
-#!/usr/bin/env rake
-
 require 'rdoc/task'
 require 'sdoc'
 require 'net/http'
@@ -13,7 +11,7 @@ task :build => "all:build"
 desc "Release all gems to gemcutter and create a tag"
 task :release => "all:release"
 
-PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
+PROJECTS = %w(activesupport activemodel actionpack actionmailer activerecord railties)
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
@@ -77,10 +75,10 @@ RDoc::Task.new do |rdoc|
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
     rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
 
-    # Remove Travis and Gemnasium status images from API pages. Only GitHub
-    # README page gets these images. Travis' https build image is used to avoid
-    # GitHub caching: http://about.travis-ci.org/docs/user/status-images
-    rdoc_main.gsub!(%r{^== (Build|Dependency) Status.*}, '')
+    # Remove Travis and Gemnasium status images from API pages. Only the GitHub
+    # README page gets these images. Travis's HTTPS build image is used to
+    # avoid GitHub caching: http://about.travis-ci.org/docs/user/status-images
+    rdoc_main.gsub!(/^== Code Status(\n(?!==).*)*/, '')
 
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
@@ -109,11 +107,6 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_files.include('activerecord/lib/active_record/**/*.rb')
   rdoc.rdoc_files.exclude('activerecord/lib/active_record/vendor/*')
 
-  rdoc.rdoc_files.include('activeresource/README.rdoc')
-  rdoc.rdoc_files.include('activeresource/CHANGELOG.md')
-  rdoc.rdoc_files.include('activeresource/lib/active_resource.rb')
-  rdoc.rdoc_files.include('activeresource/lib/active_resource/*')
-
   rdoc.rdoc_files.include('actionpack/README.rdoc')
   rdoc.rdoc_files.include('actionpack/CHANGELOG.md')
   rdoc.rdoc_files.include('actionpack/lib/abstract_controller/**/*.rb')
@@ -124,8 +117,7 @@ RDoc::Task.new do |rdoc|
 
   rdoc.rdoc_files.include('actionmailer/README.rdoc')
   rdoc.rdoc_files.include('actionmailer/CHANGELOG.md')
-  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/base.rb')
-  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/mail_helper.rb')
+  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/**/*.rb')
   rdoc.rdoc_files.exclude('actionmailer/lib/action_mailer/vendor/*')
 
   rdoc.rdoc_files.include('activesupport/README.rdoc')
@@ -157,7 +149,6 @@ task :update_versions do
     "activemodel"     => "ActiveModel",
     "actionpack"      => "ActionPack",
     "actionmailer"    => "ActionMailer",
-    "activeresource"  => "ActiveResource",
     "activerecord"    => "ActiveRecord",
     "railties"        => "Rails"
   }

@@ -169,11 +169,11 @@ class InflectorTest < ActiveSupport::TestCase
   def test_underscore_acronym_sequence
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")
-      inflect.acronym("HTML5")
+      inflect.acronym("JSON")
       inflect.acronym("HTML")
     end
 
-    assert_equal("html5_html_api", ActiveSupport::Inflector.underscore("HTML5HTMLAPI"))
+    assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
   def test_underscore
@@ -354,6 +354,35 @@ class InflectorTest < ActiveSupport::TestCase
     RUBY
   end
 
+  def test_inflector_locality
+    ActiveSupport::Inflector.inflections(:es) do |inflect|
+      inflect.plural(/$/, 's')
+      inflect.plural(/z$/i, 'ces')
+
+      inflect.singular(/s$/, '')
+      inflect.singular(/es$/, '')
+      
+      inflect.irregular('el', 'los')
+    end
+
+    assert_equal('hijos', 'hijo'.pluralize(:es))
+    assert_equal('luces', 'luz'.pluralize(:es))
+    assert_equal('luzs', 'luz'.pluralize)
+
+    assert_equal('sociedad', 'sociedades'.singularize(:es))
+    assert_equal('sociedade', 'sociedades'.singularize)
+
+    assert_equal('los', 'el'.pluralize(:es))
+    assert_equal('els', 'el'.pluralize)
+
+    ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
+
+    assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
+    assert ActiveSupport::Inflector.inflections(:es).singulars.empty?
+    assert !ActiveSupport::Inflector.inflections.plurals.empty?
+    assert !ActiveSupport::Inflector.inflections.singulars.empty?
+  end
+
   def test_clear_all
     with_dup do
       ActiveSupport::Inflector.inflections do |inflect|
@@ -413,6 +442,16 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  Irregularities.each do |irregularity|
+    singular, plural = *irregularity
+    ActiveSupport::Inflector.inflections do |inflect|
+      define_method("test_singularize_of_irregularity_#{singular}_should_be_the_same") do
+        inflect.irregular(singular, plural)
+        assert_equal singular, ActiveSupport::Inflector.singularize(singular)
+      end
+    end
+  end
+
   [ :all, [] ].each do |scope|
     ActiveSupport::Inflector.inflections do |inflect|
       define_method("test_clear_inflections_with_#{scope.kind_of?(Array) ? "no_arguments" : scope}") do
@@ -457,7 +496,7 @@ class InflectorTest < ActiveSupport::TestCase
   # there are module functions that access ActiveSupport::Inflector.inflections,
   # so we need to replace the singleton itself.
   def with_dup
-    original = ActiveSupport::Inflector.inflections
+    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)
     ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original.dup)
   ensure
     ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original)

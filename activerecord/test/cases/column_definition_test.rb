@@ -136,12 +136,6 @@ module ActiveRecord
           smallint_column = PostgreSQLColumn.new('number', nil, oid, "smallint")
           assert_equal :integer, smallint_column.type
         end
-
-        def test_uuid_column_should_map_to_string
-          oid = PostgreSQLAdapter::OID::Identity.new
-          uuid_column = PostgreSQLColumn.new('unique_id', nil, oid, "uuid")
-          assert_equal :string, uuid_column.type
-        end
       end
     end
   end

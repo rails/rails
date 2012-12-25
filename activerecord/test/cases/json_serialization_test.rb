@@ -83,6 +83,53 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 
+  def test_uses_serializable_hash_with_only_option
+    def @contact.serializable_hash(options=nil)
+      super(only: %w(name))
+    end
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{awesome}, json
+    assert_no_match %r{age}, json
+  end
+
+  def test_uses_serializable_hash_with_except_option
+    def @contact.serializable_hash(options=nil)
+      super(except: %w(age))
+    end
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"awesome":true}, json
+    assert_no_match %r{age}, json
+  end
+
+  def test_does_not_include_inheritance_column_from_sti
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal 'ContactSti', @contact.type
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{type}, json
+    assert_no_match %r{ContactSti}, json
+  end
+
+  def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal 'ContactSti', @contact.type
+
+    def @contact.serializable_hash(options={})
+      super({ except: %w(age) }.merge!(options))
+    end
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{age}, json
+    assert_no_match %r{type}, json
+    assert_no_match %r{ContactSti}, json
+  end
+
   def test_serializable_hash_should_not_modify_options_in_argument
     options = { :only => :name }
     @contact.serializable_hash(options)

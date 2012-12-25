@@ -1,13 +1,13 @@
 module ActionView #:nodoc:
   # = Action View Text Template
   class Template
-    class Text < String #:nodoc:
-      attr_accessor :mime_type
+    class Text #:nodoc:
+      attr_accessor :type
 
-      def initialize(string, mime_type = nil)
-        super(string.to_s)
-        @mime_type   = Mime[mime_type] || mime_type if mime_type
-        @mime_type ||= Mime::TEXT
+      def initialize(string, type = nil)
+        @string = string.to_s
+        @type   = Types[type] || type if type
+        @type ||= Types[:text]
       end
 
       def identifier
@@ -18,12 +18,16 @@ module ActionView #:nodoc:
         'text template'
       end
 
+      def to_str
+        @string
+      end
+
       def render(*args)
-        to_s
+        to_str
       end
 
       def formats
-        [@mime_type.to_sym]
+        [@type.to_sym]
       end
     end
   end

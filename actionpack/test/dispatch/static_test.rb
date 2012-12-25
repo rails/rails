@@ -7,6 +7,10 @@ module StaticTests
     assert_equal "Hello, World!", get("/nofile").body
   end
 
+  def test_handles_urls_with_bad_encoding
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4").body
+  end
+
   def test_sets_cache_control
     response = get("/index.html")
     assert_html "/index.html", response

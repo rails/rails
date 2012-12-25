@@ -1,7 +1,4 @@
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
-require 'active_support/deprecation'
-require 'active_record/schema_migration'
 require 'set'
 
 module ActiveRecord
@@ -33,6 +30,12 @@ module ActiveRecord
     end
   end
 
+  class PendingMigrationError < ActiveRecordError#:nodoc:
+    def initialize
+      super("Migrations are pending; run 'rake db:migrate RAILS_ENV=#{Rails.env}' to resolve this issue.")
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -47,7 +50,7 @@ module ActiveRecord
   #
   #   class AddSsl < ActiveRecord::Migration
   #     def up
-  #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
+  #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
   #
   #     def down
@@ -59,7 +62,7 @@ module ActiveRecord
   # if you're backing out of the migration. It shows how all migrations have
   # two methods +up+ and +down+ that describes the transformations
   # required to implement or remove the migration. These methods can consist
-  # of both the migration specific methods like add_column and remove_column,
+  # of both the migration specific methods like +add_column+ and +remove_column+,
   # but may also contain regular Ruby code for generating data needed for the
   # transformations.
   #
@@ -75,9 +78,9 @@ module ActiveRecord
   #         t.integer :position
   #       end
   #
-  #       SystemSetting.create  :name => "notice",
-  #                             :label => "Use notice?",
-  #                             :value => 1
+  #       SystemSetting.create  name:  'notice',
+  #                             label: 'Use notice?',
+  #                             value: 1
   #     end
   #
   #     def down
@@ -85,19 +88,22 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This migration first adds the system_settings table, then creates the very
+  # This migration first adds the +system_settings+ table, then creates the very
   # first row in it using the Active Record model that relies on the table. It
-  # also uses the more advanced create_table syntax where you can specify a
+  # also uses the more advanced +create_table+ syntax where you can specify a
   # complete table schema in one block call.
   #
   # == Available transformations
   #
-  # * <tt>create_table(name, options)</tt> Creates a table called +name+ and
+  # * <tt>create_table(name, options)</tt>: Creates a table called +name+ and
   #   makes the table object available to a block that can then add columns to it,
-  #   following the same format as add_column. See example above. The options hash
+  #   following the same format as +add_column+. See example above. The options hash
   #   is for fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create
   #   table definition.
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
+  #   the table called +name+. It makes the table object availabe to a block that
+  #   can then add/remove columns, indexes or foreign keys to it.
   # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
   #   to +new_name+.
   # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column
@@ -106,9 +112,9 @@ module ActiveRecord
   #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>,
   #   <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
   #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be
-  #   specified by passing an +options+ hash like <tt>{ :default => 11 }</tt>.
+  #   specified by passing an +options+ hash like <tt>{ default: 11 }</tt>.
   #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g.
-  #   <tt>{ :limit => 50, :null => false }</tt>) -- see
+  #   <tt>{ limit: 50, null: false }</tt>) -- see
   #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
   #   a column but keeps the type and content.
@@ -119,11 +125,11 @@ module ActiveRecord
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
-  #   <tt>{ :name => "users_name_index", :unique => true }</tt>) and <tt>:order</tt>
-  #   (e.g. { :order => {:name => :desc} }</tt>).
-  # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
+  #   <tt>{ name: 'users_name_index', unique: true }</tt>) and <tt>:order</tt>
+  #   (e.g. <tt>{ order: { name: :desc } }</tt>).
+  # * <tt>remove_index(table_name, column: column_name)</tt>: Removes the index
   #   specified by +column_name+.
-  # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index
+  # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
   #   specified by +index_name+.
   #
   # == Irreversible transformations
@@ -327,8 +333,28 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
+
+    # This class is used to verify that all migrations have been run before
+    # loading a web page if config.active_record.migration_error is set to :page_load
+    class CheckPending
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        ActiveRecord::Base.logger.quietly do
+          ActiveRecord::Migration.check_pending!
+        end
+        @app.call(env)
+      end
+    end
+
     class << self
       attr_accessor :delegate # :nodoc:
+    end
+
+    def self.check_pending!
+      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
     end
 
     def self.method_missing(name, *args, &block) # :nodoc:
@@ -347,22 +373,129 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
-      @reverting  = false
     end
 
     # instantiate the delegate object after initialize is defined
     self.verbose  = true
     self.delegate = new
 
-    def revert
-      @reverting = true
-      yield
-    ensure
-      @reverting = false
+    # Reverses the migration commands for the given block and
+    # the given migrations.
+    #
+    # The following migration will remove the table 'horses'
+    # and create the table 'apples' on the way up, and the reverse
+    # on the way down.
+    #
+    #   class FixTLMigration < ActiveRecord::Migration
+    #     def change
+    #       revert do
+    #         create_table(:horses) do |t|
+    #           t.text :content
+    #           t.datetime :remind_at
+    #         end
+    #       end
+    #       create_table(:apples) do |t|
+    #         t.string :variety
+    #       end
+    #     end
+    #   end
+    #
+    # Or equivalently, if +TenderloveMigration+ is defined as in the
+    # documentation for Migration:
+    #
+    #   require_relative '2012121212_tenderlove_migration'
+    #
+    #   class FixupTLMigration < ActiveRecord::Migration
+    #     def change
+    #       revert TenderloveMigration
+    #
+    #       create_table(:apples) do |t|
+    #         t.string :variety
+    #       end
+    #     end
+    #   end
+    #
+    # This command can be nested.
+    def revert(*migration_classes)
+      run(*migration_classes.reverse, revert: true) unless migration_classes.empty?
+      if block_given?
+        if @connection.respond_to? :revert
+          @connection.revert { yield }
+        else
+          recorder = CommandRecorder.new(@connection)
+          @connection = recorder
+          suppress_messages do
+            @connection.revert { yield }
+          end
+          @connection = recorder.delegate
+          recorder.commands.each do |cmd, args, block|
+            send(cmd, *args, &block)
+          end
+        end
+      end
     end
 
     def reverting?
-      @reverting
+      @connection.respond_to?(:reverting) && @connection.reverting
+    end
+
+    class ReversibleBlockHelper < Struct.new(:reverting)
+      def up
+        yield unless reverting
+      end
+
+      def down
+        yield if reverting
+      end
+    end
+
+    # Used to specify an operation that can be run in one direction or another.
+    # Call the methods +up+ and +down+ of the yielded object to run a block
+    # only in one given direction.
+    # The whole block will be called in the right order within the migration.
+    #
+    # In the following example, the looping on users will always be done
+    # when the three columns 'first_name', 'last_name' and 'full_name' exist,
+    # even when migrating down:
+    #
+    #    class SplitNameMigration < ActiveRecord::Migration
+    #      def change
+    #        add_column :users, :first_name, :string
+    #        add_column :users, :last_name, :string
+    #
+    #        reversible do |dir|
+    #          User.reset_column_information
+    #          User.all.each do |u|
+    #            dir.up   { u.first_name, u.last_name = u.full_name.split(' ') }
+    #            dir.down { u.full_name = "#{u.first_name} #{u.last_name}" }
+    #            u.save
+    #          end
+    #        end
+    #
+    #        revert { add_column :users, :full_name, :string }
+    #      end
+    #    end
+    def reversible
+      helper = ReversibleBlockHelper.new(reverting?)
+      execute_block{ yield helper }
+    end
+
+    # Runs the given migration classes.
+    # Last argument can specify options:
+    # - :direction (default is :up)
+    # - :revert (default is false)
+    def run(*migration_classes)
+      opts = migration_classes.extract_options!
+      dir = opts[:direction] || :up
+      dir = (dir == :down ? :up : :down) if opts[:revert]
+      if reverting?
+        # If in revert and going :up, say, we want to execute :down without reverting, so
+        revert { run(*migration_classes, direction: dir, revert: true) }
+      else
+        migration_classes.each do |migration_class|
+          migration_class.new.exec_migration(@connection, dir)
+        end
+      end
     end
 
     def up
@@ -388,35 +521,30 @@ module ActiveRecord
 
       time   = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
-        @connection = conn
-        if respond_to?(:change)
-          if direction == :down
-            recorder = CommandRecorder.new(@connection)
-            suppress_messages do
-              @connection = recorder
-              change
-            end
-            @connection = conn
-            time = Benchmark.measure {
-              self.revert {
-                recorder.inverse.each do |cmd, args|
-                  send(cmd, *args)
-                end
-              }
-            }
-          else
-            time = Benchmark.measure { change }
-          end
-        else
-          time = Benchmark.measure { send(direction) }
+        time = Benchmark.measure do
+          exec_migration(conn, direction)
         end
-        @connection = nil
       end
 
       case direction
       when :up   then announce "migrated (%.4fs)" % time.real; write
       when :down then announce "reverted (%.4fs)" % time.real; write
       end
+    end
+
+    def exec_migration(conn, direction)
+      @connection = conn
+      if respond_to?(:change)
+        if direction == :down
+          revert { change }
+        else
+          change
+        end
+      else
+        send(direction)
+      end
+    ensure
+      @connection = nil
     end
 
     def write(text="")
@@ -457,7 +585,7 @@ module ActiveRecord
       arg_list = arguments.map{ |a| a.inspect } * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless reverting?
+        unless @connection.respond_to? :revert
           unless arguments.empty? || method == :execute
             arguments[0] = Migrator.proper_table_name(arguments.first)
             arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
@@ -509,6 +637,15 @@ module ActiveRecord
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
         "%.3d" % number
+      end
+    end
+
+    private
+    def execute_block
+      if connection.respond_to? :execute_block
+        super # use normal delegation to record the block
+      else
+        yield
       end
     end
   end
@@ -606,9 +743,21 @@ module ActiveRecord
         end
       end
 
+      def needs_migration?
+        current_version < last_version
+      end
+
+      def last_version
+        migrations(migrations_paths).last.try(:version)||0
+      end
+
       def proper_table_name(name)
         # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
-        name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+        if name.respond_to? :table_name
+          name.table_name
+        else
+          "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+        end
       end
 
       def migrations_paths
@@ -627,7 +776,7 @@ module ActiveRecord
         files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
+          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -698,9 +847,8 @@ module ActiveRecord
       running = runnable
 
       if block_given?
-        ActiveSupport::Deprecation.warn(<<-eomsg)
-block argument to migrate is deprecated, please filter migrations before constructing the migrator
-        eomsg
+        message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
+        ActiveSupport::Deprecation.warn message
         running.select! { |m| yield m }
       end
 

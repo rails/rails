@@ -4,13 +4,14 @@ module ActionView
   # Provides a set of methods for making it easier to debug Rails objects.
   module Helpers
     module DebugHelper
+
+      include TagHelper
+
       # Returns a YAML representation of +object+ wrapped with <pre> and </pre>.
       # If the object cannot be converted to YAML using +to_yaml+, +inspect+ will be called instead.
       # Useful for inspecting an object at the time of rendering.
       #
-      # ==== Example
-      #
-      #   @user = User.new({ :username => 'testing', :password => 'xyz', :age => 42}) %>
+      #   @user = User.new({ username: 'testing', password: 'xyz', age: 42}) %>
       #   debug(@user)
       #   # =>
       #   <pre class='debug_dump'>--- !ruby/object:User
@@ -25,14 +26,14 @@ module ActionView
       #
       #   new_record: true
       #   </pre>
-
       def debug(object)
         begin
           Marshal::dump(object)
-          "<pre class='debug_dump'>#{h(object.to_yaml).gsub("  ", "&nbsp; ")}</pre>".html_safe
+          object = ERB::Util.html_escape(object.to_yaml).gsub("  ", "&nbsp; ").html_safe
+          content_tag(:pre, object, :class => "debug_dump")
         rescue Exception  # errors from Marshal or YAML
           # Object couldn't be dumped, perhaps because of singleton methods -- this is the fallback
-          "<code class='debug_dump'>#{h(object.inspect)}</code>".html_safe
+          content_tag(:code, object.to_yaml, :class => "debug_dump")
         end
       end
     end

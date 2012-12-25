@@ -5,7 +5,7 @@ module ActiveRecord
       attr_reader :join_table
 
       def initialize(owner, reflection)
-        @join_table = Arel::Table.new(reflection.options[:join_table])
+        @join_table = Arel::Table.new(reflection.join_table)
         super
       end
 
@@ -32,10 +32,6 @@ module ActiveRecord
         record
       end
 
-      # ActiveRecord::Relation#delete_all needs to support joins before we can use a
-      # SQL-only implementation.
-      alias delete_all_on_destroy delete_all
-
       private
 
         def count_records
@@ -44,13 +40,20 @@ module ActiveRecord
 
         def delete_records(records, method)
           if sql = options[:delete_sql]
+            records = load_target if records == :all
             records.each { |record| owner.connection.delete(interpolate(sql, record)) }
           else
-            relation = join_table
-            stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
-              and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
-            ).compile_delete
-            owner.connection.delete stmt
+            relation  = join_table
+            condition = relation[reflection.foreign_key].eq(owner.id)
+
+            unless records == :all
+              condition = condition.and(
+                relation[reflection.association_foreign_key]
+                  .in(records.map { |x| x.id }.compact)
+              )
+            end
+
+            owner.connection.delete(relation.where(condition).compile_delete)
           end
         end
 

@@ -22,12 +22,12 @@ the email.
 This can be as simple as:
 
   class Notifier < ActionMailer::Base
-    delivers_from 'system@loudthinking.com'
+    default from: 'system@loudthinking.com'
 
     def welcome(recipient)
       @recipient = recipient
-      mail(:to => recipient,
-           :subject => "[Signed up] Welcome #{recipient}")
+      mail(to: recipient,
+           subject: "[Signed up] Welcome #{recipient}")
     end
   end
 
@@ -83,7 +83,7 @@ Note that every value you set with this method will get over written if you use 
 Example:
 
   class AuthenticationMailer < ActionMailer::Base
-    default :from => "awesome@application.com", :subject => Proc.new { "E-mail was generated at #{Time.now}" }
+    default from: "awesome@application.com", subject: Proc.new { "E-mail was generated at #{Time.now}" }
     .....
   end
 
@@ -100,13 +100,13 @@ Example:
     def receive(email)
       page = Page.find_by_address(email.to.first)
       page.emails.create(
-        :subject => email.subject, :body => email.body
+        subject: email.subject, body: email.body
       )
 
       if email.has_attachments?
         email.attachments.each do |attachment| 
           page.attachments.create({
-            :file => attachment, :description => email.subject
+            file: attachment, description: email.subject
           })
         end
       end
@@ -127,11 +127,11 @@ a limited number of email.
 The Base class has the full list of configuration options. Here's an example:
 
   ActionMailer::Base.smtp_settings = {
-    :address        => 'smtp.yourserver.com', # default: localhost
-    :port           => '25',                  # default: 25
-    :user_name      => 'user',
-    :password       => 'pass',
-    :authentication => :plain                 # :plain, :login or :cram_md5
+    address:        'smtp.yourserver.com', # default: localhost
+    port:           '25',                  # default: 25
+    user_name:      'user',
+    password:       'pass',
+    authentication: :plain                 # :plain, :login or :cram_md5
   }
 
 

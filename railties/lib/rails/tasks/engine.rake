@@ -60,7 +60,7 @@ namespace :db do
 end
 
 def find_engine_path(path)
-  return if path == "/"
+  return File.expand_path(Dir.pwd) if path == "/"
 
   if Rails::Engine.find(path)
     path

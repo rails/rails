@@ -3,7 +3,7 @@ class Hash
   # limiting an options hash to valid keys before passing to a method:
   #
   #   def search(criteria = {})
-  #     assert_valid_keys(:mass, :velocity, :time)
+  #     criteria.assert_valid_keys(:mass, :velocity, :time)
   #   end
   #
   #   search(options.slice(:mass, :velocity, :time))
@@ -13,17 +13,17 @@ class Hash
   #   valid_keys = [:mass, :velocity, :time]
   #   search(options.slice(*valid_keys))
   def slice(*keys)
-    keys = keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
-    hash = self.class.new
-    keys.each { |k| hash[k] = self[k] if has_key?(k) }
-    hash
+    keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
+    keys.each_with_object(self.class.new) { |k, hash| hash[k] = self[k] if has_key?(k) }
   end
 
   # Replaces the hash with only the given keys.
-  # Returns a hash contained the removed key/value pairs
-  #   {:a => 1, :b => 2, :c => 3, :d => 4}.slice!(:a, :b) # => {:c => 3, :d => 4}
+  # Returns a hash containing the removed key/value pairs.
+  #
+  #   { a: 1, b: 2, c: 3, d: 4 }.slice!(:a, :b)
+  #   # => {:c=>3, :d=>4}
   def slice!(*keys)
-    keys = keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
+    keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     omit = slice(*self.keys - keys)
     hash = slice(*keys)
     replace(hash)
@@ -31,10 +31,10 @@ class Hash
   end
 
   # Removes and returns the key/value pairs matching the given keys.
-  #   {:a => 1, :b => 2, :c => 3, :d => 4}.extract!(:a, :b) # => {:a => 1, :b => 2}
+  #
+  #   { a: 1, b: 2, c: 3, d: 4 }.extract!(:a, :b) # => {:a=>1, :b=>2}
+  #   { a: 1, b: 2 }.extract!(:a, :x)             # => {:a=>1}
   def extract!(*keys)
-    result = {}
-    keys.each {|key| result[key] = delete(key) }
-    result
+    keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
   end
 end

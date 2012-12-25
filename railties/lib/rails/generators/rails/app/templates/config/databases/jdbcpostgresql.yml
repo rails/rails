@@ -22,8 +22,8 @@ development:
   # Minimum log levels, in increasing order:
   #   debug5, debug4, debug3, debug2, debug1,
   #   log, notice, warning, error, fatal, and panic
-  # The server defaults to notice.
-  #min_messages: warning
+  # Defaults to warning.
+  #min_messages: notice
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

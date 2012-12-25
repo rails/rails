@@ -84,6 +84,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
     assert_equal 'abc', ('a'..'c').sum
+    assert_equal 50_000_005_000_000, (0..10_000_000).sum
+    assert_equal 0, (10..0).sum
+    assert_equal 5, (10..0).sum(5)
+    assert_equal 10, (10..10).sum
+    assert_equal 42, (10...10).sum(42)
   end
 
   def test_index_by

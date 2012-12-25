@@ -1,6 +1,3 @@
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute_accessors'
-
 module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
@@ -13,7 +10,7 @@ module ActiveRecord
       # the Product class will look for "productid" instead of "id" as the primary column. If the
       # latter is specified, the Product class will look for "product_id" instead of "id". Remember
       # that this is a global setting for all Active Records.
-      config_attribute :primary_key_prefix_type, :global => true
+      mattr_accessor :primary_key_prefix_type, instance_writer: false
 
       ##
       # :singleton-method:
@@ -25,14 +22,14 @@ module ActiveRecord
       # If you are organising your models within modules you can add a prefix to the models within
       # a namespace by defining a singleton method in the parent module called table_name_prefix which
       # returns your chosen prefix.
-      config_attribute :table_name_prefix
+      class_attribute :table_name_prefix, instance_writer: false
       self.table_name_prefix = ""
 
       ##
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
-      config_attribute :table_name_suffix
+      class_attribute :table_name_suffix, instance_writer: false
       self.table_name_suffix = ""
 
       ##
@@ -40,8 +37,10 @@ module ActiveRecord
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
-      config_attribute :pluralize_table_names
+      class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
+
+      self.inheritance_column = 'type'
     end
 
     module ClassMethods
@@ -114,11 +113,18 @@ module ActiveRecord
       # You can also just define your own <tt>self.table_name</tt> method; see
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
-        @original_table_name = @table_name if defined?(@table_name)
-        @table_name          = value && value.to_s
-        @quoted_table_name   = nil
-        @arel_table          = nil
-        @relation            = Relation.new(self, arel_table)
+        value = value && value.to_s
+
+        if defined?(@table_name)
+          return if value == @table_name
+          reset_column_information if connected?
+        end
+
+        @table_name        = value
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
+        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -128,16 +134,12 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        if abstract_class?
-          self.table_name = if active_record_super == Base || active_record_super.abstract_class?
-                              nil
-                            else
-                              active_record_super.table_name
-                            end
-        elsif active_record_super.abstract_class?
-          self.table_name = active_record_super.table_name || compute_table_name
+        self.table_name = if abstract_class?
+          superclass == Base ? nil : superclass.table_name
+        elsif superclass.abstract_class?
+          superclass.table_name || compute_table_name
         else
-          self.table_name = compute_table_name
+          compute_table_name
         end
       end
 
@@ -145,15 +147,23 @@ module ActiveRecord
         (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      # The name of the column containing the object's class when Single Table Inheritance is used
+      # Defines the name of the table column which will store the class name on single-table
+      # inheritance situations.
+      #
+      # The default inheritance column name is +type+, which means it's a
+      # reserved word inside Active Record. To be able to use single-table
+      # inheritance with another column name, or to use the column +type+ in
+      # your own model for something else, you can set +inheritance_column+:
+      #
+      #     self.inheritance_column = 'zoink'
       def inheritance_column
-        (@inheritance_column ||= nil) || active_record_super.inheritance_column
+        (@inheritance_column ||= nil) || superclass.inheritance_column
       end
 
       # Sets the value of inheritance_column
       def inheritance_column=(value)
-        @original_inheritance_column = inheritance_column
-        @inheritance_column          = value.to_s
+        @inheritance_column = value.to_s
+        @explicit_inheritance_column = true
       end
 
       def sequence_name
@@ -165,7 +175,8 @@ module ActiveRecord
       end
 
       def reset_sequence_name #:nodoc:
-        self.sequence_name = connection.default_sequence_name(table_name, primary_key)
+        @explicit_sequence_name = false
+        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -183,8 +194,8 @@ module ActiveRecord
       #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
       def sequence_name=(value)
-        @original_sequence_name = @sequence_name if defined?(@sequence_name)
         @sequence_name          = value.to_s
+        @explicit_sequence_name = true
       end
 
       # Indicates whether the table associated with this class exists
@@ -213,11 +224,10 @@ module ActiveRecord
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
-        serialized_attributes.keys.each do |key|
-          columns_hash[key] = AttributeMethods::Serialization::Type.new(columns_hash[key])
-        end
-
         columns_hash.each do |name, col|
+          if serialized_attributes.key?(name)
+            columns_hash[name] = AttributeMethods::Serialization::Type.new(col)
+          end
           if create_time_zone_conversion_attribute?(name, col)
             columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
           end
@@ -247,13 +257,12 @@ module ActiveRecord
       # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
       # is available.
       def column_methods_hash #:nodoc:
-        @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
+        @dynamic_methods_hash ||= column_names.each_with_object(Hash.new(false)) do |attr, methods|
           attr_name = attr.to_s
           methods[attr.to_sym]       = attr_name
           methods["#{attr}=".to_sym] = attr_name
           methods["#{attr}?".to_sym] = attr_name
           methods["#{attr}_before_type_cast".to_sym] = attr_name
-          methods
         end
       end
 
@@ -275,7 +284,7 @@ module ActiveRecord
       #
       #      JobLevel.reset_column_information
       #      %w{assistant executive manager director}.each do |type|
-      #        JobLevel.create(:name => type)
+      #        JobLevel.create(name: type)
       #      end
       #    end
       #
@@ -296,12 +305,15 @@ module ActiveRecord
         @column_types         = nil
         @content_columns      = nil
         @dynamic_methods_hash = nil
-        @inheritance_column   = nil
+        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation             = nil
       end
 
-      def clear_cache! # :nodoc:
-        connection.schema_cache.clear!
+      # This is a hook for use by modules that need to do extra stuff to
+      # attributes when they are initialized. (e.g. attribute
+      # serialization)
+      def initialize_attributes(attributes, options = {}) #:nodoc:
+        attributes
       end
 
       private
@@ -309,8 +321,7 @@ module ActiveRecord
       # Guesses the table name, but does not decorate it with prefix and suffix information.
       def undecorated_table_name(class_name = base_class.name)
         table_name = class_name.to_s.demodulize.underscore
-        table_name = table_name.pluralize if pluralize_table_names
-        table_name
+        pluralize_table_names ? table_name.pluralize : table_name
       end
 
       # Computes and returns a table name according to default conventions.
@@ -318,7 +329,7 @@ module ActiveRecord
         base = base_class
         if self == base
           # Nested classes are prefixed with singular parent table name.
-          if parent < ActiveRecord::Model && !parent.abstract_class?
+          if parent < Base && !parent.abstract_class?
             contained = parent.table_name
             contained = contained.singularize if parent.pluralize_table_names
             contained += '_'

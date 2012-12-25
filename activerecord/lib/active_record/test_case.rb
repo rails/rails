@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 require 'active_support/test_case'
 
 ActiveSupport::Deprecation.warn('ActiveRecord::TestCase is deprecated, please use ActiveSupport::TestCase')
@@ -7,18 +6,8 @@ module ActiveRecord
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
-    setup :cleanup_identity_map
-
-    def setup
-      cleanup_identity_map
-    end
-
     def teardown
-      SQLCounter.log.clear
-    end
-
-    def cleanup_identity_map
-      ActiveRecord::IdentityMap.clear
+      SQLCounter.clear_log
     end
 
     def assert_date_from_db(expected, actual, message = nil)
@@ -32,47 +21,57 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match)
-      SQLCounter.log = []
+      SQLCounter.clear_log
       yield
-      SQLCounter.log
+      SQLCounter.log_all
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless SQLCounter.log.any?{ |sql| pattern === sql }
+        failed_patterns << pattern unless SQLCounter.log_all.any?{ |sql| pattern === sql }
       end
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
-    def assert_queries(num = 1)
-      SQLCounter.log = []
+    def assert_queries(num = 1, options = {})
+      ignore_none = options.fetch(:ignore_none) { num == :any }
+      SQLCounter.clear_log
       yield
     ensure
-      assert_equal num, SQLCounter.log.size, "#{SQLCounter.log.size} instead of #{num} queries were executed.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
+      the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
+      if num == :any
+        assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
+      else
+        mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
+        assert_equal num, the_log.size, mesg
+      end
     end
 
     def assert_no_queries(&block)
-      prev_ignored_sql = SQLCounter.ignored_sql
-      SQLCounter.ignored_sql = []
-      assert_queries(0, &block)
-    ensure
-      SQLCounter.ignored_sql = prev_ignored_sql
+      assert_queries(0, :ignore_none => true, &block)
     end
 
   end
 
   class SQLCounter
     class << self
-      attr_accessor :ignored_sql, :log
+      attr_accessor :ignored_sql, :log, :log_all
+      def clear_log; self.log = []; self.log_all = []; end
     end
 
-    self.log = []
+    self.clear_log
 
     self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
 
     # FIXME: this needs to be refactored so specific database can add their own
-    # ignored SQL.  This ignored SQL is for Oracle.
-    ignored_sql.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
+    # ignored SQL, or better yet, use a different notification for the queries
+    # instead examining the SQL content.
+    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
+    mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/]
+    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im]
 
+    [oracle_ignored, mysql_ignored, postgresql_ignored].each do |db_ignored_sql|
+      ignored_sql.concat db_ignored_sql
+    end
 
     attr_reader :ignore
 
@@ -85,8 +84,10 @@ module ActiveRecord
 
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
-      return if 'CACHE' == values[:name] || ignore =~ sql
-      self.class.log << sql
+      return if 'CACHE' == values[:name]
+
+      self.class.log_all << sql
+      self.class.log << sql unless ignore =~ sql
     end
   end
 

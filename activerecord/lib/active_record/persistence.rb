@@ -1,5 +1,3 @@
-require 'active_support/concern'
-
 module ActiveRecord
   # = Active Record Persistence
   module Persistence
@@ -17,35 +15,55 @@ module ActiveRecord
       #
       # ==== Examples
       #   # Create a single new object
-      #   User.create(:first_name => 'Jamie')
-      #
-      #   # Create a single new object using the :admin mass-assignment security role
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
-      #
-      #   # Create a single new object bypassing mass-assignment security
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
+      #   User.create(first_name: 'Jamie')
       #
       #   # Create an Array of new objects
-      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
+      #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }])
       #
       #   # Create a single object and pass it into a block to set other attributes.
-      #   User.create(:first_name => 'Jamie') do |u|
+      #   User.create(first_name: 'Jamie') do |u|
       #     u.is_admin = false
       #   end
       #
       #   # Creating an Array of new objects using a block, where the block is executed for each object:
-      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
+      #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end
-      def create(attributes = nil, options = {}, &block)
+      def create(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, options, &block) }
+          attributes.collect { |attr| create(attr, &block) }
         else
-          object = new(attributes, options, &block)
+          object = new(attributes, &block)
           object.save
           object
         end
       end
+
+      # Given an attributes hash, +instantiate+ returns a new instance of
+      # the appropriate class.
+      #
+      # For example, +Post.all+ may return Comments, Messages, and Emails
+      # by storing the record's subclass in a +type+ attribute. By calling
+      # +instantiate+ instead of +new+, finder methods ensure they get new
+      # instances of the appropriate class for each record.
+      #
+      # See +ActiveRecord::Inheritance#discriminate_class_for_record+ to see
+      # how this "single-table" inheritance mapping is implemented.
+      def instantiate(record, column_types = {})
+        klass = discriminate_class_for_record(record)
+        column_types = klass.decorate_columns(column_types)
+        klass.allocate.init_with('attributes' => record, 'column_types' => column_types)
+      end
+
+      private
+        # Called by +instantiate+ to decide which class to use for a new
+        # record instance.
+        #
+        # See +ActiveRecord::Inheritance#discriminate_class_for_record+ for
+        # the single-table inheritance discriminator.
+        def discriminate_class_for_record(record)
+          self
+        end
     end
 
     # Returns true if this object hasn't been saved yet -- that is, a record
@@ -72,7 +90,7 @@ module ActiveRecord
     #
     # By default, save always run validations. If any of them fail the action
     # is cancelled and +save+ returns +false+. However, if you supply
-    # :validate => false, validations are bypassed altogether. See
+    # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # There's a series of callbacks associated with +save+. If any of the
@@ -80,11 +98,9 @@ module ActiveRecord
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
     def save(*)
-      begin
-        create_or_update
-      rescue ActiveRecord::RecordInvalid
-        false
-      end
+      create_or_update
+    rescue ActiveRecord::RecordInvalid
+      false
     end
 
     # Saves the model.
@@ -112,37 +128,38 @@ module ActiveRecord
     # record's primary key, and no callbacks are executed.
     #
     # To enforce the object's +before_destroy+ and +after_destroy+
-    # callbacks, Observer methods, or any <tt>:dependent</tt> association
+    # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      if persisted?
-        self.class.delete(id)
-        IdentityMap.remove(self) if IdentityMap.enabled?
-      end
+      self.class.delete(id) if persisted?
       @destroyed = true
       freeze
     end
 
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy</tt> returns +false+. See
+    # ActiveRecord::Callbacks for further details.
     def destroy
+      raise ReadOnlyRecord if readonly?
       destroy_associations
-
-      if persisted?
-        IdentityMap.remove(self) if IdentityMap.enabled?
-        pk         = self.class.primary_key
-        column     = self.class.columns_hash[pk]
-        substitute = connection.substitute_at(column, 0)
-
-        relation = self.class.unscoped.where(
-          self.class.arel_table[pk].eq(substitute))
-
-        relation.bind_values = [[column, id]]
-        relation.delete_all
-      end
-
+      destroy_row if persisted?
       @destroyed = true
       freeze
+    end
+
+    # Deletes the record in the database and freezes this instance to reflect
+    # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy!</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
+    # ActiveRecord::Callbacks for further details.
+    def destroy!
+      destroy || raise(ActiveRecord::RecordNotDestroyed)
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
@@ -150,7 +167,7 @@ module ActiveRecord
     # inheritance structures where you want a subclass to appear as the
     # superclass. This can be used along with record identification in
     # Action Pack to allow, say, <tt>Client < Company</tt> to do something
-    # like render <tt>:partial => @client.becomes(Company)</tt> to render that
+    # like render <tt>partial: @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
     # Note: The new instance will share a link to the same attributes as the original class.
@@ -162,7 +179,18 @@ module ActiveRecord
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
-      became.type = klass.name unless self.class.descends_from_active_record?
+      became
+    end
+
+    # Wrapper around +becomes+ that also changes the instance's sti column value.
+    # This is especially useful if you want to persist the changed class in your
+    # database.
+    #
+    # Note: The old instance's sti column value will be changed too, as both objects
+    # share the same set of attributes.
+    def becomes!(klass)
+      became = becomes(klass)
+      became.public_send("#{klass.inheritance_column}=", klass.sti_name) unless self.class.descends_from_active_record?
       became
     end
 
@@ -176,12 +204,35 @@ module ActiveRecord
     #
     def update_attribute(name, value)
       name = name.to_s
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      verify_readonly_attribute(name)
       send("#{name}=", value)
-      save(:validate => false)
+      save(validate: false)
     end
 
-    # Updates a single attribute of an object, without calling save.
+    # Updates the attributes of the model from the passed-in hash and saves the
+    # record, all wrapped in a transaction. If the object is invalid, the saving
+    # will fail and false will be returned.
+    def update_attributes(attributes)
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
+      with_transaction_returning_status do
+        assign_attributes(attributes)
+        save
+      end
+    end
+
+    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    # of +save+, so an exception is raised if the record is invalid.
+    def update_attributes!(attributes)
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
+      with_transaction_returning_status do
+        assign_attributes(attributes)
+        save!
+      end
+    end
+
+    # Updates a single attribute of an object, without having to explicitly call save on that object.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
@@ -190,39 +241,31 @@ module ActiveRecord
     # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
     # attribute is marked as readonly.
     def update_column(name, value)
-      name = name.to_s
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
-      raise ActiveRecordError, "can not update on a new record object" unless persisted?
-      raw_write_attribute(name, value)
-      self.class.update_all({ name => value }, self.class.primary_key => id) == 1
+      update_columns(name => value)
     end
 
-    # Updates the attributes of the model from the passed-in hash and saves the
-    # record, all wrapped in a transaction. If the object is invalid, the saving
-    # will fail and false will be returned.
+    # Updates the attributes from the passed-in hash, without having to explicitly call save on that object.
     #
-    # When updating model attributes, mass-assignment security protection is respected.
-    # If no +:as+ option is supplied then the +:default+ role will be used.
-    # If you want to bypass the protection given by +attr_protected+ and
-    # +attr_accessible+ then you can do so using the +:without_protection+ option.
-    def update_attributes(attributes, options = {})
-      # The following transaction covers any possible database side-effects of the
-      # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
-        assign_attributes(attributes, options)
-        save
-      end
-    end
+    # * Validation is skipped.
+    # * Callbacks are skipped.
+    # * updated_at/updated_on column is not updated if that column is available.
+    #
+    # Raises an +ActiveRecordError+ when called on new objects, or when at least
+    # one of the attributes is marked as readonly.
+    def update_columns(attributes)
+      raise ActiveRecordError, "can not update on a new record object" unless persisted?
 
-    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
-    # of +save+, so an exception is raised if the record is invalid.
-    def update_attributes!(attributes, options = {})
-      # The following transaction covers any possible database side-effects of the
-      # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
-        assign_attributes(attributes, options)
-        save!
+      attributes.each_key do |key|
+        verify_readonly_attribute(key.to_s)
       end
+
+      updated_count = self.class.unscoped.where(self.class.primary_key => id).update_all(attributes)
+
+      attributes.each do |k, v|
+        raw_write_attribute(k, v)
+      end
+
+      updated_count == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
@@ -278,17 +321,21 @@ module ActiveRecord
 
     # Reloads the attributes of this object from the database.
     # The optional options argument is passed to find when reloading so you
-    # may do e.g. record.reload(:lock => true) to reload the same record with
+    # may do e.g. record.reload(lock: true) to reload the same record with
     # an exclusive row lock.
     def reload(options = nil)
       clear_aggregation_cache
       clear_association_cache
 
-      IdentityMap.without do
-        fresh_object = self.class.unscoped { self.class.find(id, options) }
-        @attributes.update(fresh_object.instance_variable_get('@attributes'))
-        @columns_hash = fresh_object.instance_variable_get('@columns_hash')
-      end
+      fresh_object =
+        if options && options[:lock]
+          self.class.unscoped { self.class.lock.find(id) }
+        else
+          self.class.unscoped { self.class.find(id) }
+        end
+
+      @attributes.update(fresh_object.instance_variable_get('@attributes'))
+      @columns_hash = fresh_object.instance_variable_get('@columns_hash')
 
       @attributes_cache = {}
       self
@@ -305,11 +352,11 @@ module ActiveRecord
     # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
     #
     #   class Brake < ActiveRecord::Base
-    #     belongs_to :car, :touch => true
+    #     belongs_to :car, touch: true
     #   end
     #
     #   class Car < ActiveRecord::Base
-    #     belongs_to :corporation, :touch => true
+    #     belongs_to :corporation, touch: true
     #   end
     #
     #   # triggers @brake.car.touch and @brake.car.corporation.touch
@@ -323,14 +370,15 @@ module ActiveRecord
         changes = {}
 
         attributes.each do |column|
-          changes[column.to_s] = write_attribute(column.to_s, current_time)
+          column = column.to_s
+          changes[column] = write_attribute(column, current_time)
         end
 
         changes[self.class.locking_column] = increment_lock if locking_enabled?
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
-        self.class.unscoped.update_all(changes, { primary_key => self[primary_key] }) == 1
+        self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
       end
     end
 
@@ -338,6 +386,22 @@ module ActiveRecord
 
     # A hook to be overridden by association modules.
     def destroy_associations
+    end
+
+    def destroy_row
+      relation_for_destroy.delete_all
+    end
+
+    def relation_for_destroy
+      pk         = self.class.primary_key
+      column     = self.class.columns_hash[pk]
+      substitute = connection.substitute_at(column, 0)
+
+      relation = self.class.unscoped.where(
+        self.class.arel_table[pk].eq(substitute))
+
+      relation.bind_values = [[column, id]]
+      relation
     end
 
     def create_or_update
@@ -349,25 +413,31 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def update(attribute_names = @attributes.keys)
-      attributes_with_values = arel_attributes_values(false, false, attribute_names)
-      return 0 if attributes_with_values.empty?
-      klass = self.class
-      stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
-      klass.connection.update stmt
+      attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
+
+      if attributes_with_values.empty?
+        0
+      else
+        klass = self.class
+        stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
+        klass.connection.update stmt
+      end
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create
-      attributes_values = arel_attributes_values(!id.nil?)
+    def create(attribute_names = @attributes.keys)
+      attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values
-
       self.id ||= new_id if self.class.primary_key
 
-      IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false
       id
+    end
+
+    def verify_readonly_attribute(name)
+      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
     end
   end
 end

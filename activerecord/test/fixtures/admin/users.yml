@@ -5,3 +5,6 @@ david:
 jamis:
   name: Jamis
   account: signals37
+  settings:
+    :symbol: symbol
+    string: string

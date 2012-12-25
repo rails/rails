@@ -7,7 +7,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app(:initializers => true)
+      build_app(initializers: true)
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
@@ -15,7 +15,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', to: "posts#index"
         end
       RUBY
 
@@ -36,21 +36,20 @@ module ApplicationTests
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      output = Dir.chdir(app_path){ `bundle exec rake assets:precompile --trace 2>&1` }
+      assert $?.success?, output
       require "#{app_path}/config/environment"
 
       class ::PostsController < ActionController::Base ; end
 
       # the debug_assets params isn't used if compile is off
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
-      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
+      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
     test "assets aren't concatened when compile is true is on and debug_assets params is true" do
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
+      add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -58,8 +57,8 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
   end
 end

@@ -2,7 +2,6 @@ require 'libxml'
 require 'active_support/core_ext/object/blank'
 require 'stringio'
 
-# = XmlMini LibXML implementation
 module ActiveSupport
   module XmlMini_LibXML #:nodoc:
     extend self
@@ -38,7 +37,7 @@ module LibXML #:nodoc:
     module Node #:nodoc:
       CONTENT_ROOT = '__content__'.freeze
 
-      # Convert XML document to hash
+      # Convert XML document to hash.
       #
       # hash::
       #   Hash to merge the converted element into.

@@ -4,14 +4,12 @@ first_client:
   firm_id: 1
   client_of: 2
   name: Summit
-  ruby_type: Client
   firm_name: 37signals
 
 first_firm:
   id: 1
   type: Firm
   name: 37signals
-  ruby_type: Firm
   firm_id: 1
 
 second_client:
@@ -20,13 +18,11 @@ second_client:
   firm_id: 1
   client_of: 1
   name: Microsoft
-  ruby_type: Client
 
 another_firm:
   id: 4
   type: Firm
   name: Flamboyant Software
-  ruby_type: Firm
 
 another_client:
   id: 5
@@ -34,7 +30,6 @@ another_client:
   firm_id: 4
   client_of: 4
   name: Ex Nihilo
-  ruby_type: Client
 
 a_third_client:
   id: 10
@@ -42,7 +37,6 @@ a_third_client:
   firm_id: 4
   client_of: 4
   name: Ex Nihilo Part Deux
-  ruby_type: Client
 
 rails_core:
   id: 6

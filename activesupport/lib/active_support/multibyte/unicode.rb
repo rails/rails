@@ -5,17 +5,18 @@ module ActiveSupport
 
       extend self
 
-      # A list of all available normalization forms. See http://www.unicode.org/reports/tr15/tr15-29.html for more
+      # A list of all available normalization forms.
+      # See http://www.unicode.org/reports/tr15/tr15-29.html for more
       # information about normalization.
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
       UNICODE_VERSION = '6.1.0'
 
-      # The default normalization used for operations that require normalization. It can be set to any of the
-      # normalizations in NORMALIZATION_FORMS.
+      # The default normalization used for operations that require
+      # normalization. It can be set to any of the normalizations
+      # in NORMALIZATION_FORMS.
       #
-      # Example:
       #   ActiveSupport::Multibyte::Unicode.default_normalization_form = :c
       attr_accessor :default_normalization_form
       @default_normalization_form = :kc
@@ -50,19 +51,22 @@ module ActiveSupport
         0x3000,                # White_Space # Zs       IDEOGRAPHIC SPACE
       ].flatten.freeze
 
-      # BOM (byte order mark) can also be seen as whitespace, it's a non-rendering character used to distinguish
-      # between little and big endian. This is not an issue in utf-8, so it must be ignored.
+      # BOM (byte order mark) can also be seen as whitespace, it's a
+      # non-rendering character used to distinguish between little and big
+      # endian. This is not an issue in utf-8, so it must be ignored.
       LEADERS_AND_TRAILERS = WHITESPACE + [65279] # ZERO-WIDTH NO-BREAK SPACE aka BOM
 
-      # Returns a regular expression pattern that matches the passed Unicode codepoints
+      # Returns a regular expression pattern that matches the passed Unicode
+      # codepoints.
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
         array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
       end
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
 
-      # Detect whether the codepoint is in a certain character class. Returns +true+ when it's in the specified
-      # character class and +false+ otherwise. Valid character classes are: <tt>:cr</tt>, <tt>:lf</tt>, <tt>:l</tt>,
+      # Detect whether the codepoint is in a certain character class. Returns
+      # +true+ when it's in the specified character class and +false+ otherwise.
+      # Valid character classes are: <tt>:cr</tt>, <tt>:lf</tt>, <tt>:l</tt>,
       # <tt>:v</tt>, <tt>:lv</tt>, <tt>:lvt</tt> and <tt>:t</tt>.
       #
       # Primarily used by the grapheme cluster support.
@@ -70,9 +74,9 @@ module ActiveSupport
         classes.detect { |c| database.boundary[c] === codepoint } ? true : false
       end
 
-      # Unpack the string at grapheme boundaries. Returns a list of character lists.
+      # Unpack the string at grapheme boundaries. Returns a list of character
+      # lists.
       #
-      # Example:
       #   Unicode.unpack_graphemes('क्षि') # => [[2325, 2381], [2359], [2367]]
       #   Unicode.unpack_graphemes('Café') # => [[67], [97], [102], [233]]
       def unpack_graphemes(string)
@@ -107,7 +111,6 @@ module ActiveSupport
 
       # Reverse operation of unpack_graphemes.
       #
-      # Example:
       #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
       def pack_graphemes(unpacked)
         unpacked.flatten.pack('U*')
@@ -209,9 +212,11 @@ module ActiveSupport
         codepoints
       end
 
-      # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
+      # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
+      # resulting in a valid UTF-8 string.
       #
-      # Passing +true+ will forcibly tidy all bytes, assuming that the string's encoding is entirely CP1252 or ISO-8859-1.
+      # Passing +true+ will forcibly tidy all bytes, assuming that the string's
+      # encoding is entirely CP1252 or ISO-8859-1.
       def tidy_bytes(string, force = false)
         if force
           return string.unpack("C*").map do |b|
@@ -260,13 +265,14 @@ module ActiveSupport
         bytes.empty? ? "" : bytes.flatten.compact.pack("C*").unpack("U*").pack("U*")
       end
 
-      # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for
-      # passing strings to databases and validations.
+      # Returns the KC normalization of the string by default. NFKC is
+      # considered the best normalization form for passing strings to databases
+      # and validations.
       #
       # * <tt>string</tt> - The string to perform normalization on.
-      # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
-      #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
-      #   ActiveSupport::Multibyte.default_normalization_form
+      # * <tt>form</tt> - The form you want to normalize in. Should be one of
+      #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
+      #   Default is ActiveSupport::Multibyte.default_normalization_form.
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
@@ -297,7 +303,7 @@ module ActiveSupport
         apply_mapping string, :swapcase_mapping
       end
 
-      # Holds data about a codepoint in the Unicode database
+      # Holds data about a codepoint in the Unicode database.
       class Codepoint
         attr_accessor :code, :combining_class, :decomp_type, :decomp_mapping, :uppercase_mapping, :lowercase_mapping
 
@@ -306,7 +312,7 @@ module ActiveSupport
         end
       end
 
-      # Holds static data from the Unicode database
+      # Holds static data from the Unicode database.
       class UnicodeDatabase
         ATTRIBUTES = :codepoints, :composition_exclusion, :composition_map, :boundary, :cp1252
 
@@ -330,11 +336,12 @@ module ActiveSupport
           EOS
         end
 
-        # Loads the Unicode database and returns all the internal objects of UnicodeDatabase.
+        # Loads the Unicode database and returns all the internal objects of
+        # UnicodeDatabase.
         def load
           begin
             @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
-          rescue Exception => e
+          rescue => e
               raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
           end
 
@@ -353,12 +360,12 @@ module ActiveSupport
           end
         end
 
-        # Returns the directory in which the data files are stored
+        # Returns the directory in which the data files are stored.
         def self.dirname
           File.dirname(__FILE__) + '/../values/'
         end
 
-        # Returns the filename for the data file for this version
+        # Returns the filename for the data file for this version.
         def self.filename
           File.expand_path File.join(dirname, "unicode_tables.dat")
         end

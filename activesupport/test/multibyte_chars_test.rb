@@ -47,7 +47,10 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
-    assert_equal BYTE_STRING.class, BYTE_STRING.mb_chars.class
+    original_encoding = BYTE_STRING.encoding
+    assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
+  ensure
+    BYTE_STRING.force_encoding(original_encoding)
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
@@ -110,7 +113,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   %w{capitalize downcase lstrip reverse rstrip swapcase upcase}.each do |method|
-    class_eval(<<-EOTESTS)
+    class_eval(<<-EOTESTS, __FILE__, __LINE__ + 1)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
         chars = ' él piDió Un bUen café '
         assert_equal chars.object_id, chars.send("#{method}!").object_id
@@ -458,6 +461,15 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert !''.mb_chars.respond_to?(:undefined_method) # Not defined
   end
 
+  def test_method_works_for_proxyed_methods
+    assert_equal 'll', 'hello'.mb_chars.method(:slice).call(2..3) # Defined on Chars
+    chars = 'hello'.mb_chars
+    assert_equal 'Hello', chars.method(:capitalize!).call # Defined on Chars
+    assert_equal 'Hello', chars
+    assert_equal 'jello', 'hello'.mb_chars.method(:gsub).call(/h/, 'j') # Defined on String
+    assert_raise(NameError){ ''.mb_chars.method(:undefined_method) } # Not defined
+  end
+
   def test_acts_like_string
     assert 'Bambi'.mb_chars.acts_like_string?
   end
@@ -664,6 +676,9 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     assert_equal "ð¥¤¤", chars(byte_string).tidy_bytes(true)
   end
 
+  def test_class_is_not_forwarded
+    assert_equal BYTE_STRING.dup.mb_chars.class, ActiveSupport::Multibyte::Chars
+  end
 
   private
 

@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
+<link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
+<link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" />
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />
+
+<link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" />
+
+<link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+</head>
+<body class="guide">
+  <% if @edge %>
+  <div>
+    <img src="images/edge_badge.png" alt="edge-badge" id="edge-badge" />
+  </div>
+  <% end %>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="http://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="http://rubyonrails.org/">Overview</a></li>
+        <li class="more-info"><a href="http://rubyonrails.org/download">Download</a></li>
+        <li class="more-info"><a href="http://rubyonrails.org/deploy">Deploy</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Code</a></li>
+        <li class="more-info"><a href="http://rubyonrails.org/screencasts">Screencasts</a></li>
+        <li class="more-info"><a href="http://rubyonrails.org/documentation">Documentation</a></li>
+        <li class="more-info"><a href="http://rubyonrails.org/ecosystem">Ecosystem</a></li>
+        <li class="more-info"><a href="http://rubyonrails.org/community">Community</a></li>
+        <li class="more-info"><a href="http://weblog.rubyonrails.org/">Blog</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <h1><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></h1>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" onclick="guideMenu(); return false;" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <% ['L', 'R'].each do |position| %>
+              <dl class="<%= position %>">
+              <% docs_for_menu(position).each do |section| %>
+                <dt><%= section['name'] %></dt>
+                <% finished_documents(section['documents']).each do |document| %>
+                <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                <% end %>
+              <% end %>
+              </dl>
+            <% end %>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li><a class="nav-item" href="credits.html">Credits</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+            <% docs_for_menu.each do |section| %>
+              <optgroup label="<%= section['name'] %>">
+                <% finished_documents(section['documents']).each do |document| %>
+                  <option value="<%= document['url'] %>"><%= document['name'] %></option>
+                <% end %>
+              </optgroup>
+            <% end %>
+          </select>
+        </li>
+      </ul>
+      </div>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <%= yield :header_section %>
+
+      <%= yield :index_section %>
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <%= yield.html_safe %>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          If you see any typos or factual errors you are confident to
+          patch, please clone <%= link_to 'docrails', 'https://github.com/lifo/docrails' %>
+          and push the change yourself. That branch of Rails has public write access.
+          Commits are still reviewed, but that happens after you've submitted your
+          contribution. <%= link_to 'docrails', 'https://github.com/lifo/docrails' %> is
+          cross-merged with master periodically.
+        </p>
+        <p>
+          You may also find incomplete content, or stuff that is not up to date.
+          Please do add any missing documentation for master. Check the
+          <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'http://groups.google.com/group/rubyonrails-docs' %>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <%= render 'license' %>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="javascripts/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/responsive-tables.js"></script>
+  <script type="text/javascript" src="javascripts/guides.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shCore.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushRuby.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushXml.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
+  <script type="text/javascript">
+    SyntaxHighlighter.all()
+    $(guidesIndex.bind);
+  </script>
+</body>
+</html>

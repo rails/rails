@@ -1,4 +1,4 @@
-require 'action_controller/vendor/html-scanner'
+require 'action_view/vendor/html-scanner'
 
 module ActionDispatch
   module Assertions
@@ -48,47 +48,45 @@ module ActionDispatch
       # * if the condition is +true+, the value must not be +nil+.
       # * if the condition is +false+ or +nil+, the value must be +nil+.
       #
-      # === Examples
-      #
       #   # Assert that there is a "span" tag
-      #   assert_tag :tag => "span"
+      #   assert_tag tag: "span"
       #
       #   # Assert that there is a "span" tag with id="x"
-      #   assert_tag :tag => "span", :attributes => { :id => "x" }
+      #   assert_tag tag: "span", attributes: { id: "x" }
       #
       #   # Assert that there is a "span" tag using the short-hand
       #   assert_tag :span
       #
       #   # Assert that there is a "span" tag with id="x" using the short-hand
-      #   assert_tag :span, :attributes => { :id => "x" }
+      #   assert_tag :span, attributes: { id: "x" }
       #
       #   # Assert that there is a "span" inside of a "div"
-      #   assert_tag :tag => "span", :parent => { :tag => "div" }
+      #   assert_tag tag: "span", parent: { tag: "div" }
       #
       #   # Assert that there is a "span" somewhere inside a table
-      #   assert_tag :tag => "span", :ancestor => { :tag => "table" }
+      #   assert_tag tag: "span", ancestor: { tag: "table" }
       #
       #   # Assert that there is a "span" with at least one "em" child
-      #   assert_tag :tag => "span", :child => { :tag => "em" }
+      #   assert_tag tag: "span", child: { tag: "em" }
       #
       #   # Assert that there is a "span" containing a (possibly nested)
       #   # "strong" tag.
-      #   assert_tag :tag => "span", :descendant => { :tag => "strong" }
+      #   assert_tag tag: "span", descendant: { tag: "strong" }
       #
       #   # Assert that there is a "span" containing between 2 and 4 "em" tags
       #   # as immediate children
-      #   assert_tag :tag => "span",
-      #              :children => { :count => 2..4, :only => { :tag => "em" } }
+      #   assert_tag tag: "span",
+      #              children: { count: 2..4, only: { tag: "em" } }
       #
       #   # Get funky: assert that there is a "div", with an "ul" ancestor
       #   # and an "li" parent (with "class" = "enum"), and containing a
       #   # "span" descendant that contains text matching /hello world/
-      #   assert_tag :tag => "div",
-      #              :ancestor => { :tag => "ul" },
-      #              :parent => { :tag => "li",
-      #                           :attributes => { :class => "enum" } },
-      #              :descendant => { :tag => "span",
-      #                               :child => /hello world/ }
+      #   assert_tag tag: "div",
+      #              ancestor: { tag: "ul" },
+      #              parent: { tag: "li",
+      #                           attributes: { class: "enum" } },
+      #              descendant: { tag: "span",
+      #                               child: /hello world/ }
       #
       # <b>Please note</b>: +assert_tag+ and +assert_no_tag+ only work
       # with well-formed XHTML. They recognize a few tags as implicitly self-closing
@@ -104,17 +102,16 @@ module ActionDispatch
       # Identical to +assert_tag+, but asserts that a matching tag does _not_
       # exist. (See +assert_tag+ for a full discussion of the syntax.)
       #
-      # === Examples
       #   # Assert that there is not a "div" containing a "p"
-      #   assert_no_tag :tag => "div", :descendant => { :tag => "p" }
+      #   assert_no_tag tag: "div", descendant: { tag: "p" }
       #
       #   # Assert that an unordered list is empty
-      #   assert_no_tag :tag => "ul", :descendant => { :tag => "li" }
+      #   assert_no_tag tag: "ul", descendant: { tag: "li" }
       #
       #   # Assert that there is not a "p" tag with between 1 to 3 "img" tags
       #   # as immediate children
-      #   assert_no_tag :tag => "p",
-      #              :children => { :count => 1..3, :only => { :tag => "img" } }
+      #   assert_no_tag tag: "p",
+      #              children: { count: 1..3, only: { tag: "img" } }
       def assert_no_tag(*opts)
         opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
         tag = find_tag(opts)

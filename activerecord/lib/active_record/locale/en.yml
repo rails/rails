@@ -4,11 +4,15 @@ en:
     #created_at: "Created at"
     #updated_at: "Updated at"
 
+  # Default error messages
+  errors:
+    messages:
+      taken: "has already been taken"
+
   # Active Record models configuration
   activerecord:
     errors:
       messages:
-        taken: "has already been taken"
         record_invalid: "Validation failed: %{errors}"
         restrict_dependent_destroy:
           one: "Cannot delete record because a dependent %{record} exists"

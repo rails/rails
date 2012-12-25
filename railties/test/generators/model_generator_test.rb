@@ -157,7 +157,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/create_table :products/, up)
         assert_match(/t\.string :name/, up)
         assert_match(/t\.integer :supplier_id/, up)
-        
+
         assert_match(/add_index :products, :name/, up)
         assert_match(/add_index :products, :supplier_id/, up)
         assert_no_match(/add_index :products, :year/, up)
@@ -166,7 +166,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_index_declaration_and_attribute_options
-    run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq"]
+    run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq", "supplier:references{polymorphic}"]
 
     assert_migration "db/migrate/create_products.rb" do |content|
       assert_method :change, content do |up|
@@ -174,13 +174,14 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/t.string :title, limit: 40/, up)
         assert_match(/t.string :content, limit: 255/, up)
         assert_match(/t.decimal :price, precision: 5, scale: 2/, up)
+        assert_match(/t.references :supplier, polymorphic: true/, up)
       end
       assert_match(/add_index :products, :title/, content)
       assert_match(/add_index :products, :price/, content)
       assert_match(/add_index :products, :discount, unique: true/, content)
     end
   end
-  
+
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]
@@ -193,13 +194,23 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_model_with_references_attribute_generates_belongs_to_associations
-    run_generator ["product", "name:string", "supplier_id:references"]
+    run_generator ["product", "name:string", "supplier:references"]
     assert_file "app/models/product.rb", /belongs_to :supplier/
   end
 
   def test_model_with_belongs_to_attribute_generates_belongs_to_associations
-    run_generator ["product", "name:string", "supplier_id:belongs_to"]
+    run_generator ["product", "name:string", "supplier:belongs_to"]
     assert_file "app/models/product.rb", /belongs_to :supplier/
+  end
+
+  def test_model_with_polymorphic_references_attribute_generates_belongs_to_associations
+    run_generator ["product", "name:string", "supplier:references{polymorphic}"]
+    assert_file "app/models/product.rb", /belongs_to :supplier, polymorphic: true/
+  end
+
+  def test_model_with_polymorphic_belongs_to_attribute_generates_belongs_to_associations
+    run_generator ["product", "name:string", "supplier:belongs_to{polymorphic}"]
+    assert_file "app/models/product.rb", /belongs_to :supplier, polymorphic: true/
   end
 
   def test_migration_with_timestamps
@@ -231,19 +242,19 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_is_skipped_on_skip_behavior
     run_generator
-    output = run_generator ["Account"], :behavior => :skip
+    output = run_generator ["Account"], behavior: :skip
     assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], :behavior => :revoke }
+    error = capture(:stderr){ run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
   end
 
   def test_migration_is_removed_on_revoke
     run_generator
-    run_generator ["Account"], :behavior => :revoke
+    run_generator ["Account"], behavior: :revoke
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
@@ -258,8 +269,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
+    assert_file "test/models/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
+  end
+
+  def test_fixtures_use_the_references_ids
+    run_generator ["LineItem", "product:references", "cart:belongs_to"]
+    assert_file "test/fixtures/line_items.yml", /product_id: \n  cart_id: /
+  end
+
+  def test_fixtures_use_the_references_ids_and_type
+    run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
+    assert_file "test/fixtures/line_items.yml", /product_id: \n  product_type: Product\n  cart_id: /
   end
 
   def test_fixture_is_skipped
@@ -283,7 +304,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_index/, up)
+        assert_match(/index: true/, up)
       end
     end
   end
@@ -293,7 +314,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_index/, up)
+        assert_match(/index: true/, up)
       end
     end
   end
@@ -303,7 +324,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_index/, up)
+        assert_no_match(/index: true/, up)
       end
     end
   end
@@ -313,7 +334,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_index/, up)
+        assert_no_match(/index: true/, up)
       end
     end
   end

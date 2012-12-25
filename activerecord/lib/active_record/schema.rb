@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   # = Active Record Schema
@@ -12,16 +11,16 @@ module ActiveRecord
   #
   #   ActiveRecord::Schema.define do
   #     create_table :authors do |t|
-  #       t.string :name, :null => false
+  #       t.string :name, null: false
   #     end
   #
   #     add_index :authors, :name, :unique
   #
   #     create_table :posts do |t|
-  #       t.integer :author_id, :null => false
+  #       t.integer :author_id, null: false
   #       t.string :subject
   #       t.text :body
-  #       t.boolean :private, :default => false
+  #       t.boolean :private, default: false
   #     end
   #
   #     add_index :posts, :author_id
@@ -30,8 +29,22 @@ module ActiveRecord
   # ActiveRecord::Schema is only supported by database adapters that also
   # support migrations, the two features being very similar.
   class Schema < Migration
+
+    # Returns the migrations paths.
+    #
+    #   ActiveRecord::Schema.new.migrations_paths
+    #   # => ["db/migrate"] # Rails migration path by default.
     def migrations_paths
       ActiveRecord::Migrator.migrations_paths
+    end
+
+    def define(info, &block) # :nodoc:
+      instance_eval(&block)
+
+      unless info[:version].blank?
+        initialize_schema_migrations_table
+        assume_migrated_upto_version(info[:version], migrations_paths)
+      end
     end
 
     # Eval the given block. All methods available to the current connection
@@ -42,17 +55,11 @@ module ActiveRecord
     # The +info+ hash is optional, and if given is used to define metadata
     # about the current schema (currently, only the schema's version):
     #
-    #   ActiveRecord::Schema.define(:version => 20380119000001) do
+    #   ActiveRecord::Schema.define(version: 20380119000001) do
     #     ...
     #   end
     def self.define(info={}, &block)
-      schema = new
-      schema.instance_eval(&block)
-
-      unless info[:version].blank?
-        initialize_schema_migrations_table
-        assume_migrated_upto_version(info[:version], schema.migrations_paths)
-      end
+      new.define(info, &block)
     end
   end
 end

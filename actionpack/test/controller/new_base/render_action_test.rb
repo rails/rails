@@ -86,8 +86,6 @@ module RenderAction
     def setup
     end
 
-    describe "Both <controller_path>.html.erb and application.html.erb are missing"
-
     test "rendering with layout => true" do
       assert_raise(ArgumentError) do
         get "/render_action/basic/hello_world_with_layout", {}, "action_dispatch.show_exceptions" => false
@@ -154,8 +152,6 @@ module RenderActionWithApplicationLayout
   end
 
   class LayoutTest < Rack::TestCase
-    describe "Only application.html.erb is present and <controller_path>.html.erb is missing"
-
     test "rendering implicit application.html.erb as layout" do
       get "/render_action_with_application_layout/basic/hello_world"
 
@@ -232,8 +228,6 @@ module RenderActionWithControllerLayout
   end
 
   class ControllerLayoutTest < Rack::TestCase
-    describe "Only <controller_path>.html.erb is present and application.html.erb is missing"
-
     test "render hello_world and implicitly use <controller_path>.html.erb as a layout." do
       get "/render_action_with_controller_layout/basic/hello_world"
 
@@ -290,8 +284,6 @@ module RenderActionWithBothLayouts
   end
 
   class ControllerLayoutTest < Rack::TestCase
-    describe "Both <controller_path>.html.erb and application.html.erb are present"
-
     test "rendering implicitly use <controller_path>.html.erb over application.html.erb as a layout" do
       get "/render_action_with_both_layouts/basic/hello_world"
 

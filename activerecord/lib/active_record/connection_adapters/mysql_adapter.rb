@@ -2,13 +2,11 @@ require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_support/core_ext/hash/keys'
 
-gem 'mysql', '~> 2.8.1'
+gem 'mysql', '~> 2.9'
 require 'mysql'
 
 class Mysql
   class Time
-    ###
-    # This monkey patch is for test_additional_columns_from_join_table
     def to_date
       Date.new(year, month, day)
     end
@@ -53,6 +51,8 @@ module ActiveRecord
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
     # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html).
+    # * <tt>:strict</tt> - Defaults to true. Enable STRICT_ALL_TABLES. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html)
+    # * <tt>:variables</tt> - (Optional) A hash session variables to send as `SET @@SESSION.key = value` on each database connection. Use the value `:default` to set a variable to its DEFAULT value. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/set-statement.html).
     # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
@@ -151,7 +151,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation)
+        Column.new(field, default, type, null, collation, strict_mode?)
       end
 
       def error_number(exception) # :nodoc:
@@ -190,14 +190,15 @@ module ActiveRecord
       end
 
       def reconnect!
+        super
         disconnect!
-        clear_cache!
         connect
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
+        super
         @connection.close rescue nil
       end
 
@@ -214,7 +215,7 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         @connection.query_with_result = true
-        rows = exec_without_stmt(sql, name).rows
+        rows = exec_query(sql, name).rows
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end
@@ -278,15 +279,137 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        log(sql, name, binds) do
-          exec_stmt(sql, name, binds) do |cols, stmt|
-            ActiveRecord::Result.new(cols, stmt.to_a) if cols
-          end
+        # If the configuration sets prepared_statements:false, binds will
+        # always be empty, since the bind variables will have been already
+        # substituted and removed from binds by BindVisitor, so this will
+        # effectively disable prepared statement usage completely.
+        if binds.empty?
+          result_set, affected_rows = exec_without_stmt(sql, name)
+        else
+          result_set, affected_rows = exec_stmt(sql, name, binds)
         end
+
+        yield affected_rows if block_given?
+
+        result_set
       end
 
       def last_inserted_id(result)
         @connection.insert_id
+      end
+
+      module Fields
+        class Type
+          def type; end
+
+          def type_cast_for_write(value)
+            value
+          end
+        end
+
+        class Identity < Type
+          def type_cast(value); value; end
+        end
+
+        class Integer < Type
+          def type_cast(value)
+            return if value.nil?
+
+            value.to_i rescue value ? 1 : 0
+          end
+        end
+
+        class Date < Type
+          def type; :date; end
+
+          def type_cast(value)
+            return if value.nil?
+
+            # FIXME: probably we can improve this since we know it is mysql
+            # specific
+            ConnectionAdapters::Column.value_to_date value
+          end
+        end
+
+        class DateTime < Type
+          def type; :datetime; end
+
+          def type_cast(value)
+            return if value.nil?
+
+            # FIXME: probably we can improve this since we know it is mysql
+            # specific
+            ConnectionAdapters::Column.string_to_time value
+          end
+        end
+
+        class Time < Type
+          def type; :time; end
+
+          def type_cast(value)
+            return if value.nil?
+
+            # FIXME: probably we can improve this since we know it is mysql
+            # specific
+            ConnectionAdapters::Column.string_to_dummy_time value
+          end
+        end
+
+        class Float < Type
+          def type; :float; end
+
+          def type_cast(value)
+            return if value.nil?
+
+            value.to_f
+          end
+        end
+
+        class Decimal < Type
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::Column.value_to_decimal value
+          end
+        end
+
+        class Boolean < Type
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::Column.value_to_boolean value
+          end
+        end
+
+        TYPES = {}
+
+        # Register an MySQL +type_id+ with a typcasting object in
+        # +type+.
+        def self.register_type(type_id, type)
+          TYPES[type_id] = type
+        end
+
+        def self.alias_type(new, old)
+          TYPES[new] = TYPES[old]
+        end
+
+        register_type Mysql::Field::TYPE_TINY,    Fields::Boolean.new
+        register_type Mysql::Field::TYPE_LONG,    Fields::Integer.new
+        alias_type Mysql::Field::TYPE_LONGLONG,   Mysql::Field::TYPE_LONG
+        alias_type Mysql::Field::TYPE_NEWDECIMAL, Mysql::Field::TYPE_LONG
+
+        register_type Mysql::Field::TYPE_VAR_STRING, Fields::Identity.new
+        register_type Mysql::Field::TYPE_BLOB, Fields::Identity.new
+        register_type Mysql::Field::TYPE_DATE, Fields::Date.new
+        register_type Mysql::Field::TYPE_DATETIME, Fields::DateTime.new
+        register_type Mysql::Field::TYPE_TIME, Fields::Time.new
+        register_type Mysql::Field::TYPE_FLOAT, Fields::Float.new
+
+        Mysql::Field.constants.grep(/TYPE/).map { |class_name|
+          Mysql::Field.const_get class_name
+        }.reject { |const| TYPES.key? const }.each do |const|
+          register_type const, Fields::Identity.new
+        end
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
@@ -294,15 +417,26 @@ module ActiveRecord
         # statement API. For those queries, we need to use this method. :'(
         log(sql, name) do
           result = @connection.query(sql)
-          cols = []
-          rows = []
+          affected_rows = @connection.affected_rows
 
           if result
-            cols = result.fetch_fields.map { |field| field.name }
-            rows = result.to_a
+            types = {}
+            result.fetch_fields.each { |field|
+              if field.decimals > 0
+                types[field.name] = Fields::Decimal.new
+              else
+                types[field.name] = Fields::TYPES.fetch(field.type) {
+                  Fields::Identity.new
+                }
+              end
+            }
+            result_set = ActiveRecord::Result.new(types.keys, result.to_a, types)
             result.free
+          else
+            result_set = ActiveRecord::Result.new([], [])
           end
-          ActiveRecord::Result.new(cols, rows)
+
+          [result_set, affected_rows]
         end
       end
 
@@ -320,16 +454,18 @@ module ActiveRecord
       alias :create :insert_sql
 
       def exec_delete(sql, name, binds)
-        log(sql, name, binds) do
-          exec_stmt(sql, name, binds) do |cols, stmt|
-            stmt.affected_rows
-          end
+        affected_rows = 0
+
+        exec_query(sql, name, binds) do |n|
+          affected_rows = n
         end
+
+        affected_rows
       end
       alias :exec_update :exec_delete
 
       def begin_db_transaction #:nodoc:
-        exec_without_stmt "BEGIN"
+        exec_query "BEGIN"
       rescue Mysql::Error
         # Transactions aren't supported
       end
@@ -338,41 +474,44 @@ module ActiveRecord
 
       def exec_stmt(sql, name, binds)
         cache = {}
-        if binds.empty?
-          stmt = @connection.prepare(sql)
-        else
-          cache = @statements[sql] ||= {
-            :stmt => @connection.prepare(sql)
-          }
-          stmt = cache[:stmt]
+        log(sql, name, binds) do
+          if binds.empty?
+            stmt = @connection.prepare(sql)
+          else
+            cache = @statements[sql] ||= {
+              :stmt => @connection.prepare(sql)
+            }
+            stmt = cache[:stmt]
+          end
+
+          begin
+            stmt.execute(*binds.map { |col, val| type_cast(val, col) })
+          rescue Mysql::Error => e
+            # Older versions of MySQL leave the prepared statement in a bad
+            # place when an error occurs. To support older mysql versions, we
+            # need to close the statement and delete the statement from the
+            # cache.
+            stmt.close
+            @statements.delete sql
+            raise e
+          end
+
+          cols = nil
+          if metadata = stmt.result_metadata
+            cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
+              field.name
+            }
+          end
+
+          result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
+          affected_rows = stmt.affected_rows
+
+          stmt.result_metadata.free if cols
+          stmt.free_result
+          stmt.close if binds.empty?
+
+          [result_set, affected_rows]
         end
-
-        begin
-          stmt.execute(*binds.map { |col, val| type_cast(val, col) })
-        rescue Mysql::Error => e
-          # Older versions of MySQL leave the prepared statement in a bad
-          # place when an error occurs. To support older mysql versions, we
-          # need to close the statement and delete the statement from the
-          # cache.
-          stmt.close
-          @statements.delete sql
-          raise e
-        end
-
-        cols = nil
-        if metadata = stmt.result_metadata
-          cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
-            field.name
-          }
-        end
-
-        result = yield [cols, stmt]
-
-        stmt.result_metadata.free if cols
-        stmt.free_result
-        stmt.close if binds.empty?
-
-        result
       end
 
       def connect
@@ -397,13 +536,10 @@ module ActiveRecord
         configure_connection
       end
 
+      # Many Rails applications monkey-patch a replacement of the configure_connection method
+      # and don't call 'super', so leave this here even though it looks superfluous.
       def configure_connection
-        encoding = @config[:encoding]
-        execute("SET NAMES '#{encoding}'", :skip_logging) if encoding
-
-        # By default, MySQL 'where id is null' selects the last inserted id.
-        # Turn this off. http://dev.rubyonrails.org/ticket/6778
-        execute("SET SQL_AUTO_IS_NULL=0", :skip_logging)
+        super
       end
 
       def select(sql, name = nil, binds = [])

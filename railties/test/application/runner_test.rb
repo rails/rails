@@ -1,8 +1,10 @@
 require 'isolation/abstract_unit'
+require 'env_helpers'
 
 module ApplicationTests
   class RunnerTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include EnvHelpers
 
     def setup
       build_app
@@ -56,6 +58,32 @@ module ApplicationTests
       SCRIPT
 
       assert_match "script/program_name.rb", Dir.chdir(app_path) { `bundle exec rails runner "script/program_name.rb"` }
+    end
+
+    def test_with_hook
+      add_to_config <<-RUBY
+        runner do |app|
+          app.config.ran = true
+        end
+      RUBY
+
+      assert_match "true", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.application.config.ran"` }
+    end
+
+    def test_default_environment
+      assert_match "development", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+    end
+
+    def test_environment_with_rails_env
+      with_rails_env "production" do
+        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+      end
+    end
+
+    def test_environment_with_rack_env
+      with_rack_env "production" do
+        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+      end
     end
   end
 end

@@ -21,15 +21,13 @@ module ActionController #:nodoc:
   # supports fibers (fibers are supported since version 1.9.2 of the main
   # Ruby implementation).
   #
-  # == Examples
-  #
   # Streaming can be added to a given template easily, all you need to do is
   # to pass the :stream option.
   #
   #   class PostsController
   #     def index
   #       @posts = Post.scoped
-  #       render :stream => true
+  #       render stream: true
   #     end
   #   end
   #
@@ -56,7 +54,7 @@ module ActionController #:nodoc:
   #     @posts = Post.scoped
   #     @pages = Page.scoped
   #     @articles = Article.scoped
-  #     render :stream => true
+  #     render stream: true
   #   end
   #
   # Notice that :stream only works with templates. Rendering :json
@@ -139,17 +137,14 @@ module ActionController #:nodoc:
   # session or flash after the template starts rendering will not propagate
   # to the client.
   #
-  # If you try to modify cookies, session or flash, an +ActionDispatch::ClosedError+
-  # will be raised, showing those objects are closed for modification.
-  #
   # == Middlewares
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, +Rack::Bug+ won't work when streaming as it
+  # or production. For instance, <tt>Rack::Bug</tt> won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also +Rack::Cache+ won't work with streaming as it does not support
+  # Also <tt>Rack::Cache</tt> won't work with streaming as it does not support
   # streaming bodies yet. Whenever streaming Cache-Control is automatically
   # set to "no-cache".
   #
@@ -162,7 +157,7 @@ module ActionController #:nodoc:
   # Currently, when an exception happens in development or production, Rails
   # will automatically stream to the client:
   #
-  #   "><script type="text/javascript">window.location = "/500.html"</script></html>
+  #   "><script>window.location = "/500.html"</script></html>
   #
   # The first two characters (">) are required in case the exception happens
   # while rendering attributes for a given tag. You can check the real cause
@@ -179,7 +174,7 @@ module ActionController #:nodoc:
   # need to create a config file as follow:
   #
   #   # unicorn.config.rb
-  #   listen 3000, :tcp_nopush => false
+  #   listen 3000, tcp_nopush: false
   #
   # And use it on initialization:
   #

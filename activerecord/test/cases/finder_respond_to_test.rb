@@ -36,6 +36,11 @@ class FinderRespondToTest < ActiveRecord::TestCase
     assert_respond_to Topic, :find_by_title_and_author_name
   end
 
+  def test_should_respond_to_find_all_by_an_aliased_attribute
+    ensure_topic_method_is_not_cached(:find_by_heading)
+    assert_respond_to Topic, :find_by_heading
+  end
+
   def test_should_respond_to_find_or_initialize_from_one_attribute
     ensure_topic_method_is_not_cached(:find_or_initialize_by_title)
     assert_respond_to Topic, :find_or_initialize_by_title
@@ -56,6 +61,16 @@ class FinderRespondToTest < ActiveRecord::TestCase
     assert_respond_to Topic, :find_or_create_by_title_and_author_name
   end
 
+  def test_should_respond_to_find_or_create_from_one_attribute_bang
+    ensure_topic_method_is_not_cached(:find_or_create_by_title!)
+    assert_respond_to Topic, :find_or_create_by_title!
+  end
+
+  def test_should_respond_to_find_or_create_from_two_attributes_bang
+    ensure_topic_method_is_not_cached(:find_or_create_by_title_and_author_name!)
+    assert_respond_to Topic, :find_or_create_by_title_and_author_name!
+  end
+
   def test_should_not_respond_to_find_by_one_missing_attribute
     assert !Topic.respond_to?(:find_by_undertitle)
   end
@@ -70,7 +85,6 @@ class FinderRespondToTest < ActiveRecord::TestCase
   private
 
   def ensure_topic_method_is_not_cached(method_id)
-    class << Topic; self; end.send(:remove_method, method_id) if Topic.public_methods.any? { |m| m.to_s == method_id.to_s }
+    class << Topic; self; end.send(:remove_method, method_id) if Topic.public_methods.include? method_id
   end
-
 end

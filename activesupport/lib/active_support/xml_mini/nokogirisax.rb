@@ -7,9 +7,8 @@ end
 require 'active_support/core_ext/object/blank'
 require 'stringio'
 
-# = XmlMini Nokogiri implementation using a SAX-based parser
 module ActiveSupport
-  module XmlMini_NokogiriSAX
+  module XmlMini_NokogiriSAX #:nodoc:
     extend self
 
     # Class that will build the hash while the XML document

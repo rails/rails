@@ -2,12 +2,12 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
+gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
-require 'mocha'
 
-require 'cases/test_case'
 require 'active_record'
+require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 
@@ -18,12 +18,6 @@ require 'support/connection'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
-
-# Enable Identity Map only when ENV['IM'] is set to "true"
-ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
-
-# Avoid deprecation warning setting dependent_restrict_raises to false. The default is true
-ActiveRecord::Base.dependent_restrict_raises = false
 
 # Connect to the database
 ARTest.connect
@@ -39,7 +33,7 @@ def current_adapter?(*types)
 end
 
 def in_memory_db?
-  current_adapter?(:SQLiteAdapter) &&
+  current_adapter?(:SQLite3Adapter) &&
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
@@ -83,8 +77,8 @@ class ActiveSupport::TestCase
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
 
-  def create_fixtures(*table_names, &block)
-    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
+  def create_fixtures(*fixture_set_names, &block)
+    ActiveRecord::FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
   end
 end
 
@@ -121,5 +115,36 @@ class << Time
     block.call
   ensure
     @now = nil
+  end
+end
+
+module LogIntercepter
+  attr_accessor :logged, :intercepted
+  def self.extended(base)
+    base.logged = []
+  end
+  def log(sql, name, binds = [], &block)
+    if @intercepted
+      @logged << [sql, name, binds]
+      yield
+    else
+      super(sql, name,binds, &block)
+    end
+  end
+end
+
+module InTimeZone
+  private
+
+  def in_time_zone(zone)
+    old_zone  = Time.zone
+    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
+
+    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
+    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
+    yield
+  ensure
+    Time.zone = old_zone
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
   end
 end

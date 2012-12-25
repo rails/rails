@@ -7,6 +7,28 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < CollectionAssociation #:nodoc:
 
+      def handle_dependency
+        case options[:dependent]
+        when :restrict, :restrict_with_exception
+          raise ActiveRecord::DeleteRestrictionError.new(reflection.name) unless empty?
+
+        when :restrict_with_error
+          unless empty?
+            record = klass.human_attribute_name(reflection.name).downcase
+            owner.errors.add(:base, :"restrict_dependent_destroy.many", record: record)
+            false
+          end
+
+        else
+          if options[:dependent] == :destroy
+            # No point in executing the counter update since we're going to destroy the parent anyway
+            load_target.each(&:mark_for_destruction)
+          end
+
+          delete_all
+        end
+      end
+
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
 
@@ -38,7 +60,7 @@ module ActiveRecord
           elsif options[:counter_sql] || options[:finder_sql]
             reflection.klass.count_by_sql(custom_counter_sql)
           else
-            scoped.count
+            scope.count
           end
 
           # If there's nothing in the database and @target has no new records
@@ -46,7 +68,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded! if count == 0
 
-          [options[:limit], count].compact.min
+          [association_scope.limit_value, count].compact.min
         end
 
         def has_cached_counter?(reflection = reflection)
@@ -54,7 +76,7 @@ module ActiveRecord
         end
 
         def cached_counter_attribute_name(reflection = reflection)
-          "#{reflection.name}_count"
+          options[:counter_cache] || "#{reflection.name}_count"
         end
 
         def update_counter(difference, reflection = reflection)
@@ -89,8 +111,12 @@ module ActiveRecord
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            keys  = records.map { |r| r[reflection.association_primary_key] }
-            scope = scoped.where(reflection.association_primary_key => keys)
+            if records == :all
+              scope = self.scope
+            else
+              keys  = records.map { |r| r[reflection.association_primary_key] }
+              scope = self.scope.where(reflection.association_primary_key => keys)
+            end
 
             if method == :delete_all
               update_counter(-scope.delete_all)

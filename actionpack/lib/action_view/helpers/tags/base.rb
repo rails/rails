@@ -5,8 +5,6 @@ module ActionView
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
         include FormOptionsHelper
 
-        DEFAULT_FIELD_OPTIONS = { "size" => 30 }
-
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
@@ -82,18 +80,16 @@ module ActionView
             options["name"] ||= options.fetch("name"){ tag_name_with_index(@auto_index) }
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= options.fetch("name"){ options['multiple'] ? tag_name_multiple : tag_name }
+            options["name"] ||= options.fetch("name"){ tag_name }
             options["id"] = options.fetch("id"){ tag_id }
           end
+
+          options["name"] += "[]" if options["multiple"]
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 
         def tag_name
           "#{@object_name}[#{sanitized_method_name}]"
-        end
-
-        def tag_name_multiple
-          "#{tag_name}[]"
         end
 
         def tag_name_with_index(index)
@@ -123,21 +119,26 @@ module ActionView
         def select_content_tag(option_tags, options, html_options)
           html_options = html_options.stringify_keys
           add_default_name_and_id(html_options)
+          options[:include_blank] ||= true unless options[:prompt] || select_not_required?(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
-          if html_options["multiple"]
+
+          if html_options["multiple"] && options.fetch(:include_hidden, true)
             tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select
           end
         end
 
+        def select_not_required?(html_options)
+          !html_options["required"] || html_options["multiple"] || html_options["size"].to_i > 1
+        end
+
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
+            option_tags = content_tag_string('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
-            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = content_tag('option', prompt, :value => '') + "\n" + option_tags
+            option_tags = content_tag_string('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
           end
           option_tags
         end

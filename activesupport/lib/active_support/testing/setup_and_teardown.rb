@@ -9,7 +9,6 @@ module ActiveSupport
       included do
         include ActiveSupport::Callbacks
         define_callbacks :setup, :teardown
-
       end
 
       module ClassMethods
@@ -22,24 +21,15 @@ module ActiveSupport
         end
       end
 
-      def run(runner)
-        result = '.'
-        begin
-          run_callbacks :setup do
-            result = super
-          end
-        rescue Exception => e
-          result = runner.puke(self.class, method_name, e)
-        ensure
-          begin
-            run_callbacks :teardown
-          rescue Exception => e
-            result = runner.puke(self.class, method_name, e)
-          end
-        end
-        result
+      def before_setup
+        super
+        run_callbacks :setup
       end
 
+      def after_teardown
+        run_callbacks :teardown
+        super
+      end
     end
   end
 end

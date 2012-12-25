@@ -4,6 +4,10 @@ module ActiveRecord #:nodoc:
     extend ActiveSupport::Concern
     include ActiveModel::Serializers::JSON
 
+    included do
+      self.include_root_in_json = true
+    end
+
     def serializable_hash(options = nil)
       options = options.try(:clone) || {}
 

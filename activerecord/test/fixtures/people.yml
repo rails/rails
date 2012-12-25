@@ -4,15 +4,18 @@ michael:
   primary_contact_id: 2
   number1_fan_id: 3
   gender: M
+  followers_count: 1
 david:
   id: 2
   first_name: David
   primary_contact_id: 3
   number1_fan_id: 1
   gender: M
+  followers_count: 1
 susan:
   id: 3
   first_name: Susan
   primary_contact_id: 2
   number1_fan_id: 1
   gender: F
+  followers_count: 1

@@ -34,9 +34,9 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
   end
 
   begin
-    require 'memcache'
-    memcache = MemCache.new('localhost:11211')
-    memcache.set('ping', '')
+    require 'dalli'
+    ss = Dalli::Client.new('localhost:11211').stats
+    raise Dalli::DalliError unless ss['localhost:11211']
 
     def test_setting_and_getting_session_value
       with_test_route_set do
@@ -131,11 +131,6 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
           get '/get_session_id'
           assert_response :success
         end
-        with_autoload_path "session_autoload_test" do
-          get '/get_session_value'
-          assert_response :success
-          assert_equal 'foo: #<SessionAutoloadTest::Foo bar:"baz">', response.body, "should auto-load unloaded class"
-        end
       end
     end
 
@@ -165,7 +160,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_not_equal session_id, cookies['_session_id']
       end
     end
-  rescue LoadError, RuntimeError
+  rescue LoadError, RuntimeError, Dalli::DalliError
     $stderr.puts "Skipping MemCacheStoreTest tests. Start memcached and try again."
   end
 
@@ -173,7 +168,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::MemCacheStoreTest::TestController
+          get ':action', :to => ::MemCacheStoreTest::TestController
         end
 
         @app = self.class.build_app(set) do |middleware|

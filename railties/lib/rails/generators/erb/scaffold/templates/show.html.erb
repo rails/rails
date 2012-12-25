@@ -2,7 +2,7 @@
 
 <% attributes.each do |attribute| -%>
 <p>
-  <b><%= attribute.human_name %>:</b>
+  <strong><%= attribute.human_name %>:</strong>
   <%%= @<%= singular_table_name %>.<%= attribute.name %> %>
 </p>
 

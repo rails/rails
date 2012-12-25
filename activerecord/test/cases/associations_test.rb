@@ -67,15 +67,15 @@ class AssociationsTest < ActiveRecord::TestCase
     ship = Ship.create!(:name => "The good ship Dollypop")
     part = ship.parts.create!(:name => "Mast")
     part.mark_for_destruction
-    ShipPart.find(part.id).update_column(:name, 'Deck')
+    ShipPart.find(part.id).update_columns(name: 'Deck')
     ship.parts.send(:load_target)
     assert_equal 'Deck', ship.parts[0].name
   end
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
-    assert_nothing_raised {Account.find(:first, :order => :id, :include => :firm)}
+    assert_nothing_raised {Account.all.merge!(:order => 'id', :includes => :firm).first}
+    assert_nothing_raised {Account.all.merge!(:order => :id, :includes => :firm).first}
   end
 
   def test_bad_collection_keys
@@ -86,7 +86,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_should_construct_new_finder_sql_after_create
     person = Person.new :first_name => 'clark'
-    assert_equal [], person.readers.all
+    assert_equal [], person.readers.to_a
     person.save!
     reader = Reader.create! :person => person, :post => Post.new(:title => "foo", :body => "bar")
     assert person.readers.find(reader.id)
@@ -110,7 +110,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_using_limitable_reflections_helper
-    using_limitable_reflections = lambda { |reflections| Tagging.scoped.send :using_limitable_reflections?, reflections }
+    using_limitable_reflections = lambda { |reflections| Tagging.all.send :using_limitable_reflections?, reflections }
     belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
@@ -131,7 +131,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_association_with_references
     firm = companies(:first_firm)
-    assert_equal ['foo'], firm.association_with_references.scoped.references_values
+    assert_equal ['foo'], firm.association_with_references.references_values
   end
 
 end
@@ -176,7 +176,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = developers(:david)
 
     assert !david.projects.loaded?
-    david.update_column(:created_at, Time.now)
+    david.update_columns(created_at: Time.now)
     assert !david.projects.loaded?
   end
 
@@ -213,6 +213,17 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_proxy_association_accessor
     david = developers(:david)
     assert_equal david.association(:projects), david.projects.proxy_association
+  end
+
+  def test_scoped_allows_conditions
+    assert developers(:david).projects.merge!(where: 'foo').where_values.include?('foo')
+  end
+
+  test "getting a scope from an association" do
+    david = developers(:david)
+
+    assert david.projects.scope.is_a?(ActiveRecord::Relation)
+    assert_equal david.projects, david.projects.scope
   end
 end
 
@@ -277,6 +288,14 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       PeopleList.reflect_on_association(:has_one),
       DifferentPeopleList.reflect_on_association(:has_one)
     )
+  end
+
+  def test_requires_symbol_argument
+    assert_raises ArgumentError do 
+      Class.new(Post) do
+        belongs_to "author"
+      end
+    end
   end
 end
 

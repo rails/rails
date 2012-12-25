@@ -1,5 +1,3 @@
-require 'rubygems' if ARGV.include?("--dev")
-
 if ARGV.first != "new"
   ARGV[0] = "--help"
 else

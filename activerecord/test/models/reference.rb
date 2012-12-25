@@ -4,9 +4,8 @@ class Reference < ActiveRecord::Base
 
   has_many :agents_posts_authors, :through => :person
 
-  class << self
-    attr_accessor :make_comments
-  end
+  class << self; attr_accessor :make_comments; end
+  self.make_comments = false
 
   before_destroy :make_comments
 
@@ -19,5 +18,5 @@ end
 
 class BadReference < ActiveRecord::Base
   self.table_name = 'references'
-  default_scope where(:favourite => false)
+  default_scope { where(:favourite => false) }
 end

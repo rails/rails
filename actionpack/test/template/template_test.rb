@@ -1,3 +1,4 @@
+# encoding: US-ASCII
 require "abstract_unit"
 require "logger"
 
@@ -25,6 +26,10 @@ class TestERBTemplate < ActiveSupport::TestCase
       "Hello"
     end
 
+    def apostrophe
+      "l'apostrophe"
+    end
+
     def partial
       ActionView::Template.new(
         "<%= @virtual_path %>",
@@ -47,8 +52,8 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", details = {})
-    ActionView::Template.new(body, "hello template", ERBHandler, {:virtual_path => "hello"}.merge!(details))
+  def new_template(body = "<%= hello %>", details = { format: :html })
+    ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, {:virtual_path => "hello"}.merge!(details))
   end
 
   def render(locals = {})
@@ -59,9 +64,31 @@ class TestERBTemplate < ActiveSupport::TestCase
     @context = Context.new
   end
 
+  def test_mime_type_is_deprecated
+    template = new_template
+    assert_deprecated 'Template#mime_type is deprecated and will be removed' do
+      template.mime_type
+    end
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
+  end
+
+  def test_basic_template_does_html_escape
+    @template = new_template("<%= apostrophe %>")
+    assert_equal "l&#39;apostrophe", render
+  end
+
+  def test_text_template_does_not_html_escape
+    @template = new_template("<%= apostrophe %> <%== apostrophe %>", format: :text)
+    assert_equal "l'apostrophe l'apostrophe", render
+  end
+
+  def test_raw_template
+    @template = new_template("<%= hello %>", :handler => ActionView::Template::Handlers::Raw.new)
+    assert_equal "<%= hello %>", render
   end
 
   def test_template_loses_its_source_after_rendering
@@ -79,7 +106,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_locals
     @template = new_template("<%= my_local %>")
     @template.locals = [:my_local]
-    assert_equal "I'm a local", render(:my_local => "I'm a local")
+    assert_equal "I am a local", render(:my_local => "I am a local")
   end
 
   def test_restores_buffer

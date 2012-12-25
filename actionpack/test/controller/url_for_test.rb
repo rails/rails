@@ -3,9 +3,9 @@ require 'abstract_unit'
 module AbstractController
   module Testing
 
-    class UrlForTests < ActionController::TestCase
+    class UrlForTest < ActionController::TestCase
       class W
-        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { match ':controller(/:action(/:id(.:format)))' } }.url_helpers
+        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { get ':controller(/:action(/:id(.:format)))' } }.url_helpers
       end
 
       def teardown
@@ -14,6 +14,10 @@ module AbstractController
 
       def add_host!
         W.default_url_options[:host] = 'www.basecamphq.com'
+      end
+
+      def add_port!
+        W.default_url_options[:port] = 3000
       end
 
       def add_numeric_host!
@@ -121,6 +125,14 @@ module AbstractController
         )
       end
 
+      def test_default_port
+        add_host!
+        add_port!
+        assert_equal('http://www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_protocol
         add_host!
         assert_equal('https://www.basecamphq.com/c/a/i',
@@ -198,8 +210,8 @@ module AbstractController
       def test_named_routes
         with_routing do |set|
           set.draw do
-            match 'this/is/verbose', :to => 'home#index', :as => :no_args
-            match 'home/sweet/home/:user', :to => 'home#index', :as => :home
+            get 'this/is/verbose', :to => 'home#index', :as => :no_args
+            get 'home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
           # We need to create a new class in order to install the new named route.
@@ -219,7 +231,7 @@ module AbstractController
       def test_relative_url_root_is_respected_for_named_routes
         with_routing do |set|
           set.draw do
-            match '/home/sweet/home/:user', :to => 'home#index', :as => :home
+            get '/home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
           kls = Class.new { include set.url_helpers }
@@ -233,8 +245,8 @@ module AbstractController
       def test_only_path
         with_routing do |set|
           set.draw do
-            match 'home/sweet/home/:user', :to => 'home#index', :as => :home
-            match ':controller/:action/:id'
+            get 'home/sweet/home/:user', :to => 'home#index', :as => :home
+            get ':controller/:action/:id'
           end
 
           # We need to create a new class in order to install the new named route.
@@ -301,8 +313,8 @@ module AbstractController
       def test_named_routes_with_nil_keys
         with_routing do |set|
           set.draw do
-            match 'posts.:format', :to => 'posts#index', :as => :posts
-            match '/', :to => 'posts#index', :as => :main
+            get 'posts.:format', :to => 'posts#index', :as => :posts
+            get '/', :to => 'posts#index', :as => :main
           end
 
           # We need to create a new class in order to install the new named route.

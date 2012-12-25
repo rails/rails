@@ -4,7 +4,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   class TestController < ActionController::Base
     def self.controller_path() "test" end
 
-    before_filter :add_view_path, :only => :hello_world_at_request_time
+    before_action :add_view_path, only: :hello_world_at_request_time
 
     def hello_world() end
     def hello_world_at_request_time() render(:action => 'hello_world') end

@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
 
@@ -60,7 +61,7 @@ module ActionDispatch
   # directory by using +scope+. +scope+ takes additional options which
   # apply to all enclosed routes.
   #
-  #   scope :path => "/cpanel", :as => 'admin' do
+  #   scope path: "/cpanel", as: 'admin' do
   #     resources :posts, :comments
   #   end
   #
@@ -77,22 +78,22 @@ module ActionDispatch
   # Example:
   #
   #   # In routes.rb
-  #   match '/login' => 'accounts#login', :as => 'login'
+  #   match '/login' => 'accounts#login', as: 'login'
   #
   #   # With render, redirect_to, tests, etc.
   #   redirect_to login_url
   #
   # Arguments can be passed as well.
   #
-  #   redirect_to show_item_path(:id => 25)
+  #   redirect_to show_item_path(id: 25)
   #
   # Use <tt>root</tt> as a shorthand to name a route for the root path "/".
   #
   #   # In routes.rb
-  #   root :to => 'blogs#index'
+  #   root to: 'blogs#index'
   #
   #   # would recognize http://www.example.com/ as
-  #   params = { :controller => 'blogs', :action => 'index' }
+  #   params = { controller: 'blogs', action: 'index' }
   #
   #   # and provide these named routes
   #   root_url   # => 'http://www.example.com/'
@@ -109,43 +110,43 @@ module ActionDispatch
   #   end
   #
   #   # provides named routes for show, delete, and edit
-  #   link_to @article.title, show_path(:id => @article.id)
+  #   link_to @article.title, show_path(id: @article.id)
   #
   # == Pretty URLs
   #
   # Routes can generate pretty URLs. For example:
   #
-  #   match '/articles/:year/:month/:day' => 'articles#find_by_id', :constraints => {
-  #     :year       => /\d{4}/,
-  #     :month      => /\d{1,2}/,
-  #     :day        => /\d{1,2}/
+  #   match '/articles/:year/:month/:day' => 'articles#find_by_id', constraints: {
+  #     year:       /\d{4}/,
+  #     month:      /\d{1,2}/,
+  #     day:        /\d{1,2}/
   #   }
   #
   # Using the route above, the URL "http://localhost:3000/articles/2005/11/06"
   # maps to
   #
-  #   params = {:year => '2005', :month => '11', :day => '06'}
+  #   params = {year: '2005', month: '11', day: '06'}
   #
   # == Regular Expressions and parameters
   # You can specify a regular expression to define a format for a parameter.
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, :constraints => {
-  #       :postalcode => /\d{5}(-\d{4})?/
+  #     match 'geocode/:postalcode' => :show, constraints: {
+  #       postalcode: /\d{5}(-\d{4})?/
   #     }
   #
   # Constraints can include the 'ignorecase' and 'extended syntax' regular
   # expression modifiers:
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, :constraints => {
-  #       :postalcode => /hx\d\d\s\d[a-z]{2}/i
+  #     match 'geocode/:postalcode' => :show, constraints: {
+  #       postalcode: /hx\d\d\s\d[a-z]{2}/i
   #     }
   #   end
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, :constraints => {
-  #       :postalcode => /# Postcode format
+  #     match 'geocode/:postalcode' => :show, constraints: {
+  #       postalcode: /# Postcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
   #          /x
@@ -171,9 +172,9 @@ module ActionDispatch
   # Suppose you get an incoming request for <tt>/blog/edit/22</tt>, you'll end
   # up with:
   #
-  #   params = { :controller => 'blog',
-  #              :action     => 'edit',
-  #              :id         => '22'
+  #   params = { controller: 'blog',
+  #              action:     'edit',
+  #              id:         '22'
   #           }
   #
   # By not relying on default routes, you improve the security of your
@@ -190,10 +191,8 @@ module ActionDispatch
   # <tt>:any</tt> which means that the route will respond to any of the HTTP
   # methods.
   #
-  # Examples:
-  #
-  #   match 'post/:id' => 'posts#show', :via => :get
-  #   match 'post/:id' => 'posts#create_comment', :via => :post
+  #   match 'post/:id' => 'posts#show', via: :get
+  #   match 'post/:id' => 'posts#create_comment', via: :post
   #
   # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
   # URL will route to the <tt>show</tt> action.
@@ -202,8 +201,6 @@ module ActionDispatch
   #
   # An alternative method of specifying which HTTP method a route should respond to is to use the helper
   # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
-  #
-  # Examples:
   #
   #   get 'post/:id' => 'posts#show'
   #   post 'post/:id' => 'posts#create_comment'
@@ -217,6 +214,12 @@ module ActionDispatch
   # You can redirect any path to another path using the redirect helper in your router:
   #
   #   match "/stories" => redirect("/posts")
+  #
+  # == Unicode character routes
+  #
+  # You can specify unicode character routes in your router:
+  #
+  #   match "こんにちは" => "welcome#index"
   #
   # == Routing to Rack Applications
   #
@@ -242,7 +245,7 @@ module ActionDispatch
   # === +assert_routing+
   #
   #   def test_movie_route_properly_splits
-  #    opts = {:controller => "plugin", :action => "checkout", :id => "2"}
+  #    opts = {controller: "plugin", action: "checkout", id: "2"}
   #    assert_routing "plugin/checkout/2", opts
   #   end
   #
@@ -251,7 +254,7 @@ module ActionDispatch
   # === +assert_recognizes+
   #
   #   def test_route_has_options
-  #    opts = {:controller => "plugin", :action => "show", :id => "12"}
+  #    opts = {controller: "plugin", action: "show", id: "12"}
   #    assert_recognizes opts, "/plugins/show/12"
   #   end
   #

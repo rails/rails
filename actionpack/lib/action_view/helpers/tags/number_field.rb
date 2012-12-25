@@ -4,7 +4,6 @@ module ActionView
       class NumberField < TextField #:nodoc:
         def render
           options = @options.stringify_keys
-          options['size'] ||= nil
 
           if range = options.delete("in") || options.delete("within")
             options.update("min" => range.min, "max" => range.max)

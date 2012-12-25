@@ -18,7 +18,7 @@ module ActionPack
         root :to => 'users#index'
       end
 
-      match '/blog(/:year(/:month(/:day)))' => 'posts#show_date',
+      get '/blog(/:year(/:month(/:day)))' => 'posts#show_date',
         :constraints => {
           :year => /(19|20)\d\d/,
           :month => /[01]?\d/,
@@ -27,7 +27,7 @@ module ActionPack
         :day => nil,
         :month => nil
 
-      match 'archive/:year', :controller => 'archive', :action => 'index',
+      get 'archive/:year', :controller => 'archive', :action => 'index',
         :defaults => { :year => nil },
         :constraints => { :year => /\d{4}/ },
         :as => "blog"
@@ -35,29 +35,29 @@ module ActionPack
       resources :people
       #match 'legacy/people' => "people#index", :legacy => "true"
 
-      match 'symbols', :controller => :symbols, :action => :show, :name => :as_symbol
-      match 'id_default(/:id)' => "foo#id_default", :id => 1
+      get 'symbols', :controller => :symbols, :action => :show, :name => :as_symbol
+      get 'id_default(/:id)' => "foo#id_default", :id => 1
       match 'get_or_post' => "foo#get_or_post", :via => [:get, :post]
-      match 'optional/:optional' => "posts#index"
-      match 'projects/:project_id' => "project#index", :as => "project"
-      match 'clients' => "projects#index"
+      get 'optional/:optional' => "posts#index"
+      get 'projects/:project_id' => "project#index", :as => "project"
+      get 'clients' => "projects#index"
 
-      match 'ignorecase/geocode/:postalcode' => 'geocode#show', :postalcode => /hx\d\d-\d[a-z]{2}/i
-      match 'extended/geocode/:postalcode' => 'geocode#show',:constraints => {
+      get 'ignorecase/geocode/:postalcode' => 'geocode#show', :postalcode => /hx\d\d-\d[a-z]{2}/i
+      get 'extended/geocode/:postalcode' => 'geocode#show',:constraints => {
         :postalcode => /# Postcode format
         \d{5} #Prefix
         (-\d{4})? #Suffix
         /x
       }, :as => "geocode"
 
-      match 'news(.:format)' => "news#index"
+      get 'news(.:format)' => "news#index"
 
-      match 'comment/:id(/:action)' => "comments#show"
-      match 'ws/:controller(/:action(/:id))', :ws => true
-      match 'account(/:action)' => "account#subscription"
-      match 'pages/:page_id/:controller(/:action(/:id))'
-      match ':controller/ping', :action => 'ping'
-      match ':controller(/:action(/:id))(.:format)'
+      get 'comment/:id(/:action)' => "comments#show"
+      get 'ws/:controller(/:action(/:id))', :ws => true
+      get 'account(/:action)' => "account#subscription"
+      get 'pages/:page_id/:controller(/:action(/:id))'
+      get ':controller/ping', :action => 'ping'
+      get ':controller(/:action(/:id))(.:format)'
       root :to => "news#index"
     }
 

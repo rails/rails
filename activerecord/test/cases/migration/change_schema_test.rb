@@ -83,7 +83,6 @@ module ActiveRecord
           t.column :one_int,    :integer, :limit => 1
           t.column :four_int,   :integer, :limit => 4
           t.column :eight_int,  :integer, :limit => 8
-          t.column :eleven_int, :integer, :limit => 11
         end
 
         columns = connection.columns(:testings)
@@ -94,20 +93,17 @@ module ActiveRecord
         one     = columns.detect { |c| c.name == "one_int"     }
         four    = columns.detect { |c| c.name == "four_int"    }
         eight   = columns.detect { |c| c.name == "eight_int"   }
-        eleven  = columns.detect { |c| c.name == "eleven_int"   }
 
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal 'integer', default.sql_type
           assert_equal 'smallint', one.sql_type
           assert_equal 'integer', four.sql_type
           assert_equal 'bigint', eight.sql_type
-          assert_equal 'integer', eleven.sql_type
         elsif current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
           assert_match 'int(11)', default.sql_type
           assert_match 'tinyint', one.sql_type
           assert_match 'int', four.sql_type
           assert_match 'bigint', eight.sql_type
-          assert_match 'int(11)', eleven.sql_type
         elsif current_adapter?(:OracleAdapter)
           assert_equal 'NUMBER(38)', default.sql_type
           assert_equal 'NUMBER(1)', one.sql_type
@@ -136,6 +132,26 @@ module ActiveRecord
         assert_equal %w(foo testingid), connection.columns(:testings).map(&:name).sort
       end
 
+      def test_create_table_raises_when_redefining_primary_key_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings do |t|
+            t.column :id, :string
+          end
+        end
+
+        assert_equal "you can't redefine the primary key column 'id'. To define a custom primary key, pass { id: false } to create_table.", error.message
+      end
+
+      def test_create_table_raises_when_redefining_custom_primary_key_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings, primary_key: :testing_id do |t|
+            t.column :testing_id, :string
+          end
+        end
+
+        assert_equal "you can't redefine the primary key column 'testing_id'. To define a custom primary key, pass { id: false } to create_table.", error.message
+      end
+
       def test_create_table_with_timestamps_should_create_datetime_columns
         connection.create_table table_name do |t|
           t.timestamps
@@ -145,8 +161,8 @@ module ActiveRecord
         created_at_column = created_columns.detect {|c| c.name == 'created_at' }
         updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
 
-        assert !created_at_column.null
-        assert !updated_at_column.null
+        assert created_at_column.null
+        assert updated_at_column.null
       end
 
       def test_create_table_with_timestamps_should_create_datetime_columns_with_options
@@ -295,14 +311,20 @@ module ActiveRecord
 
       def test_column_exists_with_definition
         connection.create_table :testings do |t|
-          t.column :foo, :string, :limit => 100
-          t.column :bar, :decimal, :precision => 8, :scale => 2
+          t.column :foo, :string, limit: 100
+          t.column :bar, :decimal, precision: 8, scale: 2
+          t.column :taggable_id, :integer, null: false
+          t.column :taggable_type, :string, default: 'Photo'
         end
 
-        assert connection.column_exists?(:testings, :foo, :string, :limit => 100)
-        refute connection.column_exists?(:testings, :foo, :string, :limit => 50)
-        assert connection.column_exists?(:testings, :bar, :decimal, :precision => 8, :scale => 2)
-        refute connection.column_exists?(:testings, :bar, :decimal, :precision => 10, :scale => 2)
+        assert connection.column_exists?(:testings, :foo, :string, limit: 100)
+        refute connection.column_exists?(:testings, :foo, :string, limit: nil)
+        assert connection.column_exists?(:testings, :bar, :decimal, precision: 8, scale: 2)
+        refute connection.column_exists?(:testings, :bar, :decimal, precision: nil, scale: nil)
+        assert connection.column_exists?(:testings, :taggable_id, :integer, null: false)
+        refute connection.column_exists?(:testings, :taggable_id, :integer, null: true)
+        assert connection.column_exists?(:testings, :taggable_type, :string, default: 'Photo')
+        refute connection.column_exists?(:testings, :taggable_type, :string, default: nil)
       end
 
       def test_column_exists_on_table_with_no_options_parameter_supplied

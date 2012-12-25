@@ -89,7 +89,7 @@ module AbstractController
   #   class TillController < BankController
   #     layout false
   #
-  # In these examples, we have three implicit lookup scenrios:
+  # In these examples, we have three implicit lookup scenarios:
   # * The BankController uses the "bank" layout.
   # * The ExchangeController uses the "exchange" layout.
   # * The CurrencyController inherits the layout from BankController.
@@ -120,6 +120,7 @@ module AbstractController
   #       def writers_and_readers
   #         logged_in? ? "writer_layout" : "reader_layout"
   #       end
+  #   end
   #
   # Now when a new request for the index action is processed, the layout will vary depending on whether the person accessing
   # is logged in or not.
@@ -127,7 +128,14 @@ module AbstractController
   # If you want to use an inline method, such as a proc, do something like this:
   #
   #   class WeblogController < ActionController::Base
-  #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #     layout proc { |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #   end
+  #
+  # If an argument isn't given to the proc, it's evaluated in the context of
+  # the current controller anyway.
+  #
+  #   class WeblogController < ActionController::Base
+  #     layout proc { logged_in? ? "writer_layout" : "reader_layout" }
   #   end
   #
   # Of course, the most common way of specifying a layout is still just as a plain template name:
@@ -136,8 +144,8 @@ module AbstractController
   #     layout "weblog_standard"
   #   end
   #
-  # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
-  # Otherwise, it will be looked up relative to the template root.
+  # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
+  # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
   # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
   # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
@@ -162,7 +170,7 @@ module AbstractController
   # <tt>:only</tt> and <tt>:except</tt> options can be passed to the layout call. For example:
   #
   #   class WeblogController < ActionController::Base
-  #     layout "weblog_standard", :except => :rss
+  #     layout "weblog_standard", except: :rss
   #
   #     # ...
   #
@@ -172,7 +180,7 @@ module AbstractController
   # be rendered directly, without wrapping a layout around the rendered view.
   #
   # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
-  # #<tt>:except => [ :rss, :text_only ]</tt> is valid, as is <tt>:except => :rss</tt>.
+  # #<tt>except: [ :rss, :text_only ]</tt> is valid, as is <tt>except: :rss</tt>.
   #
   # == Using a different layout in the action render call
   #
@@ -184,7 +192,7 @@ module AbstractController
   #     layout "weblog_standard"
   #
   #     def help
-  #       render :action => "help", :layout => "help"
+  #       render action: "help", layout: "help"
   #     end
   #   end
   #
@@ -195,8 +203,7 @@ module AbstractController
     include Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions,
-        :instance_reader => false, :instance_writer => false
+      class_attribute :_layout, :_layout_conditions, :instance_accessor => false
       self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
@@ -205,21 +212,23 @@ module AbstractController
     delegate :_layout_conditions, :to => "self.class"
 
     module ClassMethods
-      def inherited(klass)
+      def inherited(klass) # :nodoc:
         super
         klass._write_layout_method
       end
 
       # This module is mixed in if layout conditions are provided. This means
       # that if no layout conditions are used, this method is not used
-      module LayoutConditions
-        # Determines whether the current action has a layout by checking the
-        # action name against the :only and :except conditions set on the
-        # layout.
+      module LayoutConditions # :nodoc:
+      private
+
+        # Determines whether the current action has a layout definition by
+        # checking the action name against the :only and :except conditions
+        # set by the <tt>layout</tt> method.
         #
         # ==== Returns
-        # * <tt> Boolean</tt> - True if the action has a layout, false otherwise.
-        def conditional_layout?
+        # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
+        def _conditional_layout?
           return unless super
 
           conditions = _layout_conditions
@@ -238,10 +247,10 @@ module AbstractController
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return
-      #   the template name
+      # Symbol:: call the method specified by the symbol, which will return the template name
       # false::  There is no layout
       # true::   raise an ArgumentError
+      # nil::    Force default layout behavior with inheritance
       #
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
@@ -264,7 +273,7 @@ module AbstractController
       #
       # ==== Returns
       # * <tt>String</tt> - A template name
-      def _implied_layout_name
+      def _implied_layout_name # :nodoc:
         controller_path
       end
 
@@ -272,7 +281,7 @@ module AbstractController
       #
       # If a layout is not explicitly mentioned then look for a layout with the controller's name.
       # if nothing is found then try same procedure to find super class's layout.
-      def _write_layout_method
+      def _write_layout_method # :nodoc:
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
@@ -299,19 +308,19 @@ module AbstractController
               end
             RUBY
           when Proc
-            define_method :_layout_from_proc, &_layout
-            "_layout_from_proc(self)"
+              define_method :_layout_from_proc, &_layout
+              _layout.arity == 0 ? "_layout_from_proc" : "_layout_from_proc(self)"
           when false
             nil
           when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
           when nil
             name_clause
         end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout
-            if conditional_layout?
+            if _conditional_layout?
               #{layout_definition}
             else
               #{name_clause}
@@ -322,7 +331,7 @@ module AbstractController
       end
     end
 
-    def _normalize_options(options)
+    def _normalize_options(options) # :nodoc:
       super
 
       if _include_layout?(options)
@@ -333,20 +342,26 @@ module AbstractController
 
     attr_internal_writer :action_has_layout
 
-    def initialize(*)
+    def initialize(*) # :nodoc:
       @_action_has_layout = true
       super
     end
 
+    # Controls whether an action should be rendered using a layout.
+    # If you want to disable any <tt>layout</tt> settings for the
+    # current action so that it is rendered without a layout then
+    # either override this method in your controller to return false
+    # for that action or set the <tt>action_has_layout</tt> attribute
+    # to false before rendering.
     def action_has_layout?
       @_action_has_layout
     end
 
-    def conditional_layout?
+  private
+
+    def _conditional_layout?
       true
     end
-
-  private
 
     # This will be overwritten by _write_layout_method
     def _layout; end
@@ -364,7 +379,7 @@ module AbstractController
       when false, nil then nil
       else
         raise ArgumentError,
-          "String, true, or false, expected for `layout'; you passed #{name.inspect}"
+          "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
     end
 

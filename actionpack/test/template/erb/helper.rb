@@ -1,5 +1,6 @@
 module ERBTest
   class ViewContext
+    include ActionView::Helpers::UrlHelper
     include SharedTestRoutes.url_helpers
     include ActionView::Helpers::TagHelper
     include ActionView::Helpers::JavaScriptHelper

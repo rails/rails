@@ -5,7 +5,8 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
   class Parent
     include ActiveSupport::Configurable
     config_accessor :foo
-    config_accessor :bar, :instance_reader => false, :instance_writer => false
+    config_accessor :bar, instance_reader: false, instance_writer: false
+    config_accessor :baz, instance_accessor: false
   end
 
   class Child < Parent
@@ -19,13 +20,13 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
   end
 
   test "adds a configuration hash" do
-    assert_equal({ :foo => :bar }, Parent.config)
+    assert_equal({ foo: :bar }, Parent.config)
   end
 
   test "adds a configuration hash to a module as well" do
     mixin = Module.new { include ActiveSupport::Configurable }
     mixin.config.foo = :bar
-    assert_equal({ :foo => :bar }, mixin.config)
+    assert_equal({ foo: :bar }, mixin.config)
   end
 
   test "configuration hash is inheritable" do
@@ -37,10 +38,26 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :bar, Parent.config.foo
   end
 
-  test "configuration accessors is not available on instance" do
+  test "configuration accessors are not available on instance" do
     instance = Parent.new
+
     assert !instance.respond_to?(:bar)
     assert !instance.respond_to?(:bar=)
+
+    assert !instance.respond_to?(:baz)
+    assert !instance.respond_to?(:baz=)
+  end
+
+  test "configuration accessors can take a default value" do
+    parent = Class.new do
+      include ActiveSupport::Configurable
+      config_accessor :hair_colors, :tshirt_colors do
+        [:black, :blue, :white]
+      end
+    end
+
+    assert_equal [:black, :blue, :white], parent.hair_colors
+    assert_equal [:black, :blue, :white], parent.tshirt_colors
   end
 
   test "configuration hash is available on instance" do
@@ -69,6 +86,15 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_method_defined parent.config, :bar
     assert_method_defined child.config, :bar
     assert_method_defined child.new.config, :bar
+  end
+
+  test "should raise name error if attribute name is invalid" do
+    assert_raises NameError do
+      Class.new do
+        include ActiveSupport::Configurable
+        config_accessor "invalid attribute name"
+      end
+    end
   end
 
   def assert_method_defined(object, method)

@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/binary"
 require "models/developer"
 require "models/post"
 require "active_support/log_subscriber/test_helper"
@@ -11,8 +12,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def setup
     @old_logger = ActiveRecord::Base.logger
-    @using_identity_map = ActiveRecord::IdentityMap.enabled?
-    ActiveRecord::IdentityMap.enabled = false
     Developer.primary_key
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
@@ -22,7 +21,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
     super
     ActiveRecord::LogSubscriber.log_subscribers.pop
     ActiveRecord::Base.logger = @old_logger
-    ActiveRecord::IdentityMap.enabled = @using_identity_map
   end
 
   def set_logger(logger)
@@ -57,7 +55,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   def test_basic_query_logging
-    Developer.all
+    Developer.all.load
     wait
     assert_equal 1, @logger.logged(:debug).size
     assert_match(/Developer Load/, @logger.logged(:debug).last)
@@ -74,8 +72,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_cached_queries
     ActiveRecord::Base.cache do
-      Developer.all
-      Developer.all
+      Developer.all.load
+      Developer.all.load
     end
     wait
     assert_equal 2, @logger.logged(:debug).size
@@ -85,7 +83,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_basic_query_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
-    Developer.all
+    Developer.all.load
     wait
     assert_equal 0, @logger.logged(:debug).size
   end
@@ -93,8 +91,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_cached_queries_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
     ActiveRecord::Base.cache do
-      Developer.all
-      Developer.all
+      Developer.all.load
+      Developer.all.load
     end
     wait
     assert_equal 0, @logger.logged(:debug).size
@@ -104,12 +102,11 @@ class LogSubscriberTest < ActiveRecord::TestCase
     Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
   end
 
-  def test_log
-    ActiveRecord::IdentityMap.use do
-      Post.find 1
-      Post.find 1
-    end
+  def test_binary_data_is_not_logged
+    skip if current_adapter?(:Mysql2Adapter)
+
+    Binary.create(:data => 'some binary data')
     wait
-    assert_match(/From Identity Map/, @logger.logged(:debug).last)
+    assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
   end
 end

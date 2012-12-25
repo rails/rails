@@ -1,7 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
-require 'mocha'
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -44,8 +43,8 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_invoke_with_config_values
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], :behavior => :skip)
-    Rails::Generators.invoke :model, ["Account"], :behavior => :skip
+    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], behavior: :skip)
+    Rails::Generators.invoke :model, ["Account"], behavior: :skip
   end
 
   def test_find_by_namespace
@@ -166,9 +165,9 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_developer_options_are_overwriten_by_user_options
-    Rails::Generators.options[:with_options] = { :generate => false }
+    Rails::Generators.options[:with_options] = { generate: false }
 
-    self.class.class_eval <<-end_eval
+    self.class.class_eval(<<-end_eval, __FILE__, __LINE__ + 1)
       class WithOptionsGenerator < Rails::Generators::Base
         class_option :generate, :default => true
       end
@@ -186,8 +185,8 @@ class GeneratorsTest < Rails::Generators::TestCase
     mkdir_p(File.dirname(template))
     File.open(template, 'w'){ |f| f.write "empty" }
 
-    output = capture(:stdout) do
-      Rails::Generators.invoke :model, ["user"], :destination_root => destination_root
+    capture(:stdout) do
+      Rails::Generators.invoke :model, ["user"], destination_root: destination_root
     end
 
     assert_file "app/models/user.rb" do |content|
@@ -205,7 +204,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_usage_with_embedded_ruby
     require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", File.dirname(__FILE__))
     output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }
-    assert_match /:: 2 ::/, output
+    assert_match(/:: 2 ::/, output)
   end
 
   def test_hide_namespace

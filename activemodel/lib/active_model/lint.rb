@@ -1,8 +1,8 @@
 module ActiveModel
   module Lint
-    # == Active Model Lint Tests
+    # == Active \Model \Lint \Tests
     #
-    # You can test whether an object is compliant with the Active Model API by
+    # You can test whether an object is compliant with the Active \Model API by
     # including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will
     # include tests that tell you whether your object is fully compliant,
     # or if not, which aspects of the API are not implemented.
@@ -12,19 +12,20 @@ module ActiveModel
     # you want all features out of the box.
     #
     # These tests do not attempt to determine the semantic correctness of the
-    # returned values. For instance, you could implement valid? to always
-    # return true, and the tests would pass. It is up to you to ensure that
-    # the values are semantically meaningful.
+    # returned values. For instance, you could implement <tt>valid?</tt> to
+    # always return true, and the tests would pass. It is up to you to ensure
+    # that the values are semantically meaningful.
     #
-    # Objects you pass in are expected to return a compliant object from a
-    # call to to_model. It is perfectly fine for to_model to return self.
+    # Objects you pass in are expected to return a compliant object from a call
+    # to <tt>to_model</tt>. It is perfectly fine for <tt>to_model</tt> to return
+    # +self+.
     module Tests
 
       # == Responds to <tt>to_key</tt>
       #
       # Returns an Enumerable of all (primary) key attributes
-      # or nil if model.persisted? is false. This is used by
-      # dom_id to generate unique ids for the object.
+      # or nil if <tt>model.persisted?</tt> is false. This is used by
+      # <tt>dom_id</tt> to generate unique ids for the object.
       def test_to_key
         assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.persisted?() false end
@@ -34,13 +35,14 @@ module ActiveModel
       # == Responds to <tt>to_param</tt>
       #
       # Returns a string representing the object's key suitable for use in URLs
-      # or nil if model.persisted? is false.
+      # or +nil+ if <tt>model.persisted?</tt> is +false+.
       #
-      # Implementers can decide to either raise an exception or provide a default
-      # in case the record uses a composite primary key. There are no tests for this
-      # behavior in lint because it doesn't make sense to force any of the possible
-      # implementation strategies on the implementer. However, if the resource is
-      # not persisted?, then to_param should always return nil.
+      # Implementers can decide to either raise an exception or provide a
+      # default in case the record uses a composite primary key. There are no
+      # tests for this behavior in lint because it doesn't make sense to force
+      # any of the possible implementation strategies on the implementer.
+      # However, if the resource is not persisted?, then <tt>to_param</tt>
+      # should always return +nil+.
       def test_to_param
         assert model.respond_to?(:to_param), "The model should respond to to_param"
         def model.to_key() [1] end
@@ -50,9 +52,8 @@ module ActiveModel
 
       # == Responds to <tt>to_partial_path</tt>
       #
-      # Returns a string giving a relative path.  This is used for looking up
+      # Returns a string giving a relative path. This is used for looking up
       # partials. For example, a BlogPost model might return "blog_posts/blog_post"
-      #
       def test_to_partial_path
         assert model.respond_to?(:to_partial_path), "The model should respond to to_partial_path"
         assert_kind_of String, model.to_partial_path
@@ -60,31 +61,31 @@ module ActiveModel
 
       # == Responds to <tt>persisted?</tt>
       #
-      # Returns a boolean that specifies whether the object has been persisted yet.
-      # This is used when calculating the URL for an object. If the object is
-      # not persisted, a form for that object, for instance, will route to the
-      # create action. If it is persisted, a form for the object will routes to
-      # the update action.
+      # Returns a boolean that specifies whether the object has been persisted
+      # yet. This is used when calculating the URL for an object. If the object
+      # is not persisted, a form for that object, for instance, will route to
+      # the create action. If it is persisted, a form for the object will routes
+      # to the update action.
       def test_persisted?
         assert model.respond_to?(:persisted?), "The model should respond to persisted?"
         assert_boolean model.persisted?, "persisted?"
       end
 
-      # == Naming
+      # == \Naming
       #
       # Model.model_name must return a string with some convenience methods:
-      # :human, :singular, and :plural. Check ActiveModel::Naming for more information.
-      #
+      # <tt>:human</tt>, <tt>:singular</tt> and <tt>:plural</tt>. Check
+      # ActiveModel::Naming for more information.
       def test_model_naming
         assert model.class.respond_to?(:model_name), "The model should respond to model_name"
         model_name = model.class.model_name
-        assert_kind_of String, model_name
-        assert_kind_of String, model_name.human
-        assert_kind_of String, model_name.singular
-        assert_kind_of String, model_name.plural
+        assert model_name.respond_to?(:to_str)
+        assert model_name.human.respond_to?(:to_str)
+        assert model_name.singular.respond_to?(:to_str)
+        assert model_name.plural.respond_to?(:to_str)
       end
 
-      # == Errors Testing
+      # == \Errors Testing
       #
       # Returns an object that implements [](attribute) defined which returns an
       # Array of Strings that are the errors for the attribute in question.

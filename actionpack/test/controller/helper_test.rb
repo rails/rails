@@ -46,10 +46,40 @@ end
 class MeTooController < JustMeController
 end
 
+class HelpersPathsController < ActionController::Base
+  paths = ["helpers2_pack", "helpers1_pack"].map do |path|
+    File.join(File.expand_path('../../fixtures', __FILE__), path)
+  end
+  $:.unshift(*paths)
+
+  self.helpers_path = paths
+  helper :all
+
+  def index
+    render :inline => "<%= conflicting_helper %>"
+  end
+end
+
 module LocalAbcHelper
   def a() end
   def b() end
   def c() end
+end
+
+class HelperPathsTest < ActiveSupport::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_helpers_paths_priority
+    request  = ActionController::TestRequest.new
+    responses = HelpersPathsController.action(:index).call(request.env)
+
+    # helpers1_pack was given as a second path, so pack1_helper should be
+    # included as the second one
+    assert_equal "pack1", responses.last.body
+  end
 end
 
 class HelperTest < ActiveSupport::TestCase
@@ -79,13 +109,13 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_helper_method
     assert_nothing_raised { @controller_class.helper_method :delegate_method }
-    assert master_helper_methods.include?('delegate_method')
+    assert master_helper_methods.include?(:delegate_method)
   end
 
   def test_helper_attr
     assert_nothing_raised { @controller_class.helper_attr :delegate_attr }
-    assert master_helper_methods.include?('delegate_attr')
-    assert master_helper_methods.include?('delegate_attr=')
+    assert master_helper_methods.include?(:delegate_attr)
+    assert master_helper_methods.include?(:delegate_attr=)
   end
 
   def call_controller(klass, action)
@@ -130,16 +160,16 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_all_helpers
-    methods = AllHelpersController._helpers.instance_methods.map {|m| m.to_s}
+    methods = AllHelpersController._helpers.instance_methods
 
     # abc_helper.rb
-    assert methods.include?('bare_a')
+    assert methods.include?(:bare_a)
 
     # fun/games_helper.rb
-    assert methods.include?('stratego')
+    assert methods.include?(:stratego)
 
     # fun/pdf_helper.rb
-    assert methods.include?('foobar')
+    assert methods.include?(:foobar)
   end
 
   def test_all_helpers_with_alternate_helper_dir
@@ -150,35 +180,35 @@ class HelperTest < ActiveSupport::TestCase
     @controller_class.helper :all
 
     # helpers/abc_helper.rb should not be included
-    assert !master_helper_methods.include?('bare_a')
+    assert !master_helper_methods.include?(:bare_a)
 
     # alternate_helpers/foo_helper.rb
-    assert master_helper_methods.include?('baz')
+    assert master_helper_methods.include?(:baz)
   end
 
   def test_helper_proxy
-    methods = AllHelpersController.helpers.methods.map(&:to_s)
+    methods = AllHelpersController.helpers.methods
 
     # Action View
-    assert methods.include?('pluralize')
+    assert methods.include?(:pluralize)
 
     # abc_helper.rb
-    assert methods.include?('bare_a')
+    assert methods.include?(:bare_a)
 
     # fun/games_helper.rb
-    assert methods.include?('stratego')
+    assert methods.include?(:stratego)
 
     # fun/pdf_helper.rb
-    assert methods.include?('foobar')
+    assert methods.include?(:foobar)
   end
 
   private
     def expected_helper_methods
-      TestHelper.instance_methods.map {|m| m.to_s }
+      TestHelper.instance_methods
     end
 
     def master_helper_methods
-      @controller_class._helpers.instance_methods.map {|m| m.to_s }
+      @controller_class._helpers.instance_methods
     end
 
     def missing_methods

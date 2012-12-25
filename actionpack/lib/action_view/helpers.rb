@@ -4,6 +4,7 @@ module ActionView #:nodoc:
 
     autoload :ActiveModelHelper
     autoload :AssetTagHelper
+    autoload :AssetUrlHelper
     autoload :AtomFeedHelper
     autoload :BenchmarkHelper
     autoload :CacheHelper
@@ -28,12 +29,9 @@ module ActionView #:nodoc:
 
     extend ActiveSupport::Concern
 
-    included do
-      extend SanitizeHelper::ClassMethods
-    end
-
     include ActiveModelHelper
     include AssetTagHelper
+    include AssetUrlHelper
     include AtomFeedHelper
     include BenchmarkHelper
     include CacheHelper

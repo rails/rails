@@ -14,15 +14,17 @@ module ActionView
       }
 
       JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
+      JS_ESCAPE_MAP["\342\200\251".force_encoding('UTF-8').encode!] = '&#x2029;'
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
-      # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
+      # Also available through the alias j(). This is particularly helpful in JavaScript
+      # responses, like:
       #
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
@@ -35,20 +37,22 @@ module ActionView
       #   javascript_tag "alert('All is good')"
       #
       # Returns:
-      #   <script type="text/javascript">
+      #   <script>
       #   //<![CDATA[
       #   alert('All is good')
       #   //]]>
       #   </script>
       #
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
-      # tag. Example:
-      #   javascript_tag "alert('All is good')", :defer => 'defer'
-      #   # => <script defer="defer" type="text/javascript">alert('All is good')</script>
+      # tag.
+      #
+      #   javascript_tag "alert('All is good')", defer: 'defer'
+      #   # => <script defer="defer">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
-      #   <%= javascript_tag :defer => 'defer' do -%>
+      #
+      #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
@@ -60,7 +64,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+        content_tag(:script, javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:
@@ -73,10 +77,14 @@ module ActionView
       # name is used as button label and the JavaScript code goes into its +onclick+ attribute.
       # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+.
       #
-      #   button_to_function "Greeting", "alert('Hello world!')", :class => "ok"
+      #   button_to_function "Greeting", "alert('Hello world!')", class: "ok"
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
       def button_to_function(name, function=nil, html_options={})
+        message = "button_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
+          "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
+        ActiveSupport::Deprecation.warn message
+
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
 
         tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
@@ -91,10 +99,14 @@ module ActionView
       #
       # The +href+ attribute of the tag is set to "#" unless +html_options+ has one.
       #
-      #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
+      #   link_to_function "Greeting", "alert('Hello world!')", class: "nav_link"
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
       def link_to_function(name, function, html_options={})
+        message = "link_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
+          "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
+        ActiveSupport::Deprecation.warn message
+
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
 

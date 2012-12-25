@@ -18,8 +18,8 @@ module ActiveRecord #:nodoc:
     #     <id type="integer">1</id>
     #     <approved type="boolean">false</approved>
     #     <replies-count type="integer">0</replies-count>
-    #     <bonus-time type="datetime">2000-01-01T08:28:00+12:00</bonus-time>
-    #     <written-on type="datetime">2003-07-16T09:28:00+1200</written-on>
+    #     <bonus-time type="dateTime">2000-01-01T08:28:00+12:00</bonus-time>
+    #     <written-on type="dateTime">2003-07-16T09:28:00+1200</written-on>
     #     <content>Have a nice day</content>
     #     <author-email-address>david@loudthinking.com</author-email-address>
     #     <parent-id></parent-id>
@@ -36,7 +36,7 @@ module ActiveRecord #:nodoc:
     #
     # For instance:
     #
-    #   topic.to_xml(:skip_instruct => true, :except => [ :id, :bonus_time, :written_on, :replies_count ])
+    #   topic.to_xml(skip_instruct: true, except: [ :id, :bonus_time, :written_on, :replies_count ])
     #
     #   <topic>
     #     <title>The First Topic</title>
@@ -50,7 +50,7 @@ module ActiveRecord #:nodoc:
     #
     # To include first level associations use <tt>:include</tt>:
     #
-    #   firm.to_xml :include => [ :account, :clients ]
+    #   firm.to_xml include: [ :account, :clients ]
     #
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <firm>
@@ -81,7 +81,7 @@ module ActiveRecord #:nodoc:
     # associated with models.
     #
     #   proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
-    #   firm.to_xml :procs => [ proc ]
+    #   firm.to_xml procs: [ proc ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -90,7 +90,7 @@ module ActiveRecord #:nodoc:
     #
     # To include deeper levels of associations pass a hash like this:
     #
-    #   firm.to_xml :include => {:account => {}, :clients => {:include => :address}}
+    #   firm.to_xml include: {account: {}, clients: {include: :address}}
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <firm>
     #     <id type="integer">1</id>
@@ -120,7 +120,7 @@ module ActiveRecord #:nodoc:
     #
     # To include any methods on the model being called use <tt>:methods</tt>:
     #
-    #   firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
+    #   firm.to_xml methods: [ :calculated_earnings, :real_earnings ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -132,7 +132,7 @@ module ActiveRecord #:nodoc:
     # modified version of the options hash that was given to +to_xml+:
     #
     #   proc = Proc.new { |options| options[:builder].tag!('abc', 'def') }
-    #   firm.to_xml :procs => [ proc ]
+    #   firm.to_xml procs: [ proc ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -164,7 +164,7 @@ module ActiveRecord #:nodoc:
     #     def to_xml(options = {})
     #       require 'builder'
     #       options[:indent] ||= 2
-    #       xml = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
+    #       xml = options[:builder] ||= ::Builder::XmlMarkup.new(indent: options[:indent])
     #       xml.instruct! unless options[:skip_instruct]
     #       xml.level_one do
     #         xml.tag!(:second_level, 'content')
@@ -177,11 +177,6 @@ module ActiveRecord #:nodoc:
   end
 
   class XmlSerializer < ActiveModel::Serializers::Xml::Serializer #:nodoc:
-    def initialize(*args)
-      super
-      options[:except] = Array(options[:except]) | Array(@serializable.class.inheritance_column)
-    end
-
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         klass = @serializable.class

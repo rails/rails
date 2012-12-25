@@ -3,7 +3,8 @@ require 'active_support/deprecation/proxy_wrappers'
 module Rails
   class DeprecatedConstant < ActiveSupport::Deprecation::DeprecatedConstantProxy
     def self.deprecate(old, current)
-      constant = new(old, current)
+      # double assignment is used to avoid "assigned but unused variable" warning
+      constant = constant = new(old, current)
       eval "::#{old} = constant"
     end
 

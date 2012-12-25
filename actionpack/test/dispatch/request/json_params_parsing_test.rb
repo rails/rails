@@ -46,7 +46,9 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       begin
         $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
-        assert_raise(MultiJson::DecodeError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
+        exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
+        assert_equal MultiJson::DecodeError, exception.original_exception.class
+        assert_equal exception.original_exception.message, exception.message
       ensure
         $stderr = STDERR
       end
@@ -65,7 +67,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::JsonParamsParsingTest::TestController
+          post ':action', :to => ::JsonParamsParsingTest::TestController
         end
         yield
       end
@@ -118,7 +120,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing(controller)
       with_routing do |set|
         set.draw do
-          match ':action', :to => controller
+          post ':action', :to => controller
         end
         yield
       end

@@ -1,0 +1,3 @@
+michael_diamond:
+  rich_person_id: <%= ActiveRecord::FixtureSet.identify(:michael) %>
+  treasure_id: <%= ActiveRecord::FixtureSet.identify(:diamond) %>

@@ -1,11 +1,15 @@
 require 'erubis'
+require 'set'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
 
 module AbstractController
-  class Error < StandardError; end
-  class ActionNotFound < StandardError; end
+  class Error < StandardError #:nodoc:
+  end
+
+  class ActionNotFound < StandardError #:nodoc:
+  end
 
   # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
@@ -30,6 +34,15 @@ module AbstractController
         @abstract = true
       end
 
+      def inherited(klass) # :nodoc:
+        # define the abstract ivar on subclasses so that we don't get
+        # uninitialized ivar warnings
+        unless klass.instance_variable_defined?(:@abstract)
+          klass.instance_variable_set(:@abstract, false)
+        end
+        super
+      end
+
       # A list of all internal methods for a controller. This finds the first
       # abstract superclass of a controller, and gets a list of all public
       # instance methods on that abstract class. Public instance methods of
@@ -38,6 +51,7 @@ module AbstractController
       # (ActionController::Metal and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
+
         controller = controller.superclass until controller.abstract?
         controller.public_instance_methods(true)
       end
@@ -47,7 +61,7 @@ module AbstractController
       # to specify particular actions as hidden.
       #
       # ==== Returns
-      # * <tt>array</tt> - An array of method names that should not be considered actions.
+      # * <tt>Array</tt> - An array of method names that should not be considered actions.
       def hidden_actions
         []
       end
@@ -59,7 +73,7 @@ module AbstractController
       # itself. Finally, #hidden_actions are removed.
       #
       # ==== Returns
-      # * <tt>array</tt> - A list of all methods that should be considered actions.
+      # * <tt>Set</tt> - A set of all methods that should be considered actions.
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
@@ -72,7 +86,7 @@ module AbstractController
             hidden_actions.to_a
 
           # Clear out AS callback method pollution
-          methods.reject { |method| method =~ /_one_time_conditions/ }
+          Set.new(methods.reject { |method| method =~ /_one_time_conditions/ })
         end
       end
 
@@ -88,11 +102,12 @@ module AbstractController
       # controller_path.
       #
       # ==== Returns
-      # * <tt>string</tt>
+      # * <tt>String</tt>
       def controller_path
         @controller_path ||= name.sub(/Controller$/, '').underscore unless anonymous?
       end
 
+      # Refresh the cached action_methods when a new action_method is added.
       def method_added(name)
         super
         clear_action_methods!
@@ -126,6 +141,7 @@ module AbstractController
       self.class.controller_path
     end
 
+    # Delegates to the class' #action_methods
     def action_methods
       self.class.action_methods
     end
@@ -135,8 +151,14 @@ module AbstractController
     #
     # Notice that <tt>action_methods.include?("foo")</tt> may return
     # false and <tt>available_action?("foo")</tt> returns true because
-    # available action consider actions that are also available
+    # this method considers actions that are also available
     # through other means, for example, implicit render ones.
+    #
+    # ==== Parameters
+    # * <tt>action_name</tt> - The name of an action to be tested
+    #
+    # ==== Returns
+    # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
     def available_action?(action_name)
       method_for_action(action_name).present?
     end
@@ -205,8 +227,10 @@ module AbstractController
       # * <tt>string</tt> - The name of the method that handles the action
       # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
       def method_for_action(action_name)
-        if action_method?(action_name) then action_name
-        elsif respond_to?(:action_missing, true) then "_handle_action_missing"
+        if action_method?(action_name)
+          action_name
+        elsif respond_to?(:action_missing, true)
+          "_handle_action_missing"
         end
       end
   end

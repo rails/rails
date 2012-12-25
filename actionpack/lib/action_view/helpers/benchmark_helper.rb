@@ -2,7 +2,7 @@ require 'active_support/benchmarkable'
 
 module ActionView
   module Helpers
-    module BenchmarkHelper
+    module BenchmarkHelper #:nodoc:
       include ActiveSupport::Benchmarkable
 
       def benchmark(*)

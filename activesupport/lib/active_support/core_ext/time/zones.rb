@@ -1,6 +1,8 @@
 require 'active_support/time_with_zone'
 
 class Time
+  @zone_default = nil
+
   class << self
     attr_accessor :zone_default
 
@@ -26,11 +28,11 @@ class Time
     #     around_filter :set_time_zone
     #
     #     def set_time_zone
-    #       old_time_zone = Time.zone
-    #       Time.zone = current_user.time_zone if logged_in?
-    #       yield
-    #     ensure
-    #       Time.zone = old_time_zone
+    #       if logged_in?
+    #         Time.use_zone(current_user.time_zone) { yield }
+    #       else
+    #         yield
+    #       end
     #     end
     #   end
     def zone=(time_zone)
@@ -50,13 +52,21 @@ class Time
 
     # Returns a TimeZone instance or nil, or raises an ArgumentError for invalid timezones.
     def find_zone!(time_zone)
-      return time_zone if time_zone.nil? || time_zone.is_a?(ActiveSupport::TimeZone)
-      # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
-      unless time_zone.respond_to?(:period_for_local)
-        time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
+      if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
+        time_zone
+      else
+        # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
+        unless time_zone.respond_to?(:period_for_local)
+          time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
+        end
+
+        # Return if a TimeZone instance, or wrap in a TimeZone instance if a TZInfo::Timezone
+        if time_zone.is_a?(ActiveSupport::TimeZone)
+          time_zone
+        else
+          ActiveSupport::TimeZone.create(time_zone.name, nil, time_zone)
+        end
       end
-      # Return if a TimeZone instance, or wrap in a TimeZone instance if a TZInfo::Timezone
-      time_zone.is_a?(ActiveSupport::TimeZone) ? time_zone : ActiveSupport::TimeZone.create(time_zone.name, nil, time_zone)
     rescue TZInfo::InvalidTimezoneIdentifier
       raise ArgumentError, "Invalid Timezone: #{time_zone}"
     end
@@ -68,8 +78,8 @@ class Time
 
   # Returns the simultaneous time in <tt>Time.zone</tt>.
   #
-  #   Time.zone = 'Hawaii'         # => 'Hawaii'
-  #   Time.utc(2000).in_time_zone  # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+  #   Time.zone = 'Hawaii'        # => 'Hawaii'
+  #   Time.utc(2000).in_time_zone # => Fri, 31 Dec 1999 14:00:00 HST -10:00
   #
   # This method is similar to Time#localtime, except that it uses <tt>Time.zone</tt> as the local zone
   # instead of the operating system's time zone.
@@ -77,10 +87,12 @@ class Time
   # You can also pass in a TimeZone instance or string that identifies a TimeZone as an argument,
   # and the conversion will be based on that zone instead of <tt>Time.zone</tt>.
   #
-  #   Time.utc(2000).in_time_zone('Alaska')  # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
+  #   Time.utc(2000).in_time_zone('Alaska') # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
   def in_time_zone(zone = ::Time.zone)
-    return self unless zone
-
-    ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.find_zone!(zone))
+    if zone
+      ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.find_zone!(zone))
+    else
+      self
+    end
   end
 end

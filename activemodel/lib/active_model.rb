@@ -21,9 +21,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 require 'active_support'
+require 'active_support/rails'
 require 'active_model/version'
 
 module ActiveModel
@@ -32,17 +31,15 @@ module ActiveModel
   autoload :AttributeMethods
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
-  autoload :Configuration
   autoload :Conversion
   autoload :Dirty
   autoload :EachValidator, 'active_model/validator'
-  autoload :Errors
+  autoload :ForbiddenAttributesProtection
   autoload :Lint
-  autoload :MassAssignmentSecurity
+  autoload :Model
+  autoload :DeprecatedMassAssignmentSecurity
   autoload :Name, 'active_model/naming'
   autoload :Naming
-  autoload :Observer, 'active_model/observing'
-  autoload :Observing
   autoload :SecurePassword
   autoload :Serialization
   autoload :TestCase
@@ -50,13 +47,25 @@ module ActiveModel
   autoload :Validations
   autoload :Validator
 
+  eager_autoload do
+    autoload :Errors
+  end
+
   module Serializers
     extend ActiveSupport::Autoload
 
-    autoload :JSON
-    autoload :Xml
+    eager_autoload do
+      autoload :JSON
+      autoload :Xml
+    end
+  end
+
+  def eager_load!
+    super
+    ActiveModel::Serializer.eager_load!
   end
 end
 
-require 'active_support/i18n'
-I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+end

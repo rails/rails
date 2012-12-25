@@ -125,6 +125,24 @@ class SanitizerTest < ActionController::TestCase
     assert_equal(text, sanitizer.sanitize(text, :attributes => ['foo']))
   end
 
+  def test_should_raise_argument_error_if_tags_is_not_enumerable
+    sanitizer = HTML::WhiteListSanitizer.new
+    e = assert_raise(ArgumentError) do
+      sanitizer.sanitize('', :tags => 'foo')
+    end
+
+    assert_equal "You should pass :tags as an Enumerable", e.message
+  end
+
+  def test_should_raise_argument_error_if_attributes_is_not_enumerable
+    sanitizer = HTML::WhiteListSanitizer.new
+    e = assert_raise(ArgumentError) do
+      sanitizer.sanitize('', :attributes => 'foo')
+    end
+
+    assert_equal "You should pass :attributes as an Enumerable", e.message
+  end
+
   [%w(img src), %w(a href)].each do |(tag, attr)|
     define_method "test_should_strip_#{attr}_attribute_in_#{tag}_with_bad_protocols" do
       assert_sanitized %(<#{tag} #{attr}="javascript:bang" title="1">boo</#{tag}>), %(<#{tag} title="1">boo</#{tag}>)
@@ -215,7 +233,7 @@ class SanitizerTest < ActionController::TestCase
   end
 
   def test_should_sanitize_attributes
-    assert_sanitized %(<SPAN title="'><script>alert()</script>">blah</SPAN>), %(<span title="'&gt;&lt;script&gt;alert()&lt;/script&gt;">blah</span>)
+    assert_sanitized %(<SPAN title="'><script>alert()</script>">blah</SPAN>), %(<span title="#{CGI.escapeHTML "'><script>alert()</script>"}">blah</span>)
   end
 
   def test_should_sanitize_illegal_style_properties

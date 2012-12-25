@@ -16,67 +16,117 @@ module ActiveRecord
     class CommandRecorder
       include JoinTable
 
-      attr_accessor :commands, :delegate
+      attr_accessor :commands, :delegate, :reverting
 
       def initialize(delegate = nil)
         @commands = []
         @delegate = delegate
+        @reverting = false
+      end
+
+      # While executing the given block, the recorded will be in reverting mode.
+      # All commands recorded will end up being recorded reverted
+      # and in reverse order.
+      # For example:
+      #
+      #   recorder.revert{ recorder.record(:rename_table, [:old, :new]) }
+      #   # same effect as recorder.record(:rename_table, [:new, :old])
+      def revert
+        @reverting = !@reverting
+        previous = @commands
+        @commands = []
+        yield
+      ensure
+        @commands = previous.concat(@commands.reverse)
+        @reverting = !@reverting
       end
 
       # record +command+. +command+ should be a method name and arguments.
       # For example:
       #
       #   recorder.record(:method_name, [:arg1, :arg2])
-      def record(*command)
-        @commands << command
+      def record(*command, &block)
+        if @reverting
+          @commands << inverse_of(*command, &block)
+        else
+          @commands << (command << block)
+        end
       end
 
-      # Returns a list that represents commands that are the inverse of the
-      # commands stored in +commands+. For example:
+      # Returns the inverse of the given command. For example:
       #
-      #   recorder.record(:rename_table, [:old, :new])
-      #   recorder.inverse # => [:rename_table, [:new, :old]]
+      #   recorder.inverse_of(:rename_table, [:old, :new])
+      #   # => [:rename_table, [:new, :old]]
       #
       # This method will raise an +IrreversibleMigration+ exception if it cannot
-      # invert the +commands+.
-      def inverse
-        @commands.reverse.map { |name, args|
-          method = :"invert_#{name}"
-          raise IrreversibleMigration unless respond_to?(method, true)
-          send(method, args)
-        }
+      # invert the +command+.
+      def inverse_of(command, args, &block)
+        method = :"invert_#{command}"
+        raise IrreversibleMigration unless respond_to?(method, true)
+        send(method, args, &block)
       end
 
       def respond_to?(*args) # :nodoc:
         super || delegate.respond_to?(*args)
       end
 
-      [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
+      [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
+        :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
+        :change_column_default, :add_reference, :remove_reference, :transaction,
+        :drop_join_table, :drop_table, :execute_block,
+        :change_column, :execute, :remove_columns, # irreversible methods need to be here too
+      ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args)          # def create_table(*args)
-            record(:"#{method}", args)  #   record(:create_table, args)
-          end                           # end
+          def #{method}(*args, &block)          # def create_table(*args, &block)
+            record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
+          end                                   # end
         EOV
+      end
+      alias :add_belongs_to :add_reference
+      alias :remove_belongs_to :remove_reference
+
+      def change_table(table_name, options = {})
+        yield ConnectionAdapters::Table.new(table_name, self)
       end
 
       private
 
-      def invert_create_table(args)
-        [:drop_table, [args.first]]
+      module StraightReversions
+        private
+        { transaction:       :transaction,
+          execute_block:     :execute_block,
+          create_table:      :drop_table,
+          create_join_table: :drop_join_table,
+          add_column:        :remove_column,
+          add_timestamps:    :remove_timestamps,
+          add_reference:     :remove_reference,
+        }.each do |cmd, inv|
+          [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
+            class_eval <<-EOV, __FILE__, __LINE__ + 1
+              def invert_#{method}(args, &block)    # def invert_create_table(args, &block)
+                [:#{inverse}, args, block]          #   [:drop_table, args, block]
+              end                                   # end
+            EOV
+          end
+        end
       end
 
-      def invert_create_join_table(args)
-        table_name = find_join_table_name(*args)
+      include StraightReversions
 
-        [:drop_table, [table_name]]
+      def invert_drop_table(args, &block)
+        if args.size == 1 && block == nil
+          raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
+        end
+        super
       end
 
       def invert_rename_table(args)
         [:rename_table, args.reverse]
       end
 
-      def invert_add_column(args)
-        [:remove_column, args.first(2)]
+      def invert_remove_column(args)
+        raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
+        super
       end
 
       def invert_rename_index(args)
@@ -89,18 +139,19 @@ module ActiveRecord
 
       def invert_add_index(args)
         table, columns, options = *args
-        index_name = options.try(:[], :name)
-        options_hash =  index_name ? {:name => index_name} : {:column => columns}
-        [:remove_index, [table, options_hash]]
+        [:remove_index, [table, (options || {}).merge(column: columns)]]
       end
 
-      def invert_remove_timestamps(args)
-        [:add_timestamps, args]
+      def invert_remove_index(args)
+        table, options = *args
+        raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option." unless options && options[:column]
+
+        options = options.dup
+        [:add_index, [table, options.delete(:column), options]]
       end
 
-      def invert_add_timestamps(args)
-        [:remove_timestamps, args]
-      end
+      alias :invert_add_belongs_to :invert_add_reference
+      alias :invert_remove_belongs_to :invert_remove_reference
 
       # Forwards any missing method call to the \target.
       def method_missing(method, *args, &block)

@@ -48,7 +48,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match 'people', :to => 'people#index', :as => :people
+          get 'people', :to => 'people#index', :as => :people
         end
         yield
       end
@@ -76,5 +76,61 @@ class CrazyStringHelperTest < ActionView::TestCase
 
   def test_set_helper_class_using_string
     assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+describe PeopleHelper do
+  it "resolves the right helper_class" do
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+describe PeopleHelper, :helper_class do
+  it "resolves the right helper_class" do
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+describe PeopleHelper do
+  describe "even while nested" do
+    it "resolves the right helper_class" do
+      assert_equal PeopleHelper, self.class.helper_class
+    end
+  end
+end
+
+describe PeopleHelper, :helper_class do
+  describe "even while nested" do
+    it "resolves the right helper_class" do
+      assert_equal PeopleHelper, self.class.helper_class
+    end
+  end
+end
+
+describe "PeopleHelper" do
+  it "resolves the right helper_class" do
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+describe "PeopleHelperTest" do
+  it "resolves the right helper_class" do
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+describe "PeopleHelper" do
+  describe "even while nested" do
+    it "resolves the right helper_class" do
+      assert_equal PeopleHelper, self.class.helper_class
+    end
+  end
+end
+
+describe "PeopleHelperTest" do
+  describe "even while nested" do
+    it "resolves the right helper_class" do
+      assert_equal PeopleHelper, self.class.helper_class
+    end
   end
 end

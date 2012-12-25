@@ -92,14 +92,21 @@ module ActiveRecord
 
             constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
 
-            conditions = self.conditions[i].dup
-            conditions << { reflection.type => foreign_klass.base_class.name } if reflection.type
+            scope_chain_items = scope_chain[i]
 
-            conditions.each do |condition|
-              condition = active_record.send(:sanitize_sql, interpolate(condition), table.table_alias || table.name)
-              condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
+            if reflection.type
+              scope_chain_items += [
+                ActiveRecord::Relation.new(reflection.klass, table)
+                  .where(reflection.type => foreign_klass.base_class.name)
+              ]
+            end
 
-              constraint = constraint.and(condition)
+            scope_chain_items.each do |item|
+              unless item.is_a?(Relation)
+                item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
+              end
+
+              constraint = constraint.and(item.arel.constraints) unless item.arel.constraints.empty?
             end
 
             relation.from(join(table, constraint))
@@ -137,18 +144,8 @@ module ActiveRecord
           table.table_alias || table.name
         end
 
-        def conditions
-          @conditions ||= reflection.conditions.reverse
-        end
-
-        private
-
-        def interpolate(conditions)
-          if conditions.respond_to?(:to_proc)
-            instance_eval(&conditions)
-          else
-            conditions
-          end
+        def scope_chain
+          @scope_chain ||= reflection.scope_chain.reverse
         end
 
       end

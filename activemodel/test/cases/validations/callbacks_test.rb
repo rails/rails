@@ -20,7 +20,7 @@ class DogWithMethodCallbacks < Dog
   def set_after_validation_marker;  self.history << 'after_validation_marker' ; end
 end
 
-class DogValidtorsAreProc < Dog
+class DogValidatorsAreProc < Dog
   before_validation { self.history << 'before_validation_marker' }
   after_validation  { self.history << 'after_validation_marker' }
 end
@@ -49,7 +49,7 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
   end
 
   def test_before_validation_and_after_validation_callbacks_should_be_called_with_proc
-    d = DogValidtorsAreProc.new
+    d = DogValidatorsAreProc.new
     d.valid?
     assert_equal ['before_validation_marker', 'after_validation_marker'], d.history
   end

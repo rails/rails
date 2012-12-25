@@ -9,7 +9,7 @@ module Rails
   # Rails and/or modify the initialization process.
   #
   # Every major component of Rails (Action Mailer, Action Controller,
-  # Action View, Active Record and Active Resource) is a Railtie. Each of
+  # Action View and Active Record) is a Railtie. Each of
   # them is responsible for their own initialization. This makes Rails itself
   # absent of any component hooks, allowing other components to be used in
   # place of any of the Rails defaults.
@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * adding config.* keys to the environment
+  # * +adding config.*+ keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
@@ -145,6 +145,12 @@ module Rails
         @load_console
       end
 
+      def runner(&blk)
+        @load_runner ||= []
+        @load_runner << blk if blk
+        @load_runner
+      end
+
       def generators(&blk)
         @generators ||= []
         @generators << blk if blk
@@ -162,41 +168,45 @@ module Rails
 
       protected
         def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).gsub("/", "_")
+          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
         end
     end
 
-    delegate :railtie_name, :to => "self.class"
+    delegate :railtie_name, to: "self.class"
 
     def config
       @config ||= Railtie::Configuration.new
     end
 
-    def eager_load!
+    def railtie_namespace
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
 
-    def load_console(app=self)
+    protected
+
+    def run_console_blocks(app) #:nodoc:
       self.class.console.each { |block| block.call(app) }
     end
 
-    def load_tasks(app=self)
-      extend Rake::DSL if defined? Rake::DSL
-      self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
-
-      # load also tasks from all superclasses
-      klass = self.class.superclass
-      while klass.respond_to?(:rake_tasks)
-        klass.rake_tasks.each { |t| self.instance_exec(app, &t) }
-        klass = klass.superclass
-      end
-    end
-
-    def load_generators(app=self)
+    def run_generators_blocks(app) #:nodoc:
       self.class.generators.each { |block| block.call(app) }
     end
 
-    def railtie_namespace
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
+    def run_runner_blocks(app) #:nodoc:
+      self.class.runner.each { |block| block.call(app) }
+    end
+
+    def run_tasks_blocks(app) #:nodoc:
+      extend Rake::DSL
+      self.class.rake_tasks.each { |block| instance_exec(app, &block) }
+
+      # Load also tasks from all superclasses
+      klass = self.class.superclass
+
+      while klass.respond_to?(:rake_tasks)
+        klass.rake_tasks.each { |t| instance_exec(app, &t) }
+        klass = klass.superclass
+      end
     end
   end
 end

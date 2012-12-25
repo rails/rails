@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveRecord
   module ConnectionHandling
     # Establishes the connection to the database. Accepts a hash as input where
@@ -7,18 +5,18 @@ module ActiveRecord
     # example for regular databases (MySQL, Postgresql, etc):
     #
     #   ActiveRecord::Base.establish_connection(
-    #     :adapter  => "mysql",
-    #     :host     => "localhost",
-    #     :username => "myuser",
-    #     :password => "mypass",
-    #     :database => "somedatabase"
+    #     adapter:  "mysql",
+    #     host:     "localhost",
+    #     username: "myuser",
+    #     password: "mypass",
+    #     database: "somedatabase"
     #   )
     #
     # Example for SQLite database:
     #
     #   ActiveRecord::Base.establish_connection(
-    #     :adapter => "sqlite",
-    #     :database  => "path/to/dbfile"
+    #     adapter: "sqlite",
+    #     database:  "path/to/dbfile"
     #   )
     #
     # Also accepts keys as strings (for parsing from YAML for example):
@@ -45,7 +43,7 @@ module ActiveRecord
       end
 
       remove_connection
-      connection_handler.establish_connection name, spec
+      connection_handler.establish_connection self, spec
     end
 
     # Returns the connection currently associated with the class. This can
@@ -66,7 +64,7 @@ module ActiveRecord
     # Returns the configuration of the associated connection as a hash:
     #
     #  ActiveRecord::Base.connection_config
-    #  # => {:pool=>5, :timeout=>5000, :database=>"db/development.sqlite3", :adapter=>"sqlite3"}
+    #  # => {pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}
     #
     # Please use only for reading.
     def connection_config
@@ -88,6 +86,10 @@ module ActiveRecord
 
     def remove_connection(klass = self)
       connection_handler.remove_connection(klass)
+    end
+
+    def clear_cache! # :nodoc:
+      connection.schema_cache.clear!
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,

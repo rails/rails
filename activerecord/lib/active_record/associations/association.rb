@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module Associations
@@ -25,9 +24,7 @@ module ActiveRecord
       def initialize(owner, reflection)
         reflection.check_validity!
 
-        @target = nil
         @owner, @reflection = owner, reflection
-        @updated = false
 
         reset
         reset_scope
@@ -38,14 +35,14 @@ module ActiveRecord
       #   post.comments.aliased_table_name # => "comments"
       #
       def aliased_table_name
-        reflection.klass.table_name
+        klass.table_name
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
-        IdentityMap.remove(target) if IdentityMap.enabled? && target
         @target = nil
+        @stale_state = nil
       end
 
       # Reloads the \target and returns +self+ on success.
@@ -83,8 +80,13 @@ module ActiveRecord
         loaded!
       end
 
-      def scoped
+      def scope
         target_scope.merge(association_scope)
+      end
+
+      def scoped
+        ActiveSupport::Deprecation.warn "#scoped is deprecated. use #scope instead."
+        scope
       end
 
       # The scope for this association.
@@ -120,7 +122,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        klass.scoped
+        klass.all
       end
 
       # Loads the \target if needed and returns it.
@@ -134,17 +136,8 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
-        if find_target?
-          begin
-            if IdentityMap.enabled? && association_class && association_class.respond_to?(:base_class)
-              @target = IdentityMap.get(association_class, owner[reflection.foreign_key])
-            end
-          rescue NameError
-            nil
-          ensure
-            @target ||= find_target
-          end
-        end
+        @target = find_target if (@stale_state && stale_target?) || find_target?
+
         loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
@@ -159,6 +152,18 @@ module ActiveRecord
         end
       end
 
+      # We can't dump @reflection since it contains the scope proc
+      def marshal_dump
+        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        [@reflection.name, ivars]
+      end
+
+      def marshal_load(data)
+        reflection_name, ivars = data
+        ivars.each { |name, val| instance_variable_set(name, val) }
+        @reflection = @owner.class.reflect_on_association(reflection_name)
+      end
+
       private
 
         def find_target?
@@ -168,7 +173,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if reflection.macro.in?([:has_one, :has_many]) && !options[:through]
+          if (reflection.macro == :has_one || reflection.macro == :has_many) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]
@@ -218,20 +223,18 @@ module ActiveRecord
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
-        # so that when state_state is different from the value stored on the last find_target,
+        # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
         # This is only relevant to certain associations, which is why it returns nil by default.
         def stale_state
         end
 
-        def association_class
-          @reflection.klass
-        end
-
-        def build_record(attributes, options)
-          reflection.build_association(attributes, options) do |record|
-            record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+        def build_record(attributes)
+          reflection.build_association(attributes) do |record|
+            skip_assign = [reflection.foreign_key, reflection.type].compact
+            attributes = create_scope.except(*(record.changed - skip_assign))
+            record.assign_attributes(attributes)
           end
         end
     end

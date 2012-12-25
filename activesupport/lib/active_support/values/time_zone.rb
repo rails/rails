@@ -1,34 +1,41 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 
-# The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
-#
-# * Limit the set of zones provided by TZInfo to a meaningful subset of 142 zones.
-# * Retrieve and display zones with a friendlier name (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
-# * Lazily load TZInfo::Timezone instances only when they're needed.
-# * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+, +parse+, +at+ and +now+ methods.
-#
-# If you set <tt>config.time_zone</tt> in the Rails Application, you can access this TimeZone object via <tt>Time.zone</tt>:
-#
-#   # application.rb:
-#   class Application < Rails::Application
-#     config.time_zone = "Eastern Time (US & Canada)"
-#   end
-#
-#   Time.zone       # => #<TimeZone:0x514834...>
-#   Time.zone.name  # => "Eastern Time (US & Canada)"
-#   Time.zone.now   # => Sun, 18 May 2008 14:30:44 EDT -04:00
-#
-# The version of TZInfo bundled with Active Support only includes the definitions necessary to support the zones
-# defined by the TimeZone class. If you need to use zones that aren't defined by TimeZone, you'll need to install the TZInfo gem
-# (if a recent version of the gem is installed locally, this will be used instead of the bundled version.)
 module ActiveSupport
+  # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
+  # It allows us to do the following:
+  #
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 142
+  #   zones.
+  # * Retrieve and display zones with a friendlier name
+  #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
+  # * Lazily load TZInfo::Timezone instances only when they're needed.
+  # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
+  #   +parse+, +at+ and +now+ methods.
+  #
+  # If you set <tt>config.time_zone</tt> in the Rails Application, you can
+  # access this TimeZone object via <tt>Time.zone</tt>:
+  #
+  #   # application.rb:
+  #   class Application < Rails::Application
+  #     config.time_zone = 'Eastern Time (US & Canada)'
+  #   end
+  #
+  #   Time.zone      # => #<TimeZone:0x514834...>
+  #   Time.zone.name # => "Eastern Time (US & Canada)"
+  #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
+  #
+  # The version of TZInfo bundled with Active Support only includes the
+  # definitions necessary to support the zones defined by the TimeZone class.
+  # If you need to use zones that aren't defined by TimeZone, you'll need to
+  # install the TZInfo gem (if a recent version of the gem is installed locally,
+  # this will be used instead of the bundled version.)
   class TimeZone
-    # Keys are Rails TimeZone names, values are TZInfo identifiers
+    # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
       "International Date Line West" => "Pacific/Midway",
       "Midway Island"                => "Pacific/Midway",
-      "Samoa"                        => "Pacific/Pago_Pago",
+      "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
       "Alaska"                       => "America/Juneau",
       "Pacific Time (US & Canada)"   => "America/Los_Angeles",
@@ -160,22 +167,23 @@ module ActiveSupport
       "Guam"                         => "Pacific/Guam",
       "Port Moresby"                 => "Pacific/Port_Moresby",
       "Magadan"                      => "Asia/Magadan",
-      "Solomon Is."                  => "Asia/Magadan",
+      "Solomon Is."                  => "Pacific/Guadalcanal",
       "New Caledonia"                => "Pacific/Noumea",
       "Fiji"                         => "Pacific/Fiji",
       "Kamchatka"                    => "Asia/Kamchatka",
       "Marshall Is."                 => "Pacific/Majuro",
       "Auckland"                     => "Pacific/Auckland",
       "Wellington"                   => "Pacific/Auckland",
-      "Nuku'alofa"                   => "Pacific/Tongatapu"
-    }.each { |name, zone| name.freeze; zone.freeze }
-    MAPPING.freeze
+      "Nuku'alofa"                   => "Pacific/Tongatapu",
+      "Tokelau Is."                  => "Pacific/Fakaofo",
+      "Samoa"                        => "Pacific/Apia"
+    }
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
 
-    # Assumes self represents an offset from UTC in seconds (as returned from Time#utc_offset)
-    # and turns this into an +HH:MM formatted string. Example:
+    # Assumes self represents an offset from UTC in seconds (as returned from
+    # Time#utc_offset) and turns this into an +HH:MM formatted string.
     #
     #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
     def self.seconds_to_utc_offset(seconds, colon = true)
@@ -192,8 +200,8 @@ module ActiveSupport
 
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
-    # (GMT). Seconds were chosen as the offset unit because that is the unit that
-    # Ruby uses to represent time zone offsets (see Time#utc_offset).
+    # (GMT). Seconds were chosen as the offset unit because that is the unit
+    # that Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
       self.class.send(:require_tzinfo)
 
@@ -203,6 +211,7 @@ module ActiveSupport
       @current_period = nil
     end
 
+    # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       if @utc_offset
         @utc_offset
@@ -226,7 +235,7 @@ module ActiveSupport
       result
     end
 
-    # Compare #name and TZInfo identifier to a supplied regexp, returning true
+    # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
       return true if name =~ re || MAPPING[name] =~ re
@@ -237,52 +246,65 @@ module ActiveSupport
       "(GMT#{formatted_offset}) #{name}"
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from given values. Example:
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from given values.
     #
-    #   Time.zone = "Hawaii"                      # => "Hawaii"
-    #   Time.zone.local(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
+    #   Time.zone = 'Hawaii'                    # => "Hawaii"
+    #   Time.zone.local(2007, 2, 1, 15, 30, 45) # => Thu, 01 Feb 2007 15:30:45 HST -10:00
     def local(*args)
-      time = Time.utc_time(*args)
+      time = Time.utc(*args)
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from number of seconds since the Unix epoch. Example:
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from number of seconds since the Unix epoch.
     #
-    #   Time.zone = "Hawaii"        # => "Hawaii"
+    #   Time.zone = 'Hawaii'        # => "Hawaii"
     #   Time.utc(2000).to_f         # => 946684800.0
     #   Time.zone.at(946684800.0)   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     def at(secs)
-      utc = Time.at(secs).utc rescue DateTime.civil(1970).since(secs)
-      utc.in_time_zone(self)
+      Time.at(secs).utc.in_time_zone(self)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from parsed string. Example:
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from parsed string.
     #
-    #   Time.zone = "Hawaii"                      # => "Hawaii"
-    #   Time.zone.parse('1999-12-31 14:00:00')    # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.zone = 'Hawaii'                   # => "Hawaii"
+    #   Time.zone.parse('1999-12-31 14:00:00') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #
-    # If upper components are missing from the string, they are supplied from TimeZone#now:
+    # If upper components are missing from the string, they are supplied from
+    # TimeZone#now:
     #
-    #   Time.zone.now                 # => Fri, 31 Dec 1999 14:00:00 HST -10:00
-    #   Time.zone.parse('22:30:00')   # => Fri, 31 Dec 1999 22:30:00 HST -10:00
+    #   Time.zone.now               # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.zone.parse('22:30:00') # => Fri, 31 Dec 1999 22:30:00 HST -10:00
     def parse(str, now=now)
-      date_parts = Date._parse(str)
-      return if date_parts.blank?
-      time = Time.parse(str, now) rescue DateTime.parse(str)
-      if date_parts[:offset].nil?
-        ActiveSupport::TimeWithZone.new(nil, self, time)
+      parts = Date._parse(str, false)
+      return if parts.empty?
+
+      time = Time.new(
+        parts.fetch(:year, now.year),
+        parts.fetch(:mon, now.month),
+        parts.fetch(:mday, now.day),
+        parts.fetch(:hour, 0),
+        parts.fetch(:min, 0),
+        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset, 0)
+      )
+
+      if parts[:offset]
+        TimeWithZone.new(time.utc, self)
       else
-        time.in_time_zone(self)
+        TimeWithZone.new(nil, self, time)
       end
     end
 
-    # Returns an ActiveSupport::TimeWithZone instance representing the current time
-    # in the time zone represented by +self+. Example:
+    # Returns an ActiveSupport::TimeWithZone instance representing the current
+    # time in the time zone represented by +self+.
     #
     #   Time.zone = 'Hawaii'  # => "Hawaii"
     #   Time.zone.now         # => Wed, 23 Jan 2008 20:24:27 HST -10:00
     def now
-      Time.now.utc.in_time_zone(self)
+      time_now.utc.in_time_zone(self)
     end
 
     # Return the current date in this time zone.
@@ -290,23 +312,27 @@ module ActiveSupport
       tzinfo.now.to_date
     end
 
-    # Adjust the given time to the simultaneous time in the time zone represented by +self+. Returns a
-    # Time.utc() instance -- if you want an ActiveSupport::TimeWithZone instance, use Time#in_time_zone() instead.
+    # Adjust the given time to the simultaneous time in the time zone
+    # represented by +self+. Returns a Time.utc() instance -- if you want an
+    # ActiveSupport::TimeWithZone instance, use Time#in_time_zone() instead.
     def utc_to_local(time)
       tzinfo.utc_to_local(time)
     end
 
-    # Adjust the given time to the simultaneous time in UTC. Returns a Time.utc() instance.
+    # Adjust the given time to the simultaneous time in UTC. Returns a
+    # Time.utc() instance.
     def local_to_utc(time, dst=true)
       tzinfo.local_to_utc(time, dst)
     end
 
-    # Available so that TimeZone instances respond like TZInfo::Timezone instances
+    # Available so that TimeZone instances respond like TZInfo::Timezone
+    # instances.
     def period_for_utc(time)
       tzinfo.period_for_utc(time)
     end
 
-    # Available so that TimeZone instances respond like TZInfo::Timezone instances
+    # Available so that TimeZone instances respond like TZInfo::Timezone
+    # instances.
     def period_for_local(time, dst=true)
       tzinfo.period_for_local(time, dst)
     end
@@ -390,6 +416,12 @@ module ActiveSupport
             hash[place] = create(place) if MAPPING.has_key?(place)
           end
         end
+    end
+
+    private
+
+    def time_now
+      Time.now
     end
   end
 end

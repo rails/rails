@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
-  # == Active Model validates method
   module Validations
     module ClassMethods
       # This method is a shortcut to all default validators and any custom
@@ -11,18 +10,18 @@ module ActiveModel
       #
       # Examples of using the default rails validators:
       #
-      #   validates :terms, :acceptance => true
-      #   validates :password, :confirmation => true
-      #   validates :username, :exclusion => { :in => %w(admin superuser) }
-      #   validates :email, :format => { :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create }
-      #   validates :age, :inclusion => { :in => 0..9 }
-      #   validates :first_name, :length => { :maximum => 30 }
-      #   validates :age, :numericality => true
-      #   validates :username, :presence => true
-      #   validates :username, :uniqueness => true
+      #   validates :terms, acceptance: true
+      #   validates :password, confirmation: true
+      #   validates :username, exclusion: { in: %w(admin superuser) }
+      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, on: :create }
+      #   validates :age, inclusion: { in: 0..9 }
+      #   validates :first_name, length: { maximum: 30 }
+      #   validates :age, numericality: true
+      #   validates :username, presence: true
+      #   validates :username, uniqueness: true
       #
       # The power of the +validates+ method comes when using custom validators
-      # and default validators in one call for a given attribute e.g.
+      # and default validators in one call for a given attribute.
       #
       #   class EmailValidator < ActiveModel::EachValidator
       #     def validate_each(record, attribute, value)
@@ -35,12 +34,12 @@ module ActiveModel
       #     include ActiveModel::Validations
       #     attr_accessor :name, :email
       #
-      #     validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
-      #     validates :email, :presence => true, :email => true
+      #     validates :name, presence: true, uniqueness: true, length: { maximum: 100 }
+      #     validates :email, presence: true, email: true
       #   end
       #
       # Validator classes may also exist within the class being validated
-      # allowing custom modules of validators to be included as needed e.g.
+      # allowing custom modules of validators to be included as needed.
       #
       #   class Film
       #     include ActiveModel::Validations
@@ -51,33 +50,53 @@ module ActiveModel
       #       end
       #     end
       #
-      #     validates :name, :title => true
+      #     validates :name, title: true
       #   end
       #
-      # Additionally validator classes may be in another namespace and still used within any class.
+      # Additionally validator classes may be in another namespace and still
+      # used within any class.
       #
       #   validates :name, :'film/title' => true
       #
-      # The validators hash can also handle regular expressions, ranges,
-      # arrays and strings in shortcut form, e.g.
+      # The validators hash can also handle regular expressions, ranges, arrays
+      # and strings in shortcut form.
       #
-      #   validates :email, :format => /@/
-      #   validates :gender, :inclusion => %w(male female)
-      #   validates :password, :length => 6..20
+      #   validates :email, format: /@/
+      #   validates :gender, inclusion: %w(male female)
+      #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
-      # validator's initializer as +options[:in]+ while other types including
-      # regular expressions and strings are passed as +options[:with]+
+      # validator's initializer as <tt>options[:in]</tt> while other types
+      # including regular expressions and strings are passed as <tt>options[:with]</tt>.
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+
-      # can be given to one specific validator, as a hash:
+      # There is also a list of options that could be used along with validators:
       #
-      #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
+      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
+      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
+      #   and <tt>:update</tt>.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a +true+ or +false+ value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
+      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   method, proc or string should return or evaluate to a +true+ or
+      #   +false+ value.
+      # * <tt>:strict</tt> - if the <tt>:strict</tt> option is set to true
+      #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
+      #   <tt>:strict</tt> option can also be set to any other exception.
       #
-      # Or to all at the same time:
+      # Example:
       #
-      #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
+      #   validates :password, presence: true, confirmation: true, if: :password_required?
+      #   validates :token, uniqueness: true, strict: TokenGenerationException
       #
+      #
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
+      # and +:message+ can be given to one specific validator, as a hash:
+      #
+      #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)
@@ -85,9 +104,10 @@ module ActiveModel
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
 
-        defaults.merge!(:attributes => attributes)
+        defaults[:attributes] = attributes
 
         validations.each do |key, options|
+          next unless options
           key = "#{key.to_s.camelize}Validator"
 
           begin
@@ -104,8 +124,20 @@ module ActiveModel
       # users and are considered exceptional. So each validator defined with bang
       # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
       # <tt>ActiveModel::StrictValidationFailed</tt> instead of adding error
-      # when validation fails.
-      # See <tt>validates</tt> for more information about the validation itself.
+      # when validation fails. See <tt>validates</tt> for more information about
+      # the validation itself.
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     attr_accessor :name
+      #     validates! :name, presence: true
+      #   end
+      #
+      #   person = Person.new
+      #   person.name = ''
+      #   person.valid?
+      #   # => ActiveModel::StrictValidationFailed: Name can't be blank
       def validates!(*attributes)
         options = attributes.extract_options!
         options[:strict] = true
@@ -116,11 +148,11 @@ module ActiveModel
 
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
-      def _validates_default_keys
+      def _validates_default_keys # :nodoc:
         [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
       end
 
-      def _parse_validates_options(options) #:nodoc:
+      def _parse_validates_options(options) # :nodoc:
         case options
         when TrueClass
           {}

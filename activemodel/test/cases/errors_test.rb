@@ -7,7 +7,7 @@ class ErrorsTest < ActiveModel::TestCase
       @errors = ActiveModel::Errors.new(self)
     end
 
-    attr_accessor :name
+    attr_accessor :name, :age
     attr_reader   :errors
 
     def validate!
@@ -116,7 +116,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? should default message to :invalid" do
     person = Person.new
-    person.errors.add(:name, :invalid)
+    person.errors.add(:name)
     assert person.errors.added?(:name)
   end
 
@@ -161,7 +161,7 @@ class ErrorsTest < ActiveModel::TestCase
     person = Person.new
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
-    assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
+    assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages
   end
 
   test 'full_message should return the given message if attribute equals :base' do
@@ -201,5 +201,42 @@ class ErrorsTest < ActiveModel::TestCase
       person.errors.generate_message(:name, :blank)
     }
   end
-end
 
+  test "add_on_empty generates message" do
+    person = Person.new
+    person.errors.expects(:generate_message).with(:name, :empty, {})
+    person.errors.add_on_empty :name
+  end
+
+  test "add_on_empty generates message for multiple attributes" do
+    person = Person.new
+    person.errors.expects(:generate_message).with(:name, :empty, {})
+    person.errors.expects(:generate_message).with(:age, :empty, {})
+    person.errors.add_on_empty [:name, :age]
+  end
+
+  test "add_on_empty generates message with custom default message" do
+    person = Person.new
+    person.errors.expects(:generate_message).with(:name, :empty, {:message => 'custom'})
+    person.errors.add_on_empty :name, :message => 'custom'
+  end
+
+  test "add_on_blank generates message" do
+    person = Person.new
+    person.errors.expects(:generate_message).with(:name, :blank, {})
+    person.errors.add_on_blank :name
+  end
+
+  test "add_on_blank generates message for multiple attributes" do
+    person = Person.new
+    person.errors.expects(:generate_message).with(:name, :blank, {})
+    person.errors.expects(:generate_message).with(:age, :blank, {})
+    person.errors.add_on_blank [:name, :age]
+  end
+
+  test "add_on_blank generates message with custom default message" do
+    person = Person.new
+    person.errors.expects(:generate_message).with(:name, :blank, {:message => 'custom'})
+    person.errors.add_on_blank :name, :message => 'custom'
+  end
+end

@@ -112,7 +112,7 @@ module CallbacksTest
     end
 
     def dispatch
-      run_callbacks :dispatch, action_name do
+      run_callbacks :dispatch do
         @logger << "Done"
       end
       self
@@ -120,7 +120,7 @@ module CallbacksTest
   end
 
   class Child < ParentController
-    skip_callback :dispatch, :before, :log, :if => proc {|c| c.action_name == :update} 
+    skip_callback :dispatch, :before, :log, :if => proc {|c| c.action_name == :update}
     skip_callback :dispatch, :after, :log2
   end
 
@@ -153,7 +153,7 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, :action
+      run_callbacks :save
     end
   end
 
@@ -297,7 +297,7 @@ module CallbacksTest
       end
     end
   end
-  
+
   class AroundPersonResult < MySuper
     attr_reader :result
 
@@ -308,7 +308,7 @@ module CallbacksTest
     def tweedle_dum
       @result = yield
     end
-    
+
     def tweedle_1
       :tweedle_1
     end
@@ -316,7 +316,7 @@ module CallbacksTest
     def tweedle_2
       :tweedle_2
     end
-    
+
     def save
       run_callbacks :save do
         :running
@@ -338,7 +338,7 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save, "hyphen-ated" do
+      run_callbacks :save do
         @stuff
       end
     end
@@ -410,7 +410,7 @@ module CallbacksTest
       ], around.history
     end
   end
-  
+
   class AroundCallbackResultTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPersonResult.new
@@ -607,6 +607,45 @@ module CallbacksTest
     end
   end
 
+  class OneTwoThreeSave
+    include ActiveSupport::Callbacks
+
+    define_callbacks :save
+
+    attr_accessor :record
+
+    def initialize
+      @record = []
+    end
+
+    def save
+      run_callbacks :save do
+        @record << "yielded"
+      end
+    end
+
+    def first
+      @record << "one"
+    end
+
+    def second
+      @record << "two"
+    end
+
+    def third
+      @record << "three"
+    end
+  end
+
+  class DuplicatingCallbacks < OneTwoThreeSave
+    set_callback :save, :before, :first, :second
+    set_callback :save, :before, :first, :third
+  end
+
+  class DuplicatingCallbacksInSameCall < OneTwoThreeSave
+    set_callback :save, :before, :first, :second, :first, :third
+  end
+
   class UsingObjectTest < ActiveSupport::TestCase
     def test_before_object
       u = UsingObjectBefore.new
@@ -709,5 +748,18 @@ module CallbacksTest
       end
     end
   end
- 
+
+  class ExcludingDuplicatesCallbackTest < ActiveSupport::TestCase
+    def test_excludes_duplicates_in_separate_calls
+      model = DuplicatingCallbacks.new
+      model.save
+      assert_equal ["two", "one", "three", "yielded"], model.record
+    end
+
+    def test_excludes_duplicates_in_one_call
+      model = DuplicatingCallbacksInSameCall.new
+      model.save
+      assert_equal ["two", "one", "three", "yielded"], model.record
+    end
+  end
 end

@@ -12,7 +12,7 @@ module ActionDispatch
       uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
       assert_equal 'foo', uf.original_filename
     end
-    
+
     def test_filename_should_be_in_utf_8
       uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
       assert_equal "UTF-8", uf.original_filename.encoding.to_s
@@ -45,14 +45,26 @@ module ActionDispatch
       assert_equal 'thunderhorse', uf.open
     end
 
-    def test_delegates_to_tempfile
-      tf = Class.new { def read; 'thunderhorse' end }
+    def test_delegates_close_to_tempfile
+      tf = Class.new { def close(unlink_now=false); 'thunderhorse' end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse', uf.close
+    end
+
+    def test_close_accepts_parameter
+      tf = Class.new { def close(unlink_now=false); "thunderhorse: #{unlink_now}" end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse: true', uf.close(true)
+    end
+
+    def test_delegates_read_to_tempfile
+      tf = Class.new { def read(length=nil, buffer=nil); 'thunderhorse' end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
       assert_equal 'thunderhorse', uf.read
     end
 
-    def test_delegates_to_tempfile_with_params
-      tf = Class.new { def read *args; args end }
+    def test_delegates_read_to_tempfile_with_params
+      tf = Class.new { def read(length=nil, buffer=nil); [length, buffer] end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
       assert_equal %w{ thunder horse }, uf.read(*%w{ thunder horse })
     end
@@ -63,6 +75,12 @@ module ActionDispatch
       assert_raises(NoMethodError) do
         uf.read
       end
+    end
+
+    def test_delegate_eof_to_tempfile
+      tf = Class.new { def eof?; true end; }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert uf.eof?
     end
 
     def test_respond_to?

@@ -1,8 +1,8 @@
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
-require 'action_dispatch/http/mime_types'
+require 'active_support/core_ext/struct'
+require 'action_dispatch/http/mime_type'
 
 module ActionController
   # Wraps the parameters hash into a nested hash. This will allow clients to submit
@@ -16,7 +16,7 @@ module ActionController
   # a non-empty array:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :format => [:json, :xml]
+  #       wrap_parameters format: [:json, :xml]
   #     end
   #
   # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
@@ -39,16 +39,15 @@ module ActionController
   # +:exclude+ options like this:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :person, :include => [:username, :password]
+  #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
   # On ActiveRecord models with no +:include+ or +:exclude+ option set,
-  # if attr_accessible is set on that model, it will only wrap the accessible
-  # parameters, else it will only wrap the parameters returned by the class
-  # method attribute_names.
+  # it will only wrap the parameters returned by the class method
+  # <tt>attribute_names</tt>.
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
-  # +User.new(params[:user])+), you might consider passing the model class to
+  # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
   # the method instead. The +ParamsWrapper+ will actually try to determine the
   # list of attribute names from the model and only wrap those attributes:
   #
@@ -66,7 +65,7 @@ module ActionController
   #     class Admin::UsersController < ApplicationController
   #     end
   #
-  # will try to check if +Admin::User+ or +User+ model exists, and use it to
+  # will try to check if <tt>Admin::User</tt> or +User+ model exists, and use it to
   # determine the wrapper key respectively. If both models don't exist,
   # it will then fallback to use +user+ as the key.
   module ParamsWrapper
@@ -74,17 +73,104 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
+    require 'mutex_m'
+
+    class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
+      include Mutex_m
+
+      def self.from_hash(hash)
+        name    = hash[:name]
+        format  = Array(hash[:format])
+        include = hash[:include] && Array(hash[:include]).collect(&:to_s)
+        exclude = hash[:exclude] && Array(hash[:exclude]).collect(&:to_s)
+        new name, format, include, exclude, nil, nil
+      end
+
+      def initialize(name, format, include, exclude, klass, model) # nodoc
+        super
+        @include_set = include
+        @name_set    = name
+      end
+
+      def model
+        super || synchronize { super || self.model = _default_wrap_model }
+      end
+
+      def include
+        return super if @include_set
+
+        m = model
+        synchronize do
+          return super if @include_set
+
+          @include_set = true
+
+          unless super || exclude
+            if m.respond_to?(:attribute_names) && m.attribute_names.any?
+              self.include = m.attribute_names
+            end
+          end
+        end
+      end
+
+      def name
+        return super if @name_set
+
+        m = model
+        synchronize do
+          return super if @name_set
+
+          @name_set = true
+
+          unless super || klass.anonymous?
+            self.name = m ? m.to_s.demodulize.underscore :
+              klass.controller_name.singularize
+          end
+        end
+      end
+
+      private
+      # Determine the wrapper model from the controller's name. By convention,
+      # this could be done by trying to find the defined model that has the
+      # same singularize name as the controller. For example, +UsersController+
+      # will try to find if the +User+ model exists.
+      #
+      # This method also does namespace lookup. Foo::Bar::UsersController will
+      # try to find Foo::Bar::User, Foo::User and finally User.
+      def _default_wrap_model #:nodoc:
+        return nil if klass.anonymous?
+        model_name = klass.name.sub(/Controller$/, '').classify
+
+        begin
+          if model_klass = model_name.safe_constantize
+            model_klass
+          else
+            namespaces = model_name.split("::")
+            namespaces.delete_at(-2)
+            break if namespaces.last == model_name
+            model_name = namespaces.join("::")
+          end
+        end until model_klass
+
+        model_klass
+      end
+    end
+
     included do
       class_attribute :_wrapper_options
-      self._wrapper_options = { :format => [] }
+      self._wrapper_options = Options.from_hash(format: [])
     end
 
     module ClassMethods
+      def _set_wrapper_options(options)
+        self._wrapper_options = Options.from_hash(options)
+      end
+
       # Sets the name of the wrapper key, or the model which +ParamsWrapper+
       # would use to determine the attribute names from.
       #
       # ==== Examples
-      #   wrap_parameters :format => :xml
+      #   wrap_parameters format: :xml
       #     # enables the parameter wrapper for XML format
       #
       #   wrap_parameters :person
@@ -94,7 +180,7 @@ module ActionController
       #     # wraps parameters by determining the wrapper key from Person class
       #     (+person+, in this case) and the list of attribute names
       #
-      #   wrap_parameters :include => [:username, :title]
+      #   wrap_parameters include: [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
       #
       #   wrap_parameters false
@@ -121,69 +207,23 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        _set_wrapper_defaults(_wrapper_options.slice(:format).merge(options), model)
+        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts.model = model
+        opts.klass = self
+
+        self._wrapper_options = opts
       end
 
       # Sets the default wrapper key or model which will be used to determine
       # wrapper key and attribute names. Will be called automatically when the
       # module is inherited.
       def inherited(klass)
-        if klass._wrapper_options[:format].present?
-          klass._set_wrapper_defaults(klass._wrapper_options.slice(:format))
+        if klass._wrapper_options.format.any?
+          params = klass._wrapper_options.dup
+          params.klass = klass
+          klass._wrapper_options = params
         end
         super
-      end
-
-      protected
-
-      # Determine the wrapper model from the controller's name. By convention,
-      # this could be done by trying to find the defined model that has the
-      # same singularize name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
-      #
-      # This method also does namespace lookup. Foo::Bar::UsersController will
-      # try to find Foo::Bar::User, Foo::User and finally User.
-      def _default_wrap_model #:nodoc:
-        return nil if self.anonymous?
-        model_name = self.name.sub(/Controller$/, '').classify
-
-        begin
-          if model_klass = model_name.safe_constantize
-            model_klass
-          else
-            namespaces = model_name.split("::")
-            namespaces.delete_at(-2)
-            break if namespaces.last == model_name
-            model_name = namespaces.join("::")
-          end
-        end until model_klass
-
-        model_klass
-      end
-
-      def _set_wrapper_defaults(options, model=nil)
-        options = options.dup
-
-        unless options[:include] || options[:exclude]
-          model ||= _default_wrap_model
-          if model.respond_to?(:accessible_attributes) && model.accessible_attributes.present?
-            options[:include] = model.accessible_attributes.to_a
-          elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
-            options[:include] = model.attribute_names
-          end
-        end
-
-        unless options[:name] || self.anonymous?
-          model ||= _default_wrap_model
-          options[:name] = model ? model.to_s.demodulize.underscore :
-            controller_name.singularize
-        end
-
-        options[:include] = Array(options[:include]).collect(&:to_s) if options[:include]
-        options[:exclude] = Array(options[:exclude]).collect(&:to_s) if options[:exclude]
-        options[:format]  = Array(options[:format])
-
-        self._wrapper_options = options
       end
     end
 
@@ -192,7 +232,8 @@ module ActionController
     def process_action(*args)
       if _wrapper_enabled?
         wrapped_hash = _wrap_parameters request.request_parameters
-        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters
+        wrapped_keys = request.request_parameters.keys
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
         # This will make the wrapped hash accessible from controller and view
         request.parameters.merge! wrapped_hash
@@ -208,20 +249,20 @@ module ActionController
 
       # Returns the wrapper key which will use to stored wrapped parameters.
       def _wrapper_key
-        _wrapper_options[:name]
+        _wrapper_options.name
       end
 
       # Returns the list of enabled formats.
       def _wrapper_formats
-        _wrapper_options[:format]
+        _wrapper_options.format
       end
 
       # Returns the list of parameters which will be selected for wrapped.
       def _wrap_parameters(parameters)
-        value = if include_only = _wrapper_options[:include]
+        value = if include_only = _wrapper_options.include
           parameters.slice(*include_only)
         else
-          exclude = _wrapper_options[:exclude] || []
+          exclude = _wrapper_options.exclude || []
           parameters.except(*(exclude + EXCLUDE_PARAMETERS))
         end
 

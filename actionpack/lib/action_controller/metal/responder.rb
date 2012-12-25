@@ -45,10 +45,10 @@ module ActionController #:nodoc:
   #       if @user.save
   #         flash[:notice] = 'User was successfully created.'
   #         format.html { redirect_to(@user) }
-  #         format.xml { render :xml => @user, :status => :created, :location => @user }
+  #         format.xml { render xml: @user, status: :created, location: @user }
   #       else
-  #         format.html { render :action => "new" }
-  #         format.xml { render :xml => @user.errors, :status => :unprocessable_entity }
+  #         format.html { render action: "new" }
+  #         format.xml { render xml: @user.errors, status: :unprocessable_entity }
   #       end
   #     end
   #   end
@@ -63,7 +63,7 @@ module ActionController #:nodoc:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
-  #     @task = @project.comments.build(params[:task])
+  #     @task = @project.tasks.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
   #     respond_with(@project, @task)
   #   end
@@ -90,9 +90,9 @@ module ActionController #:nodoc:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
-  #     @task = @project.comments.build(params[:task])
+  #     @task = @project.tasks.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
-  #     respond_with(@project, @task, :status => 201)
+  #     respond_with(@project, @task, status: 201)
   #   end
   #
   # This will return status 201 if the task was saved successfully. If not,
@@ -102,8 +102,8 @@ module ActionController #:nodoc:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
-  #     @task = @project.comments.build(params[:task])
-  #     respond_with(@project, @task, :status => 201) do |format|
+  #     @task = @project.tasks.build(params[:task])
+  #     respond_with(@project, @task, status: 201) do |format|
   #       if @task.save
   #         flash[:notice] = 'Task was successfully created.'
   #       else
@@ -130,6 +130,7 @@ module ActionController #:nodoc:
       @resources = resources
       @options = options
       @action = options.delete(:action)
+      @default_response = options.delete(:default_response)
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
@@ -172,7 +173,7 @@ module ActionController #:nodoc:
     # responds to :to_format and display it.
     #
     def to_format
-      if get? || !has_errors?
+      if get? || !has_errors? || response_overridden?
         default_render
       else
         display_errors
@@ -226,25 +227,29 @@ module ActionController #:nodoc:
     # controller.
     #
     def default_render
-      controller.default_render(options)
+      if @default_response
+        @default_response.call(options)
+      else
+        controller.default_render(options)
+      end
     end
 
     # Display is just a shortcut to render a resource with the current format.
     #
-    #   display @user, :status => :ok
+    #   display @user, status: :ok
     #
     # For XML requests it's equivalent to:
     #
-    #   render :xml => @user, :status => :ok
+    #   render xml: @user, status: :ok
     #
     # Options sent by the user are also used:
     #
-    #   respond_with(@user, :status => :created)
-    #   display(@user, :status => :ok)
+    #   respond_with(@user, status: :created)
+    #   display(@user, status: :ok)
     #
     # Results in:
     #
-    #   render :xml => @user, :status => :created
+    #   render xml: @user, status: :created
     #
     def display(resource, given_options={})
       controller.render given_options.merge!(options).merge!(format => resource)
@@ -273,6 +278,10 @@ module ActionController #:nodoc:
 
     def json_resource_errors
       {:errors => resource.errors}
+    end
+
+    def response_overridden?
+      @default_response.present?
     end
   end
 end

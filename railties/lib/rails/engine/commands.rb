@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
-
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
@@ -25,7 +23,7 @@ when '--version', '-v'
   require 'rails/commands/application'
 
 else
-  puts "Error: Command not recognized" unless command.in?(['-h', '--help'])
+  puts "Error: Command not recognized" unless %w(-h --help).include?(command)
   puts <<-EOT
 Usage: rails COMMAND [ARGS]
 
@@ -34,6 +32,10 @@ The common rails commands available for engines are:
  destroy     Undo code generated with "generate" (short-cut alias: "d")
 
 All commands can be run with -h for more information.
+
+If you want to run any commands that need to be run in context
+of the application, like `rails server` or `rails console`,
+you should do it from application's directory (typically test/dummy).
   EOT
   exit(1)
 end

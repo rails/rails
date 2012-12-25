@@ -73,19 +73,19 @@ module RenderStreaming
 
     test "rendering with layout exception" do
       get "/render_streaming/basic/layout_exception"
-      assert_body "d\r\n<body class=\"\r\n4e\r\n\"><script type=\"text/javascript\">window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_body "d\r\n<body class=\"\r\n37\r\n\"><script>window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
       assert_streaming!
     end
 
     test "rendering with template exception" do
       get "/render_streaming/basic/template_exception"
-      assert_body "4e\r\n\"><script type=\"text/javascript\">window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_body "37\r\n\"><script>window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
       assert_streaming!
     end
 
     test "rendering with template exception logs the exception" do
       io = StringIO.new
-      _old, ActionController::Base.logger = ActionController::Base.logger, ActiveSupport::Logger.new(io)
+      _old, ActionView::Base.logger = ActionView::Base.logger, ActiveSupport::Logger.new(io)
 
       begin
         get "/render_streaming/basic/template_exception"

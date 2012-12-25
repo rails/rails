@@ -75,6 +75,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept)
   end
 
+  test "parse arbitarry media type parameters" do
+    accept = 'multipart/form-data; boundary="simple boundary"'
+    expect = [Mime::MULTIPART_FORM]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
@@ -86,7 +92,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   #  (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; InfoPath.1)
   test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
-    expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL  ]
+    expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
   end
 
@@ -109,6 +115,20 @@ class MimeTypeTest < ActiveSupport::TestCase
       end
     ensure
       Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "register callbacks" do
+    begin
+      registered_mimes = []
+      Mime::Type.register_callback do |mime|
+        registered_mimes << mime
+      end
+
+      Mime::Type.register("text/foo", :foo)
+      assert_equal registered_mimes, [Mime::FOO]
+    ensure
+      Mime::Type.unregister(:FOO)
     end
   end
 
@@ -142,11 +162,11 @@ class MimeTypeTest < ActiveSupport::TestCase
     types = Mime::SET.symbols.uniq - [:all, :iphone]
 
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
+    types.delete_if { |type| !Mime.const_defined?(type.upcase) }
 
 
     types.each do |type|
-      mime = Mime.const_get(type.to_s.upcase)
+      mime = Mime.const_get(type.upcase)
       assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
@@ -164,10 +184,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     all_types = Mime::SET.symbols
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    all_types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
-    verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
-    assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
-    assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+    all_types.delete_if { |type| !Mime.const_defined?(type.upcase) }
+    assert_deprecated do
+      verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
+      assert verified.each   { |type| assert  Mime.const_get(type.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
+      assert unverified.each { |type| assert !Mime.const_get(type.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+    end
   end
 
   test "references gives preference to symbols before strings" do

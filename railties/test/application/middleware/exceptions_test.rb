@@ -17,31 +17,32 @@ module ApplicationTests
     end
 
     test "show exceptions middleware filter backtrace before logging" do
-      my_middleware = Struct.new(:app) do
-        def call(env)
-          raise "Failure"
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise 'oops'
+          end
         end
-      end
+      RUBY
 
-      app.config.middleware.use my_middleware
+      get "/foo"
+      assert_equal 500, last_response.status
 
-      stringio = StringIO.new
-      Rails.logger = Logger.new(stringio)
-
-      get "/"
-      assert_no_match(/action_dispatch/, stringio.string)
+      log = File.read(Rails.application.config.paths["log"].first)
+      assert_no_match(/action_dispatch/, log, log)
+      assert_match(/oops/, log, log)
     end
 
     test "renders active record exceptions as 404" do
-      my_middleware = Struct.new(:app) do
-        def call(env)
-          raise ActiveRecord::RecordNotFound
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise ActiveRecord::RecordNotFound
+          end
         end
-      end
+      RUBY
 
-      app.config.middleware.use my_middleware
-
-      get "/"
+      get "/foo"
       assert_equal 404, last_response.status
     end
 
@@ -87,9 +88,6 @@ module ApplicationTests
     end
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do
-      app.config.action_dispatch.show_exceptions = true
-      app.config.consider_all_requests_local = true
-
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def index
@@ -97,18 +95,15 @@ module ApplicationTests
         end
       RUBY
 
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
       app_file 'app/views/foo/index.html.erb', <<-ERB
         <% raise 'boooom' %>
         ✓測試テスト시험
       ERB
 
-      app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
-        end
-      RUBY
-
-      post '/foo', :utf8 => '✓'
+      get '/foo', :utf8 => '✓'
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end
