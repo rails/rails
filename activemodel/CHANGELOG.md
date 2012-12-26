@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix `validates_presence_of` with `:allow_nil` or `:allow_blank` options.
-    Fixes #8621.
-
-    *Colin Kelley and Rafael Mendonça França*
-
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
