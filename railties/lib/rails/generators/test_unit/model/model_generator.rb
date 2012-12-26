@@ -3,6 +3,9 @@ require 'rails/generators/test_unit'
 module TestUnit
   module Generators
     class ModelGenerator < Base
+
+      RESERVED_YAML_KEYWORDS = %w(y yes n no true false on off null)
+
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
       class_option :fixture, :type => :boolean
 
@@ -19,6 +22,15 @@ module TestUnit
           template 'fixtures.yml', File.join('test/fixtures', class_path, "#{plural_file_name}.yml")
         end
       end
+
+      private
+        def yaml_key_value(key, value)
+          if RESERVED_YAML_KEYWORDS.include?(key.downcase)
+            "'#{key}': #{value}"
+          else
+            "#{key}: #{value}"
+          end
+        end
     end
   end
 end
