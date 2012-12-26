@@ -322,9 +322,15 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
+      return if options[:allow_blank]
+
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
-        add(attribute, :blank, options) if value.blank?
+        if value.nil?
+          add(attribute, :blank, options) unless options[:allow_nil]
+        elsif value.blank?
+          add(attribute, :blank, options)
+        end
       end
     end
 
