@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `after_commit` and `after_rollback` now validate the `:on` option and raise an `ArgumentError`
+    if it is not one of `:create`, `:destroy` or ``:update`
+
+    *Pascal Friederich*
+
 *   Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
 
     * The methods `drop_table` and `remove_column` are now reversible, as long as the necessary information is given.
@@ -21,11 +26,6 @@
     Fix #8575.
 
     *Rafael Mendonça França*
-
-*   after_commit and after_rollback now validate the :on option and raise an ArgumentError if
-    it is not one of :create, :destroy or :update
-
-    *Pascal Friederich*
 
 *   Keep index names when using `alter_table` with sqlite3.
     Fix #3489.
