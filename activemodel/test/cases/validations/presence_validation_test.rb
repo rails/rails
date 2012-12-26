@@ -70,38 +70,4 @@ class PresenceValidationTest < ActiveModel::TestCase
     p[:karma] = "Cold"
     assert p.valid?
   end
-
-  def test_validates_presence_of_with_allow_nil_option
-    Topic.validates_presence_of(:title, :allow_nil => true)
-
-    t = Topic.new(:title => "something")
-    assert t.valid?
-
-    t.title = ""
-    assert t.invalid?
-    assert_equal ["can't be blank"], t.errors[:title]
-
-    t.title = "  "
-    assert t.invalid?
-    assert_equal ["can't be blank"], t.errors[:title]
-
-    t.title = nil
-    assert t.valid?
-  end
-
-  def test_validates_presence_of_with_allow_blank_option
-    Topic.validates_presence_of(:title, :allow_blank => true)
-
-    t = Topic.new(:title => "something")
-    assert t.valid?
-
-    t.title = ""
-    assert t.valid?
-
-    t.title = "  "
-    assert t.valid?
-
-    t.title = nil
-    assert t.valid?
-  end
 end

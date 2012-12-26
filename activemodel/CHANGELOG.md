@@ -1,10 +1,5 @@
 ## Rails 3.2.10 (unreleased) ##
 
-*   Fix `validates_presence_of` with `:allow_nil` or `:allow_blank` options.
-    Fixes #8621.
-
-    *Colin Kelley and Rafael Mendonça França*
-
 *   Specify type of singular association during serialization *Steve Klabnik*
 
 

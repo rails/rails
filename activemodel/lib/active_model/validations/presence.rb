@@ -4,8 +4,8 @@ module ActiveModel
   # == Active Model Presence Validator
   module Validations
     class PresenceValidator < EachValidator
-      def validate_each(record, attr_name, value)
-        record.errors.add(attr_name, :blank, options) if value.blank?
+      def validate(record)
+        record.errors.add_on_blank(attributes, options)
       end
     end
 
@@ -39,7 +39,7 @@ module ActiveModel
       #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
       #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
       #   proc or string should return or evaluate to a true or false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
+      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
