@@ -71,7 +71,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert p.valid?
   end
 
-  def test_allow_nil
+  def test_validates_presence_of_with_allow_nil_option
     Topic.validates_presence_of(:title, allow_nil: true)
 
     t = Topic.new(title: "something")
@@ -89,7 +89,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert t.valid?, t.errors.full_messages
   end
 
-  def test_allow_blank
+  def test_validates_presence_of_with_allow_blank_option
     Topic.validates_presence_of(:title, allow_blank: true)
 
     t = Topic.new(title: "something")
