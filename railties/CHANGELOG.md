@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Quote column names in generates fixture files. This prevents
+    conflicts with reserved YAML keywords such as 'yes' and 'no'
+    Fix #8612
+
+    *Yves Senn*
+
 *   Explicit options have precedence over `~/.railsrc` on the `rails new` command.
 
     *Rafael Mendonça França*
