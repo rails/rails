@@ -41,7 +41,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_acceptance_of_with_custom_error_using_quotes
-    Person.validates_presence_of :karma, :message => "This string contains 'single' and \"double\" quotes"
+    Person.validates_presence_of :karma, message: "This string contains 'single' and \"double\" quotes"
     p = Person.new
     assert p.invalid?
     assert_equal "This string contains 'single' and \"double\" quotes", p.errors[:karma].last
@@ -72,9 +72,9 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_allow_nil
-    Topic.validates_presence_of(:title, :allow_nil => true)
+    Topic.validates_presence_of(:title, allow_nil: true)
 
-    t = Topic.new(:title => "something")
+    t = Topic.new(title: "something")
     assert t.valid?, t.errors.full_messages
 
     t.title = ""
@@ -90,9 +90,9 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_allow_blank
-    Topic.validates_presence_of(:title, :allow_blank => true)
+    Topic.validates_presence_of(:title, allow_blank: true)
 
-    t = Topic.new(:title => "something")
+    t = Topic.new(title: "something")
     assert t.valid?, t.errors.full_messages
 
     t.title = ""
