@@ -99,6 +99,8 @@ module ActiveRecord
       unless arel.orders.blank? && arel.taken.blank?
         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored")
       end
+      
+      relation = relation.reorder(nil).limit(nil)
 
       distinct_values = relation.select(by_column).map(&by_column).compact.uniq
       
