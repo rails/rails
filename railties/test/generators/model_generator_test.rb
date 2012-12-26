@@ -157,7 +157,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/create_table :products/, up)
         assert_match(/t\.string :name/, up)
         assert_match(/t\.integer :supplier_id/, up)
-        
+
         assert_match(/add_index :products, :name/, up)
         assert_match(/add_index :products, :supplier_id/, up)
         assert_no_match(/add_index :products, :year/, up)
@@ -182,7 +182,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       assert_match(/add_index :products, :discount, :unique => true/, content)
     end
   end
-  
+
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]
@@ -261,7 +261,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/unit/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
+
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
+    assert_generated_fixture("test/fixtures/accounts.yml",
+                             {"one"=>{"name"=>"MyString", "age"=>1}, "two"=>{"name"=>"MyString", "age"=>1}})
+  end
+
+  def test_fixtures_respect_reserved_yml_keywords
+    run_generator ["LineItem", "no:integer", "Off:boolean", "ON:boolean"]
+
+    assert_generated_fixture("test/fixtures/line_items.yml",
+                             {"one"=>{"no"=>1, "Off"=>false, "ON"=>false}, "two"=>{"no"=>1, "Off"=>false, "ON"=>false}})
   end
 
   def test_fixture_is_skipped
@@ -329,4 +339,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["Account"]
     assert_file 'app/models/account.rb', /# attr_accessible :title, :body/
   end
+
+  private
+    def assert_generated_fixture(path, parsed_contents)
+      fixture_file = File.new File.expand_path(path, destination_root)
+      assert_equal(parsed_contents, YAML.load(fixture_file))
+    end
+
 end
