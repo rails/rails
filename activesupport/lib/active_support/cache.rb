@@ -494,11 +494,7 @@ module ActiveSupport
 
           case key
           when Array
-            if key.size > 1
-              key = key.collect{|element| expanded_key(element)}
-            else
-              key = key.first
-            end
+            key = key.collect{|element| expanded_key(element)}
           when Hash
             key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
           end

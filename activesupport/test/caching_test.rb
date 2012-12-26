@@ -295,6 +295,29 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("fu/foo")
   end
 
+  def test_array_as_cache_key_with_one_element_that_responds_to_cache_key
+    obj = Object.new
+    def obj.cache_key
+      :foo
+    end
+    @cache.write([obj], "bar")
+    assert_equal "bar", @cache.read("foo")
+  end
+
+  def test_array_as_cache_key_with_n_elements_that_respond_to_cache_key
+    obj1 = Object.new
+    def obj1.cache_key
+      :foo1
+    end
+    obj2 = Object.new
+    def obj2.cache_key
+      :foo2
+    end
+
+    @cache.write([obj1, obj2], "bar")
+    assert_equal "bar", @cache.read("foo1/foo2")
+  end
+
   def test_hash_as_cache_key
     @cache.write({:foo => 1, :fu => 2}, "bar")
     assert_equal "bar", @cache.read("foo=1/fu=2")
