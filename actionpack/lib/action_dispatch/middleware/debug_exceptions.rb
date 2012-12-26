@@ -23,7 +23,7 @@ module ActionDispatch
           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
         end
       rescue Exception => exception
-        raise exception unless env['action_dispatch.show_exceptions']
+        raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
       exception ? render_exception(env, exception) : response
