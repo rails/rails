@@ -22,6 +22,11 @@
 
     *Rafael Mendonça França*
 
+*   after_commit and after_rollback now validate the :on option and raise an ArgumentError if
+    it is not one of :create, :destroy or :update
+
+    *Pascal Friederich*
+
 *   Keep index names when using `alter_table` with sqlite3.
     Fix #3489.
 
