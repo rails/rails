@@ -2164,6 +2164,29 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  class FakeAssociatonProxy
+    def to_ary
+      [1, 2, 3]
+    end
+  end
+
+  def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association_with_proxy
+    @post.comments = FakeAssociatonProxy.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:comments, Comment.new(321), :child_index => 'abc') { |cf|
+        concat cf.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'patch') do
+      '<input id="post_comments_attributes_abc_name" name="post[comments_attributes][abc][name]" type="text" value="comment #321" />' +
+      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_index_method_with_existing_records_on_a_nested_attributes_collection_association
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
