@@ -29,13 +29,22 @@ class FindInGroupsTest < ActiveRecord::TestCase
 
   def test_find_in_groups_should_return_groups
     count = Post.select(@by_column).map(&@by_column).compact.uniq.count
-    
     assert_queries(count + 1) do
       Post.find_in_groups(@by_column) do |group|
         assert_kind_of ActiveRecord::Relation, group
         assert_kind_of Post, group.first
       end
     end
+  end
+
+  def test_find_in_groups_should_yeild_correct_distinct_values
+    actual_values = Post.select(@by_column).uniq
+    grouped_column_values = []
+    distinct_values = Post.find_in_groups(@by_column) do |group, value|
+      grouped_column_values << value
+    end
+    assert_equal distinct_values.map(&@by_column), grouped_column_values
+    assert_equal actual_values.map(&@by_column), grouped_column_values
   end
 
   def test_find_in_groups_should_ignore_the_order_default_scope
