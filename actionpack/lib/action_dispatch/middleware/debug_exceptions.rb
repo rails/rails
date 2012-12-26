@@ -16,15 +16,14 @@ module ActionDispatch
 
     def call(env)
       begin
-        response = @app.call(env)
+        response = (_, headers, body = @app.call(env))
 
-        if response[1]['X-Cascade'] == 'pass'
-          body = response[2]
+        if headers['X-Cascade'] == 'pass'
           body.close if body.respond_to?(:close)
           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
         end
       rescue Exception => exception
-        raise exception if env['action_dispatch.show_exceptions'] == false
+        raise exception unless env['action_dispatch.show_exceptions']
       end
 
       exception ? render_exception(env, exception) : response
