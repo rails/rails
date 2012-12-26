@@ -244,6 +244,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal :rollback, @first.last_after_transaction_error
     assert_equal [:after_rollback], @second.history
   end
+
+  def test_after_rollback_callbacks_should_validate_on_condition
+    assert_raise(ArgumentError) { Topic.send(:after_rollback, :on => :save) }
+  end
+
+  def test_after_commit_callbacks_should_validate_on_condition
+    assert_raise(ArgumentError) { Topic.send(:after_commit, :on => :save) }
+  end
 end
 
 
