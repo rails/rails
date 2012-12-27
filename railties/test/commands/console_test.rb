@@ -111,6 +111,12 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/\sdevelopment\s/, output)
   end
 
+  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
+    Rails::Console.stubs(:available_environments).returns(['dev'])
+    options = Rails::Console.parse_arguments(['dev'])
+    assert_match('dev', options[:environment])
+  end
+
   private
 
   attr_reader :output

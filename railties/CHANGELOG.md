@@ -4,6 +4,13 @@
 
     *Jiri Pospisil*
 
+*   Environment name can be a start substring of the default environemnt names 
+    (production, development, test).
+    For example: tes, pro, prod, dev, devel.
+    Fix #8628
+
+    *Mykola Kyryk*
+
 *   Quote column names in generates fixture files. This prevents
     conflicts with reserved YAML keywords such as 'yes' and 'no'
     Fix #8612

@@ -24,11 +24,20 @@ module Rails
 
         if arguments.first && arguments.first[0] != '-'
           env = arguments.first
-          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+          if available_environments.include? env
+            options[:environment] = env
+          else
+            options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+          end
         end
 
         options
       end
+
+      private
+        def available_environments
+          Dir[Rails.root.join('config', 'environments', '*.rb')].map { |fname| File.basename(fname, '.*') }
+        end
     end
 
     attr_reader :options, :app, :console
