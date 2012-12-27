@@ -182,7 +182,6 @@ class TestCaseTaggedLoggingTest < ActiveSupport::TestCase
   end
 
   def test_logs_tagged_with_current_test_case
-    tagged_logger.info 'test'
-    assert_equal "[#{self.class.name}] [#{__name__}] test\n", @out.string
+    assert_match "#{self.class}: #{__name__}\n", @out.string
   end
 end
