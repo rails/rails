@@ -20,10 +20,16 @@ module ActionView
             if block_given?
               yield builder
             else
-              builder.radio_button + builder.label
+              render_component(builder)
             end
           end
         end
+
+        private
+
+          def render_component(builder)
+            builder.radio_button + builder.label
+          end
       end
     end
   end
