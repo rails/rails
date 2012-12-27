@@ -28,6 +28,8 @@
 
 *   Raise an `ActionView::MissingTemplate` exception when no implicit template could be found. *Damien Mathieu*
 
+*   Asynchronously send messages via the Rails Queue *Brian Cardarella*
+
 *   Allow callbacks to be defined in mailers similar to `ActionController::Base`. You can configure default
     settings, headers, attachments, delivery settings or change delivery using
     `before_filter`, `after_filter` etc. *Justin S. Leitgeb*

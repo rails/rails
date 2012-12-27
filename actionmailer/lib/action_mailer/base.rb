@@ -1,8 +1,10 @@
 require 'mail'
+require 'action_mailer/queued_message'
 require 'action_mailer/collector'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/queueing'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer
@@ -359,6 +361,8 @@ module ActionMailer
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
+  #
+  # * <tt>queue</> - The queue that will be used to deliver the mail. The queue should expect a job that responds to <tt>run</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
     abstract!
@@ -384,6 +388,9 @@ module ActionMailer
       content_type: "text/plain",
       parts_order:  [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
+
+    class_attribute :queue
+    self.queue = ActiveSupport::SynchronousQueue.new
 
     class << self
       # Register one or more Observers which will be notified when mail is delivered.
@@ -476,8 +483,8 @@ module ActionMailer
       end
 
       def method_missing(method_name, *args)
-        if respond_to?(method_name)
-          new(method_name, *args).message
+        if action_methods.include?(method_name.to_s)
+          QueuedMessage.new(queue, self, method_name, *args)
         else
           super
         end

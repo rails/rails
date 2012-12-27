@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'active_support/queueing'
 # FIXME remove DummyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 require 'rails/engine'
@@ -67,9 +68,10 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :assets, :sandbox, :queue_consumer
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
+    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -81,6 +83,7 @@ module Rails
       @env_config       = nil
       @ordered_railties = nil
       @railties         = nil
+      @queue            = nil
     end
 
     # Returns true if the application is initialized.
@@ -221,6 +224,10 @@ module Rails
 
     def config #:nodoc:
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+    end
+
+    def queue #:nodoc:
+      @queue ||= config.queue || ActiveSupport::Queue.new
     end
 
     def to_app #:nodoc:

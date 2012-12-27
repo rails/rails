@@ -132,6 +132,10 @@
 
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
 
+*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`. *Carlos Antonio da Silva*
+
+*   Add `Rails.queue` for processing jobs in the background. *Yehuda Katz*
+
 *   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
 
 *   Remove Active Resource from Rails framework. *Prem Sichangrist*

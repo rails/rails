@@ -109,6 +109,10 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
+* `config.queue` configures the default job queue for the application. Defaults to `ActiveSupport::Queue.new` which processes jobs in a background thread. If you change the queue, you're responsible for running the jobs as well.
+
+* `config.queue_consumer` configures a different job consumer for the default queue. Defaults to `ActiveSupport::ThreadedQueueConsumer`. The job consumer must respond to `start`.
+
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If `config.cache_classes` is true, this option is ignored.
 
 * `config.secret_key_base` used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`.
@@ -426,6 +430,11 @@ There are a number of settings available on `config.action_mailer`:
     ```ruby
     config.action_mailer.interceptors = ["MailInterceptor"]
     ```
+
+* `config.action_mailer.queue` registers the queue that will be used to deliver the mail.
+```ruby
+config.action_mailer.queue = SomeQueue.new
+```
 
 ### Configuring Active Support
 

@@ -575,3 +575,26 @@ end
 ```
 
 In the test we send the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
+
+Asynchronous
+------------
+
+Rails provides a Synchronous Queue by default. If you want to use an Asynchronous one you will need to configure an async Queue provider like Resque. Queue providers are supposed to have a Railtie where they configure it's own async queue.
+
+### Custom Queues
+
+If you need a different queue than `Rails.queue` for your mailer you can use `ActionMailer::Base.queue=`:
+
+```ruby
+class WelcomeMailer < ActionMailer::Base
+  self.queue = MyQueue.new
+end
+```
+
+or adding to your `config/environments/$RAILS_ENV.rb`:
+
+```ruby
+config.action_mailer.queue = MyQueue.new
+```
+
+Your custom queue should expect a job that responds to `#run`.
