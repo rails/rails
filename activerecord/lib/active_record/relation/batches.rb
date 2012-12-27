@@ -84,6 +84,33 @@ module ActiveRecord
       end
     end
 
+    # Yields each group of records that was found by the distinct values of +by_column+ as
+    # an ActiveRecord::Relation.
+    #
+    #   Person.where("age > 21").find_in_groups(:age) do |group, value|
+    #     sleep(50) # Make sure it doesn't get too crowded in there!
+    #     puts "Found #{group.count} records of age = #{value}"
+    #     group.each { |person| person.party_all_night! }
+    #   end
+    #
+    def find_in_groups by_column
+      relation = self
+
+      unless arel.orders.blank? && arel.taken.blank? && arel.group.blank?
+        ActiveRecord::Base.logger.warn("Scoped order, group and limit are ignored")
+      end
+      
+      relation = relation.except :group, :limit, :order
+      relation = relation.reorder by_column
+
+      distinct_records = relation.select(by_column).uniq
+
+      distinct_records.each do |record|
+        records = relation.where by_column => record[by_column]
+        yield records, record[by_column]
+      end
+    end
+
     private
 
     def batch_order
