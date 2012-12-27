@@ -86,7 +86,7 @@ module ActionDispatch
         end.collect do |route|
           collect_engine_routes(route)
 
-          {:name => route.name, :verb => route.verb, :path => route.path, :reqs => route.reqs }
+          { name: route.name, verb: route.verb, path: route.path, reqs: route.reqs }
         end
       end
 
