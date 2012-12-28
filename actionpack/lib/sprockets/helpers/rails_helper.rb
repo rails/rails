@@ -157,16 +157,24 @@ module Sprockets
         end
 
         def rewrite_extension(source, dir, ext)
-          source_ext = File.extname(source)
-          if ext && source_ext != ".#{ext}"
-            if !source_ext.empty? && (asset = asset_environment[source]) &&
-                  asset.pathname.to_s =~ /#{source}\Z/
-              source
-            else
-              "#{source}.#{ext}"
-            end
-          else
+          source_ext = File.extname(source)[1..-1]
+
+          if !ext || ext == source_ext
+            return source
+          elsif source_ext.blank?
+            return "#{source}.#{ext}"
+          end
+
+          begin
+            pathname = asset_environment.resolve(source)
+          rescue Sprockets::FileNotFound
+            return "#{source}.#{ext}"
+          end
+
+          if pathname.to_s =~ /#{Regexp.escape(source)}\Z/
             source
+          else
+            "#{source}.#{ext}"
           end
         end
       end
