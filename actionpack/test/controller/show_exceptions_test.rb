@@ -98,7 +98,7 @@ module ShowExceptions
     def test_render_failsafe_exception
       @app = ShowExceptionsOverridenController.action(:boom)
       @exceptions_app = @app.instance_variable_get(:@exceptions_app)
-      @app.instance_variable_set(:@exceptions_app, nil)
+      @app.instance_variable_set(:@exceptions_app, ActionDispatch::ExceptionFailsafe.new([]))
       $stderr = StringIO.new
 
       get '/', {}, 'HTTP_ACCEPT' => 'text/json'
