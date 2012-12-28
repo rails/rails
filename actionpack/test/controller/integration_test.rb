@@ -559,6 +559,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
+# These tests are mirrored using a context root in actionpack/test/controller/url_options_with_relative_url_root_integration_test.rb
 class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index
@@ -624,12 +625,16 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "test can override default url options" do
+    # Setting default_url_options here bleeds over into other tests,
+    # so resetting to the original here.
+    orig_default_host = default_url_options[:host]
     default_url_options[:host] = "foobar.com"
     assert_equal "http://foobar.com/foo", foos_url
 
     get "/bar"
     assert_response :success
     assert_equal "http://foobar.com/foo", foos_url
+    orig_default_host.nil? ? default_url_options.delete(:host) : default_url_options[:host] = orig_default_host
   end
 
   test "current request path parameters are recalled" do
