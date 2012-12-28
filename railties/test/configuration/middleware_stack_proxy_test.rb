@@ -1,6 +1,7 @@
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'rails/configuration'
 require 'active_support/test_case'
+require 'minitest/mock'
 
 module Rails
   module Configuration
