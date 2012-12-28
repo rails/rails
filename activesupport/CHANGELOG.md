@@ -1,4 +1,5 @@
 ## Rails 3.2.10 (unreleased)
+*   Fixed a bug in Inflector#underscore where acroynms are incorrectly parsed as camelCases. *Fred Wu*
 
 *   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
     The encoding scheme was broken for unicode characters outside the basic
