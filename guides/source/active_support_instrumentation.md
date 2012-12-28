@@ -432,7 +432,7 @@ from block args like this:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  event = ActiveSupport::Notification::Event.new args
+  event = ActiveSupport::Notifications::Event.new *args
 
   event.name      # => "process_action.action_controller"
   event.duration  # => 10 (in milliseconds)
