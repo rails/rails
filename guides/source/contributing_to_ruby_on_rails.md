@@ -49,13 +49,6 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 The easiest and recommended way to get a development environment ready to hack is to use the [Rails development box](https://github.com/rails/rails-dev-box).
 
-After you have setup your Rails development box and cloned your Rails fork on the host computer, don't forget to run Bundler before you start testing.
-
-    host $ vagrant ssh
-    Welcome to Ubuntu 12.04 LTS...
-    ...
-    vagrant@rails-dev-box:~$ cd /vagrant/rails && bundle install
-
 ### The Hard Way
 
 In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
