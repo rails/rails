@@ -5,6 +5,7 @@ require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/pending'
+require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
 require 'active_support/core_ext/kernel/reporting'
@@ -42,25 +43,7 @@ module ActiveSupport
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::Pending
-
-    def self.describe(text)
-      if block_given?
-        super
-      else
-        message = "`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n"
-        ActiveSupport::Deprecation.warn message
-
-        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          def self.name
-            "#{text}"
-          end
-        RUBY_EVAL
-      end
-    end
-
-    class << self
-      alias :test :it
-    end
+    extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods
     alias :assert_raise :assert_raises
