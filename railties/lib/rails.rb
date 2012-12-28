@@ -90,4 +90,9 @@ module Rails
       application && Pathname.new(application.paths["public"].first)
     end
   end
+
+  self.application = nil
+  self.cache = nil
+  self.logger = nil
+
 end
