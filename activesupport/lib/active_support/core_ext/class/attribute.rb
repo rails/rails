@@ -69,7 +69,8 @@ class Class
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
   def class_attribute(*attrs)
     options = attrs.extract_options!
-    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
+    # double assignment is used to avoid "assigned but unused variable" warning
+    instance_reader = instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
 
     # We use class_eval here rather than define_method because class_attribute
