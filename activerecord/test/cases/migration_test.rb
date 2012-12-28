@@ -232,7 +232,7 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    refute Person.column_methods_hash.include?(:last_name)
+    assert_not Person.column_methods_hash.include?(:last_name)
 
     migration = Struct.new(:name, :version) {
       def migrate(x); raise 'Something broke'; end
@@ -245,7 +245,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
 
     Person.reset_column_information
-    refute Person.column_methods_hash.include?(:last_name)
+    assert_not Person.column_methods_hash.include?(:last_name)
   end
 
   def test_schema_migrations_table_name

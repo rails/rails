@@ -277,7 +277,7 @@ module ActionDispatch
         @router.recognize(env) do |*whatever|
           yielded = true
         end
-        refute yielded
+        assert_not yielded
       end
 
       def test_required_part_in_recall

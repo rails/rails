@@ -293,7 +293,7 @@ module ActiveRecord
         end
 
         assert connection.column_exists?(:testings, :foo)
-        refute connection.column_exists?(:testings, :bar)
+        assert_not connection.column_exists?(:testings, :bar)
       end
 
       def test_column_exists_with_type
@@ -303,10 +303,10 @@ module ActiveRecord
         end
 
         assert connection.column_exists?(:testings, :foo, :string)
-        refute connection.column_exists?(:testings, :foo, :integer)
+        assert_not connection.column_exists?(:testings, :foo, :integer)
 
         assert connection.column_exists?(:testings, :bar, :decimal)
-        refute connection.column_exists?(:testings, :bar, :integer)
+        assert_not connection.column_exists?(:testings, :bar, :integer)
       end
 
       def test_column_exists_with_definition
@@ -318,13 +318,13 @@ module ActiveRecord
         end
 
         assert connection.column_exists?(:testings, :foo, :string, limit: 100)
-        refute connection.column_exists?(:testings, :foo, :string, limit: nil)
+        assert_not connection.column_exists?(:testings, :foo, :string, limit: nil)
         assert connection.column_exists?(:testings, :bar, :decimal, precision: 8, scale: 2)
-        refute connection.column_exists?(:testings, :bar, :decimal, precision: nil, scale: nil)
+        assert_not connection.column_exists?(:testings, :bar, :decimal, precision: nil, scale: nil)
         assert connection.column_exists?(:testings, :taggable_id, :integer, null: false)
-        refute connection.column_exists?(:testings, :taggable_id, :integer, null: true)
+        assert_not connection.column_exists?(:testings, :taggable_id, :integer, null: true)
         assert connection.column_exists?(:testings, :taggable_type, :string, default: 'Photo')
-        refute connection.column_exists?(:testings, :taggable_type, :string, default: nil)
+        assert_not connection.column_exists?(:testings, :taggable_type, :string, default: nil)
       end
 
       def test_column_exists_on_table_with_no_options_parameter_supplied

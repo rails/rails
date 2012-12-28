@@ -35,7 +35,7 @@ module ActiveRecord
         connection.rename_index(table_name, 'old_idx', 'new_idx')
 
         # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-        refute connection.index_name_exists?(table_name, 'old_idx', false)
+        assert_not connection.index_name_exists?(table_name, 'old_idx', false)
         assert connection.index_name_exists?(table_name, 'new_idx', true)
       end
 
@@ -63,7 +63,7 @@ module ActiveRecord
           connection.add_index(table_name, "foo", :name => too_long_index_name)
         }
 
-        refute connection.index_name_exists?(table_name, too_long_index_name, false)
+        assert_not connection.index_name_exists?(table_name, too_long_index_name, false)
         connection.add_index(table_name, "foo", :name => good_index_name)
 
         assert connection.index_name_exists?(table_name, good_index_name, false)
@@ -75,7 +75,7 @@ module ActiveRecord
         assert connection.index_exists?(table_name, :foo, :name => :symbol_index_name)
 
         connection.remove_index table_name, :name => :symbol_index_name
-        refute connection.index_exists?(table_name, :foo, :name => :symbol_index_name)
+        assert_not connection.index_exists?(table_name, :foo, :name => :symbol_index_name)
       end
 
       def test_index_exists

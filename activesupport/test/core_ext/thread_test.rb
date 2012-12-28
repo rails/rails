@@ -39,14 +39,14 @@ class ThreadExt < ActiveSupport::TestCase
   end
 
   def test_thread_variable?
-    refute Thread.new { Thread.current.thread_variable?("foo") }.join.value
+    assert_not Thread.new { Thread.current.thread_variable?("foo") }.join.value
     t = Thread.new {
       Thread.current.thread_variable_set("foo", "bar")
     }.join
 
     assert t.thread_variable?("foo")
     assert t.thread_variable?(:foo)
-    refute t.thread_variable?(:bar)
+    assert_not t.thread_variable?(:bar)
   end
 
   def test_thread_variable_strings_and_symbols_are_the_same_key

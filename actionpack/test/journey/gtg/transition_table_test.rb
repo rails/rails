@@ -29,7 +29,7 @@ module ActionDispatch
             }
             svg = table.to_svg
             assert svg
-            refute_match(/DOCTYPE/, svg)
+            assert_no_match(/DOCTYPE/, svg)
           end
         end
 
@@ -53,7 +53,7 @@ module ActionDispatch
           sim = simulator_for ['/foo(/bar)']
           assert_match sim, '/foo'
           assert_match sim, '/foo/bar'
-          refute_match sim, '/foo/'
+          assert_no_match sim, '/foo/'
         end
 
         def test_match_data

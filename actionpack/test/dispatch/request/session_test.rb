@@ -24,7 +24,7 @@ module ActionDispatch
         s['foo'] = 'bar'
 
         s1 = Session.create(store, env, {})
-        refute_equal s, s1
+        assert_not_equal s, s1
         assert_equal 'bar', s1['foo']
       end
 

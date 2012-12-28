@@ -92,7 +92,7 @@ module ActionDispatch
 
         routes = [specific, generic]
 
-        refute_equal specific.score(knowledge), generic.score(knowledge)
+        assert_not_equal specific.score(knowledge), generic.score(knowledge)
 
         found = routes.sort_by { |r| r.score(knowledge) }.last
 

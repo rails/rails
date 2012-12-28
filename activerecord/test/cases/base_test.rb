@@ -1484,7 +1484,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_column_types_typecast
     topic = Topic.first
-    refute_equal 't.lo', topic.author_name
+    assert_not_equal 't.lo', topic.author_name
 
     attrs = topic.attributes.dup
     attrs.delete 'id'
