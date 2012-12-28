@@ -187,6 +187,13 @@ module ActiveRecord
         true
       end
 
+      # Returns 51. SQLite supports index names up to 64
+      # characters. The rest is used by rails internally to perform
+      # temporary rename operations
+      def allowed_index_name_length
+        index_name_length - 13
+      end
+
       def native_database_types #:nodoc:
         {
           :primary_key => default_primary_key_type,
@@ -559,7 +566,7 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_") }
+              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
               add_index(to, columns, opts)
             end

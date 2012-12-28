@@ -197,6 +197,17 @@ module ActiveRecord
         assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
       end
 
+      def test_change_column_with_long_index_name
+        table_name_prefix = 'test_models_'
+        long_index_name = table_name_prefix + ('x' * (connection.allowed_index_name_length - table_name_prefix.length))
+        add_column "test_models", "category", :string
+        add_index :test_models, :category, name: long_index_name
+
+        change_column "test_models", "category", :string, null: false, default: 'article'
+
+        assert_equal [long_index_name], connection.indexes('test_models').map(&:name)
+      end
+
       def test_change_column_default
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", "Tester"
