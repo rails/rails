@@ -187,11 +187,11 @@ module ActiveRecord
         true
       end
 
-      # Returns 51. SQLite supports index names up to 64
+      # Returns 62. SQLite supports index names up to 64
       # characters. The rest is used by rails internally to perform
       # temporary rename operations
       def allowed_index_name_length
-        index_name_length - 13
+        index_name_length - 2
       end
 
       def native_database_types #:nodoc:
@@ -509,7 +509,7 @@ module ActiveRecord
         end
 
         def alter_table(table_name, options = {}) #:nodoc:
-          altered_table_name = "altered_#{table_name}"
+          altered_table_name = "a#{table_name}"
           caller = lambda {|definition| yield definition if block_given?}
 
           transaction do
@@ -553,10 +553,10 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {}) #:nodoc:
           indexes(from).each do |index|
             name = index.name
-            if to == "altered_#{from}"
-              name = "temp_#{name}"
-            elsif from == "altered_#{to}"
-              name = name[5..-1]
+            if to == "a#{from}"
+              name = "t#{name}"
+            elsif from == "a#{to}"
+              name = name[1..-1]
             end
 
             to_column_names = columns(to).map { |c| c.name }
