@@ -15,6 +15,27 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     @object.num = 0
   end
 
+  def test_assert_not
+    assert_not nil
+    assert_not false
+
+    begin
+      assert_not true
+    rescue Exception => e
+      assert_equal 'Expected true to be nil or false', e.message
+    else
+      fail 'assert_not true should fail'
+    end
+
+    begin
+      assert_not true, 'custom'
+    rescue Exception => e
+      assert_equal 'custom', e.message
+    else
+      fail 'assert_not true should fail'
+    end
+  end
+
   def test_assert_no_difference
     assert_no_difference '@object.num' do
       # ...
