@@ -1,5 +1,5 @@
 gem 'minitest' # make sure we get the gem, not stdlib
-require 'minitest/spec'
+require 'minitest/unit'
 require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
@@ -17,13 +17,7 @@ rescue LoadError
 end
 
 module ActiveSupport
-  class TestCase < ::MiniTest::Spec
-
-    # Use AS::TestCase for the base class when describing a model
-    register_spec_type(self) do |desc|
-      Class === desc && desc < ActiveRecord::Base
-    end
-
+  class TestCase < ::MiniTest::Unit::TestCase
     Assertion = MiniTest::Assertion
     alias_method :method_name, :__name__
 

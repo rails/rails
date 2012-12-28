@@ -30,9 +30,6 @@ module ActionView
       end
     end
 
-    # Use AV::TestCase for the base class for helpers and views
-    register_spec_type(/(Helper|View)( ?Test)?\z/i, self)
-
     module Behavior
       extend ActiveSupport::Concern
 
