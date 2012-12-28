@@ -321,14 +321,16 @@ module ActiveRecord
         #
         # Example:
         #   rename_table('octopuses', 'octopi')
-        def rename_table(name, new_name)
+        def rename_table(table_name, new_name)
           clear_cache!
-          execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq == "#{name}_#{pk}_seq"
+          if seq == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
           end
+
+          rename_table_indexes(table_name, new_name)
         end
 
         # Adds a new column to the named table.
@@ -370,6 +372,7 @@ module ActiveRecord
         def rename_column(table_name, column_name, new_column_name)
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+          rename_column_indexes(table_name, column_name, new_column_name)
         end
 
         def remove_index!(table_name, index_name) #:nodoc:

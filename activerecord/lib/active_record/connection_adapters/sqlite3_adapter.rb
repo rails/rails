@@ -435,8 +435,9 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(name, new_name)
-        exec_query "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+      def rename_table(table_name, new_name)
+        exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
+        rename_table_indexes(table_name, new_name)
       end
 
       # See: http://www.sqlite.org/lang_altertable.html
@@ -495,6 +496,7 @@ module ActiveRecord
           raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
         end
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
+        rename_column_indexes(table_name, column_name, new_column_name)
       end
 
       protected
