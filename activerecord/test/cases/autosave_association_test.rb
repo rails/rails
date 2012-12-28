@@ -1140,7 +1140,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}[0].name"]
     assert @pirate.errors[@association_name].empty?
   end
 
@@ -1148,7 +1148,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).build(:name => '')
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}[0].name"]
     assert @pirate.errors[@association_name].empty?
   end
 
@@ -1160,7 +1160,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).build(:name => '')
 
     assert !@pirate.valid?
-    assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}[0].name"]
     assert_equal ["#{@association_name.to_s.titleize} name cannot be blank"], @pirate.errors.full_messages
     assert @pirate.errors[@association_name].empty?
   ensure
@@ -1172,7 +1172,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}[0].name"]
     assert @pirate.errors[:catchphrase].any?
   end
 
