@@ -79,7 +79,7 @@ end
 
 Alternatively, you can use `up` and `down` instead of `change`:
 
-``ruby
+```ruby
 class ChangeProductsPrice < ActiveRecord::Migration
   def up
     change_table :products do |t|
