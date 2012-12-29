@@ -1,4 +1,5 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+# Column names which resemble YAML keywords such as 'yes' and 'no' are quoted so that YAML Parser correctly interprets them.
 
 <% unless attributes.empty? -%>
 one:
