@@ -241,13 +241,16 @@ module ActiveRecord
 
         select_value = operation_over_aggregate_column(column, operation, distinct)
 
+        column_name = select_value.alias
         relation.select_values = [select_value]
 
         query_builder = relation.arel
       end
 
-      result = @klass.connection.select_value(query_builder, nil, relation.bind_values)
-      type_cast_calculated_value(result, column_for(column_name), operation)
+      result = @klass.connection.select_all(query_builder, nil, relation.bind_values)
+      row   = result.first
+      value = row && row.values.first
+      type_cast_calculated_value(value, result.column_types[column_name], operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
