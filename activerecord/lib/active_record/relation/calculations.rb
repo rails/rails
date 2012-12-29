@@ -274,7 +274,7 @@ module ActiveRecord
         column_alias_for(field)
       }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
-        [aliaz, column_for(field)]
+        [aliaz, field]
       }
 
       group = group_fields
@@ -314,7 +314,10 @@ module ActiveRecord
       end
 
       Hash[calculated_data.map do |row|
-        key = group_columns.map { |aliaz, column|
+        key = group_columns.map { |aliaz, column_name|
+          column = calculated_data.column_types.fetch(aliaz) do
+            column_for(column_name)
+          end
           type_cast_calculated_value(row[aliaz], column)
         }
         key = key.first if key.size == 1
