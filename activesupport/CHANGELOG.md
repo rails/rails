@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Introduce assert_not to replace warty 'assert !foo'.  *Jeremy Kemper*
+
 *   Prevent `Callbacks#set_callback` from setting the same callback twice.
 
         before_save :foo, :bar, :foo

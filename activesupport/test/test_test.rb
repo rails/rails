@@ -15,6 +15,17 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     @object.num = 0
   end
 
+  def test_assert_not
+    assert_equal true, assert_not(nil)
+    assert_equal true, assert_not(false)
+
+    e = assert_raises(MiniTest::Assertion) { assert_not true }
+    assert_equal 'Expected true to be nil or false', e.message
+
+    e = assert_raises(MiniTest::Assertion) { assert_not true, 'custom' }
+    assert_equal 'custom', e.message
+  end
+
   def test_assert_no_difference
     assert_no_difference '@object.num' do
       # ...

@@ -8,6 +8,7 @@ require 'models/possession'
 require 'models/topic'
 require 'models/minivan'
 require 'models/speedometer'
+require 'models/ship_part'
 
 Company.has_many :accounts
 
@@ -33,8 +34,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_return_integer_average_if_db_returns_such
-    Account.connection.stubs :select_value => 3
-    value = Account.average(:id)
+    ShipPart.delete_all
+    ShipPart.create!(:id => 3, :name => 'foo')
+    value = ShipPart.average(:id)
     assert_equal 3, value
   end
 
@@ -416,34 +418,19 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
-    # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:MysqlAdapter)
-      assert_equal "7", Company.includes(:contracts).maximum(:developer_id)
-    else
-      assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
-    end
+    assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
   end
 
   def test_minimum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
-    # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:MysqlAdapter)
-      assert_equal "7", Company.includes(:contracts).minimum(:developer_id)
-    else
-      assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
-    end
+    assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
   end
 
   def test_sum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
-    # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:MysqlAdapter) || current_adapter?(:PostgreSQLAdapter)
-      assert_equal "7", Company.includes(:contracts).sum(:developer_id)
-    else
-      assert_equal 7, Company.includes(:contracts).sum(:developer_id)
-    end
+    assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
 
