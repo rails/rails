@@ -31,12 +31,10 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@user = User\.new\(user_params\)/, m)
         assert_match(/@user\.save/, m)
-        assert_match(/@user\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@user\.update_attributes\(user_params\)/, m)
-        assert_match(/@user\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
@@ -136,6 +134,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/format\.html/, content)
       assert_no_match(/def edit/, content)
       assert_no_match(/def new/, content)
+      assert_no_match(/respond_to :html/, content)
     end
   end
 
@@ -173,10 +172,12 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     Unknown::Generators.send :remove_const, :ActiveModel
   end
 
-  def test_new_hash_style
+  def test_respond_with_responses
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/\{ render action: "new" \}/, content)
+      assert_match(/respond_to :html, :json/, content)
+      assert_match(/respond_with @users/, content)
+      assert_match(/respond_with @user/, content)
     end
   end
 end
