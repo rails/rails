@@ -830,7 +830,7 @@ Above, the `setup` method is called before each test and so `@post` is available
 Let's see the earlier example by specifying `setup` callback by specifying a method name as a symbol:
 
 ```ruby
-require '../test_helper'
+require 'test_helper'
 
 class PostsControllerTest < ActionController::TestCase
 
