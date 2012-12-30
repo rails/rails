@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Scaffold generator now uses respond_with by default.
+
+    *Jordi Polo*
+
 *   Quote column names in generates fixture files. This prevents
     conflicts with reserved YAML keywords such as 'yes' and 'no'
     Fix #8612
