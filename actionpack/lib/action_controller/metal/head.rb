@@ -31,6 +31,7 @@ module ActionController
 
       if include_content?(self.status)
         self.content_type = content_type || (Mime[formats.first] if formats)
+        self.response.charset = false if self.response
         self.response_body = " "
       else
         headers.delete('Content-Type')
