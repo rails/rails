@@ -360,10 +360,7 @@ module ActiveSupport
 
       def zones_map
         @zones_map ||= begin
-          new_zones_names = MAPPING.keys - lazy_zones_map.keys
-          new_zones       = Hash[new_zones_names.map { |place| [place, create(place)] }]
-
-          lazy_zones_map.merge(new_zones)
+          new_zones = Hash[MAPPING.keys.map { |place| [place, create(place)] }]
         end
       end
 
