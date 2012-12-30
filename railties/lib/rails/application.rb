@@ -135,9 +135,10 @@ module Rails
     def env_config
       @env_config ||= begin
         if config.secret_key_base.nil?
-          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
-            "This should be used instead of the old deprecated config.secret_token. " +
-            "Set config.secret_key_base instead of config.secret_token in config/initializers/secret_token.rb"
+          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base in config/initializers/secret_token.rb file. " +
+            "This should be used instead of the old deprecated config.secret_token in order to use the new EncryptedCookieStore. " +
+            "To convert safely to the encrypted store (without losing existing cookies and sessions), see http://guides.rubyonrails.org/upgrading_ruby_on_rails.html#action-pack"
+
           if config.secret_token.blank?
             raise "You must set config.secret_key_base in your app's config"
           end
