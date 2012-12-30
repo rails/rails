@@ -5,29 +5,24 @@ require_dependency "<%= namespaced_file_path %>/application_controller"
 <% module_namespacing do -%>
 class <%= controller_class_name %>Controller < ApplicationController
   before_action :set_<%= singular_table_name %>, only: [:show, :edit, :update, :destroy]
+  <%- if options[:html] -%>
+    respond_to :html, :json
+  <%- else -%>
+    respond_to :json
+  <%- end -%>
+  
 
   # GET <%= route_url %>
   # GET <%= route_url %>.json
   def index
     @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
-
-    respond_to do |format|
-      <%- if options[:html] -%>
-      format.html # index.html.erb
-      <%- end -%>
-      format.json { render json: <%= "@#{plural_table_name}" %> }
-    end
+    respond_with @<%= plural_table_name %>
   end
 
   # GET <%= route_url %>/1
   # GET <%= route_url %>/1.json
   def show
-    respond_to do |format|
-      <%- if options[:html] -%>
-      format.html # show.html.erb
-      <%- end -%>
-      format.json { render json: <%= "@#{singular_table_name}" %> }
-    end
+    respond_with @<%= singular_table_name %> 
   end
 
   <%- if options[:html] -%>
@@ -35,11 +30,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>/new.json
   def new
     @<%= singular_table_name %> = <%= orm_class.build(class_name) %>
-
-    respond_to do |format|
-      format.html # new.html.erb
-      format.json { render json: <%= "@#{singular_table_name}" %> }
-    end
+    respond_with @<%= singular_table_name %>
   end
 
   # GET <%= route_url %>/1/edit
@@ -51,46 +42,26 @@ class <%= controller_class_name %>Controller < ApplicationController
   # POST <%= route_url %>.json
   def create
     @<%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
-
-    respond_to do |format|
-      if @<%= orm_instance.save %>
-        <%- if options[:html] -%>
-        format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully created.'" %> }
-        <%- end -%>
-        format.json { render json: <%= "@#{singular_table_name}" %>, status: :created, location: <%= "@#{singular_table_name}" %> }
-      else
-        <%- if options[:html] -%>
-        format.html { render action: "new" }
-        <%- end -%>
-        format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
-      end
+    if @<%= orm_instance.save %>
+      flash[:notice] = <%= "'#{human_name} was successfully created.'" %>
     end
+    respond_with @<%= singular_table_name %>
   end
 
   # PATCH/PUT <%= route_url %>/1
   # PATCH/PUT <%= route_url %>/1.json
   def update
-    respond_to do |format|
-      if @<%= orm_instance.update_attributes("#{singular_table_name}_params") %>
-        <%- if options[:html] -%>
-        format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully updated.'" %> }
-        <%- end -%>
-        format.json { head :no_content }
-      else
-        <%- if options[:html] -%>
-        format.html { render action: "edit" }
-        <%- end -%>
-        format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
-      end
+    if @<%= orm_instance.update_attributes("#{singular_table_name}_params") %>
+      flash[:notice] = <%= "'#{human_name} was successfully updated.'" %>
     end
+    respond_with @<%= singular_table_name %>
   end
 
   # DELETE <%= route_url %>/1
   # DELETE <%= route_url %>/1.json
   def destroy
     @<%= orm_instance.destroy %>
-
-    respond_to do |format|
+    respond_with @<%= singular_table_name %> do |format|
       <%- if options[:html] -%>
       format.html { redirect_to <%= index_helper %>_url }
       <%- end -%>
