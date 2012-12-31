@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not append `charset=` parameter when `head` is called with a
+    `:content_type` option.
+    Fix #8661.
+
+    *Yves Senn*
+
 *   Added `Mime::NullType` class. This  allows to use html?, xml?, json?..etc when
     the `format` of `request` is unknown, without raise an exception.
 
