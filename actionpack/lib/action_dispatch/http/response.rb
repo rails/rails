@@ -260,12 +260,16 @@ module ActionDispatch # :nodoc:
       return if headers[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset
+      @charset      ||= self.class.default_charset unless @charset == false
 
       type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" unless @sending_file
+      type << "; charset=#{@charset}" if append_charset?
 
       headers[CONTENT_TYPE] = type
+    end
+
+    def append_charset?
+      !@sending_file && @charset != false
     end
 
     def rack_response(status, header)
