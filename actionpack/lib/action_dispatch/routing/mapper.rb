@@ -315,7 +315,7 @@ module ActionDispatch
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id', to: lambda {|hash| [200, {}, "Coming soon"] }
+        #   match 'photos/:id', to: lambda {|hash| [200, {}, ["Coming soon"]] }
         #   match 'photos/:id', to: PhotoRackApp
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id', to: PhotosController.action(:show)
@@ -360,7 +360,7 @@ module ActionDispatch
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', to: 'controller#action'
-        #      match 'path', to: lambda { |env| [200, {}, "Success!"] }
+        #      match 'path', to: lambda { |env| [200, {}, ["Success!"]] }
         #      match 'path', to: RackApp
         #
         # [:on]
