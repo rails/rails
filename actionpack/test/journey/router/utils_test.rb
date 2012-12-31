@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class Router
-      class TestUtils < MiniTest::Unit::TestCase
+      class TestUtils < ActiveSupport::TestCase
         def test_path_escape
           assert_equal "a/b%20c+d", Utils.escape_path("a/b c+d")
         end

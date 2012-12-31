@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module Nodes
-      class TestSymbol < MiniTest::Unit::TestCase
+      class TestSymbol < ActiveSupport::TestCase
         def test_default_regexp?
           sym = Symbol.new nil
           assert sym.default_regexp?

@@ -3,7 +3,7 @@ require 'abstract_unit'
 
 module ActionDispatch
   module Journey
-    class TestRouter < MiniTest::Unit::TestCase
+    class TestRouter < ActiveSupport::TestCase
       attr_reader :routes
 
       def setup

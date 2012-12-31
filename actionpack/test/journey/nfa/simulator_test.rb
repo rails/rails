@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module NFA
-      class TestSimulator < MiniTest::Unit::TestCase
+      class TestSimulator < ActiveSupport::TestCase
         def test_simulate_simple
           sim = simulator_for ['/foo']
           assert_match sim, '/foo'

@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module Path
-      class TestPattern < MiniTest::Unit::TestCase
+      class TestPattern < ActiveSupport::TestCase
         x = /.+/
         {
           '/:controller(/:action)'       => %r{\A/(#{x})(?:/([^/.?]+))?\Z},

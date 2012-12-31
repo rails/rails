@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 module ActionDispatch
   module Journey
-    class TestRoute < MiniTest::Unit::TestCase
+    class TestRoute < ActiveSupport::TestCase
       def test_initialize
         app      = Object.new
         path     = Path::Pattern.new '/:controller(/:action(/:id(.:format)))'

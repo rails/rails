@@ -4,7 +4,7 @@ require 'json'
 module ActionDispatch
   module Journey
     module GTG
-      class TestGeneralizedTable < MiniTest::Unit::TestCase
+      class TestGeneralizedTable < ActiveSupport::TestCase
         def test_to_json
           table = tt %w{
             /articles(.:format)

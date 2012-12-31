@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 module ActionDispatch
   module Journey
-    class TestRoutes < MiniTest::Unit::TestCase
+    class TestRoutes < ActiveSupport::TestCase
       def test_clear
         routes = Routes.new
         exp    = Router::Strexp.new '/foo(/:id)', {}, ['/.?']
