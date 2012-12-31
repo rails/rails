@@ -568,7 +568,7 @@ YAML
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'hello'] }
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['hello']] }
           end
         end
       RUBY
