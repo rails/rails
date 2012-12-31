@@ -138,12 +138,14 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'rack',      github: 'rack/rack'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     github: 'rails/rails'
+            gem 'rack',      github: 'rack/rack'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE

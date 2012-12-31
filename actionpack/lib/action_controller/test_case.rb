@@ -161,7 +161,7 @@ module ActionController
       super
 
       self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
+      self.session_options = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
@@ -236,16 +236,25 @@ module ActionController
   end
 
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
-    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
-
     def initialize(session = {})
       super(nil, nil)
-      replace(session.stringify_keys)
+      @data = session.stringify_keys
+      @id = SecureRandom.hex(16)
       @loaded = true
     end
 
     def exists?
       true
+    end
+
+    def destroy
+      clear
+    end
+
+    private
+
+    def load!
+      @id
     end
   end
 

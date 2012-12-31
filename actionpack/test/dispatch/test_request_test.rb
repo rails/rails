@@ -18,7 +18,7 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "0.0.0.0", env.delete("REMOTE_ADDR")
     assert_equal "Rails Testing", env.delete("HTTP_USER_AGENT")
 
-    assert_equal [1, 1], env.delete("rack.version")
+    assert_equal [1, 2], env.delete("rack.version")
     assert_equal "", env.delete("rack.input").string
     assert_kind_of StringIO, env.delete("rack.errors")
     assert_equal true, env.delete("rack.multithread")

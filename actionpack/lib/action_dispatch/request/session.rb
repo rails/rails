@@ -7,13 +7,15 @@ module ActionDispatch
       ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
 
+      attr_writer :id
+
       def self.create(store, env, default_options)
         session_was = find env
         session     = Request::Session.new(store, env)
         session.merge! session_was if session_was
 
         set(env, session)
-        Options.set(env, Request::Session::Options.new(store, env, default_options))
+        set_options(env, default_options.dup)
         session
       end
 
@@ -25,34 +27,8 @@ module ActionDispatch
         env[ENV_SESSION_KEY] = session
       end
 
-      class Options #:nodoc:
-        def self.set(env, options)
-          env[ENV_SESSION_OPTIONS_KEY] = options
-        end
-
-        def self.find(env)
-          env[ENV_SESSION_OPTIONS_KEY]
-        end
-
-        def initialize(by, env, default_options)
-          @by       = by
-          @env      = env
-          @delegate = default_options.dup
-        end
-
-        def [](key)
-          if key == :id
-            @delegate.fetch(key) {
-              @delegate[:id] = @by.send(:extract_session_id, @env)
-            }
-          else
-            @delegate[key]
-          end
-        end
-
-        def []=(k,v);         @delegate[k] = v; end
-        def to_hash;          @delegate.dup; end
-        def values_at(*args); @delegate.values_at(*args); end
+      def self.set_options(env, options)
+        env[ENV_SESSION_OPTIONS_KEY] = options
       end
 
       def initialize(by, env)
@@ -64,14 +40,18 @@ module ActionDispatch
       end
 
       def options
-        Options.find @env
+        @env[ENV_SESSION_OPTIONS_KEY]
+      end
+
+      def id
+        return @id if @loaded or instance_variable_defined?(:@id)
+        @id = @by.send(:extract_session_id, @env)
       end
 
       def destroy
         clear
         options = self.options || {}
-        new_sid = @by.send(:destroy_session, @env, options[:id], options)
-        options[:id] = new_sid # Reset session id with a new value or nil
+        @id = @by.send(:destroy_session, @env, id, options)
 
         # Load the new sid to be written with the response
         @loaded = false
@@ -161,8 +141,7 @@ module ActionDispatch
       end
 
       def load!
-        id, session = @by.load_session @env
-        options[:id] = id
+        @id, session = @by.load_session @env
         @delegate.replace(stringify_keys(session))
         @loaded = true
       end
