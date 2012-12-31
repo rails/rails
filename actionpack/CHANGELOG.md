@@ -1,5 +1,12 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Do not append `charset=` parameter when `head` is called with a
+    `:content_type` option.
+    Fix #8661.
+    Backport #8662.
+
+    *Yves Senn*
+
 *   Clear url helper methods when routes are reloaded by removing the methods
     explicitly rather than just clearing the module because it didn't work
     properly and could be the source of a memory leak.

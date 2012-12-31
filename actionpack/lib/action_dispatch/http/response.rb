@@ -56,7 +56,7 @@ module ActionDispatch # :nodoc:
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
- 
+
     cattr_accessor(:default_charset) { "utf-8" }
 
     include Rack::Response::Helpers
@@ -195,12 +195,16 @@ module ActionDispatch # :nodoc:
       return if headers[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset
+      @charset      ||= self.class.default_charset if !defined?(@charset) || @charset != false
 
       type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" unless @sending_file
+      type << "; charset=#{@charset}" if append_charset?
 
       headers[CONTENT_TYPE] = type
+    end
+
+    def append_charset?
+      !@sending_file && @charset != false
     end
   end
 end
