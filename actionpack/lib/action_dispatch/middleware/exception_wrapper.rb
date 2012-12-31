@@ -57,7 +57,7 @@ module ActionDispatch
     end
 
     def source_extract
-      if trace = application_trace.first
+      if application_trace && trace = application_trace.first
         file, line, _ = trace.split(":")
         @file = file
         @line_number = line.to_i
@@ -92,6 +92,7 @@ module ActionDispatch
     end
 
     def source_fragment(path, line)
+      return unless Rails.respond_to?(:root) && Rails.root
       full_path = Rails.root.join(path)
       if File.exists?(full_path)
         File.open(full_path, "r") do |file|
