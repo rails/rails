@@ -42,7 +42,7 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 platforms :mri do
   group :test do
     gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
-    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0'
+    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0' && RUBY_PATCHLEVEL < 362
   end
 end
 
