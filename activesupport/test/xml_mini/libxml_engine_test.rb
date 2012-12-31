@@ -1,12 +1,11 @@
-require 'abstract_unit'
-require 'active_support/xml_mini'
-require 'active_support/core_ext/hash/conversions'
-
 begin
   require 'libxml'
 rescue LoadError
   # Skip libxml tests
 else
+require 'abstract_unit'
+require 'active_support/xml_mini'
+require 'active_support/core_ext/hash/conversions'
 
 class LibxmlEngineTest < ActiveSupport::TestCase
   include ActiveSupport
