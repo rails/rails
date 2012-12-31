@@ -135,7 +135,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       }
     })
     assert_response 500
-    assert_match(/RuntimeError\n    in FeaturedTileController/, body)
+    assert_match(/RuntimeError\n\s+in FeaturedTileController/, body)
   end
 
   test "sets the HTTP charset parameter" do
