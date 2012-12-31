@@ -214,7 +214,8 @@ Rails follows a simple set of coding style conventions:
 * Prefer `&&`/`||` over `and`/`or`.
 * Prefer class << self over self.method for class methods.
 * Use `MyClass.my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
-* Use a = b and not a=b.
+* Use `a = b` and not `a=b`.
+* Use assert_not methods instead of refute.
 * Follow the conventions in the source you see used already.
 
 The above are guidelines — please use your best judgment in using them.
@@ -403,7 +404,7 @@ following:
 
 ```bash
 $ git fetch upstream
-$ git checkout my_pull_request 
+$ git checkout my_pull_request
 $ git rebase upstream/master
 $ git rebase -i
 

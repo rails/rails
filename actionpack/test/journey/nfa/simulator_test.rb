@@ -11,17 +11,17 @@ module ActionDispatch
 
         def test_simulate_simple_no_match
           sim = simulator_for ['/foo']
-          refute_match sim, 'foo'
+          assert_no_match sim, 'foo'
         end
 
         def test_simulate_simple_no_match_too_long
           sim = simulator_for ['/foo']
-          refute_match sim, '/foo/bar'
+          assert_no_match sim, '/foo/bar'
         end
 
         def test_simulate_simple_no_match_wrong_string
           sim = simulator_for ['/foo']
-          refute_match sim, '/bar'
+          assert_no_match sim, '/bar'
         end
 
         def test_simulate_regex
@@ -34,14 +34,14 @@ module ActionDispatch
           sim = simulator_for ['/foo', '/bar']
           assert_match sim, '/bar'
           assert_match sim, '/foo'
-          refute_match sim, '/baz'
+          assert_no_match sim, '/baz'
         end
 
         def test_simulate_optional
           sim = simulator_for ['/foo(/bar)']
           assert_match sim, '/foo'
           assert_match sim, '/foo/bar'
-          refute_match sim, '/foo/'
+          assert_no_match sim, '/foo/'
         end
 
         def test_matchdata_has_memos

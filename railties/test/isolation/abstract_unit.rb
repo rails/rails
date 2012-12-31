@@ -9,7 +9,7 @@
 require 'fileutils'
 
 require 'bundler/setup' unless defined?(Bundler)
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'active_support/test_case'
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")

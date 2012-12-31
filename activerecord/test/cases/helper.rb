@@ -2,8 +2,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
-gem 'minitest'
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'stringio'
 
 require 'active_record'

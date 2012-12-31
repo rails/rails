@@ -9,7 +9,7 @@ module ActionDispatch
           assert sym.default_regexp?
 
           sym.regexp = nil
-          refute sym.default_regexp?
+          assert_not sym.default_regexp?
         end
       end
     end

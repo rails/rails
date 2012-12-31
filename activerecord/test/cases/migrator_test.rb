@@ -121,11 +121,11 @@ module ActiveRecord
 
       ActiveRecord::Migrator.new(:up, pass_one).migrate
       assert pass_one.first.went_up
-      refute pass_one.first.went_down
+      assert_not pass_one.first.went_down
 
       pass_two = [Sensor.new('One', 1), Sensor.new('Three', 3)]
       ActiveRecord::Migrator.new(:up, pass_two).migrate
-      refute pass_two[0].went_up
+      assert_not pass_two[0].went_up
       assert pass_two[1].went_up
       assert pass_two.all? { |x| !x.went_down }
 
@@ -135,7 +135,7 @@ module ActiveRecord
 
       ActiveRecord::Migrator.new(:down, pass_three).migrate
       assert pass_three[0].went_down
-      refute pass_three[1].went_down
+      assert_not pass_three[1].went_down
       assert pass_three[2].went_down
     end
 
@@ -307,7 +307,7 @@ module ActiveRecord
       _, migrator = migrator_class(3)
 
       ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
-      refute ActiveRecord::Base.connection.table_exists?('schema_migrations')
+      assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations')
       migrator.migrate("valid", 1)
       assert ActiveRecord::Base.connection.table_exists?('schema_migrations')
     end
