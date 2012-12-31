@@ -231,6 +231,8 @@ module ActiveRecord
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = reorder(nil)
 
+      column_alias = column_name
+
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.
         return 0 if relation.limit_value == 0
@@ -241,13 +243,20 @@ module ActiveRecord
 
         select_value = operation_over_aggregate_column(column, operation, distinct)
 
+        column_alias = select_value.alias
         relation.select_values = [select_value]
 
         query_builder = relation.arel
       end
 
-      result = @klass.connection.select_value(query_builder, nil, relation.bind_values)
-      type_cast_calculated_value(result, column_for(column_name), operation)
+      result = @klass.connection.select_all(query_builder, nil, relation.bind_values)
+      row    = result.first
+      value  = row && row.values.first
+      column = result.column_types.fetch(column_alias) do
+        column_for(column_name)
+      end
+
+      type_cast_calculated_value(value, column, operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -265,7 +274,7 @@ module ActiveRecord
         column_alias_for(field)
       }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
-        [aliaz, column_for(field)]
+        [aliaz, field]
       }
 
       group = group_fields
@@ -305,7 +314,10 @@ module ActiveRecord
       end
 
       Hash[calculated_data.map do |row|
-        key = group_columns.map { |aliaz, column|
+        key = group_columns.map { |aliaz, col_name|
+          column = calculated_data.column_types.fetch(aliaz) do
+            column_for(col_name)
+          end
           type_cast_calculated_value(row[aliaz], column)
         }
         key = key.first if key.size == 1

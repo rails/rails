@@ -79,7 +79,7 @@ end
 
 Alternatively, you can use `up` and `down` instead of `change`:
 
-``ruby
+```ruby
 class ChangeProductsPrice < ActiveRecord::Migration
   def up
     change_table :products do |t|
@@ -108,7 +108,9 @@ of the migration. The name of the migration class (CamelCased version)
 should match the latter part of the file name. For example
 `20080906120000_create_products.rb` should define class `CreateProducts` and
 `20080906120001_add_details_to_products.rb` should define
-`AddDetailsToProducts`.
+`AddDetailsToProducts`. Rails uses this timestamp to determine which migration
+should be run and in what order, so if you're copying a migration from another
+application or generate a file yourself, be aware of its position in the order.
 
 Of course, calculating timestamps is no fun, so Active Record provides a
 generator to handle making it for you:

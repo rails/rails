@@ -112,12 +112,12 @@ module ActionView
       #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
-        highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-
         text = sanitize(text) if options.fetch(:sanitize, true)
+
         if text.blank? || phrases.blank?
           text
         else
+          highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
           text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
         end.html_safe

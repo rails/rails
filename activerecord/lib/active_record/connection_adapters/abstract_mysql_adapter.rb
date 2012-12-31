@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def extract_default(default)
-          if sql_type =~ /blob/i || type == :text
+          if blob_or_text_column?
             if default.blank?
               null || strict ? nil : ''
             else
@@ -28,8 +28,12 @@ module ActiveRecord
         end
 
         def has_default?
-          return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
+          return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
           super
+        end
+        
+        def blob_or_text_column?
+          sql_type =~ /blob/i || type == :text
         end
 
         # Must return the relevant concrete adapter

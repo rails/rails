@@ -3,6 +3,22 @@ require 'active_support/core_ext/object/blank'
 module ActiveSupport
   module Testing
     module Assertions
+      # Assert that an expression is not truthy. Passes if <tt>object</tt> is
+      # +nil+ or +false+. "Truthy" means "considered true in a conditional"
+      # like <tt>if foo</tt>.
+      #
+      #   assert_not nil    # => true
+      #   assert_not false  # => true
+      #   assert_not 'foo'  # => 'foo' is not nil or false
+      #
+      # An error message can be specified.
+      #
+      #   assert_not foo, 'foo should be false'
+      def assert_not(object, message = nil)
+        message ||= "Expected #{mu_pp(object)} to be nil or false"
+        assert !object, message
+      end
+
       # Test numeric difference between the return value of an expression as a
       # result of what is evaluated in the yielded block.
       #

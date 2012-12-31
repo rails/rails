@@ -1,7 +1,16 @@
 require 'cases/helper'
 require 'models/developer'
+require 'models/topic'
 
 class TimestampTest < ActiveRecord::TestCase
+  fixtures :topics
+
+  def test_group_by_date
+    keys = Topic.group("date_trunc('month', created_at)").count.keys
+    assert_operator keys.length, :>, 0
+    keys.each { |k| assert_kind_of Time, k }
+  end
+
   def test_load_infinity_and_beyond
     unless current_adapter?(:PostgreSQLAdapter)
       return skip("only tested on postgresql")

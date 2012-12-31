@@ -656,8 +656,6 @@ class Coffee < ActiveRecord::Base
 end
 ```
 
-TIP: `:allow_nil` is ignored by the presence validator.
-
 ### `:allow_blank`
 
 The `:allow_blank` option is similar to the `:allow_nil` option. This option
@@ -672,8 +670,6 @@ end
 Topic.create("title" => "").valid?  # => true
 Topic.create("title" => nil).valid? # => true
 ```
-
-TIP: `:allow_blank` is ignored by the presence validator.
 
 ### `:message`
 

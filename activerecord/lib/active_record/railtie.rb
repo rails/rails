@@ -112,7 +112,7 @@ module ActiveRecord
               `config/application.rb` file and any `mass_assignment_sanitizer` options
               from your `config/environments/*.rb` files.
 
-              See http://edgeguides.rubyonrails.org/security.html#mass-assignment for more information
+              See http://guides.rubyonrails.org/security.html#mass-assignment for more information
             EOF
           end
 
@@ -124,7 +124,7 @@ module ActiveRecord
               To disable this message remove the `observers` option from your
               `config/application.rb` or from your initializers.
 
-              See http://edgeguides.rubyonrails.org/4_0_release_notes.html for more information
+              See http://guides.rubyonrails.org/4_0_release_notes.html for more information
             EOF
           end
         ensure

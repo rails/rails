@@ -415,7 +415,7 @@ tests will set the following configuration parameters:
 ```bash
 ActionController::Base.perform_caching = true
 ActiveSupport::Dependencies.mechanism = :require
-Rails.logger.level = ActiveSupport::BufferedLogger::INFO
+Rails.logger.level = ActiveSupport::Logger::INFO
 ```
 
 As `ActionController::Base.perform_caching` is set to `true`, performance tests
