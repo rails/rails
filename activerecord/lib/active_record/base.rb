@@ -179,13 +179,6 @@ module ActiveRecord #:nodoc:
   #
   #   Payment.order("created_on").find_by_amount(50)
   #
-  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without
-  # saving it first. Protected attributes won't be set unless they are given in a block.
-  #
-  #   # No 'Winter' tag exists
-  #   winter = Tag.find_or_initialize_by_name("Winter")
-  #   winter.persisted? # false
-  #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
   # Active Record can serialize any object in text columns using YAML. To do so, you must
