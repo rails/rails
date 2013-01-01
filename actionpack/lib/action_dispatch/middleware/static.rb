@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'rack/mime'
 require 'active_support/core_ext/uri'
 
 module ActionDispatch
@@ -16,21 +17,42 @@ module ActionDispatch
       full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(unescape_path(path)))
       paths = "#{full_path}#{ext}"
 
-      matches = Dir[paths]
-      match = matches.detect { |m| File.file?(m) }
-      if match
-        match.sub!(@compiled_root, '')
-        ::Rack::Utils.escape(match)
-      end
+      Dir[paths].detect { |m| File.file?(m) }
     end
 
     def call(env)
       case env['REQUEST_METHOD']
       when 'GET', 'HEAD'
         path = env['PATH_INFO'].chomp('/')
-        if match = match?(path)
-          env["PATH_INFO"] = match
-          return @file_server.call(env)
+        if filename = match?(path)
+          compressed_filename = "#{filename}.gz"
+          compressed_exists = File.file?(compressed_filename)
+
+          wants_compressed = !!(env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/)
+
+          if wants_compressed && compressed_exists
+            path = compressed_filename
+          else
+            path = filename
+          end
+
+          path.sub!(@compiled_root, '')
+          env["PATH_INFO"] = ::Rack::Utils.escape(path)
+          status, headers, body = @file_server.call(env)
+
+          if compressed_exists
+            headers['Vary'] = 'Accept-Encoding'
+
+            if wants_compressed
+              headers['Content-Encoding'] = 'gzip'
+              # Rack::File will always return 'application/gzip', so we need
+              # to set the correct mime header here
+              headers['Content-Type'] = Rack::Mime.mime_type(
+                  ::File.extname(filename), 'text/plain')
+            end
+          end
+
+          return [status, headers, body]
         end
       end
 
