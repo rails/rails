@@ -38,6 +38,23 @@ class ProjectWithAfterCreateHook < ActiveRecord::Base
   end
 end
 
+class ProjectWithAfterCreateHookBeforeHABTM < ActiveRecord::Base
+  self.table_name = 'projects'
+
+  after_create :add_david
+
+  has_and_belongs_to_many :custom_developers,
+    :class_name => "DeveloperForProjectWithAfterCreateHook",
+    :join_table => "developers_projects",
+    :foreign_key => "project_id",
+    :association_foreign_key => "developer_id"
+
+  def add_david
+    david = DeveloperForProjectWithAfterCreateHook.find_by_name('David')
+    custom_developers << david
+   end
+end
+
 class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
   self.table_name = 'developers'
   has_and_belongs_to_many :projects,
@@ -590,6 +607,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert project.developers.include?(jamis)
     assert project.developers.include?(david)
+  end
+
+  def test_after_create_before_habtm_definition
+    project = ProjectWithAfterCreateHookBeforeHABTM.create! :name => 'Getting things done'
+    project.save!
+
+    assert_equal 1, project.custom_developers.count
   end
 
   def test_find_in_association_with_options
