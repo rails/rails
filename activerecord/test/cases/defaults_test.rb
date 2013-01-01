@@ -39,7 +39,7 @@ class DefaultTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional fixtures mode, this will

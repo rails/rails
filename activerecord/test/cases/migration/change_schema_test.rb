@@ -50,7 +50,7 @@ module ActiveRecord
 
       def test_create_table_with_defaults
         # MySQL doesn't allow defaults on TEXT or BLOB columns.
-        mysql = current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+        mysql = current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
         connection.create_table :testings do |t|
           t.column :one, :string, :default => "hello"
@@ -99,7 +99,7 @@ module ActiveRecord
           assert_equal 'smallint', one.sql_type
           assert_equal 'integer', four.sql_type
           assert_equal 'bigint', eight.sql_type
-        elsif current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+        elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
           assert_match 'int(11)', default.sql_type
           assert_match 'tinyint', one.sql_type
           assert_match 'int', four.sql_type
