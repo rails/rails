@@ -80,6 +80,12 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
+    # Returns true if the the current time is within Daylight Savings Time for the
+    # specified time zone.
+    #
+    #    Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
+    #    Time.zone.parse("2012-5-30").dst?           # => true
+    #    Time.zone.parse("2012-11-30").dst?          # => false
     def dst?
       period.dst?
     end
