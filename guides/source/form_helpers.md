@@ -1,7 +1,7 @@
 Form Helpers
 ============
 
-Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
+Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails does away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
 
 After reading this guide, you will know:
 
@@ -148,7 +148,9 @@ Output:
 
 As with `check_box_tag`, the second parameter to `radio_button_tag` is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one, and `params[:age]` will contain either "child" or "adult".
 
-NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and make it easier for users to click the inputs by expanding the clickable region.
+NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
+by expanding the clickable region,
+make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
@@ -534,7 +536,7 @@ The `:prefix` option is the key used to retrieve the hash of date components fro
 ### Model Object Helpers
 
 `select_date` does not work well with forms that update or create Active Record objects as Active Record expects each element of the `params` hash to correspond to one attribute.
-The model object helpers for dates and times submit parameters with special names, when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
+The model object helpers for dates and times submit parameters with special names; when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
 
 ```erb
 <%= date_select :person, :birth_date %>
@@ -620,7 +622,7 @@ Unlike other forms making an asynchronous file upload form is not as simple as p
 Customizing Form Builders
 -------------------------
 
-As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example
+As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way, you can also subclass FormBuilder and add the helpers there. For example
 
 ```erb
 <%= form_for @person do |f| %>
@@ -805,7 +807,7 @@ Sometimes when you submit data to an external resource, like payment gateway, fi
 <% end %>
 ```
 
-The same technique is available for the `form_for` too:
+The same technique is also available for `form_for`:
 
 ```erb
 <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
