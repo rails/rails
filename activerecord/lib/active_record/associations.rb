@@ -1081,7 +1081,7 @@ module ActiveRecord
       # === Example
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.where(firm_id: id)</tt>)
+      # * <tt>Firm#clients</tt> (similar to <tt>Client.where(firm_id: id)</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients.destroy</tt>
