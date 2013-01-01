@@ -482,8 +482,8 @@ $ cd <ruby-version>
 ##### Apply the Patch
 
 ```bash
-$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
-$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
+$ curl https://raw.github.com/wayneeseguin/rvm/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
+$ curl https://raw.github.com/wayneeseguin/rvm/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
 ```
 
 ##### Configure and Install
