@@ -428,7 +428,7 @@ WARNING: when `:inlude_blank` or `:prompt:` are not present, `:include_blank` is
 You can add arbitrary attributes to the options using hashes:
 
 ```html+erb
-<%= options_for_select([['Lisbon', 1, 'data-size': '2.8 million'], ['Madrid', 2, 'data-size': '3.2 million']], 2) %>
+<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
 
 output:
 
