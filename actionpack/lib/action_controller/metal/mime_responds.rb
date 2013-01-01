@@ -82,7 +82,7 @@ module ActionController #:nodoc:
     # (by name) if it does not already exist, without web-services, it might look like this:
     #
     #   def create
-    #     @company = Company.find_or_create_by_name(params[:company][:name])
+    #     @company = Company.find_or_create_by(name: params[:company][:name])
     #     @person  = @company.people.create(params[:person])
     #
     #     redirect_to(person_list_url)
@@ -92,7 +92,7 @@ module ActionController #:nodoc:
     #
     #   def create
     #     company  = params[:person].delete(:company)
-    #     @company = Company.find_or_create_by_name(company[:name])
+    #     @company = Company.find_or_create_by(name: company[:name])
     #     @person  = @company.people.create(params[:person])
     #
     #     respond_to do |format|
@@ -120,7 +120,7 @@ module ActionController #:nodoc:
     # Note, however, the extra bit at the top of that action:
     #
     #   company  = params[:person].delete(:company)
-    #   @company = Company.find_or_create_by_name(company[:name])
+    #   @company = Company.find_or_create_by(name: company[:name])
     #
     # This is because the incoming XML document (if a web-service request is in process) can only contain a
     # single root-node. So, we have to rearrange things so that the request looks like this (url-encoded):

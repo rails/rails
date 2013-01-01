@@ -179,37 +179,12 @@ module ActiveRecord #:nodoc:
   #
   #   Payment.order("created_on").find_by_amount(50)
   #
-  # The same dynamic finder style can be used to create the object if it doesn't already exist.
-  # This dynamic finder is called with <tt>find_or_create_by_</tt> and will return the object if
-  # it already exists and otherwise creates it, then returns it. Protected attributes won't be set
-  # unless they are given in a block.
-  #
-  #   # No 'Summer' tag exists
-  #   Tag.find_or_create_by_name("Summer") # equal to Tag.create(name: "Summer")
-  #
-  #   # Now the 'Summer' tag does exist
-  #   Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
-  #
-  #   # Now 'Bob' exist and is an 'admin'
-  #   User.find_or_create_by_name('Bob', age: 40) { |u| u.admin = true }
-  #
-  # Adding an exclamation point (!) on to the end of <tt>find_or_create_by_</tt> will
-  # raise an <tt>ActiveRecord::RecordInvalid</tt> error if the new record is invalid.
-  #
   # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without
   # saving it first. Protected attributes won't be set unless they are given in a block.
   #
   #   # No 'Winter' tag exists
   #   winter = Tag.find_or_initialize_by_name("Winter")
   #   winter.persisted? # false
-  #
-  # To find by a subset of the attributes to be used for instantiating a new object, pass a hash instead of
-  # a list of parameters.
-  #
-  #   Tag.find_or_create_by_name(name: "rails", creator: current_user)
-  #
-  # That will either find an existing tag named "rails", or create a new one while setting the
-  # user that created it.
   #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #

@@ -531,7 +531,7 @@ before_save :set_author
 
 private
   def set_author
-    self.author = User.find_or_create_by_name(author_name)
+    self.author = User.find_or_create_by(name: author_name)
   end
 ```
 
@@ -630,7 +630,7 @@ belongs_to :author, class_name: Blorgh.user_class
 The `set_author` method also located in this class should also use this class:
 
 ```ruby
-self.author = Blorgh.user_class.constantize.find_or_create_by_name(author_name)
+self.author = Blorgh.user_class.constantize.find_or_create_by(name: author_name)
 ```
 
 To save having to call `constantize` on the `user_class` result all the time, you could instead just override the `user_class` getter method inside the `Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the saved value before returning the result:
@@ -644,7 +644,7 @@ end
 This would then turn the above code for `set_author` into this:
 
 ```ruby
-self.author = Blorgh.user_class.find_or_create_by_name(author_name)
+self.author = Blorgh.user_class.find_or_create_by(name: author_name)
 ```
 
 Resulting in something a little shorter, and more implicit in its behaviour. The `user_class` method should always return a `Class` object.
@@ -661,7 +661,7 @@ WARNING: It's very important here to use the `String` version of the class, rath
 
 Go ahead and try to create a new post. You will see that it works exactly in the same way as before, except this time the engine is using the configuration setting in `config/initializers/blorgh.rb` to learn what the class is.
 
-There are now no strict dependencies on what the class is, only what the API for the class must be. The engine simply requires this class to define a `find_or_create_by_name` method which returns an object of that class to be associated with a post when it's created. This object, of course, should have some sort of identifier by which it can be referenced.
+There are now no strict dependencies on what the class is, only what the API for the class must be. The engine simply requires this class to define a `find_or_create_by` method which returns an object of that class to be associated with a post when it's created. This object, of course, should have some sort of identifier by which it can be referenced.
 
 #### General engine configuration
 
@@ -800,7 +800,7 @@ module Blorgh::Concerns::Models::Post
     private
 
     def set_author
-      self.author = User.find_or_create_by_name(author_name)
+      self.author = User.find_or_create_by(name: author_name)
     end
   end
 

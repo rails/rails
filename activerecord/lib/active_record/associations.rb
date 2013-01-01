@@ -459,7 +459,7 @@ module ActiveRecord
     #     has_many :people do
     #       def find_or_create_by_name(name)
     #         first_name, last_name = name.split(" ", 2)
-    #         find_or_create_by_first_name_and_last_name(first_name, last_name)
+    #         find_or_create_by(first_name: first_name, last_name: last_name)
     #       end
     #     end
     #   end
@@ -474,7 +474,7 @@ module ActiveRecord
     #   module FindOrCreateByNameExtension
     #     def find_or_create_by_name(name)
     #       first_name, last_name = name.split(" ", 2)
-    #       find_or_create_by_first_name_and_last_name(first_name, last_name)
+    #       find_or_create_by(first_name: first_name, last_name: last_name)
     #     end
     #   end
     #
