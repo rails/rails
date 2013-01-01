@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Action Controller: Exception caught</title>
   <style>
-    body { background-color: #fff; color: #333; }
+    body { background-color: #fff; color: #333; margin: 0px}
 
     body, p, ol, ul, td {
       font-family: helvetica, verdana, arial, sans-serif;
@@ -13,15 +13,103 @@
     }
 
     pre {
-      background-color: #eee;
-      padding: 10px;
       font-size: 11px;
       white-space: pre-wrap;
     }
 
-    a { color: #000; }
+    pre.box {
+      border: #eee solid 1px;
+      padding: 10px;
+      margin: 0px;
+      width: 958px;
+    }
+
+    header {
+      background: whiteSmoke;
+      filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#980905',endColorstr='#c52f24');
+      background: -webkit-gradient(linear,0% 0,0% 100%,from(#980905),to(#C52F24));
+      background: -moz-linear-gradient(270deg,#980905,#C52F24);
+      color: #fff;
+      padding: 0.5em;
+    }
+
+    h2 {
+      color: #C52F24;
+      padding: 2px;
+      line-height: 25px;
+    }
+
+    .details {
+      border: 1px solid #E5E5E5;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+      margin: 1em 0px;
+      display: block;
+      width: 978px;
+    }
+
+    .summary {
+      padding: 8px 15px;
+      border-bottom: 1px solid #E5E5E5;
+      display: block;
+    }
+
+    .details pre {
+      margin: 5px;
+      border: none;
+    }
+
+    #container {
+      margin: auto;
+      width: 98%;
+    }
+
+    .source * {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    .source {
+      border: 1px solid #D9D9D9;
+      background: #ECECEC;
+      width: 978px;
+    }
+
+    .source pre {
+      padding: 10px 0px;
+      border: none;
+    }
+
+    .source .data {
+      font-size: 80%;
+      overflow: auto;
+      background-color: #fff;
+    }
+
+    .info {
+      padding: 0.5em;
+    }
+
+    .source .data .line_numbers {
+      background-color: #ECECEC;
+      color: #AAA;
+      padding: 1em .5em;
+      border-right: 1px solid #DDD;
+      text-align: right;
+    }
+
+    .line:hover {
+      background-color: #f6f6f6;
+    }
+
+    .line.active {
+      background-color: #FFCCCC;
+    }
+
+    a { color: #980905; }
     a:visited { color: #666; }
-    a:hover { color: #fff; background-color:#000; }
+    a:hover { color: #C52F24;}
   </style>
 </head>
 <body>

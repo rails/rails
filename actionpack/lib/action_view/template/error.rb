@@ -78,7 +78,7 @@ module ActionView
         end
       end
 
-      def source_extract(indentation = 0)
+      def source_extract(indentation = 0, output = :console)
         return unless num = line_number
         num = num.to_i
 
@@ -88,13 +88,9 @@ module ActionView
         end_on_line   = [ num + SOURCE_CODE_RADIUS - 1, source_code.length].min
 
         indent = end_on_line.to_s.size + indentation
-        line_counter = start_on_line
         return unless source_code = source_code[start_on_line..end_on_line]
 
-        source_code.sum do |line|
-          line_counter += 1
-          "%#{indent}s: %s\n" % [line_counter, line]
-        end
+        formatted_code_for(source_code, start_on_line, indent, output)
       end
 
       def sub_template_of(template_path)
@@ -122,6 +118,18 @@ module ActionView
           else
             'in '
           end + file_name
+        end
+
+        def formatted_code_for(source_code, line_counter, indent, output)
+          start_value = (output == :html) ? {} : ""
+          source_code.inject(start_value) do |result, line|
+            line_counter += 1
+            if output == :html
+              result.update(line_counter.to_s => "%#{indent}s %s\n" % ["", line])
+            else
+              result << "%#{indent}s: %s\n" % [line_counter, line]
+            end
+          end
         end
     end
   end
