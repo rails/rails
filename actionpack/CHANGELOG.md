@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change the stylesheet of exception pages for development mode.
+    Additionally display also the line of code and fragment that raised
+    the exception in all exceptions pages.
+
+    *Guillermo Iguaran + Jorge Cuadrado*
+
 *   Do not append `charset=` parameter when `head` is called with a
     `:content_type` option.
     Fix #8661.
