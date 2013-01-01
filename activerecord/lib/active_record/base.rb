@@ -162,9 +162,9 @@ module ActiveRecord #:nodoc:
   #
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects
   # by simple queries without turning to SQL. They work by appending the name of an attribute
-  # to <tt>find_by_</tt>, or <tt>find_last_by_</tt> and thus produces finders
-  # like <tt>Person.find_by_user_name</tt>, and # <tt>Payment.find_by_transaction_id</tt>. Instead of writing
-  # <tt>Person.where(user_name: user_name).first</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # to <tt>find_by_</tt> # like <tt>Person.find_by_user_name</tt>.
+  # Instead of writing # <tt>Person.where(user_name: user_name).first</tt>, you just do
+  # <tt>Person.find_by_user_name(user_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
   # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records,
@@ -178,7 +178,6 @@ module ActiveRecord #:nodoc:
   # It's even possible to call these dynamic finder methods on relations and named scopes.
   #
   #   Payment.order("created_on").find_by_amount(50)
-  #   Payment.pending.find_last_by_amount(100)
   #
   # The same dynamic finder style can be used to create the object if it doesn't already exist.
   # This dynamic finder is called with <tt>find_or_create_by_</tt> and will return the object if
