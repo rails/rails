@@ -109,6 +109,14 @@ module ActiveSupport
     alias_method :gmt_offset, :utc_offset
     alias_method :gmtoff, :utc_offset
 
+    # Returns a formatted string of the offset from UTC, or an alternative
+    # string if the time zone is already UTC.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
+    #   Time.zone.now.formatted_offset(true)       # => "-05:00"
+    #   Time.zone.now.formatted_offset(false)      # => "-0500"
+    #   Time.zone = 'UTC'                          # => "UTC"
+    #   Time.zone.now.formatted_offset(true, "0")  # => "0"
     def formatted_offset(colon = true, alternate_utc_string = nil)
       utc? && alternate_utc_string || TimeZone.seconds_to_utc_offset(utc_offset, colon)
     end
@@ -206,18 +214,24 @@ module ActiveSupport
       utc <=> other
     end
 
+    # Returns true if the current object's time is within the specified
+    # +min+ and +max+ time.
     def between?(min, max)
       utc.between?(min, max)
     end
 
+    # Returns true if the current object's time is in the past.
     def past?
       utc.past?
     end
 
+    # Returns true if the current object's time falls within
+    # the current day.
     def today?
       time.today?
     end
 
+    # Returns true if the current object's time is in the future.
     def future?
       utc.future?
     end
