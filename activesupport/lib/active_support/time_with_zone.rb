@@ -80,7 +80,7 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
-    # Returns true if the the current time is within Daylight Savings Time for the
+    # Returns true if the current time is within Daylight Savings Time for the
     # specified time zone.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
@@ -91,7 +91,7 @@ module ActiveSupport
     end
     alias_method :isdst, :dst?
 
-    # Returns true if the the current time zone is set to UTC.
+    # Returns true if the current time zone is set to UTC.
     #
     #   Time.zone = 'UTC'                           # => 'UTC'
     #   Time.zone.now.utc?                          # => true
@@ -102,8 +102,7 @@ module ActiveSupport
     end
     alias_method :gmt?, :utc?
 
-    # Returns a +Fixnum+ of the offset from current time zone to UTC time
-    # in seconds.
+    # Returns the offset from current time to UTC time in seconds.
     def utc_offset
       period.utc_total_offset
     end
