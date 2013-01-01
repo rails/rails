@@ -107,8 +107,9 @@ module ActiveRecord
         assert_equal 1, connection.indexes('test_models').size
         remove_column("test_models", "hat_size")
 
-        # FIXME: should all adapters behave the same?
-        if current_adapter?(:PostgreSQLAdapter)
+        # Every database and/or database adapter has their own behavior 
+        # if it drops the multi-column index when any of the indexed columns dropped by remove_column.
+        if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
           assert_equal [], connection.indexes('test_models').map(&:name)
         else
           assert_equal ['index_test_models_on_hat_style_and_hat_size'], connection.indexes('test_models').map(&:name)
