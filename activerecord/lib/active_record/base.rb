@@ -215,12 +215,6 @@ module ActiveRecord #:nodoc:
   # That will either find an existing tag named "rails", or create a new one while setting the
   # user that created it.
   #
-  # Just like <tt>find_by_*</tt>, you can also use <tt>scoped_by_*</tt> to retrieve data. The good thing about
-  # using this feature is that the very first time result is returned using <tt>method_missing</tt> technique
-  # but after that the method is declared on the class. Henceforth <tt>method_missing</tt> will not be hit.
-  #
-  #  User.scoped_by_user_name('David')
-  #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
   # Active Record can serialize any object in text columns using YAML. To do so, you must
