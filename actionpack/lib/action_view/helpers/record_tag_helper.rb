@@ -98,7 +98,9 @@ module ActionView
           options, prefix = prefix, nil if prefix.is_a?(Hash)
           options = options ? options.dup : {}
           options.merge!(:class => "#{dom_class(record, prefix)} #{options[:class]}".strip, :id => dom_id(record, prefix))
-          if block.arity == 0
+          if !block_given?
+            content_tag(tag_name, "", options)
+          elsif block.arity == 0
             content_tag(tag_name, capture(&block), options)
           else
             content_tag(tag_name, capture(record, &block), options)
