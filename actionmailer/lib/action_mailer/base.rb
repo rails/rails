@@ -362,7 +362,7 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>queue</> - The queue that will be used to deliver the mail. The queue should expect a job that responds to <tt>run</tt>.
+  # * <tt>queue</tt> - The queue that will be used to deliver the mail. The queue should expect a job that responds to <tt>run</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
     abstract!
