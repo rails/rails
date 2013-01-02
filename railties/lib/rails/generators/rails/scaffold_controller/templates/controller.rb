@@ -71,7 +71,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # PATCH/PUT <%= route_url %>/1.json
   def update
     respond_to do |format|
-      if @<%= orm_instance.update_attributes("#{singular_table_name}_params") %>
+      if @<%= orm_instance.update("#{singular_table_name}_params") %>
         <%- if options[:html] -%>
         format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully updated.'" %> }
         <%- end -%>
