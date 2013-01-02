@@ -174,18 +174,17 @@
     *Gabriel Sobrinho, Ricardo Henrique*
 
 
+## Rails 3.2.10 (Jan 2, 2013) ##
+
+*   CVE-2012-5664 options hashes should only be extracted if there are extra
+    parameters
+
+
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Fix `find_in_batches` crashing when IDs are strings and start option is not specified.
 
     *Alexis Bernard*
-
-## Rails 3.2.10 ##
-
-*   CVE-2012-5664 options hashes should only be extracted if there are extra
-    parameters
-
-## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Fix issue with collection associations calling first(n)/last(n) and attempting
     to set the inverse association when `:inverse_of` was used. Fixes #8087.

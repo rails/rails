@@ -1,6 +1,10 @@
 ## Rails 3.2.11 (unreleased) ##
 
-## Rails 3.2.10 ##
+
+## Rails 3.2.10 (Jan 2, 2013) ##
+
+*   No changes.
+
 
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
@@ -19,6 +23,7 @@
         end
 
     *Yves Senn*
+
 
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
