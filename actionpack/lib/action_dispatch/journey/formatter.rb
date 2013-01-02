@@ -56,7 +56,6 @@ module ActionDispatch
           end
 
           parameterized_parts.keep_if { |_, v| v  }
-          parameterized_parts
         end
 
         def named_routes
