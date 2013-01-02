@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 module ActionDispatch
   module Journey
-    class TestRoutes < MiniTest::Unit::TestCase
+    class TestRoutes < ActiveSupport::TestCase
       def test_clear
         routes = Routes.new
         exp    = Router::Strexp.new '/foo(/:id)', {}, ['/.?']
@@ -23,7 +23,7 @@ module ActionDispatch
         routes.add_route nil, path, {}, {}, {}
         ast = routes.ast
         routes.add_route nil, path, {}, {}, {}
-        refute_equal ast, routes.ast
+        assert_not_equal ast, routes.ast
       end
 
       def test_simulator_changes
@@ -33,7 +33,7 @@ module ActionDispatch
         routes.add_route nil, path, {}, {}, {}
         sim = routes.simulator
         routes.add_route nil, path, {}, {}, {}
-        refute_equal sim, routes.simulator
+        assert_not_equal sim, routes.simulator
       end
 
       def test_first_name_wins

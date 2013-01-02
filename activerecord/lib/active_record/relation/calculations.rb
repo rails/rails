@@ -314,9 +314,9 @@ module ActiveRecord
       end
 
       Hash[calculated_data.map do |row|
-        key = group_columns.map { |aliaz, column_name|
+        key = group_columns.map { |aliaz, col_name|
           column = calculated_data.column_types.fetch(aliaz) do
-            column_for(column_name)
+            column_for(col_name)
           end
           type_cast_calculated_value(row[aliaz], column)
         }

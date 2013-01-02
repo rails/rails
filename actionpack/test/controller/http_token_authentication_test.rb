@@ -111,21 +111,21 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
-  test "token_and_options returns correct token" do
+  test "token_and_options returns correct token with value after the equal sign" do
     token = 'rcHu+=HzSFw89Ypyhn/896A==f34'
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token
     assert_equal(expected, actual)
   end
 
-  test "token_and_options returns correct token" do
+  test "token_and_options returns correct token with slashes" do
     token = 'rcHu+\\\\"/896A'
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token
     assert_equal(expected, actual)
   end
 
-  test "token_and_options returns correct token" do
+  test "token_and_options returns correct token with quotes" do
     token = '\"quote\" pretty'
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token

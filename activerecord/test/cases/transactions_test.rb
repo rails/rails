@@ -15,7 +15,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_raise_after_destroy
-    refute @first.frozen?
+    assert_not @first.frozen?
 
     assert_raises(RuntimeError) {
       Topic.transaction do
@@ -26,7 +26,7 @@ class TransactionTest < ActiveRecord::TestCase
     }
 
     assert @first.reload
-    refute @first.frozen?
+    assert_not @first.frozen?
   end
 
   def test_successful

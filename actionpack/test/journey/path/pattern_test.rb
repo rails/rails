@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module Path
-      class TestPattern < MiniTest::Unit::TestCase
+      class TestPattern < ActiveSupport::TestCase
         x = /.+/
         {
           '/:controller(/:action)'       => %r{\A/(#{x})(?:/([^/.?]+))?\Z},
@@ -88,7 +88,7 @@ module ActionDispatch
           path = Pattern.new strexp
           assert_match(path, '/page/tender')
           assert_match(path, '/page/love')
-          refute_match(path, '/page/loving')
+          assert_no_match(path, '/page/loving')
         end
 
         def test_optional_names
@@ -110,7 +110,7 @@ module ActionDispatch
           )
           path = Pattern.new strexp
           assert_match(path, '/123')
-          refute_match(path, '/')
+          assert_no_match(path, '/')
         end
 
         def test_to_regexp_with_group
@@ -122,7 +122,7 @@ module ActionDispatch
           path = Pattern.new strexp
           assert_match(path, '/page/tender')
           assert_match(path, '/page/love')
-          refute_match(path, '/page/loving')
+          assert_no_match(path, '/page/loving')
         end
 
         def test_ast_sets_regular_expressions
@@ -189,7 +189,7 @@ module ActionDispatch
           path = Pattern.new strexp
           assert_match(path, '/page/TENDER/aaron')
           assert_match(path, '/page/loVE/aaron')
-          refute_match(path, '/page/loVE/AAron')
+          assert_no_match(path, '/page/loVE/AAron')
         end
 
         def test_to_regexp_with_strexp
@@ -210,7 +210,7 @@ module ActionDispatch
           path = Pattern.new '/:controller(/:action(/:id(.:format)))'
           uri = 'content'
 
-          refute path =~ uri
+          assert_not path =~ uri
         end
 
         def test_match_controller

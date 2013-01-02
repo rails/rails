@@ -79,7 +79,7 @@ end
 
 Alternatively, you can use `up` and `down` instead of `change`:
 
-``ruby
+```ruby
 class ChangeProductsPrice < ActiveRecord::Migration
   def up
     change_table :products do |t|
@@ -201,6 +201,25 @@ end
 ```
 
 This migration will create a `user_id` column and appropriate index.
+
+There is also a generator which will produce join tables if `JoinTable` is part of the name:
+
+```bash
+rails g migration CreateJoinTableCustomerProduct customer product
+```
+
+will produce the following migration:
+
+```ruby
+class CreateJoinTableCustomerProduct < ActiveRecord::Migration
+  def change
+    create_join_table :customers, :products do |t|
+      # t.index [:customer_id, :product_id]
+      # t.index [:product_id, :customer_id]
+    end
+  end
+end
+```
 
 ### Model Generators
 

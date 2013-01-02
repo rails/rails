@@ -77,7 +77,7 @@ steve:
  profession: guy with keyboard
 ```
 
-Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column.
+Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column. Keys which resemble YAML keywords such as 'yes' and 'no' are quoted so that the YAML Parser correctly interprets them.
 
 #### ERB'in It Up
 
@@ -830,7 +830,7 @@ Above, the `setup` method is called before each test and so `@post` is available
 Let's see the earlier example by specifying `setup` callback by specifying a method name as a symbol:
 
 ```ruby
-require '../test_helper'
+require 'test_helper'
 
 class PostsControllerTest < ActionController::TestCase
 

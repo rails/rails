@@ -16,7 +16,7 @@ module ActiveRecord
       end
 
       def test_add_remove_single_field_using_string_arguments
-        refute TestModel.column_methods_hash.key?(:last_name)
+        assert_not TestModel.column_methods_hash.key?(:last_name)
 
         add_column 'test_models', 'last_name', :string
 
@@ -27,11 +27,11 @@ module ActiveRecord
         remove_column 'test_models', 'last_name'
 
         TestModel.reset_column_information
-        refute TestModel.column_methods_hash.key?(:last_name)
+        assert_not TestModel.column_methods_hash.key?(:last_name)
       end
 
       def test_add_remove_single_field_using_symbol_arguments
-        refute TestModel.column_methods_hash.key?(:last_name)
+        assert_not TestModel.column_methods_hash.key?(:last_name)
 
         add_column :test_models, :last_name, :string
 
@@ -41,7 +41,7 @@ module ActiveRecord
         remove_column :test_models, :last_name
 
         TestModel.reset_column_information
-        refute TestModel.column_methods_hash.key?(:last_name)
+        assert_not TestModel.column_methods_hash.key?(:last_name)
       end
 
       def test_unabstracted_database_dependent_types

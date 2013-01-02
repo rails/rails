@@ -782,7 +782,7 @@ To include `app/assets/stylesheets/main.css` and `app/assets/stylesheets/columns
 To include `app/assets/stylesheets/main.css` and `app/assets/stylesheets/photos/columns.css`:
 
 ```erb
-<%= stylesheet_link_tag "main", "/photos/columns" %>
+<%= stylesheet_link_tag "main", "photos/columns" %>
 ```
 
 To include `http://example.com/main.css`:

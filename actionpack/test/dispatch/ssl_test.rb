@@ -47,7 +47,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   def test_disable_hsts_header
     self.app = ActionDispatch::SSL.new(default_app, :hsts => false)
     get "https://example.org/"
-    refute response.headers['Strict-Transport-Security']
+    assert_not response.headers['Strict-Transport-Security']
   end
 
   def test_hsts_expires

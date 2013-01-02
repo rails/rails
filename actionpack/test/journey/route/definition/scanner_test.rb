@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module Definition
-      class TestScanner < MiniTest::Unit::TestCase
+      class TestScanner < ActiveSupport::TestCase
         def setup
           @scanner = Scanner.new
         end

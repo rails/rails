@@ -204,7 +204,7 @@ is a helper that assists with generating links. It has a `:remote` option you
 can use like this:
 
 ```erb
-<%= link_to "first post", @post, remote: true %>
+<%= link_to "a post", @post, remote: true %>
 ```
 
 which generates

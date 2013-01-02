@@ -95,7 +95,11 @@ module ActionView
           options[:class] = "#{dom_class(record, prefix)} #{options[:class]}".rstrip
           options[:id]    = dom_id(record, prefix)
 
-          content_tag(tag_name, capture(record, &block), options)
+          if block_given?
+            content_tag(tag_name, capture(record, &block), options)
+          else
+            content_tag(tag_name, "", options)
+          end
         end
     end
   end

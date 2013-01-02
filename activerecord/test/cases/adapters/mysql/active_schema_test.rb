@@ -42,7 +42,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_create_mysql_database_with_encoding
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
       assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})

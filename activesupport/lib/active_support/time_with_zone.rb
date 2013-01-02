@@ -80,16 +80,29 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
+    # Returns true if the current time is within Daylight Savings Time for the
+    # specified time zone.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
+    #   Time.zone.parse("2012-5-30").dst?           # => true
+    #   Time.zone.parse("2012-11-30").dst?          # => false
     def dst?
       period.dst?
     end
     alias_method :isdst, :dst?
 
+    # Returns true if the current time zone is set to UTC.
+    #
+    #   Time.zone = 'UTC'                           # => 'UTC'
+    #   Time.zone.now.utc?                          # => true
+    #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
+    #   Time.zone.now.utc?                          # => false
     def utc?
       time_zone.name == 'UTC'
     end
     alias_method :gmt?, :utc?
 
+    # Returns the offset from current time to UTC time in seconds.
     def utc_offset
       period.utc_total_offset
     end
@@ -147,10 +160,18 @@ module ActiveSupport
       end
     end
 
+    # Returns a string of the object's date and time in the format used by
+    # HTTP requests.
+    #
+    #   Time.zone.now.httpdate  # => "Tue, 01 Jan 2013 04:39:43 GMT"
     def httpdate
       utc.httpdate
     end
 
+    # Returns a string of the object's date and time in the RFC 2822 standard
+    # format.
+    #
+    #   Time.zone.now.rfc2822  # => "Tue, 01 Jan 2013 04:51:39 +0000"
     def rfc2822
       to_s(:rfc822)
     end
