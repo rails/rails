@@ -113,7 +113,7 @@ module ActiveRecord
     # other than the writer method.
     #
     # The immutable requirement is enforced by Active Record by freezing any object assigned as a value
-    # object. Attempting to change it afterwards will result in a ActiveSupport::FrozenObjectError.
+    # object. Attempting to change it afterwards will result in a RuntimeError.
     #
     # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not
     # keeping value objects immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable

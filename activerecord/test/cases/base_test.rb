@@ -26,7 +26,6 @@ require 'models/bird'
 require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
-require 'active_support/core_ext/exception'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
