@@ -1,5 +1,28 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add ActiveModel::Hints. Hints are errors before you make them. In other 
+    words, when adding a Validator to a Person, person.hints contains a hash of
+    attributes and their validation messages so you can use them in a form to
+    display tooltips, for instance.
+
+        class Person
+          include ActiveModel::Validations
+
+          attr_accessor :first_name, :last_name
+
+          validates :name, :presence => true
+          validates :last_name, :length => { :within => 1...5 }
+        end
+
+        Person.new.hints[:first_name] => ["can't be blank"]
+        Person.new.hints[:last_name] => ["must not be shorter than 1 characters",
+                                         "must not be longer than 4 characters"]
+        Person.new.hints.messages => {:id=>[],
+                                      :password=>["must not....."],
+                                      :name => ["can't be blank"] }
+  
+    *Ace Suares*
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
