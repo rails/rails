@@ -117,21 +117,21 @@ class TransactionTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
-  def test_update_attributes_should_rollback_on_failure
+  def test_update_should_rollback_on_failure
     author = Author.find(1)
     posts_count = author.posts.size
     assert posts_count > 0
-    status = author.update_attributes(:name => nil, :post_ids => [])
+    status = author.update(name: nil, post_ids: [])
     assert !status
     assert_equal posts_count, author.posts(true).size
   end
 
-  def test_update_attributes_should_rollback_on_failure!
+  def test_update_should_rollback_on_failure!
     author = Author.find(1)
     posts_count = author.posts.size
     assert posts_count > 0
     assert_raise(ActiveRecord::RecordInvalid) do
-      author.update_attributes!(:name => nil, :post_ids => [])
+      author.update!(name: nil, post_ids: [])
     end
     assert_equal posts_count, author.posts(true).size
   end

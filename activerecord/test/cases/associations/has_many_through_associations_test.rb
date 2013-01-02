@@ -706,7 +706,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_can_update_through_association
     assert_nothing_raised do
-      people(:michael).posts.first.update_attributes!(:title => "Can write")
+      people(:michael).posts.first.update!(title: "Can write")
     end
   end
 
