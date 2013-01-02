@@ -1,5 +1,18 @@
 ## Rails 3.2.11 (unreleased) ##
 
+*   Do not append second slash to root_url when using `trailing_slash: true`
+    Fix #8700.
+    Backport #8701.
+
+    Example:
+        # before
+        root_url # => http://test.host//
+
+        # after
+        root_url # => http://test.host/
+
+    *Yves Senn*
+
 *   Fix a bug in `content_tag_for` that prevents it for work without a block.
 
     *Jasl*
