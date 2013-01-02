@@ -1,5 +1,4 @@
 require 'action_controller/metal/exceptions'
-require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionDispatch
