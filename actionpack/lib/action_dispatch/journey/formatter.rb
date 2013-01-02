@@ -37,8 +37,7 @@ module ActionDispatch
       private
 
         def extract_parameterized_parts(route, options, recall, parameterize = nil)
-          constraints = recall.merge(options)
-          data = constraints.dup
+          data = recall.merge(options)
 
           keys_to_keep = route.parts.reverse.drop_while { |part|
             !options.key?(part) || (options[part] || recall[part]).nil?
