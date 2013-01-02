@@ -1,8 +1,7 @@
 ## Rails 3.2.11 (unreleased) ##
 
-*   Fix a bug in `ActionView::Helpers::RecordTagHelper::content_tag_for`
-    raise `nil:NilClass` without given a block.
-    
+*   Fix a bug in `content_tag_for` that prevents it for work without a block.
+
     *Jasl*
 
 *   Clear url helper methods when routes are reloaded by removing the methods
