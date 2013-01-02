@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not append second slash to root_url when using `trailing_slash: true`
+    Fix #8700
+
+    Example:
+        # before
+        root_url # => http://test.host//
+
+        # after
+        root_url # => http://test.host/
+
+    *Yves Senn*
+
 *   Allow to toggle dumps on error pages.
 
     *Gosha Arinich*
