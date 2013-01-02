@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `-B` alias for `--skip-bundle` option in the rails new generators.
+
+    *Jiri Pospisil*
+
 *   Quote column names in generates fixture files. This prevents
     conflicts with reserved YAML keywords such as 'yes' and 'no'
     Fix #8612
