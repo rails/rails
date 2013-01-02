@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Do not append second slash to root_url when using `trailing_slash: true`
+*   Do not append second slash to `root_url` when using `trailing_slash: true`
     Fix #8700
 
     Example:

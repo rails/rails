@@ -18,7 +18,8 @@
       If migrating down, the given migration / block is run normally.
       See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
 
-    Attempting to revert the methods `execute`, `remove_columns` and `change_column` will now raise an IrreversibleMigration instead of actually executing them without any output.
+    Attempting to revert the methods `execute`, `remove_columns` and `change_column` will now
+    raise an `IrreversibleMigration` instead of actually executing them without any output.
 
     *Marc-André Lafortune*
 

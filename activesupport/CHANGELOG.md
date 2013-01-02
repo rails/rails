@@ -4,7 +4,7 @@
 
     *Akira Matsuda*
 
-*   Introduce assert_not to replace warty 'assert !foo'.  *Jeremy Kemper*
+*   Introduce `assert_not` to replace warty `assert !foo`.  *Jeremy Kemper*
 
 *   Prevent `Callbacks#set_callback` from setting the same callback twice.
 
@@ -15,7 +15,7 @@
 
     *Dmitriy Kiriyenko*
 
-*   Add ActiveSupport::Logger#silence that works the same as the old Logger#silence extension.
+*   Add `ActiveSupport::Logger#silence` that works the same as the old `Logger#silence` extension.
 
     *DHH*
 
