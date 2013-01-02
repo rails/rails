@@ -81,6 +81,14 @@ class RecordTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_content_tag_for_collection_without_given_block
+    post_1 = RecordTagPost.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
+    post_2 = RecordTagPost.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
+    expected = %(<li class="record_tag_post" id="record_tag_post_101"></li>\n<li class="record_tag_post" id="record_tag_post_102"></li>)
+    actual = content_tag_for(:li, [post_1, post_2])
+    assert_dom_equal expected, actual
+  end
+
   def test_div_for_collection
     post_1 = RecordTagPost.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
     post_2 = RecordTagPost.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
