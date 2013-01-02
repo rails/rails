@@ -56,8 +56,8 @@ module Rails
       end
 
       def add(path, options={})
-        with = options[:with] || path
-        @root[path] = Path.new(self, path, [with].flatten, options)
+        with = Array(options[:with] || path)
+        @root[path] = Path.new(self, path, with, options)
       end
 
       def [](path)
