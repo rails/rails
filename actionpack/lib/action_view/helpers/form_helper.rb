@@ -436,9 +436,9 @@ module ActionView
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { multipart: true } : {}
-        default_options.merge!(options.delete(:html))
+        default_options.merge!(options[:html])
 
-        form_tag(options.delete(:url) || {}, default_options) { fields_for }
+        form_tag(options[:url] || {}, default_options) { fields_for }
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
