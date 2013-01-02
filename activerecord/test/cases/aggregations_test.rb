@@ -1,6 +1,5 @@
 require "cases/helper"
 require 'models/customer'
-require 'active_support/core_ext/exception'
 
 class AggregationsTest < ActiveRecord::TestCase
   fixtures :customers
@@ -26,7 +25,7 @@ class AggregationsTest < ActiveRecord::TestCase
 
   def test_immutable_value_objects
     customers(:david).balance = Money.new(100)
-    assert_raise(ActiveSupport::FrozenObjectError) { customers(:david).balance.instance_eval { @amount = 20 } }
+    assert_raise(RuntimeError) { customers(:david).balance.instance_eval { @amount = 20 } }
   end
 
   def test_inferred_mapping

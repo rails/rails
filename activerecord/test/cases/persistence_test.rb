@@ -16,7 +16,6 @@ require 'models/person'
 require 'models/pet'
 require 'models/toy'
 require 'rexml/document'
-require 'active_support/core_ext/exception'
 
 class PersistencesTest < ActiveRecord::TestCase
 
@@ -365,7 +364,7 @@ class PersistencesTest < ActiveRecord::TestCase
     client.delete
     assert client.frozen?
     assert_kind_of Firm, client.firm
-    assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
+    assert_raise(RuntimeError) { client.name = "something else" }
   end
 
   def test_destroy_new_record
@@ -379,7 +378,7 @@ class PersistencesTest < ActiveRecord::TestCase
     client.destroy
     assert client.frozen?
     assert_kind_of Firm, client.firm
-    assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
+    assert_raise(RuntimeError) { client.name = "something else" }
   end
 
   def test_update_attribute
