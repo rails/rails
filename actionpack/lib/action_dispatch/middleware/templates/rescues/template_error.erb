@@ -9,12 +9,12 @@
 <div id="container">
   <p>
     Showing <i><%=h @exception.file_name %></i> where line <b>#<%=h @exception.line_number %></b> raised:
-    <pre><code><%=h @exception.message %></code></pre>
-    </p>
+  </p>
+  <pre><code><%=h @exception.message %></code></pre>
 
   <div class="source">
     <div class="info">
-      <p>Extracted source (around line <strong>#<%=h @exception.line_number %></strong>):
+      <p>Extracted source (around line <strong>#<%=h @exception.line_number %></strong>):</p>
     </div>
     <div class="data">
     <table cellpadding="0" cellspacing="0" class="lines">
@@ -40,5 +40,4 @@
 
   <%= render template: "rescues/_trace" %>
   <%= render template: "rescues/_request_and_response" %>
-  </div>
 </div>
