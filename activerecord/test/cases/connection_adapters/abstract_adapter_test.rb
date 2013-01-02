@@ -10,18 +10,18 @@ module ActiveRecord
       end
 
       def test_in_use?
-        refute adapter.in_use?, 'adapter is not in use'
+        assert_not adapter.in_use?, 'adapter is not in use'
         assert adapter.lease, 'lease adapter'
         assert adapter.in_use?, 'adapter is in use'
       end
 
       def test_lease_twice
         assert adapter.lease, 'should lease adapter'
-        refute adapter.lease, 'should not lease adapter'
+        assert_not adapter.lease, 'should not lease adapter'
       end
 
       def test_last_use
-        refute adapter.last_use
+        assert_not adapter.last_use
         adapter.lease
         assert adapter.last_use
       end
@@ -30,7 +30,7 @@ module ActiveRecord
         assert adapter.lease, 'lease adapter'
         assert adapter.in_use?, 'adapter is in use'
         adapter.expire
-        refute adapter.in_use?, 'adapter is in use'
+        assert_not adapter.in_use?, 'adapter is in use'
       end
 
       def test_close
@@ -44,7 +44,7 @@ module ActiveRecord
 
         # Close should put the adapter back in the pool
         adapter.close
-        refute adapter.in_use?
+        assert_not adapter.in_use?
 
         assert_equal adapter, pool.connection
       end

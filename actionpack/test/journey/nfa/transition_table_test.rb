@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module NFA
-      class TestTransitionTable < MiniTest::Unit::TestCase
+      class TestTransitionTable < ActiveSupport::TestCase
         def setup
           @parser = Journey::Parser.new
         end

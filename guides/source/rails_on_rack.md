@@ -229,7 +229,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
  **`Rack::Lock`**
 
-* Sets `env["rack.multithread"]` flag to `true` and wraps the application within a Mutex.
+* Sets `env["rack.multithread"]` flag to `false` and wraps the application within a Mutex.
 
  **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 

@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module Definition
-      class TestParser < MiniTest::Unit::TestCase
+      class TestParser < ActiveSupport::TestCase
         def setup
           @parser = Parser.new
         end

@@ -10,7 +10,7 @@ class StringInquirerTest < ActiveSupport::TestCase
   end
 
   def test_miss
-    refute @string_inquirer.development?
+    assert_not @string_inquirer.development?
   end
 
   def test_missing_question_mark

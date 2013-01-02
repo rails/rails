@@ -1,5 +1,4 @@
 require 'action_controller/metal/exceptions'
-require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionDispatch
@@ -25,7 +24,7 @@ module ActionDispatch
       'ActionView::Template::Error'         => 'template_error'
     )
 
-    attr_reader :env, :exception
+    attr_reader :env, :exception, :line_number, :file
 
     def initialize(env, exception)
       @env = env
@@ -56,6 +55,15 @@ module ActionDispatch
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
+    def source_extract
+      if application_trace && trace = application_trace.first
+        file, line, _ = trace.split(":")
+        @file = file
+        @line_number = line.to_i
+        source_fragment(@file, @line_number)
+      end
+    end
+
     private
 
     def original_exception(exception)
@@ -80,6 +88,18 @@ module ActionDispatch
 
     def backtrace_cleaner
       @backtrace_cleaner ||= @env['action_dispatch.backtrace_cleaner']
+    end
+
+    def source_fragment(path, line)
+      return unless Rails.respond_to?(:root) && Rails.root
+      full_path = Rails.root.join(path)
+      if File.exists?(full_path)
+        File.open(full_path, "r") do |file|
+          start = [line - 3, 0].max
+          lines = file.lines.drop(start).take(6)
+          Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
+        end
+      end
     end
   end
 end

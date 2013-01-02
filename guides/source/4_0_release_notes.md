@@ -150,6 +150,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 ### Notable changes
 
+* Change the stylesheet of exception pages for development mode. Additionally display also the line of code and fragment that raised the exception in all exceptions pages.
+
 ### Deprecations
 
 

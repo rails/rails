@@ -29,7 +29,7 @@ module ActiveRecord
           t.references :foo
         end
 
-        refute connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
+        assert_not connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
       def test_does_not_create_index_explicit
@@ -37,7 +37,7 @@ module ActiveRecord
           t.references :foo, :index => false
         end
 
-        refute connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
+        assert_not connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
       def test_creates_index_with_options
@@ -75,7 +75,7 @@ module ActiveRecord
           t.references :foo
         end
 
-        refute connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
+        assert_not connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
       def test_does_not_create_index_for_existing_table_explicit
@@ -84,7 +84,7 @@ module ActiveRecord
           t.references :foo, :index => false
         end
 
-        refute connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
+        assert_not connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
       def test_creates_polymorphic_index_for_existing_table

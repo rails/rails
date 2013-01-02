@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class Router
-      class TestStrexp < MiniTest::Unit::TestCase
+      class TestStrexp < ActiveSupport::TestCase
         def test_many_names
           exp = Strexp.new(
             "/:controller(/:action(/:id(.:format)))",

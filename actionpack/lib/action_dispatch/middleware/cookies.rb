@@ -87,6 +87,9 @@ module ActionDispatch
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
     TOKEN_KEY   = "action_dispatch.secret_token".freeze
 
+    # Cookies can typically store 4096 bytes.
+    MAX_COOKIE_SIZE = 4096
+
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
@@ -293,11 +296,15 @@ module ActionDispatch
         end
     end
 
-    class PermanentCookieJar < CookieJar #:nodoc:
+    class PermanentCookieJar #:nodoc:
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @key_generator = key_generator
         @options = options
+      end
+
+      def [](key)
+        @parent_jar[name.to_s]
       end
 
       def []=(key, options)
@@ -311,14 +318,25 @@ module ActionDispatch
         @parent_jar[key] = options
       end
 
+      def permanent
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+      end
+
+      def signed
+        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+      end
+
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
+      end
+
       def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
+        ActiveSupport::Deprecation.warn "#{method} is deprecated with no replacement. " +
+          "You probably want to try this method over the parent CookieJar."
       end
     end
 
-    class SignedCookieJar < CookieJar #:nodoc:
-      MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
-
+    class SignedCookieJar #:nodoc:
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @options = options
@@ -346,12 +364,25 @@ module ActionDispatch
         @parent_jar[key] = options
       end
 
+      def permanent
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+      end
+
+      def signed
+        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+      end
+
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
+      end
+
       def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
+        ActiveSupport::Deprecation.warn "#{method} is deprecated with no replacement. " +
+          "You probably want to try this method over the parent CookieJar."
       end
     end
 
-    class EncryptedCookieJar < SignedCookieJar #:nodoc:
+    class EncryptedCookieJar #:nodoc:
       def initialize(parent_jar, key_generator, options = {})
         if ActiveSupport::DummyKeyGenerator === key_generator
           raise "Encrypted Cookies must be used in conjunction with config.secret_key_base." +
@@ -365,8 +396,8 @@ module ActionDispatch
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
       end
 
-      def [](name)
-        if encrypted_message = @parent_jar[name]
+      def [](key)
+        if encrypted_message = @parent_jar[key]
           @encryptor.decrypt_and_verify(encrypted_message)
         end
       rescue ActiveSupport::MessageVerifier::InvalidSignature,
@@ -384,6 +415,23 @@ module ActionDispatch
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
+      end
+
+      def permanent
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+      end
+
+      def signed
+        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+      end
+
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
+      end
+
+      def method_missing(method, *arguments, &block)
+        ActiveSupport::Deprecation.warn "#{method} is deprecated with no replacement. " +
+          "You probably want to try this method over the parent CookieJar."
       end
     end
 

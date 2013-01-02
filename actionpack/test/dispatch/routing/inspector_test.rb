@@ -1,4 +1,4 @@
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'action_controller'
 require 'rails/engine'
 require 'action_dispatch/routing/inspector'

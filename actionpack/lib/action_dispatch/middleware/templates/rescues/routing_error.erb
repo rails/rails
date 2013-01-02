@@ -1,24 +1,27 @@
-<h1>Routing Error</h1>
-<p><pre><%=h @exception.message %></pre></p>
-<% unless @exception.failures.empty? %>
+<header>
+  <h1>Routing Error</h1>
+</header>
+<div id="container">
+  <h2><%=h @exception.message %></h2>
+  <% unless @exception.failures.empty? %>
+    <p>
+      <h2>Failure reasons:</h2>
+      <ol>
+      <% @exception.failures.each do |route, reason| %>
+        <li><code><%=h route.inspect.gsub('\\', '') %></code> failed because <%=h reason.downcase %></li>
+      <% end %>
+      </ol>
+    </p>
+  <% end %>
+  <%= render template: "rescues/_trace" %>
+
+  <h2>
+    Routes
+  </h2>
+
   <p>
-    <h2>Failure reasons:</h2>
-    <ol>
-    <% @exception.failures.each do |route, reason| %>
-      <li><code><%=h route.inspect.gsub('\\', '') %></code> failed because <%=h reason.downcase %></li>
-    <% end %>
-    </ol>
+    Routes match in priority from top to bottom
   </p>
-<% end %>
-<%= render template: "rescues/_trace" %>
-
-<h2>
-  Routes
-</h2>
-
-<p>
-  Routes match in priority from top to bottom
-</p>
 
 <%= render layout: "routes/route_wrapper" do %>
   <%= render partial: "routes/route", collection: @routes %>

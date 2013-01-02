@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     module GTG
-      class TestBuilder < MiniTest::Unit::TestCase
+      class TestBuilder < ActiveSupport::TestCase
         def test_following_states_multi
           table  = tt ['a|a']
           assert_equal 1, table.move([0], 'a').length

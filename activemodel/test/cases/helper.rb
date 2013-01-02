@@ -7,4 +7,4 @@ require 'active_support/core_ext/string/access'
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-require 'minitest/autorun'
+require 'active_support/testing/autorun'

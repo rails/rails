@@ -10,13 +10,6 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
-
-    # Use AM::TestCase for the base class when describing a mailer
-    register_spec_type(self) do |desc|
-      Class === desc && desc < ActionMailer::Base
-    end
-    register_spec_type(/Mailer( ?Test)?\z/i, self)
-
     module Behavior
       extend ActiveSupport::Concern
 

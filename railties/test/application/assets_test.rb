@@ -45,7 +45,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
+          get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, ["Not an asset"]] }
         end
       RUBY
 
