@@ -32,7 +32,11 @@ module ActionDispatch
           params.reject! { |_,v| v.to_param.nil? }
 
           result = build_host_url(options)
-          result << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+          if options[:trailing_slash] && !path.ends_with?('/')
+            result << path.sub(/(\?|\z)/) { "/" + $& }
+          else
+            result << path
+          end
           result << "?#{params.to_query}" unless params.empty?
           result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result
