@@ -435,9 +435,7 @@ module ActionView
 
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
-        default_options = builder.multipart? ? { multipart: true } : {}
-        default_options.merge! builder.form_tag_attributes
-
+        default_options = builder.form_tag_attributes
         form_tag(options[:url] || {}, default_options) { fields_for }
       end
 
@@ -1174,7 +1172,7 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart, :parent_builder, :index, :form_tag_attributes
+      attr_reader :multipart, :parent_builder, :index
       alias :multipart? :multipart
 
       def multipart=(multipart)
@@ -1213,6 +1211,11 @@ module ActionView
         end
         @multipart = nil
         @index = options[:index] || options[:child_index]
+      end
+
+      def form_tag_attributes
+        options = multipart? ? { multipart: true } : {}
+        options.merge! @form_tag_attributes
       end
 
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
