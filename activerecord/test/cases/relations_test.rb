@@ -583,6 +583,15 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_find_all_using_where_with_scoped_relations_to_build_subquery
+    david = authors(:david)
+    relation = Post.where(:id => david.posts.scoped)
+    posts = nil
+    assert_nothing_raised {
+      posts = relation.all
+    }
+    assert_equal david.posts, posts
+  end
 
   def test_find_all_using_where_with_relation_with_select_to_build_subquery
     david = authors(:david)
