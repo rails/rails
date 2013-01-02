@@ -53,7 +53,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_missing_dependency_raises_missing_source_file
-    assert_raise(MissingSourceFile) { require_dependency("missing_service") }
+    assert_raise(LoadError) { require_dependency("missing_service") }
   end
 
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set
@@ -576,7 +576,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_nested_load_error_isnt_rescued
     with_loading 'dependencies' do
-      assert_raise(MissingSourceFile) do
+      assert_raise(LoadError) do
         RequiresNonexistent1
       end
     end
