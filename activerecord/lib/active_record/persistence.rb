@@ -223,7 +223,7 @@ module ActiveRecord
     
     alias update_attributes update
 
-    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    # Updates its receiver just like +update+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
     def update!(attributes)
       # The following transaction covers any possible database side-effects of the
