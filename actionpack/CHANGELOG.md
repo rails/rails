@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Return the last valid, non-private IP address from the X-Forwarded-For,
+    Client-IP and Remote-Addr headers, in that order. Document the rationale
+    for that decision, and describe the options that can be passed to the
+    RemoteIp middleware to change it.
+    Fix #7979
+
+    *André Arko*, *Steve Klabnik*, *Alexey Gaziev*
+
 *   Do not append second slash to `root_url` when using `trailing_slash: true`
     Fix #8700
 
