@@ -436,7 +436,7 @@ module ActionView
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { multipart: true } : {}
-        default_options.merge!(options[:html])
+        default_options.merge! builder.form_tag_attributes
 
         form_tag(options[:url] || {}, default_options) { fields_for }
       end
@@ -1174,7 +1174,7 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart, :parent_builder, :index
+      attr_reader :multipart, :parent_builder, :index, :form_tag_attributes
       alias :multipart? :multipart
 
       def multipart=(multipart)
@@ -1201,6 +1201,7 @@ module ActionView
 
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
+        @form_tag_attributes = options.fetch(:html, {})
         @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
