@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Fix a bug in `ActionView::Helpers::RecordTagHelper::content_tag_for`
+    raise `nil:NilClass` without given a block.
+    
+    *Jasl*
+
 *   Clear url helper methods when routes are reloaded by removing the methods
     explicitly rather than just clearing the module because it didn't work
     properly and could be the source of a memory leak.
