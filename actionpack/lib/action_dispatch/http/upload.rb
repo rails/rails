@@ -19,7 +19,6 @@ module ActionDispatch
       # its interface is available directly.
       attr_accessor :tempfile
 
-      # TODO.
       attr_accessor :headers
 
       def initialize(hash) # :nodoc:
