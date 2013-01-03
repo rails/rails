@@ -19,6 +19,7 @@ module ActionDispatch
       # its interface is available directly.
       attr_accessor :tempfile
 
+      # A string with the headers of the multipart request.
       attr_accessor :headers
 
       def initialize(hash) # :nodoc:
