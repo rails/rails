@@ -2337,17 +2337,17 @@ module ActiveRecord #:nodoc:
         # And for value objects on a composed_of relationship:
         #   { :address => Address.new("123 abc st.", "chicago") }
         #     # => "address_street='123 abc st.' and address_city='chicago'"
-        def sanitize_sql_hash_for_conditions(attrs, default_table_name = quoted_table_name)
+        def sanitize_sql_hash_for_conditions(attrs, default_table_name = quoted_table_name, top_level = true)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           conditions = attrs.map do |attr, value|
             table_name = default_table_name
 
-            unless value.is_a?(Hash)
+            if not value.is_a?(Hash)
               attr = attr.to_s
 
               # Extract table name from qualified attribute names.
-              if attr.include?('.')
+              if attr.include?('.') and top_level
                 attr_table_name, attr = attr.split('.', 2)
                 attr_table_name = connection.quote_table_name(attr_table_name)
               else
@@ -2355,8 +2355,10 @@ module ActiveRecord #:nodoc:
               end
 
               attribute_condition("#{attr_table_name}.#{connection.quote_column_name(attr)}", value)
+            elsif top_level
+              sanitize_sql_hash_for_conditions(value, connection.quote_table_name(attr.to_s), false)
             else
-              sanitize_sql_hash_for_conditions(value, connection.quote_table_name(attr.to_s))
+              raise ActiveRecord::StatementInvalid
             end
           end.join(' AND ')
 
