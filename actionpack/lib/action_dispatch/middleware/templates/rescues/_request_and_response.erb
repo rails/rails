@@ -26,7 +26,7 @@
 </div>
 
 <div class="details">
-  <div class="summary"><a href="#" onclick="s = document.getElementById('env_dump').style; s.display=='block' ? s.display = s.display == 'none' ? 'block' : 'none'; return false;">Toggle env dump</a></div>
+  <div class="summary"><a href="#" onclick="s = document.getElementById('env_dump').style; s.display = s.display == 'none' ? 'block' : 'none'; return false;">Toggle env dump</a></div>
   <div id="env_dump" style="display:none"><pre><%= debug_hash @request.env.slice(*@request.class::ENV_METHODS) %></pre></div>
 </div>
 
