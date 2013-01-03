@@ -24,7 +24,7 @@
 
     *Gosha Arinich*
 
-*   Fix a bug in `content_tag_for` that prevents it for work without a block.
+*   Fix a bug in `content_tag_for` that prevents it from working without a block.
 
     *Jasl*
 
