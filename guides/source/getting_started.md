@@ -882,7 +882,7 @@ And then create the `update` action in `app/controllers/posts_controller.rb`:
 def update
   @post = Post.find(params[:id])
 
-  if @post.update_attributes(params[:post])
+  if @post.update(params[:post])
     redirect_to action: :show, id: @post.id
   else
     render 'edit'
@@ -890,13 +890,13 @@ def update
 end
 ```
 
-The new method, `update_attributes`, is used when you want to update a record
+The new method, `update`, is used when you want to update a record
 that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
-TIP: You don't need to pass all attributes to `update_attributes`. For
-example, if you'd call `@post.update_attributes(title: 'A new title')`
+TIP: You don't need to pass all attributes to `update`. For
+example, if you'd call `@post.update(title: 'A new title')`
 Rails would only update the `title` attribute, leaving all other
 attributes untouched.
 

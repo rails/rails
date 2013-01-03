@@ -277,7 +277,7 @@ value, like so:
 
 ```ruby
 user = User.find_by_name('David')
-user.update_attributes(name: 'Dave')
+user.update(name: 'Dave')
 ```
 
 This is most useful when updating several attributes at once. If, on the other 
@@ -307,10 +307,10 @@ models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format and many more.
 
 Validation is a very important issue to consider when persisting to database, so 
-the methods `create`, `save` and `update_attributes` take it into account when 
+the methods `create`, `save` and `update` take it into account when 
 running: they return `false` when validation fails and they didn't actually 
 perform any operation on database. All of these have a bang counterpart (that 
-is, `create!`, `save!` and `update_attributes!`), which are stricter in that 
+is, `create!`, `save!` and `update!`), which are stricter in that 
 they raise the exception `ActiveRecord::RecordInvalid` if validation fails. 
 A quick example to illustrate:
 

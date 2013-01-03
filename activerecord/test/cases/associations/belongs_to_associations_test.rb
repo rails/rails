@@ -317,12 +317,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
-  def test_belongs_to_counter_after_update_attributes
-    topic = Topic.create!(:title => "37s")
-    topic.replies.create!(:title => "re: 37s", :content => "rails")
+  def test_belongs_to_counter_after_update
+    topic = Topic.create!(title: "37s")
+    topic.replies.create!(title: "re: 37s", content: "rails")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_attributes(:title => "37signals")
+    topic.update(title: "37signals")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 

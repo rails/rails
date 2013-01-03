@@ -77,7 +77,7 @@ class TransactionIsolationTest < ActiveRecord::TestCase
 
     Tag.transaction(isolation: :repeatable_read) do
       tag.reload
-      Tag2.find(tag.id).update_attributes(name: 'emily')
+      Tag2.find(tag.id).update(name: 'emily')
 
       tag.reload
       assert_equal 'jon', tag.name

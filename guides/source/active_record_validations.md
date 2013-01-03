@@ -117,11 +117,11 @@ database only if the object is valid:
 * `save`
 * `save!`
 * `update`
-* `update_attributes`
-* `update_attributes!`
+* `update`
+* `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't: `save` and `update_attributes` return `false`,
+The non-bang versions don't: `save` and `update` return `false`,
 `create` and `update` just return the objects.
 
 ### Skipping Validations

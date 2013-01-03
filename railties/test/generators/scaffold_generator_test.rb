@@ -45,7 +45,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@product_line\.update_attributes\(product_line_params\)/, m)
+        assert_match(/@product_line\.update\(product_line_params\)/, m)
         assert_match(/@product_line\.errors/, m)
       end
 
@@ -162,7 +162,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@admin_role\.update_attributes\(admin_role_params\)/, m)
+        assert_match(/@admin_role\.update\(admin_role_params\)/, m)
         assert_match(/@admin_role\.errors/, m)
       end
 
