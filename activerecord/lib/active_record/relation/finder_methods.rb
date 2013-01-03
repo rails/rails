@@ -222,7 +222,7 @@ module ActiveRecord
     end
 
     def construct_limited_ids_condition(relation)
-      orders = relation.order_values.map { |val| val.presence }.compact
+      orders = relation.order_values.map(&:presence).compact
       values = @klass.connection.distinct("#{quoted_table_name}.#{primary_key}", orders)
 
       relation = relation.dup.select(values)

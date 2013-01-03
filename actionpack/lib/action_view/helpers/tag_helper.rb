@@ -14,7 +14,7 @@ module ActionView
                            autoplay controls loop selected hidden scoped async
                            defer reversed ismap seemless muted required
                            autofocus novalidate formnovalidate open pubdate itemscope).to_set
-      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
       PRE_CONTENT_STRINGS = {
         :textarea => "\n"

@@ -107,7 +107,7 @@ module ActionDispatch
         end
 
         def alphabet
-          inverted.values.map(&:keys).flatten.compact.uniq.sort_by { |x| x.to_s }
+          inverted.values.map(&:keys).flatten.compact.uniq.sort_by(&:to_s)
         end
 
         # Returns a set of NFA states reachable from some NFA state +s+ in set

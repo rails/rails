@@ -88,11 +88,11 @@ module Rails
         end
 
         def namespaced_path
-          @namespaced_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
+          @namespaced_path ||= namespace.name.split("::").map(&:underscore)[0]
         end
 
         def class_name
-          (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          (class_path + [file_name]).map!(&:camelize).join('::')
         end
 
         def human_name
@@ -149,7 +149,7 @@ module Rails
 
         def assign_names!(name) #:nodoc:
           @class_path = name.include?('/') ? name.split('/') : name.split('::')
-          @class_path.map! { |m| m.underscore }
+          @class_path.map!(&:underscore)
           @file_name = @class_path.pop
         end
 

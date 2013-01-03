@@ -49,7 +49,7 @@ module ActiveRecord
             unless records == :all
               condition = condition.and(
                 relation[reflection.association_foreign_key]
-                  .in(records.map { |x| x.id }.compact)
+                  .in(records.map(&:id).compact)
               )
             end
 

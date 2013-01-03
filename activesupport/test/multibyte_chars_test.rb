@@ -181,7 +181,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_sortability
-    words = %w(builder armor zebra).sort_by { |s| s.mb_chars }
+    words = %w(builder armor zebra).sort_by(&:mb_chars)
     assert_equal %w(armor builder zebra), words
   end
 

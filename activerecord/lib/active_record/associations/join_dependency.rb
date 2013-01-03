@@ -123,7 +123,7 @@ module ActiveRecord
             build(association, parent, join_type)
           end
         when Hash
-          associations.keys.sort_by { |a| a.to_s }.each do |name|
+          associations.keys.sort_by(&:to_s).each do |name|
             join_association = build(name, parent, join_type)
             build(associations[name], join_association, join_type)
           end

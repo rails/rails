@@ -41,7 +41,7 @@ class DocumentTest < ActiveSupport::TestCase
     HTML
     all = doc.find_all :attributes => { :class => "test" }
     assert_equal 3, all.length
-    assert_equal [ "p", "p", "em" ], all.map { |n| n.name }
+    assert_equal [ "p", "p", "em" ], all.map(&:name)
   end
 
   def test_find_with_text

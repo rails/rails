@@ -255,7 +255,7 @@ module ActiveRecord
       end
 
       def version
-        @version ||= @connection.info[:version].scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+        @version ||= @connection.info[:version].scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
       end
     end
   end

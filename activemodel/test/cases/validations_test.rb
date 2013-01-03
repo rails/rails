@@ -279,7 +279,7 @@ class ValidationsTest < ActiveModel::TestCase
       ActiveModel::Validations::FormatValidator,
       ActiveModel::Validations::LengthValidator,
       ActiveModel::Validations::PresenceValidator
-    ], validators.map { |v| v.class }.sort_by { |c| c.to_s }
+    ], validators.map(&:class).sort_by(&:to_s)
   end
 
   def test_list_of_validators_will_be_empty_when_empty

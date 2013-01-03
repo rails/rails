@@ -11,7 +11,7 @@ class TransactionTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :authors, :posts
 
   def setup
-    @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
+    @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
   def test_raise_after_destroy

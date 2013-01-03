@@ -81,7 +81,7 @@ module AbstractController
             # Except for public instance methods of Base and its ancestors
             internal_methods +
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false)).uniq.map { |x| x.to_s } -
+            public_instance_methods(false)).uniq.map(&:to_s) -
             # And always exclude explicitly hidden actions
             hidden_actions.to_a
 

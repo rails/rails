@@ -498,9 +498,7 @@ module ActiveRecord
 
           cols = nil
           if metadata = stmt.result_metadata
-            cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
-              field.name
-            }
+            cols = cache[:cols] ||= metadata.fetch_fields.map(&:name)
           end
 
           result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
@@ -551,7 +549,7 @@ module ActiveRecord
 
       # Returns the version of the connected MySQL server.
       def version
-        @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+        @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
       end
     end
   end

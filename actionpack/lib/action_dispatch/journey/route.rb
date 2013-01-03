@@ -49,7 +49,7 @@ module ActionDispatch
       end
 
       def required_keys
-        path.required_names.map { |x| x.to_sym } + required_defaults.keys
+        path.required_names.map(&:to_sym) + required_defaults.keys
       end
 
       def score(constraints)
@@ -63,7 +63,7 @@ module ActionDispatch
       end
 
       def parts
-        @parts ||= segments.map { |n| n.to_sym }
+        @parts ||= segments.map(&:to_sym)
       end
       alias :segment_keys :parts
 
@@ -76,11 +76,11 @@ module ActionDispatch
       end
 
       def optional_parts
-        path.optional_names.map { |n| n.to_sym }
+        path.optional_names.map(&:to_sym)
       end
 
       def required_parts
-        @required_parts ||= path.required_names.map { |n| n.to_sym }
+        @required_parts ||= path.required_names.map(&:to_sym)
       end
 
       def required_defaults
