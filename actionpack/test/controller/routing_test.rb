@@ -492,9 +492,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       root :to => "hello#index"
     end
 
-    routes = setup_for_named_route(trailing_slash: true)
+    routes = setup_for_named_route(:trailing_slash => true)
     assert_equal("http://test.host/", routes.send(:root_url))
-    assert_equal("http://test.host/?foo=bar", routes.send(:root_url, foo: :bar))
+    assert_equal("http://test.host/?foo=bar", routes.send(:root_url, :foo => :bar))
   end
 
   def test_named_route_with_regexps
