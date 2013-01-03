@@ -22,6 +22,8 @@ module ActionDispatch
       # TODO.
       attr_accessor :headers
 
+      delegate :open, :close, :path, :rewind, :size, :eof?, to: '@tempfile'
+
       def initialize(hash) # :nodoc:
         @tempfile          = hash[:tempfile]
         raise(ArgumentError, ':tempfile is required') unless @tempfile
@@ -34,36 +36,6 @@ module ActionDispatch
       # Shortcut for +tempfile.read+.
       def read(length=nil, buffer=nil)
         @tempfile.read(length, buffer)
-      end
-
-      # Shortcut for +tempfile.open+.
-      def open
-        @tempfile.open
-      end
-
-      # Shortcut for +tempfile.close+.
-      def close(unlink_now=false)
-        @tempfile.close(unlink_now)
-      end
-
-      # Shortcut for +tempfile.path+.
-      def path
-        @tempfile.path
-      end
-
-      # Shortcut for +tempfile.rewind+.
-      def rewind
-        @tempfile.rewind
-      end
-
-      # Shortcut for +tempfile.size+.
-      def size
-        @tempfile.size
-      end
-
-      # Shortcut for +tempfile.eof?+.
-      def eof?
-        @tempfile.eof?
       end
 
       private
