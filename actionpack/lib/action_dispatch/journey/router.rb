@@ -94,8 +94,8 @@ module ActionDispatch
 
       def visualizer
         tt     = GTG::Builder.new(ast).transition_table
-        groups = partitioned_routes.first.map(&:ast).group_by { |a| a.to_s }
-        asts   = groups.values.map { |v| v.first }
+        groups = partitioned_routes.first.map(&:ast).group_by(&:to_s)
+        asts   = groups.values.map(&:first)
         tt.visualizer(asts)
       end
 
@@ -139,7 +139,7 @@ module ActionDispatch
 
           routes.map! { |r|
             match_data  = r.path.match(req.path_info)
-            match_names = match_data.names.map { |n| n.to_sym }
+            match_names = match_data.names.map(&:to_sym)
             match_values = match_data.captures.map { |v| v && Utils.unescape_uri(v) }
             info = Hash[match_names.zip(match_values).find_all { |_, y| y }]
 

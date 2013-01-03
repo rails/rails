@@ -346,7 +346,7 @@ class SchemaTest < ActiveRecord::TestCase
 
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name)
       with_schema_search_path(this_schema_name) do
-        indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
+        indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
         assert_equal 3,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)

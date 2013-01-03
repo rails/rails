@@ -111,7 +111,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
           next if (line.empty? || line =~ /^\#/)
 
           cols, comment = line.split("#")
-          cols = cols.split(";").map{|e| e.strip}.reject{|e| e.empty? }
+          cols = cols.split(";").map(&:strip).reject(&:empty?)
           next unless cols.length == 5
 
           # codepoints are in hex in the test suite, pack wants them as integers

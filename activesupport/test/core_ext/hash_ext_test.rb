@@ -329,7 +329,7 @@ class HashExtTest < ActiveSupport::TestCase
       :member? => true }
 
     hashes.each do |name, hash|
-      method_map.sort_by { |m| m.to_s }.each do |meth, expected|
+      method_map.sort_by(&:to_s).each do |meth, expected|
         assert_equal(expected, hash.__send__(meth, 'a'),
                      "Calling #{name}.#{meth} 'a'")
         assert_equal(expected, hash.__send__(meth, :a),

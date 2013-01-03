@@ -126,6 +126,6 @@ if failures.empty?
 else
   puts
   puts "Rails build FAILED"
-  puts "Failed components: #{failures.map { |component| component.first }.join(', ')}"
+  puts "Failed components: #{failures.map(&:first).join(', ')}"
   exit(false)
 end

@@ -16,13 +16,13 @@ module ActiveRecord
         # with expensive conversion methods, like time related columns (e.g.
         # +created_at+, +updated_at+).
         def cache_attributes(*attribute_names)
-          cached_attributes.merge attribute_names.map { |attr| attr.to_s }
+          cached_attributes.merge attribute_names.map(&:to_s)
         end
 
         # Returns the attributes which are cached. By default time related columns
         # with datatype <tt>:datetime, :timestamp, :time, :date</tt> are cached.
         def cached_attributes
-          @cached_attributes ||= columns.select { |c| cacheable_column?(c) }.map { |col| col.name }.to_set
+          @cached_attributes ||= columns.select { |c| cacheable_column?(c) }.map(&:name).to_set
         end
 
         # Returns +true+ if the provided attribute is being cached.

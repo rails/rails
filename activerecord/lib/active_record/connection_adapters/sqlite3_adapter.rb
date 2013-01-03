@@ -55,11 +55,11 @@ module ActiveRecord
         include Comparable
 
         def initialize(version_string)
-          @version = version_string.split('.').map { |v| v.to_i }
+          @version = version_string.split('.').map(&:to_i)
         end
 
         def <=>(version_string)
-          @version <=> version_string.split('.').map { |v| v.to_i }
+          @version <=> version_string.split('.').map(&:to_i)
         end
       end
 
@@ -535,7 +535,7 @@ module ActiveRecord
           end
           copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
-            @definition.columns.map {|column| column.name},
+            @definition.columns.map(&:name),
             options[:rename] || {})
         end
 
@@ -548,7 +548,7 @@ module ActiveRecord
               name = name[5..-1]
             end
 
-            to_column_names = columns(to).map { |c| c.name }
+            to_column_names = columns(to).map(&:name)
             columns = index.columns.map {|c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end

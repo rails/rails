@@ -800,9 +800,7 @@ module ActiveRecord
       association_joins         = buckets[:association_join] || []
       stashed_association_joins = buckets[:stashed_join] || []
       join_nodes                = (buckets[:join_node] || []).uniq
-      string_joins              = (buckets[:string_join] || []).map { |x|
-        x.strip
-      }.uniq
+      string_joins              = (buckets[:string_join] || []).map(&:strip).uniq
 
       join_list = join_nodes + custom_join_ast(manager, string_joins)
 

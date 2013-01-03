@@ -42,7 +42,7 @@ module ActionDispatch
         return @ast if @ast
         return if partitioned_routes.first.empty?
 
-        asts = partitioned_routes.first.map { |r| r.ast }
+        asts = partitioned_routes.first.map(&:ast)
         @ast = Nodes::Or.new(asts)
       end
 

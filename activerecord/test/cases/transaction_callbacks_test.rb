@@ -45,7 +45,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def setup
-    @first, @second = TopicWithCallbacks.find(1, 3).sort_by { |t| t.id }
+    @first, @second = TopicWithCallbacks.find(1, 3).sort_by(&:id)
   end
 
   def test_call_after_commit_after_transaction_commits

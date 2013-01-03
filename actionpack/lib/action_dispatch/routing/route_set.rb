@@ -371,7 +371,7 @@ module ActionDispatch
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
         path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
-        conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
+        conditions = build_conditions(conditions, path.names.map(&:to_sym))
 
         route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name && !named_routes[name]
@@ -432,7 +432,7 @@ module ActionDispatch
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| v.to_param }.join('/')
+            value.map(&:to_param).join('/')
           elsif param = value.to_param
             param
           end

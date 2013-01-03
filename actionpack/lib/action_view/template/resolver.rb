@@ -138,7 +138,7 @@ module ActionView
     # resolver is fresher before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
-      locals = locals.map { |x| x.to_s }.sort!
+      locals = locals.map(&:to_s).sort!
 
       if key
         @cache.cache(key, name, prefix, partial, locals) do

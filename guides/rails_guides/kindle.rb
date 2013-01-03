@@ -70,7 +70,7 @@ module Kindle
       File.open("sections/%03d/_section.txt" % section_idx, 'w') {|f| f.puts title}
       doc.xpath("//h3[@id]").each_with_index do |h3,item_idx|
         subsection = h3.inner_text
-        content = h3.xpath("./following-sibling::*").take_while {|x| x.name != "h3"}.map {|x| x.to_html}
+        content = h3.xpath("./following-sibling::*").take_while {|x| x.name != "h3"}.map(&:to_html)
         item = Nokogiri::HTML(h3.to_html + content.join("\n"))
         item_path = "sections/%03d/%03d.html" % [section_idx, item_idx] 
         add_head_section(item, subsection)

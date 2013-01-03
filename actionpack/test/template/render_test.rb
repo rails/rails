@@ -17,7 +17,7 @@ module RenderTestCases
     I18n.backend.store_translations 'pt-BR', {}
 
     # Ensure original are still the same since we are reindexing view paths
-    assert_equal ORIGINAL_LOCALES, I18n.available_locales.map {|l| l.to_s }.sort
+    assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
   end
 
   def test_render_without_options

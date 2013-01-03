@@ -594,7 +594,7 @@ module ActiveRecord
       joined_tables += [table.name, table.table_alias]
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
+      joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
       string_tables = tables_in_string(to_sql)
 
       if (references_values - joined_tables).any?

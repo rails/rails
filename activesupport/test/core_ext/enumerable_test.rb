@@ -31,7 +31,7 @@ class EnumerableTests < ActiveSupport::TestCase
     end
 
     enum = GenericEnumerable.new(objects)
-    grouped = enum.group_by { |object| object.name }
+    grouped = enum.group_by(&:name)
 
     grouped.each do |name, group|
       assert group.all? { |person| person.name == name }
