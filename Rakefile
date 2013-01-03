@@ -40,10 +40,10 @@ task :install => :gem do
   version = File.read("RAILS_VERSION").strip
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
-    system("gem install #{project}/pkg/#{project}-#{version}.gem --no-ri --no-rdoc")
+    system("gem install #{project}/pkg/#{project}-#{version}.gem --local --no-ri --no-rdoc")
   end
-  system("gem install railties/pkg/railties-#{version}.gem --no-ri --no-rdoc")
-  system("gem install pkg/rails-#{version}.gem --no-ri --no-rdoc")
+  system("gem install railties/pkg/railties-#{version}.gem --local --no-ri --no-rdoc")
+  system("gem install pkg/rails-#{version}.gem --local --no-ri --no-rdoc")
 end
 
 desc "Generate documentation for the Rails framework"
