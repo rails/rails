@@ -1,5 +1,10 @@
 ## Rails 3.2.11 (unreleased)
 
+*   Fix undefined method `to_i` when calling `new` on a scope that uses an Array.
+    Fixes #8718.
+
+    *Jason Stirk*
+
 *   Serialized attributes can be serialized in integer columns.
     Fix #8575.
 
