@@ -59,8 +59,8 @@ module Rails
       end
 
       # PATCH/PUT update
-      def update_attributes(params=nil)
-        "#{name}.update_attributes(#{params})"
+      def update(params=nil)
+        "#{name}.update(#{params})"
       end
 
       # POST create

@@ -137,7 +137,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update_attributes(params[:book])
+  if @book.update(params[:book])
     redirect_to(@book)
   else
     render "edit"
@@ -145,14 +145,14 @@ def update
 end
 ```
 
-If the call to `update_attributes` fails, calling the `update` action in this controller will render the `edit.html.erb` template belonging to the same controller.
+If the call to `update` fails, calling the `update` action in this controller will render the `edit.html.erb` template belonging to the same controller.
 
 If you prefer, you can use a symbol instead of a string to specify the action to render:
 
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update_attributes(params[:book])
+  if @book.update(params[:book])
     redirect_to(@book)
   else
     render :edit

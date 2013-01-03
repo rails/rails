@@ -159,8 +159,8 @@ The following methods trigger callbacks:
 * `toggle!`
 * `update`
 * `update_attribute`
-* `update_attributes`
-* `update_attributes!`
+* `update`
+* `update!`
 * `valid?`
 
 Additionally, the `after_find` callback is triggered by the following finder methods:

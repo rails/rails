@@ -41,7 +41,7 @@ module ActionController
   #   permitted.class      # => ActionController::Parameters
   #   permitted.permitted? # => true
   #
-  #   Person.first.update_attributes!(permitted)
+  #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
   # It provides a +permit_all_parameters+ option that controls the top-level
@@ -329,7 +329,7 @@ module ActionController
   #     # into a 400 Bad Request reply.
   #     def update
   #       redirect_to current_account.people.find(params[:id]).tap { |person|
-  #         person.update_attributes!(person_params)
+  #         person.update!(person_params)
   #       }
   #     end
   #

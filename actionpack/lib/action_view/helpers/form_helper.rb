@@ -101,9 +101,9 @@ module ActionView
     # and generate HTML accordingly.
     #
     # The controller would receive the form data again in <tt>params[:person]</tt>, ready to be
-    # passed to <tt>Person#update_attributes</tt>:
+    # passed to <tt>Person#update</tt>:
     #
-    #   if @person.update_attributes(params[:person])
+    #   if @person.update(params[:person])
     #     # success
     #   else
     #     # error handling
@@ -895,7 +895,7 @@ module ActionView
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @invoice.update_attributes(params[:invoice])
+      #   @invoice.update(params[:invoice])
       #
       # wouldn't update the flag.
       #
@@ -1573,7 +1573,7 @@ module ActionView
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @invoice.update_attributes(params[:invoice])
+      #   @invoice.update(params[:invoice])
       #
       # wouldn't update the flag.
       #

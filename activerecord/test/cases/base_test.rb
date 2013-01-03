@@ -593,7 +593,7 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
 
-    post.update_attributes(:title => "try to change", :body => "changed")
+    post.update(title: "try to change", body: "changed")
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
@@ -1001,7 +1001,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_reload_with_exclusive_scope
     dev = DeveloperCalledDavid.first
-    dev.update_attributes!( :name => "NotDavid" )
+    dev.update!(name: "NotDavid" )
     assert_equal dev, dev.reload
   end
 
