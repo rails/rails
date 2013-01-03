@@ -60,11 +60,21 @@ module ActionDispatch
       end
 
       # Convenience accessor for flash.now[:alert]=
+      #
+      # Example:
+      #
+      #   flash.alert = "Error: no cheezburger"
+      #   # Equivlant to flash[:alert] = "No cheezburger"
       def alert=(message)
         self[:alert] = message
       end
 
       # Convenience accessor for flash.now[:notice]=
+      #
+      # Example:
+      #
+      #   flash.notice = "Bukkit stolen"
+      #   # Equivlant to flash[:notice] = "Bukkit stolen"
       def notice=(message)
         self[:notice] = message
       end
