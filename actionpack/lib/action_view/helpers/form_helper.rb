@@ -414,8 +414,7 @@ module ActionView
       #   <% end %>
       def form_for(record, options = {}, &block)
         raise ArgumentError, "Missing block" unless block_given?
-
-        options[:html] ||= {}
+        html_options = options[:html] ||= {}
 
         case record
         when String, Symbol
@@ -428,15 +427,16 @@ module ActionView
           apply_form_for_options!(record, object, options)
         end
 
-        options[:html][:data]   = options.delete(:data)   if options.has_key?(:data)
-        options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
-        options[:html][:method] = options.delete(:method) if options.has_key?(:method)
-        options[:html][:authenticity_token] = options.delete(:authenticity_token)
+        html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
+        html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
+        html_options[:method] = options.delete(:method) if options.has_key?(:method)
+        html_options[:authenticity_token] = options.delete(:authenticity_token)
 
-        builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
+        builder = instantiate_builder(object_name, object, options)
         output  = capture(builder, &block)
-        default_options = builder.form_tag_attributes
-        form_tag(options[:url] || {}, default_options) { output }
+        html_options[:multipart] = builder.multipart?
+
+        form_tag(options[:url] || {}, html_options) { output }
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
@@ -1172,12 +1172,15 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart, :parent_builder, :index
+      attr_reader :multipart, :index
       alias :multipart? :multipart
 
       def multipart=(multipart)
         @multipart = multipart
-        parent_builder.multipart = multipart if parent_builder
+
+        if parent_builder = @options[:parent_builder]
+          parent_builder.multipart = multipart
+        end
       end
 
       def self._to_partial_path
@@ -1199,8 +1202,6 @@ module ActionView
 
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @form_tag_attributes = options.fetch(:html, {})
-        @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
           if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
@@ -1211,11 +1212,6 @@ module ActionView
         end
         @multipart = nil
         @index = options[:index] || options[:child_index]
-      end
-
-      def form_tag_attributes
-        options = multipart? ? { multipart: true } : {}
-        options.merge! @form_tag_attributes
       end
 
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
@@ -1482,8 +1478,8 @@ module ActionView
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
-        fields_options[:parent_builder] = self
         fields_options[:namespace] = options[:namespace]
+        fields_options[:parent_builder] = self
 
         case record_name
         when String, Symbol
