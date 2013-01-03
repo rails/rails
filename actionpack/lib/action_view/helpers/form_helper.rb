@@ -1818,16 +1818,15 @@ module ActionView
           end
         end
 
-        def fields_for_nested_model(name, object, options, block)
+        def fields_for_nested_model(name, object, fields_options, block)
           object = convert_to_model(object)
+          emit_hidden_id = object.persisted? && fields_options.fetch(:include_id) {
+            options.fetch(:include_id, true)
+          }
 
-          parent_include_id = self.options.fetch(:include_id, true)
-          include_id        = options.fetch(:include_id, parent_include_id)
-          hidden_field_id   = object.persisted? && include_id
-
-          @template.fields_for(name, object, options) do |f|
+          @template.fields_for(name, object, fields_options) do |f|
             output = @template.capture(f, &block)
-            output.concat f.hidden_field(:id) if output && hidden_field_id && !f.emitted_hidden_id?
+            output.concat f.hidden_field(:id) if output && emit_hidden_id && !f.emitted_hidden_id?
             output
           end
         end
