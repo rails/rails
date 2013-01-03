@@ -84,7 +84,7 @@ module ActionView
     #
     #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
     #     <div style="margin:0;padding:0;display:inline">
-    #       <input name="_method" type="hidden" value="put" />
+    #       <input name="_method" type="hidden" value="patch" />
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
     #     <label for="person_first_name">First name</label>:
@@ -242,7 +242,7 @@ module ActionView
       #
       # is then equivalent to something like:
       #
-      #   <%= form_for @post, as: :post, url: post_path(@post), method: :put, html: { class: "edit_post", id: "edit_post_45" } do |f| %>
+      #   <%= form_for @post, as: :post, url: post_path(@post), method: :patch, html: { class: "edit_post", id: "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -318,7 +318,7 @@ module ActionView
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
       #     <div style='margin:0;padding:0;display:inline'>
-      #       <input name='_method' type='hidden' value='put' />
+      #       <input name='_method' type='hidden' value='patch' />
       #     </div>
       #     ...
       #   </form>
@@ -336,7 +336,7 @@ module ActionView
       #
       #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
       #     <div style='margin:0;padding:0;display:inline'>
-      #       <input name='_method' type='hidden' value='put' />
+      #       <input name='_method' type='hidden' value='patch' />
       #     </div>
       #     ...
       #   </form>

@@ -227,7 +227,7 @@ module ActionController #:nodoc:
     #      i.e. its +show+ action.
     #   2. If there are validation errors, the response
     #      renders a default action, which is <tt>:new</tt> for a
-    #      +post+ request or <tt>:edit</tt> for +put+.
+    #      +post+ request or <tt>:edit</tt> for +patch+ or +put+.
     #   Thus an example like this -
     #
     #     respond_to :html, :xml
