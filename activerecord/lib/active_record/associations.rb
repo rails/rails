@@ -194,7 +194,7 @@ module ActiveRecord
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
     #   <tt>Project#milestones.delete(milestone), Project#milestones.destroy(mileston), Project#milestones.find(milestone_id),</tt>
-    #   <tt>Project#milestones.all(options), Project#milestones.build, Project#milestones.create</tt>
+    #   <tt>Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1), Project#categories.destroy(category1)</tt>
     #
@@ -743,7 +743,7 @@ module ActiveRecord
     # other than the main one. If this is the case Active Record falls back to the previously
     # used LEFT OUTER JOIN based strategy. For example
     #
-    #   Post.includes([:author, :comments]).where(['comments.approved = ?', true]).all
+    #   Post.includes([:author, :comments]).where(['comments.approved = ?', true])
     #
     # This will result in a single SQL query with joins along the lines of:
     # <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
