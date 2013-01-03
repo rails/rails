@@ -830,7 +830,7 @@ it look as follows:
 <h1>Editing post</h1>
 
 <%= form_for :post, url: { action: :update, id: @post.id },
-method: :put do |f| %>
+method: :patch do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -863,7 +863,7 @@ method: :put do |f| %>
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The `method: :put` option tells Rails that we want this form to be
+The `method: :patch` option tells Rails that we want this form to be
 submitted via the `PUT` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
@@ -873,7 +873,7 @@ Next, we need to add the `update` action. The file
 `config/routes.rb` will need just one more line:
 
 ```ruby
-put "posts/:id" => "posts#update"
+patch "posts/:id" => "posts#update"
 ```
 
 And then create the `update` action in `app/controllers/posts_controller.rb`:
@@ -1051,7 +1051,7 @@ called `post_url` and `post_path` available to our application. These are
 precisely the methods that the `form_for` needs when editing a post, and so now
 you'll be able to update posts again.
 
-NOTE: The `:as` option is available on the `post`, `put`, `delete` and `match`
+NOTE: The `:as` option is available on the `post`, `patch`, `put`, `delete` and `match`
 routing methods also.
 
 ### Deleting Posts
@@ -1145,7 +1145,7 @@ get "posts/new"
 post "posts" => "posts#create"
 get "posts/:id" => "posts#show", as: :post
 get "posts/:id/edit" => "posts#edit"
-put "posts/:id" => "posts#update"
+patch "posts/:id" => "posts#update"
 delete "posts/:id" => "posts#destroy"
 ```
 
