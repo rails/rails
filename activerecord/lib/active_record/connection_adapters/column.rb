@@ -206,7 +206,11 @@ module ActiveRecord
           when TrueClass, FalseClass
             value ? 1 : 0
           else
-            value.to_i
+            if value.respond_to?(:to_i)
+              value.to_i
+            else
+              nil
+            end
           end
         end
 

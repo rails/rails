@@ -1,6 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Rename `update_attributes` to `update`, keep `update_attributes` as an alias for `update` method. 
+*   Fix undefined method `to_i` when calling `new` on a scope that uses an Array.
+    Fixes #8718, #8734.
+
+    *Jason Stirk*
+
+*   Rename `update_attributes` to `update`, keep `update_attributes` as an alias for `update` method.
     This is a soft-deprecation for `update_attributes`, although it will still work without any
     deprecation message in 4.0 is recommended to start using `update` since `update_attributes` will be
     deprecated and removed in future versions of Rails.
