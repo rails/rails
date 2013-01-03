@@ -44,6 +44,8 @@ module Rails
     class Root
       attr_accessor :path
 
+      delegate :[], :values, :values_at, :keys, to: '@root'
+
       def initialize(path)
         @current = nil
         @path = path
@@ -58,22 +60,6 @@ module Rails
       def add(path, options={})
         with = Array(options[:with] || path)
         @root[path] = Path.new(self, path, with, options)
-      end
-
-      def [](path)
-        @root[path]
-      end
-
-      def values
-        @root.values
-      end
-
-      def keys
-        @root.keys
-      end
-
-      def values_at(*list)
-        @root.values_at(*list)
       end
 
       def all_paths
@@ -117,6 +103,8 @@ module Rails
 
       attr_accessor :glob
 
+      delegate :first, :last, to: 'expanded'
+
       def initialize(root, current, paths, options = {})
         @paths    = paths
         @current  = current
@@ -135,14 +123,6 @@ module Rails
         @root.values_at(*keys.sort)
       end
 
-      def first
-        expanded.first
-      end
-
-      def last
-        expanded.last
-      end
-
       %w(autoload_once eager_load autoload load_path).each do |m|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{m}!        # def eager_load!
@@ -159,22 +139,8 @@ module Rails
         RUBY
       end
 
-      def each(&block)
-        @paths.each(&block)
-      end
-
-      def <<(path)
-        @paths << path
-      end
+      delegate :<<, :each, :concat, :unshift, to: '@paths'
       alias :push :<<
-
-      def concat(paths)
-        @paths.concat paths
-      end
-
-      def unshift(path)
-        @paths.unshift path
-      end
 
       def to_ary
         @paths
