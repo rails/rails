@@ -225,7 +225,8 @@ $ rails generate scaffold HighScore game:string score:integer
     invoke    test_unit
     create      test/models/high_score_test.rb
     create      test/fixtures/high_scores.yml
-     route  resources :high_scores
+    invoke  resource_route
+     route    resources :high_scores
     invoke  scaffold_controller
     create    app/controllers/high_scores_controller.rb
     invoke    erb
