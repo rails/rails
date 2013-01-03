@@ -684,11 +684,11 @@ class AssetUrlHelperControllerTest < ActionView::TestCase
     @controller.extend ActionView::Helpers::AssetUrlHelper
 
     @request = Class.new do
-      attr_accessor :script_name
       def protocol() 'http://' end
       def ssl?() false end
       def host_with_port() 'www.example.com' end
       def base_url() 'http://www.example.com' end
+      def script_name() '/script_name' end
     end.new
 
     @controller.request = @request
