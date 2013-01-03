@@ -122,7 +122,7 @@ if ActiveRecord::Base.connection.supports_explain?
       base.expects(:collecting_sqls_for_explain).never
       base.logger.expects(:warn).never
       base.silence_auto_explain do
-        with_threshold(0) { Car.all }
+        with_threshold(0) { Car.all.to_a }
       end
     end
 
