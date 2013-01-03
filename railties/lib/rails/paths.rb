@@ -44,6 +44,8 @@ module Rails
     class Root
       attr_accessor :path
 
+      delegate :[], :values, :values_at, :keys, to: '@root'
+
       def initialize(path)
         @current = nil
         @path = path
@@ -58,22 +60,6 @@ module Rails
       def add(path, options={})
         with = Array(options[:with] || path)
         @root[path] = Path.new(self, path, with, options)
-      end
-
-      def [](path)
-        @root[path]
-      end
-
-      def values
-        @root.values
-      end
-
-      def keys
-        @root.keys
-      end
-
-      def values_at(*list)
-        @root.values_at(*list)
       end
 
       def all_paths
