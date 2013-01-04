@@ -173,6 +173,8 @@ module ActiveRecord
             :decimal
           when 'hstore'
             :hstore
+          when 'ltree'
+            :ltree
           # Network address types
           when 'inet'
             :inet
@@ -275,6 +277,10 @@ module ActiveRecord
           column(name, 'hstore', options)
         end
 
+        def ltree(name, options = {})
+          column(name, 'ltree', options)
+        end
+
         def inet(name, options = {})
           column(name, 'inet', options)
         end
@@ -340,7 +346,8 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
-        intrange:    { name: "int4range" }
+        intrange:    { name: "int4range" },
+        ltree:       { name: "ltree" }
       }
 
       include Quoting

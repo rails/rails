@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support for PostgreSQL's ltree data type.
+
+    *Rob Worley*
+
 *   Fix undefined method `to_i` when calling `new` on a scope that uses an Array.
     Fixes #8718, #8734.
 
