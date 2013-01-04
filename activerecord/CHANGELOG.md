@@ -1,3 +1,7 @@
+## Rails 3.1.10
+
+*   Fix querying with an empty hash *Damien Mathieu* [CVE-2013-0155]
+
 ## Rails 3.1.9
 
 *  CVE-2012-5664 ensure that options are never taken from the first parameter

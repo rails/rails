@@ -1,3 +1,7 @@
+## Rails 3.1.10
+
+* Strip nils from collections on JSON and XML posts. [CVE-2013-0155]
+
 ## Rails 3.1.9
 
 ## Rails 3.1.8 (Aug 9, 2012)
