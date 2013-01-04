@@ -259,5 +259,5 @@ test
   directory.
 
 vendor
-  External libraries that the application depends on. If the app has frozen rails,
-  those gems also go here, under vendor/rails/. This directory is in the load path.
+  External libraries that the application depends on. This directory is in the
+  load path.
