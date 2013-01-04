@@ -136,10 +136,18 @@ module Rails
 
       if arguments.first && arguments.first[0] != '-'
         env = arguments.first
-        options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        if self.class.available_environments.include? env
+          options[:environment] = env
+        else
+          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        end
       end
 
       options
+    end
+
+    def self.available_environments
+      Dir[Rails.root.join('config', 'environments', '*.rb')].map { |fname| File.basename(fname, '.*') }
     end
 
     def find_cmd_and_exec(commands, *args)

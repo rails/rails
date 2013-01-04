@@ -45,6 +45,18 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     ENV['RAILS_ENV'] = "test"
   end
 
+  def test_rails_env_is_development_when_argument_is_dev
+    Rails::DBConsole.stubs(:available_environments).returns(['development', 'test'])
+    options = Rails::DBConsole.new.send(:parse_arguments, ['dev'])
+    assert_match('development', options[:environment])
+  end
+
+  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
+    Rails::DBConsole.stubs(:available_environments).returns(['dev'])
+    options = Rails::DBConsole.new.send(:parse_arguments, ['dev'])
+    assert_match('dev', options[:environment])
+  end
+
   def test_mysql
     dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], 'db')
     start(adapter: 'mysql', database: 'db')
