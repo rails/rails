@@ -689,6 +689,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, comments.count
   end
 
+  def test_relation_to_sql
+    sql = Post.first.comments.to_sql
+    assert_no_match(/\?/, sql)
+  end
+
   def test_count
     posts = Post.scoped
 
