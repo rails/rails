@@ -258,18 +258,14 @@ module ActionDispatch
       LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
     end
 
-    protected
-
     # Remove nils from the params hash
     def deep_munge(hash)
-      keys = hash.keys.find_all { |k| hash[k] == [nil] }
-      keys.each { |k| hash[k] = nil }
-
-      hash.each_value do |v|
+      hash.each do |k, v|
         case v
         when Array
           v.grep(Hash) { |x| deep_munge(x) }
           v.compact!
+          hash[k] = nil if v.empty?
         when Hash
           deep_munge(v)
         end
@@ -277,6 +273,8 @@ module ActionDispatch
 
       hash
     end
+
+    protected
 
     def parse_query(qs)
       deep_munge(super)
