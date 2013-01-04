@@ -843,7 +843,7 @@ module ActiveRecord
         when Arel::Nodes::Ordering
           o.reverse
         when String
-          o.to_s.split(',').collect do |s|
+          o.to_s.scan(order_values_regexp).map(&:first).collect do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
@@ -857,6 +857,20 @@ module ActiveRecord
           o
         end
       end
+    end
+
+    def order_values_regexp
+      # values divided by coma without brackets OR with matching brackets included
+      %r{
+        (
+          [^\(\),]+ # value without brackets
+          |
+          [^,]*                         #
+          (\((?:(?>[^()]+)|\g<2>)*\))   # value with brackets
+          [^,]*                         #
+        )
+        (?:,|\s*\z) # coma or end of string
+      }x
     end
 
     def array_of_strings?(o)

@@ -1159,6 +1159,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'honda', car2.name
   end
 
+  def test_order_with_function_and_last
+    authors = Author.scoped
+    assert_equal authors(:bob), authors.order( "id asc, MAX( organization_id, owned_essay_id)" ).last
+  end
+
   def test_unscoped_block_style
     assert_equal 'honda', CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name}
     assert_equal 'honda', FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name}
