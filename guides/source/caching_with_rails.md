@@ -38,6 +38,75 @@ Page Caching cannot be used for actions that have before filters - for example, 
 
 INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching)
 
+### Fragment Caching
+
+Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently, Rails provides a mechanism called Fragment Caching.
+
+Fragment Caching allows a fragment of view logic to be wrapped in a cache block and served out of the cache store when the next request comes in.
+
+As an example, if you wanted to show all the orders placed on your website in real time and didn't want to cache that part of the page, but did want to cache the part of the page which lists all products available, you could use this piece of code:
+
+```html+erb
+<% Order.find_recent.each do |o| %>
+  <%= o.buyer.name %> bought <%= o.product.name %>
+<% end %>
+
+<% cache do %>
+  All available products:
+  <% Product.all.each do |p| %>
+    <%= link_to p.name, product_url(p) %>
+  <% end %>
+<% end %>
+```
+
+The cache block in our example will bind to the action that called it and is written out to the same place as the Action Cache, which means that if you want to cache multiple fragments per action, you should provide an `action_suffix` to the cache call:
+
+```html+erb
+<% cache(action: 'recent', action_suffix: 'all_products') do %>
+  All available products:
+```
+
+and you can expire it using the `expire_fragment` method, like so:
+
+```ruby
+expire_fragment(controller: 'products', action: 'recent', action_suffix: 'all_products')
+```
+
+If you don't want the cache block to bind to the action that called it, you can also use globally keyed fragments by calling the `cache` method with a key:
+
+```erb
+<% cache('all_available_products') do %>
+  All available products:
+<% end %>
+```
+
+This fragment is then available to all actions in the `ProductsController` using the key and can be expired the same way:
+
+```ruby
+expire_fragment('all_available_products')
+```
+
+### SQL Caching
+
+Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
+
+For example:
+
+```ruby
+class ProductsController < ActionController
+
+  def index
+    # Run a find query
+    @products = Product.all
+
+    ...
+
+    # Run the same query again
+    @products = Product.all
+  end
+
+end
+```
 
 Cache Stores
 ------------
