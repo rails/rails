@@ -177,8 +177,13 @@
              xhr = new XMLHttpRequest();
         xhr.open("GET","rails/info/properties",false);
         xhr.send("");
-        info.innerHTML = xhr.responseText;
-        info.style.display = 'block'
+        
+        var doc = document.implementation.createHTMLDocument("about-app");
+        doc.documentElement.innerHTML = xhr.responseText;
+
+        info.innerHTML = doc.body.innerHTML;
+        info.style.display = 'block';
+        info.style.overflow = 'scroll';
       }
     </script>
   </head>
