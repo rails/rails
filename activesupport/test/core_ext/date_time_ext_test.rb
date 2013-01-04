@@ -320,9 +320,7 @@ end
 
 class DateTimeExtBehaviorTest < ActiveSupport::TestCase
   def test_compare_with_infinity
-    assert_nothing_raised do
-      assert_equal(-1, DateTime.now <=> Float::INFINITY)
-      assert_equal(1, DateTime.now <=> -Float::INFINITY)
-    end
+    assert_equal(-1, DateTime.now <=> Float::INFINITY)
+    assert_equal(1, DateTime.now <=> -Float::INFINITY)
   end
 end

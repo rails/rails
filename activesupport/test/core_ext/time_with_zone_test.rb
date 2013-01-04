@@ -1087,9 +1087,7 @@ class TimeWithZoneExtBehaviorTest < ActiveSupport::TestCase
     time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     twz = ActiveSupport::TimeWithZone.new(Time.now, time_zone)
 
-    assert_nothing_raised do
-      assert_equal(-1, twz <=> Float::INFINITY)
-      assert_equal(1, twz <=> -Float::INFINITY)
-    end
+    assert_equal(-1, twz <=> Float::INFINITY)
+    assert_equal(1, twz <=> -Float::INFINITY)
   end
 end
