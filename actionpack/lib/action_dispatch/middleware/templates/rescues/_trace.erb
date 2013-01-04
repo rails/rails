@@ -20,7 +20,7 @@
 
   <% traces.each do |name, trace| %>
     <div id="<%= name.gsub(/\s/, '-') %>" style="display: <%= (name == "Application Trace") ? 'block' : 'none' %>;">
-      <pre><code><%=h trace.join "\n" %></code></pre>
+      <pre><code><%= trace.join "\n" %></code></pre>
     </div>
   <% end %>
 </div>

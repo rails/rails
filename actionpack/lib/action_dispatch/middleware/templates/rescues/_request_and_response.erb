@@ -2,7 +2,7 @@
   <% if (hide = @exception.blamed_files.length > 8) %>
     <a href="#" onclick="toggleTrace()">Toggle blamed files</a>
   <% end %>
-  <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%=h @exception.describe_blame %></code></pre>
+  <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%= @exception.describe_blame %></code></pre>
 <% end %>
 
 <%
@@ -18,7 +18,7 @@
 %>
 
 <h2 style="margin-top: 30px">Request</h2>
-<p><b>Parameters</b>:</p> <pre><%=h request_dump %></pre>
+<p><b>Parameters</b>:</p> <pre><%= request_dump %></pre>
 
 <div class="details">
   <div class="summary"><a href="#" onclick="toggleSessionDump()">Toggle session dump</a></div>
@@ -31,4 +31,4 @@
 </div>
 
 <h2 style="margin-top: 30px">Response</h2>
-<p><b>Headers</b>:</p> <pre><%=h defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre>
+<p><b>Headers</b>:</p> <pre><%= defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre>
