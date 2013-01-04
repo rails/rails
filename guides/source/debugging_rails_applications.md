@@ -29,7 +29,7 @@ The `debug` helper will return a \<pre>-tag that renders the object using the YA
 <%= debug @post %>
 <p>
   <b>Title:</b>
-  <%=h @post.title %>
+  <%= @post.title %>
 </p>
 ```
 
@@ -58,7 +58,7 @@ Displaying an instance variable, or any other object or method, in YAML format c
 <%= simple_format @post.to_yaml %>
 <p>
   <b>Title:</b>
-  <%=h @post.title %>
+  <%= @post.title %>
 </p>
 ```
 
@@ -88,7 +88,7 @@ Another useful method for displaying object values is `inspect`, especially when
 <%= [1, 2, 3, 4, 5].inspect %>
 <p>
   <b>Title:</b>
-  <%=h @post.title %>
+  <%= @post.title %>
 </p>
 ```
 
