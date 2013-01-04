@@ -82,7 +82,7 @@ module ActiveRecord
           def type_cast(value)
             return if value.nil?
 
-            value.to_i rescue value ? 1 : 0
+            ConnectionAdapters::Column.value_to_integer value
           end
         end
 
