@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/core_ext/object/try'
 
 module InfiniteComparable
   extend ActiveSupport::Concern
@@ -7,24 +8,27 @@ module InfiniteComparable
     alias_method_chain :<=>, :infinity
   end
 
-  define_method '<=>_with_infinity' do |other|
+  define_method :'<=>_with_infinity' do |other|
     if other.class == self.class
-      self.send(:'<=>_without_infinity', other)
-    # inf <=> inf
-    elsif other.respond_to?(:infinite?) && other.infinite? && respond_to?(:infinite?) && infinite?
-      infinite? <=> other.infinite?
-    # not_inf <=> inf
-    elsif other.respond_to?(:infinite?) && other.infinite?
-      -other.infinite?
-    # inf <=> not_inf
-    elsif respond_to?(:infinite?) && infinite?
-      infinite?
+      public_send :'<=>_without_infinity', other
     else
-      conversion = :"to_#{self.class.name.downcase}"
+      infinite = try(:infinite?)
+      other_infinite = other.try(:infinite?)
 
-      other = other.send(conversion) if other.respond_to?(conversion)
-
-      self.send(:'<=>_without_infinity', other)
+      # inf <=> inf
+      if infinite && other_infinite
+        infinite <=> other_infinite
+      # not_inf <=> inf
+      elsif other_infinite
+        -other_infinite
+      # inf <=> not_inf
+      elsif infinite
+        infinite
+      else
+        conversion = "to_#{self.class.name.downcase}"
+        other = other.public_send(conversion) if other.respond_to?(conversion)
+        public_send :'<=>_without_infinity', other
+      end
     end
   end
 end
