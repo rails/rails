@@ -173,7 +173,8 @@
     </style>
     <script>
       function about() {
-        info = document.getElementById('about-content');
+        var info = document.getElementById('about-content');
+        var xhr;
         if (window.XMLHttpRequest)
           { xhr = new XMLHttpRequest(); }
         else
