@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change String#to_date to use Date.parse. This gives more consistant error
+    messages and allows the use of partial dates.
+
+        "gibberish".to_date => Argument Error: invalid date
+        "3rd Feb".to_date => Sun, 03 Feb 2013
+
+    *Kelly Stannard*
+
 *   It's now possible to compare Date, DateTime, Time and TimeWithZone with Infinity
     This allows to create date/time ranges with one infinite bound.
     Example:
