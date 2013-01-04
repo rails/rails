@@ -46,4 +46,13 @@
   #     # (app/controllers/admin/products_controller.rb)
   #     resources :products
   #   end
+
+  # Example of using routing concerns:
+  #
+  #   concern :commentable do
+  #     resources :comments
+  #   end
+  #
+  #   resources :products, concerns: :commentable
+  #   resources :posts, concerns: :commentable
 end
