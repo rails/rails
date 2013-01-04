@@ -173,12 +173,8 @@
     </style>
     <script>
       function about() {
-        var info = document.getElementById('about-content');
-        var xhr;
-        if (window.XMLHttpRequest)
-          { xhr = new XMLHttpRequest(); }
-        else
-          { xhr = new ActiveXObject("Microsoft.XMLHTTP"); }
+        var info = document.getElementById('about-content'),
+             xhr = new XMLHttpRequest();
         xhr.open("GET","rails/info/properties",false);
         xhr.send("");
         info.innerHTML = xhr.responseText;
