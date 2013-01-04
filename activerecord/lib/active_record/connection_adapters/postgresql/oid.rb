@@ -276,6 +276,7 @@ module ActiveRecord
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'ltree', OID::Identity.new
 
         register_type 'int4range', OID::IntRange.new
         alias_type 'int8range', 'int4range'
