@@ -4,7 +4,7 @@
 
     *Jiri Pospisil*
 
-*   Environment name can be a start substring of the default environemnt names 
+*   Environment name can be a start substring of the default environment names 
     (production, development, test).
     For example: tes, pro, prod, dev, devel.
     Fix #8628
