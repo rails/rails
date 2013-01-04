@@ -1241,6 +1241,12 @@ YAML
       assert_equal '/foo/bukkits/bukkit', last_response.body
     end
 
+    test "engines method is properly deprecated" do
+      boot_rails
+
+      assert_deprecated { app.railties.engines }
+    end
+
   private
     def app
       Rails.application

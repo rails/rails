@@ -468,6 +468,10 @@ module Rails
       end
     end
 
+    def railties
+      @railties ||= self.class::Railties.new
+    end
+
     # Returns a module with all the helpers defined for the engine.
     def helpers
       @helpers ||= begin
