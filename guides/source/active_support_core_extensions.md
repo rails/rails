@@ -2413,9 +2413,9 @@ or yields them in turn if a block is passed:
 ```html+erb
 <% sample.in_groups_of(3) do |a, b, c| %>
   <tr>
-    <td><%=h a %></td>
-    <td><%=h b %></td>
-    <td><%=h c %></td>
+    <td><%= a %></td>
+    <td><%= b %></td>
+    <td><%= c %></td>
   </tr>
 <% end %>
 ```
