@@ -96,7 +96,7 @@ module ActionDispatch
       if File.exists?(full_path)
         File.open(full_path, "r") do |file|
           start = [line - 3, 0].max
-          lines = file.lines.drop(start).take(6)
+          lines = file.each_line.drop(start).take(6)
           Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
         end
       end
