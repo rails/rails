@@ -242,7 +242,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "David", topic2.author_name
   end
 
-  def test_update
+  def test_update_object
     topic = Topic.new
     topic.title = "Another New Topic"
     topic.written_on = "2003-12-12 23:23:00"
@@ -646,7 +646,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
   end
-  
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
