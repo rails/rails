@@ -592,28 +592,3 @@ development:
 It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails new` command to generate the basis of your app.
-
-### `server` with Different Backends
-
-Many people have created a large number of different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
-
-NOTE: For more details on the Rack integration, see [Rails on Rack](rails_on_rack.html).
-
-To use a different server, just install its gem, then use its name for the first parameter to `rails server`:
-
-```bash
-$ sudo gem install mongrel
-Building native extensions.  This could take a while...
-Building native extensions.  This could take a while...
-Successfully installed gem_plugin-0.2.3
-Successfully installed fastthread-1.0.1
-Successfully installed cgi_multipart_eof_fix-2.5.0
-Successfully installed mongrel-1.1.5
-...
-...
-Installing RDoc documentation for mongrel-1.1.5...
-$ rails server mongrel
-=> Booting Mongrel (use 'rails server webrick' to force WEBrick)
-=> Rails 3.1.0 application starting on http://0.0.0.0:3000
-...
-```
