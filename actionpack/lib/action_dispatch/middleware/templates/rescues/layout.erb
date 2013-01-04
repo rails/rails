@@ -114,6 +114,28 @@
     a:visited { color: #666; }
     a:hover { color: #C52F24; }
   </style>
+
+  <script>
+    var toggle = function(id) {
+      var s = document.getElementById(id).style;
+      s.display = s.display == 'none' ? 'block' : 'none';
+    }
+    var show = function(id) {
+      document.getElementById(id).style.display = 'block';
+    }
+    var hide = function(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+    var toggleTrace = function() {
+      toggle('blame_trace');
+    }
+    var toggleSessionDump = function() {
+      toggle('session_dump');
+    }
+    var toggleEnvDump = function() {
+      toggle('env_dump');
+    }
+  </script>
 </head>
 <body>
 
