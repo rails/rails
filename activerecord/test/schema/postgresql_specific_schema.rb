@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids
+  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids postgresql_ltrees
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type postgresql_intrange_data_type).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
@@ -85,6 +85,15 @@ _SQL
   CREATE TABLE postgresql_hstores (
     id SERIAL PRIMARY KEY,
     hash_store hstore default ''::hstore
+  );
+_SQL
+  end
+
+  if 't' == select_value("select 'ltree'=ANY(select typname from pg_type)")
+  execute <<_SQL
+  CREATE TABLE postgresql_ltrees (
+    id SERIAL PRIMARY KEY,
+    path ltree
   );
 _SQL
   end

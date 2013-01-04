@@ -280,6 +280,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
     end
 
+    def test_schema_dump_includes_ltrees_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_ltrees"} =~ output
+        assert_match %r[t.ltree "path"], output
+      end
+    end
+
     def test_schema_dump_includes_arrays_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_arrays"} =~ output
