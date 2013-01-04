@@ -57,6 +57,13 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Strict-Transport-Security']
   end
 
+  def test_hsts_expires_with_duration
+    self.app = ActionDispatch::SSL.new(default_app, :hsts => { :expires => 1.year })
+    get "https://example.org/"
+    assert_equal "max-age=31557600",
+      response.headers['Strict-Transport-Security']
+  end
+
   def test_hsts_include_subdomains
     self.app = ActionDispatch::SSL.new(default_app, :hsts => { :subdomains => true })
     get "https://example.org/"
