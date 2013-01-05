@@ -22,15 +22,12 @@ module ActionDispatch
     #
     # Session options:
     #
-    # * <tt>:secret</tt>: An application-wide key string or block returning a
-    #   string called per generated digest. The block is called with the
-    #   CGI::Session instance as an argument. It's important that the secret
-    #   is not vulnerable to a dictionary attack. Therefore, you should choose
-    #   a secret consisting of random numbers and letters and more than 30
-    #   characters. Examples:
+    # * <tt>:secret</tt>: An application-wide key string. It's important that
+    #   the secret is not vulnerable to a dictionary attack. Therefore, you
+    #   should choose a secret consisting of random numbers and letters and
+    #   more than 30 characters.
     #
     #     :secret => '449fe2e7daee471bffae2fd8dc02313d'
-    #     :secret => Proc.new { User.current_user.secret_key }
     #
     # * <tt>:digest</tt>: The message digest algorithm used to verify session
     #   integrity defaults to 'SHA1' but may be any digest provided by OpenSSL,
