@@ -100,6 +100,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal :inet, @first_network_address.column_for_attribute(:inet_address).type
     assert_equal :macaddr, @first_network_address.column_for_attribute(:mac_address).type
   end
+
   def test_data_type_of_bit_string_types
     assert_equal :string, @first_bit_string.column_for_attribute(:bit_string).type
     assert_equal :string, @first_bit_string.column_for_attribute(:bit_string_varying).type
