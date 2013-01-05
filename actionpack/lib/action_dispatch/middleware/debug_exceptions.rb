@@ -2,7 +2,6 @@ require 'action_dispatch/http/request'
 require 'action_dispatch/middleware/exception_wrapper'
 require 'action_dispatch/routing/inspector'
 
-
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
@@ -42,12 +41,11 @@ module ActionDispatch
           :application_trace => wrapper.application_trace,
           :framework_trace => wrapper.framework_trace,
           :full_trace => wrapper.full_trace,
-          :routes => formatted_routes(exception),
+          :routes_inspector => routes_inspector(exception),
           :source_extract => wrapper.source_extract,
           :line_number => wrapper.line_number,
           :file => wrapper.file
         )
-
         file = "rescues/#{wrapper.rescue_template}"
         body = template.render(:template => file, :layout => 'rescues/layout')
         render(wrapper.status_code, body)
@@ -85,11 +83,28 @@ module ActionDispatch
       @stderr_logger ||= ActiveSupport::Logger.new($stderr)
     end
 
-    def formatted_routes(exception)
+    def routes_inspector(exception)
       return false unless @routes_app.respond_to?(:routes)
       if exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error)
-        inspector = ActionDispatch::Routing::RoutesInspector.new
-        inspector.collect_routes(@routes_app.routes.routes)
+        ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
+      end
+    end
+
+    class TableRoutesFormatter
+      def initialize(view)
+        @view = view
+        @buffer = []
+      end
+
+      def section(type, title, routes)
+        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+        @buffer << @view.render(partial: "routes/route", collection: routes)
+      end
+
+      def result
+        @view.raw @view.render(layout: "routes/route_wrapper") {
+          @view.raw @buffer.join("\n")
+        }
       end
     end
   end
