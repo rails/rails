@@ -45,7 +45,7 @@ code while accomplishing more than many other languages and frameworks.
 Experienced Rails developers also report that it makes web application
 development more fun.
 
-Rails is opinionated software. It makes the assumption that there is a "best"
+Rails is opinionated software. It makes the assumption that there is the "best"
 way to do things, and it's designed to encourage that way - and in some cases to
 discourage alternatives. If you learn "The Rails Way" you'll probably discover a
 tremendous increase in productivity. If you persist in bringing old habits from
