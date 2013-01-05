@@ -45,7 +45,7 @@ end
 
 task default: :test
 
-desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile)'
+desc 'Runs test:units, test:functionals, test:integration together'
 task :test do
   Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
 end
