@@ -1,19 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Environment name can be a start substring of the default environment names
+    (production, development, test). For example: tes, pro, prod, dev, devel.
+    Fix #8628.
+
+    *Mykola Kyryk*
+
 *   Add `-B` alias for `--skip-bundle` option in the rails new generators.
 
     *Jiri Pospisil*
 
-*   Environment name can be a start substring of the default environment names 
-    (production, development, test).
-    For example: tes, pro, prod, dev, devel.
-    Fix #8628
-
-    *Mykola Kyryk*
-
 *   Quote column names in generates fixture files. This prevents
     conflicts with reserved YAML keywords such as 'yes' and 'no'
-    Fix #8612
+    Fix #8612.
 
     *Yves Senn*
 

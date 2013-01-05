@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Support for PostgreSQL's ltree data type.
+*   Support for PostgreSQL's `ltree` data type.
 
     *Rob Worley*
 
@@ -13,7 +13,7 @@
     This is a soft-deprecation for `update_attributes`, although it will still work without any
     deprecation message in 4.0 is recommended to start using `update` since `update_attributes` will be
     deprecated and removed in future versions of Rails.
-    
+
     *Amparo Luna + Guillermo Iguaran*
 
 *   `after_commit` and `after_rollback` now validate the `:on` option and raise an `ArgumentError`
