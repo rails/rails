@@ -65,8 +65,8 @@ module ActionView
       #
       # produces:
       #
-      #   <tr id="person_123" class="person">...</tr>
-      #   <tr id="person_124" class="person">...</tr>
+      #    <tr id="person_123" class="person">...</tr>
+      #    <tr id="person_124" class="person">...</tr>
       #
       # content_tag_for also accepts a hash of options, which will be converted to
       # additional HTML attributes. If you specify a <tt>:class</tt> value, it will be combined
