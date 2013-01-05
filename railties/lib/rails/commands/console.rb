@@ -89,13 +89,11 @@ module Rails
     end
 
     def require_debugger
-      begin
-        require 'debugger'
-        puts "=> Debugger enabled"
-      rescue Exception
-        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
-        exit
-      end
+      require 'debugger'
+      puts "=> Debugger enabled"
+    rescue Exception
+      puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
+      exit
     end
   end
 end
