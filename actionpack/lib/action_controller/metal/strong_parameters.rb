@@ -20,6 +20,20 @@ module ActionController
     end
   end
 
+  # Raised when a supplied parameter is not expected.
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => ActionController::UnexpectedParameter: found unexpected keys: a, b
+  class UnexpectedParameters < IndexError
+    attr_reader :params
+
+    def initialize(params)
+      @params = params
+      super("found unexpected keys: #{params.join(", ")}")
+    end
+  end
+
   # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
@@ -66,6 +80,7 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
+    cattr_accessor :raise_on_unexpected, instance_accessor: false
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -220,6 +235,13 @@ module ActionController
               value.permit(*Array.wrap(filter[key]))
             end
           end
+        end
+      end
+
+      if Parameters.raise_on_unexpected
+        unexpected_keys = self.keys - params.keys
+        if unexpected_keys.any?
+          raise ActionController::UnexpectedParameters.new(unexpected_keys)
         end
       end
 
