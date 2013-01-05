@@ -49,13 +49,11 @@ module ActiveRecord
       end
 
       def test_tables_quoting
-        begin
-          @conn.tables(nil, "foo-bar", nil)
-          flunk
-        rescue => e
-          # assertion for *quoted* database properly
-          assert_match(/database 'foo-bar'/, e.inspect)
-        end
+        @conn.tables(nil, "foo-bar", nil)
+        flunk
+      rescue => e
+        # assertion for *quoted* database properly
+        assert_match(/database 'foo-bar'/, e.inspect)
       end
 
       def test_pk_and_sequence_for

@@ -363,12 +363,10 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_smart_name_error_strings
-    begin
-      Object.module_eval "ImaginaryObject"
-      flunk "No raise!!"
-    rescue NameError => e
-      assert e.message.include?("uninitialized constant ImaginaryObject")
-    end
+    Object.module_eval "ImaginaryObject"
+    flunk "No raise!!"
+  rescue NameError => e
+    assert e.message.include?("uninitialized constant ImaginaryObject")
   end
 
   def test_loadable_constants_for_path_should_handle_empty_autoloads

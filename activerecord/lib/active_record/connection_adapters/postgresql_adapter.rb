@@ -647,32 +647,30 @@ module ActiveRecord
         end
 
         def exec_cache(sql, binds)
-          begin
-            stmt_key = prepare_statement sql
+          stmt_key = prepare_statement sql
 
-            # Clear the queue
-            @connection.get_last_result
-            @connection.send_query_prepared(stmt_key, binds.map { |col, val|
-              type_cast(val, col)
-            })
-            @connection.block
-            @connection.get_last_result
-          rescue PGError => e
-            # Get the PG code for the failure.  Annoyingly, the code for
-            # prepared statements whose return value may have changed is
-            # FEATURE_NOT_SUPPORTED.  Check here for more details:
-            # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-            begin
-              code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
-            rescue
-              raise e
-            end
-            if FEATURE_NOT_SUPPORTED == code
-              @statements.delete sql_key(sql)
-              retry
-            else
-              raise e
-            end
+          # Clear the queue
+          @connection.get_last_result
+          @connection.send_query_prepared(stmt_key, binds.map { |col, val|
+            type_cast(val, col)
+          })
+          @connection.block
+          @connection.get_last_result
+        rescue PGError => e
+          # Get the PG code for the failure.  Annoyingly, the code for
+          # prepared statements whose return value may have changed is
+          # FEATURE_NOT_SUPPORTED.  Check here for more details:
+          # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+          begin
+            code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+          rescue
+            raise e
+          end
+          if FEATURE_NOT_SUPPORTED == code
+            @statements.delete sql_key(sql)
+            retry
+          else
+            raise e
           end
         end
 

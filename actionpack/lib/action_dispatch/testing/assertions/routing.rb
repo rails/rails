@@ -208,11 +208,9 @@ module ActionDispatch
         end
 
         def fail_on(exception_class)
-          begin
-            yield
-          rescue exception_class => e
-            raise MiniTest::Assertion, e.message
-          end
+          yield
+        rescue exception_class => e
+          raise MiniTest::Assertion, e.message
         end
     end
   end

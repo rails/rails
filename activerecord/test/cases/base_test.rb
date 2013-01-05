@@ -300,13 +300,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_invalid_attribute
-    begin
-      Topic.new({ "title" => "test",
-        "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
-    rescue ActiveRecord::MultiparameterAssignmentErrors => ex
-      assert_equal(1, ex.errors.size)
-      assert_equal("last_read", ex.errors[0].attribute)
-    end
+    Topic.new({ "title" => "test",
+      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
+  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+    assert_equal(1, ex.errors.size)
+    assert_equal("last_read", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block

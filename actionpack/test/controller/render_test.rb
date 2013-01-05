@@ -793,15 +793,13 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_line_offset
-    begin
-      get :render_line_offset
-      flunk "the action should have raised an exception"
-    rescue StandardError => exc
-      line = exc.backtrace.first
-      assert(line =~ %r{:(\d+):})
-      assert_equal "1", $1,
-        "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
-    end
+    get :render_line_offset
+    flunk "the action should have raised an exception"
+  rescue StandardError => exc
+    line = exc.backtrace.first
+    assert(line =~ %r{:(\d+):})
+    assert_equal "1", $1,
+      "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
   end
 
   # :ported: compatibility
