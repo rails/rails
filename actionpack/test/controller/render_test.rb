@@ -1406,10 +1406,11 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_locals_option_to_assert_template_is_not_supported
+    get :partial_collection_with_locals
+
     warning_buffer = StringIO.new
     $stderr = warning_buffer
 
-    get :partial_collection_with_locals
     assert_template :partial => 'customer_greeting', :locals => { :greeting => 'Bonjour' }
     assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
   ensure
