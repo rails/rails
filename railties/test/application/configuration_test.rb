@@ -193,8 +193,8 @@ module ApplicationTests
     end
 
     test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
-      app_file 'config/initializers/filter_parameters.rb', <<-RUBY
-        Rails.application.config.filter_parameters += [ :foo, 'bar' ]
+      app_file 'config/initializers/filter_parameters_logging.rb', <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
       RUBY
 
       require "#{app_path}/config/environment"
