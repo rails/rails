@@ -136,7 +136,7 @@ module Rails
 
       if arguments.first && arguments.first[0] != '-'
         env = arguments.first
-        if self.class.available_environments.include? env
+        if available_environments.include? env
           options[:environment] = env
         else
           options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
@@ -146,7 +146,7 @@ module Rails
       options
     end
 
-    def self.available_environments
+    def available_environments
       Dir[Rails.root.join('config', 'environments', '*.rb')].map { |fname| File.basename(fname, '.*') }
     end
 

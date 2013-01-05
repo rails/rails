@@ -35,6 +35,7 @@ module Rails
       end
 
       private
+
         def available_environments
           Dir[Rails.root.join('config', 'environments', '*.rb')].map { |fname| File.basename(fname, '.*') }
         end
