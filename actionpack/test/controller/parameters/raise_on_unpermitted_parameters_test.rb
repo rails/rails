@@ -16,7 +16,7 @@ class RaiseOnUnpermittedParametersTest < ActiveSupport::TestCase
       fishing: "Turnips"
     })
 
-    assert_raises(ActionController::UnexpectedParameters) do
+    assert_raises(ActionController::UnpermittedParameters) do
       params.permit(book: [:pages])
     end
   end
@@ -26,7 +26,7 @@ class RaiseOnUnpermittedParametersTest < ActiveSupport::TestCase
       book: { pages: 65, title: "Green Cats and where to find then." }
     })
 
-    assert_raises(ActionController::UnexpectedParameters) do
+    assert_raises(ActionController::UnpermittedParameters) do
       params.permit(book: [:pages])
     end
   end
