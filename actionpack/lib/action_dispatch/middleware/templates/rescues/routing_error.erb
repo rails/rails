@@ -13,16 +13,18 @@
       </ol>
     </p>
   <% end %>
+
   <%= render template: "rescues/_trace" %>
 
-<% if @routes_inspector %>
-  <h2>
-    Routes
-  </h2>
+  <% if @routes_inspector %>
+    <h2>
+      Routes
+    </h2>
 
-  <p>
-    Routes match in priority from top to bottom
-  </p>
+    <p>
+      Routes match in priority from top to bottom
+    </p>
 
-  <%= @routes_inspector.format(ActionDispatch::DebugExceptions::TableRoutesFormatter.new(self)) %>
-<% end %>
+    <%= @routes_inspector.format(ActionDispatch::DebugExceptions::TableRoutesFormatter.new(self)) %>
+  <% end %>
+</div>
