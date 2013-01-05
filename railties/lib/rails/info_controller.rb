@@ -8,7 +8,7 @@ class Rails::InfoController < ActionController::Base # :nodoc:
   before_filter :require_local!
 
   def index
-    redirect_to '/rails/info/routes'
+    redirect_to action: :routes
   end
 
   def properties
