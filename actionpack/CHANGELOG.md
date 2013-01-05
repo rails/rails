@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Extract `ActionDispatch::PerformanceTest` into https://github.com/rails/rails-perftest
+    You can add the gem to your Gemfile to keep using performance tests.
+
+        gem 'rails-perftest'
+
+    *Yves Senn*
+
 *   Added view_cache_dependency API for declaring dependencies that affect
     cache digest computation.
 

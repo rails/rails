@@ -146,15 +146,4 @@ namespace :test do
     t.libs << "test"
     t.pattern = 'test/integration/**/*_test.rb'
   end
-
-  Rails::SubTestTask.new(benchmark: 'test:prepare') do |t|
-    t.libs << 'test'
-    t.pattern = 'test/performance/**/*_test.rb'
-    t.options = '-- --benchmark'
-  end
-
-  Rails::SubTestTask.new(profile: 'test:prepare') do |t|
-    t.libs << 'test'
-    t.pattern = 'test/performance/**/*_test.rb'
-  end
 end
