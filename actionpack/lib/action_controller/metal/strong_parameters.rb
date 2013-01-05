@@ -84,7 +84,7 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => ActionController::ForbiddenParameters: found forbidden keys: a, b
+  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
   # <tt>ActionController::Parameters</tt> is inherited from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
