@@ -755,7 +755,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-
   def test_form_for_with_format
     form_for(@post, :format => :json, :html => { :id => "edit_post_123", :class => "edit_post" }) do |f|
       concat f.label(:title)
@@ -2215,6 +2214,19 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
+  end
+
+  def test_form_for_only_instantiates_builder_once
+    initialization_count = 0
+    builder_class = Class.new(ActionView::Helpers::FormBuilder) do
+      define_method :initialize do |*args|
+        super(*args)
+        initialization_count += 1
+      end
+    end
+
+    form_for(@post, :builder => builder_class) { }
+    assert_equal 1, initialization_count, 'form builder instantiated more than once'
   end
 
   protected
