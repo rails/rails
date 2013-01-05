@@ -192,6 +192,16 @@ module ApplicationTests
       end
     end
 
+    test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      app_file 'config/initializers/filter_parameters.rb', <<-RUBY
+        Rails.application.config.filter_parameters += [ :foo, 'bar' ]
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal [:password, :foo, 'bar'], Rails.application.env_config['action_dispatch.parameter_filter']
+    end
+
     test "config.to_prepare is forwarded to ActionDispatch" do
       $prepared = false
 
