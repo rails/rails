@@ -48,12 +48,12 @@ module Rails
         @secret_key_base               = nil
 
         @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled                  = false
+        @assets.enabled                  = true
         @assets.paths                    = []
         @assets.precompile               = [ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
                                              /(?:\/|\\|\A)application\.(css|js)$/ ]
         @assets.prefix                   = "/assets"
-        @assets.version                  = ''
+        @assets.version                  = '1.0'
         @assets.debug                    = false
         @assets.compile                  = true
         @assets.digest                   = false

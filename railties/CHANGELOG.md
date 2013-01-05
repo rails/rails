@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   config.assets.enabled is now true by default. If you're upgrading from a Rails 3.x app 
+    that does not use the asset pipeline, you'll be required to add `config.assets.enabled = false`
+    to your application.rb. If you don't want the asset pipeline on a new app use --skip-sprockets
+    
+    *DHH*
+
 *   Environment name can be a start substring of the default environment names
     (production, development, test). For example: tes, pro, prod, dev, devel.
     Fix #8628.

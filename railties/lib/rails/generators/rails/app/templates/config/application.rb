@@ -31,12 +31,9 @@ module <%= app_const_base %>
     # like if you have constraints or database-specific column types.
     # config.active_record.schema_format = :sql
 
-<% unless options.skip_sprockets? -%>
-    # Enable the asset pipeline.
-    config.assets.enabled = true
-
-    # Version of your assets, change this if you want to expire all your assets.
-    config.assets.version = '1.0'
+<% if options.skip_sprockets? -%>
+    # Disable the asset pipeline.
+    config.assets.enabled = false
 <% end -%>
   end
 end
