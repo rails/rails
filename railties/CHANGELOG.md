@@ -1,9 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   config.assets.enabled is now true by default. If you're upgrading from a Rails 3.x app 
+*   `config.assets.enabled` is now true by default. If you're upgrading from a Rails 3.x app
     that does not use the asset pipeline, you'll be required to add `config.assets.enabled = false`
-    to your application.rb. If you don't want the asset pipeline on a new app use --skip-sprockets
-    
+    to your application.rb. If you don't want the asset pipeline on a new app use `--skip-sprockets`
+
     *DHH*
 
 *   Environment name can be a start substring of the default environment names
@@ -166,8 +166,6 @@
 
 *   Add convenience `hide!` method to Rails generators to hide current generator
     namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
-
-*   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
 
