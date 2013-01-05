@@ -83,6 +83,10 @@ table th {
   padding: 0.5em 1em;
 }
 
+img {
+  max-width: 100%;
+}
+
 
 /* Structure and Layout
 --------------------------------------- */
