@@ -304,6 +304,8 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
+* `config.action_controller.raise_on_unexpected_params` enables raising an exception if paramets that are not explicitly permitted are found. The default value is `true` in development and test environments, `false` otherwise.
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
