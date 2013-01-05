@@ -75,12 +75,14 @@ module ActionDispatch
         routes = collect_routes(routes_to_display)
         formatter.section :application, 'Application routes', routes
 
-        @engines.each do |name, routes|
-          formatter.section :engine, "Routes for #{name}", routes
+        @engines.each do |name, engine_routes|
+          formatter.section :engine, "Routes for #{name}", engine_routes
         end
 
         formatter.result
       end
+
+      private
 
       def filter_routes(filter)
         if filter
@@ -91,7 +93,7 @@ module ActionDispatch
       end
 
       def collect_routes(routes)
-        routes = routes.collect do |route|
+        routes.collect do |route|
           RouteWrapper.new(route)
         end.reject do |route|
           route.internal?
