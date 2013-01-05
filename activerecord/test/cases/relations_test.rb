@@ -745,11 +745,6 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_relation_to_sql
-    sql = Post.first.comments.to_sql
-    assert_no_match(/\?/, sql)
-  end
-
   def test_count
     posts = Post.all
 
