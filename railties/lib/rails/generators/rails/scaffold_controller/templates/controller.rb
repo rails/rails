@@ -104,11 +104,7 @@ class <%= controller_class_name %>Controller < ApplicationController
       @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
     end
 
-    # Use this method to whitelist the permissible parameters. Example:
-    #   params.require(:person).permit(:name, :age)
-    #
-    # Also, you can specialize this method with per-user checking of permissible
-    # attributes.
+    # Never trust parameters from the scary internet, only allow the white list through.
     def <%= "#{singular_table_name}_params" %>
       <%- if attributes_names.empty? -%>
       params[<%= ":#{singular_table_name}" %>]
