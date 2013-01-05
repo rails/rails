@@ -560,7 +560,9 @@
 
     *Carlos Galdino + Rafael Mendonça França*
 
-*   Show routes in exception page while debugging a `RoutingError` in development. *Richard Schneeman and Mattt Thompson*
+*   Show routes in exception page while debugging a `RoutingError` in development.
+
+    *Richard Schneeman + Mattt Thompson + Yves Senn*
 
 *   Add `ActionController::Flash.add_flash_types` method to allow people to register their own flash types. e.g.:
 

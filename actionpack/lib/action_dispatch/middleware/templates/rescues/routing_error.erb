@@ -15,6 +15,7 @@
   <% end %>
   <%= render template: "rescues/_trace" %>
 
+<% if @routes_inspector %>
   <h2>
     Routes
   </h2>
@@ -23,6 +24,5 @@
     Routes match in priority from top to bottom
   </p>
 
-<%= render layout: "routes/route_wrapper" do %>
-  <%= render partial: "routes/route", collection: @routes %>
+  <%= @routes_inspector.format(ActionDispatch::DebugExceptions::TableRoutesFormatter.new(self)) %>
 <% end %>
