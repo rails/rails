@@ -388,9 +388,9 @@ module ActionView
       # In many cases you will want to wrap the above in another helper, so you
       # could do something like the following:
       #
-      #   def labelled_form_for(record_or_name_or_array, *args, &proc)
+      #   def labelled_form_for(record_or_name_or_array, *args, &block)
       #     options = args.extract_options!
-      #     form_for(record_or_name_or_array, *(args << options.merge(builder: LabellingFormBuilder)), &proc)
+      #     form_for(record_or_name_or_array, *(args << options.merge(builder: LabellingFormBuilder)), &block)
       #   end
       #
       # If you don't need to attach a form to a model instance, then check out
@@ -412,7 +412,7 @@ module ActionView
       #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f|
       #     ...
       #   <% end %>
-      def form_for(record, options = {}, &proc)
+      def form_for(record, options = {}, &block)
         raise ArgumentError, "Missing block" unless block_given?
 
         options[:html] ||= {}
@@ -434,9 +434,9 @@ module ActionView
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
-        fields_for = fields_for(object_name, object, options, &proc)
+        output  = capture(builder, &block)
         default_options = builder.form_tag_attributes
-        form_tag(options[:url] || {}, default_options) { fields_for }
+        form_tag(options[:url] || {}, default_options) { output }
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
