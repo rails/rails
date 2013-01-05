@@ -119,9 +119,10 @@ class DeprecationTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.behavior = :silence
     behavior = ActiveSupport::Deprecation.behavior.first
 
-    assert_blank capture(:stderr) {
+    stderr_output = capture(:stderr) {
       assert_nil behavior.call('Some error!', ['call stack!'])
     }
+    assert stderr_output.blank?
   end
 
   def test_deprecated_instance_variable_proxy
@@ -254,10 +255,10 @@ class DeprecationTest < ActiveSupport::TestCase
       klass::OLD.to_s
     end
   end
-  
+
   def test_deprecated_instance_variable_with_instance_deprecator
     deprecator = deprecator_with_messages
-    
+
     klass = Class.new() do
       def initialize(deprecator)
         @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)

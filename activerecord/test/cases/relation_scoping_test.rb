@@ -227,7 +227,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_nested_exclusive_scope_for_create
     comment = Comment.create_with(:body => "Hey guys, nested scopes are broken. Please fix!").scoping do
       Comment.unscoped.create_with(:post_id => 1).scoping do
-        assert_blank Comment.new.body
+        assert Comment.new.body.blank?
         Comment.create :body => "Hey guys"
       end
     end

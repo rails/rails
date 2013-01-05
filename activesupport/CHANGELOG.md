@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `assert_present` and `assert_blank` in favor of
+    `assert object.blank?` and `assert object.present?`
+
+    *Yves Senn*
+
 *   Change `String#to_date` to use `Date.parse`. This gives more consistent error
     messages and allows the use of partial dates.
 
