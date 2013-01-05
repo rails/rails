@@ -568,9 +568,9 @@ class DynamicScopeTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing
-    assert_blank @test_klass.methods.grep(/scoped_by_type/)
+    assert @test_klass.methods.grep(/scoped_by_type/).blank?
     @test_klass.scoped_by_type(nil)
-    assert_present @test_klass.methods.grep(/scoped_by_type/)
+    assert @test_klass.methods.grep(/scoped_by_type/).present?
   end
 
   def test_dynamic_scope_with_less_number_of_arguments

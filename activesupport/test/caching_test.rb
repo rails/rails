@@ -675,7 +675,7 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_log_exception_when_cache_read_fails
     File.expects(:exist?).raises(StandardError, "failed")
     @cache.send(:read_entry, "winston", {})
-    assert_present @buffer.string
+    assert @buffer.string.present?
   end
 end
 
@@ -897,12 +897,12 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
 
   def test_logging
     @cache.fetch('foo') { 'bar' }
-    assert_present @buffer.string
+    assert @buffer.string.present?
   end
 
   def test_mute_logging
     @cache.mute { @cache.fetch('foo') { 'bar' } }
-    assert_blank @buffer.string
+    assert @buffer.string.blank?
   end
 end
 

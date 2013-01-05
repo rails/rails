@@ -142,6 +142,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby stdlib.
 
+*   Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 
 Action Pack
 -----------

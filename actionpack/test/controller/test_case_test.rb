@@ -692,7 +692,7 @@ XML
     assert_equal "bar", @request.params[:foo]
     @request.recycle!
     post :no_op
-    assert_blank @request.params[:foo]
+    assert @request.params[:foo].blank?
   end
 
   def test_symbolized_path_params_reset_after_request
