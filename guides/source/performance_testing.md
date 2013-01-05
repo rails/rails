@@ -430,7 +430,7 @@ The recommended patches for MRI can be found on [RVM's _patches_ directory](http
 under each specific interpreter version.
 
 Concerning the installation itself, you can either do this easily by using
-[RVM](http://rvm.beginrescueend.com) or you can build everything from source,
+[RVM](https://rvm.io/) or you can build everything from source,
 which is a little bit harder.
 
 #### Install Using RVM
