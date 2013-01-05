@@ -567,6 +567,54 @@ module ApplicationTests
       assert_equal 'permitted', last_response.body
     end
 
+    test "config.action_controller.raise_on_unexpected_params = true" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render text: params.require(:post).permit(:name)
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.raise_on_unexpected_params = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal true, ActionController::Parameters.raise_on_unexpected
+
+      post "/posts", {post: {"title" =>"zomg"}}
+      assert_match /We're sorry, but something went wrong/, last_response.body
+    end
+
+    test "config.action_controller.raise_on_unexpected_params is true by default on development" do
+      ENV["RAILS_ENV"] = "development"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal true, ActionController::Parameters.raise_on_unexpected
+    end
+
+    test "config.action_controller.raise_on_unexpected_params is true by defaul on test" do
+      ENV["RAILS_ENV"] = "test"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal true, ActionController::Parameters.raise_on_unexpected
+    end
+
+    test "config.action_controller.raise_on_unexpected_params is false by default on production" do
+      ENV["RAILS_ENV"] = "production"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal false, ActionController::Parameters.raise_on_unexpected
+    end
+
     test "config.action_dispatch.ignore_accept_header" do
       make_basic_app do |app|
         app.config.action_dispatch.ignore_accept_header = true

@@ -21,24 +21,22 @@ module ActionController
 
     initializer "action_controller.parameters_config" do |app|
       ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters) { false }
-      ActionController::Parameters.raise_on_unexpected = app.config.action_controller.raise_on_unexpected_params
+      ActionController::Parameters.raise_on_unexpected = app.config.action_controller.delete(:raise_on_unexpected_params) { Rails.env.test? || Rails.env.development? }
     end
 
     initializer "action_controller.set_configs" do |app|
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.logger                      ||= Rails.logger
-      options.cache_store                 ||= Rails.cache
+      options.logger            ||= Rails.logger
+      options.cache_store       ||= Rails.cache
 
-      options.javascripts_dir             ||= paths["public/javascripts"].first
-      options.stylesheets_dir             ||= paths["public/stylesheets"].first
+      options.javascripts_dir   ||= paths["public/javascripts"].first
+      options.stylesheets_dir   ||= paths["public/stylesheets"].first
 
       # Ensure readers methods get compiled
-      options.asset_host                  ||= app.config.asset_host
-      options.relative_url_root           ||= app.config.relative_url_root
-
-      options.raise_on_unexpected_params  ||= (Rails.env.test? || Rails.env.development?)
+      options.asset_host        ||= app.config.asset_host
+      options.relative_url_root ||= app.config.relative_url_root
 
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers
