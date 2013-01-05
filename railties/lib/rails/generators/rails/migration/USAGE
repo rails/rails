@@ -20,3 +20,16 @@ Example:
       add_column :posts, :title, :string
       add_column :posts, :body, :text
       add_column :posts, :published, :boolean
+
+Migration names containing JoinTable will generate join tables for use with
+has_and_belongs_to_many associations.
+
+Example:
+    `rails g migration CreateMediaJoinTable artists musics:uniq`
+
+    will create the migration
+
+    create_join_table :artists, :musics do |t|
+      # t.index [:artist_id, :music_id]
+      t.index [:music_id, :artist_id], unique: true
+    end
