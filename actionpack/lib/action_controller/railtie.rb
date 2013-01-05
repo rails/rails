@@ -20,8 +20,10 @@ module ActionController
     end
 
     initializer "action_controller.parameters_config" do |app|
-      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters) { false }
-      ActionController::Parameters.raise_on_unexpected = app.config.action_controller.delete(:raise_on_unexpected_params) { Rails.env.test? || Rails.env.development? }
+      options = app.config.action_controller
+
+      ActionController::Parameters.permit_all_parameters = options.delete(:permit_all_parameters) { false }
+      ActionController::Parameters.raise_on_unpermitted_parameters = options.delete(:raise_on_unpermitted_parameters) { Rails.env.test? || Rails.env.development? }
     end
 
     initializer "action_controller.set_configs" do |app|

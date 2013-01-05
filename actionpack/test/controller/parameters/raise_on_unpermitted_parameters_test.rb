@@ -1,13 +1,13 @@
 require 'abstract_unit'
 require 'action_controller/metal/strong_parameters'
 
-class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
+class RaiseOnUnpermittedParametersTest < ActiveSupport::TestCase
   def setup
-    ActionController::Parameters.raise_on_unexpected = true
+    ActionController::Parameters.raise_on_unpermitted_parameters = true
   end
 
   def teardown
-    ActionController::Parameters.raise_on_unexpected = false
+    ActionController::Parameters.raise_on_unpermitted_parameters = false
   end
 
   test "raises on unexpected params" do
