@@ -573,7 +573,7 @@ h6 {
 #mainCol div.warning, #subCol dd.warning {
   background: #f9d9d8 url(../images/tab_red.gif) no-repeat left top;
   border: none;
-  padding: 1.25em 1.25em 1.25em 48px;
+  padding: 1.25em 1.25em 0.25em 48px;
   margin-left: 0;
   margin-top: 0.25em;
 }
