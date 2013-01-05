@@ -16,7 +16,7 @@ class Rails::InfoController < ActionController::Base # :nodoc:
   end
 
   def routes
-    @routes = ActionDispatch::Routing::RoutesInspector.new.collect_routes(_routes.routes)
+    @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
   end
 
   protected
