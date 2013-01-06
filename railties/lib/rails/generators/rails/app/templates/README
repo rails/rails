@@ -57,7 +57,7 @@ shown in the browser on requests from 127.0.0.1.
 You can also log your own messages directly into the log file from your code
 using the Ruby logger class from inside your controllers. Example:
 
-  class WeblogController < ActionController::Base
+  class WeblogsController < ActionController::Base
     def destroy
       @weblog = Weblog.find(params[:id])
       @weblog.destroy
@@ -89,7 +89,7 @@ execution at any point in the code, investigate and change the model, and then,
 resume execution! You need to install the 'debugger' gem to run the server in debugging
 mode. Add gem 'debugger' to your Gemfile and run <tt>bundle</tt> to install it. Example:
 
-  class WeblogController < ActionController::Base
+  class PostsController < ActionController::Base
     def index
       @posts = Post.all
       debugger
@@ -100,17 +100,15 @@ So the controller will accept the action, run the first line, then present you
 with a IRB prompt in the server window. Here you can do things like:
 
   >> @posts.inspect
-  => "[#<Post:0x14a6be8
-          @attributes={"title"=>nil, "body"=>nil, "id"=>"1"}>,
-       #<Post:0x14a6620
-          @attributes={"title"=>"Rails", "body"=>"Only ten..", "id"=>"2"}>]"
+  => "#<ActiveRecord::Relation [#<Post id: 1, title: nil, body: nil>,
+          #<Post id: 2, title: \"Rails\", body: "Only ten..">]>"
   >> @posts.first.title = "hello from a debugger"
   => "hello from a debugger"
 
 ...and even better, you can examine how your runtime objects actually work:
 
   >> f = @posts.first
-  => #<Post:0x13630c4 @attributes={"title"=>nil, "body"=>nil, "id"=>"1"}>
+  => #<Post id: 1, title: nil, body: nil>
   >> f.
   Display all 152 possibilities? (y or n)
 
