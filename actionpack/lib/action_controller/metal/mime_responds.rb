@@ -320,7 +320,7 @@ module ActionController #:nodoc:
     # 2. <tt>:action</tt> - overwrites the default render action used after an
     #    unsuccessful html +post+ request.
     def respond_with(*resources, &block)
-      raise "In order to use respond_with, first you need to declare the formats your " <<
+      raise "In order to use respond_with, first you need to declare the formats your " \
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
 
       if collector = retrieve_collector_from_mimes(&block)
