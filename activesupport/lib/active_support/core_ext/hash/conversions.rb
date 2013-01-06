@@ -73,15 +73,33 @@ class Hash
     end
   end
 
+  class DisallowedType < StandardError #:nodoc:
+    def initialize(type)
+      super "Disallowed type attribute: #{type.inspect}"
+    end
+  end
+
+  DISALLOWED_XML_TYPES = %w(symbol yaml)
+
   class << self
-    def from_xml(xml)
-      typecast_xml_value(unrename_keys(ActiveSupport::XmlMini.parse(xml)))
+    def from_xml(xml, disallowed_types = nil)
+      typecast_xml_value(unrename_keys(ActiveSupport::XmlMini.parse(xml)), disallowed_types)
+    end
+
+    def from_trusted_xml(xml)
+      from_xml xml, []
     end
 
     private
-      def typecast_xml_value(value)
+      def typecast_xml_value(value, disallowed_types = nil)
+        disallowed_types ||= DISALLOWED_XML_TYPES
+
         case value.class.to_s
           when 'Hash'
+            if value.include?('type') && !value['type'].is_a?(Hash) && disallowed_types.include?(value['type'])
+              raise DisallowedType, value['type']
+            end
+
             if value['type'] == 'array'
               _, entries = Array.wrap(value.detect { |k,v| k != 'type' })
               if entries.nil? || (c = value['__content__'] && c.blank?)
@@ -89,9 +107,9 @@ class Hash
               else
                 case entries.class.to_s   # something weird with classes not matching here.  maybe singleton methods breaking is_a?
                 when "Array"
-                  entries.collect { |v| typecast_xml_value(v) }
+                  entries.collect { |v| typecast_xml_value(v, disallowed_types) }
                 when "Hash"
-                  [typecast_xml_value(entries)]
+                  [typecast_xml_value(entries, disallowed_types)]
                 else
                   raise "can't typecast #{entries.inspect}"
                 end
@@ -116,7 +134,7 @@ class Hash
               nil
             else
               xml_value = value.inject({}) do |h,(k,v)|
-                h[k] = typecast_xml_value(v)
+                h[k] = typecast_xml_value(v, disallowed_types)
                 h
               end
 
@@ -125,7 +143,7 @@ class Hash
               xml_value["file"].is_a?(StringIO) ? xml_value["file"] : xml_value
             end
           when 'Array'
-            value.map! { |i| typecast_xml_value(i) }
+            value.map! { |i| typecast_xml_value(i, disallowed_types) }
             value.length > 1 ? value : value.first
           when 'String'
             value
