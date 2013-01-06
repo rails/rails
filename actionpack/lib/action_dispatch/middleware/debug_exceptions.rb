@@ -89,23 +89,5 @@ module ActionDispatch
         ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
       end
     end
-
-    class TableRoutesFormatter
-      def initialize(view)
-        @view = view
-        @buffer = []
-      end
-
-      def section(type, title, routes)
-        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
-        @buffer << @view.render(partial: "routes/route", collection: routes)
-      end
-
-      def result
-        @view.raw @view.render(layout: "routes/route_wrapper") {
-          @view.raw @buffer.join("\n")
-        }
-      end
-    end
   end
 end

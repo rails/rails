@@ -6,4 +6,4 @@
   Routes match in priority from top to bottom
 </p>
 
-<%= @routes_inspector.format(ActionDispatch::DebugExceptions::TableRoutesFormatter.new(self)) %>
+<%= @routes_inspector.format(ActionDispatch::Routing::HtmlTableFormatter.new(self)) %>

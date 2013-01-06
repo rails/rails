@@ -141,5 +141,23 @@ module ActionDispatch
           end
         end
     end
+
+    class HtmlTableFormatter
+      def initialize(view)
+        @view = view
+        @buffer = []
+      end
+
+      def section(type, title, routes)
+        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+        @buffer << @view.render(partial: "routes/route", collection: routes)
+      end
+
+      def result
+        @view.raw @view.render(layout: "routes/route_wrapper") {
+          @view.raw @buffer.join("\n")
+        }
+      end
+    end
   end
 end
