@@ -6,7 +6,7 @@ Description:
     path like 'parent_module/controller_name'.
 
     This generates a controller class in app/controllers and invokes helper,
-    template engine and test framework generators.
+    template engine, assets, and test framework generators.
 
 Example:
     `rails generate controller CreditCards open debit credit close`
