@@ -154,7 +154,7 @@ module ActionDispatch
       end
 
       def result
-        @view.raw @view.render(layout: "routes/route_wrapper") {
+        @view.raw @view.render(layout: "routes/table") {
           @view.raw @buffer.join("\n")
         }
       end
