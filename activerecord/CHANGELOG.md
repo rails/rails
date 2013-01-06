@@ -4,10 +4,11 @@
 
     *Rob Worley*
 
-*   Fix undefined method `to_i` when calling `new` on a scope that uses an Array.
-    Fixes #8718, #8734.
+*   Fix undefined method `to_i` when calling `new` on a scope that uses an 
+    Array; Fix FloatDomainError when setting integer column to NaN.
+    Fixes #8718, #8734, #8757.
 
-    *Jason Stirk*
+    *Jason Stirk + Tristan Harward*
 
 *   Rename `update_attributes` to `update`, keep `update_attributes` as an alias for `update` method.
     This is a soft-deprecation for `update_attributes`, although it will still work without any
@@ -17,7 +18,7 @@
     *Amparo Luna + Guillermo Iguaran*
 
 *   `after_commit` and `after_rollback` now validate the `:on` option and raise an `ArgumentError`
-    if it is not one of `:create`, `:destroy` or ``:update`
+    if it is not one of `:create`, `:destroy` or `:update`
 
     *Pascal Friederich*
 
