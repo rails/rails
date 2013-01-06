@@ -184,7 +184,7 @@ module ActionView
       #   # => <label for="name">Name</label>
       #
       #   label_tag 'name', 'Your name'
-      #   # => <label for="name">Your Name</label>
+      #   # => <label for="name">Your name</label>
       #
       #   label_tag 'name', nil, class: 'small_label'
       #   # => <label for="name" class="small_label">Name</label>

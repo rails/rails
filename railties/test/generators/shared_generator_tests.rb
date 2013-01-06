@@ -48,7 +48,7 @@ module SharedGeneratorTests
 
   def test_options_before_application_name_raises_an_error
     content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
-    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin)? --help\n/, content)
+    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin new)? --help\n/, content)
   end
 
   def test_name_collision_raises_an_error

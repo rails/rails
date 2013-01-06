@@ -56,7 +56,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application"/
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
-    assert_file "config/application.rb", /config\.assets\.enabled = true/
   end
 
   def test_invalid_application_name_raises_an_error
@@ -225,7 +224,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
-      assert_no_match(/config\.assets\.enabled = true/, content)
+      assert_match(/config\.assets\.enabled = false/, content)
     end
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
@@ -239,6 +238,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.digest = true/, content)
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
+      assert_no_match(/config\.assets\.version = '1\.0'/, content)
     end
     assert_file "test/performance/browsing_test.rb"
   end

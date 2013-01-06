@@ -103,6 +103,7 @@ module ActiveSupport
       #
       #   assert_blank [], 'this should be blank'
       def assert_blank(object, message=nil)
+        ActiveSupport::Deprecation.warn('"assert_blank" is deprecated. Please use "assert object.blank?" instead')
         message ||= "#{object.inspect} is not blank"
         assert object.blank?, message
       end
@@ -117,6 +118,7 @@ module ActiveSupport
       #
       #   assert_present({ data: 'x' }, 'this should not be blank')
       def assert_present(object, message=nil)
+        ActiveSupport::Deprecation.warn('"assert_present" is deprecated. Please use "assert object.present?" instead')
         message ||= "#{object.inspect} is blank"
         assert object.present?, message
       end

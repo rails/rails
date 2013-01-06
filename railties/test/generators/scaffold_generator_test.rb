@@ -45,7 +45,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@product_line\.update_attributes\(product_line_params\)/, m)
+        assert_match(/@product_line\.update\(product_line_params\)/, m)
         assert_match(/@product_line\.errors/, m)
       end
 
@@ -61,7 +61,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
       assert_match(/post :create, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
-      assert_match(/put :update, id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
+      assert_match(/patch :update, id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
     end
 
     # Views
@@ -87,7 +87,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, product_line: \{  \}/, content)
-      assert_match(/put :update, id: @product_line, product_line: \{  \}/, content)
+      assert_match(/patch :update, id: @product_line, product_line: \{  \}/, content)
     end
   end
 
@@ -162,7 +162,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@admin_role\.update_attributes\(admin_role_params\)/, m)
+        assert_match(/@admin_role\.update\(admin_role_params\)/, m)
         assert_match(/@admin_role\.errors/, m)
       end
 

@@ -1,6 +1,36 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Introduce assert_not to replace warty 'assert !foo'.  *Jeremy Kemper*
+*   Deprecate `assert_present` and `assert_blank` in favor of
+    `assert object.blank?` and `assert object.present?`
+
+    *Yves Senn*
+
+*   Change `String#to_date` to use `Date.parse`. This gives more consistent error
+    messages and allows the use of partial dates.
+
+        "gibberish".to_date => Argument Error: invalid date
+        "3rd Feb".to_date => Sun, 03 Feb 2013
+
+    *Kelly Stannard*
+
+*   It's now possible to compare `Date`, `DateTime`, `Time` and `TimeWithZone`
+    with `Infinity`. This allows to create date/time ranges with one infinite bound.
+    Example:
+
+        range = Range.new(Date.today, Float::INFINITY)
+
+    Also it's possible to check inclusion of date/time in range with conversion.
+
+        range.include?(Time.now + 1.year)     # => true
+        range.include?(DateTime.now + 1.year) # => true
+
+    *Alexander Grebennik*
+
+*   Remove meaningless `ActiveSupport::FrozenObjectError`, which was just an alias of `RuntimeError`.
+
+    *Akira Matsuda*
+
+*   Introduce `assert_not` to replace warty `assert !foo`.  *Jeremy Kemper*
 
 *   Prevent `Callbacks#set_callback` from setting the same callback twice.
 
@@ -11,7 +41,7 @@
 
     *Dmitriy Kiriyenko*
 
-*   Add ActiveSupport::Logger#silence that works the same as the old Logger#silence extension.
+*   Add `ActiveSupport::Logger#silence` that works the same as the old `Logger#silence` extension.
 
     *DHH*
 

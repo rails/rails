@@ -317,3 +317,10 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
 end
+
+class DateTimeExtBehaviorTest < ActiveSupport::TestCase
+  def test_compare_with_infinity
+    assert_equal(-1, DateTime.now <=> Float::INFINITY)
+    assert_equal(1, DateTime.now <=> -Float::INFINITY)
+  end
+end

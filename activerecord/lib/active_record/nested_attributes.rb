@@ -58,7 +58,7 @@ module ActiveRecord
     # It also allows you to update the avatar through the member:
     #
     #   params = { member: { avatar_attributes: { id: '2', icon: 'sad' } } }
-    #   member.update_attributes params[:member]
+    #   member.update params[:member]
     #   member.avatar.icon # => 'sad'
     #
     # By default you will only be able to set and update attributes on the

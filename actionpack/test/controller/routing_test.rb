@@ -57,13 +57,13 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
 end
 
 class MockController
-  def self.build(helpers)
+  def self.build(helpers, additional_options = {})
     Class.new do
-      def url_options
-        options = super
+      define_method :url_options do
+        options = super()
         options[:protocol] ||= "http"
         options[:host] ||= "test.host"
-        options
+        options.merge(additional_options)
       end
 
       include helpers
@@ -428,8 +428,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     routes.send(:pages_url)
   end
 
-  def setup_for_named_route
-    MockController.build(rs.url_helpers).new
+  def setup_for_named_route(options = {})
+    MockController.build(rs.url_helpers, options).new
   end
 
   def test_named_route_without_hash
@@ -454,6 +454,16 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     routes = setup_for_named_route
     assert_equal("http://test.host/", routes.send(:root_url))
     assert_equal("/", routes.send(:root_path))
+  end
+
+  def test_named_route_root_with_trailing_slash
+    rs.draw do
+      root "hello#index"
+    end
+
+    routes = setup_for_named_route(trailing_slash: true)
+    assert_equal("http://test.host/", routes.send(:root_url))
+    assert_equal("http://test.host/?foo=bar", routes.send(:root_url, foo: :bar))
   end
 
   def test_named_route_with_regexps

@@ -37,11 +37,11 @@ Rails on Rack
 Here's how `rails server` creates an instance of `Rack::Server`
 
 ```ruby
-Rails::Server.new.tap { |server|
+Rails::Server.new.tap do |server|
   require APP_PATH
   Dir.chdir(Rails.application.root)
   server.start
-}
+end
 ```
 
 The `Rails::Server` inherits from `Rack::Server` and calls the `Rack::Server#start` method this way:

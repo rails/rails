@@ -20,6 +20,20 @@ module ActionController
     end
   end
 
+  # Raised when a supplied parameter is not permitted.
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
+  class UnpermittedParameters < IndexError
+    attr_reader :params
+
+    def initialize(params)
+      @params = params
+      super("found unpermitted keys: #{params.join(", ")}")
+    end
+  end
+
   # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
@@ -41,13 +55,18 @@ module ActionController
   #   permitted.class      # => ActionController::Parameters
   #   permitted.permitted? # => true
   #
-  #   Person.first.update_attributes!(permitted)
+  #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides a +permit_all_parameters+ option that controls the top-level
-  # behaviour of new instances. If it's +true+, all the parameters will be
+  # It provides two options that controls the top-level behavior of new instances:
+  #
+  # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   # permitted by default. The default value for +permit_all_parameters+
   # option is +false+.
+  # * +raise_on_unpermitted_parameters+ - If it's +true+, it will raise an exception
+  # if parameters that are not explicitly permitted are found. The default value for
+  # +raise_on_unpermitted_parameters+ # option is +true+ in test and development
+  # environments, +false+ otherwise.
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => false
@@ -56,6 +75,16 @@ module ActionController
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => true
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => {}
+  #
+  #   ActionController::Parameters.raise_on_unpermitted_parameters = true
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
   # <tt>ActionController::Parameters</tt> is inherited from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
@@ -66,6 +95,7 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
+    cattr_accessor :raise_on_unpermitted_parameters, instance_accessor: false
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -223,6 +253,13 @@ module ActionController
         end
       end
 
+      if Parameters.raise_on_unpermitted_parameters
+        unpermitted_keys = self.keys - params.keys
+        if unpermitted_keys.any?
+          raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+        end
+      end
+
       params.permit!
     end
 
@@ -329,7 +366,7 @@ module ActionController
   #     # into a 400 Bad Request reply.
   #     def update
   #       redirect_to current_account.people.find(params[:id]).tap { |person|
-  #         person.update_attributes!(person_params)
+  #         person.update!(person_params)
   #       }
   #     end
   #

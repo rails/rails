@@ -61,25 +61,39 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rake routes`.  People should not use this class.
+    # executes `rake routes` or looks at the RoutingError page.
+    # People should not use this class.
     class RoutesInspector # :nodoc:
-      def initialize
-        @engines = Hash.new
+      def initialize(routes)
+        @engines = {}
+        @routes = routes
       end
 
-      def format(all_routes, filter = nil)
-        if filter
-          all_routes = all_routes.select{ |route| route.defaults[:controller] == filter }
+      def format(formatter, filter = nil)
+        routes_to_display = filter_routes(filter)
+
+        routes = collect_routes(routes_to_display)
+        formatter.section :application, 'Application routes', routes
+
+        @engines.each do |name, engine_routes|
+          formatter.section :engine, "Routes for #{name}", engine_routes
         end
 
-        routes = collect_routes(all_routes)
+        formatter.result
+      end
 
-        formatted_routes(routes) +
-          formatted_routes_for_engines
+      private
+
+      def filter_routes(filter)
+        if filter
+          @routes.select { |route| route.defaults[:controller] == filter }
+        else
+          @routes
+        end
       end
 
       def collect_routes(routes)
-        routes = routes.collect do |route|
+        routes.collect do |route|
           RouteWrapper.new(route)
         end.reject do |route|
           route.internal?
@@ -100,22 +114,32 @@ module ActionDispatch
           @engines[name] = collect_routes(routes.routes)
         end
       end
+    end
 
-      def formatted_routes_for_engines
-        @engines.map do |name, routes|
-          ["\nRoutes for #{name}:"] + formatted_routes(routes)
-        end.flatten
+    class ConsoleFormatter
+      def initialize
+        @buffer = []
       end
 
-      def formatted_routes(routes)
-        name_width = routes.map{ |r| r[:name].length }.max
-        verb_width = routes.map{ |r| r[:verb].length }.max
-        path_width = routes.map{ |r| r[:path].length }.max
+      def result
+        @buffer.join("\n")
+      end
 
-        routes.map do |r|
-          "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+      def section(type, title, routes)
+        @buffer << "\n#{title}:" unless type == :application
+        @buffer << draw_section(routes)
+      end
+
+      private
+        def draw_section(routes)
+          name_width = routes.map { |r| r[:name].length }.max
+          verb_width = routes.map { |r| r[:verb].length }.max
+          path_width = routes.map { |r| r[:path].length }.max
+
+          routes.map do |r|
+            "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+          end
         end
-      end
     end
   end
 end

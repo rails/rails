@@ -1,5 +1,5 @@
 # SQL Server (2005 or higher recommended)
-# 
+#
 # Install the adapters and driver
 #   gem install tiny_tds
 #   gem install activerecord-sqlserver-adapter
@@ -8,8 +8,8 @@
 # 	gem 'tiny_tds'
 # 	gem 'activerecord-sqlserver-adapter'
 #
-# You should make sure freetds is configured correctly first.  
-# freetds.conf contains host/port/protocol_versions settings.  
+# You should make sure freetds is configured correctly first.
+# freetds.conf contains host/port/protocol_versions settings.
 # http://freetds.schemamania.org/userguide/freetdsconf.htm
 #
 # A typical Microsoft server

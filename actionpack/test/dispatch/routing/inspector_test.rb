@@ -8,7 +8,6 @@ module ActionDispatch
     class RoutesInspectorTest < ActiveSupport::TestCase
       def setup
         @set = ActionDispatch::Routing::RouteSet.new
-        @inspector = ActionDispatch::Routing::RoutesInspector.new
         app = ActiveSupport::OrderedOptions.new
         app.config = ActiveSupport::OrderedOptions.new
         app.config.assets = ActiveSupport::OrderedOptions.new
@@ -17,9 +16,10 @@ module ActionDispatch
         Rails.stubs(:env).returns("development")
       end
 
-      def draw(&block)
+      def draw(options = {}, &block)
         @set.draw(&block)
-        @inspector.format(@set.routes)
+        inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
+        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options[:filter]).split("\n")
       end
 
       def test_displaying_routes_for_engines
@@ -40,7 +40,8 @@ module ActionDispatch
         expected = [
           "custom_assets GET /custom/assets(.:format) custom_assets#show",
           "         blog     /blog                    Blog::Engine",
-          "\nRoutes for Blog::Engine:",
+          "",
+          "Routes for Blog::Engine:",
           "cart GET /cart(.:format) cart#show"
         ]
         assert_equal expected, output
@@ -164,6 +165,22 @@ module ActionDispatch
         assert_equal "   foo GET /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}", output[0]
         assert_equal "   bar GET /bar(.:format)    redirect(307, path: /foo/bar)", output[1]
         assert_equal "foobar GET /foobar(.:format) redirect(301)", output[2]
+      end
+
+      def test_routes_can_be_filtered
+        output = draw(filter: 'posts') do
+          resources :articles
+          resources :posts
+        end
+
+        assert_equal ["    posts GET    /posts(.:format)          posts#index",
+                      "          POST   /posts(.:format)          posts#create",
+                      " new_post GET    /posts/new(.:format)      posts#new",
+                      "edit_post GET    /posts/:id/edit(.:format) posts#edit",
+                      "     post GET    /posts/:id(.:format)      posts#show",
+                      "          PATCH  /posts/:id(.:format)      posts#update",
+                      "          PUT    /posts/:id(.:format)      posts#update",
+                      "          DELETE /posts/:id(.:format)      posts#destroy"], output
       end
     end
   end

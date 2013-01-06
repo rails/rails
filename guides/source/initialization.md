@@ -232,13 +232,13 @@ when 'server'
   Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
 
   require 'rails/commands/server'
-  Rails::Server.new.tap { |server|
+  Rails::Server.new.tap do |server|
     # We need to require application after the server sets environment,
     # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
-  }
+  end
 ```
 
 This file will change into the root of the directory (a path two directories back from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.

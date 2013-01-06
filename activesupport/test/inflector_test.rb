@@ -361,7 +361,7 @@ class InflectorTest < ActiveSupport::TestCase
 
       inflect.singular(/s$/, '')
       inflect.singular(/es$/, '')
-      
+
       inflect.irregular('el', 'los')
     end
 

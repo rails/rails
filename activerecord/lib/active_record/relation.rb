@@ -308,7 +308,7 @@ module ActiveRecord
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
       else
         object = find(id)
-        object.update_attributes(attributes)
+        object.update(attributes)
         object
       end
     end

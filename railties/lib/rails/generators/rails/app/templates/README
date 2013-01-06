@@ -157,13 +157,15 @@ The default directory structure of a generated Ruby on Rails application:
 
   |-- app
   |   |-- assets
-  |       |-- images
-  |       |-- javascripts
-  |       `-- stylesheets
+  |   |   |-- images
+  |   |   |-- javascripts
+  |   |   `-- stylesheets
   |   |-- controllers
+  |   |   `-- concerns
   |   |-- helpers
   |   |-- mailers
   |   |-- models
+  |   |   `-- concerns
   |   `-- views
   |       `-- layouts
   |-- config
@@ -173,23 +175,25 @@ The default directory structure of a generated Ruby on Rails application:
   |-- db
   |-- doc
   |-- lib
+  |   |-- assets
   |   `-- tasks
   |-- log
   |-- public
   |-- script
   |-- test
+  |   |-- controllers
   |   |-- fixtures
-  |   |-- functional
+  |   |-- helpers
   |   |-- integration
-  |   |-- performance
-  |   `-- unit
+  |   |-- mailers
+  |   |-- models
+  |   `-- performance
   |-- tmp
-  |   |-- cache
-  |   |-- pids
-  |   |-- sessions
-  |   `-- sockets
+  |   `-- cache
+  |       `-- assets
   `-- vendor
-      |-- assets
+      `-- assets
+          |-- javascripts
           `-- stylesheets
 
 app
@@ -216,7 +220,7 @@ app/views/layouts
   Holds the template files for layouts to be used with views. This models the
   common header/footer method of wrapping views. In your views, define a layout
   using the <tt>layout :default</tt> and create a file named default.html.erb.
-  Inside default.html.erb, call <% yield %> to render the view using this
+  Inside default.html.erb, call <%= yield %> to render the view using this
   layout.
 
 app/helpers
@@ -255,5 +259,5 @@ test
   directory.
 
 vendor
-  External libraries that the application depends on. If the app has frozen rails,
-  those gems also go here, under vendor/rails/. This directory is in the load path.
+  External libraries that the application depends on. This directory is in the
+  load path.

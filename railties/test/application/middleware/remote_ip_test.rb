@@ -40,7 +40,7 @@ module ApplicationTests
       end
 
       assert_nothing_raised(ActionDispatch::RemoteIp::IpSpoofAttackError) do
-        assert_equal "1.1.1.2", remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1", "HTTP_CLIENT_IP" => "1.1.1.2")
+        assert_equal "1.1.1.1", remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1", "HTTP_CLIENT_IP" => "1.1.1.2")
       end
     end
 

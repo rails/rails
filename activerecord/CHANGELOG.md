@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support for PostgreSQL's `ltree` data type.
+
+    *Rob Worley*
+
+*   Fix undefined method `to_i` when calling `new` on a scope that uses an Array.
+    Fixes #8718, #8734.
+
+    *Jason Stirk*
+
+*   Rename `update_attributes` to `update`, keep `update_attributes` as an alias for `update` method.
+    This is a soft-deprecation for `update_attributes`, although it will still work without any
+    deprecation message in 4.0 is recommended to start using `update` since `update_attributes` will be
+    deprecated and removed in future versions of Rails.
+
+    *Amparo Luna + Guillermo Iguaran*
+
 *   `after_commit` and `after_rollback` now validate the `:on` option and raise an `ArgumentError`
     if it is not one of `:create`, `:destroy` or ``:update`
 
@@ -18,7 +34,8 @@
       If migrating down, the given migration / block is run normally.
       See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
 
-    Attempting to revert the methods `execute`, `remove_columns` and `change_column` will now raise an IrreversibleMigration instead of actually executing them without any output.
+    Attempting to revert the methods `execute`, `remove_columns` and `change_column` will now
+    raise an `IrreversibleMigration` instead of actually executing them without any output.
 
     *Marc-André Lafortune*
 

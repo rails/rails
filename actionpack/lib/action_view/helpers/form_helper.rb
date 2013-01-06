@@ -101,9 +101,9 @@ module ActionView
     # and generate HTML accordingly.
     #
     # The controller would receive the form data again in <tt>params[:person]</tt>, ready to be
-    # passed to <tt>Person#update_attributes</tt>:
+    # passed to <tt>Person#update</tt>:
     #
-    #   if @person.update_attributes(params[:person])
+    #   if @person.update(params[:person])
     #     # success
     #   else
     #     # error handling
@@ -435,10 +435,8 @@ module ActionView
 
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
-        default_options = builder.multipart? ? { multipart: true } : {}
-        default_options.merge!(options.delete(:html))
-
-        form_tag(options.delete(:url) || {}, default_options) { fields_for }
+        default_options = builder.form_tag_attributes
+        form_tag(options[:url] || {}, default_options) { fields_for }
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
@@ -897,7 +895,7 @@ module ActionView
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @invoice.update_attributes(params[:invoice])
+      #   @invoice.update(params[:invoice])
       #
       # wouldn't update the flag.
       #
@@ -1201,6 +1199,7 @@ module ActionView
 
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
+        @form_tag_attributes = options.fetch(:html, {})
         @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
@@ -1212,6 +1211,11 @@ module ActionView
         end
         @multipart = nil
         @index = options[:index] || options[:child_index]
+      end
+
+      def form_tag_attributes
+        options = multipart? ? { multipart: true } : {}
+        options.merge! @form_tag_attributes
       end
 
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
@@ -1569,7 +1573,7 @@ module ActionView
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @invoice.update_attributes(params[:invoice])
+      #   @invoice.update(params[:invoice])
       #
       # wouldn't update the flag.
       #

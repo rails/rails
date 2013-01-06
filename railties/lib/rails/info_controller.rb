@@ -3,12 +3,12 @@ require 'action_dispatch/routing/inspector'
 class Rails::InfoController < ActionController::Base # :nodoc:
   self.view_paths = File.expand_path('../templates', __FILE__)
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
-  layout 'application'
+  layout -> { request.xhr? ? nil : 'application' }
 
   before_filter :require_local!
 
   def index
-    redirect_to '/rails/info/routes'
+    redirect_to action: :routes
   end
 
   def properties
@@ -16,7 +16,7 @@ class Rails::InfoController < ActionController::Base # :nodoc:
   end
 
   def routes
-    @routes = ActionDispatch::Routing::RoutesInspector.new.collect_routes(_routes.routes)
+    @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
   end
 
   protected
