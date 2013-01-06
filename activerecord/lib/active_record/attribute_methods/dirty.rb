@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/deprecation'
 
 module ActiveRecord
   module AttributeMethods

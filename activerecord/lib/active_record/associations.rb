@@ -1,8 +1,6 @@
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
-require 'active_support/dependencies/autoload'
-require 'active_support/concern'
 require 'active_record/errors'
 
 module ActiveRecord

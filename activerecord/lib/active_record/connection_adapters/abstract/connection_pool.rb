@@ -2,7 +2,6 @@ require 'thread'
 require 'thread_safe'
 require 'monitor'
 require 'set'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
