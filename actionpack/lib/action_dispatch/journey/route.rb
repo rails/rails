@@ -31,8 +31,9 @@ module ActionDispatch
 
       def ast
         @decorated_ast ||= begin
-          path.ast.grep(Nodes::Terminal).each { |n| n.memo = self }
-          path.ast
+          decorated_ast = path.ast
+          decorated_ast.grep(Nodes::Terminal).each { |n| n.memo = self }
+          decorated_ast
         end
       end
 
