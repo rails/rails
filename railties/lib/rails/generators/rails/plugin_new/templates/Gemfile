@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 <% if options[:skip_gemspec] -%>
 <%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
-<% if full? && !options[:skip_javascript] -%>
+<% if engine? && !options[:skip_javascript] -%>
 # gem "<%= "#{options[:javascript]}-rails" %>"
 <% end -%>
 <% else -%>
