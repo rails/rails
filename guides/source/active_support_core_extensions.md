@@ -920,7 +920,7 @@ When interpolated into a string, the `:to` option should become an expression th
 delegate :logger, to: :Rails
 
 # delegates to the receiver's class
-delegate :table_name, to: 'self.class'
+delegate :table_name, to: :class
 ```
 
 WARNING: If the `:prefix` option is `true` this is less generic, see below.
