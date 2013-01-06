@@ -320,15 +320,17 @@ module ActiveRecord
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
 
-      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
-          (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
+      if attributes[:id].present?
+        record = send(association_name)
 
-      elsif attributes['id'].present?
-        raise_nested_attributes_record_not_found(association_name, attributes['id'])
-
+        if (options[:update_only] || record.id.to_s == attributes['id'].to_s) && !call_reject_if(association_name, attributes)
+          assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
+        else
+          raise_nested_attributes_record_not_found(association_name, attributes['id'])
+        end
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
+
         if respond_to?(method)
           send(method, attributes.except(*UNASSIGNABLE_KEYS))
         else
