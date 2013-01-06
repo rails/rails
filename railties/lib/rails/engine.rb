@@ -410,7 +410,7 @@ module Rails
     self.isolated = false
 
     delegate :middleware, :root, :paths, to: :config
-    delegate :engine_name, :isolated?, to: "self.class"
+    delegate :engine_name, :isolated?, to: :class
 
     def initialize
       @_all_autoload_paths = nil

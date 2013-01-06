@@ -118,7 +118,7 @@ module ActionView
 
   private
 
-    delegate :caching?, :to => "self.class"
+    delegate :caching?, to: :class
 
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
