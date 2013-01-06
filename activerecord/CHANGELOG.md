@@ -1,9 +1,10 @@
 ## Rails 3.2.11 (unreleased)
 
-*   Fix undefined method `to_i` when calling `new` on a scope that uses an Array.
-    Fixes #8718.
+*   Fix undefined method `to_i` when calling `new` on a scope that uses an
+    Array; Fix FloatDomainError when setting integer column to NaN.
+    Fixes #8718, #8734, #8757.
 
-    *Jason Stirk*
+    *Jason Stirk + Tristan Harward*
 
 *   Serialized attributes can be serialized in integer columns.
     Fix #8575.

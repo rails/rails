@@ -56,6 +56,12 @@ module ActiveRecord
         column = Column.new("field", nil, "integer")
         assert_nil column.type_cast(Object.new)
       end
+
+      def test_type_cast_nan_and_infinity_to_integer
+        column = Column.new("field", nil, "integer")
+        assert_nil column.type_cast(Float::NAN)
+        assert_nil column.type_cast(1.0/0.0)
+      end
     end
   end
 end
