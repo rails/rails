@@ -72,7 +72,7 @@ when 'console'
 
 when 'server'
   # Change to the application's path if there is no config.ru file in current dir.
-  # This allows us to run script/rails server from other directories, but still get
+  # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
   Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
 

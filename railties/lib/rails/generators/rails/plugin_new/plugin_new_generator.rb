@@ -130,13 +130,13 @@ task default: :test
       end
     end
 
-    def script(force = false)
+    def bin(force = false)
       return unless engine?
 
-      directory "script", force: force do |content|
+      directory "bin", force: force do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, verbose: false
+      chmod "bin", 0755, verbose: false
     end
 
     def gemfile_entry
@@ -214,8 +214,8 @@ task default: :test
         build(:images)
       end
 
-      def create_script_files
-        build(:script)
+      def create_bin_files
+        build(:bin)
       end
 
       def create_test_files
@@ -264,8 +264,8 @@ task default: :test
           store_application_definition!
           build(:test_dummy_config)
           build(:test_dummy_clean)
-          # ensure that script/rails has proper dummy_path
-          build(:script, true)
+          # ensure that bin/rails has proper dummy_path
+          build(:bin, true)
         end
       end
 

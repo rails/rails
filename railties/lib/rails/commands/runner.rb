@@ -24,7 +24,7 @@ ARGV.clone.options do |opts|
 
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
-    opts.separator "You can also use runner as a shebang line for your scripts like this:"
+    opts.separator "You can also use runner as a shebang line for your executables:"
     opts.separator "-------------------------------------------------------------"
     opts.separator "#!/usr/bin/env #{File.expand_path($0)} runner"
     opts.separator ""

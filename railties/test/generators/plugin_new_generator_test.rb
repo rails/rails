@@ -209,10 +209,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views"
     assert_file "app/helpers"
     assert_file "app/mailers"
+    assert_file "bin/rails"
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
-    assert_file "script/rails"
   end
 
   def test_being_quiet_while_creating_dummy_application
@@ -246,15 +246,15 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_usage_of_engine_commands
     run_generator [destination_root, "--full"]
-    assert_file "script/rails", /ENGINE_PATH = File.expand_path\('..\/..\/lib\/bukkits\/engine', __FILE__\)/
-    assert_file "script/rails", /ENGINE_ROOT = File.expand_path\('..\/..', __FILE__\)/
-    assert_file "script/rails", /require 'rails\/all'/
-    assert_file "script/rails", /require 'rails\/engine\/commands'/
+    assert_file "bin/rails", /ENGINE_PATH = File.expand_path\('..\/..\/lib\/bukkits\/engine', __FILE__\)/
+    assert_file "bin/rails", /ENGINE_ROOT = File.expand_path\('..\/..', __FILE__\)/
+    assert_file "bin/rails", /require 'rails\/all'/
+    assert_file "bin/rails", /require 'rails\/engine\/commands'/
   end
 
   def test_shebang
     run_generator [destination_root, "--full"]
-    assert_file "script/rails", /#!\/usr\/bin\/env ruby/
+    assert_file "bin/rails", /#!\/usr\/bin\/env ruby/
   end
 
   def test_passing_dummy_path_as_a_parameter
