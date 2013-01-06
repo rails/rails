@@ -15,7 +15,7 @@ module ActionDispatch
 
     def call(env)
       begin
-        response = (_, headers, body = @app.call(env))
+        status, headers, body = @app.call(env)
 
         if headers['X-Cascade'] == 'pass'
           body.close if body.respond_to?(:close)
@@ -25,7 +25,7 @@ module ActionDispatch
         raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
-      exception ? render_exception(env, exception) : response
+      exception ? render_exception(env, exception) : [status, headers, body]
     end
 
     private
