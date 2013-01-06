@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/object/try'
 
 module InfiniteComparable
