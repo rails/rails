@@ -38,7 +38,6 @@ module ActiveSupport
       class CircularReferenceError < StandardError; end
 
       class Encoder
-        attr_reader :options
 
         def initialize(options = nil)
           @options = options || {}
@@ -63,9 +62,9 @@ module ActiveSupport
           if value.is_a?(Array) || value.is_a?(Hash)
             # hashes and arrays need to get encoder in the options, so that
             # they can detect circular references.
-            options.merge(:encoder => self)
+            @options.merge(:encoder => self)
           else
-            options.dup
+            @options.dup
           end
         end
 
@@ -253,18 +252,6 @@ end
 
 module Enumerable
   def as_json(options = nil) #:nodoc:
-    to_a.as_json(options)
-  end
-end
-
-class Range
-  def as_json(options = nil) #:nodoc:
-    to_s
-  end
-end
-
-class Array
-  def as_json(options = nil) #:nodoc:
     # use encoder as a proxy to call as_json on all elements, to protect from circular references
     encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
     map { |v| encoder.as_json(v, options) }
@@ -273,6 +260,12 @@ class Array
   def encode_json(encoder) #:nodoc:
     # we assume here that the encoder has already run as_json on self and the elements, so we run encode_json directly
     "[#{map { |v| v.encode_json(encoder) } * ','}]"
+  end
+end
+
+class Range
+  def as_json(options = nil) #:nodoc:
+    to_s
   end
 end
 
