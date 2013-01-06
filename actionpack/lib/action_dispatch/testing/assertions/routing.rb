@@ -1,5 +1,6 @@
 require 'uri'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/string/access'
 require 'action_controller/metal/exceptions'
 
 module ActionDispatch
