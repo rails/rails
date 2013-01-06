@@ -53,13 +53,11 @@ module Rails
       template "lib/%name%.rb"
       template "lib/tasks/%name%_tasks.rake"
       template "lib/%name%/version.rb"
-      if full?
-        template "lib/%name%/engine.rb"
-      end
+      template "lib/%name%/engine.rb" if engine?
     end
 
     def config
-      template "config/routes.rb" if full?
+      template "config/routes.rb" if engine?
     end
 
     def test
@@ -70,7 +68,7 @@ module Rails
 
 task default: :test
       EOF
-      if full?
+      if engine?
         template "test/integration/navigation_test.rb"
       end
     end
@@ -133,7 +131,7 @@ task default: :test
     end
 
     def script(force = false)
-      return unless full?
+      return unless engine?
 
       directory "script", force: force do |content|
         "#{shebang}\n" + content
@@ -271,8 +269,12 @@ task default: :test
         end
       end
 
+      def engine?
+        full? || mountable?
+      end
+
       def full?
-        options[:full] || options[:mountable]
+        options[:full]
       end
 
       def mountable?
