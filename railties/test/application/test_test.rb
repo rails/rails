@@ -75,7 +75,7 @@ module ApplicationTests
       RUBY
 
       run_test_file 'performance/posts_test.rb'
-    end
+    end if defined?(RubyProf)
 
     private
       def run_test_file(name)
