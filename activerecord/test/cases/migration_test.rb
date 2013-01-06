@@ -24,7 +24,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def setup
     super
-    %w(reminders people_reminders prefix_reminders_suffix).each do |table|
+    %w(reminders people_reminders prefix_reminders_suffix p_things_s).each do |table|
       Reminder.connection.drop_table(table) rescue nil
     end
     Reminder.reset_column_information
