@@ -8,7 +8,7 @@ require 'active_support/core_ext/object/deep_dup'
 require 'active_support/inflections'
 
 class HashExtTest < ActiveSupport::TestCase
-  class IndifferentHash < HashWithIndifferentAccess
+  class IndifferentHash < ActiveSupport::HashWithIndifferentAccess
   end
 
   class SubclassingArray < Array

@@ -114,7 +114,7 @@ To send a hash you include the key name inside the brackets:
 
 When this form is submitted, the value of `params[:client]` will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `HashWithIndifferentAccess` from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
+Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
 ### JSON/XML parameters
 

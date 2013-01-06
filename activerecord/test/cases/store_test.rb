@@ -67,9 +67,9 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "preserve store attributes data in HashWithIndifferentAccess format without any conversion" do
-    @john.json_data = HashWithIndifferentAccess.new(:height => 'tall', 'weight' => 'heavy')
+    @john.json_data = ActiveSupport::HashWithIndifferentAccess.new(:height => 'tall', 'weight' => 'heavy')
     @john.height = 'low'
-    assert_equal true, @john.json_data.instance_of?(HashWithIndifferentAccess)
+    assert_equal true, @john.json_data.instance_of?(ActiveSupport::HashWithIndifferentAccess)
     assert_equal 'low', @john.json_data[:height]
     assert_equal 'low', @john.json_data['height']
     assert_equal 'heavy', @john.json_data[:weight]
@@ -95,7 +95,7 @@ class StoreTest < ActiveRecord::TestCase
   test "convert store attributes from any format other than Hash or HashWithIndifferent access losing the data" do
     @john.json_data = "somedata"
     @john.height = 'low'
-    assert_equal true, @john.json_data.instance_of?(HashWithIndifferentAccess)
+    assert_equal true, @john.json_data.instance_of?(ActiveSupport::HashWithIndifferentAccess)
     assert_equal 'low', @john.json_data[:height]
     assert_equal 'low', @john.json_data['height']
     assert_equal false, @john.json_data.delete_if { |k, v| k == 'height' }.any?
@@ -143,5 +143,4 @@ class StoreTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { @john.stored_attributes = Hash.new }
     assert_raise(NoMethodError) { @john.stored_attributes }
   end
-
 end

@@ -75,7 +75,7 @@ module ActionDispatch
     end
 
     module Upload # :nodoc:
-      # Convert nested Hash to HashWithIndifferentAccess and replace
+      # Convert nested Hash to ActiveSupport::HashWithIndifferentAccess and replace
       # file upload hash with UploadedFile objects
       def normalize_parameters(value)
         if Hash === value && value.has_key?(:tempfile)

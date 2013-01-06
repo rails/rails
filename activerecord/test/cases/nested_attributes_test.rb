@@ -311,7 +311,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
-    @pirate.ship_attributes = HashWithIndifferentAccess.new(:id => @ship.id, :name => 'Davy Jones Gold Dagger')
+    @pirate.ship_attributes = ActiveSupport::HashWithIndifferentAccess.new(:id => @ship.id, :name => 'Davy Jones Gold Dagger')
 
     assert @pirate.ship.persisted?
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
@@ -593,7 +593,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
-    @pirate.send(association_setter, HashWithIndifferentAccess.new('foo' => HashWithIndifferentAccess.new(:id => @child_1.id, :name => 'Grace OMalley')))
+    @pirate.send(association_setter, ActiveSupport::HashWithIndifferentAccess.new('foo' => ActiveSupport::HashWithIndifferentAccess.new(:id => @child_1.id, :name => 'Grace OMalley')))
     @pirate.save
     assert_equal 'Grace OMalley', @child_1.reload.name
   end

@@ -119,7 +119,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changes # => { "name" => ["bill", "bob"] }
     def changes
-      HashWithIndifferentAccess[changed.map { |attr| [attr, attribute_change(attr)] }]
+      ActiveSupport::HashWithIndifferentAccess[changed.map { |attr| [attr, attribute_change(attr)] }]
     end
 
     # Returns a hash of attributes that were changed before the model was saved.
