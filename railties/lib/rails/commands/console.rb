@@ -91,7 +91,7 @@ module Rails
     def require_debugger
       require 'debugger'
       puts "=> Debugger enabled"
-    rescue Exception
+    rescue LoadError
       puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
       exit
     end
