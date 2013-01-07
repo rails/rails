@@ -315,8 +315,6 @@ module ActiveRecord
           @visitor = BindSubstitution.new self
         end
 
-        connection_parameters.delete :prepared_statements
-
         @connection_parameters, @config = connection_parameters, config
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
