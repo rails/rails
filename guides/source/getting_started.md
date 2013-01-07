@@ -132,6 +132,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
@@ -142,7 +143,6 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
-|script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html)|
 |tmp/|Temporary files (like cache, pid and session files)|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
