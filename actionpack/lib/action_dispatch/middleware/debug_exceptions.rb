@@ -14,18 +14,17 @@ module ActionDispatch
     end
 
     def call(env)
-      begin
-        _, headers, body = response = @app.call(env)
+      _, headers, body = response = @app.call(env)
 
-        if headers['X-Cascade'] == 'pass'
-          body.close if body.respond_to?(:close)
-          raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
-        end
-      rescue Exception => exception
-        raise exception if env['action_dispatch.show_exceptions'] == false
+      if headers['X-Cascade'] == 'pass'
+        body.close if body.respond_to?(:close)
+        raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end
 
-      exception ? render_exception(env, exception) : response
+      response
+    rescue Exception => exception
+      raise exception if env['action_dispatch.show_exceptions'] == false
+      render_exception(env, exception)
     end
 
     private
