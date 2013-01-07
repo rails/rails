@@ -22,8 +22,8 @@ class NamedScopeTest < ActiveRecord::TestCase
     all_posts = Topic.base
 
     assert_queries(1) do
-      all_posts.collect
-      all_posts.collect
+      all_posts.to_a
+      all_posts.to_a
     end
   end
 
@@ -192,7 +192,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_any_should_not_fire_query_if_scope_loaded
     topics = Topic.base
-    topics.collect # force load
+    topics.to_a # force load
     assert_no_queries { assert topics.any? }
   end
 
@@ -221,7 +221,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_many_should_not_fire_query_if_scope_loaded
     topics = Topic.base
-    topics.collect # force load
+    topics.to_a # force load
     assert_no_queries { assert topics.many? }
   end
 
@@ -445,5 +445,9 @@ class NamedScopeTest < ActiveRecord::TestCase
       klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
     end
     assert_equal [posts(:welcome).title], klass.all.map(&:title)
+  end
+
+  def test_json_export
+    assert_equal '[{"comment":{"id":1,"post_id":1,"parent_id":null}}]', Comment.where(:id => 1).to_json(:only => [:id, :post_id, :parent_id])
   end
 end

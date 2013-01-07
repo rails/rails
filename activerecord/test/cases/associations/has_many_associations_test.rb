@@ -1451,7 +1451,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_many_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
-    firm.clients.collect  # force load
+    firm.clients.to_a  # force load
     assert_no_queries { assert firm.clients.many? }
   end
 
