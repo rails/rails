@@ -85,6 +85,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 *   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well. ([Pull Request](https://github.com/rails/rails/pull/7878))
 
+* Your app's executables now live in the `bin/` dir. Run `rake update:bin` to get `bin/bundle`, `bin/rails`, and `bin/rake`.
+
 * Threadsafe on by default
 
 ### Deprecations

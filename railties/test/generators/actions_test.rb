@@ -151,7 +151,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    generator.expects(:run_ruby_script).once.with('script/rails generate model MyModel', verbose: false)
+    generator.expects(:run_ruby_script).once.with('bin/rails generate model MyModel', verbose: false)
     action :generate, 'model', 'MyModel'
   end
 

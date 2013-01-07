@@ -63,6 +63,13 @@ module Rails
       keep_file  'app/models/concerns'
     end
 
+    def bin
+      directory "bin" do |content|
+        "#{shebang}\n" + content
+      end
+      chmod "bin", 0755, verbose: false
+    end
+
     def config
       empty_directory "config"
 
@@ -101,13 +108,6 @@ module Rails
 
     def public_directory
       directory "public", "public", recursive: false
-    end
-
-    def script
-      directory "script" do |content|
-        "#{shebang}\n" + content
-      end
-      chmod "script", 0755, verbose: false
     end
 
     def test
@@ -178,6 +178,10 @@ module Rails
         build(:app)
       end
 
+      def create_bin_files
+        build(:bin)
+      end
+
       def create_config_files
         build(:config)
       end
@@ -209,10 +213,6 @@ module Rails
 
       def create_public_files
         build(:public_directory)
-      end
-
-      def create_script_files
-        build(:script)
       end
 
       def create_test_files
