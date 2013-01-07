@@ -92,10 +92,6 @@ module Rails
       directory "db"
     end
 
-    def doc
-      directory "doc"
-    end
-
     def lib
       empty_directory 'lib'
       empty_directory_with_keep_file 'lib/tasks'
@@ -197,10 +193,6 @@ module Rails
 
       def create_db_files
         build(:db)
-      end
-
-      def create_doc_files
-        build(:doc)
       end
 
       def create_lib_files

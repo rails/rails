@@ -24,7 +24,6 @@ DEFAULT_APP_FILES = %w(
   config/initializers
   config/locales
   db
-  doc
   lib
   lib/tasks
   lib/assets

@@ -135,7 +135,6 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 |config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
-|doc/|In-depth documentation for your application.|
 |Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
