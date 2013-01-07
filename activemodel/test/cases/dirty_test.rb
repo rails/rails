@@ -126,10 +126,8 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal @model.name_was, "Otto"
   end
 
-  test "using attribute_will_change with a symbol will work" do
+  test "using attribute_will_change! with a symbol" do
     @model.size = 1
     assert @model.size_changed?
   end
-
-
 end

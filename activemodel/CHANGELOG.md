@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Updated the DirtyModel *_changed? method to be indifferent between using 
+    symbols and strings as keys.
+
+    *William Myers*
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
@@ -120,6 +125,5 @@
 
 *   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide *Jan Berdajs + Egor Homakov*
 
-*   Updated the DirtyModel *_changed? method to be indifferent between using symbols and strings as keys *William Myers*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activemodel/CHANGELOG.md) for previous changes.
