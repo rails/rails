@@ -45,7 +45,7 @@ module ActionDispatch
       end
 
       def segments
-        @path.names
+        path.names
       end
 
       def required_keys
