@@ -54,12 +54,13 @@ module ActiveRecord
         end
 
         def convert_number_column_value(value)
-          if value == false
+          case value
+          when FalseClass
             0
-          elsif value == true
+          when TrueClass
             1
-          elsif value.is_a?(String) && value.blank?
-            nil
+          when String
+            value.presence
           else
             value
           end
