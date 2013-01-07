@@ -84,7 +84,7 @@ module ActionDispatch
     end
 
     def routes_inspector(exception)
-      if @routes_app.respond_to?(:routes) && exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error)
+      if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
         ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
       end
     end
