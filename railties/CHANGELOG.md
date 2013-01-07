@@ -14,6 +14,8 @@
     you actually use: `bundle binstubs unicorn` generates `bin/unicorn`.
     Add that executable to git and version it just like any other app code.
 
+    *Jeremy Kemper*
+
 *   `config.assets.enabled` is now true by default. If you're upgrading from a Rails 3.x app
     that does not use the asset pipeline, you'll be required to add `config.assets.enabled = false`
     to your application.rb. If you don't want the asset pipeline on a new app use `--skip-sprockets`
