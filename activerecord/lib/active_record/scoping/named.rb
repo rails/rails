@@ -161,16 +161,14 @@ module ActiveRecord
         #     end
         #
         #     def self.titles
-        #       map(&:title)
+        #       pluck(:title)
         #     end
-        #
         #   end
         #
         # We are able to call the methods like this:
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
-
         def scope(name, scope_options = {})
           name = name.to_sym
           valid_scope_name?(name)
