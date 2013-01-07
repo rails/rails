@@ -18,7 +18,7 @@ What are engines?
 
 Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting a lot of its behavior from `Rails::Engine`.
 
-Therefore, engines and applications can be thought of almost the same thing, just with very minor differences, as you'll see throughout this guide. Engines and applications also share a common structure.
+Therefore, engines and applications can be thought of almost the same thing, just with subtle differences, as you'll see throughout this guide. Engines and applications also share a common structure.
 
 Engines are also closely related to plugins where the two share a common `lib` directory structure and are both generated using the `rails plugin new` generator. The difference being that an engine is considered a "full plugin" by Rails as indicated by the `--full` option that's passed to the generator command, but this guide will refer to them simply as "engines" throughout. An engine **can** be a plugin, and a plugin **can** be an engine.
 
@@ -232,7 +232,8 @@ Blorgh::Engine.routes.draw do
 end
 ```
 
-Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. This is also what causes the engine's routes to be isolated from those routes that are within the application. This is discussed further in the [Routes](#routes) section of this guide.
+Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. It also causes the engine's routes to be isolated from those routes that are within the application. The [Routes](#routes) section of
+this guide describes it in details.
 
 Next, the `scaffold_controller` generator is invoked, generating a controller called `Blorgh::PostsController` (at `app/controllers/blorgh/posts_controller.rb`) and its related views at `app/views/blorgh/posts`. This generator also generates a test for the controller (`test/controllers/blorgh/posts_controller_test.rb`) and a helper (`app/helpers/blorgh/posts_controller.rb`).
 
@@ -258,7 +259,7 @@ module Blorgh
 end
 ```
 
-This helps prevent conflicts with any other engine or application that may have a post resource also.
+This helps prevent conflicts with any other engine or application that may have a post resource as well.
 
 Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/javascripts/blorgh/posts.css`. You'll see how to use these a little later.
 
@@ -914,9 +915,10 @@ For more information, read the [Asset Pipeline guide](http://guides.rubyonrails.
 
 ### Other gem dependencies
 
-Gem dependencies inside an engine should be specified inside the `.gemspec` file at the root of the engine. The reason for this is because the engine may
+Gem dependencies inside an engine should be specified inside the
+`.gemspec` file at the root of the engine. The reason is that the engine may
 be installed as a gem. If dependencies were to be specified inside the `Gemfile`,
-these would not be recognised by a traditional gem install and so they would not
+these would not be recognized by a traditional gem install and so they would not
 be installed, causing the engine to malfunction.
 
 To specify a dependency that should be installed with the engine during a
