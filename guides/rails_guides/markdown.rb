@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'redcarpet'
 require 'nokogiri'
 require 'rails_guides/markdown/renderer'
@@ -129,7 +131,7 @@ module RailsGuides
 
       def generate_title
         if heading = Nokogiri::HTML(@header).at(:h2)
-          @title = "Ruby on Rails Guides: #{heading.text}".html_safe
+          @title = "#{heading.text} — Ruby on Rails Guides".html_safe
         else
           @title = "Ruby on Rails Guides"
         end
