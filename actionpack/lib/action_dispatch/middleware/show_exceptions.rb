@@ -27,13 +27,10 @@ module ActionDispatch
     end
 
     def call(env)
-      begin
-        response = @app.call(env)
-      rescue Exception => exception
-        raise exception if env['action_dispatch.show_exceptions'] == false
-      end
-
-      response || render_exception(env, exception)
+      @app.call(env)
+    rescue Exception => exception
+      raise exception if env['action_dispatch.show_exceptions'] == false
+      render_exception(env, exception)
     end
 
     private
