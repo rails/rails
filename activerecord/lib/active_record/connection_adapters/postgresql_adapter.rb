@@ -24,7 +24,7 @@ module ActiveRecord
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
        :schema_order, :adapter, :pool, :checkout_timeout, :template,
-       :reaping_frequency, :insert_returning, :variables].each do |key|
+       :prepared_statements, :reaping_frequency, :insert_returning, :variables].each do |key|
         conn_params.delete key
       end
       conn_params.delete_if { |k,v| v.nil? }
@@ -457,8 +457,6 @@ module ActiveRecord
         else
           @visitor = BindSubstitution.new self
         end
-
-        connection_parameters.delete :prepared_statements
 
         @connection_parameters, @config = connection_parameters, config
 
