@@ -21,6 +21,7 @@ module ActionDispatch
     module Compatibility
       def initialize(app, options = {})
         options[:key] ||= '_session_id'
+        options[:secret] ||= Rails.application.config.secret_key_base
         super
       end
 
