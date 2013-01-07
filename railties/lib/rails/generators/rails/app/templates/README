@@ -166,6 +166,7 @@ The default directory structure of a generated Ruby on Rails application:
   |   |   `-- concerns
   |   `-- views
   |       `-- layouts
+  |-- bin
   |-- config
   |   |-- environments
   |   |-- initializers
@@ -177,7 +178,6 @@ The default directory structure of a generated Ruby on Rails application:
   |   `-- tasks
   |-- log
   |-- public
-  |-- script
   |-- test
   |   |-- controllers
   |   |-- fixtures
@@ -226,6 +226,12 @@ app/helpers
   generated for you automatically when using generators for controllers.
   Helpers can be used to wrap functionality for your views into methods.
 
+bin
+  Your app's executables -- bundler, rake, rails, and more -- automatically
+  run using your app's Ruby version and its bundled gems. When you bundle
+  a new gem and need to run one of its executables, use `bundle binstubs <gem>`
+  to add it. For example, `bundle binstubs unicorn` adds ./bin/unicorn.
+
 config
   Configuration files for the Rails environment, the routing map, the database,
   and other dependencies.
@@ -247,9 +253,6 @@ public
   The directory available for the web server. Also contains the dispatchers and the
   default HTML files. This should be set as the DOCUMENT_ROOT of your web
   server.
-
-script
-  Helper scripts for automation and generation.
 
 test
   Unit and functional tests along with fixtures. When using the rails generate

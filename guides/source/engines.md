@@ -149,9 +149,9 @@ Lastly, the `app/views` directory contains a `layouts` folder which contains a f
 
 If you don't want to force a layout on to users of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
 
-#### `script` directory
+#### `bin` directory
 
-This directory contains one file, `script/rails`, which enables you to use the `rails` sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
+This directory contains one file, `bin/rails`, which enables you to use the `rails` sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
 
 ```bash
 rails g model

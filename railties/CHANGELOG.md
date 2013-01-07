@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   App executables now live in the `bin/` directory: `bin/bundle`,
+    `bin/rails`, `bin/rake`. Run `rake rails:update:bin` to add these
+    executables to your own app. `script/rails` is gone from new apps.
+
+    Running executables within your app ensures they use your app's Ruby
+    version and its bundled gems, and it ensures your production deployment
+    tools only need to execute a single script. No more having to carefully
+    `cd` to the app dir and run `bundle exec ...`.
+
+    Rather than treating `bin/` as a junk drawer for generated "binstubs",
+    bundler 1.3 adds support for generating stubs for just the executables
+    you actually use: `bundle binstubs unicorn` generates `bin/unicorn`.
+    Add that executable to git and version it just like any other app code.
+
 *   `config.assets.enabled` is now true by default. If you're upgrading from a Rails 3.x app
     that does not use the asset pipeline, you'll be required to add `config.assets.enabled = false`
     to your application.rb. If you don't want the asset pipeline on a new app use `--skip-sprockets`

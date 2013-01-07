@@ -17,6 +17,9 @@ DEFAULT_APP_FILES = %w(
   app/models
   app/models/concerns
   app/views/layouts
+  bin/bundle
+  bin/rails
+  bin/rake
   config/environments
   config/initializers
   config/locales
@@ -26,7 +29,6 @@ DEFAULT_APP_FILES = %w(
   lib/tasks
   lib/assets
   log
-  script/rails
   test/fixtures
   test/controllers
   test/models
