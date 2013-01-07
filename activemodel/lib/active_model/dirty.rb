@@ -139,7 +139,7 @@ module ActiveModel
     #   person.name = 'robert'
     #   person.changed_attributes # => {"name" => "bob"}
     def changed_attributes
-      @changed_attributes ||= {}
+      @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
     private

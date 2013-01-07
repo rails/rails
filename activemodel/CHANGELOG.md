@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Updated the DirtyModel *_changed? method to be indifferent between using 
+    symbols and strings as keys.
+
+    *William Myers*
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
