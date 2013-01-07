@@ -592,7 +592,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   # gets raw row hashes from the database and then instantiates them, this test ensures that
   # it only instantiates one actual object per record from the database.
   def test_has_and_belongs_to_many_should_not_instantiate_same_records_multiple_times
-    welcome    = posts(:welcome)
     categories = Category.includes(:posts)
 
     general    = categories.find { |c| c == categories(:general) }
