@@ -235,7 +235,7 @@ class BigDecimal
   # real value.
   #
   # Use <tt>ActiveSupport.use_standard_json_big_decimal_format = true</tt> to
-  # override this behaviour.
+  # override this behavior.
   def as_json(options = nil) #:nodoc:
     if finite?
       ActiveSupport.encode_big_decimal_as_string ? to_s : self

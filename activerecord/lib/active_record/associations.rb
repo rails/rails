@@ -951,7 +951,7 @@ module ActiveRecord
     #
     # The <tt>:dependent</tt> option can have different values which specify how the deletion
     # is done. For more information, see the documentation for this option on the different
-    # specific association types. When no option is given, the behaviour is to do nothing
+    # specific association types. When no option is given, the behavior is to do nothing
     # with the associated records when destroying a record.
     #
     # Note that <tt>:dependent</tt> is implemented using Rails' callback

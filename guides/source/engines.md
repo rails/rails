@@ -16,7 +16,7 @@ After reading this guide, you will know:
 What are engines?
 -----------------
 
-Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting a lot of its behaviour from `Rails::Engine`.
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting a lot of its behavior from `Rails::Engine`.
 
 Therefore, engines and applications can be thought of almost the same thing, just with very minor differences, as you'll see throughout this guide. Engines and applications also share a common structure.
 
@@ -647,7 +647,7 @@ This would then turn the above code for `set_author` into this:
 self.author = Blorgh.user_class.find_or_create_by(name: author_name)
 ```
 
-Resulting in something a little shorter, and more implicit in its behaviour. The `user_class` method should always return a `Class` object.
+Resulting in something a little shorter, and more implicit in its behavior. The `user_class` method should always return a `Class` object.
 
 To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
 

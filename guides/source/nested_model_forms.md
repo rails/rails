@@ -56,7 +56,7 @@ end
 
 ### Custom model
 
-As you might have inflected from this explanation, you _don’t_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behaviour:
+As you might have inflected from this explanation, you _don’t_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behavior:
 
 #### Single associated object
 

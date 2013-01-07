@@ -436,7 +436,7 @@ module ActiveModel
     # attribute_missing is like method_missing, but for attributes. When method_missing is
     # called we check to see if there is a matching attribute method. If so, we call
     # attribute_missing to dispatch the attribute. This method can be overloaded to
-    # customise the behaviour.
+    # customize the behavior.
     def attribute_missing(match, *args, &block)
       __send__(match.target, match.attr_name, *args, &block)
     end

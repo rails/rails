@@ -1,7 +1,7 @@
 # This file should be deleted when activerecord-deprecated_finders is removed as
 # a dependency.
 #
-# It is kept for now as there is some fairly nuanced behaviour in the dynamic
+# It is kept for now as there is some fairly nuanced behavior in the dynamic
 # finders so it is useful to keep this around to guard against regressions if
 # we need to change the code.
 

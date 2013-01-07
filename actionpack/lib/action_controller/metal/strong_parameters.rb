@@ -45,7 +45,7 @@ module ActionController
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
   # It provides a +permit_all_parameters+ option that controls the top-level
-  # behaviour of new instances. If it's +true+, all the parameters will be
+  # behavior of new instances. If it's +true+, all the parameters will be
   # permitted by default. The default value for +permit_all_parameters+
   # option is +false+.
   #

@@ -8,7 +8,7 @@ class Array
   # Converts the array to a comma-separated sentence where the last element is
   # joined by the connector word.
   #
-  # You can pass the following options to change the default behaviour. If you
+  # You can pass the following options to change the default behavior. If you
   # pass an option key that doesn't exist in the list below, it will raise an
   # <tt>ArgumentError</tt>.
   #
