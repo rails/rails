@@ -16,12 +16,12 @@ module ActionDispatch
       end
 
       def length
-        @routes.length
+        routes.length
       end
       alias :size :length
 
       def last
-        @routes.last
+        routes.last
       end
 
       def each(&block)
