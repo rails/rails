@@ -104,6 +104,22 @@ module StaticTests
     end
   end
 
+  def test_serves_uncompressed_file
+    response = get('/compressed.html')
+    assert_html "Hello, static file", response
+    assert_equal "Accept-Encoding", response.headers['Vary']
+    assert_nil response.headers['Content-Encoding']
+  end
+
+  def test_serves_compressed_file
+    response = get('/compressed.html', 'HTTP_ACCEPT_ENCODING' => 'gzip')
+    gz = Zlib::GzipReader.new(StringIO.new(response.body))
+    assert_equal "Hello, static file", gz.read
+    assert_equal "Accept-Encoding", response.headers['Vary']
+    assert_equal "gzip", response.headers['Content-Encoding']
+    assert_equal "text/html", response.headers['Content-Type']
+  end
+
   # Windows doesn't allow \ / : * ? " < > | in filenames
   unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
     def test_serves_static_file_with_colon
@@ -128,8 +144,8 @@ module StaticTests
       assert_equal "text/html", response.headers["Content-Type"]
     end
 
-    def get(path)
-      Rack::MockRequest.new(@app).request("GET", path)
+    def get(path, opts={})
+      Rack::MockRequest.new(@app).request("GET", path, opts)
     end
 
     def with_static_file(file)
