@@ -11,13 +11,6 @@ require 'action_dispatch/testing/integration'
 require 'rails/backtrace_cleaner'
 MiniTest.backtrace_filter = Rails.backtrace_cleaner
 
-# Configure turn if it is available
-if defined?(Turn)
-  Turn.config do |c|
-    c.natural = true
-  end
-end
-
 if defined?(ActiveRecord::Base)
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
