@@ -4,7 +4,7 @@
 
     *Sam Ruby + Carlos Antonio da Silva*
 
-*   Do not append second slash to root_url when using `trailing_slash: true`
+*   Do not append second slash to `root_url` when using `trailing_slash: true`
     Fix #8700.
     Backport #8701.
 
@@ -27,7 +27,7 @@
 
     *Andrew White*
 
-*   Fix a bug in ActionDispatch::Request#raw_post that caused env['rack.input']
+*   Fix a bug in `ActionDispatch::Request#raw_post` that caused `env['rack.input']`
     to be read but not rewound.
 
     *Matt Venables*
@@ -37,14 +37,13 @@
     #8376
 
         render :partial => 'partial', :layout => true
-
         # results in ActionView::MissingTemplate: Missing partial /true
 
     *Yves Senn*
 
-*   Accept symbols as #send_data :disposition value. [Backport #8329] *Elia Schito*
+*   Accept symbols as `#send_data` :disposition value. [Backport #8329] *Elia Schito*
 
-*   Add i18n scope to distance_of_time_in_words. [Backport #7997] *Steve Klabnik*
+*   Add i18n scope to `distance_of_time_in_words`. [Backport #7997] *Steve Klabnik*
 
 *   Fix side effect of `url_for` changing the `:controller` string option. [Backport #6003]
     Before:
@@ -58,7 +57,7 @@
 
         puts controller #=> '/projects'
 
-    [Nikita Beloglazov + Andrew White]
+    *Nikita Beloglazov + Andrew White*
 
 *   Introduce `ActionView::Template::Handlers::ERB.escape_whitelist`. This is a list
     of mime types where template text is not html escaped by default. It prevents `Jack & Joe`
