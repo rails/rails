@@ -36,20 +36,37 @@ module ActionDispatch
     # "rake secret" and set the key in config/initializers/secret_token.rb.
     #
     # Note that changing digest or secret invalidates all existing sessions!
-    class CookieStore < Rack::Session::Cookie
+    class CookieStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck
       include SessionObject
 
-      # Override rack's method
+      def initialize(app, options={})
+        super(app, options.merge!(:cookie_only => true))
+      end
+
       def destroy_session(env, session_id, options)
-        new_sid = super
+        new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
         env["action_dispatch.request.unsigned_session_cookie"] = new_sid ? { "session_id" => new_sid } : {}
         new_sid
       end
 
+      def load_session(env)
+        stale_session_check! do
+          data = unpacked_cookie_data(env)
+          data = persistent_session_id!(data)
+          [data["session_id"], data]
+        end
+      end
+
       private
+
+      def extract_session_id(env)
+        stale_session_check! do
+          unpacked_cookie_data(env)["session_id"]
+        end
+      end
 
       def unpacked_cookie_data(env)
         env["action_dispatch.request.unsigned_session_cookie"] ||= begin
@@ -60,6 +77,12 @@ module ActionDispatch
             data || {}
           end
         end
+      end
+
+      def persistent_session_id!(data, sid=nil)
+        data ||= {}
+        data["session_id"] ||= sid || generate_sid
+        data
       end
 
       def set_session(env, sid, session_data, options)
