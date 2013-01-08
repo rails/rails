@@ -23,6 +23,6 @@ Things you may want to cover:
 
 * ...
 
-If you plan to generate application documentation with `rake doc:app` this file
-is expected to be `README.rdoc`, otherwise please feel free to rename it and use
-a different markup language.
+
+Please feel free to use a different markup language if you do not plan to run
+<tt>rake doc:app</tt>.
