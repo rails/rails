@@ -41,6 +41,12 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["Field Name empty"], @person.errors.full_messages
   end
 
+  def test_errors_full_messages_looks_up_custom_attribute_format
+    I18n.backend.store_translations('en', :errors => {:formats => {:attributes => {:name => "Name is: %{message}"}}})
+    @person.errors.add('name', 'empty')
+    assert_equal ["Name is: empty"], @person.errors.full_messages
+  end
+
   # ActiveModel::Validations
 
   # A set of common cases for ActiveModel::Validations message generation that
