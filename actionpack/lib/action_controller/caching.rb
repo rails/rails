@@ -80,10 +80,6 @@ module ActionController
       def view_cache_dependency(&dependency)
         self._view_cache_dependencies += [dependency]
       end
-
-      def view_cache_dependencies
-        _view_cache_dependencies.map { |dep| instance_exec &dep }.compact
-      end
     end
 
     def caching_allowed?
@@ -91,7 +87,7 @@ module ActionController
     end
 
     def view_cache_dependencies
-      self.class.view_cache_dependencies
+      self.class._view_cache_dependencies.map { |dep| instance_exec &dep }.compact
     end
 
     protected
