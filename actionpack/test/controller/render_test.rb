@@ -1448,7 +1448,7 @@ class RenderTest < ActionController::TestCase
     $stderr = warning_buffer
 
     assert_template partial: 'customer_greeting', locals: { greeting: 'Bonjour' }
-    assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
+    assert_match /the :locals option to #assert_template is only supported in a ActionView::TestCase/, warning_buffer.string
   ensure
     $stderr = STDERR
   end
