@@ -32,7 +32,11 @@ module ActiveRecord
 
       unless (payload[:binds] || []).empty?
         binds = "  " + payload[:binds].map { |col,v|
-          [col.name, v]
+          if col
+            [col.name, v]
+          else
+            [nil, v]
+          end
         }.inspect
       end
 
