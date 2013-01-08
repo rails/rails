@@ -12,8 +12,8 @@ module Rails
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        if Rails.logger.respond_to?(:tagged)
-          Rails.logger.tagged(compute_tags(request)) { call_app(request, env) }
+        if logger.respond_to?(:tagged)
+          logger.tagged(compute_tags(request)) { call_app(request, env) }
         else
           call_app(request, env)
         end
@@ -23,12 +23,12 @@ module Rails
 
       def call_app(request, env)
         # Put some space between requests in development logs.
-        if Rails.env.development?
-          Rails.logger.debug ''
-          Rails.logger.debug ''
+        if development?
+          logger.debug ''
+          logger.debug ''
         end
 
-        Rails.logger.info started_request_message(request)
+        logger.info started_request_message(request)
         @app.call(env)
       ensure
         ActiveSupport::LogSubscriber.flush_all!
@@ -54,6 +54,16 @@ module Rails
             tag
           end
         end
+      end
+
+      private
+
+      def development?
+        Rails.env.development?
+      end
+
+      def logger
+        Rails.logger
       end
     end
   end
