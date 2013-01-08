@@ -95,6 +95,10 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :raise_on_unpermitted_parameters, instance_accessor: false
 
+    # Never raise an UnpermittedParameters exception because of these params
+    # are present. They are added by Rails and it's of no concern.
+    NEVER_UNPERMITTED_PARAMS = %w( controller action )
+
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
@@ -251,12 +255,7 @@ module ActionController
         end
       end
 
-      if Parameters.raise_on_unpermitted_parameters
-        unpermitted_keys = self.keys - params.keys
-        if unpermitted_keys.any?
-          raise ActionController::UnpermittedParameters.new(unpermitted_keys)
-        end
-      end
+      raise_on_unpermitted_parameters!(params)
 
       params.permit!
     end
@@ -335,6 +334,16 @@ module ActionController
         else
           yield object
         end
+      end
+      
+      def raise_on_unpermitted_parameters!(params)
+        if self.class.raise_on_unpermitted_parameters && unpermitted_keys(params).any?
+          raise ActionController::UnpermittedParameters.new(unpermitted_keys(params))
+        end
+      end
+      
+      def unpermitted_keys(params)
+        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
       end
   end
 

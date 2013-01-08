@@ -30,4 +30,14 @@ class RaiseOnUnpermittedParametersTest < ActiveSupport::TestCase
       params.permit(book: [:pages])
     end
   end
+  
+  test "action and controller keys are safe to ignore" do
+    params = ActionController::Parameters.new({
+      action: 'index', controller: 'stuff', book: { pages: 65 }
+    })
+
+    assert_nothing_raised do
+      params.permit(book: [:pages])
+    end
+  end
 end
