@@ -102,7 +102,7 @@ module ActiveSupport
         def report
           if @supported
             rate = @total / full_profile_options[:runs]
-            '%20s: %s' % [@metric.name, @metric.format(rate)]
+            '%20s: %s (total: %s)' % [@metric.name, @metric.format(rate), @metric.format(@total)]
           else
             '%20s: unsupported' % @metric.name
           end
