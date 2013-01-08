@@ -150,7 +150,7 @@ namespace :test do
   Rails::SubTestTask.new(benchmark: 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
-    t.options = '-- --benchmark'
+    ENV["BENCHMARK_TESTS"] = '1'
   end
 
   Rails::SubTestTask.new(profile: 'test:prepare') do |t|
