@@ -54,7 +54,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "actionmailer"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 2.3.14' + PKG_BUILD)
+  s.add_dependency('actionpack', '= 2.3.15' + PKG_BUILD)
 
   s.requirements << 'none'
   s.require_path = 'lib'
