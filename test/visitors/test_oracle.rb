@@ -103,7 +103,7 @@ module Arel
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (SELECT) raw_sql_
               )
-              WHERE raw_rnum_ between 11 and 20
+              WHERE raw_rnum_ >= 11 and rownum <= 10
             }
           end
 
