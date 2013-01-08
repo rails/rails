@@ -13,7 +13,7 @@ class Object
     Hash[instance_variables.map { |name| [name[1..-1], instance_variable_get(name)] }]
   end
 
-  # Returns an array of instance variable names including "@".
+  # Returns an array of instance variable names as strings including "@".
   #
   #   class C
   #     def initialize(x, y)

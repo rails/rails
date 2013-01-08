@@ -15,7 +15,7 @@ module ActionDispatch
   # being written will be sent out with the response. Reading a cookie does not get
   # the cookie object itself back, just the value it holds.
   #
-  # Examples for writing:
+  # Examples of writing:
   #
   #   # Sets a simple session cookie.
   #   # This cookie will be deleted when the user's browser is closed.
@@ -38,7 +38,7 @@ module ActionDispatch
   #   # You can also chain these methods:
   #   cookies.permanent.signed[:login] = "XJ-122"
   #
-  # Examples for reading:
+  # Examples of reading:
   #
   #   cookies[:user_name]    # => "david"
   #   cookies.size           # => 2

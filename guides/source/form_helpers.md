@@ -238,7 +238,7 @@ end
 The corresponding view `app/views/articles/new.html.erb` using `form_for` looks like this:
 
 ```erb
-<%= form_for @article, url: {action: "create"}, html => {class: "nifty_form"} do |f| %>
+<%= form_for @article, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, size: "60x12" %>
   <%= f.submit "Create" %>
@@ -428,7 +428,7 @@ WARNING: when `:inlude_blank` or `:prompt:` are not present, `:include_blank` is
 You can add arbitrary attributes to the options using hashes:
 
 ```html+erb
-<%= options_for_select([['Lisbon', 1, 'data-size': '2.8 million'], ['Madrid', 2, 'data-size': '3.2 million']], 2) %>
+<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
 
 output:
 
@@ -497,7 +497,7 @@ To leverage time zone support in Rails, you have to ask your users what time zon
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/chrislerum/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
+Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
 
 Using Date and Time Form Helpers
 --------------------------------

@@ -45,7 +45,7 @@ code while accomplishing more than many other languages and frameworks.
 Experienced Rails developers also report that it makes web application
 development more fun.
 
-Rails is opinionated software. It makes the assumption that there is a "best"
+Rails is opinionated software. It makes the assumption that there is the "best"
 way to do things, and it's designed to encourage that way - and in some cases to
 discourage alternatives. If you learn "The Rails Way" you'll probably discover a
 tremendous increase in productivity. If you persist in bringing old habits from
@@ -71,7 +71,9 @@ By following along with this guide, you'll create a Rails project called
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
-TIP: The examples below use # and $ to denote superuser and regular user terminal prompts respectively in a UNIX-like OS. If you are using Windows, your prompt will look something like c:\source_code>
+TIP: The examples below use `#` and `$` to denote superuser and regular
+user terminal prompts respectively in a UNIX-like OS. If you are using
+Windows, your prompt will look something like `c:\source_code>`
 
 ### Installing Rails
 
@@ -829,7 +831,7 @@ it look as follows:
 <h1>Editing post</h1>
 
 <%= form_for :post, url: { action: :update, id: @post.id },
-method: :put do |f| %>
+method: :patch do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -862,7 +864,7 @@ method: :put do |f| %>
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The `method: :put` option tells Rails that we want this form to be
+The `method: :patch` option tells Rails that we want this form to be
 submitted via the `PUT` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
@@ -872,7 +874,7 @@ Next, we need to add the `update` action. The file
 `config/routes.rb` will need just one more line:
 
 ```ruby
-put "posts/:id" => "posts#update"
+patch "posts/:id" => "posts#update"
 ```
 
 And then create the `update` action in `app/controllers/posts_controller.rb`:
@@ -1050,7 +1052,7 @@ called `post_url` and `post_path` available to our application. These are
 precisely the methods that the `form_for` needs when editing a post, and so now
 you'll be able to update posts again.
 
-NOTE: The `:as` option is available on the `post`, `put`, `delete` and `match`
+NOTE: The `:as` option is available on the `post`, `patch`, `put`, `delete` and `match`
 routing methods also.
 
 ### Deleting Posts
@@ -1144,7 +1146,7 @@ get "posts/new"
 post "posts" => "posts#create"
 get "posts/:id" => "posts#show", as: :post
 get "posts/:id/edit" => "posts#edit"
-put "posts/:id" => "posts#update"
+patch "posts/:id" => "posts#update"
 delete "posts/:id" => "posts#destroy"
 ```
 

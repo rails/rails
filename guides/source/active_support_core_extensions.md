@@ -422,24 +422,6 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 Active Support provides several methods to ease access to instance variables.
 
-#### `instance_variable_names`
-
-Ruby 1.8 and 1.9 have a method called `instance_variables` that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines `instance_variable_names` as a portable way to obtain them as strings:
-
-```ruby
-class C
-  def initialize(x, y)
-    @x, @y = x, y
-  end
-end
-
-C.new(0, 1).instance_variable_names # => ["@y", "@x"]
-```
-
-WARNING: The order in which the names are returned is unspecified, and it indeed depends on the version of the interpreter.
-
-NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
-
 #### `instance_values`
 
 The method `instance_values` returns a hash that maps instance variable names without "@" to their
@@ -1449,11 +1431,10 @@ As the previous example shows, Active Support knows some irregular plurals and u
 Active Record uses this method to compute the default table name that corresponds to a model:
 
 ```ruby
-# active_record/base.rb
+# active_record/model_schema.rb
 def undecorated_table_name(class_name = base_class.name)
   table_name = class_name.to_s.demodulize.underscore
-  table_name = table_name.pluralize if pluralize_table_names
-  table_name
+  pluralize_table_names ? table_name.pluralize : table_name
 end
 ```
 

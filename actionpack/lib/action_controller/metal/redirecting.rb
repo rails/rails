@@ -32,7 +32,7 @@ module ActionController
     #   redirect_to :back
     #   redirect_to proc { edit_post_url(@post) }
     #
-    # The redirection happens as a "302 Moved" header unless otherwise specified.
+    # The redirection happens as a "302 Found" header unless otherwise specified.
     #
     #   redirect_to post_url(@post), status: :found
     #   redirect_to action: 'atom', status: :moved_permanently

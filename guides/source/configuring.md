@@ -304,6 +304,8 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
+* `config.action_controller.raise_on_unpermitted_parameters` enables raising an exception if parameters that are not explicitly permitted are found. The default value is `true` in development and test environments, `false` otherwise.
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
@@ -583,7 +585,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in `development`, but only once (during boot-up) in `production` and `test`.
 
-* `before_eager_load`: This is run directly before eager loading occurs, which is the default behaviour for the `production` environment and not for the `development` environment.
+* `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 
 * `after_initialize`: Run directly after the initialization of the application, but before the application initializers are run.
 
