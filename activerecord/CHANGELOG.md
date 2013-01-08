@@ -1,10 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove support for parsing YAML parameters from request.
+
+    *Aaron Patterson*
+
 *   Support for PostgreSQL's `ltree` data type.
 
     *Rob Worley*
 
-*   Fix undefined method `to_i` when calling `new` on a scope that uses an 
+*   Fix undefined method `to_i` when calling `new` on a scope that uses an
     Array; Fix FloatDomainError when setting integer column to NaN.
     Fixes #8718, #8734, #8757.
 
