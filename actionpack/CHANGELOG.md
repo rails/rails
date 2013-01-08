@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `image_submit_tag` will set `alt` attribute from image source if not
+    specified.
+
+    *Nihad Abbasov*
+
 *   Do not generate local variables for partials without object or collection.
     Previously rendering a partial without giving `:object` or `:collection`
     would generate a local variable with the partial name by default.

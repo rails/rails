@@ -488,7 +488,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
+      %(<input alt="Save" type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
       image_submit_tag("save.gif", :data => { :confirm => "Are you sure?" })
     )
   end
@@ -496,7 +496,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_image_submit_tag_with_deprecated_confirmation
     assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
-        %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
+        %(<input alt="Save" type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
         image_submit_tag("save.gif", :confirm => "Are you sure?")
       )
     end
