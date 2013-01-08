@@ -4,6 +4,10 @@ require 'rbconfig'
 module Rails
   module Generators
     module Actions
+      def initialize(*) # :nodoc:
+        super
+        @in_group = nil
+      end
 
       # Adds an entry into Gemfile for the supplied gem.
       #
