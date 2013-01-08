@@ -19,20 +19,6 @@ module ActionController
     end
   end
 
-  # Raised when a supplied parameter is not permitted.
-  #
-  #   params = ActionController::Parameters.new(a: "123", b: "456")
-  #   params.permit(:c)
-  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
-  class UnpermittedParameters < IndexError
-    attr_reader :params # :nodoc:
-
-    def initialize(params) # :nodoc:
-      @params = params
-      super("found unpermitted keys: #{params.join(", ")}")
-    end
-  end
-
   # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
@@ -57,14 +43,10 @@ module ActionController
   #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides two options that controls the top-level behavior of new instances:
-  #
-  # * +permit_all_parameters+ - If it's +true+, all the parameters will be
-  #   permitted by default. The default is +false+.
-  # * +raise_on_unpermitted_parameters+ - If it's +true+, it will raise an
-  #   ActionController::UnpermittedParameters exception if parameters that are not
-  #   explicitly permitted are found. The default value is +true+ in test and
-  #   development environments, +false+ otherwise.
+  # It provides a +permit_all_parameters+ option that controls the top-level
+  # behaviour of new instances. If it's +true+, all the parameters will be
+  # permitted by default. The default value for +permit_all_parameters+
+  # option is +false+.
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => false
@@ -73,16 +55,6 @@ module ActionController
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => true
-  #
-  #   params = ActionController::Parameters.new(a: "123", b: "456")
-  #   params.permit(:c)
-  #   # => {}
-  #
-  #   ActionController::Parameters.raise_on_unpermitted_parameters = true
-  #
-  #   params = ActionController::Parameters.new(a: "123", b: "456")
-  #   params.permit(:c)
-  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
   # <tt>ActionController::Parameters</tt> is inherited from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
@@ -93,11 +65,6 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
-    cattr_accessor :raise_on_unpermitted_parameters, instance_accessor: false
-
-    # Never raise an UnpermittedParameters exception because of these params
-    # are present. They are added by Rails and it's of no concern.
-    NEVER_UNPERMITTED_PARAMS = %w( controller action )
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -255,8 +222,6 @@ module ActionController
         end
       end
 
-      raise_on_unpermitted_parameters!(params)
-
       params.permit!
     end
 
@@ -334,16 +299,6 @@ module ActionController
         else
           yield object
         end
-      end
-      
-      def raise_on_unpermitted_parameters!(params)
-        if self.class.raise_on_unpermitted_parameters && unpermitted_keys(params).any?
-          raise ActionController::UnpermittedParameters.new(unpermitted_keys(params))
-        end
-      end
-      
-      def unpermitted_keys(params)
-        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
       end
   end
 
