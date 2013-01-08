@@ -82,7 +82,7 @@ module ActionController
       end
 
       def view_cache_dependencies
-        _view_cache_dependencies.map { |dep| instance_exec &dep }.compact
+        _view_cache_dependencies.map { |dep| instance_exec(&dep) }.compact
       end
     end
 
