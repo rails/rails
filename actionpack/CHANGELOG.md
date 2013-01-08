@@ -1,5 +1,9 @@
 ## Rails 3.2.11 (unreleased) ##
 
+*   Bump `rack` dependency to 1.4.3, eliminate `Rack::File` headers deprecation warning.
+
+    *Sam Ruby + Carlos Antonio da Silva*
+
 *   Do not append second slash to root_url when using `trailing_slash: true`
     Fix #8700.
     Backport #8701.
