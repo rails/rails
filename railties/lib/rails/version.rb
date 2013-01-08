@@ -2,7 +2,7 @@ module Rails
   module VERSION #:nodoc:
     MAJOR = 3
     MINOR = 1
-    TINY  = 9
+    TINY  = 10
     PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
