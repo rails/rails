@@ -1,4 +1,4 @@
-## Rails 3.2.11 (unreleased)
+## Rails 3.2.12 (unreleased)
 
 *   Fix undefined method `to_i` when calling `new` on a scope that uses an
     Array; Fix FloatDomainError when setting integer column to NaN.
@@ -179,6 +179,9 @@
 
     *Gabriel Sobrinho, Ricardo Henrique*
 
+## Rails 3.2.11 ##
+
+*   Fix querying with an empty hash *Damien Mathieu* [CVE-2013-0155]
 
 ## Rails 3.2.10 (Jan 2, 2013) ##
 

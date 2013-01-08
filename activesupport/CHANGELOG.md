@@ -1,4 +1,4 @@
-## Rails 3.2.11 (unreleased)
+## Rails 3.2.12 (unreleased)
 
 *   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
     The encoding scheme was broken for unicode characters outside the basic
@@ -20,10 +20,18 @@
     *Daniele Sluijters*
 
 
+## Rails 3.2.11 (Jan 8, 2012) ##
+
+*   Hash.from_xml raises when it encounters type="symbol" or type="yaml".
+    Use Hash.from_trusted_xml to parse this XML.
+
+    CVE-2013-0156
+
+    *Jeremy Kemper*
+
 ## Rails 3.2.10 (Jan 2, 2013) ##
 
 *   No changes.
-
 
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
