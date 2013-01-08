@@ -11,14 +11,11 @@ require 'action_dispatch/testing/integration'
 require 'rails/backtrace_cleaner'
 MiniTest.backtrace_filter = Rails.backtrace_cleaner
 
-# Enable turn if it is available
-begin
-  require 'turn'
-
+# Configure turn if it is available
+if defined?(Turn)
   Turn.config do |c|
     c.natural = true
   end
-rescue LoadError
 end
 
 if defined?(ActiveRecord::Base)
