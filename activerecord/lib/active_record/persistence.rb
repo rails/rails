@@ -212,7 +212,7 @@ module ActiveRecord
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    def update_attributes(attributes)
+    def update(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
@@ -220,10 +220,12 @@ module ActiveRecord
         save
       end
     end
+    
+    alias update_attributes update
 
-    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    # Updates its receiver just like +update+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
-    def update_attributes!(attributes)
+    def update!(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
@@ -231,6 +233,8 @@ module ActiveRecord
         save!
       end
     end
+    
+    alias update_attributes! update!
 
     # Updates a single attribute of an object, without having to explicitly call save on that object.
     #
@@ -406,13 +410,13 @@ module ActiveRecord
 
     def create_or_update
       raise ReadOnlyRecord if readonly?
-      result = new_record? ? create : update
+      result = new_record? ? create_record : update_record
       result != false
     end
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def update(attribute_names = @attributes.keys)
+    def update_record(attribute_names = @attributes.keys)
       attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
 
       if attributes_with_values.empty?
@@ -426,7 +430,7 @@ module ActiveRecord
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create(attribute_names = @attributes.keys)
+    def create_record(attribute_names = @attributes.keys)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values

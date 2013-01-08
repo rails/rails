@@ -24,11 +24,21 @@ module Rails
 
         if arguments.first && arguments.first[0] != '-'
           env = arguments.first
-          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+          if available_environments.include? env
+            options[:environment] = env
+          else
+            options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+          end
         end
 
         options
       end
+
+      private
+
+        def available_environments
+          Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
+        end
     end
 
     attr_reader :options, :app, :console
@@ -79,13 +89,11 @@ module Rails
     end
 
     def require_debugger
-      begin
-        require 'debugger'
-        puts "=> Debugger enabled"
-      rescue Exception
-        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
-        exit
-      end
+      require 'debugger'
+      puts "=> Debugger enabled"
+    rescue LoadError
+      puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
+      exit
     end
   end
 end

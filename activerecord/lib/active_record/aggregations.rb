@@ -165,7 +165,7 @@ module ActiveRecord
     # by specifying an instance of the value object in the conditions hash. The following example
     # finds all customers with +balance_amount+ equal to 20 and +balance_currency+ equal to "USD":
     #
-    #   Customer.where(balance: Money.new(20, "USD")).all
+    #   Customer.where(balance: Money.new(20, "USD"))
     #
     module ClassMethods
       # Adds reader and writer methods for manipulating a value object:

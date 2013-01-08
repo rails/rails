@@ -30,101 +30,13 @@ config.action_controller.perform_caching = true
 
 Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
-To enable page caching, you need to use the `caches_page` method.
-
-```ruby
-class ProductsController < ActionController
-
-  caches_page :index
-
-  def index
-    @products = Product.all
-  end
-end
-```
-
-Let's say you have a controller called `ProductsController` and an `index` action that lists all the products. The first time anyone requests `/products`, Rails will generate a file called `products.html` and the webserver will then look for that file before it passes the next request for `/products` to your Rails application.
-
-By default, the page cache directory is set to `Rails.public_path` (which is usually set to the `public` folder) and this can be configured by changing the configuration setting `config.action_controller.page_cache_directory`. Changing the default from `public` helps avoid naming conflicts, since you may want to put other static html in `public`, but changing this will require web server reconfiguration to let the web server know where to serve the cached files from.
-
-The Page Caching mechanism will automatically add a `.html` extension to requests for pages that do not have an extension to make it easy for the webserver to find those pages and this can be configured by changing the configuration setting `config.action_controller.default_static_extension`.
-
-In order to expire this page when a new product is added we could extend our example controller like this:
-
-```ruby
-class ProductsController < ActionController
-
-  caches_page :index
-
-  def index
-    @products = Product.all
-  end
-
-  def create
-    expire_page action: :index
-  end
-
-end
-```
-
-By default, page caching automatically gzips files (for example, to `products.html.gz` if user requests `/products`) to reduce the size of data transmitted (web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, compression ratio is maximum).
-
-Nginx is able to serve compressed content directly from disk by enabling `gzip_static`:
-
-```nginx
-location /  {
-  gzip_static on; # to serve pre-gzipped version
-}
-```
-
-You can disable gzipping by setting `:gzip` option to false (for example, if action returns image):
-
-```ruby
-caches_page :image, gzip: false
-```
-
-Or, you can set custom gzip compression level (level names are taken from `Zlib` constants):
-
-```ruby
-caches_page :image, gzip: :best_speed
-```
-
-NOTE: Page caching ignores all parameters. For example `/products?page=1` will be written out to the filesystem as `products.html` with no reference to the `page` parameter. Thus, if someone requests `/products?page=2` later, they will get the cached first page. A workaround for this limitation is to include the parameters in the page's path, e.g. `/products/page/1`.
-
-INFO: Page caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
+INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching)
 
 ### Action Caching
 
 Page Caching cannot be used for actions that have before filters - for example, pages that require authentication. This is where Action Caching comes in. Action Caching works like Page Caching except the incoming web request hits the Rails stack so that before filters can be run on it before the cache is served. This allows authentication and other restrictions to be run while still serving the result of the output from a cached copy.
 
-Clearing the cache works in a similar way to Page Caching, except you use `expire_action` instead of `expire_page`.
-
-Let's say you only wanted authenticated users to call actions on `ProductsController`.
-
-```ruby
-class ProductsController < ActionController
-
-  before_action :authenticate
-  caches_action :index
-
-  def index
-    @products = Product.all
-  end
-
-  def create
-    expire_action action: :index
-  end
-
-end
-```
-
-You can also use `:if` (or `:unless`) to pass a Proc that specifies when the action should be cached. Also, you can use `layout: false` to cache without layout so that dynamic information in the layout such as logged in user info or the number of items in the cart can be left uncached. This feature is available as of Rails 2.2.
-
-You can modify the default action cache path by passing a `:cache_path` option. This will be passed directly to `ActionCachePath.path_for`. This is handy for actions with multiple possible routes that should be cached differently. If a block is given, it is called with the current controller instance.
-
-Finally, if you are using memcached or Ehcache, you can also pass `:expires_in`. In fact, all parameters not used by `caches_action` are sent to the underlying cache store.
-
-INFO: Action caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
+INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching)
 
 ### Fragment Caching
 
@@ -195,10 +107,6 @@ class ProductsController < ActionController
 
 end
 ```
-
-The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
-
-However, it's important to note that query caches are created at the start of an action and destroyed at the end of that action and thus persist only for the duration of the action. If you'd like to store query results in a more persistent fashion, you can in Rails by using low level caching.
 
 Cache Stores
 ------------

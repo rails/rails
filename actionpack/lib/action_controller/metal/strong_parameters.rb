@@ -1,4 +1,3 @@
-require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
@@ -41,11 +40,11 @@ module ActionController
   #   permitted.class      # => ActionController::Parameters
   #   permitted.permitted? # => true
   #
-  #   Person.first.update_attributes!(permitted)
+  #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
   # It provides a +permit_all_parameters+ option that controls the top-level
-  # behaviour of new instances. If it's +true+, all the parameters will be
+  # behavior of new instances. If it's +true+, all the parameters will be
   # permitted by default. The default value for +permit_all_parameters+
   # option is +false+.
   #
@@ -329,7 +328,7 @@ module ActionController
   #     # into a 400 Bad Request reply.
   #     def update
   #       redirect_to current_account.people.find(params[:id]).tap { |person|
-  #         person.update_attributes!(person_params)
+  #         person.update!(person_params)
   #       }
   #     end
   #

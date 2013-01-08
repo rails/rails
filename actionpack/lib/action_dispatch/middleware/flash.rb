@@ -59,12 +59,12 @@ module ActionDispatch
         @flash[k]
       end
 
-      # Convenience accessor for flash.now[:alert]=
+      # Convenience accessor for <tt>flash.now[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash.now[:notice]=
+      # Convenience accessor for <tt>flash.now[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
@@ -82,7 +82,7 @@ module ActionDispatch
                 else
                   new
                 end
-        
+
         flash.tap(&:sweep)
       end
 
@@ -169,6 +169,14 @@ module ActionDispatch
       # vanish when the current action is done.
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
+      #
+      # Also, brings two convenience accessors:
+      #
+      #   flash.now.alert = "Beware now!"
+      #   # Equivalent to flash.now[:alert] = "Beware now!"
+      #
+      #   flash.now.notice = "Good luck now!"
+      #   # Equivalent to flash.now[:notice] = "Good luck now!"
       def now
         @now ||= FlashNow.new(self)
       end
@@ -199,22 +207,22 @@ module ActionDispatch
         @discard.replace @flashes.keys
       end
 
-      # Convenience accessor for flash[:alert]
+      # Convenience accessor for <tt>flash[:alert]</tt>.
       def alert
         self[:alert]
       end
 
-      # Convenience accessor for flash[:alert]=
+      # Convenience accessor for <tt>flash[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash[:notice]
+      # Convenience accessor for <tt>flash[:notice]</tt>.
       def notice
         self[:notice]
       end
 
-      # Convenience accessor for flash[:notice]=
+      # Convenience accessor for <tt>flash[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end

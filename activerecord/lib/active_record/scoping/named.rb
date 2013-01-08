@@ -134,16 +134,14 @@ module ActiveRecord
         #     end
         #
         #     def self.titles
-        #       map(&:title)
+        #       pluck(:title)
         #     end
-        #
         #   end
         #
         # We are able to call the methods like this:
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
-
         def scope(name, body, &block)
           extension = Module.new(&block) if block
 

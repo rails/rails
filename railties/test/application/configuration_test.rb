@@ -192,6 +192,16 @@ module ApplicationTests
       end
     end
 
+    test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      app_file 'config/initializers/filter_parameters_logging.rb', <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal [:password, :foo, 'bar'], Rails.application.env_config['action_dispatch.parameter_filter']
+    end
+
     test "config.to_prepare is forwarded to ActionDispatch" do
       $prepared = false
 
@@ -407,7 +417,17 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal "Wellington", Rails.application.config.time_zone
+      assert_equal Time.find_zone!("Wellington"), Time.zone_default
+    end
+
+    test "timezone can be set on initializers" do
+      app_file "config/initializers/locale.rb", <<-RUBY
+        Rails.application.config.time_zone = "Central Time (US & Canada)"
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal Time.find_zone!("Central Time (US & Canada)"), Time.zone_default
     end
 
     test "raises when an invalid timezone is defined in the config" do

@@ -6,7 +6,4 @@
   Routes match in priority from top to bottom
 </p>
 
-<%# actionpack/lib/action_dispatch/middleware/templates %>
-<%= render layout: "routes/route_wrapper" do %>
-  <%= render partial: "routes/route", collection: @routes %>
-<% end %>
+<%= @routes_inspector.format(ActionDispatch::Routing::HtmlTableFormatter.new(self)) %>

@@ -1,9 +1,5 @@
-require 'tempfile'
 require 'stringio'
-require 'strscan'
 
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
 require 'action_controller/metal/exceptions'
@@ -280,15 +276,14 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    protected
-
     # Remove nils from the params hash
     def deep_munge(hash)
-      hash.each_value do |v|
+      hash.each do |k, v|
         case v
         when Array
           v.grep(Hash) { |x| deep_munge(x) }
           v.compact!
+          hash[k] = nil if v.empty?
         when Hash
           deep_munge(v)
         end
@@ -296,6 +291,8 @@ module ActionDispatch
 
       hash
     end
+
+    protected
 
     def parse_query(qs)
       deep_munge(super)

@@ -86,6 +86,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 *   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well. ([Pull Request](https://github.com/rails/rails/pull/7878))
 
+* Your app's executables now live in the `bin/` dir. Run `rake update:bin` to get `bin/bundle`, `bin/rails`, and `bin/rake`.
+
 * Threadsafe on by default
 
 * Add `Rails.queue` for processing jobs in the background.
@@ -147,6 +149,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby stdlib.
 
+*   Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 
 Action Pack
 -----------

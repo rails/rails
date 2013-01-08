@@ -206,7 +206,7 @@ module ActiveRecord
           when TrueClass, FalseClass
             value ? 1 : 0
           else
-            value.to_i
+            value.to_i rescue nil
           end
         end
 

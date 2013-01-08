@@ -167,7 +167,7 @@ module ActionView
         if @virtual_path
           [
             *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
-            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
+            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context, dependencies: view_cache_dependencies)
           ]
         else
           name

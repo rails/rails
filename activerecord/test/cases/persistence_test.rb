@@ -242,7 +242,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "David", topic2.author_name
   end
 
-  def test_update
+  def test_update_object
     topic = Topic.new
     topic.title = "Another New Topic"
     topic.written_on = "2003-12-12 23:23:00"
@@ -391,7 +391,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_update_attribute_does_not_choke_on_nil
-    assert Topic.find(1).update_attributes(nil)
+    assert Topic.find(1).update(nil)
   end
 
   def test_update_attribute_for_readonly_attribute
@@ -547,7 +547,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_attributes({ "content" => "Have a nice day", :author_name => "Jose" })
+    topic.update({ "content" => "Have a nice day", :author_name => "Jose" })
 
     topic.reload
     topic.update_columns({ content: "You too", "author_name" => "Sebastian" })
@@ -631,6 +631,22 @@ class PersistencesTest < ActiveRecord::TestCase
     assert developer.update_columns(name: 'Will'), 'did not update record due to default scope'
   end
 
+  def test_update
+    topic = Topic.find(1)
+    assert !topic.approved?
+    assert_equal "The First Topic", topic.title
+
+    topic.update("approved" => true, "title" => "The First Topic Updated")
+    topic.reload
+    assert topic.approved?
+    assert_equal "The First Topic Updated", topic.title
+
+    topic.update(approved: false, title: "The First Topic")
+    topic.reload
+    assert !topic.approved?
+    assert_equal "The First Topic", topic.title
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
@@ -641,10 +657,31 @@ class PersistencesTest < ActiveRecord::TestCase
     assert topic.approved?
     assert_equal "The First Topic Updated", topic.title
 
-    topic.update_attributes(:approved => false, :title => "The First Topic")
+    topic.update_attributes(approved: false, title: "The First Topic")
     topic.reload
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
+  end
+
+  def test_update!
+    Reply.validates_presence_of(:title)
+    reply = Reply.find(2)
+    assert_equal "The Second Topic of the day", reply.title
+    assert_equal "Have a nice day", reply.content
+
+    reply.update!("title" => "The Second Topic of the day updated", "content" => "Have a nice evening")
+    reply.reload
+    assert_equal "The Second Topic of the day updated", reply.title
+    assert_equal "Have a nice evening", reply.content
+
+    reply.update!(title: "The Second Topic of the day", content: "Have a nice day")
+    reply.reload
+    assert_equal "The Second Topic of the day", reply.title
+    assert_equal "Have a nice day", reply.content
+
+    assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
+  ensure
+    Reply.reset_callbacks(:validate)
   end
 
   def test_update_attributes!
@@ -658,12 +695,12 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "The Second Topic of the day updated", reply.title
     assert_equal "Have a nice evening", reply.content
 
-    reply.update_attributes!(:title => "The Second Topic of the day", :content => "Have a nice day")
+    reply.update_attributes!(title: "The Second Topic of the day", content: "Have a nice day")
     reply.reload
     assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
 
-    assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
+    assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(title: nil, content: "Have a nice evening") }
   ensure
     Reply.reset_callbacks(:validate)
   end

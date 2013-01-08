@@ -426,19 +426,11 @@ will behave much as they do in the `production` environment.
 To get the best from Rails' performance tests under MRI, you'll need to build
 a special Ruby binary with some super powers.
 
-The recommended patches for each MRI version are:
-
-| Version         | Patch     |
-| --------------- | --------- |
-| 1.8.6           | ruby186gc |
-| 1.8.7           | ruby187gc |
-| 1.9.2 and above | gcdata    |
-
-All of these can be found on [RVM's _patches_ directory](https://github.com/wayneeseguin/rvm/tree/master/patches/ruby)
+The recommended patches for MRI can be found on [RVM's _patches_ directory](https://github.com/wayneeseguin/rvm/tree/master/patches/ruby)
 under each specific interpreter version.
 
 Concerning the installation itself, you can either do this easily by using
-[RVM](http://rvm.beginrescueend.com) or you can build everything from source,
+[RVM](https://rvm.io/) or you can build everything from source,
 which is a little bit harder.
 
 #### Install Using RVM
@@ -449,7 +441,6 @@ patched Ruby interpreter:
 
 ```bash
 $ rvm install 1.9.2-p180 --patch gcdata
-$ rvm install 1.8.7 --patch ruby187gc
 $ rvm install 1.9.2-p180 --patch ~/Downloads/downloaded_gcdata_patch.patch
 ```
 
@@ -482,8 +473,7 @@ $ cd <ruby-version>
 ##### Apply the Patch
 
 ```bash
-$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
-$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
+$ curl https://raw.github.com/wayneeseguin/rvm/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
 ```
 
 ##### Configure and Install

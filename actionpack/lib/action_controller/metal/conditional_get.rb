@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-
 module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern

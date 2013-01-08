@@ -300,13 +300,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_invalid_attribute
-    begin
-      Topic.new({ "title" => "test",
-        "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
-    rescue ActiveRecord::MultiparameterAssignmentErrors => ex
-      assert_equal(1, ex.errors.size)
-      assert_equal("last_read", ex.errors[0].attribute)
-    end
+    Topic.new({ "title" => "test",
+      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
+  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+    assert_equal(1, ex.errors.size)
+    assert_equal("last_read", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block
@@ -593,7 +591,7 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
 
-    post.update_attributes(:title => "try to change", :body => "changed")
+    post.update(title: "try to change", body: "changed")
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
@@ -1001,7 +999,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_reload_with_exclusive_scope
     dev = DeveloperCalledDavid.first
-    dev.update_attributes!( :name => "NotDavid" )
+    dev.update!(name: "NotDavid" )
     assert_equal dev, dev.reload
   end
 

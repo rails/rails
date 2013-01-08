@@ -450,11 +450,9 @@ class FilterTest < ActionController::TestCase
 
   class RescuingAroundFilterWithBlock
     def around(controller)
-      begin
-        yield
-      rescue ErrorToRescue => ex
-        controller.__send__ :render, :text => "I rescued this: #{ex.inspect}"
-      end
+      yield
+    rescue ErrorToRescue => ex
+      controller.__send__ :render, :text => "I rescued this: #{ex.inspect}"
     end
   end
 

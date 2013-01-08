@@ -97,7 +97,7 @@ NOTE: The actual rendering is done by subclasses of `ActionView::TemplateHandler
 
 ### Using `render`
 
-In most cases, the `ActionController::Base#render` method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behaviour of `render`. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.
+In most cases, the `ActionController::Base#render` method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behavior of `render`. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.
 
 TIP: If you want to see the exact results of a call to `render` without needing to inspect it in a browser, you can call `render_to_string`. This method takes exactly the same options as `render`, but it returns a string instead of sending a response back to the browser.
 
@@ -137,7 +137,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update_attributes(params[:book])
+  if @book.update(params[:book])
     redirect_to(@book)
   else
     render "edit"
@@ -145,14 +145,14 @@ def update
 end
 ```
 
-If the call to `update_attributes` fails, calling the `update` action in this controller will render the `edit.html.erb` template belonging to the same controller.
+If the call to `update` fails, calling the `update` action in this controller will render the `edit.html.erb` template belonging to the same controller.
 
 If you prefer, you can use a symbol instead of a string to specify the action to render:
 
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update_attributes(params[:book])
+  if @book.update(params[:book])
     redirect_to(@book)
   else
     render :edit

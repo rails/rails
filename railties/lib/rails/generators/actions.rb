@@ -4,6 +4,10 @@ require 'rbconfig'
 module Rails
   module Generators
     module Actions
+      def initialize(*) # :nodoc:
+        super
+        @in_group = nil
+      end
 
       # Adds an entry into Gemfile for the supplied gem.
       #
@@ -186,7 +190,7 @@ module Rails
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
-        in_root { run_ruby_script("script/rails generate #{what} #{argument}", verbose: false) }
+        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
 
       # Runs the supplied rake task

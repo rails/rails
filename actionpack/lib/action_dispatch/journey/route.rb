@@ -30,11 +30,11 @@ module ActionDispatch
       end
 
       def ast
-        return @decorated_ast if @decorated_ast
-
-        @decorated_ast = path.ast
-        @decorated_ast.grep(Nodes::Terminal).each { |n| n.memo = self }
-        @decorated_ast
+        @decorated_ast ||= begin
+          decorated_ast = path.ast
+          decorated_ast.grep(Nodes::Terminal).each { |n| n.memo = self }
+          decorated_ast
+        end
       end
 
       def requirements # :nodoc:
@@ -45,7 +45,7 @@ module ActionDispatch
       end
 
       def segments
-        @path.names
+        path.names
       end
 
       def required_keys

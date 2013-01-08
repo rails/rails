@@ -537,7 +537,7 @@ module ActionMailer
     # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
-    def headers(args=nil)
+    def headers(args = nil)
       if args
         @_message.headers(args)
       else
@@ -667,7 +667,7 @@ module ActionMailer
     #     format.html
     #   end
     #
-    def mail(headers={}, &block)
+    def mail(headers = {}, &block)
       @_mail_was_called = true
       m = @_message
 

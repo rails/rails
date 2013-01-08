@@ -114,7 +114,7 @@ To send a hash you include the key name inside the brackets:
 
 When this form is submitted, the value of `params[:client]` will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `HashWithIndifferentAccess` from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
+Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
 ### JSON/XML parameters
 
@@ -174,10 +174,10 @@ Session
 
 Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
-* ActionDispatch::Session::CookieStore - Stores everything on the client.
-* ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
-* @ActionDispatch::Session::ActiveRecordStore@ - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
-* @ActionDispatch::Session::MemCacheStore@ - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
+* `ActionDispatch::Session::CookieStore` - Stores everything on the client.
+* `ActionDispatch::Session::CacheStore` - Stores the data in the Rails cache.
+* `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
+* `ActionDispatch::Session::MemCacheStore` - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
@@ -194,7 +194,7 @@ If you need a different session storage mechanism, you can change it in the `con
 ```ruby
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
-# (create the session table with "script/rails g active_record:session_migration")
+# (create the session table with "rails g active_record:session_migration")
 # YourApp::Application.config.session_store :active_record_store
 ```
 

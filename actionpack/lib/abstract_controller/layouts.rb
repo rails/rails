@@ -209,7 +209,7 @@ module AbstractController
       _write_layout_method
     end
 
-    delegate :_layout_conditions, :to => "self.class"
+    delegate :_layout_conditions, to: :class
 
     module ClassMethods
       def inherited(klass) # :nodoc:

@@ -23,7 +23,7 @@ module ActiveRecord
             attributes = construct_join_attributes(record)
 
             if through_record
-              through_record.update_attributes(attributes)
+              through_record.update(attributes)
             elsif owner.new_record?
               through_proxy.build(attributes)
             else

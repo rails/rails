@@ -26,7 +26,7 @@ module ActiveRecord
     #
     #   Account.transaction do
     #     # select * from accounts where ...
-    #     accounts = Account.where(...).all
+    #     accounts = Account.where(...)
     #     account1 = accounts.detect { |account| ... }
     #     account2 = accounts.detect { |account| ... }
     #     # select * from accounts where id=? for update

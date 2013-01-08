@@ -17,7 +17,7 @@ module ActionView
   #   # controller
   #   def update
   #     post = Post.find(params[:id])
-  #     post.update_attributes(params[:post])
+  #     post.update(params[:post])
   #
   #     redirect_to(post) # Calls polymorphic_url(post) which in turn calls post_url(post)
   #   end

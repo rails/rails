@@ -16,12 +16,12 @@ module ActionDispatch
       end
 
       def length
-        @routes.length
+        routes.length
       end
       alias :size :length
 
       def last
-        @routes.last
+        routes.last
       end
 
       def each(&block)
@@ -33,24 +33,23 @@ module ActionDispatch
       end
 
       def partitioned_routes
-        @partitioned_routes ||= routes.partition { |r|
-          r.path.anchored && r.ast.grep(Nodes::Symbol).all? { |n| n.default_regexp?  }
-        }
+        @partitioned_routes ||= routes.partition do |r|
+          r.path.anchored && r.ast.grep(Nodes::Symbol).all?(&:default_regexp?)
+        end
       end
 
       def ast
-        return @ast if @ast
-        return if partitioned_routes.first.empty?
-
-        asts = partitioned_routes.first.map { |r| r.ast }
-        @ast = Nodes::Or.new(asts)
+        @ast ||= begin
+          asts = partitioned_routes.first.map(&:ast)
+          Nodes::Or.new(asts) unless asts.empty?
+        end
       end
 
       def simulator
-        return @simulator if @simulator
-
-        gtg = GTG::Builder.new(ast).transition_table
-        @simulator = GTG::Simulator.new(gtg)
+        @simulator ||= begin
+          gtg = GTG::Builder.new(ast).transition_table
+          GTG::Simulator.new(gtg)
+        end
       end
 
       # Add a route to the routing table.

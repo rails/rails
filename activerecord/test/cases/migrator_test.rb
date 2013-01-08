@@ -29,6 +29,7 @@ module ActiveRecord
     def teardown
       super
       ActiveRecord::SchemaMigration.delete_all rescue nil
+      ActiveRecord::Migration.verbose = true
     end
 
     def test_migrator_with_duplicate_names

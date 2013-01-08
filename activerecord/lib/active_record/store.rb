@@ -107,7 +107,7 @@ module ActiveRecord
     private
       def initialize_store_attribute(store_attribute)
         attribute = send(store_attribute)
-        unless attribute.is_a?(HashWithIndifferentAccess)
+        unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
           attribute = IndifferentCoder.as_indifferent_hash(attribute)
           send :"#{store_attribute}=", attribute
         end
@@ -134,12 +134,12 @@ module ActiveRecord
 
       def self.as_indifferent_hash(obj)
         case obj
-        when HashWithIndifferentAccess
+        when ActiveSupport::HashWithIndifferentAccess
           obj
         when Hash
           obj.with_indifferent_access
         else
-          HashWithIndifferentAccess.new
+          ActiveSupport::HashWithIndifferentAccess.new
         end
       end
     end

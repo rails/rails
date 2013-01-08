@@ -34,7 +34,6 @@ Rails templates API is very self explanatory and easy to understand. Here's an e
 
 ```ruby
 # template.rb
-run "rm public/index.html"
 generate(:scaffold, "person name:string")
 route "root to: 'people#index'"
 rake("db:migrate")
@@ -158,10 +157,10 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 ### run(command)
 
-Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `public/index.html` file:
+Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `README.rdoc` file:
 
 ```ruby
-run "rm public/index.html"
+run "rm README.rdoc"
 ```
 
 ### rake(command, options = {})
@@ -180,7 +179,7 @@ rake "db:migrate", env: 'production'
 
 ### route(routing_code)
 
-Adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
+Adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `README.rdoc`. Now to make `PeopleController#index` as the default page for the application:
 
 ```ruby
 route "root to: 'person#index'"

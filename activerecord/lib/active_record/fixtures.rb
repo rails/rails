@@ -5,8 +5,6 @@ require 'active_support/dependencies'
 require 'active_record/fixture_set/file'
 require 'active_record/errors'
 
-require 'active_support/deprecation' # temporary
-
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
   end

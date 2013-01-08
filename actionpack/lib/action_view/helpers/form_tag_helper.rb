@@ -26,7 +26,7 @@ module ActionView
       # ==== Options
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
-      #   If "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
+      #   If "patch", "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
@@ -184,7 +184,7 @@ module ActionView
       #   # => <label for="name">Name</label>
       #
       #   label_tag 'name', 'Your name'
-      #   # => <label for="name">Your Name</label>
+      #   # => <label for="name">Your name</label>
       #
       #   label_tag 'name', nil, class: 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
@@ -526,19 +526,19 @@ module ActionView
       #
       # ==== Examples
       #   image_submit_tag("login.png")
-      #   # => <input src="/images/login.png" type="image" />
+      #   # => <input alt="Login" src="/images/login.png" type="image" />
       #
       #   image_submit_tag("purchase.png", disabled: true)
-      #   # => <input disabled="disabled" src="/images/purchase.png" type="image" />
+      #   # => <input alt="Purchase" disabled="disabled" src="/images/purchase.png" type="image" />
       #
-      #   image_submit_tag("search.png", class: 'search_button')
-      #   # => <input class="search_button" src="/images/search.png" type="image" />
+      #   image_submit_tag("search.png", class: 'search_button', alt: 'Find')
+      #   # => <input alt="Find" class="search_button" src="/images/search.png" type="image" />
       #
       #   image_submit_tag("agree.png", disabled: true, class: "agree_disagree_button")
-      #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
+      #   # => <input alt="Agree" class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       #
       #   image_submit_tag("save.png", data: { confirm: "Are you sure?" })
-      #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
+      #   # => <input alt="Save" src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
 
@@ -550,7 +550,7 @@ module ActionView
           options["data-confirm"] = confirm
         end
 
-        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
+        tag :input, { "alt" => image_alt(source), "type" => "image", "src" => path_to_image(source) }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.

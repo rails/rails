@@ -21,12 +21,12 @@ Description:
 
 Available field types:
 
-    Just after the field name you can specify a type like text or boolean. 
+    Just after the field name you can specify a type like text or boolean.
     It will generate the column with the associated SQL type. For instance:
 
         `rails generate model post title:string body:text`
 
-    will generate a title column with a varchar type and a body column with a text 
+    will generate a title column with a varchar type and a body column with a text
     type. You can use the following types:
 
         integer
@@ -57,16 +57,16 @@ Available field types:
 
         limit        Set the maximum size of the field giving a number between curly braces
         default      Set a default value for the field
-        precision    Defines the precision for the decimal fields 
+        precision    Defines the precision for the decimal fields
         scale        Defines the scale for the decimal fields
-        uniq         Defines the field values as unique 
+        uniq         Defines the field values as unique
         index        Will add an index on the field
 
     Examples:
 
         `rails generate model user pseudo:string{30}`
         `rails generate model user pseudo:string:uniq`
-        
+
 
 Examples:
     `rails generate model account`
@@ -76,7 +76,7 @@ Examples:
             Model:      app/models/account.rb
             Test:       test/models/account_test.rb
             Fixtures:   test/fixtures/accounts.yml
-            Migration:  db/migrate/XXX_add_accounts.rb
+            Migration:  db/migrate/XXX_create_accounts.rb
 
     `rails generate model post title:string body:text published:boolean`
 
@@ -90,5 +90,5 @@ Examples:
             Model:      app/models/admin/account.rb
             Test:       test/models/admin/account_test.rb
             Fixtures:   test/fixtures/admin/accounts.yml
-            Migration:  db/migrate/XXX_add_admin_accounts.rb
+            Migration:  db/migrate/XXX_create_admin_accounts.rb
 

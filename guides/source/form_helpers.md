@@ -217,7 +217,7 @@ will produce output similar to
 <input id="person_name" name="person[name]" type="text" value="Henry"/>
 ```
 
-Upon form submission the value entered by the user will be stored in `params[:person][:name]`. The `params[:person]` hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update_attributes`. While the name of an attribute is the most common second parameter to these helpers this is not compulsory. In the example above, as long as person objects have a `name` and a `name=` method Rails will be happy.
+Upon form submission the value entered by the user will be stored in `params[:person][:name]`. The `params[:person]` hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update`. While the name of an attribute is the most common second parameter to these helpers this is not compulsory. In the example above, as long as person objects have a `name` and a `name=` method Rails will be happy.
 
 WARNING: You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 
@@ -238,7 +238,7 @@ end
 The corresponding view `app/views/articles/new.html.erb` using `form_for` looks like this:
 
 ```erb
-<%= form_for @article, url: {action: "create"}, html => {class: "nifty_form"} do |f| %>
+<%= form_for @article, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, size: "60x12" %>
   <%= f.submit "Create" %>
@@ -428,7 +428,7 @@ WARNING: when `:inlude_blank` or `:prompt:` are not present, `:include_blank` is
 You can add arbitrary attributes to the options using hashes:
 
 ```html+erb
-<%= options_for_select([['Lisbon', 1, 'data-size': '2.8 million'], ['Madrid', 2, 'data-size': '3.2 million']], 2) %>
+<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
 
 output:
 
@@ -460,7 +460,7 @@ As with other helpers, if you were to use the `select` helper on a form builder 
 <%= f.select(:city_id, ...) %>
 ```
 
-WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly.
+WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly.
 
 ### Option Tags from a Collection of Arbitrary Objects
 
@@ -497,7 +497,7 @@ To leverage time zone support in Rails, you have to ask your users what time zon
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/chrislerum/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
+Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
 
 Using Date and Time Form Helpers
 --------------------------------
@@ -556,7 +556,7 @@ which results in a `params` hash like
 {:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 ```
 
-When this is passed to `Person.new` (or `update_attributes`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
+When this is passed to `Person.new` (or `update`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
 
 ### Common Options
 

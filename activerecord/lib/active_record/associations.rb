@@ -1,8 +1,6 @@
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
-require 'active_support/dependencies/autoload'
-require 'active_support/concern'
 require 'active_record/errors'
 
 module ActiveRecord
@@ -194,7 +192,7 @@ module ActiveRecord
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
     #   <tt>Project#milestones.delete(milestone), Project#milestones.destroy(mileston), Project#milestones.find(milestone_id),</tt>
-    #   <tt>Project#milestones.all(options), Project#milestones.build, Project#milestones.create</tt>
+    #   <tt>Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1), Project#categories.destroy(category1)</tt>
     #
@@ -459,7 +457,7 @@ module ActiveRecord
     #     has_many :people do
     #       def find_or_create_by_name(name)
     #         first_name, last_name = name.split(" ", 2)
-    #         find_or_create_by_first_name_and_last_name(first_name, last_name)
+    #         find_or_create_by(first_name: first_name, last_name: last_name)
     #       end
     #     end
     #   end
@@ -474,7 +472,7 @@ module ActiveRecord
     #   module FindOrCreateByNameExtension
     #     def find_or_create_by_name(name)
     #       first_name, last_name = name.split(" ", 2)
-    #       find_or_create_by_first_name_and_last_name(first_name, last_name)
+    #       find_or_create_by(first_name: first_name, last_name: last_name)
     #     end
     #   end
     #
@@ -743,7 +741,7 @@ module ActiveRecord
     # other than the main one. If this is the case Active Record falls back to the previously
     # used LEFT OUTER JOIN based strategy. For example
     #
-    #   Post.includes([:author, :comments]).where(['comments.approved = ?', true]).all
+    #   Post.includes([:author, :comments]).where(['comments.approved = ?', true])
     #
     # This will result in a single SQL query with joins along the lines of:
     # <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
@@ -951,7 +949,7 @@ module ActiveRecord
     #
     # The <tt>:dependent</tt> option can have different values which specify how the deletion
     # is done. For more information, see the documentation for this option on the different
-    # specific association types. When no option is given, the behaviour is to do nothing
+    # specific association types. When no option is given, the behavior is to do nothing
     # with the associated records when destroying a record.
     #
     # Note that <tt>:dependent</tt> is implemented using Rails' callback
@@ -1081,7 +1079,7 @@ module ActiveRecord
       # === Example
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.all conditions: ["firm_id = ?", id]</tt>)
+      # * <tt>Firm#clients</tt> (similar to <tt>Client.where(firm_id: id)</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients.destroy</tt>
@@ -1091,7 +1089,7 @@ module ActiveRecord
       # * <tt>Firm#clients.clear</tt>
       # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
-      # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find(id, conditions: "firm_id = #{id}")</tt>)
+      # * <tt>Firm#clients.find</tt> (similar to <tt>Client.where(firm_id: id).find(id)</tt>)
       # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
@@ -1213,7 +1211,7 @@ module ActiveRecord
       # === Example
       #
       # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
-      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.first(conditions: "account_id = #{id}")</tt>)
+      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.where(account_id: id).first</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)

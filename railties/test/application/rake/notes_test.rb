@@ -62,7 +62,6 @@ module ApplicationTests
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
         app_file "db/some_seeds.rb", "# TODO: note in db directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "script/run_something.rb", "# TODO: note in script directory"
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
@@ -83,11 +82,10 @@ module ApplicationTests
           assert_match(/note in config directory/, output)
           assert_match(/note in db directory/, output)
           assert_match(/note in lib directory/, output)
-          assert_match(/note in script directory/, output)
           assert_match(/note in test directory/, output)
           assert_no_match(/note in some_other directory/, output)
 
-          assert_equal 6, lines.size
+          assert_equal 5, lines.size
 
           lines.each do |line_number|
             assert_equal 4, line_number.size
@@ -100,7 +98,6 @@ module ApplicationTests
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
         app_file "db/some_seeds.rb", "# TODO: note in db directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "script/run_something.rb", "# TODO: note in script directory"
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
@@ -121,12 +118,11 @@ module ApplicationTests
           assert_match(/note in config directory/, output)
           assert_match(/note in db directory/, output)
           assert_match(/note in lib directory/, output)
-          assert_match(/note in script directory/, output)
           assert_match(/note in test directory/, output)
 
           assert_match(/note in some_other directory/, output)
 
-          assert_equal 7, lines.size
+          assert_equal 6, lines.size
 
           lines.each do |line_number|
             assert_equal 4, line_number.size

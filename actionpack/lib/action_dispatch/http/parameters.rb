@@ -72,7 +72,7 @@ module ActionDispatch
         end
       end
 
-      # Convert nested Hash to HashWithIndifferentAccess
+      # Convert nested Hash to ActiveSupport::HashWithIndifferentAccess
       def normalize_parameters(value)
         case value
         when Hash

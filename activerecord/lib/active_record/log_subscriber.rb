@@ -21,13 +21,15 @@ module ActiveRecord
     end
 
     def render_bind(column, value)
-      if column.type == :binary
-        rendered_value = "<#{value.bytesize} bytes of binary data>"
-      else
-        rendered_value = value
-      end
+      if column
+        if column.binary?
+          value = "<#{value.bytesize} bytes of binary data>"
+        end
 
-      [column.name, rendered_value]
+        [column.name, value]
+      else
+        [nil, value]
+      end
     end
 
     def sql(event)

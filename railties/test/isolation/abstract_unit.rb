@@ -206,7 +206,7 @@ module TestHelpers
 
     def script(script)
       Dir.chdir(app_path) do
-        `#{Gem.ruby} #{app_path}/script/rails #{script}`
+        `#{Gem.ruby} #{app_path}/bin/rails #{script}`
       end
     end
 

@@ -130,7 +130,7 @@ module ActionView
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @user.update_attributes(params[:user])
+      #   @user.update(params[:user])
       #
       # wouldn't update roles.
       #

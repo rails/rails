@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 require 'action_view/record_identifier'
 
 module ActionController

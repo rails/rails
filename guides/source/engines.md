@@ -16,9 +16,9 @@ After reading this guide, you will know:
 What are engines?
 -----------------
 
-Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting a lot of its behaviour from `Rails::Engine`.
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting a lot of its behavior from `Rails::Engine`.
 
-Therefore, engines and applications can be thought of almost the same thing, just with very minor differences, as you'll see throughout this guide. Engines and applications also share a common structure.
+Therefore, engines and applications can be thought of almost the same thing, just with subtle differences, as you'll see throughout this guide. Engines and applications also share a common structure.
 
 Engines are also closely related to plugins where the two share a common `lib` directory structure and are both generated using the `rails plugin new` generator. The difference being that an engine is considered a "full plugin" by Rails as indicated by the `--full` option that's passed to the generator command, but this guide will refer to them simply as "engines" throughout. An engine **can** be a plugin, and a plugin **can** be an engine.
 
@@ -149,9 +149,9 @@ Lastly, the `app/views` directory contains a `layouts` folder which contains a f
 
 If you don't want to force a layout on to users of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
 
-#### `script` directory
+#### `bin` directory
 
-This directory contains one file, `script/rails`, which enables you to use the `rails` sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
+This directory contains one file, `bin/rails`, which enables you to use the `rails` sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
 
 ```bash
 rails g model
@@ -171,7 +171,7 @@ end
 
 This line mounts the engine at the path `/blorgh`, which will make it accessible through the application only at that path.
 
-Also in the test directory is the `test/integration` directory, where integration tests for the engine should be placed. Other directories can be created in the `test` directory also. For example, you may wish to create a `test/models` directory for your models tests.
+In the test directory there is the `test/integration` directory, where integration tests for the engine should be placed. Other directories can be created in the `test` directory as well. For example, you may wish to create a `test/models` directory for your models tests.
 
 Providing engine functionality
 ------------------------------
@@ -232,7 +232,8 @@ Blorgh::Engine.routes.draw do
 end
 ```
 
-Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. This is also what causes the engine's routes to be isolated from those routes that are within the application. This is discussed further in the [Routes](#routes) section of this guide.
+Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. It also causes the engine's routes to be isolated from those routes that are within the application. The [Routes](#routes) section of
+this guide describes it in details.
 
 Next, the `scaffold_controller` generator is invoked, generating a controller called `Blorgh::PostsController` (at `app/controllers/blorgh/posts_controller.rb`) and its related views at `app/views/blorgh/posts`. This generator also generates a test for the controller (`test/controllers/blorgh/posts_controller_test.rb`) and a helper (`app/helpers/blorgh/posts_controller.rb`).
 
@@ -258,7 +259,7 @@ module Blorgh
 end
 ```
 
-This helps prevent conflicts with any other engine or application that may have a post resource also.
+This helps prevent conflicts with any other engine or application that may have a post resource as well.
 
 Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/javascripts/blorgh/posts.css`. You'll see how to use these a little later.
 
@@ -287,7 +288,7 @@ Now people will only need to go to the root of the engine to see all the posts, 
 
 ### Generating a comments resource
 
-Now that the engine has the ability to create new blog posts, it only makes sense to add commenting functionality as well. To do get this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
+Now that the engine can to create new blog posts, it only makes sense to add commenting functionality as well. To do get this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
 
 Run the model generator and tell it to generate a `Comment` model, with the related table having two columns: a `post_id` integer and `text` text column.
 
@@ -531,7 +532,7 @@ before_save :set_author
 
 private
   def set_author
-    self.author = User.find_or_create_by_name(author_name)
+    self.author = User.find_or_create_by(name: author_name)
   end
 ```
 
@@ -630,7 +631,7 @@ belongs_to :author, class_name: Blorgh.user_class
 The `set_author` method also located in this class should also use this class:
 
 ```ruby
-self.author = Blorgh.user_class.constantize.find_or_create_by_name(author_name)
+self.author = Blorgh.user_class.constantize.find_or_create_by(name: author_name)
 ```
 
 To save having to call `constantize` on the `user_class` result all the time, you could instead just override the `user_class` getter method inside the `Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the saved value before returning the result:
@@ -644,10 +645,10 @@ end
 This would then turn the above code for `set_author` into this:
 
 ```ruby
-self.author = Blorgh.user_class.find_or_create_by_name(author_name)
+self.author = Blorgh.user_class.find_or_create_by(name: author_name)
 ```
 
-Resulting in something a little shorter, and more implicit in its behaviour. The `user_class` method should always return a `Class` object.
+Resulting in something a little shorter, and more implicit in its behavior. The `user_class` method should always return a `Class` object.
 
 To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
 
@@ -661,7 +662,7 @@ WARNING: It's very important here to use the `String` version of the class, rath
 
 Go ahead and try to create a new post. You will see that it works exactly in the same way as before, except this time the engine is using the configuration setting in `config/initializers/blorgh.rb` to learn what the class is.
 
-There are now no strict dependencies on what the class is, only what the API for the class must be. The engine simply requires this class to define a `find_or_create_by_name` method which returns an object of that class to be associated with a post when it's created. This object, of course, should have some sort of identifier by which it can be referenced.
+There are now no strict dependencies on what the class is, only what the API for the class must be. The engine simply requires this class to define a `find_or_create_by` method which returns an object of that class to be associated with a post when it's created. This object, of course, should have some sort of identifier by which it can be referenced.
 
 #### General engine configuration
 
@@ -800,7 +801,7 @@ module Blorgh::Concerns::Models::Post
     private
 
     def set_author
-      self.author = User.find_or_create_by_name(author_name)
+      self.author = User.find_or_create_by(name: author_name)
     end
   end
 
@@ -914,9 +915,10 @@ For more information, read the [Asset Pipeline guide](http://guides.rubyonrails.
 
 ### Other gem dependencies
 
-Gem dependencies inside an engine should be specified inside the `.gemspec` file at the root of the engine. The reason for this is because the engine may
+Gem dependencies inside an engine should be specified inside the
+`.gemspec` file at the root of the engine. The reason is that the engine may
 be installed as a gem. If dependencies were to be specified inside the `Gemfile`,
-these would not be recognised by a traditional gem install and so they would not
+these would not be recognized by a traditional gem install and so they would not
 be installed, causing the engine to malfunction.
 
 To specify a dependency that should be installed with the engine during a

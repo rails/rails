@@ -66,37 +66,38 @@ Here's the simplest way to write JavaScript. You may see it referred to as
 'inline JavaScript':
 
 ```html
-<a href="#" onclick="alert('Hello, world.')">Here</a>
+<a href="#" onclick="this.style.backgroundColor='#990000'">Paint it red</a>
 ```
-
-When clicked, the alert will trigger. Here's the problem: what happens when
-we have lots of JavaScript we want to execute on a click?
+When clicked, the link background will become red. Here's the problem: what
+happens when we have lots of JavaScript we want to execute on a click?
 
 ```html
-<a href="#" onclick="function fib(n){return n<2?n:fib(n-1)+fib(n-2);};alert('fib of 15 is: ' + fib(15) + '.');">Calculate</a>
+<a href="#" onclick="this.style.backgroundColor='#009900';this.style.color='#FFFFFF';">Paint it green</a>
 ```
 
 Awkward, right? We could pull the function definition out of the click handler,
 and turn it into CoffeeScript:
 
 ```coffeescript
-fib = (n) ->
-  (if n < 2 then n else fib(n - 1) + fib(n - 2))
+paintIt = (element, backgroundColor, textColor) ->
+  element.style.backgroundColor = backgroundColor
+  if textColor?
+    element.style.color = textColor
 ```
 
 And then on our page:
 
 ```html
-<a href="#" onclick="alert('fib of 15 is: ' + fib(15) + '.');">Calculate</a>
+<a href="#" onclick="paintIt(this, '#990000')">Paint it red</a>
 ```
 
 That's a little bit better, but what about multiple links that have the same
 effect?
 
 ```html
-<a href="#" onclick="alert('fib of 16 is: ' + fib(16) + '.');">Calculate</a>
-<a href="#" onclick="alert('fib of 17 is: ' + fib(17) + '.');">Calculate</a>
-<a href="#" onclick="alert('fib of 18 is: ' + fib(18) + '.');">Calculate</a>
+<a href="#" onclick="paintIt(this, '#990000')">Paint it red</a>
+<a href="#" onclick="paintIt(this, '#009900', '#FFFFFF')">Paint it green</a>
+<a href="#" onclick="paintIt(this, '#000099', '#FFFFFF')">Paint it blue</a>
 ```
 
 Not very DRY, eh? We can fix this by using events instead. We'll add a `data-*`
@@ -104,19 +105,21 @@ attribute to our link, and then bind a handler to the click event of every link
 that has that attribute:
 
 ```coffeescript
-fib = (n) ->
-  (if n < 2 then n else fib(n - 1) + fib(n - 2))
+paintIt = (element, backgroundColor, textColor) ->
+  element.style.backgroundColor = backgroundColor
+  if textColor?
+    element.style.color = textColor
 
-$(document).ready ->
-  $("a[data-fib]").click (e) ->
-    count = $(this).data("fib")
-    alert "fib of #{count} is: #{fib(count)}."
-
-... later ...
-
-<a href="#" data-fib="15">Calculate</a>
-<a href="#" data-fib="16">Calculate</a>
-<a href="#" data-fib="17">Calculate</a>
+$ ->
+  $("a[data-color]").click ->
+    backgroundColor = $(this).data("background-color")
+    textColor = $(this).data("text-color")
+    paintIt(this, backgroundColor, textColor)
+```
+```html
+<a href="#" data-background-color="#990000">Paint it red</a>
+<a href="#" data-background-color="#009900" data-text-color="#FFFFFF">Paint it green</a>
+<a href="#" data-background-color="#000099" data-text-color="#FFFFFF">Paint it blue</a>
 ```
 
 We call this 'unobtrusive' JavaScript because we're no longer mixing our
@@ -214,20 +217,19 @@ which generates
 ```
 
 You can bind to the same Ajax events as `form_for`. Here's an example. Let's
-assume that we have a resource `/fib/:n` that calculates the `n`th Fibonacci
-number. We would generate some HTML like this:
+assume that we have a list of posts that can be deleted with just one
+click. We would generate some HTML like this:
 
 ```erb
-<%= link_to "Calculate", "/fib/15", remote: true, data: { fib: 15 } %>
+<%= link_to "Delete post", @post, remote: true, method: :delete %>
 ```
 
 and write some CoffeeScript like this:
 
 ```coffeescript
-$(document).ready ->
-  $("a[data-fib]").on "ajax:success", (e, data, status, xhr) ->
-    count = $(this).data("fib")
-    alert "fib of #{count} is: #{data}."
+$ ->
+  $("a[data-remote]").on "ajax:success", (e, data, status, xhr) ->
+    alert "The post was deleted."
 ```
 
 ### button_to

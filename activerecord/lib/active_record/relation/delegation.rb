@@ -1,4 +1,3 @@
-require 'active_support/concern'
 require 'thread'
 require 'thread_safe'
 

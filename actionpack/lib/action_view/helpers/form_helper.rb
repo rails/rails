@@ -84,7 +84,7 @@ module ActionView
     #
     #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
     #     <div style="margin:0;padding:0;display:inline">
-    #       <input name="_method" type="hidden" value="put" />
+    #       <input name="_method" type="hidden" value="patch" />
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
     #     <label for="person_first_name">First name</label>:
@@ -101,9 +101,9 @@ module ActionView
     # and generate HTML accordingly.
     #
     # The controller would receive the form data again in <tt>params[:person]</tt>, ready to be
-    # passed to <tt>Person#update_attributes</tt>:
+    # passed to <tt>Person#update</tt>:
     #
-    #   if @person.update_attributes(params[:person])
+    #   if @person.update(params[:person])
     #     # success
     #   else
     #     # error handling
@@ -242,7 +242,7 @@ module ActionView
       #
       # is then equivalent to something like:
       #
-      #   <%= form_for @post, as: :post, url: post_path(@post), method: :put, html: { class: "edit_post", id: "edit_post_45" } do |f| %>
+      #   <%= form_for @post, as: :post, url: post_path(@post), method: :patch, html: { class: "edit_post", id: "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -318,7 +318,7 @@ module ActionView
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
       #     <div style='margin:0;padding:0;display:inline'>
-      #       <input name='_method' type='hidden' value='put' />
+      #       <input name='_method' type='hidden' value='patch' />
       #     </div>
       #     ...
       #   </form>
@@ -336,7 +336,7 @@ module ActionView
       #
       #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
       #     <div style='margin:0;padding:0;display:inline'>
-      #       <input name='_method' type='hidden' value='put' />
+      #       <input name='_method' type='hidden' value='patch' />
       #     </div>
       #     ...
       #   </form>
@@ -388,9 +388,9 @@ module ActionView
       # In many cases you will want to wrap the above in another helper, so you
       # could do something like the following:
       #
-      #   def labelled_form_for(record_or_name_or_array, *args, &proc)
+      #   def labelled_form_for(record_or_name_or_array, *args, &block)
       #     options = args.extract_options!
-      #     form_for(record_or_name_or_array, *(args << options.merge(builder: LabellingFormBuilder)), &proc)
+      #     form_for(record_or_name_or_array, *(args << options.merge(builder: LabellingFormBuilder)), &block)
       #   end
       #
       # If you don't need to attach a form to a model instance, then check out
@@ -412,10 +412,9 @@ module ActionView
       #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f|
       #     ...
       #   <% end %>
-      def form_for(record, options = {}, &proc)
+      def form_for(record, options = {}, &block)
         raise ArgumentError, "Missing block" unless block_given?
-
-        options[:html] ||= {}
+        html_options = options[:html] ||= {}
 
         case record
         when String, Symbol
@@ -428,15 +427,16 @@ module ActionView
           apply_form_for_options!(record, object, options)
         end
 
-        options[:html][:data]   = options.delete(:data)   if options.has_key?(:data)
-        options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
-        options[:html][:method] = options.delete(:method) if options.has_key?(:method)
-        options[:html][:authenticity_token] = options.delete(:authenticity_token)
+        html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
+        html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
+        html_options[:method] = options.delete(:method) if options.has_key?(:method)
+        html_options[:authenticity_token] = options.delete(:authenticity_token)
 
-        builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
-        fields_for = fields_for(object_name, object, options, &proc)
-        default_options = builder.form_tag_attributes
-        form_tag(options[:url] || {}, default_options) { fields_for }
+        builder = instantiate_builder(object_name, object, options)
+        output  = capture(builder, &block)
+        html_options[:multipart] = builder.multipart?
+
+        form_tag(options[:url] || {}, html_options) { output }
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
@@ -705,9 +705,7 @@ module ActionView
       # to prevent fields_for from rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
         builder = instantiate_builder(record_name, record_object, options)
-        output = capture(builder, &block)
-        output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
-        output
+        capture(builder, &block)
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -895,7 +893,7 @@ module ActionView
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @invoice.update_attributes(params[:invoice])
+      #   @invoice.update(params[:invoice])
       #
       # wouldn't update the flag.
       #
@@ -1172,12 +1170,15 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart, :parent_builder, :index
+      attr_reader :multipart, :index
       alias :multipart? :multipart
 
       def multipart=(multipart)
         @multipart = multipart
-        parent_builder.multipart = multipart if parent_builder
+
+        if parent_builder = @options[:parent_builder]
+          parent_builder.multipart = multipart
+        end
       end
 
       def self._to_partial_path
@@ -1199,8 +1200,6 @@ module ActionView
 
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @form_tag_attributes = options.fetch(:html, {})
-        @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
           if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
@@ -1211,11 +1210,6 @@ module ActionView
         end
         @multipart = nil
         @index = options[:index] || options[:child_index]
-      end
-
-      def form_tag_attributes
-        options = multipart? ? { multipart: true } : {}
-        options.merge! @form_tag_attributes
       end
 
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]).each do |selector|
@@ -1482,8 +1476,8 @@ module ActionView
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
-        fields_options[:parent_builder] = self
         fields_options[:namespace] = options[:namespace]
+        fields_options[:parent_builder] = self
 
         case record_name
         when String, Symbol
@@ -1573,7 +1567,7 @@ module ActionView
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
-      #   @invoice.update_attributes(params[:invoice])
+      #   @invoice.update(params[:invoice])
       #
       # wouldn't update the flag.
       #
@@ -1824,13 +1818,17 @@ module ActionView
           end
         end
 
-        def fields_for_nested_model(name, object, options, block)
+        def fields_for_nested_model(name, object, fields_options, block)
           object = convert_to_model(object)
+          emit_hidden_id = object.persisted? && fields_options.fetch(:include_id) {
+            options.fetch(:include_id, true)
+          }
 
-          parent_include_id = self.options.fetch(:include_id, true)
-          include_id = options.fetch(:include_id, parent_include_id)
-          options[:hidden_field_id] = object.persisted? && include_id
-          @template.fields_for(name, object, options, &block)
+          @template.fields_for(name, object, fields_options) do |f|
+            output = @template.capture(f, &block)
+            output.concat f.hidden_field(:id) if output && emit_hidden_id && !f.emitted_hidden_id?
+            output
+          end
         end
 
         def nested_child_index(name)

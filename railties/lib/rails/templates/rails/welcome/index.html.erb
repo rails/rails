@@ -59,7 +59,7 @@
 
 
       #header {
-        background-image: url("assets/rails.png");
+        background-image: url("/assets/rails.png");
         background-repeat: no-repeat;
         background-position: top left;
         height: 64px;
@@ -173,15 +173,18 @@
     </style>
     <script>
       function about() {
-        info = document.getElementById('about-content');
-        if (window.XMLHttpRequest)
-          { xhr = new XMLHttpRequest(); }
-        else
-          { xhr = new ActiveXObject("Microsoft.XMLHTTP"); }
-        xhr.open("GET","rails/info/properties",false);
-        xhr.send("");
-        info.innerHTML = xhr.responseText;
-        info.style.display = 'block'
+        var info = document.getElementById('about-content'),
+            xhr;
+
+        if (info.innerHTML === '') {
+          xhr = new XMLHttpRequest();
+          xhr.open("GET", "/rails/info/properties", false);
+          xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          xhr.send("");
+          info.innerHTML = xhr.responseText;
+        }
+
+        info.style.display = info.style.display === 'none' ? 'block' : 'none';
       }
     </script>
   </head>
@@ -208,7 +211,7 @@
         </div>
 
         <div id="about">
-          <h3><a href="rails/info/properties" onclick="about(); return false">About your application&rsquo;s environment</a></h3>
+          <h3><a href="/rails/info/properties" onclick="about(); return false">About your application&rsquo;s environment</a></h3>
           <div id="about-content" style="display: none"></div>
         </div>
 

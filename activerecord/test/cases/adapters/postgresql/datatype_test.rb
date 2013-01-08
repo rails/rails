@@ -30,6 +30,9 @@ end
 class PostgresqlUUID < ActiveRecord::Base
 end
 
+class PostgresqlLtree < ActiveRecord::Base
+end
+
 class PostgresqlDataTypeTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
@@ -37,36 +40,41 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
 
-    @connection.execute("INSERT INTO postgresql_arrays (commission_by_quarter, nicknames) VALUES ( '{35000,21000,18000,17000}', '{foo,bar,baz}' )")
+    @connection.execute("INSERT INTO postgresql_arrays (id, commission_by_quarter, nicknames) VALUES (1, '{35000,21000,18000,17000}', '{foo,bar,baz}')")
     @first_array = PostgresqlArray.find(1)
 
-    @connection.execute("INSERT INTO postgresql_tsvectors (text_vector) VALUES (' ''text'' ''vector'' ')")
+    @connection.execute("INSERT INTO postgresql_tsvectors (id, text_vector) VALUES (1, ' ''text'' ''vector'' ')")
     @first_tsvector = PostgresqlTsvector.find(1)
 
-    @connection.execute("INSERT INTO postgresql_moneys (wealth) VALUES ('567.89'::money)")
-    @connection.execute("INSERT INTO postgresql_moneys (wealth) VALUES ('-567.89'::money)")
+    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '567.89'::money)")
+    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (2, '-567.89'::money)")
     @first_money = PostgresqlMoney.find(1)
     @second_money = PostgresqlMoney.find(2)
 
-    @connection.execute("INSERT INTO postgresql_numbers (single, double) VALUES (123.456, 123456.789)")
+    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (1, 123.456, 123456.789)")
     @first_number = PostgresqlNumber.find(1)
 
-    @connection.execute("INSERT INTO postgresql_times (time_interval, scaled_time_interval) VALUES ('1 year 2 days ago', '3 weeks ago')")
+    @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
-    @connection.execute("INSERT INTO postgresql_network_addresses (cidr_address, inet_address, mac_address) VALUES('192.168.0/24', '172.16.1.254/32', '01:23:45:67:89:0a')")
+    @connection.execute("INSERT INTO postgresql_network_addresses (id, cidr_address, inet_address, mac_address) VALUES(1, '192.168.0/24', '172.16.1.254/32', '01:23:45:67:89:0a')")
     @first_network_address = PostgresqlNetworkAddress.find(1)
 
-    @connection.execute("INSERT INTO postgresql_bit_strings (bit_string, bit_string_varying) VALUES (B'00010101', X'15')")
+    @connection.execute("INSERT INTO postgresql_bit_strings (id, bit_string, bit_string_varying) VALUES (1, B'00010101', X'15')")
     @first_bit_string = PostgresqlBitString.find(1)
 
-    @connection.execute("INSERT INTO postgresql_oids (obj_id) VALUES (1234)")
+    @connection.execute("INSERT INTO postgresql_oids (id, obj_id) VALUES (1, 1234)")
     @first_oid = PostgresqlOid.find(1)
 
-    @connection.execute("INSERT INTO postgresql_timestamp_with_zones (time) VALUES ('2010-01-01 10:00:00-1')")
+    @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
 
-    @connection.execute("INSERT INTO postgresql_uuids (guid, compact_guid) VALUES('d96c3da0-96c1-012f-1316-64ce8f32c6d8', 'f06c715096c1012f131764ce8f32c6d8')")
+    @connection.execute("INSERT INTO postgresql_uuids (id, guid, compact_guid) VALUES(1, 'd96c3da0-96c1-012f-1316-64ce8f32c6d8', 'f06c715096c1012f131764ce8f32c6d8')")
     @first_uuid = PostgresqlUUID.find(1)
+  end
+
+  def teardown
+    [PostgresqlArray, PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
+     PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone, PostgresqlUUID].each(&:delete_all)
   end
 
   def test_data_type_of_array_types

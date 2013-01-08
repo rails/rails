@@ -201,7 +201,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `Rails::Rack::Logger` notifies the logs that the request has began. After request is complete, flushes all the logs.
 * `ActionDispatch::ShowExceptions` rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
 * `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method.
-* `ActionDispatch::RemoteIp` checks for IP spoofing attacks. Configurable with the `config.action_dispatch.ip_spoofing_check` and `config.action_dispatch.trusted_proxies` settings.
+* `ActionDispatch::RemoteIp` checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
 * `Rack::Sendfile` intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
 * `ActionDispatch::Callbacks` runs the prepare callbacks before serving the request.
 * `ActiveRecord::ConnectionAdapters::ConnectionManagement` cleans active connections after each request, unless the `rack.test` key in the request environment is set to `true`.
@@ -307,6 +307,8 @@ The schema dumper adds one additional configuration option:
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are deploying to a subdirectory. The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
+
+* `config.action_controller.raise_on_unpermitted_parameters` enables raising an exception if parameters that are not explicitly permitted are found. The default value is `true` in development and test environments, `false` otherwise.
 
 ### Configuring Action Dispatch
 
@@ -592,7 +594,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in `development`, but only once (during boot-up) in `production` and `test`.
 
-* `before_eager_load`: This is run directly before eager loading occurs, which is the default behaviour for the `production` environment and not for the `development` environment.
+* `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 
 * `after_initialize`: Run directly after the initialization of the application, but before the application initializers are run.
 

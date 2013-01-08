@@ -176,7 +176,8 @@ $ rails generate scaffold User name:string
       invoke    test_unit
       create      test/models/user_test.rb
       create      test/fixtures/users.yml
-       route  resources :users
+      invoke  resource_route
+       route    resources :users
       invoke  scaffold_controller
       create    app/controllers/users_controller.rb
       invoke    erb
@@ -192,8 +193,13 @@ $ rails generate scaffold User name:string
       create      app/helpers/users_helper.rb
       invoke      test_unit
       create        test/helpers/users_helper_test.rb
-      invoke  stylesheets
-      create    app/assets/stylesheets/scaffold.css
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/users.js.coffee
+      invoke    scss
+      create      app/assets/stylesheets/users.css.scss
+      invoke  scss
+      create    app/assets/stylesheets/scaffolds.css.scss
 ```
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
@@ -350,6 +356,7 @@ $ rails generate scaffold Comment body:text
       invoke    shoulda
       create      test/models/comment_test.rb
       create      test/fixtures/comments.yml
+      invoke  resource_route
        route    resources :comments
       invoke  scaffold_controller
       create    app/controllers/comments_controller.rb
@@ -360,13 +367,16 @@ $ rails generate scaffold Comment body:text
       create      app/views/comments/show.html.erb
       create      app/views/comments/new.html.erb
       create      app/views/comments/_form.html.erb
-      create      app/views/layouts/comments.html.erb
       invoke    shoulda
       create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
       invoke      shoulda
       create        test/helpers/comments_helper_test.rb
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/comments.js.coffee
+      invoke    scss
 ```
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
