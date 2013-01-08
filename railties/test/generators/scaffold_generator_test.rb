@@ -41,12 +41,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@product_line = ProductLine\.new\(product_line_params\)/, m)
         assert_match(/@product_line\.save/, m)
-        assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@product_line\.update\(product_line_params\)/, m)
-        assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
@@ -158,12 +156,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@admin_role = Admin::Role\.new\(admin_role_params\)/, m)
         assert_match(/@admin_role\.save/, m)
-        assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@admin_role\.update\(admin_role_params\)/, m)
-        assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
@@ -255,11 +251,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_html
-    run_generator [ "posts", "--no-html" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_generator_no_javascripts
