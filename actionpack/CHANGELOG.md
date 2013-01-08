@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added view_cache_dependency API for declaring dependencies that affect
+    cache digest computation.
+
+    *Jamis Buck*
+
 *   `image_submit_tag` will set `alt` attribute from image source if not
     specified.
 
