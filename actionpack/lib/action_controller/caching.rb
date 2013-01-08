@@ -70,10 +70,28 @@ module ActionController
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
+
+      class_attribute :_view_cache_dependencies
+      self._view_cache_dependencies = []
+      helper_method :view_cache_dependencies if respond_to?(:helper_method)
+    end
+
+    module ClassMethods
+      def view_cache_dependency(&dependency)
+        self._view_cache_dependencies += [dependency]
+      end
+
+      def view_cache_dependencies
+        _view_cache_dependencies.map { |dep| instance_exec &dep }.compact
+      end
     end
 
     def caching_allowed?
       request.get? && response.status == 200
+    end
+
+    def view_cache_dependencies
+      self.class.view_cache_dependencies
     end
 
     protected

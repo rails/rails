@@ -296,6 +296,24 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
   end
 end
 
+class ViewCacheDependencyTest < ActionController::TestCase
+  class NoDependenciesController < ActionController::Base
+  end
+
+  class HasDependenciesController < ActionController::Base
+    view_cache_dependency { "trombone" }
+    view_cache_dependency { "flute" }
+  end
+
+  def test_view_cache_dependencies_are_empty_by_default
+    assert NoDependenciesController.view_cache_dependencies.empty?
+  end
+
+  def test_view_cache_dependencies_are_listed_in_declaration_order
+    assert_equal %w(trombone flute), HasDependenciesController.view_cache_dependencies
+  end
+end
+
 class DeprecatedPageCacheExtensionTest < ActiveSupport::TestCase
   def test_page_cache_extension_binds_default_static_extension
     deprecation_behavior = ActiveSupport::Deprecation.behavior
