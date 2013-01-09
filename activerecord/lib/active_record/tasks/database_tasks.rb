@@ -1,5 +1,7 @@
 module ActiveRecord
   module Tasks # :nodoc:
+    class DatabaseAlreadyExists < StandardError; end # :nodoc:
+
     module DatabaseTasks # :nodoc:
       extend self
 
@@ -32,6 +34,8 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).create
+      rescue DatabaseAlreadyExists
+        $stderr.puts "#{configuration['database']} already exists"
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't create database for #{configuration.inspect}"

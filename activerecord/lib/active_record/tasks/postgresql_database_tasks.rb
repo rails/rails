@@ -18,6 +18,12 @@ module ActiveRecord
         connection.create_database configuration['database'],
           configuration.merge('encoding' => encoding)
         establish_connection configuration
+      rescue ActiveRecord::StatementInvalid => error
+        if /database .* already exists/ === error.message
+          raise DatabaseAlreadyExists
+        else
+          raise
+        end
       end
 
       def drop

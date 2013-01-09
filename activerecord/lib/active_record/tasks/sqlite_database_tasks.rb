@@ -9,10 +9,7 @@ module ActiveRecord
       end
 
       def create
-        if File.exist?(configuration['database'])
-          $stderr.puts "#{configuration['database']} already exists"
-          return
-        end
+        raise DatabaseAlreadyExists if File.exist?(configuration['database'])
 
         establish_connection configuration
         connection
