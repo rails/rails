@@ -216,6 +216,7 @@ Rails follows a simple set of coding style conventions:
 * Use `MyClass.my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
 * Use assert_not methods instead of refute.
+* Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
 The above are guidelines — please use your best judgment in using them.
