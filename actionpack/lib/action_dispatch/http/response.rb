@@ -33,7 +33,8 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
-    attr_accessor :request, :header, :status
+    attr_accessor :request, :header
+    attr_reader :status
     attr_writer :sending_file
 
     alias_method :headers=, :header=

@@ -64,7 +64,7 @@ module ActionView
           layout =~ /^\// ?
             with_fallbacks { find_template(layout, nil, false, keys) } : find_template(layout, nil, false, keys)
         end
-      rescue ActionView::MissingTemplate => e
+      rescue ActionView::MissingTemplate
         update_details(:formats => nil) do
           raise unless template_exists?(layout)
         end

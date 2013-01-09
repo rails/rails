@@ -187,7 +187,7 @@ module AbstractController
     class TestLayouts < ActiveSupport::TestCase
       test "layouts are included" do
         controller = Me4.new
-        result = controller.process(:index)
+        controller.process(:index)
         assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", controller.response_body
       end
     end
