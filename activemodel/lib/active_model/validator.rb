@@ -103,7 +103,7 @@ module ActiveModel
     end
 
     # Accepts options that will be made available through the +options+ reader.
-    def initialize(options)
+    def initialize(options = {})
       @options = options.freeze
     end
 
