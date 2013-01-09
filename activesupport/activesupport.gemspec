@@ -18,5 +18,5 @@ Gem::Specification.new do |s|
 
   s.rdoc_options.concat ['--encoding',  'UTF-8']
 
-  s.add_dependency('multi_json', '>= 1.0', '< 1.3')
+  s.add_dependency('multi_json', '~> 1.0')
 end
