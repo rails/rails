@@ -1,12 +1,17 @@
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/object/blank'
+require 'active_support/log_subscriber'
+require 'action_dispatch/http/request'
+require 'rack/body_proxy'
 
 module Rails
   module Rack
     # Sets log tags, logs the request, calls the app, and flushes the logs.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
-        @app, @taggers = app, taggers || []
+        @app          = app
+        @taggers      = taggers || []
+        @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
       def call(env)
@@ -28,8 +33,14 @@ module Rails
           logger.debug ''
         end
 
+        @instrumenter.start 'action_dispatch.request', request: request
         logger.info started_request_message(request)
-        @app.call(env)
+        resp = @app.call(env)
+        resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
+        resp
+      rescue
+        finish(request)
+        raise
       ensure
         ActiveSupport::LogSubscriber.flush_all!
       end
@@ -57,6 +68,10 @@ module Rails
       end
 
       private
+
+      def finish(request)
+        @instrumenter.finish 'action_dispatch.request', request: request
+      end
 
       def development?
         Rails.env.development?
