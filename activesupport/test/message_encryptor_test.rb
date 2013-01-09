@@ -29,9 +29,9 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_encrypting_twice_yields_differing_cipher_text
-    first_messqage = @encryptor.encrypt_and_sign(@data).split("--").first
+    first_message = @encryptor.encrypt_and_sign(@data).split("--").first
     second_message = @encryptor.encrypt_and_sign(@data).split("--").first
-    assert_not_equal first_messqage, second_message
+    assert_not_equal first_message, second_message
   end
 
   def test_messing_with_either_encrypted_values_causes_failure
