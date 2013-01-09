@@ -24,10 +24,13 @@ module ActiveRecord
         connection.create_database configuration['database'], creation_options
         connection.execute grant_statement.gsub(/\s+/, ' ').strip
         establish_connection configuration
-      rescue error_class => error
-        $stderr.puts error.error
-        $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
-        $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['encoding']
+      rescue error_class, ActiveRecord::StatementInvalid => error
+        if /database exists/ === error.message
+          raise DatabaseAlreadyExists
+        else
+          $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
+          $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['encoding']
+        end
       end
 
       def drop
@@ -87,14 +90,11 @@ module ActiveRecord
       end
 
       def error_class
-        case configuration['adapter']
-        when /jdbc/
+        if configuration['adapter'] =~ /jdbc/
           require 'active_record/railties/jdbcmysql_error'
           ArJdbcMySQL::Error
-        when /mysql2/
-          Mysql2::Error
         else
-          Mysql::Error
+          defined?(Mysql2) ? Mysql2::Error : Mysql::Error
         end
       end
 
