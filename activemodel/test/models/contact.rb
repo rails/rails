@@ -16,6 +16,10 @@ class Contact
     options.each { |name, value| send("#{name}=", value) }
   end
 
+  def pseudonyms
+    nil
+  end
+
   def persisted?
     id
   end
