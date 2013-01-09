@@ -1,3 +1,7 @@
+## Rails 3.0.20 (unreleased)
+
+* Fix XML serialization of methods that return nil to not be considered as YAML (GH #8853 and GH #492)
+
 ## Rails 3.0.18
 
 ## Rails 3.0.17 (Aug 9, 2012)
