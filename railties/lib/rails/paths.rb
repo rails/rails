@@ -55,8 +55,8 @@ module Rails
         add(path, with: value, glob: glob)
       end
 
-      def add(path, options={})
-        with = Array(options[:with] || path)
+      def add(path, options = {})
+        with = Array(options.fetch(:with, path))
         @root[path] = Path.new(self, path, with, options)
       end
 
@@ -189,9 +189,9 @@ module Rails
           path = File.expand_path(p, @root.path)
 
           if @glob && File.directory?(path)
-            result.concat Dir.chdir(path) {
-              Dir.glob(@glob).map { |file| File.join path, file }.sort
-            }
+            Dir.chdir(path) do
+              result.concat(Dir.glob(@glob).map { |file| File.join path, file }.sort)
+            end
           else
             result << path
           end
