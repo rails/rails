@@ -44,10 +44,10 @@ module ActionDispatch
         when :yaml
           YAML.load(request.raw_post)
         when :json
-          data = request.deep_munge ActiveSupport::JSON.decode(request.body)
+          data = ActiveSupport::JSON.decode(request.body)
           request.body.rewind if request.body.respond_to?(:rewind)
           data = {:_json => data} unless data.is_a?(Hash)
-          data.with_indifferent_access
+          request.deep_munge(data).with_indifferent_access
         else
           false
         end
