@@ -17,6 +17,37 @@ module ActiveRecord
       end
     end
 
+    class InvertibleRevertMigration < SilentMigration
+      def change
+        revert do
+          create_table("horses") do |t|
+            t.column :content, :text
+            t.column :remind_at, :datetime
+          end
+        end
+      end
+    end
+
+    class InvertibleByPartsMigration < SilentMigration
+      attr_writer :test
+      def change
+        create_table("new_horses") do |t|
+          t.column :breed, :string
+        end
+        reversible do |dir|
+          @test.yield :both
+          dir.up    { @test.yield :up }
+          dir.down  { @test.yield :down }
+        end
+        revert do
+          create_table("horses") do |t|
+            t.column :content, :text
+            t.column :remind_at, :datetime
+          end
+        end
+      end
+    end
+
     class NonInvertibleMigration < SilentMigration
       def change
         create_table("horses") do |t|
@@ -40,9 +71,28 @@ module ActiveRecord
       end
     end
 
+    class RevertWholeMigration < SilentMigration
+      def initialize(name = self.class.name, version = nil, migration)
+        @migration = migration
+        super(name, version)
+      end
+
+      def change
+        revert @migration
+      end
+    end
+
+    class NestedRevertWholeMigration < RevertWholeMigration
+      def change
+        revert { super }
+      end
+    end
+
     def teardown
-      if ActiveRecord::Base.connection.table_exists?("horses")
-        ActiveRecord::Base.connection.drop_table("horses")
+      %w[horses new_horses].each do |table|
+        if ActiveRecord::Base.connection.table_exists?(table)
+          ActiveRecord::Base.connection.drop_table(table)
+        end
       end
     end
 
@@ -65,6 +115,83 @@ module ActiveRecord
       migration.migrate :up
       migration.migrate :down
       assert !migration.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert
+      migration = InvertibleMigration.new
+      revert = InvertibleRevertMigration.new
+      migration.migrate :up
+      revert.migrate :up
+      assert !migration.connection.table_exists?("horses")
+      revert.migrate :down
+      assert migration.connection.table_exists?("horses")
+      migration.migrate :down
+      assert !migration.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_by_part
+      InvertibleMigration.new.migrate :up
+      received = []
+      migration = InvertibleByPartsMigration.new
+      migration.test = ->(dir){
+        assert migration.connection.table_exists?("horses")
+        assert migration.connection.table_exists?("new_horses")
+        received << dir
+      }
+      migration.migrate :up
+      assert_equal [:both, :up], received
+      assert !migration.connection.table_exists?("horses")
+      assert migration.connection.table_exists?("new_horses")
+      migration.migrate :down
+      assert_equal [:both, :up, :both, :down], received
+      assert migration.connection.table_exists?("horses")
+      assert !migration.connection.table_exists?("new_horses")
+    end
+
+    def test_migrate_revert_whole_migration
+      migration = InvertibleMigration.new
+      [LegacyMigration, InvertibleMigration].each do |klass|
+        revert = RevertWholeMigration.new(klass)
+        migration.migrate :up
+        revert.migrate :up
+        assert !migration.connection.table_exists?("horses")
+        revert.migrate :down
+        assert migration.connection.table_exists?("horses")
+        migration.migrate :down
+        assert !migration.connection.table_exists?("horses")
+      end
+    end
+
+    def test_migrate_nested_revert_whole_migration
+      revert = NestedRevertWholeMigration.new(InvertibleRevertMigration)
+      revert.migrate :down
+      assert revert.connection.table_exists?("horses")
+      revert.migrate :up
+      assert !revert.connection.table_exists?("horses")
+    end
+
+    def test_revert_order
+      block = Proc.new{|t| t.string :name }
+      recorder = ActiveRecord::Migration::CommandRecorder.new(ActiveRecord::Base.connection)
+      recorder.instance_eval do
+        create_table("apples", &block)
+        revert do
+          create_table("bananas", &block)
+          revert do
+            create_table("clementines")
+            create_table("dates")
+          end
+          create_table("elderberries")
+        end
+        revert do
+          create_table("figs")
+          create_table("grapes")
+        end
+      end
+      assert_equal [[:create_table, ["apples"], block], [:drop_table, ["elderberries"], nil],
+                    [:create_table, ["clementines"], nil], [:create_table, ["dates"], nil],
+                    [:drop_table, ["bananas"], block], [:drop_table, ["grapes"], nil],
+                    [:drop_table, ["figs"], nil]], recorder.commands
     end
 
     def test_legacy_up

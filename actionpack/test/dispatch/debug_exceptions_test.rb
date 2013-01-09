@@ -45,8 +45,17 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false))
-  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true))
+  def setup
+    app = ActiveSupport::OrderedOptions.new
+    app.config = ActiveSupport::OrderedOptions.new
+    app.config.assets = ActiveSupport::OrderedOptions.new
+    app.config.assets.prefix = '/sprockets'
+    Rails.stubs(:application).returns(app)
+  end
+
+  RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
+  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
+  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
 
   test 'skip diagnosis if not showing detailed exceptions' do
     @app = ProductionApp
@@ -76,6 +85,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       get "/pass", {}, {'action_dispatch.show_exceptions' => true}
     end
     assert boomer.closed, "Expected to close the response body"
+  end
+
+  test 'displays routes in a table when a RoutingError occurs' do
+    @app = DevelopmentApp
+    get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+    routing_table = body[/route_table.*<.table>/m]
+    assert_match '/:controller(/:action)(.:format)', routing_table
+    assert_match ':controller#:action', routing_table
+    assert_no_match '&lt;|&gt;', routing_table, "there should not be escaped html in the output"
   end
 
   test "rescue with diagnostics message" do
@@ -135,7 +153,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       }
     })
     assert_response 500
-    assert_match(/RuntimeError\n    in FeaturedTileController/, body)
+    assert_match(/RuntimeError\n\s+in FeaturedTileController/, body)
   end
 
   test "sets the HTTP charset parameter" do

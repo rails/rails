@@ -17,21 +17,24 @@ require 'ipaddr'
 
 module ActiveRecord
   module ConnectionHandling
+    VALID_CONN_PARAMS = [:host, :hostaddr, :port, :dbname, :user, :password, :connect_timeout,
+                         :client_encoding, :options, :application_name, :fallback_application_name,
+                         :keepalives, :keepalives_idle, :keepalives_interval, :keepalives_count,
+                         :tty, :sslmode, :requiressl, :sslcert, :sslkey, :sslrootcert, :sslcrl,
+                         :requirepeer, :krbsrvname, :gsslib, :service]
+
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config) # :nodoc:
       conn_params = config.symbolize_keys
 
-      # Forward any unused config params to PGconn.connect.
-      [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :checkout_timeout, :template,
-       :reaping_frequency, :insert_returning].each do |key|
-        conn_params.delete key
-      end
-      conn_params.delete_if { |k,v| v.nil? }
+      conn_params.delete_if { |_, v| v.nil? }
 
       # Map ActiveRecords param names to PGs.
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
       conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
+
+      # Forward only valid config params to PGconn.connect.
+      conn_params.keep_if { |k, _| VALID_CONN_PARAMS.include?(k) }
 
       # The postgres drivers don't allow the creation of an unconnected PGconn object,
       # so just pass a nil connection object for the time being.
@@ -114,6 +117,9 @@ module ActiveRecord
           # JSON
           when /\A'(.*)'::json\z/
             $1
+          # int4range, int8range
+          when /\A'(.*)'::int(4|8)range\z/
+            $1
           # Object identifier types
           when /\A-?\d+\z/
             $1
@@ -170,6 +176,8 @@ module ActiveRecord
             :decimal
           when 'hstore'
             :hstore
+          when 'ltree'
+            :ltree
           # Network address types
           when 'inet'
             :inet
@@ -209,9 +217,12 @@ module ActiveRecord
           # UUID type
           when 'uuid'
             :uuid
-        # JSON type
-        when 'json'
-          :json
+          # JSON type
+          when 'json'
+            :json
+          # int4range, int8range types
+          when 'int4range', 'int8range'
+            :intrange
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
@@ -238,6 +249,8 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
+    # * <tt>:variables</tt> - An optional hash of additional parameters that
+    #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
     # * <tt>:insert_returning</tt> - An optional boolean to control the use or <tt>RETURNING</tt> for <tt>INSERT</tt> statements
     #   defaults to true.
     #
@@ -267,6 +280,10 @@ module ActiveRecord
           column(name, 'hstore', options)
         end
 
+        def ltree(name, options = {})
+          column(name, 'ltree', options)
+        end
+
         def inet(name, options = {})
           column(name, 'inet', options)
         end
@@ -285,6 +302,10 @@ module ActiveRecord
 
         def json(name, options = {})
           column(name, 'json', options)
+        end
+
+        def intrange(name, options = {})
+          column(name, 'intrange', options)
         end
 
         def column(name, type = nil, options = {})
@@ -327,7 +348,9 @@ module ActiveRecord
         cidr:        { name: "cidr" },
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
-        json:        { name: "json" }
+        json:        { name: "json" },
+        intrange:    { name: "int4range" },
+        ltree:       { name: "ltree" }
       }
 
       include Quoting
@@ -437,8 +460,6 @@ module ActiveRecord
         else
           @visitor = BindSubstitution.new self
         end
-
-        connection_parameters.delete :prepared_statements
 
         @connection_parameters, @config = connection_parameters, config
 
@@ -627,32 +648,30 @@ module ActiveRecord
         end
 
         def exec_cache(sql, binds)
-          begin
-            stmt_key = prepare_statement sql
+          stmt_key = prepare_statement sql
 
-            # Clear the queue
-            @connection.get_last_result
-            @connection.send_query_prepared(stmt_key, binds.map { |col, val|
-              type_cast(val, col)
-            })
-            @connection.block
-            @connection.get_last_result
-          rescue PGError => e
-            # Get the PG code for the failure.  Annoyingly, the code for
-            # prepared statements whose return value may have changed is
-            # FEATURE_NOT_SUPPORTED.  Check here for more details:
-            # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-            begin
-              code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
-            rescue
-              raise e
-            end
-            if FEATURE_NOT_SUPPORTED == code
-              @statements.delete sql_key(sql)
-              retry
-            else
-              raise e
-            end
+          # Clear the queue
+          @connection.get_last_result
+          @connection.send_query_prepared(stmt_key, binds.map { |col, val|
+            type_cast(val, col)
+          })
+          @connection.block
+          @connection.get_last_result
+        rescue PGError => e
+          # Get the PG code for the failure.  Annoyingly, the code for
+          # prepared statements whose return value may have changed is
+          # FEATURE_NOT_SUPPORTED.  Check here for more details:
+          # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+          begin
+            code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+          rescue
+            raise e
+          end
+          if FEATURE_NOT_SUPPORTED == code
+            @statements.delete sql_key(sql)
+            retry
+          else
+            raise e
           end
         end
 
@@ -706,10 +725,23 @@ module ActiveRecord
 
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
+          # (SET TIME ZONE does not use an equals sign like other SET variables)
           if ActiveRecord::Base.default_timezone == :utc
             execute("SET time zone 'UTC'", 'SCHEMA')
           elsif @local_tz
             execute("SET time zone '#{@local_tz}'", 'SCHEMA')
+          end
+
+          # SET statements from :variables config hash
+          # http://www.postgresql.org/docs/8.3/static/sql-set.html
+          variables = @config[:variables] || {}
+          variables.map do |k, v|
+            if v == ':default' || v == :default
+              # Sets the value to the global or compile default
+              execute("SET SESSION #{k.to_s} TO DEFAULT", 'SCHEMA')
+            elsif !v.nil?
+              execute("SET SESSION #{k.to_s} TO #{quote(v)}", 'SCHEMA')
+            end
           end
         end
 

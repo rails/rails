@@ -36,10 +36,10 @@ module ActiveRecord
       queries = []
 
       # Find the foreign key when using queries such as:
-      # Post.where(:author => author)
+      # Post.where(author: author)
       #
       # For polymorphic relationships, find the foreign key and type:
-      # PriceEstimate.where(:estimate_of => treasure)
+      # PriceEstimate.where(estimate_of: treasure)
       if klass && value.class < Base && reflection = klass.reflect_on_association(column.to_sym)
         if reflection.polymorphic?
           queries << build(table[reflection.foreign_type], value.class.base_class)

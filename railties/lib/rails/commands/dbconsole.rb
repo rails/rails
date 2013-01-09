@@ -5,8 +5,8 @@ require 'rbconfig'
 
 module Rails
   class DBConsole
-    attr_reader :config, :arguments
-    
+    attr_reader :arguments
+
     def self.start
       new.start
     end
@@ -59,7 +59,7 @@ module Rails
 
         args << "-#{options['mode']}" if options['mode']
         args << "-header" if options['header']
-        args << File.expand_path(config['database'], Rails.root)
+        args << File.expand_path(config['database'], Rails.respond_to?(:root) ? Rails.root : nil)
 
         find_cmd_and_exec('sqlite3', *args)
 
@@ -82,17 +82,13 @@ module Rails
     def config
       @config ||= begin
         cfg = begin
-          cfg = YAML.load(ERB.new(IO.read("config/database.yml")).result)
+          YAML.load(ERB.new(IO.read("config/database.yml")).result)
         rescue SyntaxError, StandardError
           require APP_PATH
           Rails.application.config.database_configuration
         end
 
-        unless cfg[environment]
-          abort "No database is configured for the environment '#{environment}'"
-        end
-
-        cfg[environment]
+        cfg[environment] || abort("No database is configured for the environment '#{environment}'")
       end
     end
 
@@ -108,7 +104,7 @@ module Rails
 
     def parse_arguments(arguments)
       options = {}
-      
+
       OptionParser.new do |opt|
         opt.banner = "Usage: rails dbconsole [environment] [options]"
         opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
@@ -123,7 +119,7 @@ module Rails
         opt.on("--header") do |h|
           options['header'] = h
         end
-        
+
         opt.on("-h", "--help", "Show this help message.") do
           puts opt
           exit
@@ -140,10 +136,18 @@ module Rails
 
       if arguments.first && arguments.first[0] != '-'
         env = arguments.first
-        options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        if available_environments.include? env
+          options[:environment] = env
+        else
+          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        end
       end
-      
+
       options
+    end
+
+    def available_environments
+      Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
     end
 
     def find_cmd_and_exec(commands, *args)

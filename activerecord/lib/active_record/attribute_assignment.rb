@@ -132,7 +132,7 @@ module ActiveRecord
         if object.class.send(:create_time_zone_conversion_attribute?, name, column)
           Time.zone.local(*set_values)
         else
-          Time.time_with_datetime_fallback(object.class.default_timezone, *set_values)
+          Time.send(object.class.default_timezone, *set_values)
         end
       end
 

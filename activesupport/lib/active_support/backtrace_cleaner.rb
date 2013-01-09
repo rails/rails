@@ -72,6 +72,9 @@ module ActiveSupport
       @silencers = []
     end
 
+    # Removes all filters, but leaves in silencers. Useful if you suddenly
+    # need to see entire filepaths in the backtrace that you had already
+    # filtered out.
     def remove_filters!
       @filters = []
     end

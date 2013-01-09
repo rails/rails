@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def extract_default(default)
-          if sql_type =~ /blob/i || type == :text
+          if blob_or_text_column?
             if default.blank?
               null || strict ? nil : ''
             else
@@ -28,8 +28,12 @@ module ActiveRecord
         end
 
         def has_default?
-          return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
+          return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
           super
+        end
+        
+        def blob_or_text_column?
+          sql_type =~ /blob/i || type == :text
         end
 
         # Must return the relevant concrete adapter
@@ -669,10 +673,13 @@ module ActiveRecord
         rename_column_sql
       end
 
-      def remove_column_sql(table_name, *column_names)
-        columns_for_remove(table_name, *column_names).map {|column_name| "DROP #{column_name}" }
+      def remove_column_sql(table_name, column_name, type = nil, options = {})
+        "DROP #{quote_column_name(column_name)}"
       end
-      alias :remove_columns_sql :remove_column
+
+      def remove_columns_sql(table_name, *column_names)
+        column_names.map {|column_name| remove_column_sql(table_name, column_name) }
+      end
 
       def add_index_sql(table_name, column_name, options = {})
         index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
@@ -704,6 +711,45 @@ module ActiveRecord
         end
         column
       end
+
+      def configure_connection
+        variables = @config[:variables] || {}
+
+        # By default, MySQL 'where id is null' selects the last inserted id.
+        # Turn this off. http://dev.rubyonrails.org/ticket/6778
+        variables[:sql_auto_is_null] = 0
+
+        # Increase timeout so the server doesn't disconnect us.
+        wait_timeout = @config[:wait_timeout]
+        wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
+        variables[:wait_timeout] = wait_timeout
+
+        # Make MySQL reject illegal values rather than truncating or blanking them, see
+        # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
+        # If the user has provided another value for sql_mode, don't replace it.
+        if strict_mode? && !variables.has_key?(:sql_mode)
+          variables[:sql_mode] = 'STRICT_ALL_TABLES'
+        end
+
+        # NAMES does not have an equals sign, see
+        # http://dev.mysql.com/doc/refman/5.0/en/set-statement.html#id944430
+        # (trailing comma because variable_assignments will always have content)
+        encoding = "NAMES #{@config[:encoding]}, " if @config[:encoding]
+
+        # Gather up all of the SET variables...
+        variable_assignments = variables.map do |k, v|
+          if v == ':default' || v == :default
+            "@@SESSION.#{k.to_s} = DEFAULT" # Sets the value to the global or compile default
+          elsif !v.nil?
+            "@@SESSION.#{k.to_s} = #{quote(v)}"
+          end
+          # or else nil; compact to clear nils out
+        end.compact.join(', ')
+
+        # ...and send them all in one query
+        execute("SET #{encoding} #{variable_assignments}", :skip_logging)
+      end
+
     end
   end
 end

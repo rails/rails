@@ -1,5 +1,16 @@
 module ActiveRecord
   module Integration
+    extend ActiveSupport::Concern
+
+    included do
+      ##
+      # :singleton-method:
+      # Indicates the format used to generate the timestamp format in the cache key.
+      # This is +:number+, by default.
+      class_attribute :cache_timestamp_format, :instance_writer => false
+      self.cache_timestamp_format = :nsec
+    end
+
     # Returns a String, which Action Pack uses for constructing an URL to this
     # object. The default implementation returns this record's id as a String,
     # or nil if this record's unsaved.
@@ -29,8 +40,6 @@ module ActiveRecord
 
     # Returns a cache key that can be used to identify this record.
     #
-    # ==== Examples
-    #
     #   Product.new.cache_key     # => "products/new"
     #   Product.find(5).cache_key # => "products/5" (updated_at not available)
     #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
@@ -39,7 +48,7 @@ module ActiveRecord
       when new_record?
         "#{self.class.model_name.cache_key}/new"
       when timestamp = self[:updated_at]
-        timestamp = timestamp.utc.to_s(:nsec)
+        timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
       else
         "#{self.class.model_name.cache_key}/#{id}"

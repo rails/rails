@@ -232,7 +232,8 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
+            skip_assign = [reflection.foreign_key, reflection.type].compact
+            attributes = create_scope.except(*(record.changed - skip_assign))
             record.assign_attributes(attributes)
           end
         end

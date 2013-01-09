@@ -2,8 +2,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
-gem 'minitest'
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'stringio'
 
 require 'active_record'
@@ -21,8 +20,6 @@ ActiveSupport::Deprecation.debug = true
 
 # Connect to the database
 ARTest.connect
-
-require 'support/mysql'
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
@@ -135,3 +132,18 @@ module LogIntercepter
   end
 end
 
+module InTimeZone
+  private
+
+  def in_time_zone(zone)
+    old_zone  = Time.zone
+    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
+
+    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
+    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
+    yield
+  ensure
+    Time.zone = old_zone
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
+  end
+end

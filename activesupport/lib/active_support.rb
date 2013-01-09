@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2005-2012 David Heinemeier Hansson
+# Copyright (c) 2005-2013 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,6 +40,7 @@ module ActiveSupport
   eager_autoload do
     autoload :BacktraceCleaner
     autoload :BasicObject
+    autoload :ProxyObject
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks

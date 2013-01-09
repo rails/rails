@@ -21,14 +21,12 @@ module ActionController #:nodoc:
   # supports fibers (fibers are supported since version 1.9.2 of the main
   # Ruby implementation).
   #
-  # == Examples
-  #
   # Streaming can be added to a given template easily, all you need to do is
   # to pass the :stream option.
   #
   #   class PostsController
   #     def index
-  #       @posts = Post.scoped
+  #       @posts = Post.all
   #       render stream: true
   #     end
   #   end
@@ -53,9 +51,9 @@ module ActionController #:nodoc:
   #
   #   def dashboard
   #     # Allow lazy execution of the queries
-  #     @posts = Post.scoped
-  #     @pages = Page.scoped
-  #     @articles = Article.scoped
+  #     @posts = Post.all
+  #     @pages = Page.all
+  #     @articles = Article.all
   #     render stream: true
   #   end
   #

@@ -3,13 +3,11 @@ require 'abstract_unit'
 require 'set'
 
 require 'action_dispatch'
-require 'active_support/queueing'
 require 'active_support/time'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
-require 'mailers/async_mailer'
 
 class BaseTest < ActiveSupport::TestCase
   def teardown
@@ -322,19 +320,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_not_nil(mail.content_type_parameters[:boundary])
   end
 
-  test "explicit multipart does not sort order" do
-    order = ["text/html", "text/plain"]
-    with_default BaseMailer, parts_order: order do
-      email = BaseMailer.explicit_multipart
-      assert_equal("text/plain", email.parts[0].mime_type)
-      assert_equal("text/html",  email.parts[1].mime_type)
-
-      email = BaseMailer.explicit_multipart(parts_order: order.reverse)
-      assert_equal("text/plain", email.parts[0].mime_type)
-      assert_equal("text/html",  email.parts[1].mime_type)
-    end
-  end
-
   test "explicit multipart with attachments creates nested parts" do
     email = BaseMailer.explicit_multipart(attachments: true)
     assert_equal("application/pdf", email.parts[0].mime_type)
@@ -349,10 +334,10 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.explicit_multipart_templates
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
-    assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("HTML Explicit Multipart Templates", email.parts[0].body.encoded)
-    assert_equal("text/plain", email.parts[1].mime_type)
-    assert_equal("TEXT Explicit Multipart Templates", email.parts[1].body.encoded)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("TEXT Explicit Multipart Templates", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("HTML Explicit Multipart Templates", email.parts[1].body.encoded)
   end
 
   test "explicit multipart with format.any" do
@@ -387,10 +372,23 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.explicit_multipart_with_one_template
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
-    assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("[:html]", email.parts[0].body.encoded)
-    assert_equal("text/plain", email.parts[1].mime_type)
-    assert_equal("[:text]", email.parts[1].body.encoded)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("[:text]", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("[:html]", email.parts[1].body.encoded)
+  end
+
+  test "explicit multipart with sort order" do
+    order = ["text/html", "text/plain"]
+    with_default BaseMailer, parts_order: order do
+      email = BaseMailer.explicit_multipart
+      assert_equal("text/html",  email.parts[0].mime_type)
+      assert_equal("text/plain", email.parts[1].mime_type)
+
+      email = BaseMailer.explicit_multipart(parts_order: order.reverse)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("text/html",  email.parts[1].mime_type)
+    end
   end
 
   # Class level API with method missing
@@ -420,17 +418,6 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.deliveries.clear
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
-  end
-
-  test "delivering message asynchronously" do
-    AsyncMailer.delivery_method = :test
-    AsyncMailer.deliveries.clear
-
-    AsyncMailer.welcome.deliver
-    assert_equal 0, AsyncMailer.deliveries.length
-
-    AsyncMailer.queue.drain
-    assert_equal 1, AsyncMailer.deliveries.length
   end
 
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
@@ -502,6 +489,12 @@ class BaseTest < ActiveSupport::TestCase
   test 'the view is not rendered when mail was never called' do
     mail = BaseMailer.without_mail_call
     assert_equal('', mail.body.to_s.strip)
+    mail.deliver
+  end
+
+  test 'the return value of mailer methods is not relevant' do
+    mail = BaseMailer.with_nil_as_return_value
+    assert_equal('Welcome', mail.body.to_s.strip)
     mail.deliver
   end
 
@@ -584,9 +577,9 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
-  test "modifying the mail message with a before_filter" do
-    class BeforeFilterMailer < ActionMailer::Base
-      before_filter :add_special_header!
+  test "modifying the mail message with a before_action" do
+    class BeforeActionMailer < ActionMailer::Base
+      before_action :add_special_header!
 
       def welcome ; mail ; end
 
@@ -596,12 +589,12 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal('Wow, so special', BeforeFilterMailer.welcome['X-Special-Header'].to_s)
+    assert_equal('Wow, so special', BeforeActionMailer.welcome['X-Special-Header'].to_s)
   end
 
-  test "modifying the mail message with an after_filter" do
-    class AfterFilterMailer < ActionMailer::Base
-      after_filter :add_special_header!
+  test "modifying the mail message with an after_action" do
+    class AfterActionMailer < ActionMailer::Base
+      after_action :add_special_header!
 
       def welcome ; mail ; end
 
@@ -611,12 +604,12 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal('Testing', AfterFilterMailer.welcome['X-Special-Header'].to_s)
+    assert_equal('Testing', AfterActionMailer.welcome['X-Special-Header'].to_s)
   end
 
-  test "adding an inline attachment using a before_filter" do
+  test "adding an inline attachment using a before_action" do
     class DefaultInlineAttachmentMailer < ActionMailer::Base
-      before_filter :add_inline_attachment!
+      before_action :add_inline_attachment!
 
       def welcome ; mail ; end
 

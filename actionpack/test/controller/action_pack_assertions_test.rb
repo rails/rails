@@ -259,7 +259,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_flash_exist
     process :flash_me
     assert flash.any?
-    assert_present flash['hello']
+    assert flash['hello'].present?
   end
 
   def test_flash_does_not_exist
@@ -430,6 +430,12 @@ end
 class AssertTemplateTest < ActionController::TestCase
   tests ActionPackAssertionsController
 
+  def test_with_invalid_hash_keys_raises_argument_error
+    assert_raise(ArgumentError) do
+      assert_template foo: "bar"
+    end
+  end
+
   def test_with_partial
     get :partial
     assert_template :partial => '_partial'
@@ -444,6 +450,20 @@ class AssertTemplateTest < ActionController::TestCase
     get :hello_world
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template nil
+    end
+  end
+
+  def test_with_empty_string_fails_when_template_rendered
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template ""
+    end
+  end
+
+  def test_with_empty_string_fails_when_no_template_rendered
+    get :nothing
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template ""
     end
   end
 

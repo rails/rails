@@ -144,6 +144,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'defaulty', bulb.name
   end
 
+  def test_building_the_associated_object_with_implicit_sti_base_class
+    firm = DependentFirm.new
+    company = firm.companies.build
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_associated_object_with_explicit_sti_base_class
+    firm = DependentFirm.new
+    company = firm.companies.build(:type => "Company")
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_associated_object_with_sti_subclass
+    firm = DependentFirm.new
+    company = firm.companies.build(:type => "Client")
+    assert_kind_of Client, company, "Expected #{company.class} to be a Client"
+  end
+
+  def test_building_the_associated_object_with_an_invalid_type
+    firm = DependentFirm.new
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Invalid") }
+  end
+
+  def test_building_the_associated_object_with_an_unrelated_type
+    firm = DependentFirm.new
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Account") }
+  end
+
   def test_association_keys_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
@@ -268,12 +296,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_finding_array_compatibility
     assert_equal 2, Firm.order(:id).find{|f| f.id > 0}.clients.length
-  end
-
-  def test_find_with_blank_conditions
-    [[], {}, nil, ""].each do |blank|
-      assert_equal 2, Firm.all.merge!(:order => "id").first.clients.where(blank).to_a.size
-    end
   end
 
   def test_find_many_with_merged_options
@@ -1150,6 +1172,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_firm).clients.include?(Client.find(2))
   end
 
+  def test_included_in_collection_for_new_records
+    client = Client.create(:name => 'Persisted')
+    assert_nil client.client_of
+    assert !Firm.new.clients_of_firm.include?(client),
+           'includes a client that does not belong to any firm'
+  end
+
   def test_adding_array_and_collection
     assert_nothing_raised { Firm.first.clients + Firm.all.last.clients }
   end
@@ -1572,6 +1601,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [tagging], post.taggings
   end
 
+  def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
+    welcome = posts(:welcome)
+    tagging = welcome.taggings.build(:taggable_id => 99, :taggable_type => 'ShouldNotChange')
+
+    assert_equal welcome.id, tagging.taggable_id
+    assert_equal 'Post', tagging.taggable_type
+  end
+
   def test_dont_call_save_callbacks_twice_on_has_many
     firm = companies(:first_firm)
     contract = firm.contracts.create!
@@ -1649,6 +1686,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test ":counter_sql is deprecated" do
     klass = Class.new(ActiveRecord::Base)
     assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
+  end
+
+  test "sum calculation with block for array compatibility is deprecated" do
+    assert_deprecated do
+      posts(:welcome).comments.sum { |c| c.id }
+    end
   end
 
   test "has many associations on new records use null relations" do

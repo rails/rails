@@ -1,4 +1,6 @@
 require 'abstract_unit'
+# FIXME remove DummyKeyGenerator and this require in 4.1
+require 'active_support/key_generator'
 
 class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -51,8 +53,8 @@ class FlashTest < ActionController::TestCase
       render :inline => "hello"
     end
 
-    # methods for test_sweep_after_halted_filter_chain
-    before_filter :halt_and_redir, :only => "filter_halting_action"
+    # methods for test_sweep_after_halted_action_chain
+    before_action :halt_and_redir, only: 'filter_halting_action'
 
     def std_action
       @flash_copy = {}.update(flash)
@@ -157,7 +159,7 @@ class FlashTest < ActionController::TestCase
     assert_nil session["flash"]
   end
 
-  def test_sweep_after_halted_filter_chain
+  def test_sweep_after_halted_action_chain
     get :std_action
     assert_nil assigns["flash_copy"]["foo"]
     get :filter_halting_action
@@ -217,7 +219,7 @@ end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
-  SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
+  Generator  = ActiveSupport::DummyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -291,7 +293,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     # Overwrite get to send SessionSecret in env hash
     def get(path, parameters = nil, env = {})
-      env["action_dispatch.secret_token"] ||= SessionSecret
+      env["action_dispatch.key_generator"] ||= Generator
       super
     end
 

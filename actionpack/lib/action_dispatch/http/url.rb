@@ -8,14 +8,16 @@ module ActionDispatch
 
       class << self
         def extract_domain(host, tld_length = @@tld_length)
-          return nil unless named_host?(host)
-          host.split('.').last(1 + tld_length).join('.')
+          host.split('.').last(1 + tld_length).join('.') if named_host?(host)
         end
 
         def extract_subdomains(host, tld_length = @@tld_length)
-          return [] unless named_host?(host)
-          parts = host.split('.')
-          parts[0..-(tld_length+2)]
+          if named_host?(host)
+            parts = host.split('.')
+            parts[0..-(tld_length + 2)]
+          else
+            []
+          end
         end
 
         def extract_subdomain(host, tld_length = @@tld_length)
@@ -23,16 +25,18 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          path = ""
-          path << options.delete(:script_name).to_s.chomp("/")
+          path  = options.delete(:script_name).to_s.chomp("/")
           path << options.delete(:path).to_s
 
-          params = options[:params] || {}
-          params.reject! {|k,v| v.to_param.nil? }
+          params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
+          params.reject! { |_,v| v.to_param.nil? }
 
           result = build_host_url(options)
-
-          result << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+          if options[:trailing_slash] && !path.ends_with?('/')
+            result << path.sub(/(\?|\z)/) { "/" + $& }
+          else
+            result << path
+          end
           result << "?#{params.to_query}" unless params.empty?
           result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result

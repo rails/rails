@@ -1,8 +1,8 @@
-require 'mutex_m'
+require 'thread_safe'
 
 module ActionView
   class Digestor
-    EXPLICIT_DEPENDENCY = /# Template Dependency: ([^ ]+)/
+    EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
     # Matches:
     #   render partial: "comments/comment", collection: commentable.comments
@@ -21,30 +21,20 @@ module ActionView
     /x
 
     cattr_reader(:cache)
-    @@cache = Hash.new.extend Mutex_m
+    @@cache = ThreadSafe::Cache.new
 
     def self.digest(name, format, finder, options = {})
-      cache.synchronize do
-        unsafe_digest name, format, finder, options
-      end
-    end
-
-    ###
-    # This method is NOT thread safe.  DO NOT CALL IT DIRECTLY, instead call
-    # Digestor.digest
-    def self.unsafe_digest(name, format, finder, options = {}) # :nodoc:
-      key = "#{name}.#{format}"
-
-      cache.fetch(key) do
+      cache_key = [name, format] + Array.wrap(options[:dependencies])
+      @@cache[cache_key.join('.')] ||= begin
         klass = options[:partial] || name.include?("/_") ? PartialDigestor : Digestor
-        cache[key] = klass.new(name, format, finder).digest
+        klass.new(name, format, finder, options).digest
       end
     end
 
-    attr_reader :name, :format, :finder
+    attr_reader :name, :format, :finder, :options
 
-    def initialize(name, format, finder)
-      @name, @format, @finder = name, format, finder
+    def initialize(name, format, finder, options={})
+      @name, @format, @finder, @options = name, format, finder, options
     end
 
     def digest
@@ -92,9 +82,11 @@ module ActionView
       end
 
       def dependency_digest
-        dependencies.collect do |template_name|
-          Digestor.unsafe_digest(template_name, format, finder, partial: true)
-        end.join("-")
+        template_digests = dependencies.collect do |template_name|
+          Digestor.digest(template_name, format, finder, partial: true)
+        end
+
+        (template_digests + injected_dependencies).join("-")
       end
 
       def render_dependencies
@@ -115,6 +107,10 @@ module ActionView
 
       def explicit_dependencies
         source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+      end
+
+      def injected_dependencies
+        Array.wrap(options[:dependencies])
       end
   end
 

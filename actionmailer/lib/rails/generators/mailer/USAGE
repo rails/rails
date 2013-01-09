@@ -10,9 +10,8 @@ Example:
 ========
     rails generate mailer Notifications signup forgot_password invoice
 
-    creates a Notifications mailer class, views, test, and fixtures:
+    creates a Notifications mailer class, views, and test:
         Mailer:     app/mailers/notifications.rb
-        Views:      app/views/notifications/signup.erb [...]
+        Views:      app/views/notifications/signup.text.erb [...]
         Test:       test/mailers/notifications_test.rb
-        Fixtures:   test/fixtures/notifications/signup [...]
 

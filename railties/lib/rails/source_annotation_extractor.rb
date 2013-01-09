@@ -15,7 +15,7 @@
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
     def self.directories
-      @@directories ||= %w(app config lib script test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+      @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
     end
 
     # Returns a representation of the annotation that looks like this:
@@ -31,11 +31,11 @@ class SourceAnnotationExtractor
     end
   end
 
-  # Prints all annotations with tag +tag+ under the root directories +app+, +config+, +lib+,
-  # +script+, and +test+ (recursively). Filenames with extension 
+  # Prints all annotations with tag +tag+ under the root directories +app+,
+  # +config+, +lib+, and +test+ (recursively). Filenames with extension
   # +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+, +.scss+, +.js+,
-  # +.coffee+, and +.rake+ are taken into account. The +options+ hash is passed to each
-  # annotation's +to_s+.
+  # +.coffee+, and +.rake+ are taken into account. The +options+ hash is
+  # passed to each annotation's +to_s+.
   #
   # This class method is the single entry point for the rake tasks.
   def self.enumerate(tag, options={})

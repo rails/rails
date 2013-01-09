@@ -4,7 +4,9 @@ The Rails Initialization Process
 This guide explains the internals of the initialization process in Rails
 as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
-* Using `rails server`
+After reading this guide, you will know:
+
+* How to use `rails server`.
 
 --------------------------------------------------------------------------------
 
@@ -24,126 +26,16 @@ quickly.
 Launch!
 -------
 
-A Rails application is usually started with the command `rails server`.
+Now we finally boot and initialize the app. It all starts with your app's
+`bin/rails` executable. A Rails application is usually started by running
+`rails console` or `rails server`.
 
 ### `bin/rails`
-
-The actual `rails` command is kept in _bin/rails_:
-
-```ruby
-#!/usr/bin/env ruby
-
-if File.exists?(File.join(File.expand_path('../../..', __FILE__), '.git'))
-  railties_path = File.expand_path('../../lib', __FILE__)
-  $:.unshift(railties_path)
-end
-require "rails/cli"
-```
-
-This file will first attempt to push the `railties/lib` directory if
-present, and then requires `rails/cli`.
-
-### `railties/lib/rails/cli.rb`
-
-This file looks like this:
-
-```ruby
-require 'rbconfig'
-require 'rails/script_rails_loader'
-
-# If we are inside a Rails application this method performs an exec and thus
-# the rest of this script is not run.
-Rails::ScriptRailsLoader.exec_script_rails!
-
-require 'rails/ruby_version_check'
-Signal.trap("INT") { puts; exit(1) }
-
-if ARGV.first == 'plugin'
-  ARGV.shift
-  require 'rails/commands/plugin_new'
-else
-  require 'rails/commands/application'
-end
-```
-
-The `rbconfig` file from the Ruby standard library provides us with the `RbConfig` class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see this in use in `railties/lib/rails/script_rails_loader`.
-
-```ruby
-require 'pathname'
-
-module Rails
-  module ScriptRailsLoader
-    RUBY = File.join(*RbConfig::CONFIG.values_at("bindir", "ruby_install_name")) + RbConfig::CONFIG["EXEEXT"]
-    SCRIPT_RAILS = File.join('script', 'rails')
-    ...
-
-  end
-end
-```
-
-The `rails/script_rails_loader` file uses `RbConfig::Config` to obtain the `bin_dir` and `ruby_install_name` values for the configuration which together form the path to the Ruby interpreter. The `RbConfig::CONFIG["EXEEXT"]` will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in `exec_script_rails!`. As for the `SCRIPT_RAILS` constant, we'll see that when we get to the `in_rails_application?` method.
-
-Back in `rails/cli`, the next line is this:
-
-```ruby
-Rails::ScriptRailsLoader.exec_script_rails!
-```
-
-This method is defined in `rails/script_rails_loader`:
-
-```ruby
-def self.exec_script_rails!
-  cwd = Dir.pwd
-  return unless in_rails_application? || in_rails_application_subdirectory?
-  exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
-  Dir.chdir("..") do
-    # Recurse in a chdir block: if the search fails we want to be sure
-    # the application is generated in the original working directory.
-    exec_script_rails! unless cwd == Dir.pwd
-  end
-rescue SystemCallError
-  # could not chdir, no problem just return
-end
-```
-
-This method will first check if the current working directory (`cwd`) is a Rails application or a subdirectory of one. This is determined by the `in_rails_application?` method:
-
-```ruby
-def self.in_rails_application?
-  File.exists?(SCRIPT_RAILS)
-end
-```
-
-The `SCRIPT_RAILS` constant defined earlier is used here, with `File.exists?` checking for its presence in the current directory. If this method returns `false` then `in_rails_application_subdirectory?` will be used:
-
-```ruby
-def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
-  File.exists?(File.join(path, SCRIPT_RAILS)) || !path.root? && in_rails_application_subdirectory?(path.parent)
-end
-```
-
-This climbs the directory tree until it reaches a path which contains a `script/rails` file. If a directory containing this file is reached then this line will run:
-
-```ruby
-exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
-```
-
-This is effectively the same as running `ruby script/rails [arguments]`, where `[arguments]` at this point in time is simply "server".
-
-Rails Initialization
---------------------
-
-Only now we finally start the real initialization process, beginning
-with `script/rails`.
-
-TIP: If you execute `script/rails` directly from your Rails app you will
-skip executing all the code that we've just described.
-
-### `script/rails`
 
 This file is as follows:
 
 ```ruby
+#!/usr/bin/env ruby
 APP_PATH = File.expand_path('../../config/application',  __FILE__)
 require File.expand_path('../../config/boot',  __FILE__)
 require 'rails/commands'
@@ -225,18 +117,18 @@ If we used `s` rather than `server`, Rails will use the `aliases` defined in the
 ```ruby
 when 'server'
   # Change to the application's path if there is no config.ru file in current dir.
-  # This allows us to run script/rails server from other directories, but still get
+  # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
   Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
 
   require 'rails/commands/server'
-  Rails::Server.new.tap { |server|
+  Rails::Server.new.tap do |server|
     # We need to require application after the server sets environment,
     # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
-  }
+  end
 ```
 
 This file will change into the root of the directory (a path two directories back from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.

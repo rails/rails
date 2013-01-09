@@ -21,7 +21,7 @@ class String
       date_values[6] *= 1000000
       offset = date_values.pop
 
-      ::Time.send("#{form}_time", *date_values) - offset
+      ::Time.send(form, *date_values) - offset
     end
   end
 
@@ -32,11 +32,7 @@ class String
   #   "2012-12-13".to_date #=> Thu, 13 Dec 2012
   #   "12/13/2012".to_date #=> ArgumentError: invalid date
   def to_date
-    unless blank?
-      date_values = ::Date._parse(self, false).values_at(:year, :mon, :mday)
-
-      ::Date.new(*date_values)
-    end
+    ::Date.parse(self, false) unless blank?
   end
 
   # Converts a string to a DateTime value.

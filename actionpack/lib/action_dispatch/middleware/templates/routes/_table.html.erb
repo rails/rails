@@ -1,0 +1,56 @@
+<% content_for :style do %>
+  #route_table td { padding: 0 30px; }
+  #route_table    { margin:  0 auto 0; }
+<% end %>
+
+<table id='route_table' class='route_table'>
+  <thead>
+    <tr>
+      <th>Helper<br />
+        <%= link_to "Path", "#", 'data-route-helper' => '_path',
+                    title: "Returns a relative path (without the http or domain)" %> /
+        <%= link_to "Url", "#", 'data-route-helper' => '_url',
+                    title: "Returns an absolute url (with the http and domain)" %>
+      </th>
+      <th>HTTP Verb</th>
+      <th>Path</th>
+      <th>Controller#Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= yield %>
+  </tbody>
+</table>
+
+<script type='text/javascript'>
+  function each(elems, func) {
+    if (!elems instanceof Array) { elems = [elems]; }
+    for (var i = elems.length; i--; ) {
+      func(elems[i]);
+    }
+  }
+
+  function setValOn(elems, val) {
+    each(elems, function(elem) {
+      elem.innerHTML = val;
+    });
+  }
+
+  function onClick(elems, func) {
+    each(elems, function(elem) {
+      elem.onclick = func;
+    });
+  }
+
+  // Enables functionality to toggle between `_path` and `_url` helper suffixes
+  function setupRouteToggleHelperLinks() {
+    var toggleLinks = document.querySelectorAll('#route_table [data-route-helper]');
+    onClick(toggleLinks, function(){
+      var helperTxt   = this.getAttribute("data-route-helper");
+      var helperElems = document.querySelectorAll('[data-route-name] span.helper');
+      setValOn(helperElems, helperTxt);
+    });
+  }
+
+  setupRouteToggleHelperLinks();
+</script>

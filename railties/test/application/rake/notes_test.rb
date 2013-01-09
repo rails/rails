@@ -60,8 +60,8 @@ module ApplicationTests
       test 'notes finds notes in default directories' do
         app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
+        app_file "db/some_seeds.rb", "# TODO: note in db directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "script/run_something.rb", "# TODO: note in script directory"
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
@@ -80,8 +80,8 @@ module ApplicationTests
 
           assert_match(/note in app directory/, output)
           assert_match(/note in config directory/, output)
+          assert_match(/note in db directory/, output)
           assert_match(/note in lib directory/, output)
-          assert_match(/note in script directory/, output)
           assert_match(/note in test directory/, output)
           assert_no_match(/note in some_other directory/, output)
 
@@ -96,8 +96,8 @@ module ApplicationTests
       test 'notes finds notes in custom directories' do
         app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
+        app_file "db/some_seeds.rb", "# TODO: note in db directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "script/run_something.rb", "# TODO: note in script directory"
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
@@ -116,8 +116,8 @@ module ApplicationTests
 
           assert_match(/note in app directory/, output)
           assert_match(/note in config directory/, output)
+          assert_match(/note in db directory/, output)
           assert_match(/note in lib directory/, output)
-          assert_match(/note in script directory/, output)
           assert_match(/note in test directory/, output)
 
           assert_match(/note in some_other directory/, output)

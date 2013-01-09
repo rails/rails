@@ -3,7 +3,7 @@ require 'abstract_unit'
 class RequestTest < ActiveSupport::TestCase
 
   def url_for(options = {})
-    options.reverse_merge!(:host => 'www.example.com')
+    options = { host: 'www.example.com' }.merge!(options)
     ActionDispatch::Http::URL.url_for(options)
   end
 
@@ -25,6 +25,8 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal 'http://www.example.com/',       url_for(:trailing_slash => true)
     assert_equal 'http://dhh:supersecret@www.example.com', url_for(:user => 'dhh', :password => 'supersecret')
     assert_equal 'http://www.example.com?search=books',    url_for(:params => { :search => 'books' })
+    assert_equal 'http://www.example.com?params=',  url_for(:params => '')
+    assert_equal 'http://www.example.com?params=1', url_for(:params => 1)
   end
 
   test "remote ip" do
@@ -32,7 +34,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '1.2.3.4', request.remote_ip
 
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4,3.4.5.6'
-    assert_equal '1.2.3.4', request.remote_ip
+    assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4',
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
@@ -45,30 +47,32 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,unknown'
     assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '172.16.0.1,3.4.5.6'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,172.16.0.1'
+    assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,3.4.5.6'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,192.168.0.1'
+    assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '10.0.0.1,3.4.5.6'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,10.0.0.1'
+    assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '10.0.0.1, 10.0.0.1, 3.4.5.6'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 10.0.0.1, 10.0.0.1'
+    assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '127.0.0.1,3.4.5.6'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,127.0.0.1'
+    assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
     assert_equal nil, request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 9.9.9.9, 10.0.0.1, 172.31.4.4'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 172.31.4.4, 10.0.0.1'
     assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'not_ip_address'
     assert_equal nil, request.remote_ip
+  end
 
+  test "remote ip spoof detection" do
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
                            'HTTP_CLIENT_IP'       => '2.2.2.2'
     e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
@@ -77,26 +81,20 @@ class RequestTest < ActiveSupport::TestCase
     assert_match(/IP spoofing attack/, e.message)
     assert_match(/HTTP_X_FORWARDED_FOR="1.1.1.1"/, e.message)
     assert_match(/HTTP_CLIENT_IP="2.2.2.2"/, e.message)
+  end
 
-    # turn IP Spoofing detection off.
-    # This is useful for sites that are aimed at non-IP clients.  The typical
-    # example is WAP.  Since the cellular network is not IP based, it's a
-    # leap of faith to assume that their proxies are ever going to set the
-    # HTTP_CLIENT_IP/HTTP_X_FORWARDED_FOR headers properly.
+  test "remote ip with spoof detection disabled" do
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
                            'HTTP_CLIENT_IP'       => '2.2.2.2',
                            :ip_spoofing_check => false
-    assert_equal '2.2.2.2', request.remote_ip
-
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 8.8.8.8'
-    assert_equal '9.9.9.9', request.remote_ip
+    assert_equal '1.1.1.1', request.remote_ip
   end
 
   test "remote ip v6" do
     request = stub_request 'REMOTE_ADDR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
 
-    request = stub_request 'REMOTE_ADDR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
+    request = stub_request 'REMOTE_ADDR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
 
     request = stub_request 'REMOTE_ADDR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
@@ -107,30 +105,26 @@ class RequestTest < ActiveSupport::TestCase
                            'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
     assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,unknown'
+    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '::1,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,::1'
+    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '::1,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal nil, request.remote_ip
-
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '::1,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal nil, request.remote_ip
-
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '::1, ::1, fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, ::1'
+    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,::1'
     assert_equal nil, request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::'
-    assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
+    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'not_ip_address'
     assert_equal nil, request.remote_ip
+  end
 
+  test "remote ip v6 spoof detection" do
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329',
                            'HTTP_CLIENT_IP'       => '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
@@ -139,24 +133,13 @@ class RequestTest < ActiveSupport::TestCase
     assert_match(/IP spoofing attack/, e.message)
     assert_match(/HTTP_X_FORWARDED_FOR="fe80:0000:0000:0000:0202:b3ff:fe1e:8329"/, e.message)
     assert_match(/HTTP_CLIENT_IP="2001:0db8:85a3:0000:0000:8a2e:0370:7334"/, e.message)
+  end
 
-    # Turn IP Spoofing detection off.
-    # This is useful for sites that are aimed at non-IP clients.  The typical
-    # example is WAP.  Since the cellular network is not IP based, it's a
-    # leap of faith to assume that their proxies are ever going to set the
-    # HTTP_CLIENT_IP/HTTP_X_FORWARDED_FOR headers properly.
+  test "remote ip v6 spoof detection disabled" do
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329',
                            'HTTP_CLIENT_IP'       => '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
                            :ip_spoofing_check     => false
-    assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
-
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329, 2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
-  end
-
-  test "remote ip when the remote ip middleware returns nil" do
-    request = stub_request 'REMOTE_ADDR' => '127.0.0.1'
-    assert_equal '127.0.0.1', request.remote_ip
   end
 
   test "remote ip with user specified trusted proxies String" do
@@ -168,16 +151,16 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'REMOTE_ADDR' => '172.16.0.1,67.205.106.73',
                            'HTTP_X_FORWARDED_FOR' => '67.205.106.73'
-    assert_equal '172.16.0.1', request.remote_ip
+    assert_equal '67.205.106.73', request.remote_ip
 
     request = stub_request 'REMOTE_ADDR' => '67.205.106.73,3.4.5.6',
                            'HTTP_X_FORWARDED_FOR' => '67.205.106.73'
     assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,67.205.106.73'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '67.205.106.73,unknown'
     assert_equal nil, request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 9.9.9.9, 10.0.0.1, 67.205.106.73'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
     assert_equal '3.4.5.6', request.remote_ip
   end
 
@@ -194,13 +177,13 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'REMOTE_ADDR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,::1',
                            'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
+    assert_equal '::1', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
     assert_equal nil, request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,2001:0db8:85a3:0000:0000:8a2e:0370:7334'
-    assert_equal nil, request.remote_ip
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
   end
 
   test "remote ip with user specified trusted proxies Regexp" do
@@ -210,8 +193,8 @@ class RequestTest < ActiveSupport::TestCase
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     assert_equal '3.4.5.6', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '67.205.106.73, 10.0.0.1, 9.9.9.9, 3.4.5.6'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '10.0.0.1, 9.9.9.9, 3.4.5.6, 67.205.106.73'
+    assert_equal '3.4.5.6', request.remote_ip
   end
 
   test "remote ip v6 with user specified trusted proxies Regexp" do
@@ -221,8 +204,13 @@ class RequestTest < ActiveSupport::TestCase
                            'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
     assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329, 2001:0db8:85a3:0000:0000:8a2e:0370:7334'
-    assert_equal nil, request.remote_ip
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
+    assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
+  end
+
+  test "remote ip middleware not present still returns an IP" do
+    request = ActionDispatch::Request.new({'REMOTE_ADDR' => '127.0.0.1'})
+    assert_equal '127.0.0.1', request.remote_ip
   end
 
   test "domains" do
@@ -354,7 +342,6 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "/path/of/some/uri?mapped=1", request.fullpath
     assert_equal "/of/some/uri",               request.path_info
   end
-
 
   test "host with default port" do
     request = stub_request 'HTTP_HOST' => 'rubyonrails.org:80'
@@ -577,20 +564,29 @@ class RequestTest < ActiveSupport::TestCase
   test "formats with accept header" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html'
     request.expects(:parameters).at_least_once.returns({})
-    assert_equal [ Mime::HTML ], request.formats
+    assert_equal [Mime::HTML], request.formats
 
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
-    assert_equal with_set(Mime::XML), request.formats
+    assert_equal [Mime::XML], request.formats
 
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :txt })
-    assert_equal with_set(Mime::TEXT), request.formats
+    assert_equal [Mime::TEXT], request.formats
 
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :unknown })
-    assert request.formats.empty?
+    assert_instance_of Mime::NullType, request.format
+  end
+
+  test "format is not nil with unknown format" do
+    request = stub_request
+    request.expects(:parameters).at_least_once.returns({ format: :hello })
+    assert_equal request.format.nil?, true
+    assert_equal request.format.html?, false
+    assert_equal request.format.xml?, false
+    assert_equal request.format.json?, false
   end
 
   test "formats with xhr request" do
@@ -647,6 +643,13 @@ class RequestTest < ActiveSupport::TestCase
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
     assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
+  end
+
+  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
+    request = stub_request('rack.input' => StringIO.new("foo"),
+                           'CONTENT_LENGTH' => 3)
+    assert_equal "foo", request.raw_post
+    assert_equal "foo", request.env['rack.input'].read
   end
 
   test "process parameter filter" do
@@ -810,9 +813,5 @@ protected
     ip_app.call(env)
     ActionDispatch::Http::URL.tld_length = tld_length
     ActionDispatch::Request.new(env)
-  end
-
-  def with_set(*args)
-    args
   end
 end

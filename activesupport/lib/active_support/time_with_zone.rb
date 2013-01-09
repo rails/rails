@@ -80,22 +80,43 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
+    # Returns true if the current time is within Daylight Savings Time for the
+    # specified time zone.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
+    #   Time.zone.parse("2012-5-30").dst?           # => true
+    #   Time.zone.parse("2012-11-30").dst?          # => false
     def dst?
       period.dst?
     end
     alias_method :isdst, :dst?
 
+    # Returns true if the current time zone is set to UTC.
+    #
+    #   Time.zone = 'UTC'                           # => 'UTC'
+    #   Time.zone.now.utc?                          # => true
+    #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
+    #   Time.zone.now.utc?                          # => false
     def utc?
       time_zone.name == 'UTC'
     end
     alias_method :gmt?, :utc?
 
+    # Returns the offset from current time to UTC time in seconds.
     def utc_offset
       period.utc_total_offset
     end
     alias_method :gmt_offset, :utc_offset
     alias_method :gmtoff, :utc_offset
 
+    # Returns a formatted string of the offset from UTC, or an alternative
+    # string if the time zone is already UTC.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
+    #   Time.zone.now.formatted_offset(true)       # => "-05:00"
+    #   Time.zone.now.formatted_offset(false)      # => "-0500"
+    #   Time.zone = 'UTC'                          # => "UTC"
+    #   Time.zone.now.formatted_offset(true, "0")  # => "0"
     def formatted_offset(colon = true, alternate_utc_string = nil)
       utc? && alternate_utc_string || TimeZone.seconds_to_utc_offset(utc_offset, colon)
     end
@@ -147,10 +168,18 @@ module ActiveSupport
       end
     end
 
+    # Returns a string of the object's date and time in the format used by
+    # HTTP requests.
+    #
+    #   Time.zone.now.httpdate  # => "Tue, 01 Jan 2013 04:39:43 GMT"
     def httpdate
       utc.httpdate
     end
 
+    # Returns a string of the object's date and time in the RFC 2822 standard
+    # format.
+    #
+    #   Time.zone.now.rfc2822  # => "Tue, 01 Jan 2013 04:51:39 +0000"
     def rfc2822
       to_s(:rfc822)
     end
@@ -185,18 +214,24 @@ module ActiveSupport
       utc <=> other
     end
 
+    # Returns true if the current object's time is within the specified
+    # +min+ and +max+ time.
     def between?(min, max)
       utc.between?(min, max)
     end
 
+    # Returns true if the current object's time is in the past.
     def past?
       utc.past?
     end
 
+    # Returns true if the current object's time falls within
+    # the current day.
     def today?
       time.today?
     end
 
+    # Returns true if the current object's time is in the future.
     def future?
       utc.future?
     end
@@ -344,7 +379,7 @@ module ActiveSupport
       end
 
       def transfer_time_values_to_utc_constructor(time)
-        ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:nsec) ? Rational(time.nsec, 1000) : 0)
+        ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec, Rational(time.nsec, 1000))
       end
 
       def duration_of_variable_length?(obj)

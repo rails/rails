@@ -25,6 +25,7 @@ module Rails
             get '/rails/info/properties' => "rails/info#properties"
             get '/rails/info/routes'     => "rails/info#routes"
             get '/rails/info'            => "rails/info#index"
+            get '/'                      => "rails/welcome#index"
           end
         end
       end
@@ -93,15 +94,6 @@ module Rails
       initializer :disable_dependency_loading do
         if config.eager_load && config.cache_classes
           ActiveSupport::Dependencies.unhook!
-        end
-      end
-
-      initializer :activate_queue_consumer do |app|
-        if config.queue.class == ActiveSupport::Queue
-          app.queue_consumer = config.queue_consumer || config.queue.consumer
-          app.queue_consumer.logger ||= Rails.logger if app.queue_consumer.respond_to?(:logger=)
-          app.queue_consumer.start
-          at_exit { app.queue_consumer.shutdown }
         end
       end
     end

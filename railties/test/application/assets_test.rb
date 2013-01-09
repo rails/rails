@@ -45,7 +45,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
+          get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, ["Not an asset"]] }
         end
       RUBY
 
@@ -81,6 +81,32 @@ module ApplicationTests
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
         assert_equal "alert();\n", File.read(file)
       end
+    end
+
+    def test_precompile_does_not_hit_the_database
+      app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "app/assets/javascripts/foo/application.js", "alert();"
+      app_file "app/controllers/user_controller.rb", <<-eoruby
+        class UserController < ApplicationController; end
+      eoruby
+      app_file "app/models/user.rb", <<-eoruby
+        class User < ActiveRecord::Base; end
+      eoruby
+
+      ENV['RAILS_ENV']  = 'production'
+      ENV['DATABASE_URL'] = 'postgresql://baduser:badpass@127.0.0.1/dbname'
+
+      precompile!
+
+      files = Dir["#{app_path}/public/assets/application-*.js"]
+      files << Dir["#{app_path}/public/assets/foo/application-*.js"].first
+      files.each do |file|
+        assert_not_nil file, "Expected application.js asset to be generated, but none found"
+        assert_equal "alert();".strip, File.read(file).strip
+      end
+    ensure
+      ENV.delete 'RAILS_ENV'
+      ENV.delete 'DATABASE_URL'
     end
 
     test "precompile application.js and application.css and all other non JS/CSS files" do

@@ -32,6 +32,15 @@ class DateTime
     sec + (min * 60) + (hour * 3600)
   end
 
+  # Returns the number of seconds until 23:59:59.
+  #
+  #   DateTime.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
+  #   DateTime.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
+  #   DateTime.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  def seconds_until_end_of_day
+    end_of_day.to_i - to_i
+  end
+
   # Returns a new DateTime where one or more of the elements have been changed
   # according to the +options+ parameter. The time options (<tt>:hour</tt>,
   # <tt>:minute</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
@@ -101,6 +110,7 @@ class DateTime
   def end_of_day
     change(:hour => 23, :min => 59, :sec => 59)
   end
+  alias :at_end_of_day :end_of_day
 
   # Returns a new DateTime representing the start of the hour (hh:00:00).
   def beginning_of_hour
@@ -112,6 +122,7 @@ class DateTime
   def end_of_hour
     change(:min => 59, :sec => 59)
   end
+  alias :at_end_of_hour :end_of_hour
 
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0.
   #
@@ -131,11 +142,4 @@ class DateTime
   def utc_offset
     (offset * 86400).to_i
   end
-
-  # Layers additional behavior on DateTime#<=> so that Time and
-  # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
-  def <=>(other)
-    super other.to_datetime
-  end
-
 end

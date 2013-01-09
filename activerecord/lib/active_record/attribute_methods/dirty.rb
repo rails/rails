@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/deprecation'
 
 module ActiveRecord
   module AttributeMethods
@@ -71,11 +70,11 @@ module ActiveRecord
         super(attr, value)
       end
 
-      def update(*)
+      def update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
-      def create(*)
+      def create_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
 

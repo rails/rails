@@ -4,7 +4,7 @@ module ActionDispatch
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new).tap(&:sweep)
+      @env[Flash::KEY] ||= Flash::FlashHash.from_session_value(session["flash"])
     end
   end
 
@@ -59,27 +59,41 @@ module ActionDispatch
         @flash[k]
       end
 
-      # Convenience accessor for flash.now[:alert]=
+      # Convenience accessor for <tt>flash.now[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash.now[:notice]=
+      # Convenience accessor for <tt>flash.now[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
     end
 
-    # Implementation detail: please do not change the signature of the
-    # FlashHash class. Doing that will likely affect all Rails apps in
-    # production as the FlashHash currently stored in their sessions will
-    # become invalid.
     class FlashHash
       include Enumerable
 
-      def initialize #:nodoc:
-        @discard = Set.new
-        @flashes = {}
+      def self.from_session_value(value)
+        flash = case value
+                when FlashHash # Rails 3.1, 3.2
+                  new(value.instance_variable_get(:@flashes), value.instance_variable_get(:@used))
+                when Hash # Rails 4.0
+                  new(value['flashes'], value['discard'])
+                else
+                  new
+                end
+
+        flash.tap(&:sweep)
+      end
+
+      def to_session_value
+        return nil if empty?
+        {'discard' => @discard.to_a, 'flashes' => @flashes}
+      end
+
+      def initialize(flashes = {}, discard = []) #:nodoc:
+        @discard = Set.new(discard)
+        @flashes = flashes
         @now     = nil
       end
 
@@ -91,7 +105,7 @@ module ActionDispatch
         super
       end
 
-      def []=(k, v) #:nodoc:
+      def []=(k, v)
         @discard.delete k
         @flashes[k] = v
       end
@@ -155,6 +169,14 @@ module ActionDispatch
       # vanish when the current action is done.
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
+      #
+      # Also, brings two convenience accessors:
+      #
+      #   flash.now.alert = "Beware now!"
+      #   # Equivalent to flash.now[:alert] = "Beware now!"
+      #
+      #   flash.now.notice = "Good luck now!"
+      #   # Equivalent to flash.now[:notice] = "Good luck now!"
       def now
         @now ||= FlashNow.new(self)
       end
@@ -185,22 +207,22 @@ module ActionDispatch
         @discard.replace @flashes.keys
       end
 
-      # Convenience accessor for flash[:alert]
+      # Convenience accessor for <tt>flash[:alert]</tt>.
       def alert
         self[:alert]
       end
 
-      # Convenience accessor for flash[:alert]=
+      # Convenience accessor for <tt>flash[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash[:notice]
+      # Convenience accessor for <tt>flash[:notice]</tt>.
       def notice
         self[:notice]
       end
 
-      # Convenience accessor for flash[:notice]=
+      # Convenience accessor for <tt>flash[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
@@ -223,7 +245,7 @@ module ActionDispatch
 
       if flash_hash
         if !flash_hash.empty? || session.key?('flash')
-          session["flash"] = flash_hash
+          session["flash"] = flash_hash.to_session_value
           new_hash = flash_hash.dup
         else
           new_hash = flash_hash
@@ -233,7 +255,7 @@ module ActionDispatch
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-         session.key?('flash') && session['flash'].empty?
+         session.key?('flash') && session['flash'].nil?
         session.delete('flash')
       end
     end

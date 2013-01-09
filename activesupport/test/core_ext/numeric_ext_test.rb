@@ -203,7 +203,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def terabytes(number)
     gigabytes(number) * 1024
   end
-  
+
   def test_to_s__phone
     assert_equal("555-1234", 5551234.to_s(:phone))
     assert_equal("800-555-1212", 8005551212.to_s(:phone))
@@ -217,7 +217,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("22-555-1212", 225551212.to_s(:phone))
     assert_equal("+45-22-555-1212", 225551212.to_s(:phone, :country_code => 45))
   end
-  
+
   def test_to_s__currency
     assert_equal("$1,234,567,890.50", 1234567890.50.to_s(:currency))
     assert_equal("$1,234,567,890.51", 1234567890.506.to_s(:currency))
@@ -228,8 +228,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("$1,234,567,890.5", 1234567890.50.to_s(:currency, :precision => 1))
     assert_equal("&pound;1234567890,50", 1234567890.50.to_s(:currency, :unit => "&pound;", :separator => ",", :delimiter => ""))
   end
-  
-  
+
+
   def test_to_s__rounded
     assert_equal("-111.235", -111.2346.to_s(:rounded))
     assert_equal("111.235", 111.2346.to_s(:rounded))
@@ -246,7 +246,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("11.00", 10.995.to_s(:rounded, :precision => 2))
     assert_equal("0.00", -0.001.to_s(:rounded, :precision => 2))
   end
-  
+
   def test_to_s__percentage
     assert_equal("100.000%", 100.to_s(:percentage))
     assert_equal("100%", 100.to_s(:percentage, :precision => 0))
@@ -274,7 +274,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '12.345.678,05', 12345678.05.to_s(:delimited, :separator => ',', :delimiter => '.')
     assert_equal '12.345.678,05', 12345678.05.to_s(:delimited, :delimiter => '.', :separator => ',')
   end
-  
+
 
   def test_to_s__rounded_with_custom_delimiter_and_separator
     assert_equal '31,83',       31.825.to_s(:rounded, :precision => 2, :separator => ',')
@@ -350,7 +350,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
     assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
   end
-  
+
   def test_to_s__human_size_with_options_hash
     assert_equal '1.2 MB',   1234567.to_s(:human_size, :precision => 2)
     assert_equal '3 Bytes',  3.14159265.to_s(:human_size, :precision => 4)
@@ -366,13 +366,13 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.012 KB', kilobytes(1.0123).to_s(:human_size, :precision => 3, :significant => false)
     assert_equal '1 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 0, :significant => true) #ignores significant it precision is 0
   end
-  
+
   def test_to_s__human_size_with_custom_delimiter_and_separator
     assert_equal '1,01 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 3, :separator => ',')
     assert_equal '1,01 KB',     kilobytes(1.0100).to_s(:human_size, :precision => 4, :separator => ',')
     assert_equal '1.000,1 TB',  terabytes(1000.1).to_s(:human_size, :precision => 5, :delimiter => '.', :separator => ',')
   end
-    
+
   def test_number_to_human
     assert_equal '-123', -123.to_s(:human)
     assert_equal '-0.5', -0.5.to_s(:human)
@@ -436,7 +436,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def test_to_s__injected_on_proper_types
     assert_equal Fixnum, 1230.class
     assert_equal '1.23 Thousand', 1230.to_s(:human)
-    
+
     assert_equal Float, Float(1230).class
     assert_equal '1.23 Thousand', Float(1230).to_s(:human)
 
@@ -445,5 +445,59 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
+  end
+end
+
+class NumericExtBehaviorTest < ActiveSupport::TestCase
+  def setup
+    @inf = BigDecimal.new('Infinity')
+  end
+
+  def test_compare_infinity_with_date
+    assert_equal(-1, -Float::INFINITY <=> Date.today)
+    assert_equal(1, Float::INFINITY <=> Date.today)
+    assert_equal(-1, -@inf <=> Date.today)
+    assert_equal(1, @inf <=> Date.today)
+  end
+
+  def test_compare_infinty_with_infinty
+    assert_equal(-1, -Float::INFINITY <=> Float::INFINITY)
+    assert_equal(1, Float::INFINITY <=> -Float::INFINITY)
+    assert_equal(0, Float::INFINITY <=> Float::INFINITY)
+    assert_equal(0, -Float::INFINITY <=> -Float::INFINITY)
+
+    assert_equal(-1, -Float::INFINITY <=> BigDecimal::INFINITY)
+    assert_equal(1, Float::INFINITY <=> -BigDecimal::INFINITY)
+    assert_equal(0, Float::INFINITY <=> BigDecimal::INFINITY)
+    assert_equal(0, -Float::INFINITY <=> -BigDecimal::INFINITY)
+
+    assert_equal(-1, -BigDecimal::INFINITY <=> Float::INFINITY)
+    assert_equal(1, BigDecimal::INFINITY <=> -Float::INFINITY)
+    assert_equal(0, BigDecimal::INFINITY <=> Float::INFINITY)
+    assert_equal(0, -BigDecimal::INFINITY <=> -Float::INFINITY)
+  end
+
+  def test_compare_infinity_with_time
+    assert_equal(-1, -Float::INFINITY <=> Time.now)
+    assert_equal(1, Float::INFINITY <=> Time.now)
+    assert_equal(-1, -@inf <=> Time.now)
+    assert_equal(1, @inf <=> Time.now)
+  end
+
+  def test_compare_infinity_with_datetime
+    assert_equal(-1, -Float::INFINITY <=> DateTime.now)
+    assert_equal(1, Float::INFINITY <=> DateTime.now)
+    assert_equal(-1, -@inf <=> DateTime.now)
+    assert_equal(1, @inf <=> DateTime.now)
+  end
+
+  def test_compare_infinity_with_twz
+    time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = ActiveSupport::TimeWithZone.new(Time.now, time_zone)
+
+    assert_equal(-1, -Float::INFINITY <=> twz)
+    assert_equal(1, Float::INFINITY <=> twz)
+    assert_equal(-1, -@inf <=> twz)
+    assert_equal(1, @inf <=> twz)
   end
 end

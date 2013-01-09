@@ -78,7 +78,7 @@ class DirtyTest < ActiveModel::TestCase
     @model.name = "Bob"
     @model.reset_name!
     assert_nil @model.name
-    #assert !@model.name_changed #Doesn't work yet
+    assert !@model.name_changed?
   end
 
   test "setting color to same value should not result in change being recorded" do
@@ -114,5 +114,4 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
     assert_equal @model.name_was, "Otto"
   end
-
 end

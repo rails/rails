@@ -3,19 +3,17 @@ Creating and Customizing Rails Generators & Templates
 
 Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
 
-In this guide you will:
+After reading this guide, you will know:
 
-* Learn how to see which generators are available in your application
-* Create a generator using templates
-* Learn how Rails searches for generators before invoking them
-* Customize your scaffold by creating new generators
-* Customize your scaffold by changing generator templates
-* Learn how to use fallbacks to avoid overwriting a huge set of generators
-* Learn how to create an application template
+* How to see which generators are available in your application.
+* How to create a generator using templates.
+* How Rails searches for generators before invoking them.
+* How to customize your scaffold by creating new generators.
+* How to customize your scaffold by changing generator templates.
+* How to use fallbacks to avoid overwriting a huge set of generators.
+* How to create an application template.
 
 --------------------------------------------------------------------------------
-
-NOTE: This guide is about generators in Rails 3, previous versions are not covered.
 
 First Contact
 -------------
@@ -164,7 +162,7 @@ Rails own generators are flexible enough to let you customize scaffolding. They 
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => true
+  g.test_framework  :test_unit, fixture: true
 end
 ```
 
@@ -178,7 +176,8 @@ $ rails generate scaffold User name:string
       invoke    test_unit
       create      test/models/user_test.rb
       create      test/fixtures/users.yml
-       route  resources :users
+      invoke  resource_route
+       route    resources :users
       invoke  scaffold_controller
       create    app/controllers/users_controller.rb
       invoke    erb
@@ -194,8 +193,13 @@ $ rails generate scaffold User name:string
       create      app/helpers/users_helper.rb
       invoke      test_unit
       create        test/helpers/users_helper_test.rb
-      invoke  stylesheets
-      create    app/assets/stylesheets/scaffold.css
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/users.js.coffee
+      invoke    scss
+      create      app/assets/stylesheets/users.css.scss
+      invoke  scss
+      create    app/assets/stylesheets/scaffolds.css.scss
 ```
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
@@ -206,7 +210,7 @@ Our first customization on the workflow will be to stop generating stylesheets a
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => false
+  g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
 end
 ```
@@ -253,7 +257,7 @@ Which is what we expected. We can now tell scaffold to use our new helper genera
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => false
+  g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
   g.helper          :my_helper
 end
@@ -292,7 +296,7 @@ Now, when the helper generator is invoked and TestUnit is configured as the test
 
 ```ruby
 # Search for :helper instead of :my_helper
-hook_for :test_framework, :as => :helper
+hook_for :test_framework, as: :helper
 ```
 
 And now you can re-run scaffold for another resource and see it generating tests as well!
@@ -316,7 +320,7 @@ and revert the last change in `config/application.rb`:
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, :fixture => false
+  g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
 end
 ```
@@ -334,7 +338,7 @@ We can easily simulate this behavior by changing our `config/application.rb` onc
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :shoulda, :fixture => false
+  g.test_framework  :shoulda, fixture: false
   g.stylesheets     false
 
   # Add a fallback!
@@ -352,6 +356,7 @@ $ rails generate scaffold Comment body:text
       invoke    shoulda
       create      test/models/comment_test.rb
       create      test/fixtures/comments.yml
+      invoke  resource_route
        route    resources :comments
       invoke  scaffold_controller
       create    app/controllers/comments_controller.rb
@@ -362,13 +367,16 @@ $ rails generate scaffold Comment body:text
       create      app/views/comments/show.html.erb
       create      app/views/comments/new.html.erb
       create      app/views/comments/_form.html.erb
-      create      app/views/layouts/comments.html.erb
       invoke    shoulda
       create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
       invoke      shoulda
       create        test/helpers/comments_helper_test.rb
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/comments.js.coffee
+      invoke    scss
 ```
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
@@ -376,18 +384,18 @@ Fallbacks allow your generators to have a single responsibility, increasing code
 Application Templates
 ---------------------
 
-Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template".
+Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template". This is a brief overview of the Templates API. For detailed documentation see the [Rails Application Templates guide](rails_application_templates.html).
 
 ```ruby
-gem("rspec-rails", :group => "test")
-gem("cucumber-rails", :group => "test")
+gem "rspec-rails", group: "test"
+gem "cucumber-rails", group: "test"
 
 if yes?("Would you like to install Devise?")
-  gem("devise")
-  generate("devise:install")
+  gem "devise"
+  generate "devise:install"
   model_name = ask("What would you like the user model to be called? [user]")
   model_name = "user" if model_name.blank?
-  generate("devise", model_name)
+  generate "devise", model_name
 end
 ```
 
@@ -421,8 +429,8 @@ NOTE: Methods provided by Thor are not covered this guide and can be found in [T
 Specifies a gem dependency of the application.
 
 ```ruby
-gem("rspec", :group => "test", :version => "2.1.0")
-gem("devise", "1.1.5")
+gem "rspec", group: "test", version: "2.1.0"
+gem "devise", "1.1.5"
 ```
 
 Available options are:
@@ -434,13 +442,13 @@ Available options are:
 Any additional options passed to this method are put on the end of the line:
 
 ```ruby
-gem("devise", :git => "git://github.com/plataformatec/devise", :branch => "master")
+gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
 ```
 
 The above code will put the following line into `Gemfile`:
 
 ```ruby
-gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
+gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
 ```
 
 ### `gem_group`
@@ -466,7 +474,7 @@ add_source "http://gems.github.com"
 Injects a block of code into a defined position in your file.
 
 ```ruby
-inject_into_file 'name_of_file.rb', :after => "#The code goes below this line. Don't forget the Line break at the end\n" do <<-'RUBY'
+inject_into_file 'name_of_file.rb', after: "#The code goes below this line. Don't forget the Line break at the end\n" do <<-'RUBY'
   puts "Hello World"
 RUBY
 end
@@ -503,7 +511,7 @@ Available options are:
 * `:env` - Specify an environment for this configuration option. If you wish to use this option with the block syntax the recommended syntax is as follows:
 
 ```ruby
-application(nil, :env => "development") do
+application(nil, env: "development") do
   "config.asset_host = 'http://localhost:3000'"
 end
 ```
@@ -514,9 +522,9 @@ Runs the specified git command:
 
 ```ruby
 git :init
-git :add => "."
-git :commit => "-m First commit!"
-git :add => "onefile.rb", :rm => "badfile.cxx"
+git add: "."
+git commit: "-m First commit!"
+git add: "onefile.rb", rm: "badfile.cxx"
 ```
 
 The values of the hash here being the arguments or options passed to the specific git command. As per the final example shown here, multiple git commands can be specified at a time, but the order of their running is not guaranteed to be the same as the order that they were specified in.
@@ -526,13 +534,13 @@ The values of the hash here being the arguments or options passed to the specifi
 Places a file into `vendor` which contains the specified code.
 
 ```ruby
-vendor("sekrit.rb", '#top secret stuff')
+vendor "sekrit.rb", '#top secret stuff'
 ```
 
 This method also takes a block:
 
 ```ruby
-vendor("seeds.rb") do
+vendor "seeds.rb" do
   "puts 'in ur app, seeding ur database'"
 end
 ```
@@ -542,13 +550,13 @@ end
 Places a file into `lib` which contains the specified code.
 
 ```ruby
-lib("special.rb", 'p Rails.root')
+lib "special.rb", "p Rails.root"
 ```
 
 This method also takes a block:
 
 ```ruby
-lib("super_special.rb") do
+lib "super_special.rb" do
   puts "Super special!"
 end
 ```
@@ -558,15 +566,15 @@ end
 Creates a Rake file in the `lib/tasks` directory of the application.
 
 ```ruby
-rakefile("test.rake", 'hello there')
+rakefile "test.rake", "hello there"
 ```
 
 This method also takes a block:
 
 ```ruby
-rakefile("test.rake") do
+rakefile "test.rake" do
   %Q{
-    task :rock => :environment do
+    task rock: :environment do
       puts "Rockin'"
     end
   }
@@ -578,13 +586,13 @@ end
 Creates an initializer in the `config/initializers` directory of the application:
 
 ```ruby
-initializer("begin.rb", "puts 'this is the beginning'")
+initializer "begin.rb", "puts 'this is the beginning'"
 ```
 
 This method also takes a block:
 
 ```ruby
-initializer("begin.rb") do
+initializer "begin.rb" do
   puts "Almost done!"
 end
 ```
@@ -594,7 +602,7 @@ end
 Runs the specified generator where the first argument is the generator name and the remaining arguments are passed directly to the generator.
 
 ```ruby
-generate("scaffold", "forums title:string description:text")
+generate "scaffold", "forums title:string description:text"
 ```
 
 
@@ -603,7 +611,7 @@ generate("scaffold", "forums title:string description:text")
 Runs the specified Rake task.
 
 ```ruby
-rake("db:migrate")
+rake "db:migrate"
 ```
 
 Available options are:
@@ -624,7 +632,7 @@ capify!
 Adds text to the `config/routes.rb` file:
 
 ```ruby
-route("resources :people")
+route "resources :people"
 ```
 
 ### `readme`
@@ -632,5 +640,5 @@ route("resources :people")
 Output the contents of a file in the template's `source_path`, usually a README.
 
 ```ruby
-readme("README")
+readme "README"
 ```

@@ -2,14 +2,16 @@ Performance Testing Rails Applications
 ======================================
 
 This guide covers the various ways of performance testing a Ruby on Rails
-application. By referring to this guide, you will be able to:
+application.
 
-* Understand the various types of benchmarking and profiling metrics.
-* Generate performance and benchmarking tests.
-* Install and use a GC-patched Ruby binary to measure memory usage and object
+After reading this guide, you will know:
+
+* The various types of benchmarking and profiling metrics.
+* How to generate performance and benchmarking tests.
+* How to install and use a GC-patched Ruby binary to measure memory usage and object
   allocation.
-* Understand the benchmarking information provided by Rails inside the log files.
-* Learn about various tools facilitating benchmarking and profiling.
+* The benchmarking information provided by Rails inside the log files.
+* Various tools facilitating benchmarking and profiling.
 
 Performance testing is an integral part of the development cycle. It is very
 important that you don't make your end users wait for too long before the page
@@ -413,7 +415,7 @@ tests will set the following configuration parameters:
 ```bash
 ActionController::Base.perform_caching = true
 ActiveSupport::Dependencies.mechanism = :require
-Rails.logger.level = ActiveSupport::BufferedLogger::INFO
+Rails.logger.level = ActiveSupport::Logger::INFO
 ```
 
 As `ActionController::Base.perform_caching` is set to `true`, performance tests
@@ -424,19 +426,11 @@ will behave much as they do in the `production` environment.
 To get the best from Rails' performance tests under MRI, you'll need to build
 a special Ruby binary with some super powers.
 
-The recommended patches for each MRI version are:
-
-| Version         | Patch     |
-| --------------- | --------- |
-| 1.8.6           | ruby186gc |
-| 1.8.7           | ruby187gc |
-| 1.9.2 and above | gcdata    |
-
-All of these can be found on [RVM's _patches_ directory](https://github.com/wayneeseguin/rvm/tree/master/patches/ruby)
+The recommended patches for MRI can be found on [RVM's _patches_ directory](https://github.com/wayneeseguin/rvm/tree/master/patches/ruby)
 under each specific interpreter version.
 
 Concerning the installation itself, you can either do this easily by using
-[RVM](http://rvm.beginrescueend.com) or you can build everything from source,
+[RVM](https://rvm.io/) or you can build everything from source,
 which is a little bit harder.
 
 #### Install Using RVM
@@ -447,7 +441,6 @@ patched Ruby interpreter:
 
 ```bash
 $ rvm install 1.9.2-p180 --patch gcdata
-$ rvm install 1.8.7 --patch ruby187gc
 $ rvm install 1.9.2-p180 --patch ~/Downloads/downloaded_gcdata_patch.patch
 ```
 
@@ -480,8 +473,7 @@ $ cd <ruby-version>
 ##### Apply the Patch
 
 ```bash
-$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
-$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
+$ curl https://raw.github.com/wayneeseguin/rvm/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
 ```
 
 ##### Configure and Install
@@ -515,7 +507,7 @@ Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile
 under MRI or REE:
 
 ```ruby
-gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
+gem 'ruby-prof'
 ```
 
 Now run `bundle install` and you're ready to go.
@@ -557,9 +549,9 @@ Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
                                      Default: 1
     -o, --output PATH                Directory to use when writing the results.
                                      Default: tmp/performance
-        --metrics a,b,c              Metrics to use.
+    -m, --metrics a,b,c              Metrics to use.
                                      Default: process_time,memory,objects
-    -m, --formats x,y,z              Formats to output to.
+    -f, --formats x,y,z              Formats to output to.
                                      Default: flat,graph_html,call_tree
 ```
 

@@ -157,13 +157,11 @@ module AbstractController
 
       private
       def self.layout(formats)
+        find_template(name.underscore, {:formats => formats}, :_prefixes => ["layouts"])
+      rescue ActionView::MissingTemplate
         begin
-          find_template(name.underscore, {:formats => formats}, :_prefixes => ["layouts"])
+          find_template("application", {:formats => formats}, :_prefixes => ["layouts"])
         rescue ActionView::MissingTemplate
-          begin
-            find_template("application", {:formats => formats}, :_prefixes => ["layouts"])
-          rescue ActionView::MissingTemplate
-          end
         end
       end
 

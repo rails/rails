@@ -170,7 +170,7 @@ module AbstractController
   # <tt>:only</tt> and <tt>:except</tt> options can be passed to the layout call. For example:
   #
   #   class WeblogController < ActionController::Base
-  #     layout "weblog_standard", :except => :rss
+  #     layout "weblog_standard", except: :rss
   #
   #     # ...
   #
@@ -180,7 +180,7 @@ module AbstractController
   # be rendered directly, without wrapping a layout around the rendered view.
   #
   # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
-  # #<tt>:except => [ :rss, :text_only ]</tt> is valid, as is <tt>:except => :rss</tt>.
+  # #<tt>except: [ :rss, :text_only ]</tt> is valid, as is <tt>except: :rss</tt>.
   #
   # == Using a different layout in the action render call
   #
@@ -192,7 +192,7 @@ module AbstractController
   #     layout "weblog_standard"
   #
   #     def help
-  #       render :action => "help", :layout => "help"
+  #       render action: "help", layout: "help"
   #     end
   #   end
   #
@@ -209,24 +209,26 @@ module AbstractController
       _write_layout_method
     end
 
-    delegate :_layout_conditions, :to => "self.class"
+    delegate :_layout_conditions, to: :class
 
     module ClassMethods
-      def inherited(klass)
+      def inherited(klass) # :nodoc:
         super
         klass._write_layout_method
       end
 
       # This module is mixed in if layout conditions are provided. This means
       # that if no layout conditions are used, this method is not used
-      module LayoutConditions
-        # Determines whether the current action has a layout by checking the
-        # action name against the :only and :except conditions set on the
-        # layout.
+      module LayoutConditions # :nodoc:
+      private
+
+        # Determines whether the current action has a layout definition by
+        # checking the action name against the :only and :except conditions
+        # set by the <tt>layout</tt> method.
         #
         # ==== Returns
-        # * <tt> Boolean</tt> - True if the action has a layout, false otherwise.
-        def conditional_layout?
+        # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
+        def _conditional_layout?
           return unless super
 
           conditions = _layout_conditions
@@ -271,7 +273,7 @@ module AbstractController
       #
       # ==== Returns
       # * <tt>String</tt> - A template name
-      def _implied_layout_name
+      def _implied_layout_name # :nodoc:
         controller_path
       end
 
@@ -279,7 +281,7 @@ module AbstractController
       #
       # If a layout is not explicitly mentioned then look for a layout with the controller's name.
       # if nothing is found then try same procedure to find super class's layout.
-      def _write_layout_method
+      def _write_layout_method # :nodoc:
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
@@ -318,7 +320,7 @@ module AbstractController
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout
-            if conditional_layout?
+            if _conditional_layout?
               #{layout_definition}
             else
               #{name_clause}
@@ -329,7 +331,7 @@ module AbstractController
       end
     end
 
-    def _normalize_options(options)
+    def _normalize_options(options) # :nodoc:
       super
 
       if _include_layout?(options)
@@ -340,20 +342,26 @@ module AbstractController
 
     attr_internal_writer :action_has_layout
 
-    def initialize(*)
+    def initialize(*) # :nodoc:
       @_action_has_layout = true
       super
     end
 
+    # Controls whether an action should be rendered using a layout.
+    # If you want to disable any <tt>layout</tt> settings for the
+    # current action so that it is rendered without a layout then
+    # either override this method in your controller to return false
+    # for that action or set the <tt>action_has_layout</tt> attribute
+    # to false before rendering.
     def action_has_layout?
       @_action_has_layout
     end
 
-    def conditional_layout?
+  private
+
+    def _conditional_layout?
       true
     end
-
-  private
 
     # This will be overwritten by _write_layout_method
     def _layout; end

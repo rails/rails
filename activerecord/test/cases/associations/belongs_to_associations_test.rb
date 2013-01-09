@@ -33,7 +33,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
     sql = Client.joins(:firm_with_primary_key).to_sql
-    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
     elsif current_adapter?(:OracleAdapter)
@@ -61,6 +61,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     citibank = Account.create("credit_limit" => 10)
     citibank.firm = apple
     assert_equal apple.id, citibank.firm_id
+  end
+
+  def test_id_assignment
+    apple = Firm.create("name" => "Apple")
+    citibank = Account.create("credit_limit" => 10)
+    citibank.firm_id = apple
+    assert_nil citibank.firm_id
   end
 
   def test_natural_assignment_with_primary_key
@@ -107,6 +114,34 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     apple    = citibank.build_firm("name" => "Apple")
     citibank.save
     assert_equal apple.id, citibank.firm_id
+  end
+
+  def test_building_the_belonging_object_with_implicit_sti_base_class
+    account = Account.new
+    company = account.build_firm
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_belonging_object_with_explicit_sti_base_class
+    account = Account.new
+    company = account.build_firm(:type => "Company")
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_belonging_object_with_sti_subclass
+    account = Account.new
+    company = account.build_firm(:type => "Firm")
+    assert_kind_of Firm, company, "Expected #{company.class} to be a Firm"
+  end
+
+  def test_building_the_belonging_object_with_an_invalid_type
+    account = Account.new
+    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(:type => "InvalidType") }
+  end
+
+  def test_building_the_belonging_object_with_an_unrelated_type
+    account = Account.new
+    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(:type => "Account") }
   end
 
   def test_building_the_belonging_object_with_primary_key
@@ -289,12 +324,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
-  def test_belongs_to_counter_after_update_attributes
-    topic = Topic.create!(:title => "37s")
-    topic.replies.create!(:title => "re: 37s", :content => "rails")
+  def test_belongs_to_counter_after_update
+    topic = Topic.create!(title: "37s")
+    topic.replies.create!(title: "re: 37s", content: "rails")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_attributes(:title => "37signals")
+    topic.update(title: "37signals")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
@@ -537,6 +572,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
     new_firm = accounts(:signals37).build_firm(:name => 'Apple')
     assert_equal new_firm.name, "Apple"
+  end
+
+  def test_attributes_are_set_without_error_when_initialized_from_belongs_to_association_with_array_in_where_clause
+    new_account = Account.where(:credit_limit => [ 50, 60 ]).new
+    assert_nil new_account.credit_limit
   end
 
   def test_reassigning_the_parent_id_updates_the_object

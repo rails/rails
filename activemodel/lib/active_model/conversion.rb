@@ -1,5 +1,3 @@
-require 'active_support/inflector'
-
 module ActiveModel
   # == Active \Model Conversions
   #

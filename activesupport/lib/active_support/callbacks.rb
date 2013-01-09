@@ -1,3 +1,4 @@
+require 'thread_safe'
 require 'active_support/concern'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/class/attribute'
@@ -14,7 +15,7 @@ module ActiveSupport
   # Mixing in this module allows you to define the events in the object's
   # lifecycle that will support callbacks (via +ClassMethods.define_callbacks+),
   # set the instance methods, procs, or callback objects to be called (via
-  # +ClassMethods.set_callback+), and run the installed callbacks at the
+  # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
   #
   # Three kinds of callbacks are supported: before callbacks, run before a
@@ -131,6 +132,10 @@ module ActiveSupport
 
       def matches?(_kind, _filter)
         @kind == _kind && @filter == _filter
+      end
+
+      def duplicates?(other)
+        matches?(other.kind, other.filter)
       end
 
       def _update_filter(filter_options, new_options)
@@ -327,6 +332,30 @@ module ActiveSupport
         method.join("\n")
       end
 
+      def append(*callbacks)
+        callbacks.each { |c| append_one(c) }
+      end
+
+      def prepend(*callbacks)
+        callbacks.each { |c| prepend_one(c) }
+      end
+
+      private
+
+      def append_one(callback)
+        remove_duplicates(callback)
+        push(callback)
+      end
+
+      def prepend_one(callback)
+        remove_duplicates(callback)
+        unshift(callback)
+      end
+
+      def remove_duplicates(callback)
+        delete_if { |c| callback.duplicates?(c) }
+      end
+
     end
 
     module ClassMethods
@@ -351,8 +380,16 @@ module ActiveSupport
         undef_method(name) if method_defined?(name)
       end
 
-      def __callback_runner_name(kind)
+      def __callback_runner_name_cache
+        @__callback_runner_name_cache ||= ThreadSafe::Cache.new {|cache, kind| cache[kind] = __generate_callback_runner_name(kind) }
+      end
+
+      def __generate_callback_runner_name(kind)
         "_run__#{self.name.hash.abs}__#{kind}__callbacks"
+      end
+
+      def __callback_runner_name(kind)
+        __callback_runner_name_cache[kind]
       end
 
       # This is used internally to append, prepend and skip callbacks to the
@@ -382,7 +419,7 @@ module ActiveSupport
       #   set_callback :save, :before_meth
       #
       # The callback can specified as a symbol naming an instance method; as a
-      # proc, lambda, or block; as a string to be instance evaluated; or as an
+      # proc, lambda, or block; as a string to be instance evaluated; or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
       # argument to +define_callback+.
       #
@@ -412,11 +449,7 @@ module ActiveSupport
             Callback.new(chain, filter, type, options.dup, self)
           end
 
-          filters.each do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) }
-          end
-
-          options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
+          options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
 
           target.send("_#{name}_callbacks=", chain)
         end

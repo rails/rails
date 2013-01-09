@@ -32,7 +32,7 @@ module ActionController
     #   redirect_to :back
     #   redirect_to proc { edit_post_url(@post) }
     #
-    # The redirection happens as a "302 Moved" header unless otherwise specified.
+    # The redirection happens as a "302 Found" header unless otherwise specified.
     #
     #   redirect_to post_url(@post), status: :found
     #   redirect_to action: 'atom', status: :moved_permanently
@@ -74,7 +74,7 @@ module ActionController
 
     private
       def _extract_redirect_to_status(options, response_status)
-        status = if options.is_a?(Hash) && options.key?(:status)
+        if options.is_a?(Hash) && options.key?(:status)
           Rack::Utils.status_code(options.delete(:status))
         elsif response_status.key?(:status)
           Rack::Utils.status_code(response_status[:status])
@@ -94,8 +94,7 @@ module ActionController
         when String
           request.protocol + request.host_with_port + options
         when :back
-          raise RedirectBackError unless refer = request.headers["Referer"]
-          refer
+          request.headers["Referer"] or raise RedirectBackError
         when Proc
           _compute_redirect_to_location options.call
         else

@@ -1,5 +1,6 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/topic'
+require 'models/person'
 require 'bcrypt'
 
 class SerializedAttributeTest < ActiveRecord::TestCase
@@ -211,5 +212,26 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = topic.reload
     assert_kind_of BCrypt::Password, topic.content
     assert_equal(true, topic.content == password, 'password should equal')
+  end
+
+  def test_serialize_attribute_via_select_method_when_time_zone_available
+    ActiveRecord::Base.time_zone_aware_attributes = true
+    Topic.serialize(:content, MyObject)
+
+    myobj = MyObject.new('value1', 'value2')
+    topic = Topic.create(content: myobj)
+
+    assert_equal(myobj, Topic.select(:content).find(topic.id).content)
+    assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+  end
+
+  def test_serialize_attribute_can_be_serialized_in_an_integer_column
+    insures = ['life']
+    person = SerializedPerson.new(first_name: 'David', insures: insures)
+    assert person.save
+    person = person.reload
+    assert_equal(insures, person.insures)
   end
 end

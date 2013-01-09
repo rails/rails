@@ -114,11 +114,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          if through_reflection.macro == :belongs_to && owner[through_reflection.foreign_key].blank?
-            false
-          else
-            true
-          end
+          !(through_reflection.macro == :belongs_to && owner[through_reflection.foreign_key].blank?)
         end
 
         def update_through_counter?(method)
@@ -152,6 +148,11 @@ module ActiveRecord
           end
 
           delete_through_records(records)
+
+          if source_reflection.options[:counter_cache]
+            counter = source_reflection.counter_cache_column
+            klass.decrement_counter counter, records.map(&:id)
+          end
 
           if through_reflection.macro == :has_many && update_through_counter?(method)
             update_counter(-count, through_reflection)

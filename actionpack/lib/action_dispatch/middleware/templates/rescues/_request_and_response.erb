@@ -1,8 +1,8 @@
 <% unless @exception.blamed_files.blank? %>
   <% if (hide = @exception.blamed_files.length > 8) %>
-    <a href="#" onclick="document.getElementById('blame_trace').style.display='block'; return false;">Show blamed files</a>
+    <a href="#" onclick="toggleTrace()">Toggle blamed files</a>
   <% end %>
-  <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%=h @exception.describe_blame %></code></pre>
+  <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%= @exception.describe_blame %></code></pre>
 <% end %>
 
 <%
@@ -18,14 +18,17 @@
 %>
 
 <h2 style="margin-top: 30px">Request</h2>
-<p><b>Parameters</b>: <pre><%=h request_dump %></pre></p>
+<p><b>Parameters</b>:</p> <pre><%= request_dump %></pre>
 
-<p><a href="#" onclick="document.getElementById('session_dump').style.display='block'; return false;">Show session dump</a></p>
-<div id="session_dump" style="display:none"><pre><%= debug_hash @request.session %></pre></div>
+<div class="details">
+  <div class="summary"><a href="#" onclick="toggleSessionDump()">Toggle session dump</a></div>
+  <div id="session_dump" style="display:none"><pre><%= debug_hash @request.session %></pre></div>
+</div>
 
-<p><a href="#" onclick="document.getElementById('env_dump').style.display='block'; return false;">Show env dump</a></p>
-<div id="env_dump" style="display:none"><pre><%= debug_hash @request.env.slice(*@request.class::ENV_METHODS) %></pre></div>
-
+<div class="details">
+  <div class="summary"><a href="#" onclick="toggleEnvDump()">Toggle env dump</a></div>
+  <div id="env_dump" style="display:none"><pre><%= debug_hash @request.env.slice(*@request.class::ENV_METHODS) %></pre></div>
+</div>
 
 <h2 style="margin-top: 30px">Response</h2>
-<p><b>Headers</b>: <pre><%=h defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre></p>
+<p><b>Headers</b>:</p> <pre><%= defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre>

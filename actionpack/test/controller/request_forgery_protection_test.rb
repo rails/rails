@@ -320,7 +320,7 @@ class FreeCookieControllerTest < ActionController::TestCase
 
   test 'should not emit a csrf-token meta tag' do
     get :meta
-    assert_blank @response.body
+    assert @response.body.blank?
   end
 end
 

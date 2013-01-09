@@ -244,89 +244,16 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal :rollback, @first.last_after_transaction_error
     assert_equal [:after_rollback], @second.history
   end
-end
 
-
-class TransactionObserverCallbacksTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
-  fixtures :topics
-
-  class TopicWithObserverAttached < ActiveRecord::Base
-    self.table_name = :topics
-    def history
-      @history ||= []
-    end
+  def test_after_rollback_callbacks_should_validate_on_condition
+    assert_raise(ArgumentError) { Topic.send(:after_rollback, :on => :save) }
   end
 
-  class TopicWithObserverAttachedObserver < ActiveRecord::Observer
-    def after_commit(record)
-      record.history.push "after_commit"
-    end
-
-    def after_rollback(record)
-      record.history.push "after_rollback"
-    end
-  end
-
-  def test_after_commit_called
-    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithObserverAttached.new
-    topic.save!
-
-    assert_equal %w{ after_commit }, topic.history
-  end
-
-  def test_after_rollback_called
-    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithObserverAttached.new
-
-    Topic.transaction do
-      topic.save!
-      raise ActiveRecord::Rollback
-    end
-
-    assert topic.id.nil?
-    assert !topic.persisted?
-    assert_equal %w{ after_rollback }, topic.history
-  end
-
-  class TopicWithManualRollbackObserverAttached < ActiveRecord::Base
-    self.table_name = :topics
-    def history
-      @history ||= []
-    end
-  end
-
-  class TopicWithManualRollbackObserverAttachedObserver < ActiveRecord::Observer
-    def after_save(record)
-      record.history.push "after_save"
-      raise ActiveRecord::Rollback
-    end
-  end
-
-  def test_after_save_called_with_manual_rollback
-    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithManualRollbackObserverAttached.new
-    
-    assert !topic.save
-    assert_equal nil, topic.id
-    assert !topic.persisted?
-    assert_equal %w{ after_save }, topic.history
-  end
-  def test_after_save_called_with_manual_rollback_bang
-    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithManualRollbackObserverAttached.new
-    
-    topic.save!
-    assert_equal nil, topic.id
-    assert !topic.persisted?
-    assert_equal %w{ after_save }, topic.history
+  def test_after_commit_callbacks_should_validate_on_condition
+    assert_raise(ArgumentError) { Topic.send(:after_commit, :on => :save) }
   end
 end
+
 
 class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

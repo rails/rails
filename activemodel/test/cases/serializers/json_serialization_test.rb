@@ -157,11 +157,8 @@ class JsonSerializationTest < ActiveModel::TestCase
 
   test "as_json should keep the default order in the hash" do
     json = @contact.as_json
-    keys = json.keys
 
-    %w(name age created_at awesome preferences).each_with_index do |field, index|
-      assert_equal keys.index(field), index
-    end
+    assert_equal %w(name age created_at awesome preferences), json.keys
   end
 
   test "from_json should work without a root (class attribute)" do

@@ -4,6 +4,10 @@ require 'rbconfig'
 module Rails
   module Generators
     module Actions
+      def initialize(*) # :nodoc:
+        super
+        @in_group = nil
+      end
 
       # Adds an entry into Gemfile for the supplied gem.
       #
@@ -78,7 +82,7 @@ module Rails
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.active_record.observers = :cacher"
+      #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
@@ -186,7 +190,7 @@ module Rails
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
-        in_root { run_ruby_script("script/rails generate #{what} #{argument}", verbose: false) }
+        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
 
       # Runs the supplied rake task

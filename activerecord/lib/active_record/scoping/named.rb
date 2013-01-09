@@ -116,7 +116,7 @@ module ActiveRecord
         # Scopes can also be used while creating/building a record.
         #
         #   class Article < ActiveRecord::Base
-        #     scope :published, -> { where(published: true) }
+        #     scope :published, -> { where(published: true) }
         #   end
         #
         #   Article.published.new.published    # => true
@@ -126,7 +126,7 @@ module ActiveRecord
         # on scopes. Assuming the following setup:
         #
         #   class Article < ActiveRecord::Base
-        #     scope :published, -> { where(published: true) }
+        #     scope :published, -> { where(published: true) }
         #     scope :featured, -> { where(featured: true) }
         #
         #     def self.latest_article
@@ -134,16 +134,14 @@ module ActiveRecord
         #     end
         #
         #     def self.titles
-        #       map(&:title)
+        #       pluck(:title)
         #     end
-        #
         #   end
         #
         # We are able to call the methods like this:
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
-
         def scope(name, body, &block)
           extension = Module.new(&block) if block
 

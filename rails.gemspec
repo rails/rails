@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.bindir      = 'bin'
   s.executables = []
-  s.files       = Dir['guides/**/*']
+  s.files       = ['README.rdoc'] + Dir['guides/**/*']
 
   s.add_dependency 'activesupport', version
   s.add_dependency 'actionpack',    version
@@ -26,6 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'actionmailer',  version
   s.add_dependency 'railties',      version
 
-  s.add_dependency 'bundler',         '~> 1.2'
+  s.add_dependency 'bundler',         '>= 1.3.0.pre.4', '< 2.0'
   s.add_dependency 'sprockets-rails', '~> 2.0.0.rc1'
 end

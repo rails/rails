@@ -9,7 +9,7 @@
 require 'fileutils'
 
 require 'bundler/setup' unless defined?(Bundler)
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'active_support/test_case'
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -119,7 +119,7 @@ module TestHelpers
 
       add_to_config <<-RUBY
         config.eager_load = false
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
@@ -138,7 +138,7 @@ module TestHelpers
 
       app = Class.new(Rails::Application)
       app.config.eager_load = false
-      app.config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+      app.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
       app.config.session_store :cookie_store, key: "_myapp_session"
       app.config.active_support.deprecation = :log
 
@@ -206,7 +206,7 @@ module TestHelpers
 
     def script(script)
       Dir.chdir(app_path) do
-        `#{Gem.ruby} #{app_path}/script/rails #{script}`
+        `#{Gem.ruby} #{app_path}/bin/rails #{script}`
       end
     end
 

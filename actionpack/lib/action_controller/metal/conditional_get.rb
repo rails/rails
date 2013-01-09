@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-
 module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
@@ -42,7 +40,7 @@ module ActionController
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cachable by other devices (proxy caches).
     #
-    # === Example:
+    # === Example:
     #
     #   def show
     #     @article = Article.find(params[:id])

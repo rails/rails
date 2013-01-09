@@ -40,7 +40,7 @@ module ActionController
 
       def thread_locals
         tc.assert_equal 'aaron', Thread.current[:setting]
-        tc.refute_equal Thread.current.object_id, Thread.current[:originating_thread]
+        tc.assert_not_equal Thread.current.object_id, Thread.current[:originating_thread]
 
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|

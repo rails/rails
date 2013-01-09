@@ -1,12 +1,14 @@
 Debugging Rails Applications
 ============================
 
-This guide introduces techniques for debugging Ruby on Rails applications. By referring to this guide, you will be able to:
+This guide introduces techniques for debugging Ruby on Rails applications.
 
-* Understand the purpose of debugging
-* Track down problems and issues in your application that your tests aren't identifying
-* Learn the different ways of debugging
-* Analyze the stack trace
+After reading this guide, you will know:
+
+* The purpose of debugging.
+* How to track down problems and issues in your application that your tests aren't identifying.
+* The different ways of debugging.
+* How to analyze the stack trace.
 
 --------------------------------------------------------------------------------
 
@@ -27,7 +29,7 @@ The `debug` helper will return a \<pre>-tag that renders the object using the YA
 <%= debug @post %>
 <p>
   <b>Title:</b>
-  <%=h @post.title %>
+  <%= @post.title %>
 </p>
 ```
 
@@ -56,7 +58,7 @@ Displaying an instance variable, or any other object or method, in YAML format c
 <%= simple_format @post.to_yaml %>
 <p>
   <b>Title:</b>
-  <%=h @post.title %>
+  <%= @post.title %>
 </p>
 ```
 
@@ -86,7 +88,7 @@ Another useful method for displaying object values is `inspect`, especially when
 <%= [1, 2, 3, 4, 5].inspect %>
 <p>
   <b>Title:</b>
-  <%=h @post.title %>
+  <%= @post.title %>
 </p>
 ```
 
@@ -105,7 +107,7 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 ### What is the Logger?
 
-Rails makes use of the `ActiveSupport::BufferedLogger` class to write log information. You can also substitute another logger such as `Log4r` if you wish.
+Rails makes use of the `ActiveSupport::Logger` class to write log information. You can also substitute another logger such as `Log4r` if you wish.
 
 You can specify an alternative logger in your `environment.rb` or any environment file:
 
@@ -164,7 +166,7 @@ class PostsController < ApplicationController
       logger.debug "The post was saved and now the user is going to be redirected..."
       redirect_to(@post)
     else
-      render :action => "new"
+      render action: "new"
     end
   end
 
@@ -662,7 +664,7 @@ References
 ----------
 
 * [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
-* [debugger Homepage](http://github.com/cldwalker/debugger)
+* [debugger Homepage](https://github.com/cldwalker/debugger)
 * [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/article/debug-rails-app-ruby-debug/)
 * [ruby-debug Basics screencast](http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/)
 * [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)

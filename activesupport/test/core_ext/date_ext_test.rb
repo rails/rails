@@ -34,7 +34,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_time
     assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
-    assert_equal Time.local_time(2039, 2, 21), Date.new(2039, 2, 21).to_time
+    assert_equal Time.local(2039, 2, 21), Date.new(2039, 2, 21).to_time
     silence_warnings do
       0.upto(138) do |year|
         [:utc, :local].each do |format|
@@ -351,6 +351,19 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_can_freeze_twice
     assert_nothing_raised do
       Date.today.freeze.freeze
+    end
+  end
+
+  def test_compare_with_infinity
+    assert_equal(-1, Date.today <=> Float::INFINITY)
+    assert_equal(1, Date.today <=> -Float::INFINITY)
+  end
+end
+
+class DateExtConversionsTest < ActiveSupport::TestCase
+  def test_to_time_in_current_zone_is_deprecated
+    assert_deprecated(/to_time_in_current_zone/) do
+      Date.new(2012,6,7).to_time_in_current_zone
     end
   end
 end

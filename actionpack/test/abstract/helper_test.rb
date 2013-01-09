@@ -69,12 +69,10 @@ module AbstractController
       end
 
       def test_declare_missing_helper
-        begin
-          AbstractHelpers.helper :missing
-          flunk "should have raised an exception"
-        rescue LoadError => e
-          assert_equal "helpers/missing_helper.rb", e.path
-        end
+        AbstractHelpers.helper :missing
+        flunk "should have raised an exception"
+      rescue LoadError => e
+        assert_equal "helpers/missing_helper.rb", e.path
       end
 
       def test_helpers_with_module_through_block

@@ -15,7 +15,7 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'empty_bool'
 
 ENV['NO_RELOAD'] = '1'

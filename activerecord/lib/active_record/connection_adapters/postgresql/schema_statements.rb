@@ -267,7 +267,6 @@ module ActiveRecord
             FROM pg_class      seq,
                  pg_attribute  attr,
                  pg_depend     dep,
-                 pg_namespace  name,
                  pg_constraint cons
             WHERE seq.oid           = dep.objid
               AND seq.relkind       = 'S'
@@ -306,12 +305,11 @@ module ActiveRecord
         # Returns just a table's primary key
         def primary_key(table)
           row = exec_query(<<-end_sql, 'SCHEMA').rows.first
-            SELECT DISTINCT(attr.attname)
+            SELECT attr.attname
             FROM pg_attribute attr
-            INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
             INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
             WHERE cons.contype = 'p'
-              AND dep.refobjid = '#{quote_table_name(table)}'::regclass
+              AND cons.conrelid = '#{quote_table_name(table)}'::regclass
           end_sql
 
           row && row.first
@@ -396,6 +394,13 @@ module ActiveRecord
             when nil, 0..0x3fffffff; super(type)
             else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
             end
+          when 'text'
+            # PostgreSQL doesn't support limits on text columns.
+            # The hard limit is 1Gb, according to section 8.3 in the manual.
+            case limit
+            when nil, 0..0x3fffffff; super(type)
+            else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+            end
           when 'integer'
             return 'integer' unless limit
 
@@ -412,6 +417,14 @@ module ActiveRecord
               when 0..6; "timestamp(#{precision})"
               else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
             end
+          when 'intrange'
+            return 'int4range' unless limit
+
+            case limit
+              when 1..4; 'int4range'
+              when 5..8; 'int8range'
+              else raise(ActiveRecordError, "No range type has byte size #{limit}. Use a numeric with precision 0 instead.")
+            end
           else
             super
           end
@@ -422,20 +435,17 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         #
-        #   distinct("posts.id", "posts.created_at desc")
+        #   distinct("posts.id", ["posts.created_at desc"])
+        #   # => "DISTINCT posts.id, posts.created_at AS alias_0"
         def distinct(columns, orders) #:nodoc:
-          return "DISTINCT #{columns}" if orders.empty?
+          order_columns = orders.map{ |s|
+              # Convert Arel node to string
+              s = s.to_sql unless s.is_a?(String)
+              # Remove any ASC/DESC modifiers
+              s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
+            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-          # Construct a clean list of column names from the ORDER BY clause, removing
-          # any ASC/DESC modifiers
-          order_columns = orders.collect do |s|
-            s = s.to_sql unless s.is_a?(String)
-            s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
-          end
-          order_columns.delete_if { |c| c.blank? }
-          order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
-
-          "DISTINCT #{columns}, #{order_columns * ', '}"
+          [super].concat(order_columns).join(', ')
         end
       end
     end

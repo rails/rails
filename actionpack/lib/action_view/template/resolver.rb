@@ -3,7 +3,7 @@ require "active_support/core_ext/class"
 require "active_support/core_ext/class/attribute_accessors"
 require "action_view/template"
 require "thread"
-require "mutex_m"
+require "thread_safe"
 
 module ActionView
   # = Action View Resolver
@@ -35,51 +35,50 @@ module ActionView
 
     # Threadsafe template cache
     class Cache #:nodoc:
-      class CacheEntry
-        include Mutex_m
-
-        attr_accessor :templates
+      class SmallCache < ThreadSafe::Cache
+        def initialize(options = {})
+          super(options.merge(:initial_capacity => 2))
+        end
       end
 
+      # preallocate all the default blocks for performance/memory consumption reasons
+      PARTIAL_BLOCK = lambda {|cache, partial| cache[partial] = SmallCache.new}
+      PREFIX_BLOCK  = lambda {|cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK)}
+      NAME_BLOCK    = lambda {|cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK)}
+      KEY_BLOCK     = lambda {|cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK)}
+
+      # usually a majority of template look ups return nothing, use this canonical preallocated array to safe memory
+      NO_TEMPLATES = [].freeze
+
       def initialize
-        @data = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
-                  h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
-        @mutex = Mutex.new
+        @data = SmallCache.new(&KEY_BLOCK)
       end
 
       # Cache the templates returned by the block
       def cache(key, name, prefix, partial, locals)
-        cache_entry = nil
+        if Resolver.caching?
+          @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
+        else
+          fresh_templates  = yield
+          cached_templates = @data[key][name][prefix][partial][locals]
 
-        # first obtain a lock on the main data structure to create the cache entry
-        @mutex.synchronize do
-          cache_entry = @data[key][name][prefix][partial][locals] ||= CacheEntry.new
-        end
-
-        # then to avoid a long lasting global lock, obtain a more granular lock
-        # on the CacheEntry itself
-        cache_entry.synchronize do
-          if Resolver.caching?
-            cache_entry.templates ||= yield
+          if templates_have_changed?(cached_templates, fresh_templates)
+            @data[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
           else
-            fresh_templates = yield
-
-            if templates_have_changed?(cache_entry.templates, fresh_templates)
-              cache_entry.templates = fresh_templates
-            else
-              cache_entry.templates ||= []
-            end
+            cached_templates || NO_TEMPLATES
           end
         end
       end
 
       def clear
-        @mutex.synchronize do
-          @data.clear
-        end
+        @data.clear
       end
 
       private
+
+      def canonical_no_templates(templates)
+        templates.empty? ? NO_TEMPLATES : templates
+      end
 
       def templates_have_changed?(cached_templates, fresh_templates)
         # if either the old or new template list is empty, we don't need to (and can't)
@@ -119,7 +118,7 @@ module ActionView
 
   private
 
-    delegate :caching?, :to => "self.class"
+    delegate :caching?, to: :class
 
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and

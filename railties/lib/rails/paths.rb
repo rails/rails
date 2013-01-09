@@ -56,8 +56,8 @@ module Rails
       end
 
       def add(path, options={})
-        with = options[:with] || path
-        @root[path] = Path.new(self, path, [with].flatten, options)
+        with = Array(options[:with] || path)
+        @root[path] = Path.new(self, path, with, options)
       end
 
       def [](path)
@@ -99,15 +99,14 @@ module Rails
     protected
 
       def filter_by(constraint)
-        yes = []
-        no  = []
-
+        all = []
         all_paths.each do |path|
-          paths = path.existent + path.existent_base_paths
-          path.send(constraint) ? yes.concat(paths) : no.concat(paths)
+          if path.send(constraint)
+            paths  = path.existent
+            paths -= path.children.map { |p| p.send(constraint) ? [] : p.existent }.flatten
+            all.concat(paths)
+          end
         end
-
-        all = yes - no
         all.uniq!
         all
       end
@@ -135,7 +134,6 @@ module Rails
         keys.delete(@current)
         @root.values_at(*keys.sort)
       end
-      deprecate :children
 
       def first
         expanded.first
@@ -210,10 +208,6 @@ module Rails
 
       def existent_directories
         expanded.select { |d| File.directory?(d) }
-      end
-
-      def existent_base_paths
-        map { |p| File.expand_path(p, @root.path) }.select{ |f| File.exist? f }
       end
 
       alias to_a expanded

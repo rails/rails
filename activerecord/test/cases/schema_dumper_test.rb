@@ -112,7 +112,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*limit:}, output
-    elsif current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
@@ -197,7 +197,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
       assert_match %r{t.text\s+"body",\s+null: false$}, output
@@ -277,6 +277,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_hstores"} =~ output
         assert_match %r[t.hstore "hash_store", default: {}], output
+      end
+    end
+
+    def test_schema_dump_includes_ltrees_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_ltrees"} =~ output
+        assert_match %r[t.ltree "path"], output
       end
     end
 

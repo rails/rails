@@ -2,9 +2,9 @@ require 'abstract_unit'
 
 class HttpTokenAuthenticationTest < ActionController::TestCase
   class DummyController < ActionController::Base
-    before_filter :authenticate, :only => :index
-    before_filter :authenticate_with_request, :only => :display
-    before_filter :authenticate_long_credentials, :only => :show
+    before_action :authenticate, only: :index
+    before_action :authenticate_with_request, only: :display
+    before_action :authenticate_long_credentials, only: :show
 
     def index
       render :text => "Hello Secret"
@@ -104,16 +104,39 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal 'Token realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
-  test "authentication request with valid credential" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials('"quote" pretty', :algorithm => 'test')
-    get :display
+  test "token_and_options returns correct token" do
+    token = "rcHu+HzSFw89Ypyhn/896A=="
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
 
-    assert_response :success
-    assert assigns(:logged_in)
-    assert_equal 'Definitely Maybe', @response.body
+  test "token_and_options returns correct token with value after the equal sign" do
+    token = 'rcHu+=HzSFw89Ypyhn/896A==f34'
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns correct token with slashes" do
+    token = 'rcHu+\\\\"/896A'
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns correct token with quotes" do
+    token = '\"quote\" pretty'
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
   end
 
   private
+
+  def sample_request(token)
+    @sample_request ||= OpenStruct.new authorization: %{Token token="#{token}"}
+  end
 
   def encode_credentials(token, options = {})
     ActionController::HttpAuthentication::Token.encode_credentials(token, options)

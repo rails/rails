@@ -1,5 +1,47 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
+    absence of attributes.
+
+        class Person
+          include ActiveModel::Validations
+
+          attr_accessor :first_name
+          validates_absence_of :first_name
+        end
+
+        person = Person.new
+        person.first_name = "John"
+        person.valid?
+        # => false
+        person.errors.messages
+        # => {:first_name=>["must be blank"]}
+
+    *Roberto Vasquez Angel*
+
+*   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`
+
+    *Renato Mascarenhas*
+
+*   Observers was extracted from Active Model as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
+*   Specify type of singular association during serialization *Steve Klabnik*
+
+*   Fixed length validator to correctly handle nil values. Fixes #7180.
+
+    *Michal Zima*
+
+*   Removed dispensable `require` statements. Make sure to require `active_model` before requiring
+    individual parts of the framework.
+
+    *Yves Senn*
+
+*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_pasword`.
+
+    *Brian Cardarella + Jeremy Kemper + Trevor Turk*
+
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
     protect attributes from mass assignment when non-permitted attributes are passed.
 

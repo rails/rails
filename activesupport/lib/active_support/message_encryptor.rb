@@ -33,21 +33,24 @@ module ActiveSupport
     # the cipher key size. For the default 'aes-256-cbc' cipher, this is 256
     # bits. If you are using a user-entered secret, you can generate a suitable
     # key with <tt>OpenSSL::Digest::SHA256.new(user_secret).digest</tt> or
-    # similar.
+    # similar.
     #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
-    def initialize(secret, options = {})
+    def initialize(secret, *signature_key_or_options)
+      options = signature_key_or_options.extract_options!
+      sign_secret = signature_key_or_options.first
       @secret = secret
+      @sign_secret = sign_secret
       @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@secret, :serializer => NullSerializer)
+      @verifier = MessageVerifier.new(@sign_secret || @secret, :serializer => NullSerializer)
       @serializer = options[:serializer] || Marshal
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
-    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
+    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def encrypt_and_sign(value)
       verifier.generate(_encrypt(value))
     end

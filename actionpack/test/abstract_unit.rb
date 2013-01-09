@@ -15,7 +15,7 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
@@ -25,7 +25,6 @@ require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
 require 'action_controller/caching'
-require 'action_controller/caching/sweeping'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 

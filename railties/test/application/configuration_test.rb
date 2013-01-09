@@ -1,5 +1,6 @@
 require "isolation/abstract_unit"
 require 'rack/test'
+require 'env_helpers'
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -17,6 +18,7 @@ module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
+    include EnvHelpers
 
     def new_app
       File.expand_path("#{app_path}/../new_app")
@@ -39,6 +41,16 @@ module ApplicationTests
     def teardown
       teardown_app
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
+    end
+
+    test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
+      require "rails"
+
+      switch_env "RAILS_ENV", nil do
+        Rails.env = "development"
+        assert_equal "development", Rails.env
+        assert_nil ENV['RAILS_ENV']
+      end
     end
 
     test "a renders exception on pending migration" do
@@ -180,6 +192,16 @@ module ApplicationTests
       end
     end
 
+    test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      app_file 'config/initializers/filter_parameters_logging.rb', <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal [:password, :foo, 'bar'], Rails.application.env_config['action_dispatch.parameter_filter']
+    end
+
     test "config.to_prepare is forwarded to ActionDispatch" do
       $prepared = false
 
@@ -225,21 +247,24 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "config.secret_token is sent in env" do
+    test "Use key_generator when secret_key_base is set" do
       make_basic_app do |app|
-        app.config.secret_token = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
         app.config.session_store :disabled
       end
 
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render text: env["action_dispatch.secret_token"]
+          render text: cookies[:some_key]
         end
       end
 
       get "/"
-      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', last_response.body
+
+      secret = app.key_generator.generate_key('signed cookie')
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      assert_equal 'some_value', verifier.verify(last_response.body)
     end
 
     test "protect from forgery is the default in a new app" do
@@ -392,7 +417,17 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal "Wellington", Rails.application.config.time_zone
+      assert_equal Time.find_zone!("Wellington"), Time.zone_default
+    end
+
+    test "timezone can be set on initializers" do
+      app_file "config/initializers/locale.rb", <<-RUBY
+        Rails.application.config.time_zone = "Central Time (US & Canada)"
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal Time.find_zone!("Central Time (US & Canada)"), Time.zone_default
     end
 
     test "raises when an invalid timezone is defined in the config" do
@@ -568,7 +603,6 @@ module ApplicationTests
 
       assert_respond_to app, :env_config
       assert_equal      app.env_config['action_dispatch.parameter_filter'],  app.config.filter_parameters
-      assert_equal      app.env_config['action_dispatch.secret_token'],      app.config.secret_token
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
@@ -578,27 +612,6 @@ module ApplicationTests
     test "config.colorize_logging default is true" do
       make_basic_app
       assert app.config.colorize_logging
-    end
-
-    test "config.active_record.observers" do
-      add_to_config <<-RUBY
-        config.active_record.observers = :foo_observer
-      RUBY
-
-      app_file 'app/models/foo.rb', <<-RUBY
-        class Foo < ActiveRecord::Base
-        end
-      RUBY
-
-      app_file 'app/models/foo_observer.rb', <<-RUBY
-        class FooObserver < ActiveRecord::Observer
-        end
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      ActiveRecord::Base
-      assert defined?(FooObserver)
     end
 
     test "config.session_store with :active_record_store with activerecord-session_store gem" do

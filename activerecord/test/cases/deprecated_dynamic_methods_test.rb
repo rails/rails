@@ -1,7 +1,7 @@
 # This file should be deleted when activerecord-deprecated_finders is removed as
 # a dependency.
 #
-# It is kept for now as there is some fairly nuanced behaviour in the dynamic
+# It is kept for now as there is some fairly nuanced behavior in the dynamic
 # finders so it is useful to keep this around to guard against regressions if
 # we need to change the code.
 
@@ -568,9 +568,9 @@ class DynamicScopeTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing
-    assert_blank @test_klass.methods.grep(/scoped_by_type/)
+    assert @test_klass.methods.grep(/scoped_by_type/).blank?
     @test_klass.scoped_by_type(nil)
-    assert_present @test_klass.methods.grep(/scoped_by_type/)
+    assert @test_klass.methods.grep(/scoped_by_type/).present?
   end
 
   def test_dynamic_scope_with_less_number_of_arguments

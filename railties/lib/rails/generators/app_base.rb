@@ -28,7 +28,7 @@ module Rails
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
-        class_option :skip_bundle,        type: :boolean, default: false,
+        class_option :skip_bundle,        type: :boolean, aliases: '-B', default: false,
                                           desc: "Don't run bundle install"
 
         class_option :skip_git,           type: :boolean, aliases: '-G', default: false,
@@ -51,9 +51,6 @@ module Rails
 
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
-
-        class_option :skip_index_html,    type: :boolean, aliases: '-I', default: false,
-                                          desc: 'Skip public/index.html and app/assets/images/rails.png files'
 
         class_option :dev,                type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
@@ -141,14 +138,12 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     github: 'rails/rails'
-            gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE

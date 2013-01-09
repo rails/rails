@@ -1,17 +1,17 @@
-Rails Form helpers
-==================
+Form Helpers
+============
 
-Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
+Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails does away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
 
-In this guide you will:
+After reading this guide, you will know:
 
-* Create search forms and similar kind of generic forms not representing any specific model in your application
-* Make model-centric forms for creation and editing of specific database records
-* Generate select boxes from multiple types of data
-* Understand the date and time helpers Rails provides
-* Learn what makes a file upload form different
-* Learn some cases of building forms to external resources
-* Find out how to build complex forms
+* How to create search forms and similar kind of generic forms not representing any specific model in your application.
+* How to make model-centric forms for creation and editing of specific database records.
+* How to generate select boxes from multiple types of data.
+* The date and time helpers Rails provides.
+* What makes a file upload form different.
+* Some cases of building forms to external resources.
+* How to build complex forms.
 
 --------------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ One of the most basic forms you see on the web is a search form. This form conta
 To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
 
 ```erb
-<%= form_tag("/search", :method => "get") do %>
+<%= form_tag("/search", method: "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
@@ -87,14 +87,14 @@ The `form_tag` helper accepts 2 arguments: the path for the action and an option
 As with the `link_to` helper, the path argument doesn't have to be a string; it can be a hash of URL parameters recognizable by Rails' routing mechanism, which will turn the hash into a valid URL. However, since both arguments to `form_tag` are hashes, you can easily run into a problem if you would like to specify both. For instance, let's say you write this:
 
 ```ruby
-form_tag(:controller => "people", :action => "search", :method => "get", :class => "nifty_form")
+form_tag(controller: "people", action: "search", method: "get", class: "nifty_form")
 # => '<form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">'
 ```
 
 Here, `method` and `class` are appended to the query string of the generated URL because even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
 
 ```ruby
-form_tag({:controller => "people", :action => "search"}, :method => "get", :class => "nifty_form")
+form_tag({controller: "people", action: "search"}, method: "get", class: "nifty_form")
 # => '<form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">'
 ```
 
@@ -148,14 +148,16 @@ Output:
 
 As with `check_box_tag`, the second parameter to `radio_button_tag` is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one, and `params[:age]` will contain either "child" or "adult".
 
-NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and make it easier for users to click the inputs by expanding the clickable region.
+NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
+by expanding the clickable region,
+make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
 Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, date fields, time fields, color fields, datetime fields, datetime-local fields, month fields, week fields, URL fields and email fields:
 
 ```erb
-<%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
+<%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
 <%= password_field_tag(:password) %>
 <%= hidden_field_tag(:parent_id, "5") %>
 <%= search_field(:user, :name) %>
@@ -215,7 +217,7 @@ will produce output similar to
 <input id="person_name" name="person[name]" type="text" value="Henry"/>
 ```
 
-Upon form submission the value entered by the user will be stored in `params[:person][:name]`. The `params[:person]` hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update_attributes`. While the name of an attribute is the most common second parameter to these helpers this is not compulsory. In the example above, as long as person objects have a `name` and a `name=` method Rails will be happy.
+Upon form submission the value entered by the user will be stored in `params[:person][:name]`. The `params[:person]` hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update`. While the name of an attribute is the most common second parameter to these helpers this is not compulsory. In the example above, as long as person objects have a `name` and a `name=` method Rails will be happy.
 
 WARNING: You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 
@@ -236,9 +238,9 @@ end
 The corresponding view `app/views/articles/new.html.erb` using `form_for` looks like this:
 
 ```erb
-<%= form_for @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
+<%= form_for @article, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
   <%= f.text_field :title %>
-  <%= f.text_area :body, :size => "60x12" %>
+  <%= f.text_area :body, size: "60x12" %>
   <%= f.submit "Create" %>
 <% end %>
 ```
@@ -267,7 +269,7 @@ The helper methods called on the form builder are identical to the model object 
 You can create a similar binding without actually creating `<form>` tags with the `fields_for` helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:
 
 ```erb
-<%= form_for @person, :url => { :action => "create" } do |person_form| %>
+<%= form_for @person, url: {action: "create"} do |person_form| %>
   <%= person_form.text_field :name %>
   <%= fields_for @person.contact_detail do |contact_details_form| %>
     <%= contact_details_form.text_field :phone_number %>
@@ -288,7 +290,7 @@ The object yielded by `fields_for` is a form builder like the one yielded by `fo
 
 ### Relying on Record Identification
 
-The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it **a resource**:
+The Article model is directly available to users of the application, so — following the best practices for developing with Rails — you should declare it **a resource**:
 
 ```ruby
 resources :articles
@@ -301,13 +303,13 @@ When dealing with RESTful resources, calls to `form_for` can get significantly e
 ```ruby
 ## Creating a new article
 # long-style:
-form_for(@article, :url => articles_path)
+form_for(@article, url: articles_path)
 # same thing, short-style (record identification gets used):
 form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(@article, :url => article_path(@article), :html => { :method => "patch" })
+form_for(@article, url: article_path(@article), html: {method: "patch"})
 # short-style:
 form_for(@article)
 ```
@@ -342,7 +344,7 @@ The Rails framework encourages RESTful design of your applications, which means 
 Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"`, which is set to reflect the desired method:
 
 ```ruby
-form_tag(search_path, :method => "patch")
+form_tag(search_path, method: "patch")
 ```
 
 output:
@@ -379,7 +381,7 @@ Here you have a list of cities whose names are presented to the user. Internally
 
 ### The Select and Option Tags
 
-The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates an options string:
+The most generic helper is `select_tag`, which — as the name implies — simply generates the `SELECT` tag that encapsulates an options string:
 
 ```erb
 <%= select_tag(:city_id, '<option value="1">Lisbon</option>...') %>
@@ -419,14 +421,14 @@ output:
 
 Whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
-TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` -- you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
+TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` — you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
 
 WARNING: when `:inlude_blank` or `:prompt:` are not present, `:include_blank` is forced true if the select attribute `required` is true, display `size` is one and `multiple` is not true.
 
 You can add arbitrary attributes to the options using hashes:
 
 ```html+erb
-<%= options_for_select([['Lisbon', 1, :'data-size' => '2.8 million'], ['Madrid', 2, :'data-size' => '3.2 million']], 2) %>
+<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
 
 output:
 
@@ -441,7 +443,7 @@ In most cases form controls will be tied to a specific database model and as you
 
 ```ruby
 # controller:
-@person = Person.new(:city_id => 2)
+@person = Person.new(city_id: 2)
 ```
 
 ```erb
@@ -449,7 +451,7 @@ In most cases form controls will be tied to a specific database model and as you
 <%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
 ```
 
-Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for you by reading from the `@person.city_id` attribute.
+Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one — Rails will do this for you by reading from the `@person.city_id` attribute.
 
 As with other helpers, if you were to use the `select` helper on a form builder scoped to the `@person` object, the syntax would be:
 
@@ -458,7 +460,7 @@ As with other helpers, if you were to use the `select` helper on a form builder 
 <%= f.select(:city_id, ...) %>
 ```
 
-WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of `attr_protected` and `attr_accessible`. For further details on this, see the [Ruby On Rails Security Guide](security.html#mass-assignment).
+WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly.
 
 ### Option Tags from a Collection of Arbitrary Objects
 
@@ -495,7 +497,7 @@ To leverage time zone support in Rails, you have to ask your users what time zon
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/chrislerum/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
+Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
 
 Using Date and Time Form Helpers
 --------------------------------
@@ -512,7 +514,7 @@ Both of these families of helpers will create a series of select boxes for the d
 The `select_*` family of helpers take as their first argument an instance of Date, Time or DateTime that is used as the currently selected value. You may omit this parameter, in which case the current date is used. For example
 
 ```erb
-<%= select_date Date.today, :prefix => :start_date %>
+<%= select_date Date.today, prefix: :start_date %>
 ```
 
 outputs (with actual option values omitted for brevity)
@@ -534,7 +536,7 @@ The `:prefix` option is the key used to retrieve the hash of date components fro
 ### Model Object Helpers
 
 `select_date` does not work well with forms that update or create Active Record objects as Active Record expects each element of the `params` hash to correspond to one attribute.
-The model object helpers for dates and times submit parameters with special names, when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
+The model object helpers for dates and times submit parameters with special names; when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
 
 ```erb
 <%= date_select :person, :birth_date %>
@@ -554,7 +556,7 @@ which results in a `params` hash like
 {:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 ```
 
-When this is passed to `Person.new` (or `update_attributes`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
+When this is passed to `Person.new` (or `update`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
 
 ### Common Options
 
@@ -585,7 +587,7 @@ A common task is uploading some sort of file, whether it's a picture of a person
 The following two forms both upload a file.
 
 ```erb
-<%= form_tag({:action => :upload}, :multipart => true) do %>
+<%= form_tag({action: :upload}, multipart: true) do %>
   <%= file_field_tag 'picture' %>
 <% end %>
 
@@ -593,8 +595,6 @@ The following two forms both upload a file.
   <%= f.file_field :picture %>
 <% end %>
 ```
-
-NOTE: Since Rails 3.1, forms rendered using `form_for` have their encoding set to `multipart/form-data` automatically once a `file_field` is used inside the block. Previous versions required you to set this explicitly.
 
 Rails provides the usual pair of helpers: the barebones `file_field_tag` and the model oriented `file_field`. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in `params[:picture]` and in the second case in `params[:person][:picture]`.
 
@@ -617,12 +617,12 @@ NOTE: If the user has not selected a file the corresponding parameter will be an
 
 ### Dealing with Ajax
 
-Unlike other forms making an asynchronous file upload form is not as simple as providing `form_for` with `:remote => true`. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
+Unlike other forms making an asynchronous file upload form is not as simple as providing `form_for` with `remote: true`. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
 Customizing Form Builders
 -------------------------
 
-As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example
+As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way, you can also subclass FormBuilder and add the helpers there. For example
 
 ```erb
 <%= form_for @person do |f| %>
@@ -633,7 +633,7 @@ As mentioned previously the object yielded by `form_for` and `fields_for` is an 
 can be replaced with
 
 ```erb
-<%= form_for @person, :builder => LabellingFormBuilder do |f| %>
+<%= form_for @person, builder: LabellingFormBuilder do |f| %>
   <%= f.text_field :first_name %>
 <% end %>
 ```
@@ -648,12 +648,12 @@ class LabellingFormBuilder < ActionView::Helpers::FormBuilder
 end
 ```
 
-If you reuse this frequently you could define a `labeled_form_for` helper that automatically applies the `:builder => LabellingFormBuilder` option.
+If you reuse this frequently you could define a `labeled_form_for` helper that automatically applies the `builder: LabellingFormBuilder` option.
 
 The form builder used also determines what happens when you do
 
 ```erb
-<%= render :partial => f %>
+<%= render partial: f %>
 ```
 
 If `f` is an instance of FormBuilder then this will render the `form` partial, setting the partial's object to the form builder. If the form builder is of class LabellingFormBuilder then the `labelling_form` partial would be rendered instead.
@@ -737,7 +737,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% @person.addresses.each do |address| %>
-    <%= person_form.fields_for address, :index => address do |address_form|%>
+    <%= person_form.fields_for address, index: address do |address_form|%>
       <%= address_form.text_field :city %>
     <% end %>
   <% end %>
@@ -765,7 +765,7 @@ Rails knows that all these inputs should be part of the person hash because you 
 To create more intricate nestings, you can specify the first part of the input name (`person[address]` in the previous example) explicitly, for example
 
 ```erb
-<%= fields_for 'person[address][primary]', address, :index => address do |address_form| %>
+<%= fields_for 'person[address][primary]', address, index: address do |address_form| %>
   <%= address_form.text_field :city %>
 <% end %>
 ```
@@ -778,7 +778,7 @@ will create inputs like
 
 As a general rule the final input name is the concatenation of the name given to `fields_for`/`form_for`, the index value and the name of the attribute. You can also pass an `:index` option directly to helpers such as `text_field`, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
 
-As a shortcut you can append [] to the name and omit the `:index` option. This is the same as specifying `:index => address` so
+As a shortcut you can append [] to the name and omit the `:index` option. This is the same as specifying `index: address` so
 
 ```erb
 <%= fields_for 'person[address][primary][]', address do |address_form| %>
@@ -791,10 +791,10 @@ produces exactly the same output as the previous example.
 Forms to external resources
 ---------------------------
 
-If you need to post some data to an external resource it is still great to build your form using rails form helpers. But sometimes you need to set an `authenticity_token` for this resource. You can do it by passing an `:authenticity_token => 'your_external_token'` parameter to the `form_tag` options:
+If you need to post some data to an external resource it is still great to build your form using rails form helpers. But sometimes you need to set an `authenticity_token` for this resource. You can do it by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+<%= form_tag 'http://farfar.away/form', authenticity_token: 'external_token') do %>
   Form contents
 <% end %>
 ```
@@ -802,15 +802,15 @@ If you need to post some data to an external resource it is still great to build
 Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an `authenticity_token` hidden field at all. For doing this just pass `false` to the `:authenticity_token` option:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', :authenticity_token => false) do %>
+<%= form_tag 'http://farfar.away/form', authenticity_token: false) do %>
   Form contents
 <% end %>
 ```
 
-The same technique is available for the `form_for` too:
+The same technique is also available for `form_for`:
 
 ```erb
-<%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f| %>
+<%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
   Form contents
 <% end %>
 ```
@@ -818,7 +818,7 @@ The same technique is available for the `form_for` too:
 Or if you don't want to render an `authenticity_token` field:
 
 ```erb
-<%= form_for @invoice, :url => external_url, :authenticity_token => false do |f| %>
+<%= form_for @invoice, url: external_url, authenticity_token: false do |f| %>
   Form contents
 <% end %>
 ```
@@ -902,7 +902,7 @@ end
 
 The keys of the `:addresses_attributes` hash are unimportant, they need merely be different for each address.
 
-If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `:include_id => false` to `fields_for`. You may wish to do this if the autogenerated input is placed in a location where an input tag is not valid HTML or when using an ORM where children do not have an id.
+If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`. You may wish to do this if the autogenerated input is placed in a location where an input tag is not valid HTML or when using an ORM where children do not have an id.
 
 ### The Controller
 
@@ -910,12 +910,12 @@ You do not need to write any specific controller code to use nested attributes. 
 
 ### Removing Objects
 
-You can allow users to delete associated objects by passing `allow_destroy => true` to `accepts_nested_attributes_for`
+You can allow users to delete associated objects by passing `allow_destroy: true` to `accepts_nested_attributes_for`
 
 ```ruby
 class Person < ActiveRecord::Base
   has_many :addresses
-  accepts_nested_attributes_for :addresses, :allow_destroy => true
+  accepts_nested_attributes_for :addresses, allow_destroy: true
 end
 ```
 
@@ -944,7 +944,7 @@ It is often useful to ignore sets of fields that the user has not filled in. You
 ```ruby
 class Person < ActiveRecord::Base
   has_many :addresses
-  accepts_nested_attributes_for :addresses, :reject_if => lambda {|attributes| attributes['kind'].blank?}
+  accepts_nested_attributes_for :addresses, reject_if: lambda {|attributes| attributes['kind'].blank?}
 end
 ```
 

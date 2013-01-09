@@ -252,7 +252,7 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'                    # => "Hawaii"
     #   Time.zone.local(2007, 2, 1, 15, 30, 45) # => Thu, 01 Feb 2007 15:30:45 HST -10:00
     def local(*args)
-      time = Time.utc_time(*args)
+      time = Time.utc(*args)
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 
@@ -278,18 +278,23 @@ module ActiveSupport
     #   Time.zone.now               # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #   Time.zone.parse('22:30:00') # => Fri, 31 Dec 1999 22:30:00 HST -10:00
     def parse(str, now=now)
-      date_parts = Date._parse(str)
-      return if date_parts.empty?
-      time = Time.parse(str, now) rescue DateTime.parse(str)
+      parts = Date._parse(str, false)
+      return if parts.empty?
 
-      if date_parts[:offset].nil?
-        if date_parts[:hour] && time.hour != date_parts[:hour]
-          time = DateTime.parse(str)
-        end
+      time = Time.new(
+        parts.fetch(:year, now.year),
+        parts.fetch(:mon, now.month),
+        parts.fetch(:mday, now.day),
+        parts.fetch(:hour, 0),
+        parts.fetch(:min, 0),
+        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset, 0)
+      )
 
-        ActiveSupport::TimeWithZone.new(nil, self, time)
+      if parts[:offset]
+        TimeWithZone.new(time.utc, self)
       else
-        time.in_time_zone(self)
+        TimeWithZone.new(nil, self, time)
       end
     end
 
@@ -321,7 +326,7 @@ module ActiveSupport
     end
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
-    # instances.
+    # instances.
     def period_for_utc(time)
       tzinfo.period_for_utc(time)
     end

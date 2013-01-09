@@ -38,7 +38,7 @@ module ActiveSupport
       end
 
       # Allows you to add shortcut so that you don't have to refer to attribute
-      # through config. Also look at the example for config to contrast.
+      # through config. Also look at the example for config to contrast.
       #
       # Defines both class and instance config accessors.
       #
@@ -75,7 +75,7 @@ module ActiveSupport
       #   end
       #
       #   User.allowed_access = false
-      #   User.allowed_access # => false
+      #   User.allowed_access # => false
       #
       #   User.new.allowed_access = true # => NoMethodError
       #   User.new.allowed_access        # => NoMethodError
@@ -88,7 +88,7 @@ module ActiveSupport
       #   end
       #
       #   User.allowed_access = false
-      #   User.allowed_access # => false
+      #   User.allowed_access # => false
       #
       #   User.new.allowed_access = true # => NoMethodError
       #   User.new.allowed_access        # => NoMethodError

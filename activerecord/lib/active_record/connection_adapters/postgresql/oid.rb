@@ -82,7 +82,7 @@ module ActiveRecord
           def type_cast(value)
             return if value.nil?
 
-            value.to_i rescue value ? 1 : 0
+            ConnectionAdapters::Column.value_to_integer value
           end
         end
 
@@ -165,6 +165,14 @@ module ActiveRecord
             return if value.nil?
 
             ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
+        end
+
+        class IntRange < Type
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::PostgreSQLColumn.string_to_intrange value
           end
         end
 
@@ -268,6 +276,10 @@ module ActiveRecord
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'ltree', OID::Identity.new
+
+        register_type 'int4range', OID::IntRange.new
+        alias_type 'int8range', 'int4range'
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'

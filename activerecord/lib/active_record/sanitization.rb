@@ -17,7 +17,7 @@ module ActiveRecord
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a WHERE clause.
       #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
-      #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
+      #   { name: "foo'bar", group_id: 4 }  returns "name='foo''bar' and group_id='4'"
       #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
       def sanitize_sql_for_conditions(condition, table_name = self.table_name)
         return nil if condition.blank?
@@ -32,7 +32,7 @@ module ActiveRecord
 
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a SET clause.
-      #   { :name => nil, :group_id => 4 }  returns "name = NULL , group_id='4'"
+      #   { name: nil, group_id: 4 }  returns "name = NULL , group_id='4'"
       def sanitize_sql_for_assignment(assignments)
         case assignments
         when Array; sanitize_sql_array(assignments)
@@ -46,12 +46,12 @@ module ActiveRecord
       # aggregate attribute values.
       # Given:
       #     class Person < ActiveRecord::Base
-      #       composed_of :address, :class_name => "Address",
-      #         :mapping => [%w(address_street street), %w(address_city city)]
+      #       composed_of :address, class_name: "Address",
+      #         mapping: [%w(address_street street), %w(address_city city)]
       #     end
       # Then:
-      #     { :address => Address.new("813 abc st.", "chicago") }
-      #       # => { :address_street => "813 abc st.", :address_city => "chicago" }
+      #     { address: Address.new("813 abc st.", "chicago") }
+      #       # => { address_street: "813 abc st.", address_city: "chicago" }
       def expand_hash_conditions_for_aggregates(attrs)
         expanded_attrs = {}
         attrs.each do |attr, value|
@@ -72,18 +72,18 @@ module ActiveRecord
       end
 
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
-      #   { :name => "foo'bar", :group_id => 4 }
+      #   { name: "foo'bar", group_id: 4 }
       #     # => "name='foo''bar' and group_id= 4"
-      #   { :status => nil, :group_id => [1,2,3] }
+      #   { status: nil, group_id: [1,2,3] }
       #     # => "status IS NULL and group_id IN (1,2,3)"
-      #   { :age => 13..18 }
+      #   { age: 13..18 }
       #     # => "age BETWEEN 13 AND 18"
       #   { 'other_records.id' => 7 }
       #     # => "`other_records`.`id` = 7"
-      #   { :other_records => { :id => 7 } }
+      #   { other_records: { id: 7 } }
       #     # => "`other_records`.`id` = 7"
       # And for value objects on a composed_of relationship:
-      #   { :address => Address.new("123 abc st.", "chicago") }
+      #   { address: Address.new("123 abc st.", "chicago") }
       #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
         attrs = expand_hash_conditions_for_aggregates(attrs)
@@ -96,7 +96,7 @@ module ActiveRecord
       alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
-      #   { :status => nil, :group_id => 1 }
+      #   { status: nil, group_id: 1 }
       #     # => "status = NULL , group_id = 1"
       def sanitize_sql_hash_for_assignment(attrs)
         attrs.map do |attr, value|

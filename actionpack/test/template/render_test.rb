@@ -318,6 +318,13 @@ module RenderTestCases
       @controller_view.render(customers, :greeting => "Hello")
   end
 
+  def test_render_partial_without_object_or_collection_does_not_generate_partial_name_local_variable
+    exception = assert_raises ActionView::Template::Error do
+      @controller_view.render("partial_name_local_variable")
+    end
+    assert_match "undefined local variable or method `partial_name_local_variable'", exception.message
+  end
+
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout
     assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })
@@ -435,6 +442,11 @@ module RenderTestCases
   def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_content
     assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  Content from inside layout!\n\nAfterpartial with layout\n\nAfter),
       @view.render(:partial => 'test/partial_with_layout_block_content', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+  end
+
+  def test_render_partial_with_layout_raises_descriptive_error
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: 'test/partial', layout: true) }
+    assert_match "Missing partial /true with", e.message
   end
 
   def test_render_with_nested_layout

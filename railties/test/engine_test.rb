@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class EngineTest < ActiveSupport::TestCase
-  it "reports routes as available only if they're actually present" do
+  test "reports routes as available only if they're actually present" do
     engine = Class.new(Rails::Engine) do
       def initialize(*args)
         @routes = nil

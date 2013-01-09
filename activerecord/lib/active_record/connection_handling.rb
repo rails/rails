@@ -5,18 +5,18 @@ module ActiveRecord
     # example for regular databases (MySQL, Postgresql, etc):
     #
     #   ActiveRecord::Base.establish_connection(
-    #     :adapter  => "mysql",
-    #     :host     => "localhost",
-    #     :username => "myuser",
-    #     :password => "mypass",
-    #     :database => "somedatabase"
+    #     adapter:  "mysql",
+    #     host:     "localhost",
+    #     username: "myuser",
+    #     password: "mypass",
+    #     database: "somedatabase"
     #   )
     #
     # Example for SQLite database:
     #
     #   ActiveRecord::Base.establish_connection(
-    #     :adapter => "sqlite",
-    #     :database  => "path/to/dbfile"
+    #     adapter: "sqlite",
+    #     database:  "path/to/dbfile"
     #   )
     #
     # Also accepts keys as strings (for parsing from YAML for example):
@@ -64,7 +64,7 @@ module ActiveRecord
     # Returns the configuration of the associated connection as a hash:
     #
     #  ActiveRecord::Base.connection_config
-    #  # => {:pool=>5, :timeout=>5000, :database=>"db/development.sqlite3", :adapter=>"sqlite3"}
+    #  # => {pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}
     #
     # Please use only for reading.
     def connection_config

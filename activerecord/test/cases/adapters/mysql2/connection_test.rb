@@ -53,6 +53,23 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_mysql_set_session_variable
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => 3}}))
+      session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
+      assert_equal 3, session_mode.rows.first.first.to_i
+    end
+  end
+
+  def test_mysql_set_session_variable_to_default
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => :default}}))
+      global_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.DEFAULT_WEEK_FORMAT"
+      session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
+      assert_equal global_mode.rows, session_mode.rows
+    end
+  end
+
   def test_logs_name_structure_dump
     @connection.structure_dump
     assert_equal "SCHEMA", @connection.logged[0][1]

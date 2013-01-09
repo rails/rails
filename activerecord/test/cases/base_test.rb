@@ -23,8 +23,9 @@ require 'models/edge'
 require 'models/joke'
 require 'models/bulb'
 require 'models/bird'
+require 'models/car'
+require 'models/bulb'
 require 'rexml/document'
-require 'active_support/core_ext/exception'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -123,7 +124,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
+  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
     def test_limit_with_comma
       assert Topic.limit("1,2").to_a
     end
@@ -152,7 +153,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_limit_should_allow_sql_literal
       assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
     end
@@ -221,7 +222,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -299,13 +300,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_invalid_attribute
-    begin
-      Topic.new({ "title" => "test",
-        "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
-    rescue ActiveRecord::MultiparameterAssignmentErrors => ex
-      assert_equal(1, ex.errors.size)
-      assert_equal("last_read", ex.errors[0].attribute)
-    end
+    Topic.new({ "title" => "test",
+      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
+  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+    assert_equal(1, ex.errors.size)
+    assert_equal("last_read", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block
@@ -470,7 +469,7 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
     end
@@ -592,7 +591,7 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
 
-    post.update_attributes(:title => "try to change", :body => "changed")
+    post.update(title: "try to change", body: "changed")
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
@@ -614,6 +613,12 @@ class BasicsTest < ActiveRecord::TestCase
     weird.reload
     assert_equal 'value2', weird.send('a$b')
     assert_equal 'value2', weird.read_attribute('a$b')
+  end
+
+  def test_group_weirds_by_from
+    Weird.create('a$b' => 'value', :from => 'aaron')
+    count = Weird.group(Weird.arel_table[:from]).count
+    assert_equal 1, count['aaron']
   end
 
   def test_attributes_on_dummy_time
@@ -994,7 +999,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_reload_with_exclusive_scope
     dev = DeveloperCalledDavid.first
-    dev.update_attributes!( :name => "NotDavid" )
+    dev.update!(name: "NotDavid" )
     assert_equal dev, dev.reload
   end
 
@@ -1436,6 +1441,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
   end
 
+  def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
+    dev = CachedDeveloper.first
+    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_changes_when_child_touched
+    car = Car.create
+    Bulb.create(car: car)
+
+    key = car.cache_key
+    car.bulb.touch
+    car.reload
+    assert_not_equal key, car.cache_key
+  end
+
   def test_cache_key_format_for_existing_record_with_nil_updated_at
     dev = Developer.first
     dev.update_columns(updated_at: nil)
@@ -1461,7 +1481,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_column_types_typecast
     topic = Topic.first
-    refute_equal 't.lo', topic.author_name
+    assert_not_equal 't.lo', topic.author_name
 
     attrs = topic.attributes.dup
     attrs.delete 'id'

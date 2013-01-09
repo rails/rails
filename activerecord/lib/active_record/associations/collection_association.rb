@@ -34,7 +34,7 @@ module ActiveRecord
           reload
         end
 
-        CollectionProxy.new(self)
+        CollectionProxy.new(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -158,15 +158,6 @@ module ActiveRecord
         destroy(load_target).tap do
           reset
           loaded!
-        end
-      end
-
-      # Calculate sum using SQL, not Enumerable.
-      def sum(*args)
-        if block_given?
-          scope.sum(*args) { |*block_args| yield(*block_args) }
-        else
-          scope.sum(*args)
         end
       end
 

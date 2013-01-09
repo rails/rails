@@ -19,7 +19,7 @@ module ActionDispatch
       # its interface is available directly.
       attr_accessor :tempfile
 
-      # TODO.
+      # A string with the headers of the multipart request.
       attr_accessor :headers
 
       def initialize(hash) # :nodoc:
@@ -75,7 +75,7 @@ module ActionDispatch
     end
 
     module Upload # :nodoc:
-      # Convert nested Hash to HashWithIndifferentAccess and replace
+      # Convert nested Hash to ActiveSupport::HashWithIndifferentAccess and replace
       # file upload hash with UploadedFile objects
       def normalize_parameters(value)
         if Hash === value && value.has_key?(:tempfile)

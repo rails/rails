@@ -50,8 +50,11 @@ module ActiveRecord
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.nil? && owner[reflection.foreign_key] ||
-          record && record.id != owner[reflection.foreign_key]
+          if record.nil? 
+            owner[reflection.foreign_key] 
+          else
+            record.id != owner[reflection.foreign_key]
+          end
         end
 
         def replace_keys(record)

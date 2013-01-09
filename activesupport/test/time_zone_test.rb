@@ -178,8 +178,8 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_parse_with_old_date
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    twz = zone.parse('1850-12-31 19:00:00')
-    assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
+    twz = zone.parse('1883-12-31 19:00:00')
+    assert_equal [0,0,19,31,12,1883], twz.to_a[0,6]
     assert_equal zone, twz.time_zone
   end
 
@@ -204,21 +204,32 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_parse_should_not_black_out_system_timezone_dst_jump
-    zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']
-    zone.stubs(:now).returns(zone.now)
-    Time.stubs(:parse).with('2012-03-25 03:29', zone.now).
-                       returns(Time.local(0,29,4,25,3,2012,nil,nil,true,"+03:00"))
-    twz = zone.parse('2012-03-25 03:29')
-    assert_equal [0, 29, 3, 25, 3, 2012], twz.to_a[0,6]
+    with_env_tz('EET') do
+      zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']
+      twz = zone.parse('2012-03-25 03:29:00')
+      assert_equal [0, 29, 3, 25, 3, 2012], twz.to_a[0,6]
+    end
   end
 
   def test_parse_should_black_out_app_timezone_dst_jump
-    zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']
-    zone.stubs(:now).returns(zone.now)
-    Time.stubs(:parse).with('2012-03-11 02:29', zone.now).
-                       returns(Time.local(0,29,2,11,3,2012,nil,nil,false,"+02:00"))
-    twz = zone.parse('2012-03-11 02:29')
-    assert_equal [0, 29, 3, 11, 3, 2012], twz.to_a[0,6]
+    with_env_tz('EET') do
+      zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']
+      twz = zone.parse('2012-03-11 02:29:00')
+      assert_equal [0, 29, 3, 11, 3, 2012], twz.to_a[0,6]
+    end
+  end
+
+  def test_parse_with_missing_time_components
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    zone.stubs(:now).returns zone.local(1999, 12, 31, 12, 59, 59)
+    twz = zone.parse('2012-12-01')
+    assert_equal Time.utc(2012, 12, 1), twz.time
+  end
+
+  def test_parse_with_javascript_date
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.parse("Mon May 28 2012 00:00:00 GMT-0700 (PDT)")
+    assert_equal Time.utc(2012, 5, 28, 7, 0, 0), twz.utc
   end
 
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize

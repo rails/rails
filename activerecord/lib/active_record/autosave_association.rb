@@ -16,7 +16,7 @@ module ActiveRecord
   # Note that it also means that associations marked for destruction won't
   # be destroyed directly. They will however still be marked for destruction.
   #
-  # Note that <tt>:autosave => false</tt> is not same as not declaring <tt>:autosave</tt>.
+  # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
   # When the <tt>:autosave</tt> option is not present new associations are saved.
   #
   # == Validation
@@ -32,12 +32,10 @@ module ActiveRecord
   # autosave callbacks are executed. Placing your callbacks after
   # associations is usually a good practice.
   #
-  # == Examples
-  #
   # === One-to-one Example
   #
   #   class Post
-  #     has_one :author, :autosave => true
+  #     has_one :author, autosave: true
   #   end
   #
   # Saving changes to the parent and its associated model can now be performed
@@ -81,27 +79,27 @@ module ActiveRecord
   #     has_many :comments # :autosave option is not declared
   #   end
   #
-  #   post = Post.new(:title => 'ruby rocks')
-  #   post.comments.build(:body => 'hello world')
+  #   post = Post.new(title: 'ruby rocks')
+  #   post.comments.build(body: 'hello world')
   #   post.save # => saves both post and comment
   #
-  #   post = Post.create(:title => 'ruby rocks')
-  #   post.comments.build(:body => 'hello world')
+  #   post = Post.create(title: 'ruby rocks')
+  #   post.comments.build(body: 'hello world')
   #   post.save # => saves both post and comment
   #
-  #   post = Post.create(:title => 'ruby rocks')
-  #   post.comments.create(:body => 'hello world')
+  #   post = Post.create(title: 'ruby rocks')
+  #   post.comments.create(body: 'hello world')
   #   post.save # => saves both post and comment
   #
   # When <tt>:autosave</tt> is true all children are saved, no matter whether they
   # are new records or not:
   #
   #   class Post
-  #     has_many :comments, :autosave => true
+  #     has_many :comments, autosave: true
   #   end
   #
-  #   post = Post.create(:title => 'ruby rocks')
-  #   post.comments.create(:body => 'hello world')
+  #   post = Post.create(title: 'ruby rocks')
+  #   post.comments.create(body: 'hello world')
   #   post.comments[0].body = 'hi everyone'
   #   post.save # => saves both post and comment, with 'hi everyone' as body
   #

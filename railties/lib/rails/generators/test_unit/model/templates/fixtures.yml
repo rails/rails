@@ -3,12 +3,18 @@
 <% unless attributes.empty? -%>
 one:
 <% attributes.each do |attribute| -%>
-  <%= attribute.name %>: <%= attribute.default %>
+  <%= yaml_key_value(attribute.column_name, attribute.default) %>
+  <%- if attribute.polymorphic? -%>
+  <%= yaml_key_value("#{attribute.name}_type", attribute.human_name) %>
+  <%- end -%>
 <% end -%>
 
 two:
 <% attributes.each do |attribute| -%>
-  <%= attribute.name %>: <%= attribute.default %>
+  <%= yaml_key_value(attribute.column_name, attribute.default) %>
+  <%- if attribute.polymorphic? -%>
+  <%= yaml_key_value("#{attribute.name}_type", attribute.human_name) %>
+  <%- end -%>
 <% end -%>
 <% else -%>
 # This model initially had no columns defined.  If you add columns to the

@@ -133,24 +133,6 @@ behavior out of the box:
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 
-* Observer support
-
-  ActiveModel::Observers allows your object to implement the Observer
-  pattern in a Rails App and take advantage of all the standard observer
-  functions.
-
-    class PersonObserver < ActiveModel::Observer
-      def after_create(person)
-        person.logger.info("New person added!")
-      end
-
-      def after_destroy(person)
-        person.logger.warn("Person with an id of #{person.id} was destroyed!")
-      end
-    end
-
-  {Learn more}[link:classes/ActiveModel/Observer.html]
-
 * Making objects serializable
 
   ActiveModel::Serialization provides a standard interface for your object

@@ -21,7 +21,7 @@ module ActionView
             if block_given?
               yield builder
             else
-              builder.check_box + builder.label
+              render_component(builder)
             end
           end
 
@@ -30,6 +30,12 @@ module ActionView
           hidden = @template_object.hidden_field_tag("#{tag_name}[]", "", :id => nil)
 
           rendered_collection + hidden
+        end
+
+        private
+
+        def render_component(builder)
+          builder.check_box + builder.label
         end
       end
     end

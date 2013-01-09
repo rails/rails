@@ -19,7 +19,7 @@ module AbstractController
       def inherited(klass)
         helpers = _helpers
         klass._helpers = Module.new { include helpers }
-        klass.class_eval { default_helper_module! unless anonymous? }
+        klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
 
@@ -58,11 +58,10 @@ module AbstractController
 
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
-      # ==== Parameters
+      # ==== Options
       # * <tt>*args</tt> - Module, Symbol, String, :all
       # * <tt>block</tt> - A block defining helper methods
       #
-      # ==== Examples
       # When the argument is a module it will be included directly in the template class.
       #   helper FooHelper # => includes FooHelper
       #
@@ -114,7 +113,7 @@ module AbstractController
       # helpers with the following behavior:
       #
       # String or Symbol:: :FooBar or "FooBar" becomes "foo_bar_helper",
-      #   and "foo_bar_helper.rb" is loaded using require_dependency.
+      # and "foo_bar_helper.rb" is loaded using require_dependency.
       #
       # Module:: No further processing
       #

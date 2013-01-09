@@ -45,7 +45,6 @@ module ActionView
       #   40-59 secs      # => less than a minute
       #   60-89 secs      # => 1 minute
       #
-      # ==== Examples
       #   from_time = Time.now
       #   distance_of_time_in_words(from_time, from_time + 50.minutes)                                # => about 1 hour
       #   distance_of_time_in_words(from_time, 50.minutes.from_now)                                   # => about 1 hour
@@ -129,7 +128,7 @@ module ActionView
                 minutes_with_offset = distance_in_minutes
               end
               remainder                   = (minutes_with_offset % 525600)
-              distance_in_years           = (minutes_with_offset / 525600)
+              distance_in_years           = (minutes_with_offset.div 525600)
               if remainder < 131400
                 locale.t(:about_x_years,  :count => distance_in_years)
               elsif remainder < 394200
@@ -165,7 +164,6 @@ module ActionView
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
-      #
       #
       # ==== Options
       # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.

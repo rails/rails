@@ -13,6 +13,7 @@ en:
       accepted: "must be accepted"
       empty: "can't be empty"
       blank: "can't be blank"
+      present: "must be blank"
       too_long: "is too long (maximum is %{count} characters)"
       too_short: "is too short (minimum is %{count} characters)"
       wrong_length: "is the wrong length (should be %{count} characters)"

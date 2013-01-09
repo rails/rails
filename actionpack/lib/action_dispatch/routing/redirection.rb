@@ -75,7 +75,7 @@ module ActionDispatch
           :port     => request.optional_port,
           :path     => request.path,
           :params   => request.query_parameters
-        }.merge options
+        }.merge! options
 
         if !params.empty? && url_options[:path].match(/%\{\w*\}/)
           url_options[:path] = (url_options[:path] % escape_path(params))

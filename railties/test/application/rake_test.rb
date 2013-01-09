@@ -106,6 +106,34 @@ module ApplicationTests
       end
     end
 
+    def test_rake_test_uncommitted_always_find_git_in_parent_dir
+      app_name = File.basename(app_path)
+      app_dir = File.dirname(app_path)
+      moved_app_name = app_name + '_moved'
+
+      Dir.chdir(app_dir) do
+        # Go from "./app/" to "./app/app_moved"
+        FileUtils.mv(app_name, moved_app_name)
+        FileUtils.mkdir(app_name)
+        FileUtils.mv(moved_app_name, app_name)
+        # Initialize the git repository and start the test.
+        Dir.chdir(app_name) do
+          `git init`
+          Dir.chdir(moved_app_name){ `rake db:migrate` }
+          silence_stderr { Dir.chdir(moved_app_name) { `rake test:uncommitted` } }
+          assert_equal 0, $?.exitstatus
+        end
+      end
+    end
+
+    def test_rake_test_uncommitted_fails_with_no_scm
+      Dir.chdir(app_path){ `rake db:migrate` }
+      Dir.chdir(app_path) do
+        silence_stderr { `rake test:uncommitted` }
+        assert_equal 1, $?.exitstatus
+      end
+    end
+
     def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -167,6 +195,16 @@ module ApplicationTests
       assert_no_match(/Errors running/, output)
     end
 
+    def test_scaffold_with_references_columns_tests_pass_by_default
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold LineItems product:references cart:belongs_to;
+         bundle exec rake db:migrate db:test:clone test`
+      end
+
+      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
     def test_db_test_clone_when_using_sql_format
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
@@ -219,28 +257,6 @@ module ApplicationTests
         `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
       end
       assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
-    end
-
-    def test_load_activerecord_base_when_we_use_observers
-      Dir.chdir(app_path) do
-        `bundle exec rails g model user;
-         bundle exec rake db:migrate;
-         bundle exec rails g observer user;`
-
-        add_to_config "config.active_record.observers = :user_observer"
-
-        assert_equal "0", `bundle exec rails r "puts User.count"`.strip
-
-        app_file "lib/tasks/count_user.rake", <<-RUBY
-          namespace :user do
-            task count: :environment do
-              puts User.count
-            end
-          end
-        RUBY
-
-        assert_equal "0", `bundle exec rake user:count`.strip
-      end
     end
 
     def test_copy_templates

@@ -48,7 +48,7 @@ module SharedGeneratorTests
 
   def test_options_before_application_name_raises_an_error
     content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
-    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin)? --help\n/, content)
+    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin new)? --help\n/, content)
   end
 
   def test_name_collision_raises_an_error
@@ -68,12 +68,12 @@ module SharedGeneratorTests
 
   def test_shebang_is_added_to_rails_file
     run_generator [destination_root, "--ruby", "foo/bar/baz", "--full"]
-    assert_file "script/rails", /#!foo\/bar\/baz/
+    assert_file "bin/rails", /#!foo\/bar\/baz/
   end
 
   def test_shebang_when_is_the_same_as_default_use_env
     run_generator [destination_root, "--ruby", Thor::Util.ruby_command, "--full"]
-    assert_file "script/rails", /#!\/usr\/bin\/env/
+    assert_file "bin/rails", /#!\/usr\/bin\/env/
   end
 
   def test_template_raises_an_error_with_invalid_path

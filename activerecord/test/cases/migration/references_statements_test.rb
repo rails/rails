@@ -22,7 +22,7 @@ module ActiveRecord
 
       def test_does_not_create_reference_type_column
         add_reference table_name, :taggable
-        refute column_exists?(table_name, :taggable_type, :string)
+        assert_not column_exists?(table_name, :taggable_type, :string)
       end
 
       def test_creates_reference_type_column
@@ -37,7 +37,7 @@ module ActiveRecord
 
       def test_does_not_create_reference_id_index
         add_reference table_name, :user
-        refute index_exists?(table_name, :user_id)
+        assert_not index_exists?(table_name, :user_id)
       end
 
       def test_creates_polymorphic_index
@@ -57,19 +57,19 @@ module ActiveRecord
 
       def test_deletes_reference_id_column
         remove_reference table_name, :supplier
-        refute column_exists?(table_name, :supplier_id, :integer)
+        assert_not column_exists?(table_name, :supplier_id, :integer)
       end
 
       def test_deletes_reference_id_index
         remove_reference table_name, :supplier
-        refute index_exists?(table_name, :supplier_id)
+        assert_not index_exists?(table_name, :supplier_id)
       end
 
       def test_does_not_delete_reference_type_column
         with_polymorphic_column do
           remove_reference table_name, :supplier
 
-          refute column_exists?(table_name, :supplier_id, :integer)
+          assert_not column_exists?(table_name, :supplier_id, :integer)
           assert column_exists?(table_name, :supplier_type, :string)
         end
       end
@@ -77,14 +77,14 @@ module ActiveRecord
       def test_deletes_reference_type_column
         with_polymorphic_column do
           remove_reference table_name, :supplier, polymorphic: true
-          refute column_exists?(table_name, :supplier_type, :string)
+          assert_not column_exists?(table_name, :supplier_type, :string)
         end
       end
 
       def test_deletes_polymorphic_index
         with_polymorphic_column do
           remove_reference table_name, :supplier, polymorphic: true
-          refute index_exists?(table_name, [:supplier_id, :supplier_type])
+          assert_not index_exists?(table_name, [:supplier_id, :supplier_type])
         end
       end
 
@@ -95,7 +95,7 @@ module ActiveRecord
 
       def test_remove_belongs_to_alias
         remove_belongs_to table_name, :supplier
-        refute column_exists?(table_name, :supplier_id, :integer)
+        assert_not column_exists?(table_name, :supplier_id, :integer)
       end
 
       private

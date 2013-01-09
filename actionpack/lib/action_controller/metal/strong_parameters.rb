@@ -1,5 +1,5 @@
-require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
 
 module ActionController
@@ -40,11 +40,11 @@ module ActionController
   #   permitted.class      # => ActionController::Parameters
   #   permitted.permitted? # => true
   #
-  #   Person.first.update_attributes!(permitted)
+  #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
   # It provides a +permit_all_parameters+ option that controls the top-level
-  # behaviour of new instances. If it's +true+, all the parameters will be
+  # behavior of new instances. If it's +true+, all the parameters will be
   # permitted by default. The default value for +permit_all_parameters+
   # option is +false+.
   #
@@ -70,8 +70,7 @@ module ActionController
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
     #
-    #   class Person
-    #     include ActiveRecord::Base
+    #   class Person < ActiveRecord::Base
     #   end
     #
     #   params = ActionController::Parameters.new(name: 'Francesco')
@@ -125,10 +124,10 @@ module ActionController
     # <tt>ActionController::ParameterMissing</tt> error.
     #
     #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
-    #   # => {"name"=>"Francesco"}
+    #   # => {"name"=>"Francesco"}
     #
     #   ActionController::Parameters.new(person: nil).require(:person)
-    #   # => ActionController::ParameterMissing: param not found: person
+    #   # => ActionController::ParameterMissing: param not found: person
     #
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
@@ -164,7 +163,7 @@ module ActionController
     #     }
     #   })
     #
-    #   permitted = params.permit(person: [ :name, { pets: :name } ])
+    #   permitted = params.permit(person: [ :name, { pets: :name } ])
     #   permitted.permitted?                    # => true
     #   permitted[:person][:name]               # => "Francesco"
     #   permitted[:person][:age]                # => nil
@@ -188,7 +187,7 @@ module ActionController
     #   # => {}
     #
     #   params.require(:person).permit(contact: :phone)
-    #   # => {"contact"=>{"phone"=>"555-1234"}}
+    #   # => {"contact"=>{"phone"=>"555-1234"}}
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
     #   # => {"contact"=>{"email"=>"none@test.com", "phone"=>"555-1234"}}
@@ -204,6 +203,8 @@ module ActionController
           end
           keys.grep(/\A#{Regexp.escape(filter)}\(\d+[if]?\)\z/) { |key| params[key] = self[key] }
         when Hash then
+          filter = filter.with_indifferent_access
+
           self.slice(*filter.keys).each do |key, values|
             return unless values
 
@@ -227,7 +228,7 @@ module ActionController
     # Returns a parameter for the given +key+. If not found,
     # returns +nil+.
     #
-    #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
+    #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
@@ -327,7 +328,7 @@ module ActionController
   #     # into a 400 Bad Request reply.
   #     def update
   #       redirect_to current_account.people.find(params[:id]).tap { |person|
-  #         person.update_attributes!(person_params)
+  #         person.update!(person_params)
   #       }
   #     end
   #

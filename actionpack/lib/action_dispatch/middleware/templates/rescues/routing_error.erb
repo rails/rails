@@ -1,23 +1,30 @@
-<h1>Routing Error</h1>
-<p><pre><%=h @exception.message %></pre></p>
-<% unless @exception.failures.empty? %>
-  <p>
-    <h2>Failure reasons:</h2>
-    <ol>
-    <% @exception.failures.each do |route, reason| %>
-      <li><code><%=h route.inspect.gsub('\\', '') %></code> failed because <%=h reason.downcase %></li>
-    <% end %>
-    </ol>
-  </p>
-<% end %>
-<%= render template: "rescues/_trace" %>
+<header>
+  <h1>Routing Error</h1>
+</header>
+<div id="container">
+  <h2><%= @exception.message %></h2>
+  <% unless @exception.failures.empty? %>
+    <p>
+      <h2>Failure reasons:</h2>
+      <ol>
+      <% @exception.failures.each do |route, reason| %>
+        <li><code><%= route.inspect.gsub('\\', '') %></code> failed because <%= reason.downcase %></li>
+      <% end %>
+      </ol>
+    </p>
+  <% end %>
 
-<h2>
-  Routes
-</h2>
+  <%= render template: "rescues/_trace" %>
 
-<p>
-  Routes match in priority from top to bottom
-</p>
+  <% if @routes_inspector %>
+    <h2>
+      Routes
+    </h2>
 
-<p><pre><%= @routes %></pre></p>
+    <p>
+      Routes match in priority from top to bottom
+    </p>
+
+    <%= @routes_inspector.format(ActionDispatch::Routing::HtmlTableFormatter.new(self)) %>
+  <% end %>
+</div>

@@ -2,7 +2,7 @@ require 'set'
 
 module ActionView
   # = Action View Atom Feed Helpers
-  module Helpers #:nodoc:
+  module Helpers
     module AtomFeedHelper
       # Adds easy defaults to writing Atom feeds with the Builder template engine (this does not work on ERB or any other
       # template languages).
@@ -124,7 +124,7 @@ module ActionView
         end
       end
 
-      class AtomBuilder
+      class AtomBuilder #:nodoc:
         XHTML_TAG_NAMES = %w(content rights title subtitle summary).to_set
 
         def initialize(xml)
@@ -158,7 +158,7 @@ module ActionView
           end
       end
 
-      class AtomFeedBuilder < AtomBuilder
+      class AtomFeedBuilder < AtomBuilder #:nodoc:
         def initialize(xml, view, feed_options = {})
           @xml, @view, @feed_options = xml, view, feed_options
         end

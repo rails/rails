@@ -214,6 +214,17 @@ module ActiveRecord
         end
       end
 
+      # Drops the join table specified by the given arguments.
+      # See create_join_table for details.
+      #
+      # Although this command ignores the block if one is given, it can be helpful
+      # to provide one in a migration's +change+ method so it can be reverted.
+      # In that case, the block will be used by create_join_table.
+      def drop_join_table(table_1, table_2, options = {})
+        join_table_name = find_join_table_name(table_1, table_2, options)
+        drop_table(join_table_name)
+      end
+
       # A block for changing columns in +table+.
       #
       #  # change_table() yields a Table instance
@@ -294,6 +305,10 @@ module ActiveRecord
       end
 
       # Drops a table from the database.
+      #
+      # Although this command ignores +options+ and the block if one is given, it can be helpful
+      # to provide these in a migration's +change+ method so it can be reverted.
+      # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
         execute "DROP TABLE #{quote_table_name(table_name)}"
       end
@@ -306,14 +321,26 @@ module ActiveRecord
         execute(add_column_sql)
       end
 
-      # Removes the column(s) from the table definition.
+      # Removes the given columns from the table definition.
+      #
+      #  remove_columns(:suppliers, :qualification, :experience)
+      def remove_columns(table_name, *column_names)
+        raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.empty?
+        column_names.each do |column_name|
+          remove_column(table_name, column_name)
+        end
+      end
+
+      # Removes the column from the table definition.
       #
       #  remove_column(:suppliers, :qualification)
-      #  remove_columns(:suppliers, :qualification, :experience)
-      def remove_column(table_name, *column_names)
-        columns_for_remove(table_name, *column_names).each {|column_name| execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{column_name}" }
+      #
+      # The +type+ and +options+ parameters will be ignored if present. It can be helpful
+      # to provide these in a migration's +change+ method so it can be reverted.
+      # In that case, +type+ and +options+ will be used by add_column.
+      def remove_column(table_name, column_name, type = nil, options = {})
+        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
       end
-      alias :remove_columns :remove_column
 
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
@@ -540,7 +567,7 @@ module ActiveRecord
                 column_type_sql << "(#{precision})"
               end
             elsif scale
-              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specified"
+              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
           elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])
@@ -662,7 +689,8 @@ module ActiveRecord
         end
 
         def columns_for_remove(table_name, *column_names)
-          raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
+          ActiveSupport::Deprecation.warn("columns_for_remove is deprecated and will be removed in the future")
+          raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.blank?
           column_names.map {|column_name| quote_column_name(column_name) }
         end
 

@@ -143,7 +143,7 @@ Benchmark.ips(TIME) do |x|
   end
 
   x.report 'Resource#update' do
-    Exhibit.first.update_attributes(:name => 'bob')
+    Exhibit.first.update(name: 'bob')
   end
 
   x.report 'Resource#destroy' do

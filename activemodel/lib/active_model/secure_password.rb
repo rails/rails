@@ -2,6 +2,9 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
+    class << self; attr_accessor :min_cost; end
+    self.min_cost = false
+
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a password_digest attribute.
@@ -10,6 +13,10 @@ module ActiveModel
       # (using a +password_confirmation+ attribute) are automatically added. If
       # you wish to turn off validations, pass <tt>validations: false</tt> as an
       # argument. You can add more validations by hand if need be.
+      #
+      # If you don't need the confirmation validation, just don't set any
+      # value to the password_confirmation attribute and the the validation
+      # will not be triggered.
       #
       # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use #has_secure_password:
       #
@@ -88,7 +95,8 @@ module ActiveModel
       def password=(unencrypted_password)
         unless unencrypted_password.blank?
           @password = unencrypted_password
-          self.password_digest = BCrypt::Password.create(unencrypted_password)
+          cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine::DEFAULT_COST
+          self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
         end
       end
     end

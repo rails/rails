@@ -29,6 +29,7 @@ module ActiveRecord
     def teardown
       super
       ActiveRecord::SchemaMigration.delete_all rescue nil
+      ActiveRecord::Migration.verbose = true
     end
 
     def test_migrator_with_duplicate_names
@@ -84,6 +85,12 @@ module ActiveRecord
        end
     end
 
+    def test_finds_migrations_in_numbered_directory
+      migrations = ActiveRecord::Migrator.migrations [MIGRATIONS_ROOT + '/10_urban']
+      assert_equal 9, migrations[0].version
+      assert_equal 'AddExpressions', migrations[0].name
+    end
+
     def test_deprecated_constructor
       assert_deprecated do
         ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid")
@@ -115,11 +122,11 @@ module ActiveRecord
 
       ActiveRecord::Migrator.new(:up, pass_one).migrate
       assert pass_one.first.went_up
-      refute pass_one.first.went_down
+      assert_not pass_one.first.went_down
 
       pass_two = [Sensor.new('One', 1), Sensor.new('Three', 3)]
       ActiveRecord::Migrator.new(:up, pass_two).migrate
-      refute pass_two[0].went_up
+      assert_not pass_two[0].went_up
       assert pass_two[1].went_up
       assert pass_two.all? { |x| !x.went_down }
 
@@ -129,7 +136,7 @@ module ActiveRecord
 
       ActiveRecord::Migrator.new(:down, pass_three).migrate
       assert pass_three[0].went_down
-      refute pass_three[1].went_down
+      assert_not pass_three[1].went_down
       assert pass_three[2].went_down
     end
 
@@ -301,7 +308,7 @@ module ActiveRecord
       _, migrator = migrator_class(3)
 
       ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
-      refute ActiveRecord::Base.connection.table_exists?('schema_migrations')
+      assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations')
       migrator.migrate("valid", 1)
       assert ActiveRecord::Base.connection.table_exists?('schema_migrations')
     end

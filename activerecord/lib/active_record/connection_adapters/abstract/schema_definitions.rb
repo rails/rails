@@ -190,16 +190,16 @@ module ActiveRecord
       #
       # What can be written like this with the regular calls to column:
       #
-      #   create_table "products", force: true do |t|
-      #     t.column "shop_id",    :integer
-      #     t.column "creator_id", :integer
-      #     t.column "name",       :string,   default: "Untitled"
-      #     t.column "value",      :string,   default: "Untitled"
-      #     t.column "created_at", :datetime
-      #     t.column "updated_at", :datetime
+      #   create_table :products do |t|
+      #     t.column :shop_id,    :integer
+      #     t.column :creator_id, :integer
+      #     t.column :name,       :string, default: "Untitled"
+      #     t.column :value,      :string, default: "Untitled"
+      #     t.column :created_at, :datetime
+      #     t.column :updated_at, :datetime
       #   end
       #
-      # Can also be written as follows using the short-hand:
+      # can also be written as follows using the short-hand:
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
@@ -324,6 +324,7 @@ module ActiveRecord
     #   change_table :table do |t|
     #     t.column
     #     t.index
+    #     t.rename_index
     #     t.timestamps
     #     t.change
     #     t.change_default
@@ -386,6 +387,13 @@ module ActiveRecord
         @base.index_exists?(@table_name, column_name, options)
       end
 
+      # Renames the given index on the table.
+      #
+      #  t.rename_index(:user_id, :account_id)
+      def rename_index(index_name, new_index_name)
+        @base.rename_index(@table_name, index_name, new_index_name)
+      end
+
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
       #  t.timestamps
@@ -415,7 +423,7 @@ module ActiveRecord
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
       def remove(*column_names)
-        @base.remove_column(@table_name, *column_names)
+        @base.remove_columns(@table_name, *column_names)
       end
 
       # Removes the given index from the table.
@@ -482,20 +490,8 @@ module ActiveRecord
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{column_type}(*args)                                          # def string(*args)
             options = args.extract_options!                                  #   options = args.extract_options!
-            column_names = args                                              #   column_names = args
-            type = :'#{column_type}'                                         #   type = :string
-            column_names.each do |name|                                      #   column_names.each do |name|
-              column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
-              if options[:limit]                                             #     if options[:limit]
-                column.limit = options[:limit]                               #       column.limit = options[:limit]
-              elsif native[type].is_a?(Hash)                                 #     elsif native[type].is_a?(Hash)
-                column.limit = native[type][:limit]                          #       column.limit = native[type][:limit]
-              end                                                            #     end
-              column.precision = options[:precision]                         #     column.precision = options[:precision]
-              column.scale = options[:scale]                                 #     column.scale = options[:scale]
-              column.default = options[:default]                             #     column.default = options[:default]
-              column.null = options[:null]                                   #     column.null = options[:null]
-              @base.add_column(@table_name, name, column.sql_type, options)  #     @base.add_column(@table_name, name, column.sql_type, options)
+            args.each do |name|                                              #   column_names.each do |name|
+              @base.add_column(@table_name, name, :#{column_type}, options)  #     @base.add_column(@table_name, name, :string, options)
             end                                                              #   end
           end                                                                # end
         EOV

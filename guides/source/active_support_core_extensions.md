@@ -5,7 +5,12 @@ Active Support is the Ruby on Rails component responsible for providing Ruby lan
 
 It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Ruby on Rails itself.
 
-By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Active Support.
+After reading this guide, you will know:
+
+* What Core Extensions are.
+* How to load all extensions.
+* How to cherry-pick just the extensions you want.
+* What extensions ActiveSupport provides.
 
 --------------------------------------------------------------------------------
 
@@ -14,7 +19,7 @@ How to Load Core Extensions
 
 ### Stand-Alone Active Support
 
-In order to have a near zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you may load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+In order to have a near-zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you can load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
 
 Thus, after a simple require like:
 
@@ -85,11 +90,11 @@ The following values are considered to be blank in a Rails application:
 
 * empty arrays and hashes, and
 
-* any other object that responds to `empty?` and it is empty.
+* any other object that responds to `empty?` and is empty.
 
 INFO: The predicate for strings uses the Unicode-aware character class `[:space:]`, so for example U+2029 (paragraph separator) is considered to be whitespace.
 
-WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are **not** blank.
+WARNING: Note that numbers are not mentioned. In particular, 0 and 0.0 are **not** blank.
 
 For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
 
@@ -147,19 +152,21 @@ Some numbers which are not singletons are not duplicable either:
 Active Support provides `duplicable?` to programmatically query an object about this property:
 
 ```ruby
+"foo".duplicable? # => true
 "".duplicable?     # => true
+0.0.duplicable?   # => false
 false.duplicable?  # => false
 ```
 
-By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, and class and module objects.
+By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, and module objects.
 
-WARNING. Any class can disallow duplication removing `dup` and `clone` or raising exceptions from them, only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
+WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
 
 NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, ruby does not `dup` them. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -167,18 +174,18 @@ duplicate = array.dup
 
 duplicate.push 'another-string'
 
-# object was duplicated, so element was added only to duplicate
+# the object was duplicated, so the element was added only to the duplicate
 array     #=> ['string']
 duplicate #=> ['string', 'another-string']
 
 duplicate.first.gsub!('string', 'foo')
 
-# first element was not duplicated, it will be changed for both arrays
+# first element was not duplicated, it will be changed in both arrays
 array     #=> ['foo']
 duplicate #=> ['foo', 'another-string']
 ```
 
-As you can see, after duplicating `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside array is still the same object.
+As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside the array is still the same object.
 
 If you need a deep copy of an object, you should use `deep_dup`. Here is an example:
 
@@ -192,12 +199,12 @@ array     #=> ['string']
 duplicate #=> ['foo']
 ```
 
-If object is not duplicable, `deep_dup` will just return this object:
+If the object is not duplicable, `deep_dup` will just return it:
 
 ```ruby
 number = 1
-dup = number.deep_dup
-number.object_id == dup.object_id   # => true
+duplicate = number.deep_dup
+number.object_id == duplicate.object_id   # => true
 ```
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
@@ -414,24 +421,6 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 ### Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
-
-#### `instance_variable_names`
-
-Ruby 1.8 and 1.9 have a method called `instance_variables` that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines `instance_variable_names` as a portable way to obtain them as strings:
-
-```ruby
-class C
-  def initialize(x, y)
-    @x, @y = x, y
-  end
-end
-
-C.new(0, 1).instance_variable_names # => ["@y", "@x"]
-```
-
-WARNING: The order in which the names are returned is unspecified, and it indeed depends on the version of the interpreter.
-
-NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_values`
 
@@ -913,7 +902,7 @@ When interpolated into a string, the `:to` option should become an expression th
 delegate :logger, to: :Rails
 
 # delegates to the receiver's class
-delegate :table_name, to: 'self.class'
+delegate :table_name, to: :class
 ```
 
 WARNING: If the `:prefix` option is `true` this is less generic, see below.
@@ -1118,8 +1107,6 @@ C.subclasses # => [B, D]
 
 The order in which these classes are returned is unspecified.
 
-WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
-
 NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
 
 #### `descendants`
@@ -1155,7 +1142,7 @@ Inserting data into HTML templates needs extra care. For example, you can't just
 
 #### Safe Strings
 
-Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+Active Support has the concept of <i>(html) safe</i> strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
 Strings are considered to be <i>unsafe</i> by default:
 
@@ -1192,10 +1179,10 @@ Safe arguments are directly appended:
 "".html_safe + "<".html_safe # => "<"
 ```
 
-These methods should not be used in ordinary views. In Rails 3 unsafe values are automatically escaped:
+These methods should not be used in ordinary views. Unsafe values are automatically escaped:
 
 ```erb
-<%= @review.title %> <%# fine in Rails 3, escaped if needed %>
+<%= @review.title %> <%# fine, escaped if needed %>
 ```
 
 To insert something verbatim use the `raw` helper rather than calling `html_safe`:
@@ -1444,11 +1431,10 @@ As the previous example shows, Active Support knows some irregular plurals and u
 Active Record uses this method to compute the default table name that corresponds to a model:
 
 ```ruby
-# active_record/base.rb
+# active_record/model_schema.rb
 def undecorated_table_name(class_name = base_class.name)
   table_name = class_name.to_s.demodulize.underscore
-  table_name = table_name.pluralize if pluralize_table_names
-  table_name
+  pluralize_table_names ? table_name.pluralize : table_name
 end
 ```
 
@@ -1913,8 +1899,8 @@ Produce a string representation of a number as a telephone number:
 Produce a string representation of a number as currency:
 
 ```ruby
-1234567890.50.to_s(:currency)                    # => $1,234,567,890.50
-1234567890.506.to_s(:currency)                   # => $1,234,567,890.51
+1234567890.50.to_s(:currency)                 # => $1,234,567,890.50
+1234567890.506.to_s(:currency)                # => $1,234,567,890.51
 1234567890.506.to_s(:currency, precision: 3)  # => $1,234,567,890.506
 ```
 
@@ -1934,8 +1920,8 @@ Produce a string representation of a number as a percentage:
 Produce a string representation of a number in delimited form:
 
 ```ruby
-12345678.to_s(:delimited)                        # => 12,345,678
-12345678.05.to_s(:delimited)                     # => 12,345,678.05
+12345678.to_s(:delimited)                     # => 12,345,678
+12345678.05.to_s(:delimited)                  # => 12,345,678.05
 12345678.to_s(:delimited, delimiter: ".")     # => 12.345.678
 12345678.to_s(:delimited, delimiter: ",")     # => 12,345,678
 12345678.05.to_s(:delimited, separator: " ")  # => 12,345,678 05
@@ -1944,7 +1930,7 @@ Produce a string representation of a number in delimited form:
 Produce a string representation of a number rounded to a precision:
 
 ```ruby
-111.2345.to_s(:rounded)                        # => 111.235
+111.2345.to_s(:rounded)                     # => 111.235
 111.2345.to_s(:rounded, precision: 2)       # => 111.23
 13.to_s(:rounded, precision: 5)             # => 13.00000
 389.32314.to_s(:rounded, precision: 0)      # => 389
@@ -2063,14 +2049,6 @@ The sum of an empty receiver can be customized in this form as well:
 
 ```ruby
 [].sum(1) {|n| n**3} # => 1
-```
-
-The method `ActiveRecord::Observer#observed_subclasses` for example is implemented this way:
-
-```ruby
-def observed_subclasses
-  observed_classes.sum([]) { |klass| klass.send(:subclasses) }
-end
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2416,9 +2394,9 @@ or yields them in turn if a block is passed:
 ```html+erb
 <% sample.in_groups_of(3) do |a, b, c| %>
   <tr>
-    <td><%=h a %></td>
-    <td><%=h b %></td>
-    <td><%=h c %></td>
+    <td><%= a %></td>
+    <td><%= b %></td>
+    <td><%= c %></td>
   </tr>
 <% end %>
 ```
@@ -2679,13 +2657,6 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 ```ruby
 {a: 1}.with_indifferent_access.except(:a)  # => {}
 {a: 1}.with_indifferent_access.except("a") # => {}
-```
-
-The method `except` may come in handy for example when you want to protect some parameter that can't be globally protected with `attr_protected`:
-
-```ruby
-params[:account] = params[:account].except(:plan_id) unless admin?
-@account.update_attributes(params[:account])
 ```
 
 There's also the bang variant `except!` that removes keys in the very receiver.
@@ -3602,7 +3573,7 @@ Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
 # In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
-t = Time.local_time(2010, 3, 28, 1, 59, 59)
+t = Time.local(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
@@ -3657,26 +3628,6 @@ Time.current
 
 Analogously to `DateTime`, the predicates `past?`, and `future?` are relative to `Time.current`.
 
-Use the `local_time` class method to create time objects honoring the user time zone:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.local_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 +0200 2010
-```
-
-The `utc_time` class method returns a time in UTC:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.utc_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 UTC 2010
-```
-
-Both `local_time` and `utc_time` accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
-
 If the time to be constructed lies beyond the range supported by `Time` in the runtime platform, usecs are discarded and a `DateTime` object is returned instead.
 
 #### Durations
@@ -3695,7 +3646,7 @@ now - 1.week
 They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
 
 ```ruby
-Time.utc_time(1582, 10, 3) + 5.days
+Time.utc(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 
@@ -3725,6 +3676,25 @@ WARNING. Note you can't append with `atomic_write`.
 The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
+
+Extensions to `Marshal`
+-----------------------
+
+### `load`
+
+Active Support adds constant autoloading support to `load`.
+
+For example, the file cache store deserializes this way:
+
+```ruby
+File.open(file_name) { |f| Marshal.load(f) }
+```
+
+If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the deserialization is retried transparently.
+
+WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
+
+NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
 Extensions to `Logger`
 ----------------------

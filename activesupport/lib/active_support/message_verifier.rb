@@ -6,7 +6,7 @@ module ActiveSupport
   # signed to prevent tampering.
   #
   # This is useful for cases like remember-me tokens and auto-unsubscribe links
-  # where the session store isn't suitable or available.
+  # where the session store isn't suitable or available.
   #
   # Remember Me:
   #   cookies[:remember_me] = @verifier.generate([@user.id, 2.weeks.from_now])

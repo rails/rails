@@ -1,4 +1,3 @@
-
 module ActionController
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
@@ -91,11 +90,11 @@ module ActionController
       end
 
       def all_helpers_from_path(path)
-        helpers = []
-        Array(path).each do |_path|
-          extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
+        helpers = Array(path).flat_map do |_path|
+          extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
           names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
-          helpers += names.sort
+          names.sort!
+          names
         end
         helpers.uniq!
         helpers

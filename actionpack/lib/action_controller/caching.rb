@@ -6,10 +6,9 @@ module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
   #
-  # You can read more about each approach and the sweeping assistance by clicking the
-  # modules below.
+  # You can read more about each approach by clicking the modules below.
   #
-  # Note: To turn off all caching and sweeping, set
+  # Note: To turn off all caching, set
   #   config.action_controller.perform_caching = false.
   #
   # == \Caching stores
@@ -30,8 +29,6 @@ module ActionController
 
     eager_autoload do
       autoload :Fragments
-      autoload :Sweeper, 'action_controller/caching/sweeping'
-      autoload :Sweeping, 'action_controller/caching/sweeping'
     end
 
     module ConfigMethods
@@ -54,7 +51,6 @@ module ActionController
 
     include ConfigMethods
     include Fragments
-    include Sweeping if defined?(ActiveRecord)
 
     included do
       extend ConfigMethods
@@ -74,10 +70,28 @@ module ActionController
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
+
+      class_attribute :_view_cache_dependencies
+      self._view_cache_dependencies = []
+      helper_method :view_cache_dependencies if respond_to?(:helper_method)
+    end
+
+    module ClassMethods
+      def view_cache_dependency(&dependency)
+        self._view_cache_dependencies += [dependency]
+      end
+
+      def view_cache_dependencies
+        _view_cache_dependencies.map { |dep| instance_exec(&dep) }.compact
+      end
     end
 
     def caching_allowed?
       request.get? && response.status == 200
+    end
+
+    def view_cache_dependencies
+      self.class.view_cache_dependencies
     end
 
     protected

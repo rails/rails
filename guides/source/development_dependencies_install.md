@@ -3,6 +3,8 @@ Development Dependencies Install
 
 This guide covers how to setup an environment for Ruby on Rails core development.
 
+After reading this guide, you will know:
+
 --------------------------------------------------------------------------------
 
 The Easy Way
@@ -19,6 +21,8 @@ In case you can't use the Rails development box, see section above, these are th
 
 Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
+* [Try Git course](http://try.github.com/) is an interactive course that will teach you the basics.
+* The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git
 * [Everyday Git](http://schacon.github.com/git/everyday.html) will teach you just enough about Git to get by.
 * The [PeepCode screencast](https://peepcode.com/products/git) on Git ($9) is easier to follow.
 * [GitHub](http://help.github.com) offers links to a variety of Git resources.
@@ -51,7 +55,7 @@ $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 
 If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
-Also, SQLite3 and its development files for the `sqlite3-ruby` gem -- in Ubuntu you're done with just
+Also, SQLite3 and its development files for the `sqlite3-ruby` gem — in Ubuntu you're done with just
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
@@ -141,6 +145,9 @@ We need first to delete `.bundle/config` because Bundler remembers in that file 
 In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 
 ```bash
+$ mysql -uroot -p
+
+mysql> CREATE USER 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*

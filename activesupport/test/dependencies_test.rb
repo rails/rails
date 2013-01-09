@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'pp'
 require 'active_support/dependencies'
+require 'dependecies_test_helpers'
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -19,25 +20,7 @@ class DependenciesTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
   end
 
-  def with_loading(*from)
-    old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load
-    this_dir = File.dirname(__FILE__)
-    parent_dir = File.dirname(this_dir)
-    path_copy = $LOAD_PATH.dup
-    $LOAD_PATH.unshift(parent_dir) unless $LOAD_PATH.include?(parent_dir)
-    prior_autoload_paths = ActiveSupport::Dependencies.autoload_paths
-    ActiveSupport::Dependencies.autoload_paths = from.collect { |f| "#{this_dir}/#{f}" }
-    yield
-  ensure
-    $LOAD_PATH.replace(path_copy)
-    ActiveSupport::Dependencies.autoload_paths = prior_autoload_paths
-    ActiveSupport::Dependencies.mechanism = old_mechanism
-    ActiveSupport::Dependencies.explicitly_unloadable_constants = []
-  end
-
-  def with_autoloading_fixtures(&block)
-    with_loading 'autoloading_fixtures', &block
-  end
+  include DependeciesTestHelpers
 
   def test_depend_on_path
     skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
@@ -380,12 +363,10 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_smart_name_error_strings
-    begin
-      Object.module_eval "ImaginaryObject"
-      flunk "No raise!!"
-    rescue NameError => e
-      assert e.message.include?("uninitialized constant ImaginaryObject")
-    end
+    Object.module_eval "ImaginaryObject"
+    flunk "No raise!!"
+  rescue NameError => e
+    assert e.message.include?("uninitialized constant ImaginaryObject")
   end
 
   def test_loadable_constants_for_path_should_handle_empty_autoloads
@@ -928,10 +909,30 @@ class DependenciesTest < ActiveSupport::TestCase
     assert ! defined?(DeleteMe)
   end
 
+  def test_remove_constant_does_not_trigger_loading_autoloads
+    constant = 'ShouldNotBeAutoloaded'
+    Object.class_eval do
+      autoload constant, File.expand_path('../autoloading_fixtures/should_not_be_required', __FILE__)
+    end
+
+    assert_nil ActiveSupport::Dependencies.remove_constant(constant), "Kernel#autoload has been triggered by remove_constant"
+    assert !defined?(ShouldNotBeAutoloaded)
+  end
+
+  def test_remove_constant_does_not_autoload_already_removed_parents_as_a_side_effect
+    with_autoloading_fixtures do
+      _ = ::A    # assignment to silence parse-time warning "possibly useless use of :: in void context"
+      _ = ::A::B # assignment to silence parse-time warning "possibly useless use of :: in void context"
+      ActiveSupport::Dependencies.remove_constant('A')
+      ActiveSupport::Dependencies.remove_constant('A::B')
+      assert !defined?(A)
+    end
+  end
+
   def test_load_once_constants_should_not_be_unloaded
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths
-      ::A.to_s
+      _ = ::A # assignment to silence parse-time warning "possibly useless use of :: in void context"
       assert defined?(A)
       ActiveSupport::Dependencies.clear
       assert defined?(A)

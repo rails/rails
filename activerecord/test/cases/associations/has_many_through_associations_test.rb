@@ -330,6 +330,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_counter_caches_on_replace_association
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+    tag.tagged_posts << posts(:thinking)
+
+    tag.tagged_posts = []
+    post.reload
+
+    assert_equal(post.taggings.count, post.taggings_count)
+  end
+
   def test_replace_association
     assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people(true)}
 
@@ -695,7 +706,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_can_update_through_association
     assert_nothing_raised do
-      people(:michael).posts.first.update_attributes!(:title => "Can write")
+      people(:michael).posts.first.update!(title: "Can write")
     end
   end
 
