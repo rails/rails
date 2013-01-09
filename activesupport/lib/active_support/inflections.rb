@@ -9,7 +9,7 @@ module ActiveSupport
     inflect.plural(/(octop|vir)i$/i, '\1i')
     inflect.plural(/(alias|status)$/i, '\1es')
     inflect.plural(/(bu)s$/i, '\1ses')
-    inflect.plural(/(buffal|tomat)o$/i, '\1oes')
+    inflect.plural(/(buffal|tomat|her|potat|torped)o$/i, '\1oes')
     inflect.plural(/([ti])um$/i, '\1a')
     inflect.plural(/([ti])a$/i, '\1a')
     inflect.plural(/sis$/i, 'ses')
