@@ -27,31 +27,31 @@ class ErrorsTest < ActiveModel::TestCase
     end
   end
 
-  def test_delete
+  test "should be able to delete errors" do
     errors = ActiveModel::Errors.new(self)
-    errors[:foo] = 'omg'
+    errors[:foo] = "omg"
     errors.delete(:foo)
     assert_empty errors[:foo]
   end
 
-  def test_include?
+  test "should check if attribute is in the errors" do
     errors = ActiveModel::Errors.new(self)
-    errors[:foo] = 'omg'
-    assert errors.include?(:foo), 'errors should include :foo'
+    errors[:foo] = "omg"
+    assert errors.include?(:foo), "errors should include :foo"
   end
 
-  def test_dup
+  test "should be able to dup error" do
     errors = ActiveModel::Errors.new(self)
-    errors[:foo] = 'bar'
+    errors[:foo] = "bar"
     errors_dup = errors.dup
-    errors_dup[:bar] = 'omg'
+    errors_dup[:bar] = "omg"
     assert_not_same errors_dup.messages, errors.messages
   end
 
-  def test_has_key?
+  test "should return true if errors has the key provided" do
     errors = ActiveModel::Errors.new(self)
-    errors[:foo] = 'omg'
-    assert errors.has_key?(:foo), 'errors should have key :foo'
+    errors[:foo] = "omg"
+    assert errors.has_key?(:foo), "errors should have key :foo"
   end
 
   test "should return true if no errors" do
@@ -69,13 +69,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["can not be nil"], person.errors[:name]
   end
 
-  test 'should be able to assign error' do
+  test "should be able to assign error" do
     person = Person.new
-    person.errors[:name] = 'should not be nil'
+    person.errors[:name] = "should not be nil"
     assert_equal ["should not be nil"], person.errors[:name]
   end
 
-  test 'should be able to add an error on an attribute' do
+  test "should be able to add an error on an attribute" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     assert_equal ["can not be blank"], person.errors[:name]
@@ -138,43 +138,43 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.added?(:name, "can not be blank")
   end
 
-  test 'should respond to size' do
+  test "should respond to size" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     assert_equal 1, person.errors.size
   end
 
-  test 'to_a should return an array' do
+  test "to_a should return an array" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
   end
 
-  test 'to_hash should return a hash' do
+  test "to_hash should return a hash" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     assert_instance_of ::Hash, person.errors.to_hash
   end
 
-  test 'full_messages should return an array of error messages, with the attribute name included' do
+  test "full_messages should return an array of error messages, with the attribute name included" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages
   end
 
-  test 'full_message should return the given message if attribute equals :base' do
+  test "full_message should return the given message if attribute equals :base" do
     person = Person.new
     assert_equal "press the button", person.errors.full_message(:base, "press the button")
   end
 
-  test 'full_message should return the given message with the attribute name included' do
+  test "full_message should return the given message with the attribute name included" do
     person = Person.new
     assert_equal "name can not be blank", person.errors.full_message(:name, "can not be blank")
   end
 
-  test 'should return a JSON hash representation of the errors' do
+  test "should return a JSON hash representation of the errors" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
@@ -184,7 +184,7 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["is invalid"], hash[:email]
   end
 
-  test 'should return a JSON hash representation of the errors with full messages' do
+  test "should return a JSON hash representation of the errors with full messages" do
     person = Person.new
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
@@ -217,8 +217,8 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_empty generates message with custom default message" do
     person = Person.new
-    person.errors.expects(:generate_message).with(:name, :empty, {:message => 'custom'})
-    person.errors.add_on_empty :name, :message => 'custom'
+    person.errors.expects(:generate_message).with(:name, :empty, {:message => "custom"})
+    person.errors.add_on_empty :name, :message => "custom"
   end
 
   test "add_on_blank generates message" do
@@ -236,7 +236,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_blank generates message with custom default message" do
     person = Person.new
-    person.errors.expects(:generate_message).with(:name, :blank, {:message => 'custom'})
-    person.errors.add_on_blank :name, :message => 'custom'
+    person.errors.expects(:generate_message).with(:name, :blank, {:message => "custom"})
+    person.errors.add_on_blank :name, :message => "custom"
   end
 end
