@@ -1,8 +1,12 @@
-## Rails 3.1.10
+## Rails 3.1.11 (unreleased)
+
+## Rails 3.1.10 (Jan 8, 2013)
 
 * Strip nils from collections on JSON and XML posts. [CVE-2013-0155]
 
-## Rails 3.1.9
+## Rails 3.1.9 (Jan 2, 2013)
+
+*   No changes.
 
 ## Rails 3.1.8 (Aug 9, 2012)
 
@@ -45,7 +49,7 @@
 
 ## Rails 3.1.4 (unreleased) ##
 
-*   :subdomain can now be specified with a value of false in url_for, 
+*   :subdomain can now be specified with a value of false in url_for,
     allowing for subdomain(s) removal from the host during link generation. GH #4083
 
     *Arun Agrawal*

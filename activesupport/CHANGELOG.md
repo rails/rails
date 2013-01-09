@@ -1,8 +1,9 @@
-## Rails 3.1.11 ##
+## Rails 3.1.11 (unreleased) ##
 
-*   Allow multi_json version >= 1.3, relaxing
-    back to semantic versioning 2.0.0 (revert of #5861)
+*   Allow `multi_json` version `>= 1.3`, relaxing back to semantic versioning 2.0.0 (revert of #5861)
     Backport of #5896
+
+    *Alex Riedler*
 
 ## Rails 3.1.10 (Jan 8, 2012) ##
 
@@ -13,17 +14,19 @@
 
     *Jeremy Kemper*
 
-## Rails 3.1.9
-
-## Rails 3.1.8 (Aug 9, 2012)
-
-*   ERB::Util.html_escape now escapes single quotes. *Santiago Pastorino*
-
-## Rails 3.1.7 (Jul 26, 2012)
+## Rails 3.1.9 (Jan 2, 2013) ##
 
 *   No changes.
 
-## Rails 3.1.6 (Jun 12, 2012)
+## Rails 3.1.8 (Aug 9, 2012) ##
+
+*   ERB::Util.html_escape now escapes single quotes. *Santiago Pastorino*
+
+## Rails 3.1.7 (Jul 26, 2012) ##
+
+*   No changes.
+
+## Rails 3.1.6 (Jun 12, 2012) ##
 
 *   No changes.
 
