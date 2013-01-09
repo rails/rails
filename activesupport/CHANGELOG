@@ -1,13 +1,17 @@
-## Rails 3.0.19 (Jan 8, 2012) ##
+## Rails 3.0.20 (unreleased)
 
-*   Hash.from_xml raises when it encounters type="symbol" or type="yaml".
-    Use Hash.from_trusted_xml to parse this XML.
+## Rails 3.0.19 (Jan 8, 2013)
 
-    CVE-2013-0156
+* Hash.from_xml raises when it encounters type="symbol" or type="yaml".
+  Use Hash.from_trusted_xml to parse this XML.
 
-    *Jeremy Kemper*
+  CVE-2013-0156
 
-## Rails 3.0.18
+  *Jeremy Kemper*
+
+## Rails 3.0.18 (Jan 2, 2013)
+
+* No changes.
 
 ## Rails 3.0.17 (Aug 9, 2012)
 
@@ -15,11 +19,11 @@
 
 ## Rails 3.0.16 (Jul 26, 2012)
 
-*   No changes.
+* No changes.
 
 ## Rails 3.0.14 (Jun 12, 2012)
 
-*   No changes.
+* No changes.
 
 * Rails 3.0.13 (May 31, 2012)
 
