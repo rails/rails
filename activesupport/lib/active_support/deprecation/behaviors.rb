@@ -4,11 +4,11 @@ module ActiveSupport
   class Deprecation
     # Default warning behaviors per Rails.env.
     DEFAULT_BEHAVIORS = {
-      :stderr => Proc.new { |message, callstack|
+      stderr: Proc.new { |message, callstack|
         $stderr.puts(message)
         $stderr.puts callstack.join("\n  ") if debug
       },
-      :log => Proc.new { |message, callstack|
+      log: Proc.new { |message, callstack|
         logger =
             if defined?(Rails) && Rails.logger
               Rails.logger
@@ -19,11 +19,11 @@ module ActiveSupport
         logger.warn message
         logger.debug callstack.join("\n  ") if debug
       },
-      :notify => Proc.new { |message, callstack|
+      notify: Proc.new { |message, callstack|
         ActiveSupport::Notifications.instrument("deprecation.rails",
-                                                :message => message, :callstack => callstack)
+                                                message: message, callstack: callstack)
       },
-      :silence => Proc.new { |message, callstack| }
+      silence: Proc.new { |message, callstack| }
     }
 
     module Behavior
