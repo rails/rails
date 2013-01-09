@@ -9,7 +9,13 @@ module ActiveSupport
   module JSON
     class << self
       def decode(json, options ={})
-        data = MultiJson.decode(json, options)
+        # Can't reliably detect whether MultiJson responds to load, since it's
+        # a reserved word. Use adapter as a proxy for new features.
+        data = if MultiJson.respond_to?(:adapter)
+          MultiJson.load(json, options)
+        else
+          MultiJson.decode(json, options)
+        end
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
@@ -18,12 +24,20 @@ module ActiveSupport
       end
 
       def engine
-        MultiJson.engine
+        if MultiJson.respond_to?(:adapter)
+          MultiJson.adapter
+        else
+          MultiJson.engine
+        end
       end
       alias :backend :engine
 
       def engine=(name)
-        MultiJson.engine = name
+        if MultiJson.respond_to?(:use)
+          MultiJson.use name
+        else
+          MultiJson.engine = name
+        end
       end
       alias :backend= :engine=
 
