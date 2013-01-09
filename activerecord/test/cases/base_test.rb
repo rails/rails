@@ -840,7 +840,7 @@ class BasicsTest < ActiveRecord::TestCase
       # Reload and check that we have all the geometric attributes.
       h = Geometric.find(g.id)
 
-      assert_equal '(5,6.1)', h.a_point
+      assert_equal [5.0, 6.1], h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
       assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
       assert_equal '[(2,3),(5.5,7),(8.5,11)]', h.a_path
@@ -869,7 +869,7 @@ class BasicsTest < ActiveRecord::TestCase
       # Reload and check that we have all the geometric attributes.
       h = Geometric.find(g.id)
 
-      assert_equal '(5,6.1)', h.a_point
+      assert_equal [5.0, 6.1], h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
       assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
       assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_path
@@ -880,6 +880,29 @@ class BasicsTest < ActiveRecord::TestCase
       objs = Geometric.find_by_sql ["select isclosed(a_path) from geometrics where id = ?", g.id]
 
       assert_equal true, objs[0].isclosed
+
+      # test native ruby formats when defining the geometric types
+      g = Geometric.new(
+        :a_point        => [5.0, 6.1],
+        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        :a_line_segment => '((2.0, 3), (5.5, 7.0))',
+        :a_box          => '(2.0, 3), (5.5, 7.0)',
+        :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
+        :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
+        :a_circle       => '((5.3, 10.4), 2)'
+      )
+
+      assert g.save
+
+      # Reload and check that we have all the geometric attributes.
+      h = Geometric.find(g.id)
+
+      assert_equal [5.0, 6.1], h.a_point
+      assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
+      assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
+      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_path
+      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_polygon
+      assert_equal '<(5.3,10.4),2>', h.a_circle
     end
   end
 

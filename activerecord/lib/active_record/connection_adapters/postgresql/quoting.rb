@@ -28,10 +28,14 @@ module ActiveRecord
               super
             end
           when Array
-            if column.array
-              "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
+            case sql_type
+            when 'point' then super(PostgreSQLColumn.point_to_string(value))
             else
-              super
+              if column.array
+                "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
+              else
+                super
+              end
             end
           when Hash
             case sql_type
@@ -92,8 +96,12 @@ module ActiveRecord
               super(value, column)
             end
           when Array
-            return super(value, column) unless column.array
-            PostgreSQLColumn.array_to_string(value, column, self)
+            case column.sql_type
+            when 'point' then PostgreSQLColumn.point_to_string(value)
+            else
+              return super(value, column) unless column.array
+              PostgreSQLColumn.array_to_string(value, column, self)
+            end
           when String
             return super(value, column) unless 'bytea' == column.sql_type
             { :value => value, :format => 1 }

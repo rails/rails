@@ -2,6 +2,17 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLColumn < Column
       module Cast
+        def point_to_string(point)
+          "(#{point[0]},#{point[1]})"
+        end
+
+        def string_to_point(string)
+          if string[0] == '(' && string[-1] == ')'
+            string = string[1...-1]
+          end
+          string.split(',').map{ |v| Float(v) }
+        end
+
         def string_to_time(string)
           return string unless String === string
 

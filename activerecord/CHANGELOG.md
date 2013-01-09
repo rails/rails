@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   PostgreSQL geometric type point is supported by ActiveRecord. Fixes #7324.
+
+    *Martin Schuerrer*
+
 *   Add an `add_index` override in Postgresql adapter and MySQL adapter
     to allow custom index type support. Fixes #6101.
 
