@@ -1045,19 +1045,6 @@ class BaseTest < Test::Unit::TestCase
     end
   end
 
-  def test_load_yaml_array
-    assert_nothing_raised do
-      Person.format = :xml
-      marty = Person.find(5)
-      assert_equal 3, marty.colors.size
-      marty.colors.each do |color|
-        assert_kind_of String, color
-      end
-    end
-  ensure
-    Person.format = :json
-  end
-
   def test_with_custom_formatter
     addresses = [{ :id => "1", :street => "1 Infinite Loop", :city => "Cupertino", :state => "CA" }].to_xml(:root => :addresses)
 
