@@ -143,10 +143,7 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_yaml
-    assert %r{<preferences(.*)></preferences>}.match(@xml)
-    attributes = $1
-    assert_match %r{type="yaml"}, attributes
-    assert_match %r{nil="true"}, attributes
+    assert_match %r{<preferences nil=\"true\"></preferences>}, @xml
   end
 end
 
