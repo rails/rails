@@ -7,6 +7,19 @@ class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::BufferedLogger::Severity
 
+  class TestDebugLogSubscriber < ActiveRecord::LogSubscriber
+    attr_reader :debugs
+
+    def initialize
+      @debugs = []
+      super
+    end
+
+    def debug message
+      @debugs << message
+    end
+  end
+
   fixtures :posts
 
   def setup
@@ -32,18 +45,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_schema_statements_are_ignored
     event = Struct.new(:duration, :payload)
 
-    logger = Class.new(ActiveRecord::LogSubscriber) {
-      attr_accessor :debugs
-
-      def initialize
-        @debugs = []
-        super
-      end
-
-      def debug message
-        @debugs << message
-      end
-    }.new
+    logger = TestDebugLogSubscriber.new
     assert_equal 0, logger.debugs.length
 
     logger.sql(event.new(0, { :sql => 'hi mom!' }))
@@ -54,6 +56,14 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
     logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'SCHEMA' }))
     assert_equal 2, logger.debugs.length
+  end
+
+  def test_ignore_binds_payload_with_nil_column
+    event = Struct.new(:duration, :payload)
+
+    logger = TestDebugLogSubscriber.new
+    logger.sql(event.new(0, :sql => 'hi mom!', :binds => [[nil, 1]]))
+    assert_equal 1, logger.debugs.length
   end
 
   def test_basic_query_logging
