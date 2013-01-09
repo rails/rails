@@ -1,4 +1,4 @@
-## Rails 3.2.12 (unreleased)
+## Rails 3.2.12 (unreleased) ##
 
 *   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
     The encoding scheme was broken for unicode characters outside the basic
@@ -28,6 +28,7 @@
     CVE-2013-0156
 
     *Jeremy Kemper*
+
 
 ## Rails 3.2.10 (Jan 2, 2013) ##
 

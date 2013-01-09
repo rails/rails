@@ -1,4 +1,9 @@
-## Rails 3.2.11 (unreleased) ##
+## Rails 3.2.12 (unreleased) ##
+
+
+## Rails 3.2.11 (Jan 8, 2013) ##
+
+*   No changes.
 
 
 ## Rails 3.2.10 (Jan 2, 2013) ##
@@ -26,6 +31,7 @@
     *Yves Senn*
 
 *   Update supported ruby versions error message in ruby_version_check.rb *Lihan Li*
+
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
 

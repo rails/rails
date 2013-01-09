@@ -1,6 +1,11 @@
-## Rails 3.2.11 (unreleased) ##
+## Rails 3.2.12 (unreleased) ##
 
 *   Specify type of singular association during serialization *Steve Klabnik*
+
+
+## Rails 3.2.11 (Jan 8, 2013) ##
+
+*   No changes.
 
 
 ## Rails 3.2.10 (Jan 2, 2013) ##

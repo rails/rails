@@ -1,4 +1,10 @@
-## Rails 3.2.11 ##
+## Rails 3.2.12 (unreleased) ##
+
+
+## Rails 3.2.11 (Jan 8, 2013) ##
+
+*   No changes.
+
 
 ## Rails 3.2.10 (Jan 2, 2013) ##
 
