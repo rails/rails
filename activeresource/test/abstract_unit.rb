@@ -77,19 +77,6 @@ def setup_response
       }]
     }
   }.to_json
-  # - resource with yaml array of strings; for ARs using serialize :bar, Array
-  @marty = <<-eof.strip
-    <?xml version=\"1.0\" encoding=\"UTF-8\"?>
-    <person>
-      <id type=\"integer\">5</id>
-      <name>Marty</name>
-      <colors type=\"yaml\">---
-    - \"red\"
-    - \"green\"
-    - \"blue\"
-    </colors>
-    </person>
-  eof
 
   @startup_sound = {
     :sound => {
@@ -101,7 +88,6 @@ def setup_response
     mock.get    "/people/1.json",               {}, @matz
     mock.get    "/people/1.xml",                {}, @matz_xml
     mock.get    "/people/2.xml",                {}, @david
-    mock.get    "/people/5.xml",                {}, @marty
     mock.get    "/people/Greg.json",            {}, @greg
     mock.get    "/people/6.json",               {}, @joe
     mock.get    "/people/4.json",               { 'key' => 'value' }, nil, 404
