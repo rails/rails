@@ -42,6 +42,9 @@ class XmlParamsParsingTest < ActionController::IntegrationTest
       {"hash" => { "person" => nil} },
       "<hash><person type=\"array\"><person nil=\"true\"/></person></hash>")
     assert_parses(
+      {"hash" => { "person" => []} },
+      "<hash><person type=\"array\"></person></hash>")
+    assert_parses(
       {"hash" => { "person" => ['foo']} },
       "<hash><person type=\"array\"><person>foo</person><person nil=\"true\"/></person>\n</hash>")
   end
