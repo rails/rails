@@ -40,6 +40,8 @@ module ActiveRecord
       class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
 
+      class_attribute :foreign_key, instance_writer: false
+
       self.inheritance_column = 'type'
     end
 
