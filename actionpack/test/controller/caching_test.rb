@@ -306,11 +306,11 @@ class ViewCacheDependencyTest < ActionController::TestCase
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesController.view_cache_dependencies.empty?
+    assert NoDependenciesController.new.view_cache_dependencies.empty?
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
-    assert_equal %w(trombone flute), HasDependenciesController.view_cache_dependencies
+    assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
   end
 end
 
