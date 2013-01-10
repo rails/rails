@@ -170,7 +170,7 @@ module ActionView
       # You can also use custom data attributes using the <tt>:data</tt> option:
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
-      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?"">Visit Other Site</a>
+      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         options ||= {}
