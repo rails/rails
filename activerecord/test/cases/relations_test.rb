@@ -1160,8 +1160,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_order_with_function_and_last
-    authors = Author.scoped
-    assert_equal authors(:bob), authors.order( "id asc, MAX( organization_id, owned_essay_id)" ).last
+    authors = Author.all
+    assert_equal authors(:bob), authors.order( "id asc, COALESCE(organization_id, owned_essay_id)" ).last
+  end
+
+  def test_reverse_order_with_nested_functions
+    assert_equal Author.all.send(:reverse_sql_order, ["id asc, COALESCE(IFNULL(1,0), owned_essay_id)"]), ["id DESC", "COALESCE(IFNULL(1,0), owned_essay_id) DESC"]
   end
 
   def test_unscoped_block_style

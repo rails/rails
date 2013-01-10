@@ -863,11 +863,13 @@ module ActiveRecord
       # values divided by coma without brackets OR with matching brackets included
       %r{
         (
-          [^\(\),]+ # value without brackets
+          (?:[^\(\),]+) # value without brackets
           |
-          [^,]*                         #
-          (\((?:(?>[^()]+)|\g<2>)*\))   # value with brackets
-          [^,]*                         #
+          (?:                             #
+            [^,]*?                        #
+            (\((?:(?>[^()]+)|\g<2>)*\))   # value with brackets
+            [^,]*?                        #
+          )                               #
         )
         (?:,|\s*\z) # coma or end of string
       }x
