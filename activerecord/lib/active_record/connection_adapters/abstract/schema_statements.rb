@@ -687,6 +687,12 @@ module ActiveRecord
           index_name = index_name(table_name, options)
 
           unless index_name_exists?(table_name, index_name, true)
+            if options.has_key? :name
+              options_without_column = options.dup
+              options_without_column.delete :column
+              index_name_without_column = index_name(table_name, options_without_column)
+              return index_name_without_column if index_name_exists?(table_name, index_name_without_column, false)
+            end
             raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
           end
 
