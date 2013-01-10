@@ -5,6 +5,9 @@
     *Sam Ruby + Carlos Antonio da Silva*
 
 *   Do not append second slash to `root_url` when using `trailing_slash: true`
+
+*   Do not append second slash to root_url when using `trailing_slash: true`
+
     Fix #8700.
     Backport #8701.
 
@@ -16,6 +19,10 @@
         root_url # => http://test.host/
 
     *Yves Senn*
+
+*   Fixes issue where duplicate assets can be required with sprockets.
+
+    *Jeremy Jackson*
 
 *   Fix a bug in `content_tag_for` that prevents it for work without a block.
 
