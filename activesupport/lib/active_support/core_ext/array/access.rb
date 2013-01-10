@@ -21,28 +21,28 @@ class Array
 
   # Equal to <tt>self[1]</tt>.
   #
-  #   %w( a b c d e).second # => "b"
+  #   %w( a b c d e ).second # => "b"
   def second
     self[1]
   end
 
   # Equal to <tt>self[2]</tt>.
   #
-  #   %w( a b c d e).third # => "c"
+  #   %w( a b c d e ).third # => "c"
   def third
     self[2]
   end
 
   # Equal to <tt>self[3]</tt>.
   #
-  #   %w( a b c d e).fourth # => "d"
+  #   %w( a b c d e ).fourth # => "d"
   def fourth
     self[3]
   end
 
   # Equal to <tt>self[4]</tt>.
   #
-  #   %w( a b c d e).fifth # => "e"
+  #   %w( a b c d e ).fifth # => "e"
   def fifth
     self[4]
   end
