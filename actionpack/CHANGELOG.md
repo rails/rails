@@ -1,17 +1,19 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Prevent unnecessary asset compilation when using `javascript_include_tag` on
+    files with non-standard extensions.
+
+    *Noah Silas*
+
+*   Fixes issue where duplicate assets can be required with sprockets.
+
+    *Jeremy Jackson*
+
 *   Bump `rack` dependency to 1.4.3, eliminate `Rack::File` headers deprecation warning.
 
     *Sam Ruby + Carlos Antonio da Silva*
 
 *   Do not append second slash to `root_url` when using `trailing_slash: true`
-
-*   Prevent unnecessary asset compilation when using javascript_include_tag on
-    files with non-standard extensions.
-
-    *Noah Silas*
-
-*   Do not append second slash to root_url when using `trailing_slash: true`
 
     Fix #8700.
     Backport #8701.
@@ -24,10 +26,6 @@
         root_url # => http://test.host/
 
     *Yves Senn*
-
-*   Fixes issue where duplicate assets can be required with sprockets.
-
-    *Jeremy Jackson*
 
 *   Fix a bug in `content_tag_for` that prevents it for work without a block.
 
