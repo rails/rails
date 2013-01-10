@@ -1,4 +1,6 @@
 module ActionDispatch
+  # This middleware takes exceptions from the application and renders
+  # the corresponding static error page from the public directory.
   class PublicExceptions
     attr_accessor :public_path
 
