@@ -84,10 +84,6 @@
       url: debugging_rails_applications.html
       description: This guide describes how to debug Rails applications. It covers the different ways of achieving this and how to understand what is happening "behind the scenes" of your code.
     -
-      name: Performance Testing Rails Applications
-      url: performance_testing.html
-      description: This guide covers the various ways of performance testing a Ruby on Rails application.
-    -
       name: Configuring Rails Applications
       url: configuring.html
       description: This guide covers the basic configuration settings for a Rails application.

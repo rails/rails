@@ -39,10 +39,10 @@ Rails creates a `test` folder for you as soon as you create a Rails project usin
 ```bash
 $ ls -F test
 
-fixtures/  functional/  integration/  performance/  test_helper.rb  unit/
+fixtures/  functional/  integration/  test_helper.rb  unit/
 ```
 
-The `unit` directory is meant to hold tests for your models, the `functional` directory is meant to hold tests for your controllers, the `integration` directory is meant to hold tests that involve any number of controllers interacting, and the `performance` directory is meant for performance tests.
+The `unit` directory is meant to hold tests for your models, the `functional` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting.
 
 Fixtures are a way of organizing test data; they reside in the `fixtures` folder.
 
@@ -760,14 +760,12 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 | Tasks                           | Description |
 | ------------------------------- | ----------- |
 | `rake test`                     | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
-| `rake test:benchmark`           | Benchmark the performance tests|
 | `rake test:controllers`         | Runs all the controller tests from `test/controllers`|
 | `rake test:functionals`         | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
 | `rake test:helpers`             | Runs all the helper tests from `test/helpers`|
 | `rake test:integration`         | Runs all the integration tests from `test/integration`|
 | `rake test:mailers`             | Runs all the mailer tests from `test/mailers`|
 | `rake test:models`              | Runs all the model tests from `test/models`|
-| `rake test:profile`             | Profile the performance tests|
 | `rake test:recent`              | Tests recent changes|
 | `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
 | `rake test:units`               | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|

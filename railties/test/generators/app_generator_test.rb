@@ -34,7 +34,6 @@ DEFAULT_APP_FILES = %w(
   test/helpers
   test/mailers
   test/integration
-  test/performance
   vendor
   vendor/assets
   tmp/cache
@@ -218,7 +217,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
-    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_generator_if_skip_sprockets_is_given
@@ -241,7 +239,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
       assert_no_match(/config\.assets\.version = '1\.0'/, content)
     end
-    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_inclusion_of_javascript_runtime
