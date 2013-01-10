@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Scaffold now generates HTML-only controller by default.
+
+    *Pavel Pravosud*
+
 *   The generated `README.rdoc` for new applications invites the user to
     document the necessary steps to get the application up and running.
 
