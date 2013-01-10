@@ -114,7 +114,6 @@ module Rails
       empty_directory_with_keep_file 'test/helpers'
       empty_directory_with_keep_file 'test/integration'
 
-      template 'test/performance/browsing_test.rb'
       template 'test/test_helper.rb'
     end
 
@@ -141,7 +140,7 @@ module Rails
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
-    RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
+    RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
       add_shared_options_for "application"

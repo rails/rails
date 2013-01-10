@@ -24,8 +24,6 @@ The most common rails commands are:
 In addition to those, there are:
  application  Generate the Rails application code
  destroy      Undo code generated with "generate" (short-cut alias: "d")
- benchmarker  See how fast a piece of code runs
- profiler     Get profile information from a piece of code
  plugin new   Generates skeleton for developing a Rails plugin
  runner       Run a piece of code in the application environment (short-cut alias: "r")
 
@@ -50,11 +48,6 @@ when 'generate', 'destroy', 'plugin'
 
     require "rails/commands/#{command}"
   end
-
-when 'benchmarker', 'profiler'
-  require APP_PATH
-  Rails.application.require_environment!
-  require "rails/commands/#{command}"
 
 when 'console'
   require 'rails/commands/console'
