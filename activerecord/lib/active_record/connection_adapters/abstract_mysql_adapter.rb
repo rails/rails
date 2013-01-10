@@ -130,6 +130,9 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      INDEX_TYPES  = [:fulltext, :spatial]
+      INDEX_USINGS = [:btree, :hash]
+
       class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
         include Arel::Visitors::BindVisitor
       end
@@ -424,7 +427,11 @@ module ActiveRecord
             if current_index != row[:Key_name]
               next if row[:Key_name] == 'PRIMARY' # skip the primary key
               current_index = row[:Key_name]
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [])
+
+              mysql_index_type = row[:Index_type].downcase.to_sym
+              index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
+              index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
+              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using)
             end
 
             indexes.last.columns << row[:Column_name]
@@ -497,6 +504,16 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+      end
+
+      def add_index(table_name, column_name, options = {}) #:nodoc:
+        if options.is_a?(Hash) && options.has_key?(:using)
+          options = options.symbolize_keys
+          index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+          execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} USING #{options[:using]} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
+        else
+          super
+        end
       end
 
       # Maps logical Rails types to MySQL-specific data types.
