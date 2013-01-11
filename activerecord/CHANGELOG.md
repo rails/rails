@@ -1,5 +1,11 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Revert creation of through association models when using `collection=[]`
+    on a `has_many :through` association from an unsaved model.
+    Fix #7661, #8269.
+
+    *Ernie Miller*
+
 *   Fix undefined method `to_i` when calling `new` on a scope that uses an
     Array; Fix FloatDomainError when setting integer column to NaN.
     Fixes #8718, #8734, #8757.
