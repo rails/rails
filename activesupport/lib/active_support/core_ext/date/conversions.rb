@@ -17,10 +17,10 @@ class Date
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
-  remove_possible_method :to_time
+  remove_method :to_time
 
   # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
-  remove_possible_method :xmlschema
+  remove_method :xmlschema
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
