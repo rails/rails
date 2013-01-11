@@ -426,12 +426,10 @@ class HashToXmlTest < Test::Unit::TestCase
         <replies-close-in type="integer">2592000000</replies-close-in>
         <written-on type="date">2003-07-16</written-on>
         <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
-        <content type="yaml">--- \n1: should be an integer\n:message: Have a nice day\narray: \n- should-have-dashes: true\n  should_have_underscores: true\n</content>
         <author-email-address>david@loudthinking.com</author-email-address>
         <parent-id></parent-id>
         <ad-revenue type="decimal">1.5</ad-revenue>
         <optimum-viewing-angle type="float">135</optimum-viewing-angle>
-        <resident type="symbol">yes</resident>
       </topic>
     EOT
 
@@ -444,12 +442,10 @@ class HashToXmlTest < Test::Unit::TestCase
       :replies_close_in => 2592000000,
       :written_on => Date.new(2003, 7, 16),
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
-      :content => { :message => "Have a nice day", 1 => "should be an integer", "array" => [{ "should-have-dashes" => true, "should_have_underscores" => true }] },
       :author_email_address => "david@loudthinking.com",
       :parent_id => nil,
       :ad_revenue => BigDecimal("1.50"),
-      :optimum_viewing_angle => 135.0,
-      :resident => :yes
+      :optimum_viewing_angle => 135.0
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["topic"]
@@ -463,7 +459,6 @@ class HashToXmlTest < Test::Unit::TestCase
         <approved type="boolean"></approved>
         <written-on type="date"></written-on>
         <viewed-at type="datetime"></viewed-at>
-        <content type="yaml"></content>
         <parent-id></parent-id>
       </topic>
     EOT
@@ -474,7 +469,6 @@ class HashToXmlTest < Test::Unit::TestCase
       :approved   => nil,
       :written_on => nil,
       :viewed_at  => nil,
-      :content    => nil, 
       :parent_id  => nil
     }.stringify_keys
 
@@ -674,7 +668,7 @@ class HashToXmlTest < Test::Unit::TestCase
   
   def test_empty_string_works_for_typecast_xml_value    
     assert_nothing_raised do
-      Hash.send!(:typecast_xml_value, "")
+      Hash.send!(:typecast_xml_value, "", [])
     end
   end
   
@@ -762,7 +756,29 @@ class QueryTest < Test::Unit::TestCase
       Hash.from_xml(attack_xml)
     end
   end
-
+  
+  def test_from_xml_raises_on_disallowed_type_attributes
+    assert_raise Hash::DisallowedType do
+      Hash.from_xml '<product><name type="foo">value</name></product>', %w(foo)
+    end
+  end
+  
+  def test_from_xml_disallows_symbol_and_yaml_types_by_default
+    assert_raise Hash::DisallowedType do
+      Hash.from_xml '<product><name type="symbol">value</name></product>'
+    end
+  
+    assert_raise Hash::DisallowedType do
+      Hash.from_xml '<product><name type="yaml">value</name></product>'
+    end
+  end
+  
+  def test_from_trusted_xml_allows_symbol_and_yaml_types
+    expected = { 'product' => { 'name' => :value }}
+    assert_equal expected, Hash.from_trusted_xml('<product><name type="symbol">value</name></product>')
+    assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
+  end
+  
   private
     def assert_query_equal(expected, actual, message = nil)
       assert_equal expected.split('&'), actual.to_query.split('&')

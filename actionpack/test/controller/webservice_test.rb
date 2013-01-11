@@ -65,6 +65,14 @@ class WebServiceTest < Test::Unit::TestCase
     assert_equal 'content...', @controller.params["entry"]['summary']
     assert_equal 'true', @controller.params["entry"]['attributed']
   end
+  
+  def test_post_xml_using_a_disallowed_type_attribute
+    $stderr = StringIO.new
+    assert_raises(ActiveSupport::CoreExtensions::Hash::Conversions::DisallowedType) { process('POST', 'application/xml', '<foo type="symbol">value</foo>') }
+    assert_raises(ActiveSupport::CoreExtensions::Hash::Conversions::DisallowedType) { process('POST', 'application/xml', '<foo type="yaml">value</foo>') }
+    ensure
+    $stderr = STDERR
+  end
 
   def test_register_and_use_yaml
     ActionController::Base.param_parsers[Mime::YAML] = Proc.new { |d| YAML.load(d) }
