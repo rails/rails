@@ -35,10 +35,8 @@ module ActionDispatch
       end
 
       def reqs
-        @reqs ||= begin
-          reqs = endpoint
+        @reqs ||= endpoint.tap do |reqs|
           reqs += " #{constraints.to_s}" unless constraints.empty?
-          reqs
         end
       end
 
@@ -154,9 +152,9 @@ module ActionDispatch
       end
 
       def result
-        @view.raw @view.render(layout: "routes/table") {
+        @view.raw @view.render(layout: "routes/table") do
           @view.raw @buffer.join("\n")
-        }
+        end
       end
     end
   end
