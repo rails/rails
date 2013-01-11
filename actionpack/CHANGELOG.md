@@ -1,5 +1,7 @@
 ## Rails 3.1.11 (unreleased)
 
+* Fixed JSON params parsing regression for non-object JSON content.
+
 ## Rails 3.1.10 (Jan 8, 2013)
 
 * Strip nils from collections on JSON and XML posts. [CVE-2013-0155]
