@@ -226,6 +226,12 @@ module ActiveSupport
       # new value. After that all the processes will start getting new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
       #
+      # Setting <tt>:reread</tt> will ensure that in the case of a cache miss
+      # the object returned from this call will be one refetched out of the cache
+      # store after being written.  This is useful when working with raw data in
+      # memcached as it will ensure you always get a string response back from
+      # this call.
+      #
       # If the process regenerating the entry errors out, the entry will be
       # regenerated after the specified number of seconds. Also note that the
       # life of stale cache is extended only if it expired recently. Otherwise
@@ -302,7 +308,11 @@ module ActiveSupport
               yield(name)
             end
             write(name, result, options)
-            result
+            if options[:reread]
+              read(name, options)
+            else
+              result
+            end
           end
         else
           read(name, options)
