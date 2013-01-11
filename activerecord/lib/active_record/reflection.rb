@@ -370,7 +370,9 @@ module ActiveRecord
         end
 
         def derive_foreign_key
-          if belongs_to?
+          if active_record.foreign_key?
+            active_record.foreign_key
+          elsif belongs_to?
             "#{name}_id"
           elsif options[:as]
             "#{options[:as]}_id"
