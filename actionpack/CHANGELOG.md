@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Adding `CookirJar#fetch` methods for `Hash`-like access to cookies
+
+    *Matt Bridges*
+
 *   Extract `ActionDispatch::PerformanceTest` into https://github.com/rails/rails-perftest
     You can add the gem to your Gemfile to keep using performance tests.
 

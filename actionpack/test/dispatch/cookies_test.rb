@@ -20,7 +20,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def authenticate_for_fourteen_days_with_symbols
-      cookies[:user_name] = { :value => "david", :expires => Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
       head :ok
     end
 
@@ -43,17 +43,17 @@ class CookiesTest < ActionController::TestCase
     alias delete_cookie logout
 
     def delete_cookie_with_path
-      cookies.delete("user_name", :path => '/beaten')
+      cookies.delete("user_name", path: '/beaten')
       head :ok
     end
 
     def authenticate_with_http_only
-      cookies["user_name"] = { :value => "david", :httponly => true }
+      cookies["user_name"] = { value: "david", httponly: true }
       head :ok
     end
 
     def authenticate_with_secure
-      cookies["user_name"] = { :value => "david", :secure => true }
+      cookies["user_name"] = { value: "david", secure: true }
       head :ok
     end
 
@@ -90,37 +90,37 @@ class CookiesTest < ActionController::TestCase
 
     def delete_and_set_cookie
       cookies.delete :user_name
-      cookies[:user_name] = { :value => "david", :expires => Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
       head :ok
     end
 
     def set_cookie_with_domain
-      cookies[:user_name] = {:value => "rizwanreza", :domain => :all}
+      cookies[:user_name] = { value: "rizwanreza", domain: :all }
       head :ok
     end
 
     def delete_cookie_with_domain
-      cookies.delete(:user_name, :domain => :all)
+      cookies.delete(:user_name, domain: :all)
       head :ok
     end
 
     def set_cookie_with_domain_and_tld
-      cookies[:user_name] = {:value => "rizwanreza", :domain => :all, :tld_length => 2}
+      cookies[:user_name] = { value: "rizwanreza", domain: :all, tld_length: 2 }
       head :ok
     end
 
     def delete_cookie_with_domain_and_tld
-      cookies.delete(:user_name, :domain => :all, :tld_length => 2)
+      cookies.delete(:user_name, domain: :all, tld_length: 2)
       head :ok
     end
 
     def set_cookie_with_domains
-      cookies[:user_name] = {:value => "rizwanreza", :domain => %w(example1.com example2.com .example3.com)}
+      cookies[:user_name] = { value: "rizwanreza", domain: %w(example1.com example2.com .example3.com) }
       head :ok
     end
 
     def delete_cookie_with_domains
-      cookies.delete(:user_name, :domain => %w(example1.com example2.com .example3.com))
+      cookies.delete(:user_name, domain: %w(example1.com example2.com .example3.com))
       head :ok
     end
 
@@ -286,8 +286,8 @@ class CookiesTest < ActionController::TestCase
 
   def test_deleted_cookie_predicate_with_mismatching_options
     cookies[:user_name] = 'Joe'
-    cookies.delete("user_name", :path => "/path")
-    assert_equal false, cookies.deleted?("user_name", :path => "/different")
+    cookies.delete("user_name", path: "/path")
+    assert_equal false, cookies.deleted?("user_name", path: "/different")
   end
 
   def test_cookies_persist_throughout_request
@@ -301,9 +301,49 @@ class CookiesTest < ActionController::TestCase
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
   end
 
+  def test_permanent_cookie_with_fetch
+    get :set_permanent_cookie
+    assert_equal "Jamie", cookies.permanent.fetch(:user_name)
+  end
+
+  def test_permanent_cookie_with_fetch_on_false
+    get :set_permanent_cookie
+    assert_raise(KeyError) { cookies.permanent.fetch(:missing) }
+  end
+
+  def test_permanent_cookie_with_fetch_and_default_value
+    get :set_permanent_cookie
+    assert_equal "missed", cookies.permanent.fetch(:missing, "missed")
+  end
+
+  def test_permanent_cookie_using_fetch_with_block
+    get :set_permanent_cookie
+    assert_equal "missed", cookies.permanent.fetch(:missing) { "missed" }
+  end
+
   def test_signed_cookie
     get :set_signed_cookie
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
+  end
+
+  def test_signed_cookie_with_fetch
+    get :set_signed_cookie
+    assert_equal 45, cookies.signed.fetch(:user_id)
+  end
+
+  def test_signed_cookie_with_fetch_on_false
+    get :set_signed_cookie
+    assert_raise(KeyError) { cookies.signed.fetch(:missing) }
+  end
+
+  def test_signed_cookie_with_fetch_and_default_value
+    get :set_signed_cookie
+    assert_equal "missed", cookies.signed.fetch(:missing, "missed")
+  end
+
+  def test_signed_cookie_using_fetch_with_block
+    get :set_signed_cookie
+    assert_equal "missed", cookies.signed.fetch(:missing) { "missed" }
   end
 
   def test_encrypted_cookie
@@ -374,6 +414,36 @@ class CookiesTest < ActionController::TestCase
       @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("12345678901234567890123456789")
       get :set_signed_cookie
     }
+  end
+
+  def test_cookie_using_fetch
+    get :symbol_key
+    assert_equal 'david', cookies.fetch(:user_name)
+  end
+
+  def test_cookie_using_fetch_on_non_existent_cookie
+    get :symbol_key
+    assert_raise(KeyError) { cookies.fetch(:unreal_cookie) }
+  end
+
+  def test_cookie_using_fetch_with_default_second_value
+    get :symbol_key
+    assert_equal 'dhh', cookies.fetch(:fake_user_name, 'dhh')
+  end
+
+  def test_cookie_using_fetch_with_block
+    get :symbol_key
+    value = :original
+    cookies.fetch(:fake_user_name) { value = :test }
+    assert_equal value, :test
+  end
+
+  def test_cookie_with_both_second_value_and_block
+    ::Kernel.stubs(:warn)
+    get :symbol_key
+    value = :original
+    cookies.fetch(:fake_user_name, 'secondary') { value = :default }
+    assert_equal value, :default
   end
 
   def test_cookie_with_all_domain_option

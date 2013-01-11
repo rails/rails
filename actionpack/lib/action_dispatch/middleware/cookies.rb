@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/message_verifier'
 
 module ActionDispatch
@@ -44,6 +45,13 @@ module ActionDispatch
   #   cookies.size           # => 2
   #   cookies[:lat_lon]      # => [47.68, -122.37]
   #   cookies.signed[:login] # => "XJ-122"
+  #
+  # You can also use +fetch+ like you would on hashes on the regular cookies jar:
+  #
+  #   cookies[:login] = "david"
+  #   cookies.fetch(:bad_login)           # => KeyError: key not found: :bad_login
+  #   cookies.fetch(:bad_login, "dhh")    # => "dhh"
+  #   cookies.fetch(:bad_login) { "dhh" } # => "dhh"
   #
   # Example for deleting:
   #
@@ -145,6 +153,16 @@ module ActionDispatch
         @cookies[name.to_s]
       end
 
+      def fetch(name, default = nil)
+        return self[name] if key?(name)
+        if block_given?
+          ::Kernel.warn "warning: block supersedes default value argument" if default
+          yield
+        else
+          default || @cookies.fetch(name)
+        end
+      end
+
       def key?(name)
         @cookies.key?(name.to_s)
       end
@@ -181,7 +199,7 @@ module ActionDispatch
           value = options[:value]
         else
           value = options
-          options = { :value => value }
+          options = { value: value }
         end
 
         handle_options(options)
@@ -297,6 +315,9 @@ module ActionDispatch
     end
 
     class PermanentCookieJar #:nodoc:
+
+      delegate :fetch, to: :@parent_jar
+
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @key_generator = key_generator
@@ -311,7 +332,7 @@ module ActionDispatch
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
         options[:expires] = 20.years.from_now
@@ -337,6 +358,7 @@ module ActionDispatch
     end
 
     class SignedCookieJar #:nodoc:
+
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @options = options
@@ -352,12 +374,22 @@ module ActionDispatch
         nil
       end
 
+      def fetch(name, default = nil)
+        return self[name] unless self[name].nil?
+        if block_given?
+          ::Kernel.warn "warning: block supersedes default value argument" if default
+          yield
+        else
+          default || raise(KeyError, "key not found #{name.inspect}")
+        end
+      end
+
       def []=(key, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
           options[:value] = @verifier.generate(options[:value])
         else
-          options = { :value => @verifier.generate(options) }
+          options = { value: @verifier.generate(options) }
         end
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
@@ -409,7 +441,7 @@ module ActionDispatch
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
         options[:value] = @encryptor.encrypt_and_sign(options[:value])
 
