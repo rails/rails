@@ -1,5 +1,9 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Fixed JSON params parsing regression for non-object JSON content.
+
+    *Dylan Smith*
+
 *   Prevent unnecessary asset compilation when using `javascript_include_tag` on
     files with non-standard extensions.
 
