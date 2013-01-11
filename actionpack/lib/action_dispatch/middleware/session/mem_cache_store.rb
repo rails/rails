@@ -11,7 +11,6 @@ module ActionDispatch
     class MemCacheStore < Rack::Session::Dalli
       include Compatibility
       include StaleSessionCheck
-      include SessionObject
 
       def initialize(app, options = {})
         options[:expire_after] ||= options[:expires]
