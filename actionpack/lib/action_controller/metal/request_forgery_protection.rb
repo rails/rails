@@ -113,10 +113,6 @@ module ActionController #:nodoc:
             super(nil, env)
           end
 
-          def options
-            {}
-          end
-
           def to_hash
             {}
           end
