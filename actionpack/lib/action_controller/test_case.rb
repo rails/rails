@@ -156,12 +156,13 @@ module ActionController
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete 'PATH_INFO'
+    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
 
     def initialize(env = {})
       super
 
       self.session = TestSession.new
-      self.session_options = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+      self.session_options = DEFAULT_OPTIONS
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
