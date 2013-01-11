@@ -60,6 +60,13 @@ class JsonParamsParsingTest < ActionController::IntegrationTest
     end
   end
 
+  test "parses json with non-object JSON content" do
+    assert_parses(
+      {"_json" => "string content" },
+      "\"string content\"", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing do
