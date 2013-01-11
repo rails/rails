@@ -236,6 +236,8 @@ module ActionController
   end
 
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
+    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+
     def initialize(session = {})
       super(nil, nil)
       @data = session.stringify_keys
