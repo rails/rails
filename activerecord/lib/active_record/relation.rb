@@ -276,7 +276,7 @@ module ActiveRecord
       stmt.table(table)
       stmt.key = table[primary_key]
 
-      if joins_values.any?
+      if with_default_scope.joins_values.any?
         @klass.connection.join_to_update(stmt, arel)
       else
         stmt.take(arel.limit)
@@ -401,7 +401,7 @@ module ActiveRecord
         stmt = Arel::DeleteManager.new(arel.engine)
         stmt.from(table)
 
-        if joins_values.any?
+        if with_default_scope.joins_values.any?
           @klass.connection.join_to_delete(stmt, arel, table[primary_key])
         else
           stmt.wheres = arel.constraints
