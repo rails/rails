@@ -54,6 +54,59 @@ class ErrorsTest < ActiveModel::TestCase
     assert errors.has_key?(:foo), 'errors should have key :foo'
   end
 
+  test "should be able to clear the errors" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    person.errors.clear
+    assert person.errors.empty?
+  end
+
+  test "get returns the error by the provided key" do
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = "omg"
+
+    assert_equal ["omg"], errors.get(:foo)
+  end
+
+  test "sets the error with the provided key" do
+    errors = ActiveModel::Errors.new(self)
+    errors.set(:foo, "omg")
+
+    assert_equal({ foo: "omg" }, errors.messages)
+  end
+
+  test "values returns an array of messages" do
+    errors = ActiveModel::Errors.new(self)
+    errors.set(:foo, "omg")
+    errors.set(:baz, "zomg")
+
+    assert_equal ["omg", "zomg"], errors.values
+  end
+
+  test "keys returns the error keys" do
+    errors = ActiveModel::Errors.new(self)
+    errors.set(:foo, "omg")
+    errors.set(:baz, "zomg")
+
+    assert_equal [:foo, :baz], errors.keys
+  end
+
+  test "as_json returns a json formatted representation of the errors hash" do
+    person = Person.new
+    person.validate!
+
+    assert_equal({ name: ["can not be nil"] }, person.errors.as_json)
+  end
+
+  test "as_json with :full_messages option" do
+    person = Person.new
+    person.validate!
+
+    assert_equal({ name: ["name can not be nil"] }, person.errors.as_json(full_messages: true))
+  end
+
   test "should return true if no errors" do
     person = Person.new
     person.errors[:foo]
