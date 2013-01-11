@@ -11,7 +11,7 @@ module ActionDispatch
 
       def self.create(store, env, default_options)
         session_was = find env
-        session     = Request::Session.new(store, env)
+        session     = new(store, env)
         session.merge! session_was if session_was
 
         set(env, session)
