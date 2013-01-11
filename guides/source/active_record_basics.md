@@ -1,6 +1,6 @@
 Active Record Basics
 ====================
-
+ 
 This guide is an introduction to Active Record.
 
 After reading this guide, you will know:
