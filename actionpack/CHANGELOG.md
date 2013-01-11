@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Adding `CookirJar#fetch` methods for `Hash`-like access to cookies
+*   Adding `CookieJar#fetch` methods for `Hash`-like access to cookies
 
     *Matt Bridges*
 
