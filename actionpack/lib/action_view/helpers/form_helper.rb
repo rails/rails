@@ -1800,7 +1800,7 @@ module ActionView
           association = convert_to_model(association)
 
           if association.respond_to?(:persisted?)
-            association = [association] if @object.send(association_name).is_a?(Array)
+            association = [association] if @object.send(association_name).respond_to?(:to_ary)
           elsif !association.respond_to?(:to_ary)
             association = @object.send(association_name)
           end
