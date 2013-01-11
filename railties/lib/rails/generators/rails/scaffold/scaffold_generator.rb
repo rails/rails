@@ -10,7 +10,7 @@ module Rails
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
 
       def handle_skip
-        @options = @options.merge(stylesheet_engine: false) if !options[:stylesheets]
+        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
       end
 
       hook_for :scaffold_controller, required: true

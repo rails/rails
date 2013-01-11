@@ -162,7 +162,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render action: "new"/, content)
+      assert_match(/render action: 'new'/, content)
     end
   end
 end
