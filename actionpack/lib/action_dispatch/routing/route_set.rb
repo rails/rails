@@ -662,7 +662,7 @@ module ActionDispatch
           keys -= options.keys if args.size < keys.size - 1 # take format into account
 
           # Tell url_for to skip default_url_options
-          options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
+          options.merge!(Hash[keys.zip(args)])
         end
 
     end
