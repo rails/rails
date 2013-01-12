@@ -9,11 +9,11 @@ source 'https://rubygems.org'
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry -%>
 
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem 'jbuilder', '~> 1.0.1'
+
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
-
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-# gem 'jbuilder'
 
 # Use unicorn as the app server
 # gem 'unicorn'

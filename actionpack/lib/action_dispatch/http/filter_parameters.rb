@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/duplicable'
+require 'action_dispatch/http/parameter_filter'
 
 module ActionDispatch
   module Http

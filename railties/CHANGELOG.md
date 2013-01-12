@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Include `jbuilder` by default and rely on its scaffold generator to show json API.
+    Check https://github.com/rails/jbuilder for more info and examples.
+
+    *DHH*
+
+*   Scaffold now generates HTML-only controller by default.
+
+    *DHH + Pavel Pravosud*
+
 *   The generated `README.rdoc` for new applications invites the user to
     document the necessary steps to get the application up and running.
 

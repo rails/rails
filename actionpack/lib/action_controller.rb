@@ -42,7 +42,6 @@ module ActionController
 
   autoload :Integration,        'action_controller/deprecated/integration_test'
   autoload :IntegrationTest,    'action_controller/deprecated/integration_test'
-  autoload :PerformanceTest,    'action_controller/deprecated/performance_test'
   autoload :Routing,            'action_controller/deprecated'
   autoload :TestCase,           'action_controller/test_case'
   autoload :TemplateAssertions, 'action_controller/test_case'

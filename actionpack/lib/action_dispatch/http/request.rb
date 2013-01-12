@@ -3,6 +3,14 @@ require 'stringio'
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
 require 'action_controller/metal/exceptions'
+require 'rack/request'
+require 'action_dispatch/http/cache'
+require 'action_dispatch/http/mime_negotiation'
+require 'action_dispatch/http/parameters'
+require 'action_dispatch/http/filter_parameters'
+require 'action_dispatch/http/upload'
+require 'action_dispatch/http/url'
+require 'active_support/core_ext/array/conversions'
 
 module ActionDispatch
   class Request < Rack::Request
