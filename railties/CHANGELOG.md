@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `Rails::Generators::ActiveModel#update_attributes` in favor of `#update`.
+
+    ORMs that implement `Generators::ActiveModel#update_attributes` should change
+    to `#update`. Scaffold controller generators should change calls like:
+
+        @orm_instance.update_attributes(...)
+
+    to:
+
+        @orm_instance.update(...)
+
+    This goes along with the addition of `ActiveRecord::Base#update`.
+
+    *Carlos Antonio da Silva*
+
 *   Include `jbuilder` by default and rely on its scaffold generator to show json API.
     Check https://github.com/rails/jbuilder for more info and examples.
 

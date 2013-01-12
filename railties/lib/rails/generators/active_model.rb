@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module Rails
   module Generators
     # ActiveModel is a class to be implemented by each ORM to allow Rails to
@@ -61,6 +63,12 @@ module Rails
       # PATCH/PUT update
       def update(params=nil)
         "#{name}.update(#{params})"
+      end
+
+      def update_attributes(*args) # :nodoc:
+        ActiveSupport::Deprecation.warn("Calling '@orm_instance.update_attributes' " \
+          "is deprecated, please use '@orm_instance.update' instead.")
+        update(*args)
       end
 
       # POST create
