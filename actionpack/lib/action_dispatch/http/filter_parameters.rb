@@ -26,8 +26,6 @@ module ActionDispatch
     module FilterParameters
       extend ActiveSupport::Concern
 
-      @@parameter_filter_for  = {}
-
       # Return a hash of parameters with all sensitive data replaced.
       def filtered_parameters
         @filtered_parameters ||= parameter_filter.filter(parameters)
@@ -54,7 +52,7 @@ module ActionDispatch
       end
 
       def parameter_filter_for(filters)
-        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
+        ParameterFilter.new(filters)
       end
 
       KV_RE   = '[^&;=]+'
