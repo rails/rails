@@ -3,7 +3,6 @@ require 'shellwords'
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
-
       DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
 
       delegate :connection, :establish_connection, :clear_active_connections!,

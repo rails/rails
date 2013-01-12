@@ -1,7 +1,6 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
-
       DEFAULT_CHARSET     = ENV['CHARSET']   || 'utf8'
       DEFAULT_COLLATION   = ENV['COLLATION'] || 'utf8_unicode_ci'
       ACCESS_DENIED_ERROR = 1045
@@ -24,7 +23,7 @@ module ActiveRecord
         connection.create_database configuration['database'], creation_options
         connection.execute grant_statement.gsub(/\s+/, ' ').strip
         establish_connection configuration
-      rescue error_class, ActiveRecord::StatementInvalid => error
+      rescue ActiveRecord::StatementInvalid, error_class => error
         if /database exists/ === error.message
           raise DatabaseAlreadyExists
         else
@@ -93,8 +92,10 @@ module ActiveRecord
         if configuration['adapter'] =~ /jdbc/
           require 'active_record/railties/jdbcmysql_error'
           ArJdbcMySQL::Error
-        else
-          defined?(Mysql2) ? Mysql2::Error : Mysql::Error
+        elsif defined?(Mysql2)
+          Mysql2::Error
+        elsif defined?(Mysql)
+          Mysql::Error
         end
       end
 
@@ -128,7 +129,6 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         end
         args
       end
-
     end
   end
 end

@@ -1,7 +1,6 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class SQLiteDatabaseTasks # :nodoc:
-
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration, root = Rails.root)
