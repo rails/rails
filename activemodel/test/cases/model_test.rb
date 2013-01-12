@@ -20,7 +20,13 @@ class ModelTest < ActiveModel::TestCase
   def test_initialize_with_nil_or_empty_hash_params_does_not_explode
     assert_nothing_raised do
       BasicModel.new()
+      BasicModel.new nil
       BasicModel.new({})
     end
+  end
+
+  def test_persisted_is_always_false
+    object = BasicModel.new(:attr => "value")
+    assert object.persisted? == false
   end
 end
