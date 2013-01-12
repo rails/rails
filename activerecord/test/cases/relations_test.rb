@@ -404,6 +404,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_applies_to_all_chained_preloaded_scopes
+    assert_queries(3) do
+      post = Post.with_comments.with_tags.first
+      assert post
+    end
+  end
+
   def test_find_with_included_associations
     assert_queries(2) do
       posts = Post.includes(:comments).order('posts.id')
