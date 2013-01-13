@@ -843,7 +843,7 @@ module ActiveRecord
         when Arel::Nodes::Ordering
           o.reverse
         when String
-          o.to_s.split(',').collect do |s|
+          o.to_s.split(/,(?=(?:[^)]|\([^)]*\))*$)/).collect do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end

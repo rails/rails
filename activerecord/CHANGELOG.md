@@ -1226,4 +1226,11 @@
 
     *Aaron Patterson*
 
+*   Fix for reverting sorting order when SQL function is used in order clause
+    This was causing incorrect SQL generation when order is not just a simple
+    column name, i.e.
+        Job.order("COALESCE(jobs.field1, jobs.field2)").last
+    
+    *Ivan Vanyak*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
