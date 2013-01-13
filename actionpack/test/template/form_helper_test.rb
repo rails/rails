@@ -2163,14 +2163,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  class FakeAssociatonProxy
+  class FakeAssociationProxy
     def to_ary
       [1, 2, 3]
     end
   end
 
   def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association_with_proxy
-    @post.comments = FakeAssociatonProxy.new
+    @post.comments = FakeAssociationProxy.new
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), :child_index => 'abc') { |cf|
