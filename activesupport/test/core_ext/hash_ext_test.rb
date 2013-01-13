@@ -738,6 +738,15 @@ class HashExtTest < ActiveSupport::TestCase
   def test_extract
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}
+    remaining = original.dup
+
+    assert_equal expected, original.extract(:a, :b, :x)
+    assert_equal remaining, original
+  end
+
+  def test_extract_bang
+    original = {:a => 1, :b => 2, :c => 3, :d => 4}
+    expected = {:a => 1, :b => 2}
     remaining = {:c => 3, :d => 4}
 
     assert_equal expected, original.extract!(:a, :b, :x)

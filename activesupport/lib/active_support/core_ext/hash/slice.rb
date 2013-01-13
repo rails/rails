@@ -30,6 +30,16 @@ class Hash
     omit
   end
 
+  # Returns the key/value pairs matching the given keys, but keeps
+  # the original hash intact
+  #
+  #   a = { b: 1, c: 2 }
+  #   a.extract(:b) # => { c: 2 }
+  #   a # => { b: 1, c: 2 }
+  def extract(*keys)
+    dup.extract!(*keys)
+  end
+
   # Removes and returns the key/value pairs matching the given keys.
   #
   #   { a: 1, b: 2, c: 3, d: 4 }.extract!(:a, :b) # => {:a=>1, :b=>2}
