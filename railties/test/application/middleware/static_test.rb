@@ -3,7 +3,7 @@ require 'isolation/abstract_unit'
 require 'rack/test'
 
 module ApplicationTests
-  class MiddlewareStaticTest < ActiveSupport::TestCase
+  class MiddlewareStaticTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -25,7 +25,7 @@ module ApplicationTests
 
       get 'foo'
 
-      assert_not last_response.headers.has_key?('Cache-Control'), "Cache-Control should not be set"
+      assert !last_response.headers.has_key?('Cache-Control'), "Cache-Control should not be set"
     end
   end
 end
