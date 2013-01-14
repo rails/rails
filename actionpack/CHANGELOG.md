@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix a bug in integration tests where setting the port via a url passed to
+    the process method was ignored when constructing the request environment.
+
+    *Andrew White*
+
 *   Allow `:selected` to be set on `date_select` tag helper.
 
     *Colin Burn-Murdoch*
