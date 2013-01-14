@@ -820,6 +820,20 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_local_cache_fetch_with_refetch_should_return_object_from_memcached
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    assert_equal "1", cache.fetch("foo", :reread => true) { 1 }
+    assert_equal "1", cache.fetch("foo", :reread => true) { 1 }
+  end
+
+  def test_local_cache_fetch_without_refetch_should_return_block_response
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    assert_equal 1, cache.fetch("foo") { 1 }
+    assert_equal "1", cache.fetch("foo") { 1 }
+  end
+
   def test_read_should_return_a_different_object_id_each_time_it_is_called
     @cache.write('foo', 'bar')
     assert_not_equal @cache.read('foo').object_id, @cache.read('foo').object_id
