@@ -19,6 +19,9 @@
 
     *Daniele Sluijters*
 
+*   Fix DateTime comparison with DateTime::Infinity object.
+
+    *Dan Kubb*
 
 ## Rails 3.2.11 (Jan 8, 2012) ##
 
