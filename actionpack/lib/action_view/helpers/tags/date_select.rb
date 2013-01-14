@@ -27,7 +27,7 @@ module ActionView
         end
 
         def datetime_selector(options, html_options)
-          datetime = options[:value] || value(object) || default_datetime(options)
+          datetime = options[:selected] || value(object) || default_datetime(options)
           @auto_index ||= nil
 
           options = options.dup
