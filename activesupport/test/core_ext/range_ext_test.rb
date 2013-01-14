@@ -16,6 +16,7 @@ class RangeTest < ActiveSupport::TestCase
   def test_date_range
     assert_instance_of Range, DateTime.new..DateTime.new
     assert_instance_of Range, DateTime::Infinity.new..DateTime::Infinity.new
+    assert_instance_of Range, DateTime.new..DateTime::Infinity.new
   end
 
   def test_overlaps_last_inclusive

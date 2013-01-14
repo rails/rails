@@ -1,4 +1,9 @@
+*   Fix DateTime comparison with DateTime::Infinity object.
+
+    *Rafael Mendonça França*
+
 *   Make Dependencies pass a name to NameError error.
+
     *arthurnn*, *Yuki Nishijima*
 
 
