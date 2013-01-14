@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Allow value to be set on date_select tag helper.
+*   Allow `:selected` to be set on `date_select` tag helper.
 
     *Colin Burn-Murdoch*
 
