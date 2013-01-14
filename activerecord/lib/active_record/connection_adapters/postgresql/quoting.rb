@@ -130,6 +130,10 @@ module ActiveRecord
           end
         end
 
+        def quote_table_name_for_assignment(table, attr)
+          quote_column_name(attr)
+        end
+
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) #:nodoc:
           PGconn.quote_ident(name.to_s)

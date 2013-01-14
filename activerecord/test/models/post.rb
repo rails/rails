@@ -178,6 +178,11 @@ class PostWithDefaultInclude < ActiveRecord::Base
   has_many :comments, :foreign_key => :post_id
 end
 
+class PostWithSpecialCategorization < Post
+  has_many :categorizations, :foreign_key => :post_id
+  default_scope { where(:type => 'PostWithSpecialCategorization').joins(:categorizations).where(:categorizations => { :special => true }) }
+end
+
 class PostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { order(:title) }
