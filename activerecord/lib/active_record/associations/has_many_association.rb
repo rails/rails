@@ -121,7 +121,7 @@ module ActiveRecord
             if method == :delete_all
               update_counter(-scope.delete_all)
             else
-              update_counter(-scope.update_all(reflection.foreign_key => nil))
+              update_counter(-scope.update_all("#{reflection.table_name}.#{reflection.foreign_key}" => nil))
             end
           end
         end

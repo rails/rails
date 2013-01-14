@@ -229,6 +229,10 @@ module ActiveRecord
         @connection.class.quote(s)
       end
 
+      def quote_table_name_for_assignment(name)
+        quote_column_name(name.to_s.gsub(/.*\./, ''))
+      end
+
       def quote_column_name(name) #:nodoc:
         %Q("#{name.to_s.gsub('"', '""')}")
       end
