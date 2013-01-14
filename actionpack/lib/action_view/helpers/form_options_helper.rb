@@ -772,12 +772,12 @@ module ActionView
         @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
       end
 
-      def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {})
-        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
+      def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
       end
 
-      def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {})
-        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
+      def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
       end
     end
   end
