@@ -33,10 +33,10 @@ module ActiveRecord
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a SET clause.
       #   { name: nil, group_id: 4 }  returns "name = NULL , group_id='4'"
-      def sanitize_sql_for_assignment(assignments)
+      def sanitize_sql_for_assignment(assignments, default_table_name = self.table_name)
         case assignments
         when Array; sanitize_sql_array(assignments)
-        when Hash;  sanitize_sql_hash_for_assignment(assignments)
+        when Hash;  sanitize_sql_hash_for_assignment(assignments, default_table_name)
         else        assignments
         end
       end
@@ -98,9 +98,9 @@ module ActiveRecord
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
       #   { status: nil, group_id: 1 }
       #     # => "status = NULL , group_id = 1"
-      def sanitize_sql_hash_for_assignment(attrs)
+      def sanitize_sql_hash_for_assignment(attrs, table)
         attrs.map do |attr, value|
-          "#{connection.quote_column_name(attr)} = #{quote_bound_value(value)}"
+          "#{connection.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value)}"
         end.join(', ')
       end
 
