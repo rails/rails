@@ -1,3 +1,5 @@
+require 'action_controller/metal/exceptions'
+
 module ActionDispatch
   module Journey
     # The Formatter class is used for formatting URLs. For example, parameters
@@ -27,7 +29,10 @@ module ActionDispatch
           return [route.format(parameterized_parts), params]
         end
 
-        raise Router::RoutingError.new "missing required keys: #{missing_keys}"
+        message = "No route matches #{constraints.inspect}"
+        message << " missing required keys: #{missing_keys.inspect}" if name
+
+        raise ActionController::UrlGenerationError, message
       end
 
       def clear
