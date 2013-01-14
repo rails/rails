@@ -1,3 +1,7 @@
+*   Fix DateTime comparison with DateTime::Infinity object.
+
+    *Rafael Mendonça França*
+
 *   Fixed a compatibility issue with the `Oj` gem when cherry-picking the file
     `active_support/core_ext/object/json` without requiring `active_support/json`.
 
