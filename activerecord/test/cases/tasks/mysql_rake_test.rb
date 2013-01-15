@@ -3,10 +3,6 @@ require 'cases/helper'
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
     def setup
-      unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-        return skip("only tested on mysql or mysql2")
-      end
-
       @connection    = stub(:create_database => true)
       @configuration = {
         'adapter'  => 'mysql',
