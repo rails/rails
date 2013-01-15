@@ -3252,3 +3252,51 @@ class TestOptionalRootSegments < ActionDispatch::IntegrationTest
     assert_equal '/page/1', root_path(:page => '1')
   end
 end
+
+class TestPortConstraints < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get '/integer', to: ok, constraints: { :port =>  8080  }
+      get '/string',  to: ok, constraints: { :port => '8080' }
+      get '/array',   to: ok, constraints: { :port => [8080] }
+      get '/regexp',  to: ok, constraints: { :port => /8080/ }
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  def test_integer_port_constraints
+    get 'http://www.example.com/integer'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/integer'
+    assert_response :success
+  end
+
+  def test_string_port_constraints
+    get 'http://www.example.com/string'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/string'
+    assert_response :success
+  end
+
+  def test_array_port_constraints
+    get 'http://www.example.com/array'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/array'
+    assert_response :success
+  end
+
+  def test_regexp_port_constraints
+    get 'http://www.example.com/regexp'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/regexp'
+    assert_response :success
+  end
+end

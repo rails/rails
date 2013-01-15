@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add support for routing constraints other than Regexp and String.
+    For example this now allows the use of arrays like this:
+
+        get '/foo/:action', to: 'foo', constraints: { subdomain: %w[www admin] }
+
+    or constraints where the request method returns an Fixnum like this:
+
+        get '/foo', to: 'foo#index', constraints: { port: 8080 }
+
+    Note that this only applies to constraints on the request - path constraints
+    still need to be specified as Regexps as the various constraints are compiled
+    into a single Regexp.
+
+    *Andrew White*
+
 *   Fix a bug in integration tests where setting the port via a url passed to
     the process method was ignored when constructing the request environment.
 

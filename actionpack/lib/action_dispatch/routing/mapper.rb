@@ -8,6 +8,8 @@ require 'action_dispatch/routing/redirection'
 module ActionDispatch
   module Routing
     class Mapper
+      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
+
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
           if constraints.any?
@@ -45,73 +47,61 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         SHORTHAND_REGEX = %r{/[\w/]+$}
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
+        attr_reader :scope, :path, :options, :requirements, :conditions, :defaults
+
         def initialize(set, scope, path, options)
-          @set, @scope = set, scope
-          @segment_keys = nil
-          @options = (@scope[:options] || {}).merge(options)
-          @path = normalize_path(path)
+          @set, @scope, @path, @options = set, scope, path, options
+          @requirements, @conditions, @defaults = {}, {}, {}
+
+          normalize_path!
           normalize_options!
-
-          via_all = @options.delete(:via) if @options[:via] == :all
-
-          if !via_all && request_method_condition.empty?
-            msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
-                  "If you want to expose your action to GET, use `get` in the router:\n\n" \
-                  "  Instead of: match \"controller#action\"\n" \
-                  "  Do: get \"controller#action\""
-            raise msg
-          end
+          normalize_requirements!
+          normalize_defaults!
+          normalize_conditions!
         end
 
         def to_route
-          [ app, conditions, requirements, defaults, @options[:as], @options[:anchor] ]
+          [ app, conditions, requirements, defaults, options[:as], options[:anchor] ]
         end
 
         private
 
+          def normalize_path!
+            raise ArgumentError, "path is required" if @path.blank?
+            @path = Mapper.normalize_path(@path)
+
+            if required_format?
+              @path = "#{@path}.:format"
+            elsif optional_format?
+              @path = "#{@path}(.:format)"
+            end
+          end
+
+          def required_format?
+            options[:format] == true
+          end
+
+          def optional_format?
+            options[:format] != false && !path.include?(':format') && !path.end_with?('/')
+          end
+
           def normalize_options!
-            path_without_format = @path.sub(/\(\.:format\)$/, '')
+            @options.reverse_merge!(scope[:options]) if scope[:options]
+            path_without_format = path.sub(/\(\.:format\)$/, '')
 
-            if using_match_shorthand?(path_without_format, @options)
-              to_shorthand    = @options[:to].blank?
-              @options[:to] ||= path_without_format.gsub(/\(.*\)/, "")[1..-1].sub(%r{/([^/]*)$}, '#\1')
+            # Add a constraint for wildcard route to make it non-greedy and match the
+            # optional format part of the route by default
+            if path_without_format.match(WILDCARD_PATH) && @options[:format] != false
+              @options[$1.to_sym] ||= /.+?/
             end
 
-            @options.merge!(default_controller_and_action(to_shorthand))
-
-            requirements.each do |name, requirement|
-              # segment_keys.include?(k.to_s) || k == :controller
-              next unless Regexp === requirement && !constraints[name]
-
-              if requirement.source =~ ANCHOR_CHARACTERS_REGEX
-                raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
-              end
-              if requirement.multiline?
-                raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
-              end
-            end
-
-            if @options[:constraints].is_a?(Hash)
-              (@options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(@options[:constraints]))
-            end
-          end
-
-          # match "account/overview"
-          def using_match_shorthand?(path, options)
-            path && (options[:to] || options[:action]).nil? && path =~ SHORTHAND_REGEX
-          end
-
-          def normalize_path(path)
-            raise ArgumentError, "path is required" if path.blank?
-            path = Mapper.normalize_path(path)
-
-            if path.match(':controller')
-              raise ArgumentError, ":controller segment is not allowed within a namespace block" if @scope[:module]
+            if path_without_format.match(':controller')
+              raise ArgumentError, ":controller segment is not allowed within a namespace block" if scope[:module]
 
               # Add a default constraint for :controller path segments that matches namespaced
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
@@ -120,48 +110,100 @@ module ActionDispatch
               @options[:controller] ||= /.+?/
             end
 
-            # Add a constraint for wildcard route to make it non-greedy and match the
-            # optional format part of the route by default
-            if path.match(WILDCARD_PATH) && @options[:format] != false
-              @options[$1.to_sym] ||= /.+?/
+            if using_match_shorthand?(path_without_format, @options)
+              to_shorthand    = @options[:to].blank?
+              @options[:to] ||= path_without_format.gsub(/\(.*\)/, "")[1..-1].sub(%r{/([^/]*)$}, '#\1')
             end
 
-            if @options[:format] == false
-              @options.delete(:format)
-              path
-            elsif path.include?(":format") || path.end_with?('/')
-              path
-            elsif @options[:format] == true
-              "#{path}.:format"
-            else
-              "#{path}(.:format)"
+            @options.merge!(default_controller_and_action(to_shorthand))
+          end
+
+          # match "account/overview"
+          def using_match_shorthand?(path, options)
+            path && (options[:to] || options[:action]).nil? && path =~ SHORTHAND_REGEX
+          end
+
+          def normalize_format!
+            if options[:format] == true
+              options[:format] = /.+/
+            elsif options[:format] == false
+              options.delete(:format)
+            end
+          end
+
+          def normalize_requirements!
+            constraints.each do |key, requirement|
+              next unless segment_keys.include?(key) || key == :controller
+
+              if requirement.source =~ ANCHOR_CHARACTERS_REGEX
+                raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+              end
+
+              if requirement.multiline?
+                raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
+              end
+
+              @requirements[key] = requirement
+            end
+
+            if options[:format] == true
+              @requirements[:format] = /.+/
+            elsif Regexp === options[:format]
+              @requirements[:format] = options[:format]
+            elsif String === options[:format]
+              @requirements[:format] = Regexp.compile(options[:format])
+            end
+          end
+
+          def normalize_defaults!
+            @defaults.merge!(scope[:defaults]) if scope[:defaults]
+            @defaults.merge!(options[:defaults]) if options[:defaults]
+
+            options.each do |key, default|
+              next if Regexp === default || IGNORE_OPTIONS.include?(key)
+              @defaults[key] = default
+            end
+
+            if options[:constraints].is_a?(Hash)
+              options[:constraints].each do |key, default|
+                next unless URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+                @defaults[key] ||= default
+              end
+            end
+
+            if Regexp === options[:format]
+              @defaults[:format] = nil
+            elsif String === options[:format]
+              @defaults[:format] = options[:format]
+            end
+          end
+
+          def normalize_conditions!
+            @conditions.merge!(:path_info => path)
+
+            constraints.each do |key, condition|
+              next if segment_keys.include?(key) || key == :controller
+              @conditions[key] = condition
+            end
+
+            via_all = options.delete(:via) if options[:via] == :all
+
+            if !via_all && options[:via].blank?
+              msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                    "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                    "  Instead of: match \"controller#action\"\n" \
+                    "  Do: get \"controller#action\""
+              raise msg
+            end
+
+            if via = options[:via]
+              list = Array(via).map { |m| m.to_s.dasherize.upcase }
+              @conditions.merge!(:request_method => list)
             end
           end
 
           def app
-            Constraints.new(
-              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
-              blocks,
-              @set.request_class
-            )
-          end
-
-          def conditions
-            { :path_info => @path }.merge!(constraints).merge!(request_method_condition)
-          end
-
-          def requirements
-            @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
-              requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
-              @options.each { |k, v| requirements[k] ||= v if v.is_a?(Regexp) }
-            end
-          end
-
-          def defaults
-            @defaults ||= (@options[:defaults] || {}).tap do |defaults|
-              defaults.reverse_merge!(@scope[:defaults]) if @scope[:defaults]
-              @options.each { |k, v| defaults[k] = v unless v.is_a?(Regexp) || IGNORE_OPTIONS.include?(k.to_sym) }
-            end
+            Constraints.new(endpoint, blocks, @set.request_class)
           end
 
           def default_controller_and_action(to_shorthand=nil)
@@ -188,11 +230,11 @@ module ActionDispatch
               controller = controller.to_s unless controller.is_a?(Regexp)
               action     = action.to_s     unless action.is_a?(Regexp)
 
-              if controller.blank? && segment_keys.exclude?("controller")
+              if controller.blank? && segment_keys.exclude?(:controller)
                 raise ArgumentError, "missing :controller"
               end
 
-              if action.blank? && segment_keys.exclude?("action")
+              if action.blank? && segment_keys.exclude?(:action)
                 raise ArgumentError, "missing :action"
               end
 
@@ -204,50 +246,55 @@ module ActionDispatch
           end
 
           def blocks
-            constraints = @options[:constraints]
-            if constraints.present? && !constraints.is_a?(Hash)
-              [constraints]
+            if options[:constraints].present? && !options[:constraints].is_a?(Hash)
+              [options[:constraints]]
             else
-              @scope[:blocks] || []
+              scope[:blocks] || []
             end
           end
 
           def constraints
-            @constraints ||= requirements.reject { |k, v| segment_keys.include?(k.to_s) || k == :controller }
-          end
+            @constraints ||= {}.tap do |constraints|
+              constraints.merge!(scope[:constraints]) if scope[:constraints]
 
-          def request_method_condition
-            if via = @options[:via]
-              list = Array(via).map { |m| m.to_s.dasherize.upcase }
-              { :request_method => list }
-            else
-              { }
+              options.except(*IGNORE_OPTIONS).each do |key, option|
+                constraints[key] = option if Regexp === option
+              end
+
+              constraints.merge!(options[:constraints]) if options[:constraints].is_a?(Hash)
             end
           end
 
           def segment_keys
-            return @segment_keys if @segment_keys
+            @segment_keys ||= path_pattern.names.map{ |s| s.to_sym }
+          end
 
-            @segment_keys = Journey::Path::Pattern.new(
-              Journey::Router::Strexp.compile(@path, requirements, SEPARATORS)
-            ).names
+          def path_pattern
+            Journey::Path::Pattern.new(strexp)
+          end
+
+          def strexp
+            Journey::Router::Strexp.compile(path, requirements, SEPARATORS)
+          end
+
+          def endpoint
+            to.respond_to?(:call) ? to : dispatcher
+          end
+
+          def dispatcher
+            Routing::RouteSet::Dispatcher.new(:defaults => defaults)
           end
 
           def to
-            @options[:to]
+            options[:to]
           end
 
           def default_controller
-            @options[:controller] || @scope[:controller]
+            options[:controller] || scope[:controller]
           end
 
           def default_action
-            @options[:action] || @scope[:action]
-          end
-
-          def defaults_from_constraints(constraints)
-            url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
+            options[:action] || scope[:action]
           end
       end
 
@@ -641,7 +688,11 @@ module ActionDispatch
           options[:constraints] ||= {}
 
           if options[:constraints].is_a?(Hash)
-            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+            defaults = options[:constraints].select do
+              |k, v| URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
+            end
+
+            (options[:defaults] ||= {}).reverse_merge!(defaults)
           else
             block, options[:constraints] = options[:constraints], {}
           end
@@ -845,11 +896,6 @@ module ActionDispatch
 
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
-          end
-
-          def defaults_from_constraints(constraints)
-            url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
