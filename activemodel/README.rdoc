@@ -1,7 +1,7 @@
 = Active Model -- model interfaces for Rails
 
 Active Model provides a known set of interfaces for usage in model classes.
-They allow for Action Pack helpers to interact with non-ActiveRecord models,
+They allow for Action Pack helpers to interact with non-Active Record models,
 for example. Active Model also helps building custom ORMs for use outside of
 the Rails framework.
 
@@ -11,7 +11,7 @@ code from Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
 in code duplication and fragile applications that broke on upgrades. Active
 Model solves this by defining an explicit API. You can read more about the
-API in ActiveModel::Lint::Tests.
+API in <tt>ActiveModel::Lint::Tests</tt>.
 
 Active Model provides a default module that implements the basic API required
 to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
