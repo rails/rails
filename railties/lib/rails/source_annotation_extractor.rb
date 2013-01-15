@@ -68,16 +68,22 @@ class SourceAnnotationExtractor
 
       if File.directory?(item)
         results.update(find_in(item))
-      elsif item =~ /\.(builder|rb|coffee|rake)$/
-        results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.(css|scss|js)$/
-        results.update(extract_annotations_from(item, /\/\/\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.erb$/
-        results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
-      elsif item =~ /\.haml$/
-        results.update(extract_annotations_from(item, /-\s*#\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.slim$/
-        results.update(extract_annotations_from(item, /\/\s*\s*(#{tag}):?\s*(.*)$/))
+      else
+        pattern =
+            case item
+            when /\.(builder|rb|coffee|rake)$/
+              /#\s*(#{tag}):?\s*(.*)$/
+            when /\.(css|scss|js)$/
+              /\/\/\s*(#{tag}):?\s*(.*)$/
+            when /\.erb$/
+              /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/
+            when /\.haml$/
+              /-\s*#\s*(#{tag}):?\s*(.*)$/
+            when /\.slim$/
+              /\/\s*\s*(#{tag}):?\s*(.*)$/
+            else nil
+            end
+        results.update(extract_annotations_from(item, pattern)) if pattern
       end
     end
 
