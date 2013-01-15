@@ -45,7 +45,7 @@ module ActionDispatch
       end
 
       def required_keys
-        path.required_names.map { |x| x.to_sym } + required_defaults.keys
+        required_parts + required_defaults.keys
       end
 
       def score(constraints)
@@ -79,10 +79,13 @@ module ActionDispatch
         @required_parts ||= path.required_names.map { |n| n.to_sym }
       end
 
+      def required_default?(key)
+        (constraints[:required_defaults] || []).include?(key)
+      end
+
       def required_defaults
-        @required_defaults ||= begin
-          matches = parts
-          @defaults.dup.delete_if { |k,_| matches.include?(k) }
+        @required_defaults ||= @defaults.dup.delete_if do |k,_|
+          parts.include?(k) || !required_default?(k)
         end
       end
 

@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change the behavior of route defaults so that explicit defaults are no longer
+    required where the key is not part of the path. For example:
+
+        resources :posts, bucket_type: 'posts'
+
+    will be required whenever constructing the url from a hash such as a functional
+    test or using url_for directly. However using the explicit form alters the
+    behavior so it's not required:
+
+        resources :projects, defaults: { bucket_type: 'projects' }
+
+    This changes existing behavior slightly in that any routes which only differ
+    in their defaults will match the first route rather than the closest match.
+
+    *Andrew White*
+
 *   Add support for routing constraints other than Regexp and String.
     For example this now allows the use of arrays like this:
 

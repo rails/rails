@@ -61,8 +61,8 @@ module ActionDispatch
           normalize_path!
           normalize_options!
           normalize_requirements!
-          normalize_defaults!
           normalize_conditions!
+          normalize_defaults!
         end
 
         def to_route
@@ -184,6 +184,13 @@ module ActionDispatch
             constraints.each do |key, condition|
               next if segment_keys.include?(key) || key == :controller
               @conditions[key] = condition
+            end
+
+            @conditions[:required_defaults] = []
+            options.each do |key, required_default|
+              next if segment_keys.include?(key) || IGNORE_OPTIONS.include?(key)
+              next if Regexp === required_default
+              @conditions[:required_defaults] << key
             end
 
             via_all = options.delete(:via) if options[:via] == :all

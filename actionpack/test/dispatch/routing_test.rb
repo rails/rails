@@ -3300,3 +3300,31 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
     assert_response :success
   end
 end
+
+class TestRouteDefaults < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      resources :posts, bucket_type: 'post'
+      resources :projects, defaults: { bucket_type: 'project' }
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_route_options_are_required_for_url_for
+    assert_raises(ActionController::UrlGenerationError) do
+      assert_equal '/posts/1', url_for(controller: 'posts', action: 'show', id: 1, only_path: true)
+    end
+
+    assert_equal '/posts/1', url_for(controller: 'posts', action: 'show', id: 1, bucket_type: 'post', only_path: true)
+  end
+
+  def test_route_defaults_are_not_required_for_url_for
+    assert_equal '/projects/1', url_for(controller: 'projects', action: 'show', id: 1, only_path: true)
+  end
+end
