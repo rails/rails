@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rake task `railties:install:migrations` respects the order of railties.
+
+    *Slava Kravchenko*
+
 *   Remove support for parsing YAML parameters from request.
 
     *Aaron Patterson*
