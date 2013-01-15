@@ -4,7 +4,6 @@ module ActiveRecord
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
-          binds = binds.dup
           visitor.accept(arel.ast) do
             quote(*binds.shift.reverse)
           end
@@ -21,14 +20,14 @@ module ActiveRecord
 
       # Returns a record hash with the column names as keys and column values
       # as values.
-      def select_one(arel, name = nil, binds = [])
-        result = select_all(arel, name, binds)
+      def select_one(arel, name = nil)
+        result = select_all(arel, name)
         result.first if result
       end
 
       # Returns a single value from a record
-      def select_value(arel, name = nil, binds = [])
-        if result = select_one(arel, name, binds)
+      def select_value(arel, name = nil)
+        if result = select_one(arel, name)
           result.values.first
         end
       end
