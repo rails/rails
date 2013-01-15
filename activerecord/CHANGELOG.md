@@ -19,6 +19,18 @@
 
     *Alexander Grebennik*
 
+*   Added the `#or` method on ActiveRecord::Relation, in order to use the OR
+    operand when joining WHERE clauses.
+
+    Examples:
+
+        Post.where('id = 1').or.where('id = 2')
+        Post.where('id = 1').or.containing_the_letter_a
+        Post.where('id = 1').or(Post.where('id = 2')
+        Post.where('id = 1').or('id = 2')
+
+    *Gael Muller*
+
 *   Added a state instance variable to each transaction. Will allow other objects
     to know whether a transaction has been committed or rolled back.
 
