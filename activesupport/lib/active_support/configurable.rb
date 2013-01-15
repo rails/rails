@@ -49,7 +49,21 @@ module ActiveSupport
       #   user.allowed_access = true
       #   user.allowed_access # => true
       #
-      def config_accessor(*names)
+      # You can pass a block to set up the attribute with a default value.
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #     config_accessor :hair_color do
+      #       :red
+      #     end
+      #   end
+      #
+      #   user = User.new
+      #   user.hair_color # => :red
+      #   user.hair_color = :brown
+      #   user.hair_color # => :brown
+      #
+      def config_accessor(*names, &block)
         options = names.extract_options!
 
         names.each do |name|
@@ -60,6 +74,8 @@ module ActiveSupport
           singleton_class.class_eval writer, __FILE__, line
           class_eval reader, __FILE__, line unless options[:instance_reader] == false
           class_eval writer, __FILE__, line unless options[:instance_writer] == false
+
+          send("#{name}=", yield) if block_given?
         end
       end
     end
