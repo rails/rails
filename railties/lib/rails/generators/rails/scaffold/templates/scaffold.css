@@ -54,3 +54,45 @@ div.field, div.actions {
   font-size: 12px;
   list-style: square;
 }
+
+@media only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display:none;
+  }
+
+  tr {
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+  }
+
+  tr:last-child {
+    border-bottom: 1px solid #ccc;
+  }
+
+  td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  td:before {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+  }
+
+  td:nth-child(n):before {
+    content: attr(class);
+  }
+}
