@@ -32,15 +32,24 @@ class SourceAnnotationExtractor
   end
 
   # Prints all annotations with tag +tag+ under the root directories +app+,
-  # +config+, +lib+, and +test+ (recursively). Filenames with extension
-  # +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+, +.scss+, +.js+,
-  # +.coffee+, and +.rake+ are taken into account. The +options+ hash is
-  # passed to each annotation's +to_s+.
+  # +config+, +db+, +lib+, and +test+ (recursively).
+  #
+  # Additional directories may be added using a comma-delimited list set using
+  # <tt>ENV['SOURCE_ANNOTATION_DIRECTORIES']</tt>.
+  #
+  # Directories may also be explicitly set using the <tt>:dirs</tt> key in +options+.
+  #
+  #   SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
+  #
+  # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
+  #
+  # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
   #
   # This class method is the single entry point for the rake tasks.
   def self.enumerate(tag, options={})
     extractor = new(tag)
-    extractor.display(extractor.find, options)
+    dirs = options.delete(:dirs) || Annotation.directories
+    extractor.display(extractor.find(dirs), options)
   end
 
   attr_reader :tag
@@ -51,7 +60,7 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
   # with their annotations.
-  def find(dirs = Annotation.directories)
+  def find(dirs)
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
