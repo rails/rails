@@ -86,6 +86,53 @@ This fragment is then available to all actions in the `ProductsController` using
 expire_fragment('all_available_products')
 ```
 
+If you want to avoid expiring the fragment manually, whenever an action updates a product, you can define a helper method:
+
+```ruby
+module ProductsHelper
+  def cache_key_for_products
+    count          = Product.count
+    max_updated_at = Product.maximum(:updated_at).try(:utc).try(:to_s, :number)
+    "products/all-#{count}-#{max_updated_at}"
+  end
+end
+```
+
+This method generates a cache key that depends on all products and can be used in the view:
+
+```erb
+<% cache(cache_key_for_products) do %>
+  All available products:
+<% end %>
+```
+
+You can also use an `ActiveRecord` model as the cache key:
+
+```erb
+<% Product.all.each do |p| %>
+  <% cache(p) do %>
+    <%= link_to p.name, product_url(p) %>
+  <% end %>
+<% end %>
+```
+
+Behind the scenes, a method called `cache_key` will be invoked on the model and it returns a string like `products/23-20130109142513`. The cache key includes the model name, the id and finally the `updated_at` timestamp. Thus it will automatically generate a new fragment when the product is updated because the key changes.
+
+You can also combine the two schemes which is called "Russian Doll Caching":
+
+```erb
+<% cache(cache_key_for_products) do %>
+  All available products:
+  <% Product.all.each do |p| %>
+    <% cache(p) do %>
+      <%= link_to p.name, product_url(p) %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+It's called "Russian Doll Caching" because it nests multiple fragments. The advantage is that if a single product is updated, all the other inner fragments can be reused when regenerating the outer fragment.
+
 ### SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
