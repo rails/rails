@@ -1,3 +1,7 @@
+## Rails 2.3.16 (Jan 15, 2013) ##
+
+* Fix for CVE-2013-0155 (Ernie Miller)
+
 ## Rails 2.3.15 (Jan 8, 2012) ##
 
 * Hash.from_xml raises when it encounters type="symbol" or type="yaml". Use Hash.from_trusted_xml to parse this XML. CVE-2013-0156 [Jeremy Kemper]
