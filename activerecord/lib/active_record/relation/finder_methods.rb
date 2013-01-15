@@ -199,7 +199,7 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(id)) if id
       end
 
-      connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
+      connection.select_value(relation, "#{name} Exists") ? true : false
     rescue ThrowResult
       false
     end
@@ -334,7 +334,7 @@ module ActiveRecord
 
       substitute = connection.substitute_at(column, @bind_values.length)
       relation = where(table[primary_key].eq(substitute))
-      relation.bind_values += [[column, id]]
+      relation.bind_values = [[column, id]]
       record = relation.first
 
       unless record

@@ -110,12 +110,6 @@
 
     *Victor Costan*
 
-*   Calling `include?` on `has_many` associations on unsaved records no longer
-    returns `true` when passed a record with a `nil` foreign key.
-    Fixes #7950.
-
-    *George Brocklehurst*
-
 *   `#pluck` can be used on a relation with `select` clause.
     Fixes #7551.
     Backport of #8176.
