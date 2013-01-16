@@ -172,6 +172,7 @@ module ActionDispatch # :nodoc:
       stream.to_path
     end
 
+    # Returns the content of the response as a String.
     def body
       strings = []
       each { |part| strings << part.to_s }
