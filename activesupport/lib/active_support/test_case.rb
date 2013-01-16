@@ -8,7 +8,7 @@ require 'active_support/testing/isolation'
 require 'active_support/core_ext/kernel/reporting'
 
 begin
-  silence_warnings { require 'mocha' }
+  silence_warnings { require 'mocha/setup' }
 rescue LoadError
   # Fake Mocha::ExpectationError so we can rescue it in #run. Bleh.
   Object.const_set :Mocha, Module.new

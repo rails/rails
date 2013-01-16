@@ -56,7 +56,7 @@ module ActiveSupport
         def run(result)
           return if @method_name.to_s == "default_test"
 
-          mocha_counter = retrieve_mocha_counter(result)
+          mocha_counter = retrieve_mocha_counter(self, result)
           yield(Test::Unit::TestCase::STARTED, name)
           @_result = result
 
@@ -78,6 +78,8 @@ module ActiveSupport
               begin
                 teardown
                 _run_teardown_callbacks
+              rescue Mocha::ExpectationError => e
+                add_failure(e.message, e.backtrace)
               rescue Test::Unit::AssertionFailedError => e
                 add_failure(e.message, e.backtrace)
               rescue Exception => e
@@ -95,12 +97,14 @@ module ActiveSupport
 
         protected
 
-        def retrieve_mocha_counter(result) #:nodoc:
+        def retrieve_mocha_counter(test_case, result) #:nodoc:
           if respond_to?(:mocha_verify) # using mocha
             if defined?(Mocha::TestCaseAdapter::AssertionCounter)
               Mocha::TestCaseAdapter::AssertionCounter.new(result)
-            else
+            elsif defined?(Mocha::Integration::TestUnit::AssertionCounter)
               Mocha::Integration::TestUnit::AssertionCounter.new(result)
+            else
+              Mocha::Integration::AssertionCounter.new(test_case)
             end
           end
         end
