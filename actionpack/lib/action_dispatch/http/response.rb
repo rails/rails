@@ -182,7 +182,7 @@ module ActionDispatch # :nodoc:
 
     EMPTY = " "
 
-    # Allows you to set manually set or override the response body.
+    # Allows you to manually set or override the response body.
     def body=(body)
       @blank = true if body == EMPTY
 
