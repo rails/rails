@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Created block to by-pass the prepared statement bindings.
+    This will allow to compose fragments of large SQL statements to
+    avoid multiple round-trips between Ruby and the DB.
+
+    Example:
+
+        sql = Post.connection.unprepared_statement do
+            Post.first.comments.to_sql
+        end
+
+    *Cédric Fabianski*
+
 *   Expand `#cache_key` to consult all relevant updated timestamps.
 
     Previously only `updated_at` column was checked, now it will
