@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Specify which logs to clear when using the `rake log:clear` task.
+    (e.g. rake log:clear LOGS=test,staging)
+
+    *Matt Bridges*
+
 *   Allow a `:dirs` key in the `SourceAnnotationExtractor.enumerate` options
     to explicitly set the directories to be traversed so it's easier to define
     custom rake tasks.
