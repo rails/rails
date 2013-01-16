@@ -1,5 +1,10 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   `BestStandardsSupport` no longer duplicates `X-UA-Compatible` values on
+    each request to prevent header size from blowing up.
+
+    *Edward Anderson*
+
 *   Fixed JSON params parsing regression for non-object JSON content.
 
     *Dylan Smith*
