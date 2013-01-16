@@ -56,7 +56,12 @@ module ActionDispatch
     RFC5789 = %w(PATCH)
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
-    HTTP_METHOD_LOOKUP = Hash.new { |h, m| h[m] = m.underscore.to_sym if HTTP_METHODS.include?(m) }
+    HTTP_METHOD_LOOKUP = {}
+
+    # Populate the HTTP method lookup cache
+    HTTP_METHODS.each do |method|
+      HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
+    end
 
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware
