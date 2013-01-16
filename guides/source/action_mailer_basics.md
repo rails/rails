@@ -575,3 +575,23 @@ end
 ```
 
 In the test we send the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
+
+Intercepting Emails
+-------------------
+There are situations where you need to edit an email before it's delivered. Fortunately Action Mailer provides hooks to intercept every email. You can register an interceptor to make modifications to mail messages right before they are handed to the delivery agents.
+
+```ruby
+class SandboxEmailInterceptor
+  def self.delivering_email(message)
+    message.to = ['sandbox@example.com']
+  end
+end
+```
+
+Before the Interceptor can do it's job you need to register it with the Action Mailer framework. You can do this in an initializer file `config/initializers/sandbox_email_interceptor.rb`
+
+```ruby
+ActionMailer::Base.register_interceptor(SandboxEmailInterceptor) if Rails.env.staging?
+```
+
+NOTE: The example above uses a custom environment called "staging" for a production like server but for testing purposes.
