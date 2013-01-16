@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow a `:dirs` key in the `SourceAnnotationExtractor.enumerate` options
+    to explicitly set the directories to be traversed so it's easier to define
+    custom rake tasks.
+
+    *Brian D. Burns*
+
 *   Deprecate `Rails::Generators::ActiveModel#update_attributes` in favor of `#update`.
 
     ORMs that implement `Generators::ActiveModel#update_attributes` should change
