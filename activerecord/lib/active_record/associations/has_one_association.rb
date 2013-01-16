@@ -25,9 +25,7 @@ module ActiveRecord
         raise_on_type_mismatch(record) if record
         load_target
 
-        # If target and record are nil, or target is equal to record,
-        # we don't need to have transaction.
-        if (target || record) && target != record
+        if (target || record) && ((target != record) || record.changed?)
           transaction_if(save) do
             remove_target!(options[:dependent]) if target && !target.destroyed?
 

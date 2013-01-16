@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
+    Fix #8856.
+
+    *Chris Thompson*
+
 *   Remove support for parsing YAML parameters from request.
 
     *Aaron Patterson*
