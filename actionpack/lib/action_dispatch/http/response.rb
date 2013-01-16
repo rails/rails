@@ -172,7 +172,8 @@ module ActionDispatch # :nodoc:
       stream.to_path
     end
 
-    # Returns the content of the response as a String.
+    # Returns the content of the response as a String. This contains the contents
+    # of any calls to <tt>render</tt>.
     def body
       strings = []
       each { |part| strings << part.to_s }
@@ -181,6 +182,7 @@ module ActionDispatch # :nodoc:
 
     EMPTY = " "
 
+    # Allows you to set manually set or override the response body.
     def body=(body)
       @blank = true if body == EMPTY
 
