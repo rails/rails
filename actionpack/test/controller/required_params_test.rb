@@ -11,11 +11,11 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
   tests BooksController
 
   test "missing required parameters will raise exception" do
-    assert_raise (ActionController::ParameterMissing) do
+    assert_raise ActionController::ParameterMissing do
       post :create, { magazine: { name: "Mjallo!" } }
     end
 
-    assert_raise (ActionController::ParameterMissing) do
+    assert_raise ActionController::ParameterMissing do
       post :create, { book: { title: "Mjallo!" } }
     end
   end
