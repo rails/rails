@@ -16,8 +16,9 @@ class BestStandardsSupportTest < ActiveSupport::TestCase
     assert_equal nil, headers["X-UA-Compatible"]
   end
 
-  def test_appends_to_app_headers
+  def test_appends_to_app_headers_without_duplication_after_multiple_requests
     app_headers = { "X-UA-Compatible" => "requiresActiveX=true" }
+    _, headers, _ = app(true, app_headers).call({})
     _, headers, _ = app(true, app_headers).call({})
 
     expects = "requiresActiveX=true,IE=Edge,chrome=1"

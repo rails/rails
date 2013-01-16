@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `BestStandardsSupport` no longer duplicates `X-UA-Compatible` values on
+    each request to prevent header size from blowing up.
+
+    *Edward Anderson*
+
 *   Change the behavior of route defaults so that explicit defaults are no longer
     required where the key is not part of the path. For example:
 
