@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixes database.yml when creating a new rails application with '.'
+    Fix #8304
+
+    *Jeremy W. Rowe*
+
 *   Allow a `:dirs` key in the `SourceAnnotationExtractor.enumerate` options
     to explicitly set the directories to be traversed so it's easier to define
     custom rake tasks.
