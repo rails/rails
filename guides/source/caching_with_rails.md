@@ -127,8 +127,9 @@ You can also combine the two schemes which is called "Russian Doll Caching":
     <% end %>
   <% end %>
 <% end %>
-It's called "Russian Doll Caching" because it nests multiple fragments. The advantage is that if a single product is updated, all the other inner fragments can be reused when regenerating the outer fragment.
 ```
+
+It's called "Russian Doll Caching" because it nests multiple fragments. The advantage is that if a single product is updated, all the other inner fragments can be reused when regenerating the outer fragment.
 
 ### SQL Caching
 
