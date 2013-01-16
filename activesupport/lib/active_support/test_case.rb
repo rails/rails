@@ -10,7 +10,7 @@ require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
   class TestCase < ::Test::Unit::TestCase
-    if defined? MiniTest
+    if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
       Assertion = MiniTest::Assertion
       alias_method :method_name, :name if method_defined? :name
       alias_method :method_name, :__name__ if method_defined? :__name__
