@@ -1,5 +1,10 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Eagerly populate the http method loookup cache so local project inflections do
+    not interfere with use of underscore method ( and we don't need locks )
+
+    *Aditya Sanghi*
+
 *   `BestStandardsSupport` no longer duplicates `X-UA-Compatible` values on
     each request to prevent header size from blowing up.
 
