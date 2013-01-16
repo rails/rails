@@ -16,6 +16,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
   def test_create_database_with_encoding
     assert_equal %(CREATE DATABASE "matt" ENCODING = 'utf8'), create_database(:matt)
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'latin1'), create_database(:aimonetti, :encoding => :latin1)
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'latin1'), create_database(:aimonetti, 'encoding' => :latin1)
   end
 
   def test_create_database_with_collation_and_ctype
