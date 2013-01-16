@@ -37,7 +37,7 @@ module ActiveRecord
         column_def = ColumnDefinition.new(
           @adapter, column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
-          assert_equal "title varchar(20)", column_def.to_sql
+          assert_equal "'title' varchar(20)", column_def.to_sql
       end
 
       def test_should_include_default_clause_when_default_is_present
@@ -45,7 +45,7 @@ module ActiveRecord
         column_def = ColumnDefinition.new(
           @adapter, column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
-          assert_equal %Q{title varchar(20) DEFAULT 'Hello'}, column_def.to_sql
+          assert_equal %Q{'title' varchar(20) DEFAULT 'Hello'}, column_def.to_sql
       end
 
       def test_should_specify_not_null_if_null_option_is_false
@@ -53,7 +53,7 @@ module ActiveRecord
         column_def = ColumnDefinition.new(
           @adapter, column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
-          assert_equal %Q{title varchar(20) DEFAULT 'Hello' NOT NULL}, column_def.to_sql
+          assert_equal %Q{'title' varchar(20) DEFAULT 'Hello' NOT NULL}, column_def.to_sql
       end
 
       if current_adapter?(:MysqlAdapter)
