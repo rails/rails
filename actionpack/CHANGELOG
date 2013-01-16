@@ -1,3 +1,5 @@
+* Fixed handling of multiple cookies when cookie header is converted from a String to Array [Wesley Moore]
+
 *2.3.11 (February 9, 2011)*
 
 * Two security fixes. CVE-2011-0446, CVE-2011-0447
