@@ -39,6 +39,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::BadRequest
       when "/missing_keys"
         raise ActionController::UrlGenerationError, "No route matches"
+      when "/parameter_missing"
+        raise ActionController::ParameterMissing, :missing_param_key
       else
         raise "puke!"
       end
@@ -114,6 +116,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/bad_request", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 400
     assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 400
+    assert_match(/ActionController::ParameterMissing/, body)
   end
 
   test "does not show filtered parameters" do
