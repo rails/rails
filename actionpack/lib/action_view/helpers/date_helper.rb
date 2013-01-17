@@ -880,6 +880,7 @@ module ActionView
 
         def translated_date_order
           date_order = I18n.translate(:'date.order', :locale => @options[:locale], :default => [])
+          date_order.map! { |element| element.to_sym }
 
           forbidden_elements = date_order - [:year, :month, :day]
           if forbidden_elements.any?
