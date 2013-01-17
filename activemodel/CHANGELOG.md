@@ -1,5 +1,24 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `:in` and `:within` options to `ActiveModel::Validations::NumericalityValidator`
+    so that numbers can be validated using ranges rather than multiple options.
+
+        class Timer
+          include ActiveModel::Validations
+
+          attr_accessor :duration
+          validates_numericality_of :duration, in: 1..200
+        end
+
+        timer = Timer.new
+        timer.duration = 201
+        timer.valid?
+        # => false
+        timer.errors.messsages
+        # => {:duration=>["must be less than or equal to 200"]}
+
+    *Matt Bridges*
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
