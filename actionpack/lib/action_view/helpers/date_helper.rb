@@ -1034,14 +1034,162 @@ module ActionView
     end
 
     class FormBuilder
+      
+      # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
+      # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
+      #
+      # ==== Options
+      # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
+      #   "2" instead of "February").
+      # * <tt>:use_two_digit_numbers</tt> - Set to true if you want to display two digit month and day numbers (e.g.
+      #   "02" instead of "February" and "08" instead of "8").
+      # * <tt>:use_short_month</tt>   - Set to true if you want to use abbreviated month names instead of full
+      #   month names (e.g. "Feb" instead of "February").
+      # * <tt>:add_month_numbers</tt>  - Set to true if you want to use both month numbers and month names (e.g.
+      #   "2 - February" instead of "February").
+      # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
+      #   Note: You can also use Rails' i18n functionality for this.
+      # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
+      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Time.now.year - 5</tt>.
+      # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Time.now.year + 5</tt>.
+      # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
+      #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
+      #   first of the given month in order to not create invalid dates like 31 February.
+      # * <tt>:discard_month</tt>     - Set to true if you don't want to show a month select. This includes the month
+      #   as a hidden field instead of showing a select field. Also note that this implicitly sets :discard_day to true.
+      # * <tt>:discard_year</tt>      - Set to true if you don't want to show a year select. This includes the year
+      #   as a hidden field instead of showing a select field.
+      # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
+      #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
+      #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
+      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
+      # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
+      #   dates.
+      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
+      # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
+      # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
+      #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
+      #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
+      #   or the given prompt string.
+      # * <tt>:with_css_classes</tt>   - Set to true if you want assign different styles for 'select' tags. This option
+      #   automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second' for your 'select' tags.
+      #
+      # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
+      #
+      # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed.
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute.
+      #   date_select("article", "written_on")
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute,
+      #   # with the year in the year drop down box starting at 1995.
+      #   date_select("article", "written_on", start_year: 1995)
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute,
+      #   # with the year in the year drop down box starting at 1995, numbers used for months instead of words,
+      #   # and without a day select box.
+      #   date_select("article", "written_on", start_year: 1995, use_month_numbers: true,
+      #                                     discard_day: true, include_blank: true)
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute,
+      #   # with two digit numbers used for months and days.
+      #   date_select("article", "written_on", use_two_digit_numbers: true)
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
+      #   # with the fields ordered as day, month, year rather than month, day, year.
+      #   date_select("article", "written_on", order: [:day, :month, :year])
+      #
+      #   # Generates a date select that when POSTed is stored in the user variable, in the birthday attribute
+      #   # lacking a year field.
+      #   date_select("user", "birthday", order: [:month, :day])
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
+      #   # which is initially set to the date 3 days from the current date
+      #   date_select("article", "written_on", default: 3.days.from_now)
+      #
+      #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
+      #   # that will have a default day of 20.
+      #   date_select("credit_card", "bill_due", default: { day: 20 })
+      #
+      #   # Generates a date select with custom prompts.
+      #   date_select("article", "written_on", prompt: { day: 'Select day', month: 'Select month', year: 'Select year' })
+      #
+      # The selects are prepared for multi-parameter assignment to an Active Record object.
+      #
+      # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that
+      # all month choices are valid.
       def date_select(method, options = {}, html_options = {})
         @template.date_select(@object_name, method, objectify_options(options), html_options)
       end
 
+      # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a
+      # specified time-based attribute (identified by +method+) on an object assigned to the template (identified by
+      # +object+). You can include the seconds with <tt>:include_seconds</tt>. You can get hours in the AM/PM format
+      # with <tt>:ampm</tt> option.
+      #
+      # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
+      # <tt>:ignore_date</tt> is set to +true+. If you set the <tt>:ignore_date</tt> to +true+, you must have a
+      # +date_select+ on the same method within the form otherwise an exception will be raised.
+      #
+      # If anything is passed in the html_options hash it will be applied to every select tag in the set.
+      #
+      #   # Creates a time select tag that, when POSTed, will be stored in the article variable in the sunrise attribute.
+      #   time_select("article", "sunrise")
+      #
+      #   # Creates a time select tag with a seconds field that, when POSTed, will be stored in the article variables in
+      #   # the sunrise attribute.
+      #   time_select("article", "start_time", include_seconds: true)
+      #
+      #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30 and 45.
+      #   time_select 'game', 'game_time', {minute_step: 15}
+      #
+      #   # Creates a time select tag with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
+      #   time_select("article", "written_on", prompt: {hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds'})
+      #   time_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   time_select("article", "written_on", prompt: true) # generic prompts for all
+      #
+      #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
+      #   time_select 'game', 'game_time', {ampm: true}
+      #
+      # The selects are prepared for multi-parameter assignment to an Active Record object.
+      #
+      # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that
+      # all month choices are valid.
       def time_select(method, options = {}, html_options = {})
         @template.time_select(@object_name, method, objectify_options(options), html_options)
       end
 
+      # Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a
+      # specified datetime-based attribute (identified by +method+) on an object assigned to the template (identified
+      # by +object+).
+      #
+      # If anything is passed in the html_options hash it will be applied to every select tag in the set.
+      #
+      #   # Generates a datetime select that, when POSTed, will be stored in the article variable in the written_on
+      #   # attribute.
+      #   datetime_select("article", "written_on")
+      #
+      #   # Generates a datetime select with a year select that starts at 1995 that, when POSTed, will be stored in the
+      #   # article variable in the written_on attribute.
+      #   datetime_select("article", "written_on", start_year: 1995)
+      #
+      #   # Generates a datetime select with a default value of 3 days from the current time that, when POSTed, will
+      #   # be stored in the trip variable in the departing attribute.
+      #   datetime_select("trip", "departing", default: 3.days.from_now)
+      #
+      #   # Generate a datetime select with hours in the AM/PM format
+      #   datetime_select("article", "written_on", ampm: true)
+      #
+      #   # Generates a datetime select that discards the type that, when POSTed, will be stored in the article variable
+      #   # as the written_on attribute.
+      #   datetime_select("article", "written_on", discard_type: true)
+      #
+      #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
+      #   datetime_select("article", "written_on", prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
+      #   datetime_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   datetime_select("article", "written_on", prompt: true) # generic prompts for all
+      #
+      # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(method, options = {}, html_options = {})
         @template.datetime_select(@object_name, method, objectify_options(options), html_options)
       end
