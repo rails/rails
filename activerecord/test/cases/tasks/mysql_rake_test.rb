@@ -53,6 +53,16 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
+
+    def test_create_when_database_exists_outputs_info_to_stderr
+      $stderr.expects(:puts).with("my-app-db already exists").once
+
+      ActiveRecord::Base.connection.stubs(:create_database).raises(
+        ActiveRecord::StatementInvalid.new("Can't create database 'dev'; database exists:")
+      )
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
   end
 
   class MysqlDBCreateAsRootTest < ActiveRecord::TestCase

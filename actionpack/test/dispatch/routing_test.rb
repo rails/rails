@@ -3252,3 +3252,79 @@ class TestOptionalRootSegments < ActionDispatch::IntegrationTest
     assert_equal '/page/1', root_path(:page => '1')
   end
 end
+
+class TestPortConstraints < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get '/integer', to: ok, constraints: { :port =>  8080  }
+      get '/string',  to: ok, constraints: { :port => '8080' }
+      get '/array',   to: ok, constraints: { :port => [8080] }
+      get '/regexp',  to: ok, constraints: { :port => /8080/ }
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  def test_integer_port_constraints
+    get 'http://www.example.com/integer'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/integer'
+    assert_response :success
+  end
+
+  def test_string_port_constraints
+    get 'http://www.example.com/string'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/string'
+    assert_response :success
+  end
+
+  def test_array_port_constraints
+    get 'http://www.example.com/array'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/array'
+    assert_response :success
+  end
+
+  def test_regexp_port_constraints
+    get 'http://www.example.com/regexp'
+    assert_response :not_found
+
+    get 'http://www.example.com:8080/regexp'
+    assert_response :success
+  end
+end
+
+class TestRouteDefaults < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      resources :posts, bucket_type: 'post'
+      resources :projects, defaults: { bucket_type: 'project' }
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_route_options_are_required_for_url_for
+    assert_raises(ActionController::UrlGenerationError) do
+      assert_equal '/posts/1', url_for(controller: 'posts', action: 'show', id: 1, only_path: true)
+    end
+
+    assert_equal '/posts/1', url_for(controller: 'posts', action: 'show', id: 1, bucket_type: 'post', only_path: true)
+  end
+
+  def test_route_defaults_are_not_required_for_url_for
+    assert_equal '/projects/1', url_for(controller: 'projects', action: 'show', id: 1, only_path: true)
+  end
+end

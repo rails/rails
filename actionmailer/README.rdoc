@@ -98,7 +98,7 @@ Example:
 
   class Mailman < ActionMailer::Base
     def receive(email)
-      page = Page.find_by_address(email.to.first)
+      page = Page.find_by(address: email.to.first)
       page.emails.create(
         subject: email.subject, body: email.body
       )

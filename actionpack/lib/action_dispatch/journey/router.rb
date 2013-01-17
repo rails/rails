@@ -131,11 +131,7 @@ module ActionDispatch
           }
           routes.concat get_routes_as_head(routes)
 
-          routes.sort_by!(&:precedence).select! { |r|
-            r.constraints.all? { |k, v| v === req.send(k) } &&
-              r.verb === req.request_method
-          }
-          routes.reject! { |r| req.ip && !(r.ip === req.ip) }
+          routes.sort_by!(&:precedence).select! { |r| r.matches?(req) }
 
           routes.map! { |r|
             match_data  = r.path.match(req.path_info)

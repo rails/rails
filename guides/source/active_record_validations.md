@@ -117,7 +117,6 @@ database only if the object is valid:
 * `save`
 * `save!`
 * `update`
-* `update`
 * `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.

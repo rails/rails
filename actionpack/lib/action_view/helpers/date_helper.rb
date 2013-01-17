@@ -193,6 +193,7 @@ module ActionView
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
+      # * <tt>:selected</tt>          - Set a date that overrides the actual value.
       # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
       # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
       #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
@@ -233,6 +234,10 @@ module ActionView
       #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
       #   # which is initially set to the date 3 days from the current date
       #   date_select("article", "written_on", default: 3.days.from_now)
+      #
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
+      #   # which is set in the form with todays date, regardless of the value in the Active Record object.
+      #   date_select("article", "written_on", selected: Date.today)
       #
       #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
       #   # that will have a default day of 20.

@@ -598,3 +598,23 @@ config.action_mailer.queue = MyQueue.new
 ```
 
 Your custom queue should expect a job that responds to `#run`.
+
+Intercepting Emails
+-------------------
+There are situations where you need to edit an email before it's delivered. Fortunately Action Mailer provides hooks to intercept every email. You can register an interceptor to make modifications to mail messages right before they are handed to the delivery agents.
+
+```ruby
+class SandboxEmailInterceptor
+  def self.delivering_email(message)
+    message.to = ['sandbox@example.com']
+  end
+end
+```
+
+Before the Interceptor can do it's job you need to register it with the Action Mailer framework. You can do this in an initializer file `config/initializers/sandbox_email_interceptor.rb`
+
+```ruby
+ActionMailer::Base.register_interceptor(SandboxEmailInterceptor) if Rails.env.staging?
+```
+
+NOTE: The example above uses a custom environment called "staging" for a production like server but for testing purposes.

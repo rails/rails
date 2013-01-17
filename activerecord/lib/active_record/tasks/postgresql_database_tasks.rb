@@ -3,7 +3,6 @@ require 'shellwords'
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
-
       DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
 
       delegate :connection, :establish_connection, :clear_active_connections!,
@@ -18,6 +17,12 @@ module ActiveRecord
         connection.create_database configuration['database'],
           configuration.merge('encoding' => encoding)
         establish_connection configuration
+      rescue ActiveRecord::StatementInvalid => error
+        if /database .* already exists/ === error.message
+          raise DatabaseAlreadyExists
+        else
+          raise
+        end
       end
 
       def drop

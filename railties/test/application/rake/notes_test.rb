@@ -130,6 +130,45 @@ module ApplicationTests
         end
       end
 
+      test 'custom rake task finds specific notes in specific directories' do
+        app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
+        app_file "lib/some_file.rb", "# OPTIMIZE: note in lib directory\n" << "# FIXME: note in lib directory"
+        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+
+        app_file "lib/tasks/notes_custom.rake", <<-EOS
+          require 'rails/source_annotation_extractor'
+          task :notes_custom do
+            tags = 'TODO|FIXME'
+            opts = { dirs: %w(lib test), tag: true }
+            SourceAnnotationExtractor.enumerate(tags, opts)
+          end
+        EOS
+
+        boot_rails
+
+        require 'rake'
+        require 'rdoc/task'
+        require 'rake/testtask'
+
+        Rails.application.load_tasks
+
+        Dir.chdir(app_path) do
+          output = `bundle exec rake notes_custom`
+          lines = output.scan(/\[([0-9\s]+)\]/).flatten
+
+          assert_match(/\[FIXME\] note in lib directory/, output)
+          assert_match(/\[TODO\] note in test directory/, output)
+          assert_no_match(/OPTIMIZE/, output)
+          assert_no_match(/note in app directory/, output)
+
+          assert_equal 2, lines.size
+
+          lines.each do |line_number|
+            assert_equal 4, line_number.size
+          end
+        end
+      end
+
       private
       def boot_rails
         super

@@ -155,7 +155,7 @@ module ActionDispatch
           Router::Strexp.new("/foo/:id", { :id => /\d/ }, ['/', '.', '?'], false)
         ]
 
-        assert_raises(Router::RoutingError) do
+        assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(:path_info, nil, { :id => '10' }, { })
         end
       end
@@ -168,7 +168,7 @@ module ActionDispatch
         path, _ = @formatter.generate(:path_info, nil, { :id => '10' }, { })
         assert_equal '/foo/10', path
 
-        assert_raises(Router::RoutingError) do
+        assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(:path_info, nil, { :id => 'aa' }, { })
         end
       end
@@ -194,11 +194,11 @@ module ActionDispatch
         path = Path::Pattern.new pattern
         @router.routes.add_route nil, path, {}, {}, route_name
 
-        error = assert_raises(Router::RoutingError) do
+        error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(:path_info, route_name, { }, { })
         end
 
-        assert_match(/required keys: \[:id\]/, error.message)
+        assert_match(/missing required keys: \[:id\]/, error.message)
       end
 
       def test_X_Cascade

@@ -29,4 +29,8 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "helicopters/helicopter", Helicopter.new.to_partial_path,
       "ActiveModel::Conversion#to_partial_path caching should be class-specific"
   end
+
+  test "to_partial_path handles namespaced models" do
+    assert_equal "helicopter/comanches/comanche", Helicopter::Comanche.new.to_partial_path
+  end
 end

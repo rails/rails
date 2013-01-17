@@ -373,12 +373,6 @@ module ActionController
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
 
-    included do
-      rescue_from(ActionController::ParameterMissing) do |parameter_missing_exception|
-        render text: "Required parameter missing: #{parameter_missing_exception.param}", status: :bad_request
-      end
-    end
-
     # Returns a new ActionController::Parameters object that
     # has been instantiated with the <tt>request.parameters</tt>.
     def params

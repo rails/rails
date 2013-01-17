@@ -1,5 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Specify which logs to clear when using the `rake log:clear` task.
+    (e.g. rake log:clear LOGS=test,staging)
+
+    *Matt Bridges*
+
+*   Allow a `:dirs` key in the `SourceAnnotationExtractor.enumerate` options
+    to explicitly set the directories to be traversed so it's easier to define
+    custom rake tasks.
+
+    *Brian D. Burns*
+
+*   Deprecate `Rails::Generators::ActiveModel#update_attributes` in favor of `#update`.
+
+    ORMs that implement `Generators::ActiveModel#update_attributes` should change
+    to `#update`. Scaffold controller generators should change calls like:
+
+        @orm_instance.update_attributes(...)
+
+    to:
+
+        @orm_instance.update(...)
+
+    This goes along with the addition of `ActiveRecord::Base#update`.
+
+    *Carlos Antonio da Silva*
+
 *   Include `jbuilder` by default and rely on its scaffold generator to show json API.
     Check https://github.com/rails/jbuilder for more info and examples.
 

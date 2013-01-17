@@ -421,7 +421,7 @@ module ActionDispatch
         end
 
         conditions.keep_if do |k, _|
-          k == :action || k == :controller ||
+          k == :action || k == :controller || k == :required_defaults ||
             @request_class.public_method_defined?(k) || path_values.include?(k)
         end
       end
@@ -527,12 +527,10 @@ module ActionDispatch
           recall[:action] = options.delete(:action) if options[:action] == 'index'
         end
 
-        # Generates a path from routes, returns [path, params]
-        # if no path is returned the formatter will raise Journey::Router::RoutingError
+        # Generates a path from routes, returns [path, params].
+        # If no route is generated the formatter will raise ActionController::UrlGenerationError
         def generate
           @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
-        rescue Journey::Router::RoutingError => e
-          raise ActionController::UrlGenerationError, "No route matches #{options.inspect} #{e.message}"
         end
 
         def different_controller?

@@ -1120,6 +1120,28 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_collection_radio_buttons_with_custom_builder_block
+    post = Post.new
+    def post.active; false; end
+    form_for(post) do |f|
+      rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
+        b.label { b.radio_button + b.text }
+      end
+      concat rendered_radio_buttons
+    end
+
+    expected = whole_form("/posts", "new_post" , "new_post") do
+      "<label for='post_active_true'>"+
+      "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
+      "true</label>" +
+      "<label for='post_active_false'>"+
+      "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
+      "false</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_collection_check_boxes
     post = Post.new
     def post.tag_ids; [1, 3]; end
@@ -1135,6 +1157,33 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_tag_ids_2'>Tag 2</label>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
       "<label for='post_tag_ids_3'>Tag 3</label>" +
+      "<input name='post[tag_ids][]' type='hidden' value='' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_collection_check_boxes_with_custom_builder_block
+    post = Post.new
+    def post.tag_ids; [1, 3]; end
+    collection = (1..3).map{|i| [i, "Tag #{i}"] }
+    form_for(post) do |f|
+      rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
+        b.label { b.check_box + b.text }
+      end
+      concat rendered_check_boxes
+    end
+
+    expected = whole_form("/posts", "new_post" , "new_post") do
+      "<label for='post_tag_ids_1'>" +
+      "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
+      "Tag 1</label>" +
+      "<label for='post_tag_ids_2'>" +
+      "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
+      "Tag 2</label>" +
+      "<label for='post_tag_ids_3'>" +
+      "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
+      "Tag 3</label>" +
       "<input name='post[tag_ids][]' type='hidden' value='' />"
     end
 
@@ -2163,14 +2212,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  class FakeAssociatonProxy
+  class FakeAssociationProxy
     def to_ary
       [1, 2, 3]
     end
   end
 
   def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association_with_proxy
-    @post.comments = FakeAssociatonProxy.new
+    @post.comments = FakeAssociationProxy.new
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), :child_index => 'abc') { |cf|

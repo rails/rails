@@ -1,5 +1,50 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `BestStandardsSupport` no longer duplicates `X-UA-Compatible` values on
+    each request to prevent header size from blowing up.
+
+    *Edward Anderson*
+
+*   Change the behavior of route defaults so that explicit defaults are no longer
+    required where the key is not part of the path. For example:
+
+        resources :posts, bucket_type: 'posts'
+
+    will be required whenever constructing the url from a hash such as a functional
+    test or using url_for directly. However using the explicit form alters the
+    behavior so it's not required:
+
+        resources :projects, defaults: { bucket_type: 'projects' }
+
+    This changes existing behavior slightly in that any routes which only differ
+    in their defaults will match the first route rather than the closest match.
+
+    *Andrew White*
+
+*   Add support for routing constraints other than Regexp and String.
+    For example this now allows the use of arrays like this:
+
+        get '/foo/:action', to: 'foo', constraints: { subdomain: %w[www admin] }
+
+    or constraints where the request method returns an Fixnum like this:
+
+        get '/foo', to: 'foo#index', constraints: { port: 8080 }
+
+    Note that this only applies to constraints on the request - path constraints
+    still need to be specified as Regexps as the various constraints are compiled
+    into a single Regexp.
+
+    *Andrew White*
+
+*   Fix a bug in integration tests where setting the port via a url passed to
+    the process method was ignored when constructing the request environment.
+
+    *Andrew White*
+
+*   Allow `:selected` to be set on `date_select` tag helper.
+
+    *Colin Burn-Murdoch*
+
 *   Fixed json params parsing regression for non-object JSON content.
 
     *Dylan Smith*
@@ -447,10 +492,13 @@
 
     *Richard Schneeman*
 
-*   Deprecate availbility of `ActionView::RecordIdentifier` in controllers by default.
-    It's view specific and can be easily included in controller manually if someone
-    really needs it. RecordIdentifier will be removed from `ActionController::Base`
-    in Rails 4.1. *Piotr Sarnacki*
+*   Deprecate availability of `ActionView::RecordIdentifier` in controllers by default.
+    It's view specific and can be easily included in controllers manually if someone
+    really needs it. Also deprecate calling `ActionController::RecordIdentifier.dom_id` and
+    `dom_class` directly, in favor of `ActionView::RecordIdentifier.dom_id` and `dom_class`.
+    `RecordIdentifier` will be removed from `ActionController::Base` in Rails 4.1.
+
+    *Piotr Sarnacki*
 
 *   Fix `ActionView::RecordIdentifier` to work as a singleton. *Piotr Sarnacki*
 

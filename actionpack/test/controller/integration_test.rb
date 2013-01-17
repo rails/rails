@@ -466,6 +466,58 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
 
+  def test_port_via_host!
+    with_test_route_set do
+      host! 'www.example.com:8080'
+      get '/get'
+      assert_equal 8080, request.port
+    end
+  end
+
+  def test_port_via_process
+    with_test_route_set do
+      get 'http://www.example.com:8080/get'
+      assert_equal 8080, request.port
+    end
+  end
+
+  def test_https_and_port_via_host_and_https!
+    with_test_route_set do
+      host! 'www.example.com'
+      https! true
+
+      get '/get'
+      assert_equal 443, request.port
+      assert_equal true, request.ssl?
+
+      host! 'www.example.com:443'
+      https! true
+
+      get '/get'
+      assert_equal 443, request.port
+      assert_equal true, request.ssl?
+
+      host! 'www.example.com:8443'
+      https! true
+
+      get '/get'
+      assert_equal 8443, request.port
+      assert_equal true, request.ssl?
+    end
+  end
+
+  def test_https_and_port_via_process
+    with_test_route_set do
+      get 'https://www.example.com/get'
+      assert_equal 443, request.port
+      assert_equal true, request.ssl?
+
+      get 'https://www.example.com:8443/get'
+      assert_equal 8443, request.port
+      assert_equal true, request.ssl?
+    end
+  end
+
   private
     def with_test_route_set
       with_routing do |set|

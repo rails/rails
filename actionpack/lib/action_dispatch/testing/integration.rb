@@ -273,7 +273,7 @@ module ActionDispatch
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
-            host! location.host if location.host
+            host! "#{location.host}:#{location.port}" if location.host
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
