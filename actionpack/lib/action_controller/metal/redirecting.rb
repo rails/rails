@@ -77,7 +77,7 @@ module ActionController
 
     private
       def _extract_redirect_to_status(options, response_status)
-        status = if options.is_a?(Hash) && options.key?(:status)
+        if options.is_a?(Hash) && options.key?(:status)
           Rack::Utils.status_code(options.delete(:status))
         elsif response_status.key?(:status)
           Rack::Utils.status_code(response_status[:status])
