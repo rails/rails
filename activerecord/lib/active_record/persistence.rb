@@ -237,6 +237,7 @@ module ActiveRecord
     alias update_attributes! update!
 
     # Updates a single attribute of an object, without having to explicitly call save on that object.
+    # Triggers a query immediately via +#update_all+.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
@@ -249,6 +250,7 @@ module ActiveRecord
     end
 
     # Updates the attributes from the passed-in hash, without having to explicitly call save on that object.
+    # Triggers a query immediately via +#update_all+.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
