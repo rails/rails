@@ -363,11 +363,11 @@ module ActiveRecord
   #
   #   first:
   #     name: Smurf
-  #     *DEFAULTS
+  #     <<: *DEFAULTS
   #
   #   second:
   #     name: Fraggle
-  #     *DEFAULTS
+  #     <<: *DEFAULTS
   #
   # Any fixture labeled "DEFAULTS" is safely ignored.
   class FixtureSet
