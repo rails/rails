@@ -502,14 +502,14 @@ For Apache:
 
 ```apache
 # The Expires* directives requires the Apache module `mod_expires` to be enabled.
-<LocationMatch "^/assets/.*$">
+<Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag
   FileETag None
   # RFC says only cache for 1 year
   ExpiresActive On
   ExpiresDefault "access plus 1 year"
-</LocationMatch>
+</Location>
 ```
 
 For nginx:
