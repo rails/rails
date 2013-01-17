@@ -492,10 +492,13 @@
 
     *Richard Schneeman*
 
-*   Deprecate availbility of `ActionView::RecordIdentifier` in controllers by default.
-    It's view specific and can be easily included in controller manually if someone
-    really needs it. RecordIdentifier will be removed from `ActionController::Base`
-    in Rails 4.1. *Piotr Sarnacki*
+*   Deprecate availability of `ActionView::RecordIdentifier` in controllers by default.
+    It's view specific and can be easily included in controllers manually if someone
+    really needs it. Also deprecate calling `ActionController::RecordIdentifier.dom_id` and
+    `dom_class` directly, in favor of `ActionView::RecordIdentifier.dom_id` and `dom_class`.
+    `RecordIdentifier` will be removed from `ActionController::Base` in Rails 4.1.
+
+    *Piotr Sarnacki*
 
 *   Fix `ActionView::RecordIdentifier` to work as a singleton. *Piotr Sarnacki*
 
