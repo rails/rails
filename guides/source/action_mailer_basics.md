@@ -588,7 +588,7 @@ class SandboxEmailInterceptor
 end
 ```
 
-Before the Interceptor can do it's job you need to register it with the Action Mailer framework. You can do this in an initializer file `config/initializers/sandbox_email_interceptor.rb`
+Before the interceptor can do it's job you need to register it with the Action Mailer framework. You can do this in an initializer file `config/initializers/sandbox_email_interceptor.rb`
 
 ```ruby
 ActionMailer::Base.register_interceptor(SandboxEmailInterceptor) if Rails.env.staging?
