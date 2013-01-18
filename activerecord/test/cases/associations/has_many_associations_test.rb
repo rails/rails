@@ -1712,4 +1712,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 0,  post.comments.count
     end
   end
+
+  test "collection proxy respects default scope" do
+    author = authors(:mary)
+    assert !author.first_posts.exists?
+  end
 end
