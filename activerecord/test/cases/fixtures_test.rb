@@ -66,7 +66,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_create_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by(name: 'Curious George'), 'George is not in the database'
+    assert Parrot.find_by_name('Curious George'), 'George is not in the database'
     assert fixtures.detect { |f| f.name == 'parrots' }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
   end
 
@@ -80,7 +80,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_create_symbol_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
 
-    assert Course.find_by(name: 'Collection'), 'course is not in the database'
+    assert Course.find_by_name('Collection'), 'course is not in the database'
     assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
@@ -738,7 +738,7 @@ class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
   # This seemingly useless assertion catches a bug that caused the fixtures
   # setup code call nil[]
   def test_foo
-    assert_equal parrots(:louis), Parrot.find_by(name: "King Louis")
+    assert_equal parrots(:louis), Parrot.find_by_name("King Louis")
   end
 end
 

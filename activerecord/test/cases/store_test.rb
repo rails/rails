@@ -77,7 +77,7 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "convert store attributes from Hash to HashWithIndifferentAccess saving the data and access attributes indifferently" do
-    user = Admin::User.find_by(name: 'Jamis')
+    user = Admin::User.find_by_name('Jamis')
     assert_equal 'symbol',  user.settings[:symbol]
     assert_equal 'symbol',  user.settings['symbol']
     assert_equal 'string',  user.settings[:string]

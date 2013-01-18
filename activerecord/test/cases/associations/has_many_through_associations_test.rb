@@ -524,7 +524,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_should_respect_association_include
     # SQL error in sort clause if :include is not included
     # due to Unknown column 'comments.id'
-    assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by(title: 'Welcome to the weblog')
+    assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by_title('Welcome to the weblog')
   end
 
   def test_count_with_include_should_alias_join_table

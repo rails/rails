@@ -497,7 +497,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert firm.clients.include?(Client.find_by(name: "New Client"))
+    assert firm.clients.include?(Client.find_by_name("New Client"))
   end
 end
 
@@ -591,11 +591,11 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     id = @pirate.ship.id
 
     assert @pirate.ship.marked_for_destruction?
-    assert Ship.find_by(id:id)
+    assert Ship.find_by_id(id)
 
     @pirate.save
     assert_nil @pirate.reload.ship
-    assert_nil Ship.find_by(id: id)
+    assert_nil Ship.find_by_id(id)
   end
 
   def test_should_skip_validation_on_a_child_association_if_marked_for_destruction
@@ -638,11 +638,11 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     id = @ship.pirate.id
 
     assert @ship.pirate.marked_for_destruction?
-    assert Pirate.find_by(id: id)
+    assert Pirate.find_by_id(id)
 
     @ship.save
     assert_nil @ship.reload.pirate
-    assert_nil Pirate.find_by(id:id)
+    assert_nil Pirate.find_by_id(id)
   end
 
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
@@ -698,11 +698,11 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     ids = @pirate.birds.map(&:id)
 
     assert @pirate.birds.all? { |child| child.marked_for_destruction? }
-    ids.each { |id| assert klass.find_by(id: id) }
+    ids.each { |id| assert klass.find_by_id(id) }
 
     @pirate.save
     assert @pirate.reload.birds.empty?
-    ids.each { |id| assert_nil klass.find_by(id: id) }
+    ids.each { |id| assert_nil klass.find_by_id(id) }
   end
 
   def test_should_skip_validation_on_has_many_if_marked_for_destruction

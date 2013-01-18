@@ -448,7 +448,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_uses_correct_attributes
-    assert_nil posts(:thinking).tags.find_by(name: "General").attributes["tag_id"]
+    assert_nil posts(:thinking).tags.find_by_name("General").attributes["tag_id"]
   end
 
   def test_associating_unsaved_records_with_has_many_through

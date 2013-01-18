@@ -253,7 +253,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post   = Post.first
 
     assert_equal [], person.readers
-    assert_nil person.readers.find_by(post_id: post.id)
+    assert_nil person.readers.find_by_post_id(post.id)
 
     person.readers.create(:post_id => post.id)
 
@@ -311,7 +311,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dynamic_find_should_respect_association_order
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.where("type = 'Client'").first
-    assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find_by(type: 'Client')
+    assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client')
   end
 
   def test_cant_save_has_many_readonly_association
@@ -885,7 +885,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [client_id], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is dependent.
-    assert_nil Client.find_by(id: client_id)
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_clearing_an_exclusively_dependent_association_collection
@@ -905,7 +905,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is exclusively dependent.
-    assert_nil Client.find_by(id: client_id)
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_dependent_association_respects_optional_conditions_on_delete
@@ -954,7 +954,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     old_record = firm.clients_using_primary_key_with_delete_all.first
     firm = Firm.first
     firm.destroy
-    assert_nil Client.find_by(id: old_record.id)
+    assert_nil Client.find_by_id(old_record.id)
   end
 
   def test_creation_respects_hash_condition
@@ -980,7 +980,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_deleting_a_item_which_is_not_in_the_collection
     force_signal37_to_load_all_clients_of_firm
-    summit = Client.find_by(name: 'Summit')
+    summit = Client.find_by_name('Summit')
     companies(:first_firm).clients_of_firm.delete(summit)
     assert_equal 1, companies(:first_firm).clients_of_firm.size
     assert_equal 1, companies(:first_firm).clients_of_firm(true).size
@@ -1306,7 +1306,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dynamic_find_should_respect_association_order_for_through
     assert_equal Comment.find(10), authors(:david).comments_desc.where("comments.type = 'SpecialComment'").first
-    assert_equal Comment.find(10), authors(:david).comments_desc.find_by(type: 'SpecialComment')
+    assert_equal Comment.find(10), authors(:david).comments_desc.find_by_type('SpecialComment')
   end
 
   def test_has_many_through_respects_hash_conditions
