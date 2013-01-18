@@ -1,3 +1,7 @@
+*   Rake task `railties:install:migrations` respects the order of railties.
+
+    *Slava Kravchenko* and *Philip Arndt*
+
 *   Ambiguous reflections are on :through relationships are no longer supported.
     For example, you need to change this:
 
@@ -5,12 +9,12 @@
         has_many :posts
         has_many :taggings, :through => :posts
       end
-      
+
       class Post < ActiveRecord::Base
         has_one :tagging
         has_many :taggings
       end
-      
+
       class Tagging < ActiveRecord::Base
       end
 
@@ -20,12 +24,12 @@
         has_many :posts
         has_many :taggings, :through => :posts, :source => :tagging
       end
-      
+
       class Post < ActiveRecord::Base
         has_one :tagging
         has_many :taggings
       end
-      
+
       class Tagging < ActiveRecord::Base
       end
 
