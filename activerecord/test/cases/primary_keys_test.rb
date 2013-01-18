@@ -54,7 +54,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     Keyboard.delete_all
     keyboard = Keyboard.new(:name => 'HHKB')
     assert_nothing_raised { keyboard.save! }
-    assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
+    assert_equal keyboard.id, Keyboard.find_by(name: 'HHKB').id
   end
 
   def test_customized_primary_key_can_be_get_before_saving
