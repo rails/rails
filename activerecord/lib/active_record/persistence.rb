@@ -236,26 +236,26 @@ module ActiveRecord
     
     alias update_attributes! update!
 
-    # Updates a single attribute of an object, without having to explicitly call save on that object.
-    #
-    # * Validation is skipped.
-    # * Callbacks are skipped.
-    # * updated_at/updated_on column is not updated if that column is available.
-    #
-    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
-    # attribute is marked as readonly.
+    # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)
       update_columns(name => value)
     end
 
-    # Updates the attributes from the passed-in hash, without having to explicitly call save on that object.
+    # Updates the attributes directly in the database issuing an UPDATE SQL
+    # statement and sets them in the receiver:
     #
-    # * Validation is skipped.
+    #   user.update_columns(last_request_at: Time.current)
+    #
+    # This is the fastest way to update attributes because it goes straight to
+    # the database, but take into account that in consequence the regular update
+    # procedures are totally bypassed. In particular:
+    #
+    # * Validations are skipped.
     # * Callbacks are skipped.
-    # * updated_at/updated_on column is not updated if that column is available.
+    # * +updated_at+/+updated_on+ are not updated.
     #
-    # Raises an +ActiveRecordError+ when called on new objects, or when at least
-    # one of the attributes is marked as readonly.
+    # This method raises an +ActiveRecord::ActiveRecordError+ when called on new
+    # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
 
