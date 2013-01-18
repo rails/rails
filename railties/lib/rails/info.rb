@@ -46,7 +46,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        (table = '<table>').tap do
+        '<table>'.tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
