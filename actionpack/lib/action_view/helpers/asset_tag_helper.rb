@@ -182,6 +182,8 @@ module ActionView
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       #
+      # ==== Examples
+      #
       #   image_tag("icon")
       #   # => <img alt="Icon" src="/assets/icon" />
       #   image_tag("icon.png")
