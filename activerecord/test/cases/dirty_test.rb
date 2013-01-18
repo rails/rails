@@ -249,21 +249,21 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.save
 
     # check the change from 1 to ''
-    pirate = Pirate.find_by_catchphrase("Yarrrr, me hearties")
+    pirate = Pirate.find_by(catchphrase: "Yarrrr, me hearties")
     pirate.parrot_id = ''
     assert pirate.parrot_id_changed?
     assert_equal([1, nil], pirate.parrot_id_change)
     pirate.save
 
     # check the change from nil to 0
-    pirate = Pirate.find_by_catchphrase("Yarrrr, me hearties")
+    pirate = Pirate.find_by(catchphrase: "Yarrrr, me hearties")
     pirate.parrot_id = 0
     assert pirate.parrot_id_changed?
     assert_equal([nil, 0], pirate.parrot_id_change)
     pirate.save
 
     # check the change from 0 to ''
-    pirate = Pirate.find_by_catchphrase("Yarrrr, me hearties")
+    pirate = Pirate.find_by(catchphrase: "Yarrrr, me hearties")
     pirate.parrot_id = ''
     assert pirate.parrot_id_changed?
     assert_equal([0, nil], pirate.parrot_id_change)
@@ -494,7 +494,7 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.reload
     assert_equal Hash.new, pirate.previous_changes
 
-    pirate = Pirate.find_by_catchphrase("arrr")
+    pirate = Pirate.find_by(catchphrase: "arrr")
     pirate.catchphrase = "Me Maties!"
     pirate.save!
 
@@ -505,7 +505,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
 
-    pirate = Pirate.find_by_catchphrase("Me Maties!")
+    pirate = Pirate.find_by(catchphrase: "Me Maties!")
     pirate.catchphrase = "Thar She Blows!"
     pirate.save
 
@@ -516,7 +516,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
 
-    pirate = Pirate.find_by_catchphrase("Thar She Blows!")
+    pirate = Pirate.find_by(catchphrase: "Thar She Blows!")
     pirate.update(catchphrase: "Ahoy!")
 
     assert_equal 2, pirate.previous_changes.size
@@ -526,7 +526,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
 
-    pirate = Pirate.find_by_catchphrase("Ahoy!")
+    pirate = Pirate.find_by_catchphrase(catchphrase: "Ahoy!")
     pirate.update_attribute(:catchphrase, "Ninjas suck!")
 
     assert_equal 2, pirate.previous_changes.size
