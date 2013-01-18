@@ -985,7 +985,6 @@
 
       * `:conditions` becomes `:where`.
       * `:include` becomes `:includes`.
-      * `:extend` becomes `:extending`.
 
     The code to implement the deprecated features has been moved out to
     the `activerecord-deprecated_finders` gem. This gem is a dependency

@@ -1717,4 +1717,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     author = authors(:mary)
     assert !author.first_posts.exists?
   end
+
+  test "association with extend option" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend.author
+    assert_equal "hello", post.comments_with_extend.greeting
+  end
+
+  test "association with extend option with multiple extensions" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend_2.author
+    assert_equal "hello", post.comments_with_extend_2.greeting
+  end
 end

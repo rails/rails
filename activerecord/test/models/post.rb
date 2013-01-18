@@ -5,6 +5,12 @@ class Post < ActiveRecord::Base
     end
   end
 
+  module NamedExtension2
+    def greeting
+      "hello"
+    end
+  end
+
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
@@ -42,6 +48,14 @@ class Post < ActiveRecord::Base
       proxy_association
     end
   end
+
+  has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do
+    def greeting
+      "hello"
+    end
+  end
+
+  has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, :through => :author
   has_many :author_categorizations, :through => :author, :source => :categorizations
