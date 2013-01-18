@@ -88,10 +88,14 @@ module ActiveSupport
         !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
       end
 
+      @@class_setup_mutex = Mutex.new
+
       def _run_class_setup      # class setup method should only happen in parent
-        unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
-          self.class.setup if self.class.respond_to?(:setup)
-          @@ran_class_setup = true
+        @@class_setup_mutex.synchronize do
+          unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
+            self.class.setup if self.class.respond_to?(:setup)
+            @@ran_class_setup = true
+          end
         end
       end
 
