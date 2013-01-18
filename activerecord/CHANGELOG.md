@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Collection associations `#empty?` always respects builded records.
+    Fix #8879.
+
+    Example:
+
+        widget = Widget.new
+        widget.things.build
+        widget.things.empty? # => false
+
+    *Yves Senn*
+
 *   Remove support for parsing YAML parameters from request.
 
     *Aaron Patterson*

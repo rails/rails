@@ -273,7 +273,7 @@ module ActiveRecord
         if loaded? || options[:counter_sql]
           size.zero?
         else
-          !scope.exists?
+          @target.blank? && !scope.exists?
         end
       end
 

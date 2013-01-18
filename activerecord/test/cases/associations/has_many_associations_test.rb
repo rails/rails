@@ -625,6 +625,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, company.clients_of_firm.size
   end
 
+  def test_collection_not_empty_after_building
+    company = companies(:first_firm)
+    assert_predicate company.contracts, :empty?
+    company.contracts.build
+    assert_not_predicate company.contracts, :empty?
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
