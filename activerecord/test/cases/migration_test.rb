@@ -30,6 +30,7 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_column_information
     ActiveRecord::Migration.verbose = true
     ActiveRecord::Migration.message_count = 0
+    ActiveRecord::Base.connection.schema_cache.clear!
   end
 
   def teardown
@@ -430,6 +431,8 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     def setup
       @connection = Person.connection
       @connection.create_table(:delete_me, :force => true) {|t| }
+      Person.reset_column_information
+      Person.reset_sequence_name
     end
 
     def teardown
