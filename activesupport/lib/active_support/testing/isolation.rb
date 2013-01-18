@@ -43,32 +43,36 @@ module ActiveSupport
     module Isolation
       require 'thread'
 
-      class ParallelEach
-        include Enumerable
+      # Recent versions of MiniTest (such as the one shipped with Ruby 2.0) already define
+      # a ParallelEach class.
+      unless defined? ParallelEach
+        class ParallelEach
+          include Enumerable
 
-        # default to 2 cores
-        CORES = (ENV['TEST_CORES'] || 2).to_i
+          # default to 2 cores
+          CORES = (ENV['TEST_CORES'] || 2).to_i
 
-        def initialize list
-          @list  = list
-          @queue = SizedQueue.new CORES
-        end
+          def initialize list
+            @list  = list
+            @queue = SizedQueue.new CORES
+          end
 
-        def grep pattern
-          self.class.new super
-        end
+          def grep pattern
+            self.class.new super
+          end
 
-        def each
-          threads = CORES.times.map {
-            Thread.new {
-              while job = @queue.pop
-                yield job
-              end
+          def each
+            threads = CORES.times.map {
+              Thread.new {
+                while job = @queue.pop
+                  yield job
+                end
+              }
             }
-          }
-          @list.each { |i| @queue << i }
-          CORES.times { @queue << nil }
-          threads.each(&:join)
+            @list.each { |i| @queue << i }
+            CORES.times { @queue << nil }
+            threads.each(&:join)
+          end
         end
       end
 
