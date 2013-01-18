@@ -131,6 +131,10 @@ module ActiveRecord
           end
         end
 
+        def quote_table_name_for_assignment(name)
+          quote_column_name(name.to_s.gsub(/.*\./, ''))
+        end
+
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) #:nodoc:
           PGconn.quote_ident(name.to_s)

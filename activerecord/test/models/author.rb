@@ -9,6 +9,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_categories, -> { includes(:categories) }, :class_name => "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, :class_name => "Post"
   has_many :posts_containing_the_letter_a, :class_name => "Post"
+  has_many :posts_with_special_categorizations, :class_name => 'PostWithSpecialCategorization'
   has_many :posts_with_extension, :class_name => "Post" do #, :extend => ProxyTestExtension
     def testing_proxy_owner
       proxy_owner

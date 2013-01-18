@@ -19,6 +19,7 @@ require 'models/line_item'
 require 'models/car'
 require 'models/bulb'
 require 'models/engine'
+require 'models/categorization'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
@@ -108,7 +109,8 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings, :cars, :essays
+           :people, :posts, :readers, :taggings, :cars, :essays,
+           :categorizations
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1711,5 +1713,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 0,  post.comments.sum(:id)
       assert_equal 0,  post.comments.count
     end
+  end
+
+  test "delete record with complex joins" do
+    david = authors(:david)
+
+    post = david.posts.first
+    post.type = 'PostWithSpecialCategorization'
+    post.save
+
+    categorization = post.categorizations.first
+    categorization.special = true
+    categorization.save
+
+    assert_not_equal [], david.posts_with_special_categorizations
+    david.posts_with_special_categorizations = []
+    assert_equal [], david.posts_with_special_categorizations
   end
 end
