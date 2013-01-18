@@ -73,10 +73,11 @@ module ActionDispatch
         routes_to_display = filter_routes(filter)
 
         routes = collect_routes(routes_to_display)
-        formatter.section :application, 'Application routes', routes
+        formatter.section routes
 
         @engines.each do |name, engine_routes|
-          formatter.section :engine, "Routes for #{name}", engine_routes
+          formatter.section_title "Routes for #{name}"
+          formatter.section engine_routes
         end
 
         formatter.result
@@ -125,8 +126,11 @@ module ActionDispatch
         @buffer.join("\n")
       end
 
-      def section(type, title, routes)
-        @buffer << "\n#{title}:" unless type == :application
+      def section_title(title)
+        @buffer << "\n#{title}:"
+      end
+
+      def section(routes)
         @buffer << draw_section(routes)
       end
 
@@ -148,8 +152,11 @@ module ActionDispatch
         @buffer = []
       end
 
-      def section(type, title, routes)
-        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+      def section_title(title)
+        @buffer << "<tr><th colspan="4">#{title}</th></tr>"
+      end
+
+      def section(routes)
         @buffer << @view.render(partial: "routes/route", collection: routes)
       end
 
