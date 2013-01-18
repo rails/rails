@@ -7,7 +7,6 @@ Highlights in Rails 4.0:
 * Strong Parameters
 * Turbolinks
 * Russian Doll Caching
-* Asynchronous Mailers
 
 These release notes cover only the major changes. To know about various bug fixes and changes, please refer to the change logs or check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
 
