@@ -67,7 +67,7 @@ module ActiveRecord
     # instead examining the SQL content.
     oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
     mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/]
-    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im]
+    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im, /^SHOW search_path/i]
 
     [oracle_ignored, mysql_ignored, postgresql_ignored].each do |db_ignored_sql|
       ignored_sql.concat db_ignored_sql
