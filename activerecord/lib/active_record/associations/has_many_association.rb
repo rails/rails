@@ -19,12 +19,19 @@ module ActiveRecord
             false
           end
 
-        else
-          if options[:dependent] == :destroy
-            # No point in executing the counter update since we're going to destroy the parent anyway
+        when :destroy
+          if !loaded?
+            transaction do
+              self.scope.find_in_batches do |batch|
+                batch.each(&:mark_for_destruction)
+                delete_or_destroy(batch, options[:dependent])
+              end
+            end
+          else
             load_target.each(&:mark_for_destruction)
+            delete_all
           end
-
+        else
           delete_all
         end
       end
