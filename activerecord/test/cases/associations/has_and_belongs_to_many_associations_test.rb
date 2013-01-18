@@ -33,7 +33,7 @@ class ProjectWithAfterCreateHook < ActiveRecord::Base
   after_create :add_david
 
   def add_david
-    david = DeveloperForProjectWithAfterCreateHook.find_by_name('David')
+    david = DeveloperForProjectWithAfterCreateHook.find_by(name: 'David')
     david.projects << self
   end
 end
@@ -268,7 +268,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert devel.persisted?
     assert proj2.persisted?
     assert_equal devel.projects.last, proj2
-    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
+    assert_equal Developer.find_by(name: "Marcel").projects.last, proj2  # prove join table is updated
   end
 
   def test_create
@@ -293,7 +293,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert devel.persisted?
     assert proj2.persisted?
     assert_equal devel.projects.last, proj2
-    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
+    assert_equal Developer.find_by(name: "Marcel").projects.last, proj2  # prove join table is updated
   end
 
   def test_creation_respects_hash_condition
@@ -567,7 +567,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
 
     assert_equal high_id_jamis, projects(:active_record).developers.merge(:where => "name = 'Jamis'").first
-    assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
+    assert_equal high_id_jamis, projects(:active_record).developers.find_by(name: 'Jamis')
   end
 
   def test_find_should_prepend_to_association_order
@@ -581,8 +581,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_new_with_values_in_collection
-    jamis = DeveloperForProjectWithAfterCreateHook.find_by_name('Jamis')
-    david = DeveloperForProjectWithAfterCreateHook.find_by_name('David')
+    jamis = DeveloperForProjectWithAfterCreateHook.find_by(name: 'Jamis')
+    david = DeveloperForProjectWithAfterCreateHook.find_by(name: 'David')
     project = ProjectWithAfterCreateHook.new(:name => "Cooking with Bertie")
     project.developers << jamis
     project.save!
@@ -751,7 +751,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
-    tag = Post.find(1).tags.find_by_name("General")
+    tag = Post.find(1).tags.find_by(name: "General")
 
     assert_nothing_raised do
       tag.save!
@@ -783,7 +783,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_should_respect_association_include
     # SQL error in sort clause if :include is not included
     # due to Unknown column 'authors.id'
-    assert Category.find(1).posts_with_authors_sorted_by_author_id.find_by_title('Welcome to the weblog')
+    assert Category.find(1).posts_with_authors_sorted_by_author_id.find_by(title: 'Welcome to the weblog')
   end
 
   def test_count

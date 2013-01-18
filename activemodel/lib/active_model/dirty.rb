@@ -46,7 +46,7 @@ module ActiveModel
   #
   # A newly instantiated object is unchanged:
   #
-  #   person = Person.find_by_name('Uncle Bob')
+  #   person = Person.find_by(name: 'Uncle Bob')
   #   person.changed?       # => false
   #
   # Change the name:

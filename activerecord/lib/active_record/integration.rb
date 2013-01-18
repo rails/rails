@@ -19,7 +19,7 @@ module ActiveRecord
     # <tt>resources :users</tt> route. Normally, +user_path+ will
     # construct a path with the user object's 'id' in it:
     #
-    #   user = User.find_by_name('Phusion')
+    #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/1"
     #
     # You can override +to_param+ in your model to make +user_path+ construct
@@ -31,7 +31,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   user = User.find_by_name('Phusion')
+    #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/Phusion"
     def to_param
       # We can't use alias_method here, because method 'id' optimizes itself on the fly.
