@@ -3,11 +3,11 @@ require 'action_controller/metal/strong_parameters'
 
 class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
   def setup
-    ActionController::Parameters.action_on_unpermitted = :raise
+    ActionController::Parameters.action_on_unpermitted_parameters = :raise
   end
 
   def teardown
-    ActionController::Parameters.action_on_unpermitted = false
+    ActionController::Parameters.action_on_unpermitted_parameters = false
   end
 
   test "raises on unexpected params" do
@@ -16,7 +16,7 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
       fishing: "Turnips"
     })
 
-    assert_raises(ActionController::UnexpectedParameters) do
+    assert_raises(ActionController::UnpermittedParameters) do
       params.permit(book: [:pages])
     end
   end
@@ -26,7 +26,7 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
       book: { pages: 65, title: "Green Cats and where to find then." }
     })
 
-    assert_raises(ActionController::UnexpectedParameters) do
+    assert_raises(ActionController::UnpermittedParameters) do
       params.permit(book: [:pages])
     end
   end

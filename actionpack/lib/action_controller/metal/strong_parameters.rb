@@ -23,11 +23,11 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => ActionController::UnexpectedParameter: found unexpected keys: a, b
-  class UnexpectedParameters < IndexError
-    attr_reader :params
+  #   # => ActionController::UnpermittedParameters: found unexpected keys: a, b
+  class UnpermittedParameters < IndexError
+    attr_reader :params # :nodoc:
 
-    def initialize(params)
+    def initialize(params) # :nodoc:
       @params = params
       super("found unpermitted parameters: #{params.join(", ")}")
     end
@@ -57,10 +57,15 @@ module ActionController
   #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides a +permit_all_parameters+ option that controls the top-level
-  # behavior of new instances. If it's +true+, all the parameters will be
-  # permitted by default. The default value for +permit_all_parameters+
-  # option is +false+.
+  # It provides two options that controls the top-level behavior of new instances:
+  #
+  # * +permit_all_parameters+ - If it's +true+, all the parameters will be
+  #   permitted by default. The default is +false+.
+  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
+  #   that are not explicitly permitted are found. The values can be <tt>:log</tt> to
+  #   write a message on the logger or <tt>:raise</tt> to raise
+  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
+  #   in test and development environments, +false+ otherwise.
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => false
@@ -69,6 +74,16 @@ module ActionController
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => true
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => {}
+  #
+  #   ActionController::Parameters.action_on_unpermitted_parameters = :raise
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
   # <tt>ActionController::Parameters</tt> is inherited from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
@@ -79,7 +94,11 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
-    cattr_accessor :action_on_unpermitted, instance_accessor: false
+    cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
+
+    # Never raise an UnpermittedParameters exception because of these params
+    # are present. They are added by Rails and it's of no concern.
+    NEVER_UNPERMITTED_PARAMS = %w( controller action )
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -237,16 +256,8 @@ module ActionController
         end
       end
 
-      unpermitted_keys = self.keys - params.keys
-      if unpermitted_keys.any?
-        case self.class.action_on_unpermitted
-        when :log
-          ActionController::Base.logger.debug "Unpermitted parameters: #{unpermitted_keys.join(", ")}"
-        when :raise
-          raise ActionController::UnexpectedParameters.new(unpermitted_keys)
-        end
-      end
-      
+      unpermitted_parameters!(params)
+
       params.permit!
     end
 
@@ -324,6 +335,22 @@ module ActionController
         else
           yield object
         end
+      end
+
+      def unpermitted_parameters!(params)
+        unpermitted_keys = unpermitted_keys(params)
+        if unpermitted_keys.any?
+          case self.class.action_on_unpermitted_parameters
+          when :log
+            ActionController::Base.logger.debug "Unpermitted parameters: #{unpermitted_keys.join(", ")}"
+          when :raise
+            raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+          end
+        end
+      end
+
+      def unpermitted_keys(params)
+        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
       end
   end
 
