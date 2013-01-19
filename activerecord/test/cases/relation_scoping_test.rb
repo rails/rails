@@ -31,6 +31,10 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_equal Developer.order("name DESC"), Developer.order("name DESC").reverse_order.reverse_order
   end
 
+  def test_reverse_order_with_function_in_order
+    assert_equal Developer.order('SUBSTR(name, 1, 100)').to_a, Developer.order("substr(name, 1, 100) DESC").reverse_order
+  end
+
   def test_scoped_find
     Developer.where("name = 'David'").scoping do
       assert_nothing_raised { Developer.find(1) }

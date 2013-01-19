@@ -835,6 +835,26 @@ module ActiveRecord
       end
     end
 
+    def split_order_expressions(str)
+      return str.split(',') unless str =~ /[)(]/
+
+      depth, index, expressions = 0, 0, []
+      current = expressions[index] = ''
+
+      str.each_char do |char|
+        depth += 1 if char == '('
+        depth -= 1 if char == ')'
+        if depth == 0 && char == ','
+          index += 1
+          current = expressions[index] = ''
+        else
+          current << char
+        end
+      end
+
+      expressions
+    end
+
     def reverse_sql_order(order_query)
       order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
 
@@ -843,7 +863,7 @@ module ActiveRecord
         when Arel::Nodes::Ordering
           o.reverse
         when String
-          o.to_s.split(',').collect do |s|
+          split_order_expressions(o.to_s).collect do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
