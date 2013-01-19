@@ -282,7 +282,7 @@ module ActiveSupport
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, options) { |name| yield name }
+            save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         else
           read(name, options)
