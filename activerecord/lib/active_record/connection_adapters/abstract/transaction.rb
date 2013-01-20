@@ -5,7 +5,17 @@ module ActiveRecord
 
       def initialize(connection)
         @connection = connection
+        @state = nil
       end
+
+      def committed?
+        @state == :commit
+      end
+
+      def rolledback?
+        @state == :rollback
+      end
+
     end
 
     class ClosedTransaction < Transaction #:nodoc:
@@ -91,6 +101,7 @@ module ActiveRecord
       end
 
       def rollback_records
+        @state = :rollback
         records.uniq.each do |record|
           begin
             record.rolledback!(parent.closed?)
@@ -101,6 +112,7 @@ module ActiveRecord
       end
 
       def commit_records
+        @state = :commit
         records.uniq.each do |record|
           begin
             record.committed!
