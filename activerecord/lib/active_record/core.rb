@@ -377,7 +377,6 @@ module ActiveRecord
       @txn                        = nil
       @_start_transaction_state   = {}
       @transaction                = nil
-      @reflects_transaction_state = false
     end
   end
 end
