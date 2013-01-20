@@ -164,14 +164,16 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
+    class Klass < ActiveRecord::Base
+    end
+
     def setup
-      @klass = Class.new(ActiveRecord::Base)
-      @klass.establish_connection 'arunit'
-      @connection = @klass.connection
+      Klass.establish_connection 'arunit'
+      @connection = Klass.connection
     end
 
     def teardown
-      @klass.remove_connection
+      Klass.remove_connection
     end
 
     test "transaction state is reset after a reconnect" do
