@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added a state instance variable to each transaction. Will allow other objects
+    to know whether a transaction has been committed or rolled back.
+
+    *John Wang*
+
 *   Collection associations `#empty?` always respects builded records.
     Fix #8879.
 
