@@ -327,7 +327,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal @twz, @twz.to_time
+    assert_same @twz.to_time, @twz
   end
 
   def test_to_date
