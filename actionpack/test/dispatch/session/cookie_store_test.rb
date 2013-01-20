@@ -59,11 +59,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
-    def change_session_id
-      request.session_options[:id] = nil
-      get_session_id
-    end
-
     def renew_session_id
       request.session_options[:renew] = true
       head :ok
@@ -293,19 +288,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       reset!
       get '/get_session_id'
       assert_not_equal session_id, response.body
-    end
-  end
-
-  def test_setting_session_id_to_nil_is_respected
-    with_test_route_set do
-      cookies[SessionKey] = SignedBar
-
-      get "/get_session_id"
-      sid = response.body
-      assert_equal sid.size, 32
-
-      get "/change_session_id"
-      assert_not_equal sid, response.body
     end
   end
 
