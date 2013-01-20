@@ -2,13 +2,13 @@
 
 *   Given
 
-      params.permit(:name)
+        params.permit(:name)
 
     `:name` passes if it is a key of `params` whose value is a permitted scalar.
 
     Similarly, given
 
-      params.permit(tags: [])
+        params.permit(tags: [])
 
     `:tags` passes if it is a key of `params` whose value is an array of
     permitted scalars.
