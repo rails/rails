@@ -63,6 +63,11 @@ module ActionDispatch
         @exists   = nil # we haven't checked yet
       end
 
+      def id
+        load_for_write! unless options[:id]
+        options[:id]
+      end
+
       def options
         Options.find @env
       end

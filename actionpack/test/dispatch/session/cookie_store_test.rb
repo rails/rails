@@ -30,7 +30,12 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_id
-      render :text => "id: #{request.session_options[:id]}"
+      render :text => session.id
+    end
+
+    def get_session_id_and_status
+      id, exists, loaded = [session.id, !!session.exists?, session.loaded?]
+      render :text => "#{id},#{exists},#{loaded}"
     end
 
     def get_class_after_reset_session
@@ -87,12 +92,30 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       cookies[SessionKey] = SignedBar
       get '/persistent_session_id'
       assert_response :success
-      assert_equal response.body.size, 32
-      session_id = response.body
+      assert_equal 32, response.body.size
+    end
+  end
 
-      get '/get_session_id'
+  def test_getting_session_id_without_loading_session
+    with_test_route_set do
+      cookies[SessionKey] = SignedBar
+      get '/get_session_id_and_status'
       assert_response :success
-      assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
+      id, exists, loaded = response.body.split(',')
+      assert_equal 32, id.size
+      assert_equal 'true', exists
+      assert_equal 'false', loaded, 'session should not be loaded'
+    end
+  end
+
+  def test_getting_session_id_for_nonexistent_session
+    with_test_route_set do
+      get '/get_session_id_and_status'
+      assert_response :success
+      id, exists, loaded = response.body.split(',')
+      assert_equal 32, id.size, 'should have created a new session'
+      assert_equal 'true', exists
+      assert_equal 'true', loaded
     end
   end
 
@@ -142,7 +165,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         cookies[SessionKey] = SignedSerializedCookie
         get '/get_session_id'
         assert_response :success
-        assert_equal 'id: ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
+        assert_equal 'ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
       end
     end
   end
@@ -264,7 +287,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
       get "/get_session_id"
       sid = response.body
-      assert_equal sid.size, 36
+      assert_equal sid.size, 32
 
       get "/change_session_id"
       assert_not_equal sid, response.body

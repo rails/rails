@@ -61,11 +61,19 @@ module ActionDispatch
         assert_equal([], s.values)
       end
 
+      def test_id
+        env = {}
+        s = Session.create(store, env, {})
+        assert_equal 1, s.id
+      end
+
       private
       def store
         Class.new {
           def load_session(env); [1, {}]; end
           def session_exists?(env); true; end
+          private
+          def extract_session_id(env); 1; end
         }.new
       end
     end
