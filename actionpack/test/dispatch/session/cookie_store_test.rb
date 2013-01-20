@@ -16,10 +16,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
-    def persistent_session_id
-      render :text => session[:session_id]
-    end
-
     def set_session_value
       session[:foo] = "bar"
       render :text => Rack::Utils.escape(Verifier.generate(session.to_hash))
@@ -90,7 +86,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_getting_session_id
     with_test_route_set do
       cookies[SessionKey] = SignedBar
-      get '/persistent_session_id'
+      get '/get_session_id'
       assert_response :success
       assert_equal 32, response.body.size
     end
@@ -139,10 +135,10 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_properly_renew_cookies
     with_test_route_set do
       get '/set_session_value'
-      get '/persistent_session_id'
+      get '/get_session_id'
       session_id = response.body
       get '/renew_session_id'
-      get '/persistent_session_id'
+      get '/get_session_id'
       assert_not_equal response.body, session_id
     end
   end
@@ -269,14 +265,14 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_persistent_session_id
     with_test_route_set do
       cookies[SessionKey] = SignedBar
-      get '/persistent_session_id'
+      get '/get_session_id'
       assert_response :success
       assert_equal response.body.size, 32
       session_id = response.body
-      get '/persistent_session_id'
+      get '/get_session_id'
       assert_equal session_id, response.body
       reset!
-      get '/persistent_session_id'
+      get '/get_session_id'
       assert_not_equal session_id, response.body
     end
   end
