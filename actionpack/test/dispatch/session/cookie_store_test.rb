@@ -9,7 +9,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Generator = ActiveSupport::DummyKeyGenerator.new(SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'SHA1')
-  SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
+  SignedBar = Verifier.generate(:foo => "bar", :_session_id => SecureRandom.hex(16))
 
   class TestController < ActionController::Base
     def no_session_access
@@ -157,8 +157,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
-  SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhciIIYmF6Og9zZXNzaW9uX2lkIiVjZThiMDc1MmE2YWI3YzdhZjNjZGI4YTgwZTZiOWU0Ng==--2bf3af1ae8bd4e52b9ac2099258ace0c380e601c"
+  # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :_session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
+  SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhckkiCGJhegY6BkVGOhBfc2Vzc2lvbl9pZEkiJWNlOGIwNzUyYTZhYjdjN2FmM2NkYjhhODBlNmI5ZTQ2BjsIRg==--2fdde3ee18c581568aa7785b7365faf865601f1f"
 
   def test_deserializes_unloaded_classes_on_get_id
     with_test_route_set do
