@@ -184,6 +184,20 @@ module ActionController
     #   permitted.has_key?(:age)  # => true
     #   permitted.has_key?(:role) # => false
     #
+    # Only permitted scalars pass the filter. For example, given
+    #
+    #   params.permit(:name)
+    #
+    # +:name+ passes it is a key of +params+ whose associated value is of type
+    # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
+    # +Date+, +Time+, +DateTime+, +StringIO+, or +IO+. Otherwise, the key +:name+
+    # is filtered out.
+    #
+    # You may declare that the parameter should be an array of permitted scalars
+    # by mapping it to an empty array:
+    #
+    #   params.permit(:tags => [])
+    #
     # You can also use +permit+ on nested parameters, like:
     #
     #   params = ActionController::Parameters.new({
@@ -230,29 +244,10 @@ module ActionController
 
       filters.flatten.each do |filter|
         case filter
-        when Symbol, String then
-          if has_key?(filter)
-            _value = self[filter]
-            params[filter] = _value unless Hash === _value
-          end
-          keys.grep(/\A#{Regexp.escape(filter)}\(\d+[if]?\)\z/) { |key| params[key] = self[key] }
+        when Symbol, String
+          permitted_scalar_filter(params, filter)
         when Hash then
-          filter = filter.with_indifferent_access
-
-          self.slice(*filter.keys).each do |key, values|
-            return unless values
-
-            key = key.to_sym
-
-            params[key] = each_element(values) do |value|
-              # filters are a Hash, so we expect value to be a Hash too
-              next if filter.is_a?(Hash) && !value.is_a?(Hash)
-
-              value = self.class.new(value) if !value.respond_to?(:permit)
-
-              value.permit(*Array.wrap(filter[key]))
-            end
-          end
+          hash_filter(params, filter)
         end
       end
 
@@ -351,6 +346,81 @@ module ActionController
 
       def unpermitted_keys(params)
         self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
+      end
+
+      #
+      # --- Filtering ----------------------------------------------------------
+      #
+
+      # This is a white list of permitted scalar types that includes the ones
+      # supported in XML and JSON requests.
+      #
+      # This list is in particular used to filter ordinary requests, String goes
+      # as first element to quickly short-circuit the common case.
+      #
+      # If you modify this collection please update the API of +permit+ above.
+      PERMITTED_SCALAR_TYPES = [
+        String,
+        Symbol,
+        NilClass,
+        Numeric,
+        TrueClass,
+        FalseClass,
+        Date,
+        Time,
+        # DateTimes are Dates, we document the type but avoid the redundant check.
+        StringIO,
+        IO,
+      ]
+
+      def permitted_scalar?(value)
+        PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
+      end
+
+      def permitted_scalar_filter(params, key)
+        if has_key?(key) && permitted_scalar?(self[key])
+          params[key] = self[key]
+        end
+
+        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/).each do |key|
+          if permitted_scalar?(self[key])
+            params[key] = self[key]
+          end
+        end
+      end
+
+      def array_of_permitted_scalars?(value)
+        if value.is_a?(Array)
+          value.all? {|element| permitted_scalar?(element)}
+        end
+      end
+
+      def array_of_permitted_scalars_filter(params, key)
+        if has_key?(key) && array_of_permitted_scalars?(self[key])
+          params[key] = self[key]
+        end
+      end
+
+      def hash_filter(params, filter)
+        filter = filter.with_indifferent_access
+
+        # Slicing filters out non-declared keys.
+        slice(*filter.keys).each do |key, value|
+          return unless value
+
+          if filter[key] == []
+            # Declaration {:comment_ids => []}.
+            array_of_permitted_scalars_filter(params, key)
+          else
+            # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
+            params[key] = each_element(value) do |element|
+              if element.is_a?(Hash)
+                element = self.class.new(element) unless element.respond_to?(:permit)
+                element.permit(*Array.wrap(filter[key]))
+              end
+            end
+          end
+        end
       end
   end
 

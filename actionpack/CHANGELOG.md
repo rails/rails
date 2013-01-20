@@ -1,5 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Given
+
+      params.permit(:name)
+
+    `:name` passes if it is a key of `params` whose value is a permitted scalar.
+
+    Similarly, given
+
+      params.permit(tags: [])
+
+    `:tags` passes if it is a key of `params` whose value is an array of
+    permitted scalars.
+
+    Permitted scalars filtering happens at any level of nesting.
+
+    *Xavier Noria*
+
 *   `BestStandardsSupport` no longer duplicates `X-UA-Compatible` values on
     each request to prevent header size from blowing up.
 
