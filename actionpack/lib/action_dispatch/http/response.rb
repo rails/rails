@@ -137,6 +137,7 @@ module ActionDispatch # :nodoc:
       @committed
     end
 
+    # Allows you to set the HTTP status code
     def status=(status)
       @status = Rack::Utils.status_code(status)
     end
@@ -155,6 +156,12 @@ module ActionDispatch # :nodoc:
       @status.to_s
     end
 
+    # Returns the corresponding message for the current HTTP status code
+    #   response.status = 200
+    #   response.message # => "OK"
+    #
+    #   response.status = 404
+    #   response.message # => "Not Found"
     def message
       Rack::Utils::HTTP_STATUS_CODES[@status]
     end
