@@ -49,6 +49,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def call_session_destroy
+      session.destroy
+      head :ok
+    end
+
     def raise_data_overflow
       session[:foo] = 'bye!' * 1024
       head :ok
@@ -258,6 +263,20 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
       get '/get_session_value'
       assert_response :success
+      assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_destroy_session
+    with_test_route_set do
+      cookies[SessionKey] = SignedBar
+      get '/get_session_id'
+      session_id = response.body
+      get '/call_session_destroy'
+      get '/get_session_id'
+      new_session_id = response.body
+      assert_not_equal session_id, new_session_id
+      get '/get_session_value'
       assert_equal 'foo: nil', response.body
     end
   end
