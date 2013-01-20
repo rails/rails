@@ -196,7 +196,7 @@ module ActionController
     # You may declare that the parameter should be an array of permitted scalars
     # by mapping it to an empty array:
     #
-    #   params.permit(:tags => [])
+    #   params.permit(tags: [])
     #
     # You can also use +permit+ on nested parameters, like:
     #
@@ -409,10 +409,10 @@ module ActionController
           return unless value
 
           if filter[key] == []
-            # Declaration {:comment_ids => []}.
+            # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
           else
-            # Declaration {:user => :name} or {:user => [:name, :age, {:adress => ...}]}.
+            # Declaration { user: :name } or { user: [:name, :age, { adress: ... }] }.
             params[key] = each_element(value) do |element|
               if element.is_a?(Hash)
                 element = self.class.new(element) unless element.respond_to?(:permit)
