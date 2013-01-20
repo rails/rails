@@ -58,7 +58,7 @@ Parameters
 You will probably want to access data sent in by the user or other parameters in your controller actions. There are two kinds of parameters possible in a web application. The first are parameters that are sent as part of the URL, called query string parameters. The query string is everything after "?" in the URL. The second type of parameter is usually referred to as POST data. This information usually comes from an HTML form which has been filled in by the user. It's called POST data because it can only be sent as part of an HTTP POST request. Rails does not make any distinction between query string parameters and POST parameters, and both are available in the `params` hash in your controller:
 
 ```ruby
-class ClientsController < ActionController::Base
+class ClientsController < ApplicationController
   # This action uses query string parameters because it gets run
   # by an HTTP GET request, but this does not make any difference
   # to the way in which the parameters are accessed. The URL for
@@ -479,7 +479,7 @@ In addition to "before" filters, you can also run filters after an action has be
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
 ```ruby
-class ChangesController < ActionController::Base
+class ChangesController < ApplicationController
   around_action :wrap_in_transaction, only: :show
 
   private

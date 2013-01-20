@@ -138,7 +138,7 @@ Query caching is a Rails feature that caches the result set returned by each que
 For example:
 
 ```ruby
-class ProductsController < ActionController
+class ProductsController < ApplicationController
 
   def index
     # Run a find query

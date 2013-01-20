@@ -98,7 +98,7 @@ A nested model form will _only_ be built if the associated object(s) exist. This
 Consider the following typical RESTful controller which will prepare a new Person instance and its `address` and `projects` associations before rendering the `new` template:
 
 ```ruby
-class PeopleController < ActionController:Base
+class PeopleController < ApplicationController
   def new
     @person = Person.new
     @person.built_address
