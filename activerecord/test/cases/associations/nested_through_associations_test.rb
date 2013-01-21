@@ -221,6 +221,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection_preload_via_joins
+    # preload table schemas
+    Author.joins(:post_categories).first
+
     assert_includes_and_joins_equal(
       Author.where('categories.id' => categories(:cooking).id),
       [authors(:bob)], :post_categories
@@ -246,6 +249,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload_via_joins
+    # preload table schemas
+    Category.joins(:post_comments).first
+
     assert_includes_and_joins_equal(
       Category.where('comments.id' => comments(:more_greetings).id).order('categories.id'),
       [categories(:general), categories(:technology)], :post_comments
@@ -271,6 +277,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload_via_joins
+    # preload table schemas
+    Author.joins(:category_post_comments).first
+
     assert_includes_and_joins_equal(
       Author.where('comments.id' => comments(:does_it_hurt).id).order('authors.id'),
       [authors(:david), authors(:mary)], :category_post_comments
