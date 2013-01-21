@@ -382,7 +382,7 @@ module ActionController
           params[key] = self[key]
         end
 
-        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/).each do |k|
+        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/) do |k|
           if permitted_scalar?(self[k])
             params[k] = self[k]
           end
