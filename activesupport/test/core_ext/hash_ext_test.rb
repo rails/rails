@@ -54,6 +54,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
+    assert_respond_to h, :traverse
   end
 
   def test_transform_keys
@@ -795,6 +796,34 @@ class HashExtTest < ActiveSupport::TestCase
     original = { :a => 'x', :b => 'y' }
     original.expects(:delete).never
     original.except(:a)
+  end
+
+  def test_traverse
+    hash     = { level_1: { level_2: { level_3: 3 } } }
+    expected = 3
+
+    assert_equal expected, hash.traverse(:level_1, :level_2, :level_3)
+  end
+
+  def test_traverse_with_missing_key
+    hash     = { :level_1 => { :level_2 => { :level_3 => 3 } } }
+    expected = nil
+
+    assert_equal expected, hash.traverse(:level_1, :level_2, :non_existent_key)
+  end
+
+  def test_traverse_with_default_and_missing_key
+    hash     = { :level_1 => { :level_2 => { :level_3 => 3 } } }
+    expected = 5
+
+    assert_equal expected, hash.traverse(:level_1, :level_2, :non_existent_key) { 5 }
+  end
+
+  def test_traverse_with_default_without_missing_key
+    hash     = { :level_1 => { :level_2 => { :level_3 => 3 } } }
+    expected = 3
+
+    assert_equal expected, hash.traverse(:level_1, :level_2, :level_3) { 5 }
   end
 end
 

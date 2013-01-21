@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Hash#traverse` to easily fetch deeply nested values.
+
+        hash = { level1: { level2: { level3: 3 } } }
+        hash.traverse :level1, :level2, :level3 #=> 3
+
+    Also supports a default value block.
+
+        hash.traverse(:level1, :level2, :non_existent_key) { 5 } #=> 5
+
+    *Tyler Dooling*
+
 *   Standardise on `to_time` returning an instance of `Time` in the local system timezone
     across `String`, `Time`, `Date`, `DateTime` and `ActiveSupport::TimeWithZone`.
 
@@ -32,8 +43,9 @@
 
     *Kelly Stannard*
 
-*   It's now possible to compare `Date`, `DateTime`, `Time` and `TimeWithZone`
-    with `Infinity`. This allows to create date/time ranges with one infinite bound.
+*   It's now possible to compare Date, DateTime, Time and TimeWithZone with Infinity
+    This allows to create date/time ranges with one infinite bound.
+
     Example:
 
         range = Range.new(Date.today, Float::INFINITY)
