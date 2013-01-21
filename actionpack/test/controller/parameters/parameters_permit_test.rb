@@ -22,8 +22,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test 'if nothing is permitted, the hash becomes empty' do
     params = ActionController::Parameters.new(:id => '1234')
     permitted = params.permit
-    permitted.permitted?
-    permitted.empty?
+    assert permitted.permitted?
+    assert permitted.empty?
   end
 
   test 'key: permitted scalar values' do
