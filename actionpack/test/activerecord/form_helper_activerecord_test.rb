@@ -41,6 +41,18 @@ class FormHelperActiveRecordTest < ActionView::TestCase
 
   include Routes.url_helpers
 
+  def test_form_for_with_collection
+    form_for(Developer.all) do |f|
+      concat f.text_field(:name)
+    end
+
+    expected = whole_form('/developers/123', 'edit_developer_123', 'edit_developer', :method => 'patch') do
+      '<input id="developer_name" name="developer[name]" type="text" value="developer #123" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association
     form_for(@developer) do |f|
       concat f.fields_for(:projects, @developer.projects.first, :child_index => 'abc') { |cf|
@@ -51,6 +63,20 @@ class FormHelperActiveRecordTest < ActionView::TestCase
     expected = whole_form('/developers/123', 'edit_developer_123', 'edit_developer', :method => 'patch') do
       '<input id="developer_projects_attributes_abc_name" name="developer[projects_attributes][abc][name]" type="text" value="project #321" />' +
           '<input id="developer_projects_attributes_abc_id" name="developer[projects_attributes][abc][id]" type="hidden" value="321" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_collection_on_a_nested_attributes_collection_association
+    form_for(@developer) do |f|
+      concat f.fields_for(@developer.projects, @developer.projects.first) { |cf|
+        concat cf.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/developers/123', 'edit_developer_123', 'edit_developer', :method => 'patch') do
+      '<input id="developer_project_name" name="developer[project][name]" type="text" value="project #321" />'
     end
 
     assert_dom_equal expected, output_buffer
