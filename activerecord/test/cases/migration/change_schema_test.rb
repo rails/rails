@@ -35,7 +35,7 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        assert_equal %w(foo id), connection.columns(:testings).map(&:name).sort
+        assert_equal %w(id foo), connection.columns(:testings).map(&:name)
       end
 
       def test_create_table_with_not_null_column
@@ -119,7 +119,7 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        assert_equal %w(foo testing_id), connection.columns(:testings).map(&:name).sort
+        assert_equal %w(testing_id foo), connection.columns(:testings).map(&:name)
       end
 
       def test_create_table_with_primary_key_prefix_as_table_name
@@ -129,7 +129,7 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        assert_equal %w(foo testingid), connection.columns(:testings).map(&:name).sort
+        assert_equal %w(testingid foo), connection.columns(:testings).map(&:name)
       end
 
       def test_create_table_raises_when_redefining_primary_key_column
