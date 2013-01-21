@@ -89,6 +89,7 @@ module ApplicationTests
           get '/generate_application_route', to: 'posts#generate_application_route'
           get '/application_route_in_view', to: 'posts#application_route_in_view'
           get '/engine_polymorphic_path', to: 'posts#engine_polymorphic_path'
+          get '/engine_asset_path', to: 'posts#engine_asset_path'
         end
       RUBY
 
@@ -112,6 +113,10 @@ module ApplicationTests
 
             def engine_polymorphic_path
               render text: polymorphic_path(Post.new)
+            end
+
+            def engine_asset_path
+              render inline: "<%= asset_path 'images/foo.png' %>"
             end
           end
         end
@@ -211,6 +216,10 @@ module ApplicationTests
       # and in an application
       get "/application_polymorphic_path"
       assert_equal "/posts/44", last_response.body
+
+      # test that asset path will not get script_name when generated in the engine
+      get "/someone/blog/engine_asset_path"
+      assert_equal "/images/foo.png", last_response.body
     end
 
     test "route path for controller action when engine is mounted at root" do
