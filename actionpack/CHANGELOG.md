@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add javascript based routing path matcher to `/rails/info/routes`.
+    Routes can now be filtered by whether or not they match a path.
+
+    *Richard Schneeman*
+
 *   Given
 
         params.permit(:name)

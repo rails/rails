@@ -21,6 +21,14 @@ module ActionDispatch
         inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options[:filter]).split("\n")
       end
 
+      def test_json_regexp_converter
+        @set.draw do
+          get '/cart', :to => 'cart#show'
+        end
+        route = ActionDispatch::Routing::RouteWrapper.new(@set.routes.first)
+        assert_equal "^\\/cart(?:\\.([^\\/.?]+))?$", route.json_regexp
+      end
+
       def test_displaying_routes_for_engines
         engine = Class.new(Rails::Engine) do
           def self.inspect
