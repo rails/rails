@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change asset_path to not include `SCRIPT_NAME` when it's used
+    from a mounted engine (fixes #8119).
+
+    *Piotr Sarnacki*
+
 *   Add javascript based routing path matcher to `/rails/info/routes`.
     Routes can now be filtered by whether or not they match a path.
 
