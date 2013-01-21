@@ -135,7 +135,7 @@ module ActiveSupport
         p0 = plural[0]
         prest = plural[1..-1]
 
-        if singular[0,1].upcase == p0.upcase
+        if s0.upcase == p0.upcase
           plural(/(#{s0})#{srest}$/i, '\1' + prest)
           plural(/(#{p0})#{prest}$/i, '\1' + prest)
 
