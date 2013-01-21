@@ -1403,9 +1403,10 @@ module ActionDispatch
 
         def add_route(action, options) # :nodoc:
           path = path_for_action(action, options.delete(:path))
+          action = action.to_s.dup
 
-          if action.to_s =~ /^[\w\/]+$/
-            options[:action] ||= action unless action.to_s.include?("/")
+          if action =~ /^[\w\/]+$/
+            options[:action] ||= action unless action.include?("/")
           else
             action = nil
           end
