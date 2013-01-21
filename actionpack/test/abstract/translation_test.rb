@@ -29,13 +29,13 @@ module AbstractController
 
       def test_lazy_lookup
         expected = 'bar'
-        @controller.stubs(:action_name => :index)
+        @controller.stubs(action_name: :index)
         I18n.stubs(:translate).with('abstract_controller.testing.translation.index.foo').returns(expected)
         assert_equal expected, @controller.t('.foo')
       end
 
       def test_default_translation
-        key, expected = 'one.two' 'bar'
+        key, expected = 'one.two', 'bar'
         I18n.stubs(:translate).with(key).returns(expected)
         assert_equal expected, @controller.t(key)
       end
