@@ -52,13 +52,6 @@ class String
   #   "2012-12-13 12:50".to_datetime    #=> Thu, 13 Dec 2012 12:50:00 +0000
   #   "12/13/2012".to_datetime          #=> ArgumentError: invalid date
   def to_datetime
-    unless blank?
-      date_values = ::Date._parse(self, false).
-        values_at(:year, :mon, :mday, :hour, :min, :sec, :zone, :sec_fraction).
-        map! { |arg| arg || 0 }
-      date_values[5] += date_values.pop
-
-      ::DateTime.civil(*date_values)
-    end
+    ::DateTime.parse(self, false) unless blank?
   end
 end

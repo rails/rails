@@ -327,6 +327,12 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_datetime
   end
 
+  def test_partial_string_to_datetime
+    now = DateTime.now
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50), "23:50".to_datetime
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, "-04:00"), "23:50 -0400".to_datetime
+  end
+
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
     assert_nil "".to_date
