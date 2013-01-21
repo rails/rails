@@ -27,7 +27,7 @@ and render view templates in order to generate the appropriate HTTP response.
 
 In Rails, the Controller and View layers are handled together by Action Pack.
 These two layers are bundled in a single package due to their heavy interdependence.
-This is unlike the relationship between Active Record and Action Pack which are
+This is unlike the relationship between Active Record and Action Pack, which are
 independent. Each of these packages can be used independently outside of Rails. You
 can read more about Action Pack in its {README}[link:/rails/rails/blob/master/actionpack/README.rdoc].
 
