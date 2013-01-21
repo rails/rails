@@ -421,9 +421,10 @@ module ActionView
           object_name = record
           object      = nil
         else
-          object      = record.is_a?(Array) ? record.last : record
+          object      = record.respond_to?(:to_ary) ? record.last : record
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
+          record = record.respond_to?(:to_ary) ? record.to_ary : record
           apply_form_for_options!(record, object, options)
         end
 
@@ -1485,7 +1486,7 @@ module ActionView
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
         else
-          record_object = record_name.is_a?(Array) ? record_name.last : record_name
+          record_object = record_name.respond_to?(:to_ary) ? record_name.last : record_name
           record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
