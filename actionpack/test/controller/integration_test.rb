@@ -751,13 +751,17 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "http://bar.com/foo", foos_url
   end
 
-  test "test can override default url options" do
+  def test_can_override_default_url_options
+    original_host = default_url_options.dup
+
     default_url_options[:host] = "foobar.com"
     assert_equal "http://foobar.com/foo", foos_url
 
     get "/bar"
     assert_response :success
     assert_equal "http://foobar.com/foo", foos_url
+  ensure
+    ActionDispatch::Integration::Session.default_url_options = self.default_url_options = original_host
   end
 
   test "current request path parameters are recalled" do
