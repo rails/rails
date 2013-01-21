@@ -552,6 +552,13 @@ development:
 
 Change the username and password in the `development` section as appropriate.
 
+### Creating Rails environments
+
+By default Rails ships with three environments (production, development and test). While these are sufficient for most use cases, there are circumstances when you want more environments. Imagine you have a server, which mirrors the production environment but is only used for testing. You can create a separate environment for this server by creating a file called `config/environments/staging.rb`. This will create a new environment called "staging". You can use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
+
+After you created the environment file you can now start a server with `rails server -e staging` or a console with `rails console staging`
+
+
 Rails Environment Settings
 --------------------------
 
