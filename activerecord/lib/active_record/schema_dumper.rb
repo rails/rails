@@ -70,8 +70,8 @@ HEADER
         @connection.tables.sort.each do |tbl|
           next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
             case ignored
-            when String; remove_prefix_and_suffix(tbl) == ignored
-            when Regexp; remove_prefix_and_suffix(tbl) =~ ignored
+            when String; tbl == ignored
+            when Regexp; tbl =~ ignored
             else
               raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
             end
