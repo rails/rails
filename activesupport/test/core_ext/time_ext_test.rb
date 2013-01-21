@@ -526,7 +526,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal Time.local(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30).to_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, Time.local(2005, 2, 21, 17, 44, 30).to_time.class
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30).to_time
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).utc_offset, Time.local(2005, 2, 21, 17, 44, 30).to_time.utc_offset
+    end
   end
 
   # NOTE: this test seems to fail (changeset 1958) only on certain platforms,

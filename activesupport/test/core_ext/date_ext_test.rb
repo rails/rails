@@ -33,8 +33,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
-    assert_equal Time.local(2039, 2, 21), Date.new(2039, 2, 21).to_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, Date.new(2005, 2, 21).to_time.class
+      assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
+      assert_equal Time.local(2005, 2, 21).utc_offset, Date.new(2005, 2, 21).to_time.utc_offset
+    end
+
     silence_warnings do
       0.upto(138) do |year|
         [:utc, :local].each do |format|

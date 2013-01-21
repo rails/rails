@@ -327,7 +327,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal @twz, @twz.to_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, @twz.to_time.class
+      assert_equal Time.local(1999, 12, 31, 19), @twz.to_time
+      assert_equal Time.local(1999, 12, 31, 19).utc_offset, @twz.to_time.utc_offset
+    end
   end
 
   def test_to_date
