@@ -35,6 +35,9 @@ class Post < ActiveRecord::Base
   scope :with_very_special_comments, -> { joins(:comments).where(:comments => {:type => 'VerySpecialComment'}) }
   scope :with_post, ->(post_id) { joins(:comments).where(:comments => { :post_id => post_id }) }
 
+  scope :with_comments, -> { preload(:comments) }
+  scope :with_tags, -> { preload(:taggings) }
+
   has_many   :comments do
     def find_most_recent
       order("id DESC").first
