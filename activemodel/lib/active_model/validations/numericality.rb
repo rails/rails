@@ -8,6 +8,16 @@ module ActiveModel
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
+      def initialize(options)
+        range = options.delete(:in) || options.delete(:within)
+        if range
+          raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
+          options[:greater_than_or_equal_to], options[:less_than_or_equal_to] = range.min, range.max
+        end
+
+        super
+      end
+
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
@@ -108,6 +118,8 @@ module ActiveModel
       #   supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
+      # * <tt>:in<tt> - Specifies the <tt>Range</tt> the value must be covered by.
+      # * <tt>:within<tt> - A synonym (or alias) for <tt>:in</tt>
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+ .
