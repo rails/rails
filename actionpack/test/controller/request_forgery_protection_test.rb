@@ -170,6 +170,10 @@ module RequestForgeryProtectionTests
     assert_not_blocked { get :index }
   end
 
+  def test_should_allow_head
+    assert_not_blocked { head :index }
+  end
+
   def test_should_allow_post_without_token_on_unsafe_action
     assert_not_blocked { post :unsafe }
   end
