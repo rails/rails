@@ -75,6 +75,11 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_deprecate_object
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ':bomb:')
+    assert_deprecated(/:bomb:/) { deprecated_object.to_s }
+  end
+
   def test_nil_behavior_is_ignored
     ActiveSupport::Deprecation.behavior = nil
     assert_deprecated(/foo=nil/) { @dtc.partially }
