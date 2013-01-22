@@ -12,6 +12,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def teardown
       @connection.drop_table :fruits rescue nil
+      ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
     def test_schema_define

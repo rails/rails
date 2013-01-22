@@ -30,9 +30,13 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_column_information
     ActiveRecord::Migration.verbose = true
     ActiveRecord::Migration.message_count = 0
+    ActiveRecord::Base.connection.schema_cache.clear!
   end
 
   def teardown
+    ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ""
+
     ActiveRecord::Base.connection.initialize_schema_migrations_table
     ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
 
@@ -44,6 +48,7 @@ class MigrationTest < ActiveRecord::TestCase
     %w(reminders people_reminders prefix_reminders_suffix).each do |table|
       Reminder.connection.drop_table(table) rescue nil
     end
+    Reminder.reset_table_name
     Reminder.reset_column_information
 
     %w(last_name key bio age height wealth birthday favorite_day
@@ -257,9 +262,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
     assert_equal "schema_migrations", ActiveRecord::Migrator.schema_migrations_table_name
-  ensure
-    ActiveRecord::Base.table_name_prefix = ""
-    ActiveRecord::Base.table_name_suffix = ""
   end
 
   def test_proper_table_name
@@ -286,9 +288,6 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_table_name
     assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
     assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
-    ActiveRecord::Base.table_name_prefix = ""
-    ActiveRecord::Base.table_name_suffix = ""
-    Reminder.reset_table_name
   end
 
   def test_rename_table_with_prefix_and_suffix
@@ -307,8 +306,6 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_equal "hello world", Thing.first.content
   ensure
-    ActiveRecord::Base.table_name_prefix = ''
-    ActiveRecord::Base.table_name_suffix = ''
     Thing.reset_table_name
     Thing.reset_sequence_name
   end
@@ -326,9 +323,6 @@ class MigrationTest < ActiveRecord::TestCase
     WeNeedReminders.down
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   ensure
-    ActiveRecord::Base.table_name_prefix = ''
-    ActiveRecord::Base.table_name_suffix = ''
-    Reminder.reset_table_name
     Reminder.reset_sequence_name
   end
 
@@ -437,6 +431,8 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     def setup
       @connection = Person.connection
       @connection.create_table(:delete_me, :force => true) {|t| }
+      Person.reset_column_information
+      Person.reset_sequence_name
     end
 
     def teardown
