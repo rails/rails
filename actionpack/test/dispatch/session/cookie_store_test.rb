@@ -9,15 +9,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Generator = ActiveSupport::DummyKeyGenerator.new(SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'SHA1')
-  SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
+  SignedBar = Verifier.generate(:foo => "bar", :_session_id => SecureRandom.hex(16))
 
   class TestController < ActionController::Base
     def no_session_access
       head :ok
-    end
-
-    def persistent_session_id
-      render :text => session[:session_id]
     end
 
     def set_session_value
@@ -30,7 +26,12 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_id
-      render :text => "id: #{request.session_options[:id]}"
+      render :text => session.id
+    end
+
+    def get_session_id_and_status
+      id, exists, loaded = [session.id, !!session.exists?, session.loaded?]
+      render :text => "#{id},#{exists},#{loaded}"
     end
 
     def get_class_after_reset_session
@@ -48,14 +49,14 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
-    def raise_data_overflow
-      session[:foo] = 'bye!' * 1024
+    def call_session_destroy
+      session.destroy
       head :ok
     end
 
-    def change_session_id
-      request.session_options[:id] = nil
-      get_session_id
+    def raise_data_overflow
+      session[:foo] = 'bye!' * 1024
+      head :ok
     end
 
     def renew_session_id
@@ -85,14 +86,32 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_getting_session_id
     with_test_route_set do
       cookies[SessionKey] = SignedBar
-      get '/persistent_session_id'
-      assert_response :success
-      assert_equal response.body.size, 32
-      session_id = response.body
-
       get '/get_session_id'
       assert_response :success
-      assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
+      assert_equal 32, response.body.size
+    end
+  end
+
+  def test_getting_session_id_without_loading_session
+    with_test_route_set do
+      cookies[SessionKey] = SignedBar
+      get '/get_session_id_and_status'
+      assert_response :success
+      id, exists, loaded = response.body.split(',')
+      assert_equal 32, id.size
+      assert_equal 'true', exists
+      assert_equal 'false', loaded, 'session should not be loaded'
+    end
+  end
+
+  def test_getting_session_id_for_nonexistent_session
+    with_test_route_set do
+      get '/get_session_id_and_status'
+      assert_response :success
+      id, exists, loaded = response.body.split(',')
+      assert_equal 32, id.size, 'should have created a new session'
+      assert_equal 'true', exists
+      assert_equal 'true', loaded
     end
   end
 
@@ -116,10 +135,10 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_properly_renew_cookies
     with_test_route_set do
       get '/set_session_value'
-      get '/persistent_session_id'
+      get '/get_session_id'
       session_id = response.body
       get '/renew_session_id'
-      get '/persistent_session_id'
+      get '/get_session_id'
       assert_not_equal response.body, session_id
     end
   end
@@ -133,8 +152,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
-  SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhciIIYmF6Og9zZXNzaW9uX2lkIiVjZThiMDc1MmE2YWI3YzdhZjNjZGI4YTgwZTZiOWU0Ng==--2bf3af1ae8bd4e52b9ac2099258ace0c380e601c"
+  # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :_session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
+  SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhckkiCGJhegY6BkVGOhBfc2Vzc2lvbl9pZEkiJWNlOGIwNzUyYTZhYjdjN2FmM2NkYjhhODBlNmI5ZTQ2BjsIRg==--2fdde3ee18c581568aa7785b7365faf865601f1f"
 
   def test_deserializes_unloaded_classes_on_get_id
     with_test_route_set do
@@ -142,7 +161,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         cookies[SessionKey] = SignedSerializedCookie
         get '/get_session_id'
         assert_response :success
-        assert_equal 'id: ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
+        assert_equal 'ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
       end
     end
   end
@@ -243,31 +262,32 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_persistent_session_id
+  def test_destroy_session
     with_test_route_set do
       cookies[SessionKey] = SignedBar
-      get '/persistent_session_id'
-      assert_response :success
-      assert_equal response.body.size, 32
+      get '/get_session_id'
       session_id = response.body
-      get '/persistent_session_id'
-      assert_equal session_id, response.body
-      reset!
-      get '/persistent_session_id'
-      assert_not_equal session_id, response.body
+      get '/call_session_destroy'
+      get '/get_session_id'
+      new_session_id = response.body
+      assert_not_equal session_id, new_session_id
+      get '/get_session_value'
+      assert_equal 'foo: nil', response.body
     end
   end
 
-  def test_setting_session_id_to_nil_is_respected
+  def test_persistent_session_id
     with_test_route_set do
       cookies[SessionKey] = SignedBar
-
-      get "/get_session_id"
-      sid = response.body
-      assert_equal sid.size, 36
-
-      get "/change_session_id"
-      assert_not_equal sid, response.body
+      get '/get_session_id'
+      assert_response :success
+      assert_equal response.body.size, 32
+      session_id = response.body
+      get '/get_session_id'
+      assert_equal session_id, response.body
+      reset!
+      get '/get_session_id'
+      assert_not_equal session_id, response.body
     end
   end
 

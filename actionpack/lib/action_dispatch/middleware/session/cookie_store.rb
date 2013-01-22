@@ -48,7 +48,7 @@ module ActionDispatch
       def destroy_session(env, session_id, options)
         new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
-        env["action_dispatch.request.unsigned_session_cookie"] = new_sid ? { "session_id" => new_sid } : {}
+        env["action_dispatch.request.unsigned_session_cookie"] = new_sid ? { "_session_id" => new_sid } : {}
         new_sid
       end
 
@@ -56,7 +56,7 @@ module ActionDispatch
         stale_session_check! do
           data = unpacked_cookie_data(env)
           data = persistent_session_id!(data)
-          [data["session_id"], data]
+          [data["_session_id"], data]
         end
       end
 
@@ -64,7 +64,7 @@ module ActionDispatch
 
       def extract_session_id(env)
         stale_session_check! do
-          unpacked_cookie_data(env)["session_id"]
+          unpacked_cookie_data(env)["_session_id"]
         end
       end
 
@@ -81,12 +81,12 @@ module ActionDispatch
 
       def persistent_session_id!(data, sid=nil)
         data ||= {}
-        data["session_id"] ||= sid || generate_sid
+        data["_session_id"] ||= sid || generate_sid
         data
       end
 
       def set_session(env, sid, session_data, options)
-        session_data["session_id"] = sid
+        session_data["_session_id"] = sid
         session_data
       end
 
