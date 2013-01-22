@@ -551,21 +551,6 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_setting_time_attributes_with_time_zone_field_to_same_time_should_not_be_marked_as_a_change
-    in_time_zone 'Paris' do
-      target = Class.new(ActiveRecord::Base)
-      target.table_name = 'pirates'
-
-      created_on = Time.now
-
-      pirate = target.create(:created_on => created_on)
-      pirate.reload # Here mysql truncate the usec value to 0
-
-      pirate.created_on = created_on
-      assert !pirate.created_on_changed?
-    end
-  end
-
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
     in_time_zone 'Paris' do
       target = Class.new(ActiveRecord::Base)
