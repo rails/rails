@@ -16,7 +16,7 @@ class NestedParametersTest < ActiveSupport::TestCase
         }, {
           name: "Christopher Marlowe"
         }, {
-          :name => %w(malicious injected names)
+          name: %w(malicious injected names)
         }],
         details: {
           pages: 200,
@@ -71,25 +71,25 @@ class NestedParametersTest < ActiveSupport::TestCase
 
   test "nested arrays with strings" do
     params = ActionController::Parameters.new({
-      :book => {
-        :genres => ["Tragedy"]
+      book: {
+        genres: ["Tragedy"]
       }
     })
 
-    permitted = params.permit :book => {:genres => []}
+    permitted = params.permit book: {genres: []}
     assert_equal ["Tragedy"], permitted[:book][:genres]
   end
 
   test "permit may specify symbols or strings" do
     params = ActionController::Parameters.new({
-      :book => {
-        :title => "Romeo and Juliet",
-        :author => "William Shakespeare"
+      book: {
+        title: "Romeo and Juliet",
+        author: "William Shakespeare"
       },
-      :magazine => "Shakespeare Today"
+      magazine: "Shakespeare Today"
     })
 
-    permitted = params.permit({:book => ["title", :author]}, "magazine")
+    permitted = params.permit({book: ["title", :author]}, "magazine")
     assert_equal "Romeo and Juliet", permitted[:book][:title]
     assert_equal "William Shakespeare", permitted[:book][:author]
     assert_equal "Shakespeare Today", permitted[:magazine]
@@ -132,15 +132,15 @@ class NestedParametersTest < ActiveSupport::TestCase
 
   test "fields_for-style nested params" do
     params = ActionController::Parameters.new({
-      :book => {
-        :authors_attributes => {
-          :'0' => { :name => 'William Shakespeare', :age_of_death => '52' },
-          :'1' => { :name => 'Unattributed Assistant' },
-          :'2' => { :name => %w(injected names)}
+      book: {
+        authors_attributes: {
+          :'0' => { name: 'William Shakespeare', age_of_death: '52' },
+          :'1' => { name: 'Unattributed Assistant' },
+          :'2' => { name: %w(injected names)}
         }
       }
     })
-    permitted = params.permit :book => { :authors_attributes => [ :name ] }
+    permitted = params.permit book: { authors_attributes: [ :name ] }
 
     assert_not_nil permitted[:book][:authors_attributes]['0']
     assert_not_nil permitted[:book][:authors_attributes]['1']
@@ -153,14 +153,14 @@ class NestedParametersTest < ActiveSupport::TestCase
 
   test "fields_for-style nested params with negative numbers" do
     params = ActionController::Parameters.new({
-      :book => {
-        :authors_attributes => {
-          :'-1' => { :name => 'William Shakespeare', :age_of_death => '52' },
-          :'-2' => { :name => 'Unattributed Assistant' }
+      book: {
+        authors_attributes: {
+          :'-1' => { name: 'William Shakespeare', age_of_death: '52' },
+          :'-2' => { name: 'Unattributed Assistant' }
         }
       }
     })
-    permitted = params.permit :book => { :authors_attributes => [:name] }
+    permitted = params.permit book: { authors_attributes: [:name] }
 
     assert_not_nil permitted[:book][:authors_attributes]['-1']
     assert_not_nil permitted[:book][:authors_attributes]['-2']
