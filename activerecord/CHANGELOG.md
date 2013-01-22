@@ -1,5 +1,10 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Don't run explain on slow queries for database adapters that don't support it.
+    Backport #6197.
+
+    *Blake Smith*
+
 *   Revert round usec when comparing timestamp attributes in the dirty tracking.
     Fixes #8460.
 
