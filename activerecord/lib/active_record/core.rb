@@ -365,18 +365,18 @@ module ActiveRecord
       pk = self.class.primary_key
       @attributes[pk] = nil unless @attributes.key?(pk)
 
-      @aggregation_cache          = {}
-      @association_cache          = {}
-      @attributes_cache           = {}
-      @previously_changed         = {}
-      @changed_attributes         = {}
-      @readonly                   = false
-      @destroyed                  = false
-      @marked_for_destruction     = false
-      @new_record                 = true
-      @txn                        = nil
-      @_start_transaction_state   = {}
-      @transaction                = nil
+      @aggregation_cache        = {}
+      @association_cache        = {}
+      @attributes_cache         = {}
+      @previously_changed       = {}
+      @changed_attributes       = {}
+      @readonly                 = false
+      @destroyed                = false
+      @marked_for_destruction   = false
+      @new_record               = true
+      @txn                      = nil
+      @_start_transaction_state = {}
+      @transaction              = nil
     end
   end
 end

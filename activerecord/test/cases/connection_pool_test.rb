@@ -328,19 +328,16 @@ module ActiveRecord
         assert @pool.connection.visitor.is_a?(Arel::Visitors::ToSql)
       end
 
-
-      #make sure exceptions are thrown when establish_connection
-      #is called with a anonymous class
+      # make sure exceptions are thrown when establish_connection
+      # is called with a anonymous class
       def test_anonymous_class_exception
         anonymous = Class.new(ActiveRecord::Base)
         handler = ActiveRecord::Base.connection_handler
-        
-        assert_raises(RuntimeError){
+
+        assert_raises(RuntimeError) {
           handler.establish_connection anonymous, nil
         }
       end
-
-
     end
   end
 end
