@@ -261,7 +261,7 @@ end
 
 This helps prevent conflicts with any other engine or application that may have a post resource as well.
 
-Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/javascripts/blorgh/posts.css`. You'll see how to use these a little later.
+Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/stylesheets/blorgh/posts.css`. You'll see how to use these a little later.
 
 By default, the scaffold styling is not applied to the engine as the engine's layout file, `app/views/layouts/blorgh/application.html.erb` doesn't load it. To make this apply, insert this line into the `<head>` tag of this layout:
 
