@@ -34,6 +34,23 @@ module ActionDispatch
         super.to_s
       end
 
+      def regexp
+        __getobj__.path.to_regexp
+      end
+
+      def json_regexp
+        str = regexp.inspect.
+              sub('\\A' , '^').
+              sub('\\Z' , '$').
+              sub('\\z' , '$').
+              sub(/^\// , '').
+              sub(/\/[a-z]*$/ , '').
+              gsub(/\(\?#.+\)/ , '').
+              gsub(/\(\?-\w+:/ , '(').
+              gsub(/\s/ , '')
+        Regexp.new(str).source
+      end
+
       def reqs
         @reqs ||= begin
           reqs = endpoint
@@ -73,10 +90,11 @@ module ActionDispatch
         routes_to_display = filter_routes(filter)
 
         routes = collect_routes(routes_to_display)
-        formatter.section :application, 'Application routes', routes
+        formatter.section routes
 
         @engines.each do |name, engine_routes|
-          formatter.section :engine, "Routes for #{name}", engine_routes
+          formatter.section_title "Routes for #{name}"
+          formatter.section engine_routes
         end
 
         formatter.result
@@ -100,7 +118,11 @@ module ActionDispatch
         end.collect do |route|
           collect_engine_routes(route)
 
-          { name: route.name, verb: route.verb, path: route.path, reqs: route.reqs }
+          { name:   route.name,
+            verb:   route.verb,
+            path:   route.path,
+            reqs:   route.reqs,
+            regexp: route.json_regexp }
         end
       end
 
@@ -125,8 +147,11 @@ module ActionDispatch
         @buffer.join("\n")
       end
 
-      def section(type, title, routes)
-        @buffer << "\n#{title}:" unless type == :application
+      def section_title(title)
+        @buffer << "\n#{title}:"
+      end
+
+      def section(routes)
         @buffer << draw_section(routes)
       end
 
@@ -148,8 +173,11 @@ module ActionDispatch
         @buffer = []
       end
 
-      def section(type, title, routes)
+      def section_title(title)
         @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+      end
+
+      def section(routes)
         @buffer << @view.render(partial: "routes/route", collection: routes)
       end
 

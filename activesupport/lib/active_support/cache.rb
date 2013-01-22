@@ -275,34 +275,14 @@ module ActiveSupport
         if block_given?
           options = merged_options(options)
           key = namespaced_key(name, options)
-          unless options[:force]
-            entry = instrument(:read, name, options) do |payload|
-              payload[:super_operation] = :fetch if payload
-              read_entry(key, options)
-            end
-          end
-          if entry && entry.expired?
-            race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl && (Time.now - entry.expires_at <= race_ttl)
-              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
-              # for a brief period while the entry is begin recalculated.
-              entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
-            else
-              delete_entry(key, options)
-            end
-            entry = nil
-          end
+
+          cached_entry = find_cached_entry(key, name, options) unless options[:force]
+          entry = handle_expired_entry(cached_entry, key, options)
 
           if entry
-            instrument(:fetch_hit, name, options) { |payload| }
-            entry.value
+            get_entry_value(entry, name, options)
           else
-            result = instrument(:generate, name, options) do |payload|
-              yield(name)
-            end
-            write(name, result, options)
-            result
+            save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         else
           read(name, options)
@@ -530,6 +510,42 @@ module ActiveSupport
         def log(operation, key, options = nil)
           return unless logger && logger.debug? && !silence?
           logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
+        end
+
+        def find_cached_entry(key, name, options)
+          instrument(:read, name, options) do |payload|
+            payload[:super_operation] = :fetch if payload
+            read_entry(key, options)
+          end
+        end
+
+        def handle_expired_entry(entry, key, options)
+          if entry && entry.expired?
+            race_ttl = options[:race_condition_ttl].to_i
+            if race_ttl && (Time.now - entry.expires_at <= race_ttl)
+              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
+              # for a brief period while the entry is begin recalculated.
+              entry.expires_at = Time.now + race_ttl
+              write_entry(key, entry, :expires_in => race_ttl * 2)
+            else
+              delete_entry(key, options)
+            end
+            entry = nil
+          end
+          entry
+        end
+
+        def get_entry_value(entry, name, options)
+          instrument(:fetch_hit, name, options) { |payload| }
+          entry.value
+        end
+
+        def save_block_result_to_cache(name, options)
+          result = instrument(:generate, name, options) do |payload|
+            yield(name)
+          end
+          write(name, result, options)
+          result
         end
     end
 

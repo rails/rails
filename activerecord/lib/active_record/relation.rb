@@ -276,7 +276,7 @@ module ActiveRecord
       stmt.table(table)
       stmt.key = table[primary_key]
 
-      if joins_values.any?
+      if with_default_scope.joins_values.any?
         @klass.connection.join_to_update(stmt, arel)
       else
         stmt.take(arel.limit)
@@ -401,7 +401,7 @@ module ActiveRecord
         stmt = Arel::DeleteManager.new(arel.engine)
         stmt.from(table)
 
-        if joins_values.any?
+        if with_default_scope.joins_values.any?
           @klass.connection.join_to_delete(stmt, arel, table[primary_key])
         else
           stmt.wheres = arel.constraints
@@ -474,16 +474,16 @@ module ActiveRecord
 
     # Returns sql statement for the relation.
     #
-    #   Users.where(name: 'Oscar').to_sql
+    #   User.where(name: 'Oscar').to_sql
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
 
-    # Returns a hash of where conditions
+    # Returns a hash of where conditions.
     #
-    #   Users.where(name: 'Oscar').where_values_hash
-    #   # => {name: "oscar"}
+    #   User.where(name: 'Oscar').where_values_hash
+    #   # => {name: "Oscar"}
     def where_values_hash
       equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
         node.left.relation.name == table_name

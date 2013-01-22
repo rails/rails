@@ -80,7 +80,7 @@ end
 
 class StreamingLayoutController < LayoutTest
   def render(*args)
-    options = args.extract_options! || {}
+    options = args.extract_options!
     super(*args, options.merge(:stream => true))
   end
 end

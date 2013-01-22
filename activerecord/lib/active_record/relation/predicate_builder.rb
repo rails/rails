@@ -7,12 +7,12 @@ module ActiveRecord
         table = default_table
 
         if value.is_a?(Hash)
-          table       = Arel::Table.new(column, default_table.engine)
-          association = klass.reflect_on_association(column.to_sym)
-
           if value.empty?
-            queries.concat ['1 = 2']
+            queries << '1 = 2'
           else
+            table       = Arel::Table.new(column, default_table.engine)
+            association = klass.reflect_on_association(column.to_sym)
+
             value.each do |k, v|
               queries.concat expand(association && association.klass, table, k, v)
             end

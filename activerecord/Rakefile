@@ -39,6 +39,11 @@ namespace :test do
   end
 end
 
+namespace :db do
+  task :create => ['mysql:build_databases', 'postgresql:build_databases']
+  task :drop => ['mysql:drop_databases', 'postgresql:drop_databases']
+end
+
 %w( mysql mysql2 postgresql sqlite3 sqlite3_mem firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]

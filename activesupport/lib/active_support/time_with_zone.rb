@@ -317,9 +317,9 @@ module ActiveSupport
     end
     alias_method :tv_sec, :to_i
 
-    # A TimeWithZone acts like a Time, so just return +self+.
+    # Return an instance of Time in the system timezone.
     def to_time
-      utc
+      utc.to_time
     end
 
     def to_datetime

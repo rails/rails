@@ -16,6 +16,7 @@ module ActiveRecord
       def scope
         scope = klass.unscoped
         scope.merge! eval_scope(klass, reflection.scope) if reflection.scope
+        scope.extending! Array(options[:extend])
         add_constraints(scope)
       end
 

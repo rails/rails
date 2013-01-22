@@ -286,14 +286,37 @@ end
 
 class StringConversionsTest < ActiveSupport::TestCase
   def test_string_to_time
-    assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
-    assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
-    assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
-    assert_equal Time.local(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time
-    assert_nil "".to_time
+    with_env_tz "US/Eastern" do
+      assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
+      assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
+      assert_equal Time.utc(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:utc)
+      assert_equal Time.local(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
+      assert_equal Time.local(2011, 2, 27, 18, 50), "2011-02-27 22:50 -0100".to_time
+      assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50 -0500".to_time
+      assert_nil "".to_time
+    end
+  end
+
+  def test_string_to_time_utc_offset
+    with_env_tz "US/Eastern" do
+      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+    end
+  end
+
+  def test_partial_string_to_time
+    with_env_tz "US/Eastern" do
+      now = Time.now
+      assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
+      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
+      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "22:50 -0100".to_time
+      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
+    end
   end
 
   def test_string_to_datetime
@@ -304,11 +327,25 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_datetime
   end
 
+  def test_partial_string_to_datetime
+    now = DateTime.now
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50), "23:50".to_datetime
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, "-04:00"), "23:50 -0400".to_datetime
+  end
+
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
+
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase

@@ -625,6 +625,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, company.clients_of_firm.size
   end
 
+  def test_collection_not_empty_after_building
+    company = companies(:first_firm)
+    assert_predicate company.contracts, :empty?
+    company.contracts.build
+    assert_not_predicate company.contracts, :empty?
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
@@ -1704,5 +1711,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 0,  post.comments.sum(:id)
       assert_equal 0,  post.comments.count
     end
+  end
+
+  test "collection proxy respects default scope" do
+    author = authors(:mary)
+    assert !author.first_posts.exists?
+  end
+
+  test "association with extend option" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend.author
+    assert_equal "hello", post.comments_with_extend.greeting
+  end
+
+  test "association with extend option with multiple extensions" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend_2.author
+    assert_equal "hello", post.comments_with_extend_2.greeting
   end
 end

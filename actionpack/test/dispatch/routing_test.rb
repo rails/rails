@@ -2678,6 +2678,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '0c0c0b68-d24b-11e1-a861-001ff3fffe6f', @request.params[:download]
   end
 
+  def test_action_from_path_is_not_frozen
+    draw do
+      get 'search' => 'search'
+    end
+
+    get '/search'
+    assert !@request.params[:action].frozen?
+  end
+
 private
 
   def draw(&block)

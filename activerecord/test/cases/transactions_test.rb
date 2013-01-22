@@ -451,6 +451,34 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_transactions_state_from_rollback
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+
+    assert transaction.open?
+    assert !transaction.state.rolledback?
+    assert !transaction.state.committed?
+
+    transaction.perform_rollback
+    
+    assert transaction.state.rolledback?
+    assert !transaction.state.committed?
+  end
+
+  def test_transactions_state_from_commit
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+
+    assert transaction.open?
+    assert !transaction.state.rolledback?
+    assert !transaction.state.committed?
+
+    transaction.perform_commit
+    
+    assert !transaction.state.rolledback?
+    assert transaction.state.committed?
+  end
+
   private
 
   %w(validation save destroy).each do |filter|

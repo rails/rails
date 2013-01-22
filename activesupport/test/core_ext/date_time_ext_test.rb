@@ -41,11 +41,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
-    assert_equal Time.utc(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0).to_time
-    # DateTimes with offsets other than 0 are returned unaltered
-    assert_equal DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).to_time
-    # Fractional seconds are preserved
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.class
+      assert_equal Time.local(2005, 2, 21, 5, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
+      assert_equal Time.local(2005, 2, 21, 5, 11, 12).utc_offset, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.utc_offset
+    end
+  end
+
+  def test_to_time_preserves_fractional_seconds
     assert_equal Time.utc(2005, 2, 21, 10, 11, 12, 256), DateTime.new(2005, 2, 21, 10, 11, 12 + Rational(256, 1000000), 0).to_time
   end
 

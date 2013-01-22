@@ -132,8 +132,7 @@ module ActionView
           source = compute_asset_path(source, options)
         end
 
-        relative_url_root = (defined?(config.relative_url_root) && config.relative_url_root) ||
-          (respond_to?(:request) && request.try(:script_name))
+        relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
         if relative_url_root
           source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
         end

@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added a state instance variable to each transaction. Will allow other objects
+    to know whether a transaction has been committed or rolled back.
+
+    *John Wang*
+
+*   Collection associations `#empty?` always respects builded records.
+    Fix #8879.
+
+    Example:
+
+        widget = Widget.new
+        widget.things.build
+        widget.things.empty? # => false
+
+    *Yves Senn*
+
 *   Remove support for parsing YAML parameters from request.
 
     *Aaron Patterson*
@@ -974,7 +990,6 @@
 
       * `:conditions` becomes `:where`.
       * `:include` becomes `:includes`.
-      * `:extend` becomes `:extending`.
 
     The code to implement the deprecated features has been moved out to
     the `activerecord-deprecated_finders` gem. This gem is a dependency

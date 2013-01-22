@@ -5,6 +5,35 @@ module ActiveRecord
 
       def initialize(connection)
         @connection = connection
+        @state = TransactionState.new 
+      end
+
+      def state
+        @state
+      end
+    end
+
+    class TransactionState
+
+      VALID_STATES = Set.new([:committed, :rolledback, nil])
+
+      def initialize(state = nil)
+        @state = state
+      end
+
+      def committed?
+        @state == :committed
+      end
+
+      def rolledback?
+        @state == :rolledback
+      end
+
+      def set_state(state)
+        if !VALID_STATES.include?(state)
+          raise ArgumentError, "Invalid transaction state: #{state}"
+        end
+        @state = state
       end
     end
 
@@ -91,6 +120,7 @@ module ActiveRecord
       end
 
       def rollback_records
+        @state.set_state(:rolledback)
         records.uniq.each do |record|
           begin
             record.rolledback!(parent.closed?)
@@ -101,6 +131,7 @@ module ActiveRecord
       end
 
       def commit_records
+        @state.set_state(:committed)
         records.uniq.each do |record|
           begin
             record.committed!
