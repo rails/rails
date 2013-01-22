@@ -551,18 +551,17 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_setting_time_attributes_with_time_zone_field_to_same_time_should_not_be_marked_as_a_change
+  def test_datetime_attribute_can_be_updated_with_fractional_seconds
     in_time_zone 'Paris' do
       target = Class.new(ActiveRecord::Base)
-      target.table_name = 'pirates'
+      target.table_name = 'topics'
 
-      created_on = Time.now
+      written_on = Time.utc(2012, 12, 1, 12, 0, 0).in_time_zone('Paris')
 
-      pirate = target.create(:created_on => created_on)
-      pirate.reload # Here mysql truncate the usec value to 0
+      topic = target.create(:written_on => written_on)
+      topic.written_on += 0.3
 
-      pirate.created_on = created_on
-      assert !pirate.created_on_changed?
+      assert topic.written_on_changed?, 'Fractional second update not detected'
     end
   end
 

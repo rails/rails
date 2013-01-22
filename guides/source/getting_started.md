@@ -583,9 +583,31 @@ content:
 </p>
 ```
 
-Finally, if you now go to
-<http://localhost:3000/posts/new> you'll
-be able to create a post. Try it!
+If you now go to
+<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
+it! You should get an error that looks like this:
+
+![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
+
+Rails has several security features that help you write secure applications,
+and you're running into one of them now. This one is called
+'strong_parameters,' which requires us to tell Rails exactly which parameters
+we want to accept in our controllers. In this case, we want to allow the
+'title' and 'text' parameters, so change your `create` controller action to
+look like this:
+
+```
+  def create
+    @post = Post.new(params[:post].permit(:title, :text))
+
+    @post.save
+    redirect_to action: :show, id: @post.id
+  end
+```
+
+See the `permit`? It allows us to accept both `title` and `text` in this
+action. With this change, you should finally be able to create new `Post`s.
+Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
 
@@ -711,10 +733,11 @@ class Post < ActiveRecord::Base
 end
 ```
 
-These changes will ensure that all posts have a title that is at least five characters long.
-Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their
-format, and the existence of associated objects. Validations are covered in detail
-in [Active Record Validations and Callbacks](active_record_validations_callbacks.html#validations-overview)
+These changes will ensure that all posts have a title that is at least five
+characters long.  Rails can validate a variety of conditions in a model,
+including the presence or uniqueness of columns, their format, and the
+existence of associated objects. Validations are covered in detail in [Active
+Record Validations](active_record_validations.html)
 
 With the validation now in place, when you call `@post.save` on an invalid
 post, it will return `false`. If you open `app/controllers/posts_controller.rb`
@@ -729,7 +752,7 @@ def new
 end
 
 def create
-  @post = Post.new(params[:post])
+  @post = Post.new(params[:post].permit(:title, :text))
 
   if @post.save
     redirect_to action: :show, id: @post.id
@@ -864,8 +887,8 @@ method: :patch do |f| %>
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The `method: :patch` option tells Rails that we want this form to be
-submitted via the `PUT` HTTP method which is the HTTP method you're expected to use to
+The `method: :patch` option tells Rails that we want this form to be submitted
+via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
 TIP: By default forms built with the _form_for_ helper are sent via `POST`.
@@ -883,7 +906,7 @@ And then create the `update` action in `app/controllers/posts_controller.rb`:
 def update
   @post = Post.find(params[:id])
 
-  if @post.update(params[:post])
+  if @post.update(params[:post].permit(:title, :text))
     redirect_to action: :show, id: @post.id
   else
     render 'edit'
@@ -1388,7 +1411,7 @@ Let's wire up the `create` in `app/controllers/comments_controller.rb`:
 class CommentsController < ApplicationController
   def create
     @post = Post.find(params[:post_id])
-    @comment = @post.comments.create(params[:comment])
+    @comment = @post.comments.create(params[:comment].permit(:commenter, :body))
     redirect_to post_path(@post)
   end
 end
@@ -1558,6 +1581,9 @@ Then you make the `app/views/posts/show.html.erb` look like the following:
   <strong>Text:</strong>
   <%= @post.text %>
 </p>
+
+<h2>Comments</h2>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
