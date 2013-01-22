@@ -401,6 +401,7 @@ module ActionController
         end
       end
 
+      EMPTY_ARRAY = []
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
 
@@ -408,7 +409,7 @@ module ActionController
         slice(*filter.keys).each do |key, value|
           return unless value
 
-          if filter[key] == []
+          if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
           else
