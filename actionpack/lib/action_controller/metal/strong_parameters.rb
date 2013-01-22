@@ -251,7 +251,7 @@ module ActionController
         end
       end
 
-      unpermitted_parameters!(params)
+      unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
 
       params.permit!
     end
