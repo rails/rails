@@ -55,6 +55,7 @@ module Rails
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
+    autoload :Railties,       'rails/engine/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
@@ -230,11 +231,6 @@ module Rails
 
     def helpers_paths #:nodoc:
       config.helpers_paths
-    end
-
-    def railties #:nodoc:
-      @railties ||= Rails::Railtie.subclasses.map(&:instance) +
-        Rails::Engine.subclasses.map(&:instance)
     end
 
   protected

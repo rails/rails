@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Restore Rails::Engine::Railties#engines with deprecation to ensure
+    compatibility with gems such as Thinking Sphinx
+    Fix #8551
+
+    *Tim Raymond*
+
 *   Specify which logs to clear when using the `rake log:clear` task.
     (e.g. rake log:clear LOGS=test,staging)
 
