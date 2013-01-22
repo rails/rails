@@ -1,5 +1,10 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Revert round usec when comparing timestamp attributes in the dirty tracking.
+    Fixes #8460.
+
+    *Andrew White*
+
 *   Revert creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
     Fix #7661, #8269.
