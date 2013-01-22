@@ -144,6 +144,7 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_deprecated_constant_proxy
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated('Deprecatee::A') { assert_equal Deprecatee::B::C, Deprecatee::A }
+    assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
   end
 
   def test_assert_deprecation_without_match
