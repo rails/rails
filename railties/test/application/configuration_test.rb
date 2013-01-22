@@ -417,17 +417,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal Time.find_zone!("Wellington"), Time.zone_default
-    end
-
-    test "timezone can be set on initializers" do
-      app_file "config/initializers/locale.rb", <<-RUBY
-        Rails.application.config.time_zone = "Central Time (US & Canada)"
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      assert_equal Time.find_zone!("Central Time (US & Canada)"), Time.zone_default
+      assert_equal "Wellington", Rails.application.config.time_zone
     end
 
     test "raises when an invalid timezone is defined in the config" do

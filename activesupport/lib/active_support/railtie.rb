@@ -13,6 +13,20 @@ module ActiveSupport
       end
     end
 
+    # Sets the default value for Time.zone
+    # If assigned value cannot be matched to a TimeZone, an exception will be raised.
+    initializer "active_support.initialize_time_zone" do |app|
+      require 'active_support/core_ext/time/zones'
+      zone_default = Time.find_zone!(app.config.time_zone)
+
+      unless zone_default
+        raise 'Value assigned to config.time_zone not recognized. ' \
+          'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
+      end
+
+      Time.zone_default = zone_default
+    end
+
     # Sets the default week start
     # If assigned value is not a valid day symbol (e.g. :sunday, :monday, ...), an exception will be raised.
     initializer "active_support.initialize_beginning_of_week" do |app|
@@ -28,21 +42,5 @@ module ActiveSupport
         ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
       end
     end
-
-    # Sets the default value for Time.zone after initialization since the default configuration
-    # lives in application initializers.
-    # If assigned value cannot be matched to a TimeZone, an exception will be raised.
-    config.after_initialize do |app|
-      require 'active_support/core_ext/time/zones'
-      zone_default = Time.find_zone!(app.config.time_zone)
-
-      unless zone_default
-        raise 'Value assigned to config.time_zone not recognized. ' \
-          'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
-      end
-
-      Time.zone_default = zone_default
-    end
-
   end
 end
