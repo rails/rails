@@ -733,10 +733,11 @@ class Post < ActiveRecord::Base
 end
 ```
 
-These changes will ensure that all posts have a title that is at least five characters long.
-Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their
-format, and the existence of associated objects. Validations are covered in detail
-in [Active Record Validations and Callbacks](active_record_validations_callbacks.html#validations-overview)
+These changes will ensure that all posts have a title that is at least five
+characters long.  Rails can validate a variety of conditions in a model,
+including the presence or uniqueness of columns, their format, and the
+existence of associated objects. Validations are covered in detail in [Active
+Record Validations](active_record_validations.html)
 
 With the validation now in place, when you call `@post.save` on an invalid
 post, it will return `false`. If you open `app/controllers/posts_controller.rb`
