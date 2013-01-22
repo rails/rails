@@ -470,7 +470,7 @@ If you have multiple engines that need migrations copied over, use `railties:ins
 $ rake railties:install:migrations
 ```
 
-This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
+This command, when run for the first time, will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
 
 ```bash
 Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
@@ -754,7 +754,7 @@ end
 
 #### Implementing Decorator Pattern Using ActiveSupport::Concern
 
-Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html) helps manage load order of interlinked dependencies at run time allowing you to significantly modularize your code.
+Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html) which helps manage load order of interlinked dependencies at run time allowing you to significantly modularize your code.
 
 **Adding** `Post#time_since_created`<br/>
 **Overriding** `Post#summary`
@@ -790,7 +790,7 @@ module Blorgh::Concerns::Models::Post
   extend ActiveSupport::Concern
 
   # 'included do' causes the included code to be evaluated in the
-  # conext where it is included (post.rb), rather than be 
+  # context where it is included (post.rb), rather than be 
   # executed in the module's context (blorgh/concerns/models/post).
   included do
     attr_accessor :author_name
@@ -840,7 +840,7 @@ Try this now by creating a new file at `app/views/blorgh/posts/index.html.erb` a
 
 ### Routes
 
-Routes inside an engine are, by default, isolated from the application. This is done by the `isolate_namespace` call inside the `Engine` class. This essentially means that the application and its engines can have identically named routes, and that they will not clash.
+Routes inside an engine are, by default, isolated from the application. This is done by the `isolate_namespace` call inside the `Engine` class. This essentially means that the application and its engines can have identically named routes and they will not clash.
 
 Routes inside an engine are drawn on the `Engine` class within `config/routes.rb`, like this:
 
