@@ -120,6 +120,10 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
   end
 
+  def test_try_only_block_bang
+    assert_equal @string.reverse, @string.try! { |s| s.reverse }
+  end
+
   def test_valid_method
     assert_equal 5, @string.try(:size)
   end
