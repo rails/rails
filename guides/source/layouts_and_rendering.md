@@ -695,72 +695,6 @@ To include `http://example.com/main.js`:
 <%= javascript_include_tag "http://example.com/main.js" %>
 ```
 
-If the application does not use the asset pipeline, the `:defaults` option loads jQuery by default:
-
-```erb
-<%= javascript_include_tag :defaults %>
-```
-
-Outputting `script` tags such as this:
-
-```html
-<script src="/javascripts/jquery.js"></script>
-<script src="/javascripts/jquery_ujs.js"></script>
-```
-
-These two files for jQuery, `jquery.js` and `jquery_ujs.js` must be placed inside `public/javascripts` if the application doesn't use the asset pipeline. These files can be downloaded from the [jquery-rails repository on GitHub](https://github.com/indirect/jquery-rails/tree/master/vendor/assets/javascripts)
-
-WARNING: If you are using the asset pipeline, this tag will render a `script` tag for an asset called `defaults.js`, which would not exist in your application unless you've explicitly created it.
-
-And you can in any case override the `:defaults` expansion in `config/application.rb`:
-
-```ruby
-config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
-```
-
-You can also define new defaults:
-
-```ruby
-config.action_view.javascript_expansions[:projects] = %w(projects.js tickets.js)
-```
-
-And use them by referencing them exactly like `:defaults`:
-
-```erb
-<%= javascript_include_tag :projects %>
-```
-
-When using `:defaults`, if an `application.js` file exists in `public/javascripts` it will be included as well at the end.
-
-Also, if the asset pipeline is disabled, the `:all` expansion loads every JavaScript file in `public/javascripts`:
-
-```erb
-<%= javascript_include_tag :all %>
-```
-
-Note that your defaults of choice will be included first, so they will be available to all subsequently included files.
-
-You can supply the `:recursive` option to load files in subfolders of `public/javascripts` as well:
-
-```erb
-<%= javascript_include_tag :all, recursive: true %>
-```
-
-If you're loading multiple JavaScript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `cache: true` in your `javascript_include_tag`:
-
-```erb
-<%= javascript_include_tag "main", "columns", cache: true %>
-```
-
-By default, the combined file will be delivered as `javascripts/all.js`. You can specify a location for the cached asset file instead:
-
-```erb
-<%= javascript_include_tag "main", "columns",
-  cache: "cache/main/display" %>
-```
-
-You can even use dynamic paths such as `cache/#{current_site}/main/display`.
-
 #### Linking to CSS Files with the `stylesheet_link_tag`
 
 The `stylesheet_link_tag` helper returns an HTML `<link>` tag for each source provided.
@@ -796,33 +730,6 @@ By default, the `stylesheet_link_tag` creates links with `media="screen" rel="st
 ```erb
 <%= stylesheet_link_tag "main_print", media: "print" %>
 ```
-
-If the asset pipeline is disabled, the `all` option links every CSS file in `public/stylesheets`:
-
-```erb
-<%= stylesheet_link_tag :all %>
-```
-
-You can supply the `:recursive` option to link files in subfolders of `public/stylesheets` as well:
-
-```erb
-<%= stylesheet_link_tag :all, recursive: true %>
-```
-
-If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `cache: true` in your `stylesheet_link_tag`:
-
-```erb
-<%= stylesheet_link_tag "main", "columns", cache: true %>
-```
-
-By default, the combined file will be delivered as `stylesheets/all.css`. You can specify a location for the cached asset file instead:
-
-```erb
-<%= stylesheet_link_tag "main", "columns",
-  cache: "cache/main/display" %>
-```
-
-You can even use dynamic paths such as `cache/#{current_site}/main/display`.
 
 #### Linking to Images with the `image_tag`
 
