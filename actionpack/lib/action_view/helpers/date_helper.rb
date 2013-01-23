@@ -869,6 +869,8 @@ module ActionView
             sprintf "%02d", number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
+          elsif @options[:add_month_numbers_two_digits]
+            "#{sprintf "%02d", number} - #{month_names[number]}"
           else
             month_names[number]
           end
