@@ -9,7 +9,7 @@ class MyBook < ActiveRecord::Base
 end
 
 class HabtmJoinTableTest < ActiveRecord::TestCase
-  def setup
+  def test_habtm_join_table
     ActiveRecord::Base.connection.create_table :my_books, :force => true do |t|
       t.string :name
     end
