@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added "XX - Month" format to month_name helper. Common format for expiration dates.
+
+    *An Yu*
+
 *   Change asset_path to not include `SCRIPT_NAME` when it's used
     from a mounted engine (fixes #8119).
 
