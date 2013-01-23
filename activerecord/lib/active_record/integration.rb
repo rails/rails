@@ -49,7 +49,7 @@ module ActiveRecord
       case
       when new_record?
         "#{self.class.model_name.cache_key}/new"
-      when timestamp = self[:updated_at]
+      when timestamp = max_updated_column_timestamp
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
       else
