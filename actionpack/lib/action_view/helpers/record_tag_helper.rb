@@ -92,7 +92,7 @@ module ActionView
         # for each record.
         def content_tag_for_single_record(tag_name, record, prefix, options, &block)
           options = options ? options.dup : {}
-          options[:class] = "#{dom_class(record, prefix)} #{options[:class]}".rstrip
+          options[:class] = [ dom_class(record, prefix), options[:class] ].compact
           options[:id]    = dom_id(record, prefix)
 
           if block_given?
