@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
+require 'action_dispatch/http/upload'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -190,8 +191,9 @@ module ActionController
     #
     # +:name+ passes it is a key of +params+ whose associated value is of type
     # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
-    # +Date+, +Time+, +DateTime+, +StringIO+, or +IO+. Otherwise, the key +:name+
-    # is filtered out.
+    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+, or
+    # +ActionDispatch::Http::UploadedFile+. Otherwise, the key +:name+ is
+    # filtered out.
     #
     # You may declare that the parameter should be an array of permitted scalars
     # by mapping it to an empty array:
@@ -371,6 +373,7 @@ module ActionController
         # DateTimes are Dates, we document the type but avoid the redundant check.
         StringIO,
         IO,
+        ActionDispatch::Http::UploadedFile,
       ]
 
       def permitted_scalar?(value)

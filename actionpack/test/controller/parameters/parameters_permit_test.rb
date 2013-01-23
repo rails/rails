@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_dispatch/http/upload'
 require 'action_controller/metal/strong_parameters'
 
 class ParametersPermitTest < ActiveSupport::TestCase
@@ -31,7 +32,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     values += [0, 1.0, 2**128, BigDecimal.new(1)]
     values += [true, false]
     values += [Date.today, Time.now, DateTime.now]
-    values += [StringIO.new]
+    values += [STDOUT, StringIO.new, ActionDispatch::Http::UploadedFile.new(tempfile: __FILE__)]
 
     values.each do |value|
       params = ActionController::Parameters.new(id: value)
