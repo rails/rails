@@ -74,6 +74,17 @@ module ActiveRecord
     end
 
     module ClassMethods
+
+      @@uuid_counter = 0
+      @@uuid_lock = Mutex.new
+      def next_universally_unique_id
+        @@uuid_lock.synchronize {
+          @@uuid_counter *= -1
+          @@uuid_counter += 1 if @@uuid_counter >= 0
+          return @@uuid_counter
+        }
+      end
+
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules
         super
@@ -347,6 +358,15 @@ module ActiveRecord
       Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
+    def set_uuid
+      @uuid = ActiveRecord::Base.next_universally_unique_id if !@uuid
+      @uuid
+    end
+
+    def uuid
+      @uuid
+    end
+
     private
 
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
@@ -376,7 +396,7 @@ module ActiveRecord
       @new_record               = true
       @txn                      = nil
       @_start_transaction_state = {}
-      @transaction              = nil
+      @uuid                     = nil
     end
   end
 end

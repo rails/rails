@@ -451,32 +451,17 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_transactions_state_from_rollback
-    connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+  def test_extra_activerecord_objects_in_transaction_without_bloating_memory
+    Topic.transaction do
+      count = ObjectSpace.each_object(Topic).count
+      
+      1000.times do 
+        Topic.new
+      end
 
-    assert transaction.open?
-    assert !transaction.state.rolledback?
-    assert !transaction.state.committed?
-
-    transaction.perform_rollback
-    
-    assert transaction.state.rolledback?
-    assert !transaction.state.committed?
-  end
-
-  def test_transactions_state_from_commit
-    connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
-
-    assert transaction.open?
-    assert !transaction.state.rolledback?
-    assert !transaction.state.committed?
-
-    transaction.perform_commit
-    
-    assert !transaction.state.rolledback?
-    assert transaction.state.committed?
+      new_count = ObjectSpace.each_object(Topic).count
+      assert new_count < count + 1000, "Creating objects in transaction should not cause memory bloat"
+    end
   end
 
   private

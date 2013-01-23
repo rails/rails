@@ -5,35 +5,6 @@ module ActiveRecord
 
       def initialize(connection)
         @connection = connection
-        @state = TransactionState.new 
-      end
-
-      def state
-        @state
-      end
-    end
-
-    class TransactionState
-
-      VALID_STATES = Set.new([:committed, :rolledback, nil])
-
-      def initialize(state = nil)
-        @state = state
-      end
-
-      def committed?
-        @state == :committed
-      end
-
-      def rolledback?
-        @state == :rolledback
-      end
-
-      def set_state(state)
-        if !VALID_STATES.include?(state)
-          raise ArgumentError, "Invalid transaction state: #{state}"
-        end
-        @state = state
       end
     end
 
@@ -71,7 +42,7 @@ module ActiveRecord
         super connection
 
         @parent    = parent
-        @records   = []
+        @transaction_id_pairs = []
         @finishing = false
         @joinable  = options.fetch(:joinable, true)
       end
@@ -116,14 +87,20 @@ module ActiveRecord
       end
 
       def add_record(record)
-        records << record
+        add_id_pair(record.object_id, record.set_uuid)
+      end
+
+      def add_id_pair(object_id, uuid)
+        @transaction_id_pairs << [object_id, uuid]
       end
 
       def rollback_records
-        @state.set_state(:rolledback)
-        records.uniq.each do |record|
+        @transaction_id_pairs.each do |id_pair|
           begin
-            record.rolledback!(parent.closed?)
+            record = ObjectSpace._id2ref(id_pair[0])
+            if record.class < ActiveRecord::Base && record.uuid == id_pair[1]
+              record.rolledback!(parent.closed?)
+            end
           rescue => e
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
           end
@@ -131,10 +108,12 @@ module ActiveRecord
       end
 
       def commit_records
-        @state.set_state(:committed)
-        records.uniq.each do |record|
+        @transaction_id_pairs.each do |id_pair|
           begin
-            record.committed!
+            record = ObjectSpace._id2ref(id_pair[0])
+            if record.class < ActiveRecord::Base && record.uuid == id_pair[1]
+              record.committed!
+            end
           rescue => e
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
           end
@@ -189,7 +168,9 @@ module ActiveRecord
 
       def perform_commit
         connection.release_savepoint
-        records.each { |r| parent.add_record(r) }
+        @transaction_id_pairs.each do |id_pair| 
+          parent.add_id_pair(id_pair[0], id_pair[1]) 
+        end
       end
     end
   end
