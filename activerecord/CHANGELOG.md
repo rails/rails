@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Assigning "0.0" to a nullable numeric column does not make it dirty.
+    Fix #9034.
+
+    Example:
+
+        product = Product.create price: 0.0
+        product.price = '0.0'
+        product.changed? # => false (this used to return true)
+        product.changes # => {} (this used to return { price: [0.0, 0.0] })
+
+    *Yves Senn*
+
 *   Added functionality to unscope relations in a relations chain. For
     instance, if you are passed in a chain of relations as follows:
 
