@@ -87,6 +87,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal('capital', 'Capital'.camelize(:lower))
   end
 
+  def test_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(dasherized, underscored.dasherize)
+    end
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, camel.underscore)
