@@ -126,7 +126,6 @@ module ActiveRecord
         when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
         when :inet, :cidr          then "#{klass}.string_to_cidr(#{var_name})"
         when :json                 then "#{klass}.string_to_json(#{var_name})"
-        when :intrange             then "#{klass}.string_to_intrange(#{var_name})"
         else var_name
         end
       end
