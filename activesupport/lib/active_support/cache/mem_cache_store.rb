@@ -67,14 +67,32 @@ module ActiveSupport
       def read_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-        keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
-        values = {}
-        raw_values.each do |key, value|
-          entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
+
+        results = {}
+
+        instrument(:read_multi, names, options) do
+          if local_cache
+            names.each do |name|
+              entry = local_cache.read(name, options)
+              results[name] = entry if entry
+            end
+          end
+
+          mapping = Hash[(names - results.keys).map { |name| [escape_key(namespaced_key(name, options)), name] }]
+
+          @data.get_multi(mapping.keys, raw: true).each do |name, entry|
+            if(entry = deserialize_entry(entry))
+              if entry.expired?
+                local_cache.delete(name) if local_cache
+              else
+                results[mapping[name]] = deserialize_entry(entry).value
+                local_cache.write(name, entry, options) if local_cache
+              end
+            end
+          end
         end
-        values
+
+        results
       end
 
       # Increment a cached value. This method uses the memcached incr atomic
@@ -165,12 +183,10 @@ module ActiveSupport
         end
 
         def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
-          else
-            nil
-          end
+          return unless raw_value
+
+          entry = Marshal.load(raw_value) rescue raw_value
+          entry.is_a?(Entry) ? entry : Entry.new(entry)
         end
 
       # Provide support for raw values in the local cache strategy.
