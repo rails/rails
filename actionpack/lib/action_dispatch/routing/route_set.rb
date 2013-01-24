@@ -122,7 +122,7 @@ module ActionDispatch
         end
 
         def helper_names
-          self.module.instance_methods.map(&:to_s)
+          @helpers.map(&:to_s)
         end
 
         def clear!
