@@ -764,6 +764,11 @@ module ActiveRecord
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
+
+        attributes.values.grep(ActiveRecord::Relation) do |rel|
+          self.bind_values += rel.bind_values
+        end
+
         PredicateBuilder.build_from_hash(klass, attributes, table)
       else
         [opts]
