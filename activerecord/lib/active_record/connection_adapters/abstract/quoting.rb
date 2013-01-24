@@ -85,7 +85,7 @@ module ActiveRecord
 
       # Quotes the column name. Defaults to no quoting.
       def quote_column_name(column_name)
-        column_name
+        "'#{column_name}'"
       end
 
       # Quotes the table name. Defaults to column name quoting.

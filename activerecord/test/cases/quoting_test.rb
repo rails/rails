@@ -24,11 +24,11 @@ module ActiveRecord
       end
 
       def test_quote_column_name
-        assert_equal "foo", @quoter.quote_column_name('foo')
+        assert_equal "'foo'", @quoter.quote_column_name('foo')
       end
 
       def test_quote_table_name
-        assert_equal "foo", @quoter.quote_table_name('foo')
+        assert_equal "'foo'", @quoter.quote_table_name('foo')
       end
 
       def test_quote_table_name_calls_quote_column_name
