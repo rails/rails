@@ -509,6 +509,32 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_read_multi
+    @cache.write('foo', 'bar')
+
+    @cache.with_local_cache do
+      @cache.write('fu', 'baz')
+
+      assert_equal({ 'foo' => 'bar', 'fu' => 'baz' }, @cache.read_multi('foo', 'fu'))
+    end
+  end
+
+  def test_local_cache_of_read_multi_with_expires
+    time = Time.now
+
+    @cache.write('fu', 'baz')
+    @cache.write('fo', 'bar', expires_in: 10)
+
+    @cache.with_local_cache do
+      @cache.write('ful', 'baz')
+      @cache.write('fol', 'bar', expires_in: 10)
+
+      Time.stubs(:now).returns(time + 11)
+
+      assert_equal({'fu' => 'baz', 'ful' => 'baz'}, @cache.read_multi('fu', 'fo', 'ful', 'fol'))
+    end
+  end
+
   def test_local_cache_of_write_nil
     @cache.with_local_cache do
       assert @cache.write('foo', nil)
