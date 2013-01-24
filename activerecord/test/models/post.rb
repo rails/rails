@@ -168,13 +168,6 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
-ActiveSupport::Deprecation.silence do
-  class DeprecatedPostWithComment < ActiveRecord::Base
-    self.table_name = 'posts'
-    default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
-  end
-end
-
 class PostForAuthor < ActiveRecord::Base
   self.table_name = 'posts'
   cattr_accessor :selected_author
