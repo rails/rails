@@ -52,6 +52,23 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.save(:context => :special_case)
   end
 
+  def test_error_on_given_context_passed_to_update
+    r = WrongReply.new
+    assert !r.update({title: "Valid title"}, {context: :special_case})
+    assert_equal "Invalid", r.errors[:author_name].join
+
+    assert r.update({author_name: "secret", content: "Good" }, {context: :special_case})
+  end
+
+  def test_error_on_given_context_passed_to_update!
+    r = WrongReply.new
+    assert_raise(ActiveRecord::RecordInvalid) { r.update!({title: "Valid title"}, {context: :special_case}) }
+    assert_equal "Invalid", r.errors[:author_name].join
+
+    r.update!({author_name: "secret", content: "Good" }, {context: :special_case})
+    assert r.errors.empty?
+  end
+
   def test_invalid_record_exception
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
