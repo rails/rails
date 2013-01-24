@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
+    and calculates number of functions.
+
+    *Hendy Tanata*
+
 *   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed. Consider
     using application template instead. See this guide for more detail:
     http://guides.rubyonrails.org/rails_application_templates.html
