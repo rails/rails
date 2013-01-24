@@ -5,13 +5,13 @@ module Rails
     # paths by a Hash like API. It requires you to give a physical path on initialization.
     #
     #   root = Root.new "/rails"
-    #   root.add "app/controllers", eager_load: true
+    #   root.add "app/controllers", autoload: true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
     # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
-    #   path.eager_load?               # => true
+    #   path.autoload?                 # => true
     #   path.is_a?(Rails::Paths::Path) # => true
     #
     # The +Path+ object is simply an enumerable and allows you to easily add extra paths:
@@ -30,7 +30,7 @@ module Rails
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
     # The +add+ method accepts the following options as arguments:
-    # eager_load, autoload, autoload_once and glob.
+    # autoload, autoload_once and glob.
     #
     # Finally, the +Path+ object also provides a few helpers:
     #
@@ -85,7 +85,8 @@ module Rails
       end
 
       def eager_load
-        filter_by(:eager_load?)
+        ActiveSupport::Deprecation.warn "eager_load is deprecated and all autoload_paths are now eagerly loaded."
+        filter_by(:autoload?)
       end
 
       def autoload_paths
@@ -124,9 +125,13 @@ module Rails
         @glob     = options[:glob]
 
         options[:autoload_once] ? autoload_once! : skip_autoload_once!
-        options[:eager_load]    ? eager_load!    : skip_eager_load!
         options[:autoload]      ? autoload!      : skip_autoload!
         options[:load_path]     ? load_path!     : skip_load_path!
+
+        if !options.key?(:autoload) && options.key?(:eager_load)
+          ActiveSupport::Deprecation.warn "the :eager_load option is deprecated and all :autoload paths are now eagerly loaded."
+          options[:eager_load] ? autoload! : skip_autoload!
+        end
       end
 
       def children
@@ -143,20 +148,35 @@ module Rails
         expanded.last
       end
 
-      %w(autoload_once eager_load autoload load_path).each do |m|
+      %w(autoload_once autoload load_path).each do |m|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{m}!        # def eager_load!
-            @#{m} = true   #   @eager_load = true
+          def #{m}!        # def autoload!
+            @#{m} = true   #   @autoload = true
           end              # end
                            #
-          def skip_#{m}!   # def skip_eager_load!
-            @#{m} = false  #   @eager_load = false
+          def skip_#{m}!   # def skip_autoload!
+            @#{m} = false  #   @autoload = false
           end              # end
                            #
-          def #{m}?        # def eager_load?
-            @#{m}          #   @eager_load
+          def #{m}?        # def autoload?
+            @#{m}          #   @autoload
           end              # end
         RUBY
+      end
+
+      def eager_load!
+        ActiveSupport::Deprecation.warn "eager_load paths are deprecated and all autoload paths are now eagerly loaded."
+        autoload!
+      end
+
+      def skip_eager_load!
+        ActiveSupport::Deprecation.warn "eager_load paths are deprecated and all autoload paths are now eagerly loaded."
+        skip_autoload!
+      end
+
+      def eager_load?
+        ActiveSupport::Deprecation.warn "eager_load paths are deprecated and all autoload paths are now eagerly loaded."
+        autoload?
       end
 
       def each(&block)

@@ -34,9 +34,8 @@ module Rails
   # == Configuration
   #
   # Besides the +Railtie+ configuration which is shared across the application, in a
-  # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt>
-  # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
-  # the current engine.
+  # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt> and <tt>autoload_once_paths</tt>,
+  # which, differently from a <tt>Railtie</tt>, are scoped to the current engine.
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
@@ -456,9 +455,9 @@ module Rails
     end
 
     # Eager load the application by loading all ruby
-    # files inside eager_load paths.
+    # files inside autoload_paths.
     def eager_load!
-      config.eager_load_paths.each do |load_path|
+      config.autoload_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
           require_dependency file.sub(matcher, '\1')
@@ -558,7 +557,6 @@ module Rails
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
       config.autoload_paths.freeze
-      config.eager_load_paths.freeze
       config.autoload_once_paths.freeze
     end
 
@@ -671,7 +669,7 @@ module Rails
     end
 
     def _all_autoload_paths #:nodoc:
-      @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+      @_all_autoload_paths ||= (config.autoload_paths + config.autoload_once_paths).uniq
     end
 
     def _all_load_paths #:nodoc:

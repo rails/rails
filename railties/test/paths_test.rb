@@ -135,56 +135,48 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal 2, @root.autoload_once.size
   end
 
-  test "it is possible to mark a path as eager loaded" do
+  test "marking a path as eager loaded is deprecated" do
     @root["app"] = "/app"
-    @root["app"].eager_load!
-    assert @root["app"].eager_load?
-    assert @root.eager_load.include?(@root["app"].to_a.first)
+    assert_deprecated{ @root["app"].eager_load! }
+    assert_deprecated{ assert @root["app"].eager_load? }
+    assert_deprecated{ assert @root.eager_load.include?(@root["app"].to_a.first) }
   end
 
-  test "it is possible to skip a path from eager loading" do
+  test "skipping a path from eager loading is deprecated" do
     @root["app"] = "/app"
-    @root["app"].eager_load!
-    assert @root["app"].eager_load?
+    assert_deprecated{ @root["app"].eager_load! }
+    assert_deprecated{ assert @root["app"].eager_load? }
 
-    @root["app"].skip_eager_load!
-    assert !@root["app"].eager_load?
-    assert !@root.eager_load.include?(@root["app"].to_a.first)
+    assert_deprecated{ @root["app"].skip_eager_load! }
+    assert_deprecated{ assert !@root["app"].eager_load? }
+    assert_deprecated{ assert !@root.eager_load.include?(@root["app"].to_a.first) }
   end
 
-  test "it is possible to add a path without assignment and mark it as eager" do
-    @root.add "app", with: "/app", eager_load: true
-    assert @root["app"].eager_load?
-    assert @root.eager_load.include?("/app")
+  test "adding a path with eager_load option is deprecated" do
+    assert_deprecated{ @root.add "app", with: "/app", eager_load: true }
+    assert_deprecated{ assert @root["app"].eager_load? }
+    assert_deprecated{ assert @root.eager_load.include?("/app") }
   end
 
-  test "it is possible to add multiple paths without assignment and mark them as eager" do
-    @root.add "app", with: ["/app", "/app2"], eager_load: true
-    assert @root["app"].eager_load?
-    assert @root.eager_load.include?("/app")
-    assert @root.eager_load.include?("/app2")
-  end
-
-  test "it is possible to create a path without assignment and mark it both as eager and load once" do
-    @root.add "app", with: "/app", eager_load: true, autoload_once: true
-    assert @root["app"].eager_load?
-    assert @root["app"].autoload_once?
-    assert @root.eager_load.include?("/app")
-    assert @root.autoload_once.include?("/app")
+  test "adding multiple paths with eager_load option is deprecated" do
+    assert_deprecated{ @root.add "app", with: ["/app", "/app2"], eager_load: true }
+    assert_deprecated{ assert @root["app"].eager_load? }
+    assert_deprecated{ assert @root.eager_load.include?("/app") }
+    assert_deprecated{ assert @root.eager_load.include?("/app2") }
   end
 
   test "making a path eager more than once only includes it once in @root.eager_paths" do
     @root["app"] = "/app"
-    @root["app"].eager_load!
-    @root["app"].eager_load!
-    assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size
+    assert_deprecated{ @root["app"].eager_load! }
+    assert_deprecated{ @root["app"].eager_load! }
+    assert_deprecated{ assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size }
   end
 
   test "paths added to a eager_load path should be added to the eager_load collection" do
     @root["app"] = "/app"
-    @root["app"].eager_load!
+    assert_deprecated{ @root["app"].eager_load! }
     @root["app"] << "/app2"
-    assert_equal 2, @root.eager_load.size
+    assert_deprecated{ assert_equal 2, @root.eager_load.size }
   end
 
   test "it should be possible to add a path's default glob" do
