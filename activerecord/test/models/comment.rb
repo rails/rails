@@ -29,16 +29,10 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
-  def self.what_are_you
-    'a special comment...'
-  end
 end
 
 class SubSpecialComment < SpecialComment
 end
 
 class VerySpecialComment < Comment
-  def self.what_are_you
-    'a very special comment...'
-  end
 end

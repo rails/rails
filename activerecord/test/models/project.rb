@@ -40,7 +40,4 @@ class Project < ActiveRecord::Base
 end
 
 class SpecialProject < Project
-  def hello_world
-    "hello there!"
-  end
 end
