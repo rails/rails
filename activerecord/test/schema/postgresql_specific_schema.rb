@@ -73,7 +73,7 @@ _SQL
   );
 _SQL
 
-  execute <<_SQL
+  execute <<_SQL if supports_ranges?
   CREATE TABLE postgresql_ranges (
     id SERIAL PRIMARY KEY,
     date_range daterange,

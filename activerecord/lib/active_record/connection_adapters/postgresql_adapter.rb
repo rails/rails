@@ -575,6 +575,11 @@ module ActiveRecord
         true
       end
 
+      # Range datatypes weren't introduced until PostgreSQL 9.2
+      def supports_ranges?
+        postgresql_version >= 90200
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
         @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
