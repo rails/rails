@@ -21,5 +21,7 @@ require 'empty_bool'
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
 
+Thread.abort_on_exception = true
+
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
