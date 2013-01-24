@@ -58,7 +58,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split('.').first.to_sym if key.include?('.')
+          key.split('.').first if key.include?('.')
         end
       end.compact
     end
