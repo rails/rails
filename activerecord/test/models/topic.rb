@@ -108,6 +108,7 @@ class ImportantTopic < Topic
 end
 
 class BlankTopic < Topic
+  # declared here to make sure that dynamic finder with a bang can find a model that responds to `blank?`
   def blank?
     true
   end
