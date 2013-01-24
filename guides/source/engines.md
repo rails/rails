@@ -754,10 +754,9 @@ end
 
 #### Implementing Decorator Pattern Using ActiveSupport::Concern
 
-Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html) which helps manage load order of interlinked dependencies at run time allowing you to significantly modularize your code.
+Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html). ActiveSupport::Concern manages load order of interlinked dependent modules and classes at run time allowing you to significantly modularize your code.
 
-**Adding** `Post#time_since_created`<br/>
-**Overriding** `Post#summary`
+**Adding** `Post#time_since_created` and **Overriding** `Post#summary`
 
 ```ruby
 # MyApp/app/models/blorgh/post.rb
