@@ -212,28 +212,28 @@ module ActiveRecord
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    def update(attributes)
+    def update(attributes, options_for_save = {})
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
         assign_attributes(attributes)
-        save
+        save(options_for_save)
       end
     end
-    
+
     alias update_attributes update
 
     # Updates its receiver just like +update+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
-    def update!(attributes)
+    def update!(attributes, options_for_save = {})
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
         assign_attributes(attributes)
-        save!
+        save!(options_for_save)
       end
     end
-    
+
     alias update_attributes! update!
 
     # Equivalent to <code>update_columns(name => value)</code>.
