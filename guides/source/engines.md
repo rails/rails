@@ -799,9 +799,9 @@ module Blorgh::Concerns::Models::Post
 
     private
 
-    def set_author
-      self.author = User.find_or_create_by(name: author_name)
-    end
+      def set_author
+        self.author = User.find_or_create_by(name: author_name)
+      end
   end
 
   def summary
