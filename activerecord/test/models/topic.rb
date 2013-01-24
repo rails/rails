@@ -26,12 +26,6 @@ class Topic < ActiveRecord::Base
     end
   }.new(self)
 
-  module NamedExtension
-    def two
-      2
-    end
-  end
-
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :approved_replies, -> { approved }, class_name: 'Reply', foreign_key: "parent_id", counter_cache: 'replies_count'
   has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"
@@ -108,9 +102,6 @@ class ImportantTopic < Topic
 end
 
 class BlankTopic < Topic
-  def blank?
-    true
-  end
 end
 
 module Web

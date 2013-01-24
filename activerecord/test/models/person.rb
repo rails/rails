@@ -91,14 +91,6 @@ class NestedPerson < ActiveRecord::Base
 
   has_one :best_friend, :class_name => 'NestedPerson', :foreign_key => :best_friend_id
   accepts_nested_attributes_for :best_friend, :update_only => true
-
-  def comments=(new_comments)
-    raise RuntimeError
-  end
-
-  def best_friend_first_name=(new_name)
-    assign_attributes({ :best_friend_attributes => { :first_name => new_name } })
-  end
 end
 
 class Insure
