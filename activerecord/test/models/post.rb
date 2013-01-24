@@ -164,11 +164,6 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
-class PostForAuthor < ActiveRecord::Base
-  self.table_name = 'posts'
-  cattr_accessor :selected_author
-end
-
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => 1) }
