@@ -127,9 +127,7 @@ module ActionDispatch
 
         def clear!
           @helpers.each do |helper|
-            @module.module_eval do
-              remove_possible_method helper
-            end
+            @module.remove_possible_method helper
           end
 
           @routes.clear
