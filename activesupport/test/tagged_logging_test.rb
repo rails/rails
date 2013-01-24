@@ -79,6 +79,19 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[OMG] Cool story bro\n[BCX] Funky time\n", @output.string
   end
 
+  test "keeps each tag in their own instance" do
+    @other_output = StringIO.new
+    @other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@other_output))
+    @logger.tagged("OMG") do
+      @other_logger.tagged("BCX") do
+        @logger.info "Cool story bro"
+        @other_logger.info "Funky time"
+      end
+    end
+    assert_equal "[OMG] Cool story bro\n", @output.string
+    assert_equal "[BCX] Funky time\n", @other_output.string
+  end
+
   test "cleans up the taggings on flush" do
     @logger.tagged("BCX") do
       Thread.new do
