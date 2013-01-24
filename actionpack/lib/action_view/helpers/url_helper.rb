@@ -383,7 +383,7 @@ module ActionView
             name
           end
         else
-          link_to(name, options, html_options)
+          link_to(name, options, html_options, &block)
         end
       end
 
@@ -425,8 +425,8 @@ module ActionView
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
       #
       # ==== Obfuscation
-      # Prior to Rails 4.0, +mail_to+ provided options for encoding the address 
-      # in order to hinder email harvesters.  To take advantage of these options, 
+      # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
+      # in order to hinder email harvesters.  To take advantage of these options,
       # install the +actionview-encoded_mail_to+ gem.
       #
       # ==== Examples
@@ -449,7 +449,7 @@ module ActionView
           "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
-        
+
         content_tag "a", name || email_address.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
       end
 
