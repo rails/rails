@@ -71,6 +71,14 @@ module MyApplication
         i.belongs_to :nested_qualified_billing_firm, :class_name => 'MyApplication::Billing::Nested::Firm'
         i.belongs_to :nested_unqualified_billing_firm, :class_name => 'Nested::Firm'
       end
+
+      validate :check_empty_credit_limit
+
+      protected
+
+      def check_empty_credit_limit
+        errors.add_on_empty "credit_limit"
+      end
     end
   end
 end
