@@ -491,5 +491,26 @@ EOM
           value
         end
       end
+    protected
+
+    # Remove nils from the params hash
+    def deep_munge(hash)
+      hash.each_value do |v|
+        case v
+        when Array
+          v.grep(Hash) { |x| deep_munge(x) }
+        when Hash
+          deep_munge(v)
+        end
+      end
+
+      keys = hash.keys.find_all { |k| hash[k] == [nil] }
+      keys.each { |k| hash[k] = nil }
+      hash
+    end
+
+    def parse_query(qs)
+      deep_munge(super)
+    end
   end
 end
