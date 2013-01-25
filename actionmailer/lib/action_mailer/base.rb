@@ -726,9 +726,10 @@ module ActionMailer
     # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
-    def default_i18n_subject #:nodoc:
+    # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
+    def default_i18n_subject(interpolations = {})
       mailer_scope = self.class.mailer_name.tr('/', '.')
-      I18n.t(:subject, scope: [mailer_scope, action_name], default: action_name.humanize)
+      I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
     end
 
     def collect_responses(headers) #:nodoc:
