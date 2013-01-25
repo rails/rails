@@ -433,11 +433,11 @@ db_namespace = namespace :db do
       when 'sqlserver'
         `smoscript -s #{config['host']} -d #{config['database']} -u #{config['username']} -p #{config['password']} -f #{filename} -A -U`
       when "firebird"
-        set_firebird_env(abcs[Rails.env])
-        db_string = firebird_db_string(abcs[Rails.env])
+        set_firebird_env(config)
+        db_string = firebird_db_string(config)
         sh "isql -a #{db_string} > #{filename}"
       else
-        raise "Task not supported by '#{abcs[Rails.env]["adapter"]}'"
+        raise "Task not supported by '#{config['adapter']}'"
       end
 
       if ActiveRecord::Base.connection.supports_migrations?
