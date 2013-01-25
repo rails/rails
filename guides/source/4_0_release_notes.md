@@ -148,7 +148,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 Action Pack
 -----------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionpack/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -160,7 +160,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 Active Record
 -------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activerecord/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
