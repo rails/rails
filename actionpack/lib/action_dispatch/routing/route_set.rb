@@ -172,6 +172,12 @@ module ActionDispatch
               t.url_for(handle_positional_args(t, args, options, seg))
             end
 
+            def url_if(t, options, path)
+              options.merge!(t.url_options) if t.respond_to?(:url_options)
+              options[:path] = path
+              ActionDispatch::Http::URL.url_for(options)
+            end
+
             def handle_positional_args(t, args, options, segment_keys)
               inner_options = args.extract_options!
               result = options.dup
@@ -192,17 +198,10 @@ module ActionDispatch
           def define_url_helper(route, name, options)
             @module.remove_possible_method name
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-
-              def if_#{name}(t, options, path)
-                options.merge!(url_options) if t.respond_to?(:url_options)
-                options[:path] = path
-                ActionDispatch::Http::URL.url_for(options)
-              end
-
               def #{name}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
                   options = #{options.inspect}
-                  if_#{name}(self, options, "#{optimized_helper(route)}")
+                  UrlHelp.new.url_if(self, options, "#{optimized_helper(route)}")
                 else
                   UrlHelp.new.url_else(self, args, #{options.inspect}, #{route.segment_keys.inspect})
                 end
