@@ -10,14 +10,14 @@ end
 
 begin
   # Guides generation in the Rails repo.
-  as_lib = File.join(pwd, "../activesupport/lib")
-  ap_lib = File.join(pwd, "../actionpack/lib")
+  as_lib = File.join(pwd, '../activesupport/lib')
+  ap_lib = File.join(pwd, '../actionpack/lib')
 
   $:.unshift as_lib if File.directory?(as_lib)
   $:.unshift ap_lib if File.directory?(ap_lib)
 rescue LoadError
   # Guides generation from gems.
-  gem "actionpack", '>= 3.0'
+  gem 'actionpack', '>= 3.0'
 end
 
 begin
@@ -40,5 +40,5 @@ ERROR
 end
 
 require 'rails_guides/markdown'
-require "rails_guides/generator"
+require 'rails_guides/generator'
 RailsGuides::Generator.new.generate
