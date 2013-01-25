@@ -3,41 +3,43 @@ module ActiveRecord
     class AssociatedValidator < ActiveModel::EachValidator #:nodoc:
       def validate_each(record, attribute, value)
         collection = Array.wrap(value)
-        if collection.reject { |r| r.marked_for_destruction? || r.valid? }.any? ||
-            !valid_uniqueness_for_nested_attributes?(collection)
+
+        if collection.reject { |r| r.marked_for_destruction? || r.valid?(record.validation_context) }.any? ||
+            !unique_for_nested_attributes?(collection)
           record.errors.add(attribute, :invalid, options.merge(:value => value))
         end
       end
 
     protected
 
-      def valid_uniqueness_for_nested_attributes?(collection)
+      # This method makes sure that the records in the collection satisfy the
+      # uniqueness validations.
+      def unique_for_nested_attributes?(collection)
         return true if collection.empty?
 
-        uniqueness_validators = collection.first.class.validators.select { |validator|
-          validator.class == ActiveRecord::Validations::UniquenessValidator }
+        uniqueness_validators =
+          collection.first.class.validators.grep(ActiveRecord::Validations::UniquenessValidator)
 
         return true if uniqueness_validators.empty?
-        # If there is no uniqueness validation on the associated model, do not
-        # validate for uniqueness.
 
-        attributes = []
+        attribute_uniquifiers = {}
         uniqueness_validators.each do |validator|
-          attributes << validator.attributes << validator.options[:scope]
+          validator_set = [validator.attributes, validator.options[:scope]].flatten.compact.sort
+          attribute_uniquifiers[validator_set] = Set.new()
         end
-        attributes.flatten!
 
-        hash = {}
-        collection.each do |r|
-          key = r.attributes.select { |k, v| attributes.include?(k.to_sym) }.values.join
-          if r.marked_for_destruction? || key.blank?
-            hash[key] = r.object_id
-          else
-            hash[key] = key
+        collection.each do |record|
+          attribute_uniquifiers.each do |attribute_list, previous_combinations|
+            new_combination = attribute_list.map { |attribute| record.send(attribute) }
+            if previous_combinations.include?(new_combination)
+              return false
+            else
+              previous_combinations.add(new_combination)
+            end
           end
         end
 
-        collection.length == hash.length
+        return true
       end
     end
 
