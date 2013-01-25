@@ -100,10 +100,7 @@ module ActionDispatch
         def initialize
           @routes  = {}
           @helpers = []
-          @module  = Module.new do
-            protected
-
-          end
+          @module  = Module.new
         end
 
         def helper_names
