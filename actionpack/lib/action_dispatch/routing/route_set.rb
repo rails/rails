@@ -194,6 +194,33 @@ module ActionDispatch
                   super
                 end
               end
+
+              private
+
+              def optimized_helper
+                string_route = @route.ast.to_s
+
+                while string_route.gsub!(/\([^\)]*\)/, "")
+                  true
+                end
+
+                @route.required_parts.each_with_index do |part, i|
+                  # Replace each route parameter
+                  # e.g. :id for regular parameter or *path for globbing
+                  # with ruby string interpolation code
+                  string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+                end
+
+                string_route
+              end
+
+              def arg_size
+                @route.required_parts.size
+              end
+
+              def optimize_routes_generation?(t)
+                t.send(:optimize_routes_generation?)
+              end
             end
 
             def initialize(route, options)
@@ -202,33 +229,8 @@ module ActionDispatch
               @route        = route
             end
 
-            def arg_size
-              @route.required_parts.size
-            end
-
-            def optimized_helper
-              string_route = @route.ast.to_s
-
-              while string_route.gsub!(/\([^\)]*\)/, "")
-                true
-              end
-
-              @route.required_parts.each_with_index do |part, i|
-                # Replace each route parameter
-                # e.g. :id for regular parameter or *path for globbing
-                # with ruby string interpolation code
-                string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
-              end
-
-              string_route
-            end
-
             def call(t, args)
               t.url_for(handle_positional_args(t, args, @options, @segment_keys))
-            end
-
-            def optimize_routes_generation?(t)
-              t.send(:optimize_routes_generation?)
             end
 
             def handle_positional_args(t, args, options, segment_keys)
