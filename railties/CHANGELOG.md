@@ -19,6 +19,27 @@
 
     *Terence Lee*
 
+*   Add `rails test` command to run the test suite
+
+    To run the whole test suite:
+
+        $ rails test
+
+    To run the test file(s):
+
+        $ rails test test/unit/foo_test.rb [test/unit/bar_test.rb ...]
+
+    To run the test suite
+
+        $ rails test [models,helpers,units,controllers,mailers,...]
+
+    For more information, see `rails test --help`.
+
+    This command will eventually replacing `rake test:*`, and `rake test`
+    command will actually invoking `rails test` instead.
+
+    *Prem Sichanugrist and Chris Toomey*
+
 *   Add notice message for destroy action in scaffold generator.
 
     *Rahul P. Chaudhari*
