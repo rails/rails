@@ -145,124 +145,122 @@ module ActionDispatch
           routes.length
         end
 
-        private
-
-          def define_named_route_methods(name, route)
-            define_url_helper route, :"#{name}_path",
-              route.defaults.merge(:use_route => name, :only_path => true)
-            define_url_helper route, :"#{name}_url",
-              route.defaults.merge(:use_route => name, :only_path => false)
+        class UrlHelper
+          def self.create(route, options)
+            if optimize_helper?(route)
+              OptimizedUrlHelper.new(route, options)
+            else
+              new route, options
+            end
           end
 
-          # Create a url helper allowing ordered parameters to be associated
-          # with corresponding dynamic segments, so you can do:
-          #
-          #   foo_url(bar, baz, bang)
-          #
-          # Instead of:
-          #
-          #   foo_url(bar: bar, baz: baz, bang: bang)
-          #
-          # Also allow options hash, so you can do:
-          #
-          #   foo_url(bar, baz, bang, sort_by: 'baz')
-          #
-          class UrlHelper
-            def self.create(route, options)
-              if optimize_helper?(route)
-                OptimizedUrlHelper.new(route, options)
-              else
-                new route, options
-              end
-            end
+          def self.optimize_helper?(route)
+            route.requirements.except(:controller, :action).empty?
+          end
 
-            def self.optimize_helper?(route)
-              route.requirements.except(:controller, :action).empty?
-            end
-
-            class OptimizedUrlHelper < UrlHelper
-              def initialize(route, options)
-                super
-              end
-
-              def call(t, args)
-                if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
-                  @options.merge!(t.url_options) if t.respond_to?(:url_options)
-                  @options[:path] = eval("\"#{optimized_helper}\"")
-                  ActionDispatch::Http::URL.url_for(@options)
-                else
-                  super
-                end
-              end
-
-              private
-
-              def optimized_helper
-                string_route = @route.ast.to_s
-
-                while string_route.gsub!(/\([^\)]*\)/, "")
-                  true
-                end
-
-                @route.required_parts.each_with_index do |part, i|
-                  # Replace each route parameter
-                  # e.g. :id for regular parameter or *path for globbing
-                  # with ruby string interpolation code
-                  string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
-                end
-
-                string_route
-              end
-
-              def arg_size
-                @route.required_parts.size
-              end
-
-              def optimize_routes_generation?(t)
-                t.send(:optimize_routes_generation?)
-              end
-            end
+          class OptimizedUrlHelper < UrlHelper
+            attr_reader :arg_size
 
             def initialize(route, options)
-              @options      = options
-              @segment_keys = route.segment_keys
-              @route        = route
+              super
+              @arg_size = @route.required_parts.size
             end
 
             def call(t, args)
-              t.url_for(handle_positional_args(t, args, @options, @segment_keys))
-            end
-
-            def handle_positional_args(t, args, options, segment_keys)
-              inner_options = args.extract_options!
-              result = options.dup
-
-              if args.size > 0
-                keys = segment_keys
-                if args.size < keys.size - 1 # take format into account
-                  keys -= t.url_options.keys if t.respond_to?(:url_options)
-                  keys -= options.keys
-                end
-                result.merge!(Hash[keys.zip(args)])
-              end
-
-              result.merge!(inner_options)
-            end
-          end
-
-          def define_url_helper(route, name, options)
-            @module.remove_possible_method name
-
-            helper = UrlHelper.create(route, options.dup)
-
-            @module.module_eval do
-              define_method(name) do |*args|
-                helper.call self, args
+              if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
+                @options.merge!(t.url_options) if t.respond_to?(:url_options)
+                @options[:path] = eval("\"#{optimized_helper}\"")
+                ActionDispatch::Http::URL.url_for(@options)
+              else
+                super
               end
             end
 
-            helpers << name
+            private
+
+            def optimized_helper
+              string_route = @route.ast.to_s
+
+              while string_route.gsub!(/\([^\)]*\)/, "")
+                true
+              end
+
+              @route.required_parts.each_with_index do |part, i|
+                # Replace each route parameter
+                # e.g. :id for regular parameter or *path for globbing
+                # with ruby string interpolation code
+                string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+              end
+
+              string_route
+            end
+
+            def optimize_routes_generation?(t)
+              t.send(:optimize_routes_generation?)
+            end
           end
+
+          def initialize(route, options)
+            @options      = options
+            @segment_keys = route.segment_keys
+            @route        = route
+          end
+
+          def call(t, args)
+            t.url_for(handle_positional_args(t, args, @options, @segment_keys))
+          end
+
+          def handle_positional_args(t, args, options, segment_keys)
+            inner_options = args.extract_options!
+            result = options.dup
+
+            if args.size > 0
+              keys = segment_keys
+              if args.size < keys.size - 1 # take format into account
+                keys -= t.url_options.keys if t.respond_to?(:url_options)
+                keys -= options.keys
+              end
+              result.merge!(Hash[keys.zip(args)])
+            end
+
+            result.merge!(inner_options)
+          end
+        end
+
+        private
+        # Create a url helper allowing ordered parameters to be associated
+        # with corresponding dynamic segments, so you can do:
+        #
+        #   foo_url(bar, baz, bang)
+        #
+        # Instead of:
+        #
+        #   foo_url(bar: bar, baz: baz, bang: bang)
+        #
+        # Also allow options hash, so you can do:
+        #
+        #   foo_url(bar, baz, bang, sort_by: 'baz')
+        #
+        def define_url_helper(route, name, options)
+          @module.remove_possible_method name
+
+          helper = UrlHelper.create(route, options.dup)
+
+          @module.module_eval do
+            define_method(name) do |*args|
+              helper.call self, args
+            end
+          end
+
+          helpers << name
+        end
+
+        def define_named_route_methods(name, route)
+          define_url_helper route, :"#{name}_path",
+            route.defaults.merge(:use_route => name, :only_path => true)
+          define_url_helper route, :"#{name}_url",
+            route.defaults.merge(:use_route => name, :only_path => false)
+        end
       end
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
