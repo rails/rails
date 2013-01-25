@@ -39,10 +39,11 @@ Rails creates a `test` folder for you as soon as you create a Rails project usin
 ```bash
 $ ls -F test
 
-fixtures/  functional/  integration/  test_helper.rb  unit/
+controllers/    helpers/        mailers/        test_helper.rb
+fixtures/       integration/    models/
 ```
 
-The `unit` directory is meant to hold tests for your models, the `functional` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting.
+The `models` directory is meant to hold tests for your models, the `controllers` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting.
 
 Fixtures are a way of organizing test data; they reside in the `fixtures` folder.
 
@@ -140,10 +141,9 @@ The default test stub in `test/models/post_test.rb` looks like this:
 require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
-  # Replace this with your real tests.
-  test "the truth" do
-    assert true
-  end
+  # test "the truth" do
+  #   assert true
+  # end
 end
 ```
 
@@ -224,33 +224,32 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 
 ### Running Tests
 
-Running a test is as simple as invoking the file containing the test cases through Ruby:
+Running a test is as simple as invoking the file containing the test cases through `rails test` command.
 
 ```bash
-$ ruby -Itest test/models/post_test.rb
-
-Loaded suite models/post_test
-Started
+$ rails test test/models/post_test.rb
 .
-Finished in 0.023513 seconds.
 
-1 tests, 1 assertions, 0 failures, 0 errors
+Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+```
+
+You can also run a particular test method from the test case by running the test using Ruby and use the `-n` switch with the `test method name`.
+
+```bash
+Run options: -n test_the_truth --seed 23064
+
+# Running tests:
+
+.
+
+Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 This will run all the test methods from the test case. Note that `test_helper.rb` is in the `test` directory, hence this directory needs to be added to the load path using the `-I` switch.
-
-You can also run a particular test method from the test case by using the `-n` switch with the `test method name`.
-
-```bash
-$ ruby -Itest test/models/post_test.rb -n test_the_truth
-
-Loaded suite models/post_test
-Started
-.
-Finished in 0.023513 seconds.
-
-1 tests, 1 assertions, 0 failures, 0 errors
-```
 
 The `.` (dot) above indicates a passing test. When a test fails you see an `F`; when a test throws an error you see an `E` in its place. The last line of the output is the summary.
 
@@ -266,17 +265,19 @@ end
 Let us run this newly added test.
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
-Loaded suite -e
-Started
+Run options: -n test_should_not_save_post_without_title --seed 38984
+
+# Running tests:
+
 F
-Finished in 0.102072 seconds.
+
+Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
 
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
-<false> is not true.
+test_should_not_save_post_without_title(PostTest) [test/models/post_test.rb:6]:
+Failed assertion, no message given.
 
-1 tests, 1 assertions, 1 failures, 0 errors
+1 tests, 1 assertions, 1 failures, 0 errors, 0 skips
 ```
 
 In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
@@ -292,9 +293,8 @@ Running this test shows the friendlier assertion message:
 
 ```bash
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
-Saved the post without a title.
-<false> is not true.
+test_should_not_save_post_without_title(PostTest) [test/models/post_test.rb:6]:
+Saved the post without a title
 ```
 
 Now to get this test to pass we can add a model level validation for the _title_ field.
@@ -308,13 +308,16 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
-Loaded suite unit/post_test
-Started
-.
-Finished in 0.193608 seconds.
+$ ruby -Itest test/models/post_test.rb -n test_should_not_save_post_without_title
+Run options: -n test_should_not_save_post_without_title --seed 62114
 
-1 tests, 1 assertions, 0 failures, 0 errors
+# Running tests:
+
+.
+
+Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
@@ -334,18 +337,21 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_report_error
-Loaded suite -e
-Started
+$ ruby -Itest test/models/post_test.rb -n test_should_report_error
+Run options: -n test_should_report_error --seed 22995
+
+# Running tests:
+
 E
-Finished in 0.082603 seconds.
+
+Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
 
   1) Error:
 test_should_report_error(PostTest):
-NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x249d354>
-    /test/models/post_test.rb:6:in `test_should_report_error'
+NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x007fe32e24afe0>
+    test/models/post_test.rb:10:in `block in <class:PostTest>'
 
-1 tests, 0 assertions, 0 failures, 1 errors
+1 tests, 0 assertions, 0 failures, 1 errors, 0 skips
 ```
 
 Notice the 'E' in the output. It denotes a test with error.
@@ -642,12 +648,9 @@ Here's what a freshly-generated integration test looks like:
 require 'test_helper'
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
-  fixtures :all
-
-  # Replace this with your real tests.
-  test "the truth" do
-    assert true
-  end
+  # test "the truth" do
+  #   assert true
+  # end
 end
 ```
 
@@ -755,23 +758,28 @@ end
 Rake Tasks for Running your Tests
 ---------------------------------
 
-You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rails project.
+You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
 
-| Tasks                           | Description |
-| ------------------------------- | ----------- |
-| `rake test`                     | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
-| `rake test:controllers`         | Runs all the controller tests from `test/controllers`|
-| `rake test:functionals`         | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
-| `rake test:helpers`             | Runs all the helper tests from `test/helpers`|
-| `rake test:integration`         | Runs all the integration tests from `test/integration`|
-| `rake test:mailers`             | Runs all the mailer tests from `test/mailers`|
-| `rake test:models`              | Runs all the model tests from `test/models`|
-| `rake test:recent`              | Tests recent changes|
-| `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
-| `rake test:units`               | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
+| Tasks                    | Description |
+| ------------------------ | ----------- |
+| `rails test`             | Runs all unit, functional and integration tests. You can also simply run `rails test` as Rails will run all the tests by default|
+| `rails test controllers` | Runs all the controller tests from `test/controllers`|
+| `rails test functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
+| `rails test helpers`     | Runs all the helper tests from `test/helpers`|
+| `rails test integration` | Runs all the integration tests from `test/integration`|
+| `rails test mailers`     | Runs all the mailer tests from `test/mailers`|
+| `rails test models`      | Runs all the model tests from `test/models`|
+| `rails test units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 
+There're also some test commands which you can initiate by running rake tasks:
 
-Brief Note About `Test::Unit`
+| Tasks                    | Description |
+| ------------------------ | ----------- |
+| `rake test`              | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
+| `rake test:recent`       | Tests recent changes|
+| `rake test:uncommitted`  | Runs all the tests which are uncommitted. Supports Subversion and Git|
+
+Brief Note About `MiniTest`
 -----------------------------
 
 Ruby ships with a boat load of libraries. Ruby 1.8 provides `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
