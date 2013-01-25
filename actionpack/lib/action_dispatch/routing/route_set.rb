@@ -169,7 +169,7 @@ module ActionDispatch
             def call(t, args)
               if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
                 @options.merge!(t.url_options) if t.respond_to?(:url_options)
-                @options[:path] = eval("\"#{optimized_helper}\"")
+                @options[:path] = optimized_helper(args)
                 ActionDispatch::Http::URL.url_for(@options)
               else
                 super
@@ -178,8 +178,8 @@ module ActionDispatch
 
             private
 
-            def optimized_helper
-              string_route = @route.ast.to_s
+            def optimized_helper(args)
+              string_route = @route.ast.to_s.dup
 
               while string_route.gsub!(/\([^\)]*\)/, "")
                 true
@@ -189,7 +189,7 @@ module ActionDispatch
                 # Replace each route parameter
                 # e.g. :id for regular parameter or *path for globbing
                 # with ruby string interpolation code
-                string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+                string_route.gsub!(/(\*|:)#{part}/, Journey::Router::Utils.escape_fragment(args[i].to_param))
               end
 
               string_route
