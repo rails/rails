@@ -173,8 +173,13 @@ module ActionDispatch
             end
 
             def initialize(route, options)
-              @options = options
+              @options      = options
               @segment_keys = route.segment_keys
+              @route        = route
+            end
+
+            def optimize_helper?
+              @route.requirements.except(:controller, :action).empty?
             end
 
             def url_else(t, args)
@@ -216,14 +221,17 @@ module ActionDispatch
             #    end
             #  end
             #END_EVAL
-            ohelp        = optimize_helper?(route)
-            ohelper      = optimized_helper(route)
-            arg_size     = route.required_parts.size
 
             helper = UrlHelper.create(route, options.dup)
 
+            ohelp        = helper.optimize_helper?
+            ohelper      = optimized_helper(route)
+            arg_size     = route.required_parts.size
+
             @module.module_eval do
               define_method(name) do |*args|
+                #helper.call t, args
+
                 if ohelp && args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?
                   helper.url_if(self, eval("\"#{ohelper}\""))
                 else
@@ -233,11 +241,6 @@ module ActionDispatch
             end
 
             helpers << name
-          end
-
-          # Clause check about when we need to generate an optimized helper.
-          def optimize_helper?(route) #:nodoc:
-            route.requirements.except(:controller, :action).empty?
           end
 
           # Generates the interpolation to be used in the optimized helper.
