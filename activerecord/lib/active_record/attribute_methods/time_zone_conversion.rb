@@ -43,9 +43,9 @@ module ActiveRecord
                     time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
                   end
                   time = time.in_time_zone rescue nil if time
-                  changed = read_attribute(:#{attr_name}) != time
+                  previous_time = attribute_changed?("#{attr_name}") ? changed_attributes["#{attr_name}"] : read_attribute(:#{attr_name})
                   write_attribute(:#{attr_name}, original_time)
-                  #{attr_name}_will_change! if changed
+                  #{attr_name}_will_change! if previous_time != time
                   @attributes_cache["#{attr_name}"] = time
                 end
               EOV

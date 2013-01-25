@@ -76,6 +76,8 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.created_on_changed?
       assert_kind_of ActiveSupport::TimeWithZone, pirate.created_on_was
       assert_equal old_created_on, pirate.created_on_was
+      pirate.created_on = old_created_on
+      assert !pirate.created_on_changed?
     end
   end
 
