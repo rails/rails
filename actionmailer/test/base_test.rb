@@ -209,6 +209,12 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "New Subject!", email.subject
   end
 
+  test 'default subject can have interpolations' do
+    I18n.backend.store_translations('en', base_mailer: {with_subject_interpolations: {subject: 'Will the real %{rapper_or_impersonator} please stand up?'}})
+    email = BaseMailer.with_subject_interpolations
+    assert_equal 'Will the real Slim Shady please stand up?', email.subject
+  end
+
   test "translations are scoped properly" do
     I18n.backend.store_translations('en', base_mailer: {email_with_translations: {greet_user: "Hello %{name}!"}})
     email = BaseMailer.email_with_translations
