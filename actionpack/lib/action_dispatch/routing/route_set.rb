@@ -145,7 +145,7 @@ module ActionDispatch
           routes.length
         end
 
-        class UrlHelper
+        class UrlHelper # :nodoc:
           def self.create(route, options)
             if optimize_helper?(route)
               OptimizedUrlHelper.new(route, options)
@@ -158,13 +158,14 @@ module ActionDispatch
             route.requirements.except(:controller, :action).empty?
           end
 
-          class OptimizedUrlHelper < UrlHelper
+          class OptimizedUrlHelper < UrlHelper # :nodoc:
             attr_reader :arg_size
 
             def initialize(route, options)
               super
-              @path_parts = @route.required_parts
-              @arg_size   = @path_parts.size
+              @path_parts   = @route.required_parts
+              @arg_size     = @path_parts.size
+              @string_route = string_route(route)
             end
 
             def call(t, args)
@@ -179,21 +180,25 @@ module ActionDispatch
 
             private
 
-            def optimized_helper(args)
-              string_route = @route.ast.to_s.dup
-
+            def string_route(route)
+              string_route = route.ast.to_s.dup
               while string_route.gsub!(/\([^\)]*\)/, "")
                 true
               end
+              string_route
+            end
 
-              @path_parts.each_with_index do |part, i|
+            def optimized_helper(args)
+              path = @string_route.dup
+              klass = Journey::Router::Utils
+
+              @path_parts.zip(args) do |part, arg|
                 # Replace each route parameter
                 # e.g. :id for regular parameter or *path for globbing
                 # with ruby string interpolation code
-                string_route.gsub!(/(\*|:)#{part}/, Journey::Router::Utils.escape_fragment(args[i].to_param))
+                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(arg.to_param))
               end
-
-              string_route
+              path
             end
 
             def optimize_routes_generation?(t)
@@ -243,10 +248,9 @@ module ActionDispatch
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
         def define_url_helper(route, name, options)
-          @module.remove_possible_method name
-
           helper = UrlHelper.create(route, options.dup)
 
+          @module.remove_possible_method name
           @module.module_eval do
             define_method(name) do |*args|
               helper.call self, args
