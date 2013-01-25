@@ -182,6 +182,10 @@ module ActionDispatch
               @route.requirements.except(:controller, :action).empty?
             end
 
+            def arg_size
+              @route.required_parts.size
+            end
+
             def optimized_helper
               string_route = @route.ast.to_s
 
@@ -204,9 +208,17 @@ module ActionDispatch
             end
 
             def url_if(t, args)
-              @options.merge!(t.url_options) if t.respond_to?(:url_options)
-              @options[:path] = eval("\"#{optimized_helper}\"")
-              ActionDispatch::Http::URL.url_for(@options)
+              if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
+                @options.merge!(t.url_options) if t.respond_to?(:url_options)
+                @options[:path] = eval("\"#{optimized_helper}\"")
+                ActionDispatch::Http::URL.url_for(@options)
+              else
+                url_else(t, args)
+              end
+            end
+
+            def optimize_routes_generation?(t)
+              t.send(:optimize_routes_generation?)
             end
 
             def handle_positional_args(t, args, options, segment_keys)
@@ -242,13 +254,11 @@ module ActionDispatch
             helper = UrlHelper.create(route, options.dup)
 
             ohelp        = helper.optimize_helper?
-            arg_size     = route.required_parts.size
 
             @module.module_eval do
               define_method(name) do |*args|
                 #helper.call t, args
-
-                if ohelp && args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?
+                if ohelp
                   helper.url_if(self, args)
                 else
                   helper.url_else(self, args)
