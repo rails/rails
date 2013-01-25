@@ -95,8 +95,7 @@ module HTML #:nodoc:
           # consume the quoted region
           while match = @scanner.scan_until(/[\\#{delim}]/)
             text << match
-            break if @scanner.matched == delim
-            break if @scanner.eos?
+            break if @scanner.matched == delim || @scanner.eos?
             text << @scanner.getch # skip the escaped character
           end
         end
