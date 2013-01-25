@@ -1,5 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixing issue #776.
+
+    Memory bloat in transactions is handled by having the transaction hold only
+    the AR objects which it absolutely needs to know about. These are the AR
+    objects with callbacks (they need to be updated as soon as something in the
+    transaction occurs).
+
+    All other AR objects can be updated lazily by keeping a reference to a
+    TransactionState object. If an AR object gets inside a transaction, then
+    the transaction will add its TransactionState to the AR object. When the
+    user makes a call to some attribute on an AR object (which has no
+    callbacks) associated with a transaction, the AR object will call the
+    sync_with_transaction_state method and make sure it is up to date with the
+    transaction. After it has synced with the transaction state, the AR object
+    will return the attribute that was requested.
+
+    Most of the logic in the changes are used to handle multiple transactions,
+    in which case the AR object has to recursively follow parent pointers of
+    TransactionState objects.
+
+    *John Wang*
+
 *   Descriptive error message when the necessary AR adapter gem was not found.
     Fix #7313
 
