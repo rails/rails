@@ -82,6 +82,7 @@ module Rails
       @env_config       = nil
       @ordered_railties = nil
       @railties         = nil
+      @middleware_initialisation_points = nil
     end
 
     # Returns true if the application is initialized.
@@ -216,9 +217,29 @@ module Rails
     end
 
     def initializers #:nodoc:
-      Bootstrap.initializers_for(self) +
-      railties_initializers(super) +
-      Finisher.initializers_for(self)
+      bootstrap = Bootstrap.initializers_for(self) #BOOTSTRAP
+      railties = railties_initializers(super) #RAILTIES
+      finisher = Finisher.initializers_for(self) #FINISHER
+      @middleware_initialisation_points =
+        parse_middleware_initialisation_points(bootstrap, "#BOOTSTRAP") +
+        parse_middleware_initialisation_points(railties, "#RAILTIES") +
+        parse_middleware_initialisation_points(finisher, "#FINISHER")
+      bootstrap + railties + finisher
+    end
+
+    def parse_middleware_initialisation_points(initializers, stage) #:nodoc:
+      output = []
+      output << stage
+      initializers.each do |i|
+        output << i.name
+      end
+      output << "--------------"
+      output
+    end
+
+    # Returns middleware initialisation points
+    def middleware_initialisation_points
+      @middleware_initialisation_points
     end
 
     def config #:nodoc:
