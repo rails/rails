@@ -1,5 +1,33 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix handling of dirty time zone aware attributes
+
+    Previously, when `time_zone_aware_attributes` were enabled, after
+    changing a datetime or timestamp attribute and then changing it back
+    to the original value, `changed_attributes` still tracked the
+    attribute as changed. This caused `[attribute]_changed?` and
+    `changed?` methods to return true incorrectly.
+
+    Example:
+
+        in_time_zone 'Paris' do
+          order = Order.new
+          original_time = Time.local(2012, 10, 10)
+          order.shipped_at = original_time
+          order.save
+          order.changed? # => false
+
+          # changing value
+          order.shipped_at = Time.local(2013, 1, 1)
+          order.changed? # => true
+
+          # reverting to original value
+          order.shipped_at = original_time
+          order.changed? # => false, used to return true
+        end
+
+    *Lilibeth De La Cruz*
+
 *   When `#count` is used in conjunction with `#uniq` we perform `count(:distinct => true)`.
     Fix #6865.
 
