@@ -103,21 +103,6 @@ module ActionDispatch
           @module  = Module.new do
             protected
 
-            def handle_positional_args(args, options, segment_keys)
-              inner_options = args.extract_options!
-              result = options.dup
-
-              if args.size > 0
-                keys = segment_keys
-                if args.size < keys.size - 1 # take format into account
-                  keys -= self.url_options.keys if self.respond_to?(:url_options)
-                  keys -= options.keys
-                end
-                result.merge!(Hash[keys.zip(args)])
-              end
-
-              result.merge!(inner_options)
-            end
           end
         end
 
@@ -182,17 +167,44 @@ module ActionDispatch
           #
           #   foo_url(bar, baz, bang, sort_by: 'baz')
           #
+          class UrlHelp
+            def url_else(t, args, options, seg)
+              t.url_for(handle_positional_args(t, args, options, seg))
+            end
+
+            def handle_positional_args(t, args, options, segment_keys)
+              inner_options = args.extract_options!
+              result = options.dup
+
+              if args.size > 0
+                keys = segment_keys
+                if args.size < keys.size - 1 # take format into account
+                  keys -= t.url_options.keys if t.respond_to?(:url_options)
+                  keys -= options.keys
+                end
+                result.merge!(Hash[keys.zip(args)])
+              end
+
+              result.merge!(inner_options)
+            end
+          end
+
           def define_url_helper(route, name, options)
             @module.remove_possible_method name
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+
+              def if_#{name}(t, options, path)
+                options.merge!(url_options) if t.respond_to?(:url_options)
+                options[:path] = path
+                ActionDispatch::Http::URL.url_for(options)
+              end
+
               def #{name}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
                   options = #{options.inspect}
-                  options.merge!(url_options) if respond_to?(:url_options)
-                  options[:path] = "#{optimized_helper(route)}"
-                  ActionDispatch::Http::URL.url_for(options)
+                  if_#{name}(self, options, "#{optimized_helper(route)}")
                 else
-                  url_for(handle_positional_args(args, #{options.inspect}, #{route.segment_keys.inspect}))
+                  UrlHelp.new.url_else(self, args, #{options.inspect}, #{route.segment_keys.inspect})
                 end
               end
             END_EVAL
