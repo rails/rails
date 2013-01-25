@@ -94,6 +94,10 @@ module Rails
       Rails.configuration.middleware.map(&:inspect)
     end
 
+    property 'Middleware initialisation points' do
+      Rails.application.middleware_initialisation_points
+    end
+
     # The application's location on the filesystem.
     property 'Application root' do
       File.expand_path(Rails.root)
