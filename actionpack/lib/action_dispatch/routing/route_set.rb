@@ -182,6 +182,23 @@ module ActionDispatch
               @route.requirements.except(:controller, :action).empty?
             end
 
+            def optimized_helper
+              string_route = @route.ast.to_s
+
+              while string_route.gsub!(/\([^\)]*\)/, "")
+                true
+              end
+
+              @route.required_parts.each_with_index do |part, i|
+                # Replace each route parameter
+                # e.g. :id for regular parameter or *path for globbing
+                # with ruby string interpolation code
+                string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+              end
+
+              string_route
+            end
+
             def url_else(t, args)
               t.url_for(handle_positional_args(t, args, @options, @segment_keys))
             end
@@ -225,7 +242,7 @@ module ActionDispatch
             helper = UrlHelper.create(route, options.dup)
 
             ohelp        = helper.optimize_helper?
-            ohelper      = optimized_helper(route)
+            ohelper      = helper.optimized_helper
             arg_size     = route.required_parts.size
 
             @module.module_eval do
@@ -243,23 +260,6 @@ module ActionDispatch
             helpers << name
           end
 
-          # Generates the interpolation to be used in the optimized helper.
-          def optimized_helper(route)
-            string_route = route.ast.to_s
-
-            while string_route.gsub!(/\([^\)]*\)/, "")
-              true
-            end
-
-            route.required_parts.each_with_index do |part, i|
-              # Replace each route parameter
-              # e.g. :id for regular parameter or *path for globbing
-              # with ruby string interpolation code
-              string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
-            end
-
-            string_route
-          end
       end
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
