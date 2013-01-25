@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixes database.yml when creating a new rails application with '.'
+    Fix #8304
+
+    *Jeremy W. Rowe*
+
 *   Deprecate the `eager_load_paths` configuration and alias it to `autoload_paths`.
     Since the default in Rails 4.0 is to run in 'threadsafe' mode we need to eager
     load all of the paths in `autoload_paths`. This may have unintended consequences
