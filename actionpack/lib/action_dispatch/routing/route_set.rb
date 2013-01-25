@@ -216,12 +216,11 @@ module ActionDispatch
             t.url_for(handle_positional_args(t, args, @options, @segment_keys))
           end
 
-          def handle_positional_args(t, args, options, segment_keys)
+          def handle_positional_args(t, args, options, keys)
             inner_options = args.extract_options!
             result = options.dup
 
             if args.size > 0
-              keys = segment_keys
               if args.size < keys.size - 1 # take format into account
                 keys -= t.url_options.keys if t.respond_to?(:url_options)
                 keys -= options.keys
