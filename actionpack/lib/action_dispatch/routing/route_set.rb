@@ -169,15 +169,16 @@ module ActionDispatch
           #
           class UrlHelper
             def self.create(route, options)
-              new options
+              new route, options
             end
 
-            def initialize(options)
+            def initialize(route, options)
               @options = options
+              @segment_keys = route.segment_keys
             end
 
-            def url_else(t, args, seg)
-              t.url_for(handle_positional_args(t, args, @options, seg))
+            def url_else(t, args)
+              t.url_for(handle_positional_args(t, args, @options, @segment_keys))
             end
 
             def url_if(t, path)
@@ -218,7 +219,6 @@ module ActionDispatch
             ohelp        = optimize_helper?(route)
             ohelper      = optimized_helper(route)
             arg_size     = route.required_parts.size
-            segment_keys = route.segment_keys
 
             helper = UrlHelper.create(route, options.dup)
 
@@ -227,7 +227,7 @@ module ActionDispatch
                 if ohelp && args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?
                   helper.url_if(self, eval("\"#{ohelper}\""))
                 else
-                  helper.url_else(self, args, segment_keys)
+                  helper.url_else(self, args)
                 end
               end
             end
