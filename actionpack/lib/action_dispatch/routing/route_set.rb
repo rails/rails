@@ -163,7 +163,8 @@ module ActionDispatch
 
             def initialize(route, options)
               super
-              @arg_size = @route.required_parts.size
+              @path_parts = @route.required_parts
+              @arg_size   = @path_parts.size
             end
 
             def call(t, args)
@@ -185,7 +186,7 @@ module ActionDispatch
                 true
               end
 
-              @route.required_parts.each_with_index do |part, i|
+              @path_parts.each_with_index do |part, i|
                 # Replace each route parameter
                 # e.g. :id for regular parameter or *path for globbing
                 # with ruby string interpolation code
