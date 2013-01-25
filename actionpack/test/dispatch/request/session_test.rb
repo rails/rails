@@ -6,13 +6,13 @@ module ActionDispatch
     class SessionTest < ActiveSupport::TestCase
       def test_create_adds_itself_to_env
         env = {}
-        s = Session.create(store, env, {})
+        s = prepare_session env
         assert_equal s, env[Rack::Session::Abstract::ENV_SESSION_KEY]
       end
 
       def test_to_hash
         env = {}
-        s = Session.create(store, env, {})
+        s = prepare_session env
         s['foo'] = 'bar'
         assert_equal 'bar', s['foo']
         assert_equal({'foo' => 'bar'}, s.to_hash)
@@ -20,10 +20,10 @@ module ActionDispatch
 
       def test_create_merges_old
         env = {}
-        s = Session.create(store, env, {})
+        s = prepare_session env
         s['foo'] = 'bar'
 
-        s1 = Session.create(store, env, {})
+        s1 = prepare_session env
         assert_not_equal s, s1
         assert_equal 'bar', s1['foo']
       end
@@ -32,13 +32,13 @@ module ActionDispatch
         env = {}
         assert_nil Session.find(env)
 
-        s = Session.create(store, env, {})
+        s = prepare_session env
         assert_equal s, Session.find(env)
       end
 
       def test_keys
         env = {}
-        s = Session.create(store, env, {})
+        s = prepare_session env
         s['rails'] = 'ftw'
         s['adequate'] = 'awesome'
         assert_equal %w[rails adequate], s.keys
@@ -46,7 +46,7 @@ module ActionDispatch
 
       def test_values
         env = {}
-        s = Session.create(store, env, {})
+        s = prepare_session env
         s['rails'] = 'ftw'
         s['adequate'] = 'awesome'
         assert_equal %w[ftw awesome], s.values
@@ -54,7 +54,7 @@ module ActionDispatch
 
       def test_clear
         env = {}
-        s = Session.create(store, env, {})
+        s = prepare_session env
         s['rails'] = 'ftw'
         s['adequate'] = 'awesome'
         s.clear
@@ -62,11 +62,19 @@ module ActionDispatch
       end
 
       private
-      def store
-        Class.new {
-          def load_session(env); [1, {}]; end
-          def session_exists?(env); true; end
-        }.new
+      def prepare_session(env)
+        session_was = env[Request::Session::ENV_SESSION_KEY]
+        env[Request::Session::ENV_SESSION_KEY] = Request::Session.new(self, env)
+
+        class << env[Request::Session::ENV_SESSION_KEY]
+          def load_session(*); [1, {}]; end
+          def session_exists?(*); true; end
+          def load!; @data = {}; @loaded = true; end
+        end
+
+        env[Request::Session::ENV_SESSION_OPTIONS_KEY] = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+        env[Request::Session::ENV_SESSION_KEY].merge! session_was if session_was
+        env[Request::Session::ENV_SESSION_KEY]
       end
     end
   end

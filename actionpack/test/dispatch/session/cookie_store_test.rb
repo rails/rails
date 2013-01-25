@@ -30,7 +30,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_id
-      render :text => "id: #{request.session_options[:id]}"
+      render :text => "id: #{request.session.id}"
     end
 
     def get_class_after_reset_session
@@ -54,7 +54,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def change_session_id
-      request.session_options[:id] = nil
+      request.session.id = nil
       get_session_id
     end
 

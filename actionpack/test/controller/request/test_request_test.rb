@@ -25,11 +25,11 @@ class ActionController::TestRequestTest < ActiveSupport::TestCase
   end
 
   def test_session_id_exists_by_default
-    assert_not_nil(@request.session_options[:id])
+    assert_not_nil(@request.session.id)
   end
 
   def test_session_id_different_on_each_call
-    assert_not_equal(@request.session_options[:id], ActionController::TestRequest.new.session_options[:id])
+    assert_not_equal(@request.session.id, ActionController::TestRequest.new.session.id)
   end
 
 end

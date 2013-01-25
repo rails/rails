@@ -251,7 +251,7 @@ module ActionDispatch
     end
 
     def session_options=(options)
-      Session::Options.set @env, options
+      Session.set_options @env, options
     end
 
     # Override Rack's GET method to support indifferent access

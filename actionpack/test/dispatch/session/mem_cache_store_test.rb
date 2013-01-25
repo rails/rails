@@ -22,7 +22,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_id
-      render :text => "#{request.session_options[:id]}"
+      render :text => "#{request.session.id}"
     end
 
     def call_reset_session
