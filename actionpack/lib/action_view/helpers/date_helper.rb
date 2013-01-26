@@ -1040,14 +1040,38 @@ module ActionView
     end
 
     class FormBuilder
+      # Wraps ActionView::Helpers::DateHelper#date_select for form builders:
+      #
+      #   <%= form_for @person do |f| %>
+      #     <%= f.date_select :birth_date %>
+      #     <%= f.submit %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
       def date_select(method, options = {}, html_options = {})
         @template.date_select(@object_name, method, objectify_options(options), html_options)
       end
 
+      # Wraps ActionView::Helpers::DateHelper#time_select for form builders:
+      #
+      #   <%= form_for @race do |f| %>
+      #     <%= f.time_select :average_lap %>
+      #     <%= f.submit %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
       def time_select(method, options = {}, html_options = {})
         @template.time_select(@object_name, method, objectify_options(options), html_options)
       end
 
+      # Wraps ActionView::Helpers::DateHelper#datetime_select for form builders:
+      #
+      #   <%= form_for @person do |f| %>
+      #     <%= f.time_select :last_request_at %>
+      #     <%= f.submit %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
       def datetime_select(method, options = {}, html_options = {})
         @template.datetime_select(@object_name, method, objectify_options(options), html_options)
       end

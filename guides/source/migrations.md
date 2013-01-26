@@ -474,7 +474,7 @@ class ExampleMigration < ActiveRecord::Migration
       t.references :category
     end
 
-    #add a foreign key
+    # add a foreign key
     execute <<-SQL
       ALTER TABLE products
         ADD CONSTRAINT fk_products_categories
@@ -1011,7 +1011,7 @@ with foreign key constraints in the database.
 
 Although Active Record does not provide any tools for working directly with
 such features, the `execute` method can be used to execute arbitrary SQL. You
-could also use some plugin like
+could also use some gem like
 [foreigner](https://github.com/matthuhiggins/foreigner) which add foreign key
 support to Active Record (including support for dumping foreign keys in
 `db/schema.rb`).

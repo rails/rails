@@ -303,7 +303,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
-* `config.action_controller.raise_on_unpermitted_parameters` enables raising an exception if parameters that are not explicitly permitted are found. The default value is `true` in development and test environments, `false` otherwise.
+* `config.action_controller.action_on_unpermitted_params` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
 ### Configuring Action Dispatch
 

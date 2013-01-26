@@ -43,7 +43,7 @@ class DateTime
 
   # Returns a new DateTime where one or more of the elements have been changed
   # according to the +options+ parameter. The time options (<tt>:hour</tt>,
-  # <tt>:minute</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
+  # <tt>:min</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
   # passed, then minute and sec is set to 0. If the hour and minute is passed,
   # then sec is set to 0. The +options+ parameter takes a hash with any of these
   # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>,

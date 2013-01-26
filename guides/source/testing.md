@@ -943,7 +943,7 @@ Cheers!
 
 This is the right time to understand a little more about writing tests for your mailers. The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (`ActionMailer::Base.deliveries`).
 
-However often in unit tests, mails will not actually be sent, simply constructed, as in the example above, where the precise content of the email is checked against what it should be.
+This way, emails are not actually sent, simply constructed. The precise content of the email can then be checked against what is expected, as in the example above.
 
 ### Functional Testing
 

@@ -162,8 +162,8 @@ module ActiveRecord #:nodoc:
   #
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects
   # by simple queries without turning to SQL. They work by appending the name of an attribute
-  # to <tt>find_by_</tt> # like <tt>Person.find_by_user_name</tt>.
-  # Instead of writing # <tt>Person.where(user_name: user_name).first</tt>, you just do
+  # to <tt>find_by_</tt> like <tt>Person.find_by_user_name</tt>.
+  # Instead of writing <tt>Person.where(user_name: user_name).first</tt>, you just do
   # <tt>Person.find_by_user_name(user_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an

@@ -261,9 +261,9 @@ end
 
 This helps prevent conflicts with any other engine or application that may have a post resource as well.
 
-Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/javascripts/blorgh/posts.css`. You'll see how to use these a little later.
+Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/stylesheets/blorgh/posts.css`. You'll see how to use these a little later.
 
-By default, the scaffold styling is not applied to the engine as the engine's layout file, `app/views/blorgh/application.html.erb` doesn't load it. To make this apply, insert this line into the `<head>` tag of this layout:
+By default, the scaffold styling is not applied to the engine as the engine's layout file, `app/views/layouts/blorgh/application.html.erb` doesn't load it. To make this apply, insert this line into the `<head>` tag of this layout:
 
 ```erb
 <%= stylesheet_link_tag "scaffold" %>
@@ -288,7 +288,7 @@ Now people will only need to go to the root of the engine to see all the posts, 
 
 ### Generating a comments resource
 
-Now that the engine can to create new blog posts, it only makes sense to add commenting functionality as well. To do get this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
+Now that the engine can create new blog posts, it only makes sense to add commenting functionality as well. To do this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
 
 Run the model generator and tell it to generate a `Comment` model, with the related table having two columns: a `post_id` integer and `text` text column.
 
@@ -470,7 +470,7 @@ If you have multiple engines that need migrations copied over, use `railties:ins
 $ rake railties:install:migrations
 ```
 
-This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
+This command, when run for the first time, will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
 
 ```bash
 Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
@@ -754,10 +754,9 @@ end
 
 #### Implementing Decorator Pattern Using ActiveSupport::Concern
 
-Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html) helps manage load order of interlinked dependencies at run time allowing you to significantly modularize your code.
+Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html). ActiveSupport::Concern manages load order of interlinked dependent modules and classes at run time allowing you to significantly modularize your code.
 
-**Adding** `Post#time_since_created`<br/>
-**Overriding** `Post#summary`
+**Adding** `Post#time_since_created` and **Overriding** `Post#summary`
 
 ```ruby
 # MyApp/app/models/blorgh/post.rb
@@ -790,7 +789,7 @@ module Blorgh::Concerns::Models::Post
   extend ActiveSupport::Concern
 
   # 'included do' causes the included code to be evaluated in the
-  # conext where it is included (post.rb), rather than be 
+  # context where it is included (post.rb), rather than be 
   # executed in the module's context (blorgh/concerns/models/post).
   included do
     attr_accessor :author_name
@@ -800,9 +799,9 @@ module Blorgh::Concerns::Models::Post
 
     private
 
-    def set_author
-      self.author = User.find_or_create_by(name: author_name)
-    end
+      def set_author
+        self.author = User.find_or_create_by(name: author_name)
+      end
   end
 
   def summary
@@ -840,7 +839,7 @@ Try this now by creating a new file at `app/views/blorgh/posts/index.html.erb` a
 
 ### Routes
 
-Routes inside an engine are, by default, isolated from the application. This is done by the `isolate_namespace` call inside the `Engine` class. This essentially means that the application and its engines can have identically named routes, and that they will not clash.
+Routes inside an engine are, by default, isolated from the application. This is done by the `isolate_namespace` call inside the `Engine` class. This essentially means that the application and its engines can have identically named routes and they will not clash.
 
 Routes inside an engine are drawn on the `Engine` class within `config/routes.rb`, like this:
 

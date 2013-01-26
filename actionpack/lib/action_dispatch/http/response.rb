@@ -137,6 +137,7 @@ module ActionDispatch # :nodoc:
       @committed
     end
 
+    # Sets the HTTP status code.
     def status=(status)
       @status = Rack::Utils.status_code(status)
     end
@@ -145,16 +146,24 @@ module ActionDispatch # :nodoc:
       @content_type = content_type.to_s
     end
 
-    # The response code of the request
+    # The response code of the request.
     def response_code
       @status
     end
 
-    # Returns a String to ensure compatibility with Net::HTTPResponse
+    # Returns a string to ensure compatibility with <tt>Net::HTTPResponse</tt>.
     def code
       @status.to_s
     end
 
+    # Returns the corresponding message for the current HTTP status code:
+    #
+    #   response.status = 200
+    #   response.message # => "OK"
+    #
+    #   response.status = 404
+    #   response.message # => "Not Found"
+    #
     def message
       Rack::Utils::HTTP_STATUS_CODES[@status]
     end
@@ -172,6 +181,8 @@ module ActionDispatch # :nodoc:
       stream.to_path
     end
 
+    # Returns the content of the response as a string. This contains the contents
+    # of any calls to <tt>render</tt>.
     def body
       strings = []
       each { |part| strings << part.to_s }
@@ -180,6 +191,7 @@ module ActionDispatch # :nodoc:
 
     EMPTY = " "
 
+    # Allows you to manually set or override the response body.
     def body=(body)
       @blank = true if body == EMPTY
 

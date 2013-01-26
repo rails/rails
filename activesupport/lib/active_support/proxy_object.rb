@@ -5,7 +5,7 @@ module ActiveSupport
     undef_method :==
     undef_method :equal?
 
-    # Let ActiveSupport::BasicObject at least raise exceptions.
+    # Let ActiveSupport::ProxyObject at least raise exceptions.
     def raise(*args)
       ::Object.send(:raise, *args)
     end

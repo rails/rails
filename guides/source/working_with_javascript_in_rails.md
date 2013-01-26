@@ -51,7 +51,7 @@ with an id of `results`.
 
 Rails provides quite a bit of built-in support for building web pages with this
 technique. You rarely have to write this code yourself. The rest of this guide
-will show you how Rails can help you write web sites in this manner, but it's
+will show you how Rails can help you write websites in this way, but it's
 all built on top of this fairly simple technique.
 
 Unobtrusive JavaScript
