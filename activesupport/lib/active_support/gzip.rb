@@ -7,9 +7,9 @@ module ActiveSupport
   module Gzip
     class Stream < StringIO
       def initialize(*)
-         super
-         set_encoding "BINARY" if "".encoding_aware?
-       end
+        super
+        set_encoding "BINARY" if "".encoding_aware?
+      end
       def close; rewind; end
     end
 
