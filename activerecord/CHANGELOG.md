@@ -1,5 +1,14 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   When `#count` is used in conjunction with `#uniq` we perform `count(:distinct => true)`.
+    Fix #6865.
+
+    Example:
+
+      relation.uniq.count # => SELECT COUNT(DISTINCT *)
+
+    *Yves Senn + Kaspar Schiess*
+
 *   Fix `ActiveRecord::Relation#pluck` when columns or tables are reserved words.
     Backport #7536.
     Fix #8968.

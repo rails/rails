@@ -369,6 +369,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 5, Account.count(:firm_id)
   end
 
+  def test_count_with_uniq
+    assert_equal 4, Account.select(:credit_limit).uniq.count
+  end
+
   def test_count_with_column_and_options_parameter
     assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50 AND firm_id IS NOT NULL")
   end
