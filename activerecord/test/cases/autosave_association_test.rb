@@ -709,7 +709,11 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
       children.each { |child| child.mark_for_destruction }
       assert @pirate.save
-      children.each { |child| child.expects(:destroy).never }
+      children.each { |child|
+        class << child
+          def destroy; raise "Should not be called" end
+        end
+      }
       assert @pirate.save
     end
 
