@@ -756,312 +756,74 @@ module ActionView
     end
 
     class FormBuilder
-      # Create a select tag and a series of contained option tags for the provided object and method.
-      # The option currently held by the object will be selected, provided that the object is available.
+      # Wraps ActionView::Helpers::FormOptionsHelper#select for form builders:
       #
-      # There are two possible formats for the choices parameter, corresponding to other helpers' output:
-      #   * A flat collection: see options_for_select
-      #   * A nested collection: see grouped_options_for_select
+      #   <%= form_for @post do |f| %>
+      #     <%= f.select :person_id, Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true }) %>
+      #     <%= f.submit %>
+      #   <% end %>
       #
-      # Example with @post.person_id => 1:
-      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
-      #
-      # could become:
-      #
-      #   <select name="post[person_id]">
-      #     <option value=""></option>
-      #     <option value="1" selected="selected">David</option>
-      #     <option value="2">Sam</option>
-      #     <option value="3">Tobias</option>
-      #   </select>
-      #
-      # This can be used to provide a default set of options in the standard way: before rendering the create form, a
-      # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
-      # to the database. Instead, a second model object is created when the create request is received.
-      # This allows the user to submit a form page more than once with the expected results of creating multiple records.
-      # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
-      #
-      # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>selected: value</tt> to use a different selection
-      # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
-      # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
-      #
-      # ==== Gotcha
-      #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
-      # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
-      # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
-      # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
-      # any mass-assignment idiom like
-      #
-      #   @user.update(params[:user])
-      #
-      # wouldn't update roles.
-      #
-      # To prevent this the helper generates an auxiliary hidden field before
-      # every multiple select. The hidden field has the same name as multiple select and blank value.
-      #
-      # This way, the client either sends only the hidden field (representing
-      # the deselected multiple select box), or both fields. Since the HTML specification
-      # says key/value pairs have to be sent in the same order they appear in the
-      # form, and parameters extraction gets the last occurrence of any repeated
-      # key in the query string, that works for ordinary forms.
-      #
-      # In case if you don't want the helper to generate this hidden field you can specify
-      # <tt>include_hidden: false</tt> option.
-      #
+      # Please refer to the documentation of the base helper for details.
       def select(method, choices, options = {}, html_options = {})
         @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
-      # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
-      # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
-      # or <tt>:include_blank</tt> in the +options+ hash.
+      # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
-      # of +collection+. The return values are used as the +value+ attribute and contents of each
-      # <tt><option></tt> tag, respectively. They can also be any object that responds to +call+, such
-      # as a +proc+, that will be called for each member of the +collection+ to
-      # retrieve the value/text.
+      #   <%= form_for @post do |f| %>
+      #     <%= f.collection_select :person_id, Author.all, :id, :name_with_initial, prompt: true %>
+      #     <%= f.submit %>
+      #   <% end %>
       #
-      # Example object structure for use with this method:
-      #
-      #   class Post < ActiveRecord::Base
-      #     belongs_to :author
-      #   end
-      #
-      #   class Author < ActiveRecord::Base
-      #     has_many :posts
-      #     def name_with_initial
-      #       "#{first_name.first}. #{last_name}"
-      #     end
-      #   end
-      #
-      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
-      #
-      #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
-      #
-      # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
-      #   <select name="post[author_id]">
-      #     <option value="">Please select</option>
-      #     <option value="1" selected="selected">D. Heinemeier Hansson</option>
-      #     <option value="2">D. Thomas</option>
-      #     <option value="3">M. Clark</option>
-      #   </select>
+      # Please refer to the documentation of the base helper for details.
       def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
         @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
-      # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
-      # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
-      # or <tt>:include_blank</tt> in the +options+ hash.
+      # Wraps ActionView::Helpers::FormOptionsHelper#grouped_collection_select for form builders:
       #
-      # Parameters:
-      # * +object+ - The instance of the class to be used for the select tag
-      # * +method+ - The attribute of +object+ corresponding to the select tag
-      # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
-      # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
-      #   array of child objects representing the <tt><option></tt> tags.
-      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
-      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
-      # * +option_key_method+ - The name of a method which, when called on a child object of a member of
-      #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
-      # * +option_value_method+ - The name of a method which, when called on a child object of a member of
-      #   +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
+      #   <%= form_for @city do |f| %>
+      #     <%= f.grouped_collection_select :country_id, :country_id, @continents, :countries, :name, :id, :name %>
+      #     <%= f.submit %>
+      #   <% end %>
       #
-      # Example object structure for use with this method:
-      #
-      #   class Continent < ActiveRecord::Base
-      #     has_many :countries
-      #     # attribs: id, name
-      #   end
-      #
-      #   class Country < ActiveRecord::Base
-      #     belongs_to :continent
-      #     # attribs: id, name, continent_id
-      #   end
-      #
-      #   class City < ActiveRecord::Base
-      #     belongs_to :country
-      #     # attribs: id, name, country_id
-      #   end
-      #
-      # Sample usage:
-      #
-      #   grouped_collection_select(:city, :country_id, @continents, :countries, :name, :id, :name)
-      #
-      # Possible output:
-      #
-      #   <select name="city[country_id]">
-      #     <optgroup label="Africa">
-      #       <option value="1">South Africa</option>
-      #       <option value="3">Somalia</option>
-      #     </optgroup>
-      #     <optgroup label="Europe">
-      #       <option value="7" selected="selected">Denmark</option>
-      #       <option value="2">Ireland</option>
-      #     </optgroup>
-      #   </select>
-      #
+      # Please refer to the documentation of the base helper for details.
       def grouped_collection_select(method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
         @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Return select and option tags for the given object and method, using
-      # #time_zone_options_for_select to generate the list of option tags.
+      # Wraps ActionView::Helpers::FormOptionsHelper#time_zone_select for form builders:
       #
-      # In addition to the <tt>:include_blank</tt> option documented above,
-      # this method also supports a <tt>:model</tt> option, which defaults
-      # to ActiveSupport::TimeZone. This may be used by users to specify a
-      # different time zone model object. (See +time_zone_options_for_select+
-      # for more information.)
+      #   <%= form_for @user do |f| %>
+      #     <%= f.time_zone_select :time_zone, nil, include_blank: true %>
+      #     <%= f.submit %>
+      #   <% end %>
       #
-      # You can also supply an array of ActiveSupport::TimeZone objects
-      # as +priority_zones+, so that they will be listed above the rest of the
-      # (long) list. (You can use ActiveSupport::TimeZone.us_zones as a convenience
-      # for obtaining a list of the US time zones, or a Regexp to select the zones
-      # of your choice)
-      #
-      # Finally, this method supports a <tt>:default</tt> option, which selects
-      # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
-      #
-      #   time_zone_select( "user", "time_zone", nil, include_blank: true)
-      #
-      #   time_zone_select( "user", "time_zone", nil, default: "Pacific Time (US & Canada)" )
-      #
-      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
-      #
-      #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
-      #
-      #   time_zone_select( "user", 'time_zone', /Australia/)
-      #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
+      # Please refer to the documentation of the base helper for details.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
         @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Returns check box tags for the collection of existing return values of
-      # +method+ for +object+'s class. The value returned from calling +method+
-      # on the instance +object+ will be selected. If calling +method+ returns
-      # +nil+, no selection is made.
+      # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
-      # methods to be called on each member of +collection+. The return values
-      # are used as the +value+ attribute and contents of each check box tag,
-      # respectively. They can also be any object that responds to +call+, such
-      # as a +proc+, that will be called for each member of the +collection+ to
-      # retrieve the value/text.
+      #   <%= form_for @post do |f| %>
+      #     <%= f.collection_check_boxes :author_ids, Author.all, :id, :name_with_initial %>
+      #     <%= f.submit %>
+      #   <% end %>
       #
-      # Example object structure for use with this method:
-      #   class Post < ActiveRecord::Base
-      #     has_and_belongs_to_many :author
-      #   end
-      #   class Author < ActiveRecord::Base
-      #     has_and_belongs_to_many :posts
-      #     def name_with_initial
-      #       "#{first_name.first}. #{last_name}"
-      #     end
-      #   end
-      #
-      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
-      #
-      # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
-      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
-      #   <label for="post_author_ids_1">D. Heinemeier Hansson</label>
-      #   <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
-      #   <label for="post_author_ids_2">D. Thomas</label>
-      #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
-      #   <label for="post_author_ids_3">M. Clark</label>
-      #   <input name="post[author_ids][]" type="hidden" value="" />
-      #
-      # It is also possible to customize the way the elements will be shown by
-      # giving a block to the method:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #     b.label { b.check_box }
-      #   end
-      #
-      # The argument passed to the block is a special kind of builder for this
-      # collection, which has the ability to generate the label and check box
-      # for the current item in the collection, with proper text and value.
-      # Using it, you can change the label and check box display order or even
-      # use the label as wrapper, as in the example above.
-      #
-      # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
-      # extra html options:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #     b.label(class: "check_box") { b.check_box(class: "check_box") }
-      #   end
-      #
-      # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
-      # <tt>value</tt>, which are the current item being rendered, its text and value methods,
-      # respectively. You can use them like this:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #      b.label(:"data-value" => b.value) { b.check_box + b.text }
-      #   end
+      # Please refer to the documentation of the base helper for details.
       def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {})
         @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Returns radio button tags for the collection of existing return values
-      # of +method+ for +object+'s class. The value returned from calling
-      # +method+ on the instance +object+ will be selected. If calling +method+
-      # returns +nil+, no selection is made.
+      # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
-      # methods to be called on each member of +collection+. The return values
-      # are used as the +value+ attribute and contents of each radio button tag,
-      # respectively. They can also be any object that responds to +call+, such
-      # as a +proc+, that will be called for each member of the +collection+ to
-      # retrieve the value/text.
+      #   <%= form_for @post do |f| %>
+      #     <%= f.collection_radio_buttons :author_id, Author.all, :id, :name_with_initial %>
+      #     <%= f.submit %>
+      #   <% end %>
       #
-      # Example object structure for use with this method:
-      #   class Post < ActiveRecord::Base
-      #     belongs_to :author
-      #   end
-      #   class Author < ActiveRecord::Base
-      #     has_many :posts
-      #     def name_with_initial
-      #       "#{first_name.first}. #{last_name}"
-      #     end
-      #   end
-      #
-      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
-      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
-      #
-      # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
-      #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
-      #   <label for="post_author_id_1">D. Heinemeier Hansson</label>
-      #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
-      #   <label for="post_author_id_2">D. Thomas</label>
-      #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
-      #   <label for="post_author_id_3">M. Clark</label>
-      #
-      # It is also possible to customize the way the elements will be shown by
-      # giving a block to the method:
-      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
-      #     b.label { b.radio_button }
-      #   end
-      #
-      # The argument passed to the block is a special kind of builder for this
-      # collection, which has the ability to generate the label and radio button
-      # for the current item in the collection, with proper text and value.
-      # Using it, you can change the label and radio button display order or
-      # even use the label as wrapper, as in the example above.
-      #
-      # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
-      # extra html options:
-      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
-      #     b.label(class: "radio_button") { b.radio_button(class: "radio_button") }
-      #   end
-      #
-      # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
-      # <tt>value</tt>, which are the current item being rendered, its text and value methods,
-      # respectively. You can use them like this:
-      #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
-      #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
-      #   end
+      # Please refer to the documentation of the base helper for details.
       def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {})
         @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end

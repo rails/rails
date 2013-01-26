@@ -104,7 +104,7 @@ This method generates a cache key that depends on all products and can be used i
   All available products:
 <% end %>
 ```
-You can also use an `ActiveRecord` model as the cache key:
+You can also use an Active Record model as the cache key:
 
 ```ruby
 <% Product.all.each do |p| %>
