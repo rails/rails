@@ -139,12 +139,10 @@ module RailtiesTest
 
       boot_rails
       require 'rake'
-      require 'rake/rdoctask'
       require 'rake/testtask'
       Rails.application.load_tasks
       Rake::Task[:foo].invoke
       assert $executed
     end
-
   end
 end
