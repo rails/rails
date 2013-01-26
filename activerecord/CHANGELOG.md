@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix for setting float/decimal zero (`0.0`) to string (`'0.0'`) being incorrectly marked as dirty.
+
+    *Tim McEwan*
+
 *   PostgreSQL ranges type support. Includes: int4range, int8range,
     numrange, tsrange, tstzrange, daterange
 

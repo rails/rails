@@ -229,6 +229,17 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
+  def test_decimal_zero_to_string_decimal_zero_not_marked_as_changed
+    numeric_data = NumericData.new
+    numeric_data.bank_balance = 0.0
+    assert numeric_data.save!
+
+    assert !numeric_data.changed?
+
+    numeric_data.bank_balance = '0.0'
+    assert !numeric_data.changed?
+  end
+
   def test_integer_zero_to_integer_zero_not_marked_as_changed
     pirate = Pirate.new
     pirate.parrot_id = 0
