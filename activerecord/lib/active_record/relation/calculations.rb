@@ -192,7 +192,8 @@ module ActiveRecord
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase
 
-      distinct = options[:distinct]
+      # If #count is used in conjuction with #uniq it is considered distinct. (eg. relation.uniq.count)
+      distinct = options[:distinct] || self.uniq_value
 
       if operation == "count"
         column_name ||= (select_for_count || :all)

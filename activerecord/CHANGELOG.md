@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   When `#count` is used in conjunction with `#uniq` we perform `count(:distinct => true)`.
+    Fix #6865.
+
+    Example:
+
+      relation.uniq.count # => SELECT COUNT(DISTINCT *)
+
+    *Yves Senn + Kaspar Schiess*
+
 *   PostgreSQL ranges type support. Includes: int4range, int8range,
     numrange, tsrange, tstzrange, daterange
 
