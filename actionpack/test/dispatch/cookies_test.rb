@@ -160,6 +160,36 @@ class CookiesTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def test_fetch
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz', x)
+    assert_not request.cookie_jar.key?('zzzzzz')
+  end
+
+  def test_fetch_exists
+    x = Object.new
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch('foo', x)
+  end
+
+  def test_fetch_block
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz') { x }
+  end
+
+  def test_key_is_to_s
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch(:foo)
+  end
+
+  def test_fetch_type_error
+    assert_raises(KeyError) do
+      request.cookie_jar.fetch(:omglolwut)
+    end
+  end
+
   def test_each
     request.cookie_jar['foo'] = :bar
     list = []
