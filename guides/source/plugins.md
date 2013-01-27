@@ -86,7 +86,7 @@ Run `rake` to run the test. This test should fail because we haven't implemented
 
 Great - now you are ready to start development.
 
-Then in `lib/yaffle.rb` require `lib/core_ext`:
+Then in `lib/yaffle.rb` add `require "yaffle/core_ext"`:
 
 ```ruby
 # yaffle/lib/yaffle.rb
