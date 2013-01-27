@@ -9,7 +9,6 @@ After reading this guide, you will know:
 * The concept of sessions in Rails, what to put in there and popular attack methods.
 * How just visiting a site can be a security problem (with CSRF).
 * What you have to pay attention to when working with files or providing an administration interface.
-* The Rails-specific mass assignment problem.
 * How to manage users: Logging in and out and attack methods on all layers.
 * And the most popular injection attack methods.
 

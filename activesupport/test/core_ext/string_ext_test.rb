@@ -87,6 +87,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal('capital', 'Capital'.camelize(:lower))
   end
 
+  def test_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(dasherized, underscored.dasherize)
+    end
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, camel.underscore)
@@ -355,22 +361,24 @@ class StringBehaviourTest < ActiveSupport::TestCase
 end
 
 class CoreExtStringMultibyteTest < ActiveSupport::TestCase
-  UNICODE_STRING = 'こにちわ'
-  ASCII_STRING = 'ohayo'
-  BYTE_STRING = "\270\236\010\210\245"
+  UTF8_STRING = 'こにちわ'
+  ASCII_STRING = 'ohayo'.encode('US-ASCII')
+  EUC_JP_STRING = 'さよなら'.encode('EUC-JP')
+  INVALID_UTF8_STRING = "\270\236\010\210\245"
 
   def test_core_ext_adds_mb_chars
-    assert_respond_to UNICODE_STRING, :mb_chars
+    assert_respond_to UTF8_STRING, :mb_chars
   end
 
   def test_string_should_recognize_utf8_strings
-    assert UNICODE_STRING.is_utf8?
+    assert UTF8_STRING.is_utf8?
     assert ASCII_STRING.is_utf8?
-    assert !BYTE_STRING.is_utf8?
+    assert !EUC_JP_STRING.is_utf8?
+    assert !INVALID_UTF8_STRING.is_utf8?
   end
 
   def test_mb_chars_returns_instance_of_proxy_class
-    assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
+    assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
   end
 end
 

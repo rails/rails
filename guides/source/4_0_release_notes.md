@@ -8,7 +8,6 @@ Highlights in Rails 4.0:
 * Queue API
 * Turbolinks
 * Russian Doll Caching
-* Asynchronous Mailers
 
 These release notes cover only the major changes. To know about various bug fixes and changes, please refer to the change logs or check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
 
@@ -155,7 +154,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 Action Pack
 -----------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionpack/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -167,7 +166,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 Active Record
 -------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activerecord/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 

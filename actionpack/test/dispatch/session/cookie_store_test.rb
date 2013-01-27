@@ -276,7 +276,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       # First request accesses the session
       time = Time.local(2008, 4, 24)
       Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
       cookies[SessionKey] = SignedBar
 
@@ -290,7 +290,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       # Second request does not access the session
       time = Time.local(2008, 4, 25)
       Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
       get '/no_session_access'
       assert_response :success

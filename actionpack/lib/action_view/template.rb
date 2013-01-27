@@ -80,8 +80,7 @@ module ActionView
     # problems with converting the user's data to
     # the <tt>default_internal</tt>.
     #
-    # To do so, simply raise the raise +WrongEncodingError+
-    # as follows:
+    # To do so, simply raise +WrongEncodingError+ as follows:
     #
     #     raise WrongEncodingError.new(
     #       problematic_string,

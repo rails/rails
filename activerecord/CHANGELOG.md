@@ -1,5 +1,87 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Relation#merge now only overwrites where values on the LHS of the
+    merge. Consider:
+
+        left  = Person.where(age: [13, 14, 15])
+        right = Person.where(age: [13, 14]).where(age: [14, 15])
+
+    `left` results in the following SQL:
+
+        WHERE age IN (13, 14, 15)
+
+    `right` results in the following SQL:
+
+        WHERE age IN (13, 14) AND age IN (14, 15)
+
+    Previously, `left.merge(right)` would result in all but the last
+    condition being removed:
+
+        WHERE age IN (14, 15)
+
+    Now it results in the LHS condition(s) for `age` being removed, but
+    the RHS remains as it is:
+
+        WHERE age IN (13, 14) AND age IN (14, 15)
+
+    *Jon Leighton*
+
+*   Fix handling of dirty time zone aware attributes
+
+    Previously, when `time_zone_aware_attributes` were enabled, after
+    changing a datetime or timestamp attribute and then changing it back
+    to the original value, `changed_attributes` still tracked the
+    attribute as changed. This caused `[attribute]_changed?` and
+    `changed?` methods to return true incorrectly.
+
+    Example:
+
+        in_time_zone 'Paris' do
+          order = Order.new
+          original_time = Time.local(2012, 10, 10)
+          order.shipped_at = original_time
+          order.save
+          order.changed? # => false
+
+          # changing value
+          order.shipped_at = Time.local(2013, 1, 1)
+          order.changed? # => true
+
+          # reverting to original value
+          order.shipped_at = original_time
+          order.changed? # => false, used to return true
+        end
+
+    *Lilibeth De La Cruz*
+
+*   When `#count` is used in conjunction with `#uniq` we perform `count(:distinct => true)`.
+    Fix #6865.
+
+    Example:
+
+      relation.uniq.count # => SELECT COUNT(DISTINCT *)
+
+    *Yves Senn + Kaspar Schiess*
+
+*   PostgreSQL ranges type support. Includes: int4range, int8range,
+    numrange, tsrange, tstzrange, daterange
+
+    Ranges can be created with inclusive and exclusive bounds.
+
+    Example:
+
+        create_table :Room do |t|
+          t.daterange :availability
+        end
+
+        Room.create(availability: (Date.today..Float::INFINITY))
+        Room.first.availability # => Wed, 19 Sep 2012..Infinity
+
+    One thing to note: Range class does not support exclusive lower
+    bound.
+
+    *Alexander Grebennik*
+
 *   Added a state instance variable to each transaction. Will allow other objects
     to know whether a transaction has been committed or rolled back.
 

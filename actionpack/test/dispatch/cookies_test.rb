@@ -160,6 +160,36 @@ class CookiesTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def test_fetch
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz', x)
+    assert_not request.cookie_jar.key?('zzzzzz')
+  end
+
+  def test_fetch_exists
+    x = Object.new
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch('foo', x)
+  end
+
+  def test_fetch_block
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz') { x }
+  end
+
+  def test_key_is_to_s
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch(:foo)
+  end
+
+  def test_fetch_type_error
+    assert_raises(KeyError) do
+      request.cookie_jar.fetch(:omglolwut)
+    end
+  end
+
   def test_each
     request.cookie_jar['foo'] = :bar
     list = []
@@ -211,13 +241,13 @@ class CookiesTest < ActionController::TestCase
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
@@ -250,7 +280,7 @@ class CookiesTest < ActionController::TestCase
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT\nlogin=XJ-122; path=/"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000\nlogin=XJ-122; path=/"
     assert_equal({"login" => "XJ-122", "user_name" => "david"}, @response.cookies)
   end
 
@@ -261,14 +291,14 @@ class CookiesTest < ActionController::TestCase
   def test_expiring_cookie
     request.cookies[:user_name] = 'Joe'
     get :logout
-    assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
     assert_equal({"user_name" => nil}, @response.cookies)
   end
 
   def test_delete_cookie_with_path
     request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_path
-    assert_cookie_header "user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_delete_unexisting_cookie
@@ -330,7 +360,7 @@ class CookiesTest < ActionController::TestCase
   def test_delete_and_set_cookie
     request.cookies[:user_name] = 'Joe'
     get :delete_and_set_cookie
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
@@ -435,7 +465,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_cookie_with_all_domain_option_and_tld_length
@@ -462,7 +492,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_cookie_with_several_preset_domains_using_one_of_these_domains
@@ -491,7 +521,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; domain=example2.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_deletings_cookie_with_several_preset_domains_using_other_domain
@@ -499,7 +529,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_cookies_hash_is_indifferent_access

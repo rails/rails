@@ -12,9 +12,6 @@ gem 'jquery-rails', '~> 2.2.0', github: 'rails/jquery-rails'
 gem 'turbolinks'
 gem 'coffee-rails', github: 'rails/coffee-rails'
 
-# TODO: Release thor
-gem 'thor', github: 'wycats/thor', branch: 'master'
-
 gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders', branch: 'master'
 
 # Needed for compiling the ActionDispatch::Journey parser

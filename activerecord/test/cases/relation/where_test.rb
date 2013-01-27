@@ -8,7 +8,20 @@ require 'models/edge'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges
+    fixtures :posts, :edges, :authors
+
+    def test_where_copies_bind_params
+      author = authors(:david)
+      posts  = author.posts.where('posts.id != 1')
+      joined = Post.where(id: posts)
+
+      assert_operator joined.length, :>, 0
+
+      joined.each { |post|
+        assert_equal author, post.author
+        assert_not_equal 1, post.id
+      }
+    end
 
     def test_belongs_to_shallow_where
       author = Author.new

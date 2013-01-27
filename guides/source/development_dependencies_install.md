@@ -174,6 +174,20 @@ $ cd activerecord
 $ bundle exec rake postgresql:build_databases
 ```
 
+It is possible to build databases for both PostgreSQL and MySQL with
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:create
+```
+
+You can cleanup the databases using
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:drop
+```
+
 NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".

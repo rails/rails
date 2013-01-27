@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/keys'
+require "set"
 
 module ActiveRecord
   class Relation
@@ -105,25 +106,26 @@ module ActiveRecord
       end
 
       def merged_wheres
-        if values[:where]
-          merged_wheres = relation.where_values + values[:where]
+        values[:where] ||= []
 
-          unless relation.where_values.empty?
-            # Remove equalities with duplicated left-hand. Last one wins.
-            seen = {}
-            merged_wheres = merged_wheres.reverse.reject { |w|
-              nuke = false
-              if w.respond_to?(:operator) && w.operator == :==
-                nuke         = seen[w.left]
-                seen[w.left] = true
-              end
-              nuke
-            }.reverse
-          end
-
-          merged_wheres
+        if values[:where].empty? || relation.where_values.empty?
+          relation.where_values + values[:where]
         else
-          relation.where_values
+          # Remove equalities from the existing relation with a LHS which is
+          # present in the relation being merged in.
+
+          seen = Set.new
+          values[:where].each { |w|
+            if w.respond_to?(:operator) && w.operator == :==
+              seen << w.left
+            end
+          }
+
+          relation.where_values.reject { |w|
+            w.respond_to?(:operator) &&
+              w.operator == :== &&
+              seen.include?(w.left)
+          } + values[:where]
         end
       end
     end

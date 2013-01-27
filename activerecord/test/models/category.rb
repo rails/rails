@@ -31,9 +31,4 @@ class Category < ActiveRecord::Base
 end
 
 class SpecialCategory < Category
-
-  def self.what_are_you
-    'a special category...'
-  end
-
 end

@@ -145,6 +145,10 @@ module ActionDispatch
         @cookies[name.to_s]
       end
 
+      def fetch(name, *args, &block)
+        @cookies.fetch(name.to_s, *args, &block)
+      end
+
       def key?(name)
         @cookies.key?(name.to_s)
       end

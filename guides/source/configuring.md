@@ -307,7 +307,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
-* `config.action_controller.raise_on_unpermitted_parameters` enables raising an exception if parameters that are not explicitly permitted are found. The default value is `true` in development and test environments, `false` otherwise.
+* `config.action_controller.action_on_unpermitted_params` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
 ### Configuring Action Dispatch
 
@@ -348,34 +348,6 @@ The schema dumper adds one additional configuration option:
 * `config.action_view.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to `nil` to disable logging.
 
 * `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. It defaults to `'-'`. See the [ERB documentation](http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/) for more information.
-
-* `config.action_view.javascript_expansions` is a hash containing expansions that can be used for the JavaScript include tag. By default, this is defined as:
-
-    ```ruby
-    config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
-    ```
-
-    However, you may add to this by defining others:
-
-    ```ruby
-    config.action_view.javascript_expansions[:prototype] = [
-      'prototype', 'effects', 'dragdrop', 'controls'
-    ]
-    ```
-
-    And can reference in the view with the following code:
-
-    ```ruby
-    <%= javascript_include_tag :prototype %>
-    ```
-
-* `config.action_view.stylesheet_expansions` works in much the same way as `javascript_expansions`, but has no default key. Keys defined for this hash can be referenced in the view like such:
-
-    ```ruby
-    <%= stylesheet_link_tag :special %>
-    ```
-
-* `config.action_view.cache_asset_ids` With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
 
 * `config.action_view.embed_authenticity_token_in_remote_forms` allows you to set the default behavior for `authenticity_token` in forms with `:remote => true`. By default it's set to false, which means that remote forms will not include `authenticity_token`, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the `meta` tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass `:authenticity_token => true` as a form option or set this config setting to `true`
 
@@ -689,10 +661,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `active_support.initialize_beginning_of_week` Sets the default beginnig of week for the application based on `config.beginning_of_week` setting, which defaults to `:monday`.
 
 * `action_dispatch.configure` Configures the `ActionDispatch::Http::URL.tld_length` to be set to the value of `config.action_dispatch.tld_length`.
-
-* `action_view.cache_asset_ids` Sets `ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids` to `false` when Active Support loads, but only if `config.cache_classes` is too.
-
-* `action_view.javascript_expansions` Registers the expansions set up by `config.action_view.javascript_expansions` and `config.action_view.stylesheet_expansions` to be recognized by Action View and therefore usable in the views.
 
 * `action_view.set_configs` Sets up Action View by using the settings in `config.action_view` by `send`'ing the method names as setters to `ActionView::Base` and passing the values through.
 

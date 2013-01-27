@@ -122,14 +122,12 @@ module ActionDispatch
         end
 
         def helper_names
-          self.module.instance_methods.map(&:to_s)
+          @helpers.map(&:to_s)
         end
 
         def clear!
           @helpers.each do |helper|
-            @module.module_eval do
-              remove_possible_method helper
-            end
+            @module.remove_possible_method helper
           end
 
           @routes.clear
@@ -185,8 +183,8 @@ module ActionDispatch
           #   foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(route, name, options)
+            @module.remove_possible_method name
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{name}
               def #{name}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
                   options = #{options.inspect}

@@ -16,11 +16,7 @@ class Post < ActiveRecord::Base
 
   scope :limit_by, lambda {|l| limit(l) }
 
-  belongs_to :author do
-    def greeting
-      "hello"
-    end
-  end
+  belongs_to :author
 
   belongs_to :author_with_posts, -> { includes(:posts) }, :class_name => "Author", :foreign_key => :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, :class_name => "Author", :foreign_key => :author_id
@@ -168,18 +164,6 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
-ActiveSupport::Deprecation.silence do
-  class DeprecatedPostWithComment < ActiveRecord::Base
-    self.table_name = 'posts'
-    default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
-  end
-end
-
-class PostForAuthor < ActiveRecord::Base
-  self.table_name = 'posts'
-  cattr_accessor :selected_author
-end
-
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => 1) }
@@ -192,6 +176,11 @@ class PostWithDefaultInclude < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { includes(:comments) }
   has_many :comments, :foreign_key => :post_id
+end
+
+class PostWithSpecialCategorization < Post
+  has_many :categorizations, :foreign_key => :post_id
+  default_scope { where(:type => 'PostWithSpecialCategorization').joins(:categorizations).where(:categorizations => { :special => true }) }
 end
 
 class PostWithDefaultScope < ActiveRecord::Base

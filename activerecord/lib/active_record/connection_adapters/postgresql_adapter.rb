@@ -77,6 +77,8 @@ module ActiveRecord
         return default unless default
 
         case default
+          when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m
+            $1
           # Numeric types
           when /\A\(?(-?\d+(\.\d*)?\)?)\z/
             $1
@@ -116,9 +118,6 @@ module ActiveRecord
             $1
           # JSON
           when /\A'(.*)'::json\z/
-            $1
-          # int4range, int8range
-          when /\A'(.*)'::int(4|8)range\z/
             $1
           # Object identifier types
           when /\A-?\d+\z/
@@ -220,12 +219,11 @@ module ActiveRecord
           # JSON type
           when 'json'
             :json
-          # int4range, int8range types
-          when 'int4range', 'int8range'
-            :intrange
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
+          when /(num|date|tstz|ts|int4|int8)range$/
+            field_type.to_sym
           # Pass through all types that are not specific to PostgreSQL.
           else
             super
@@ -276,6 +274,30 @@ module ActiveRecord
           column(args[0], 'tsvector', options)
         end
 
+        def int4range(name, options = {})
+          column(name, 'int4range', options)
+        end
+
+        def int8range(name, options = {})
+          column(name, 'int8range', options)
+        end
+
+        def tsrange(name, options = {})
+          column(name, 'tsrange', options)
+        end
+
+        def tstzrange(name, options = {})
+          column(name, 'tstzrange', options)
+        end
+
+        def numrange(name, options = {})
+          column(name, 'numrange', options)
+        end
+
+        def daterange(name, options = {})
+          column(name, 'daterange', options)
+        end
+
         def hstore(name, options = {})
           column(name, 'hstore', options)
         end
@@ -302,10 +324,6 @@ module ActiveRecord
 
         def json(name, options = {})
           column(name, 'json', options)
-        end
-
-        def intrange(name, options = {})
-          column(name, 'intrange', options)
         end
 
         def column(name, type = nil, options = {})
@@ -339,6 +357,12 @@ module ActiveRecord
         timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
+        daterange:   { name: "daterange" },
+        numrange:    { name: "numrange" },
+        tsrange:     { name: "tsrange" },
+        tstzrange:   { name: "tstzrange" },
+        int4range:   { name: "int4range" },
+        int8range:   { name: "int8range" },
         binary:      { name: "bytea" },
         boolean:     { name: "boolean" },
         xml:         { name: "xml" },
@@ -349,7 +373,6 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
-        intrange:    { name: "int4range" },
         ltree:       { name: "ltree" }
       }
 
@@ -550,6 +573,11 @@ module ActiveRecord
       # Returns true.
       def supports_explain?
         true
+      end
+
+      # Range datatypes weren't introduced until PostgreSQL 9.2
+      def supports_ranges?
+        postgresql_version >= 90200
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL

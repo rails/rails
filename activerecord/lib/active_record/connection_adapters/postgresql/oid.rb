@@ -78,6 +78,64 @@ module ActiveRecord
           end
         end
 
+        class Range < Type
+          attr_reader :subtype
+          def initialize(subtype)
+            @subtype = subtype
+          end
+
+          def exctract_bounds(value)
+            from, to = value[1..-2].split(',')
+            {
+              from:          (value[1] == ',' || from == '-infinity') ? infinity(:negative => true) : from,
+              to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
+              exclude_start: (value[0] == '('),
+              exclude_end:   (value[-1] == ')')
+            }
+          end
+
+          def infinity(options = {})
+            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
+          end
+
+          def to_integer(value)
+            infinity?(value) ? value : value.to_i
+          end
+
+          def type_cast(value)
+            return if value.nil? || value == 'empty'
+            return value if value.is_a?(::Range)
+
+            extracted = exctract_bounds(value)
+
+            case @subtype
+            when :date
+              from  = ConnectionAdapters::Column.value_to_date(extracted[:from])
+              from -= 1.day if extracted[:exclude_start]
+              to    = ConnectionAdapters::Column.value_to_date(extracted[:to])
+            when :decimal
+              from  = BigDecimal.new(extracted[:from].to_s)
+              # FIXME: add exclude start for ::Range, same for timestamp ranges
+              to    = BigDecimal.new(extracted[:to].to_s)
+            when :time
+              from = ConnectionAdapters::Column.string_to_time(extracted[:from])
+              to   = ConnectionAdapters::Column.string_to_time(extracted[:to])
+            when :integer
+              from = to_integer(extracted[:from]) rescue value ? 1 : 0
+              from -= 1 if extracted[:exclude_start]
+              to   = to_integer(extracted[:to]) rescue value ? 1 : 0
+            else
+              return value
+            end
+
+            ::Range.new(from, to, extracted[:exclude_end])
+          end
+        end
+
         class Integer < Type
           def type_cast(value)
             return if value.nil?
@@ -168,14 +226,6 @@ module ActiveRecord
           end
         end
 
-        class IntRange < Type
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::PostgreSQLColumn.string_to_intrange value
-          end
-        end
-
         class TypeMap
           def initialize
             @mapping = {}
@@ -241,6 +291,13 @@ module ActiveRecord
         alias_type    'int8', 'int2'
         alias_type    'oid',  'int2'
 
+        register_type 'daterange', OID::Range.new(:date)
+        register_type 'numrange', OID::Range.new(:decimal)
+        register_type 'tsrange', OID::Range.new(:time)
+        register_type 'int4range', OID::Range.new(:integer)
+        alias_type    'tstzrange', 'tsrange'
+        alias_type    'int8range', 'int4range'
+
         register_type 'numeric', OID::Decimal.new
         register_type 'text', OID::Identity.new
         alias_type 'varchar', 'text'
@@ -277,9 +334,6 @@ module ActiveRecord
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
         register_type 'ltree', OID::Identity.new
-
-        register_type 'int4range', OID::IntRange.new
-        alias_type 'int8range', 'int4range'
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'

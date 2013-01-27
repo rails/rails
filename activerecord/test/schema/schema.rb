@@ -567,6 +567,7 @@ ActiveRecord::Schema.define do
     t.integer :post_id, :null => false
     t.integer :person_id, :null => false
     t.boolean :skimmer, :default => false
+    t.integer :first_post_id
   end
 
   create_table :references, :force => true do |t|

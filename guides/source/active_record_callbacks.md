@@ -157,7 +157,6 @@ The following methods trigger callbacks:
 * `save!`
 * `save(validate: false)`
 * `toggle!`
-* `update`
 * `update_attribute`
 * `update`
 * `update!`

@@ -1,7 +1,7 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids postgresql_ltrees
-      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type postgresql_intrange_data_type).each do |table_name|
+  %w(postgresql_ranges postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids postgresql_ltrees
+      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -73,6 +73,18 @@ _SQL
   );
 _SQL
 
+  execute <<_SQL if supports_ranges?
+  CREATE TABLE postgresql_ranges (
+    id SERIAL PRIMARY KEY,
+    date_range daterange,
+    num_range numrange,
+    ts_range tsrange,
+    tstz_range tstzrange,
+    int4_range int4range,
+    int8_range int8range
+  );
+_SQL
+
   execute <<_SQL
   CREATE TABLE postgresql_tsvectors (
     id SERIAL PRIMARY KEY,
@@ -103,16 +115,6 @@ _SQL
   CREATE TABLE postgresql_json_data_type (
     id SERIAL PRIMARY KEY,
     json_data json default '{}'::json
-  );
-_SQL
-  end
-  
-  if 't' == select_value("select 'int4range'=ANY(select typname from pg_type)")
-  execute <<_SQL
-  CREATE TABLE postgresql_intrange_data_type (
-    id SERIAL PRIMARY KEY,
-    int_range int4range,
-    int_long_range int8range
   );
 _SQL
   end

@@ -37,9 +37,9 @@ You should use the defaults for all new applications unless you have a specific 
 
 ### Main Features
 
-The first feature of the pipeline is to concatenate assets. This is important in a production environment, because it can reduce the number of requests that a browser must make to render a web page. Web browsers are limited in the number of requests that they can make in parallel, so fewer requests can mean faster loading for your application.
+The first feature of the pipeline is to concatenate assets. This is important in a production environment, because it can reduce the number of requests that a browser makes to render a web page. Web browsers are limited in the number of requests that they can make in parallel, so fewer requests can mean faster loading for your application.
 
-Rails 2.x introduced the ability to concatenate JavaScript and CSS assets by placing `:cache => true` at the end of the `javascript_include_tag` and `stylesheet_link_tag` methods. But this technique has some limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
+Rails 2.x introduced the ability to concatenate JavaScript and CSS assets by placing `cache: true` at the end of the `javascript_include_tag` and `stylesheet_link_tag` methods. But this technique has some limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
 
 Starting with version 3.1, Rails defaults to concatenating all JavaScript files into one master `.js` file and all CSS files into one master `.css` file. As you'll learn later in this guide, you can customize this strategy to group files any way you like. In production, Rails inserts an MD5 fingerprint into each filename so that the file is cached by the web browser. You can invalidate the cache by altering this fingerprint, which happens automatically whenever you change the file contents.
 
@@ -369,8 +369,8 @@ If any of the files in the manifest have changed between requests, the server re
 Debug mode can also be enabled in the Rails helper methods:
 
 ```erb
-<%= stylesheet_link_tag "application", :debug => true %>
-<%= javascript_include_tag "application", :debug => true %>
+<%= stylesheet_link_tag "application", debug: true %>
+<%= javascript_include_tag "application", debug: true %>
 ```
 
 The `:debug` option is redundant if debug mode is on.
@@ -445,7 +445,7 @@ NOTE. If you are precompiling your assets locally, you can use `bundle install -
 The default matcher for compiling files includes `application.js`, `application.css` and all non-JS/CSS files (this will include all image assets automatically):
 
 ```ruby
-[ Proc.new{ |path| !%w(.js .css).include?(File.extname(path)) }, /application.(css|js)$/ ]
+[ Proc.new { |path| !%w(.js .css).include?(File.extname(path)) }, /application.(css|js)$/ ]
 ```
 
 NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are **not** automatically included as they compile to JS/CSS.
@@ -460,7 +460,7 @@ Or you can opt to precompile all assets with something like this:
 
 ```ruby
 # config/environments/production.rb
-config.assets.precompile << Proc.new { |path|
+config.assets.precompile << Proc.new do |path|
   if path =~ /\.(css|js)\z/
     full_path = Rails.application.assets.resolve(path).to_path
     app_assets_path = Rails.root.join('app', 'assets').to_path
@@ -474,7 +474,7 @@ config.assets.precompile << Proc.new { |path|
   else
     false
   end
-}
+end
 ```
 
 NOTE. Always specify an expected compiled filename that ends with js or css, even if you want to add Sass or CoffeeScript files to the precompile array.
@@ -502,14 +502,14 @@ For Apache:
 
 ```apache
 # The Expires* directives requires the Apache module `mod_expires` to be enabled.
-<LocationMatch "^/assets/.*$">
+<Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag
   FileETag None
   # RFC says only cache for 1 year
   ExpiresActive On
   ExpiresDefault "access plus 1 year"
-</LocationMatch>
+</Location>
 ```
 
 For nginx:
@@ -663,7 +663,7 @@ class Transformer
 end
 ```
 
-To enable this, pass a `new` object to the config option in `application.rb`:
+To enable this, pass a new object to the config option in `application.rb`:
 
 ```ruby
 config.assets.css_compressor = Transformer.new

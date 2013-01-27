@@ -417,14 +417,6 @@ module ActiveRecord
               when 0..6; "timestamp(#{precision})"
               else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
             end
-          when 'intrange'
-            return 'int4range' unless limit
-
-            case limit
-              when 1..4; 'int4range'
-              when 5..8; 'int8range'
-              else raise(ActiveRecordError, "No range type has byte size #{limit}. Use a numeric with precision 0 instead.")
-            end
           else
             super
           end
