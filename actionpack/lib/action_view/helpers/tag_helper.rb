@@ -122,7 +122,7 @@ module ActionView
       #   escape_once("&lt;&lt; Accept & Checkout")
       #   # => "&lt;&lt; Accept &amp; Checkout"
       def escape_once(html)
-        ActiveSupport::Multibyte.clean(html.to_s).gsub(/[\"><]|&(?!([a-zA-Z]+|(#\d+));)/) { |special| ERB::Util::HTML_ESCAPE[special] }
+        ActiveSupport::Multibyte.clean(html.to_s).gsub(/["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]{1,4}));)/) { |special| ERB::Util::HTML_ESCAPE[special] }
       end
 
       private

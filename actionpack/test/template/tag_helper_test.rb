@@ -93,6 +93,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_escape_once
     assert_equal '1 &lt; 2 &amp; 3', escape_once('1 < 2 &amp; 3')
+    assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#x27; &lt; &gt; ", escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
   end
 
   def test_tag_honors_html_safe_for_param_values
