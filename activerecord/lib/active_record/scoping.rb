@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module Scoping
     extend ActiveSupport::Concern
@@ -25,6 +24,5 @@ module ActiveRecord
         send("#{att}=", value) if respond_to?("#{att}=")
       end
     end
-
   end
 end

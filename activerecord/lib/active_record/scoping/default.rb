@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module Scoping
     module Default
@@ -99,7 +98,7 @@ module ActiveRecord
             )
           end
 
-          self.default_scopes = default_scopes + [scope]
+          self.default_scopes += [scope]
         end
 
         def build_default_scope # :nodoc:
@@ -140,7 +139,6 @@ module ActiveRecord
             self.ignore_default_scope = false
           end
         end
-
       end
     end
   end
