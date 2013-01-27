@@ -1,5 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Relation#merge now only overwrites where values on the LHS of the
+    merge. Consider:
+
+        left  = Person.where(age: [13, 14, 15])
+        right = Person.where(age: [13, 14]).where(age: [14, 15])
+
+    `left` results in the following SQL:
+
+        WHERE age IN (13, 14, 15)
+
+    `right` results in the following SQL:
+
+        WHERE age IN (13, 14) AND age IN (14, 15)
+
+    Previously, `left.merge(right)` would result in all but the last
+    condition being removed:
+
+        WHERE age IN (14, 15)
+
+    Now it results in the LHS condition(s) for `age` being removed, but
+    the RHS remains as it is:
+
+        WHERE age IN (13, 14) AND age IN (14, 15)
+
+    *Jon Leighton*
+
 *   Fix handling of dirty time zone aware attributes
 
     Previously, when `time_zone_aware_attributes` were enabled, after

@@ -894,4 +894,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  test "has many through with default scope on the target" do
+    person = people(:michael)
+    assert_equal [posts(:thinking)], person.first_posts
+
+    readers(:michael_authorless).update(first_post_id: 1)
+    assert_equal [posts(:thinking)], person.reload.first_posts
+  end
 end
