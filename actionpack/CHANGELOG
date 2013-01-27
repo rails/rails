@@ -19,9 +19,9 @@
 
   *Marek from Nethemba (www.nethemba.com) & Santiago Pastorino*
 
-* When a "prompt" value is supplied to the `select_tag` helper, the "prompt" value is not escaped.  If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
+* When an "include_blank" value is supplied to the `select_tag` helper, the "include_blank" value is not escaped.  If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
   Vulnerable code will look something like this:
-    select_tag("name", options, :prompt => UNTRUSTED_INPUT)
+    select_tag("name", options, :include_blank => UNTRUSTED_INPUT)
 
   *Santiago Pastorino*
 
