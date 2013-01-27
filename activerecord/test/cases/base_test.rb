@@ -1141,6 +1141,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal last, Developer.all.merge!(:order => 'developers.salary ASC').to_a.last
   end
 
+  def test_find_ordered_with_sql_function_last
+    last  = Developer.all.merge!(:order => 'COALESCE(developers.name, CAST(developers.salary as CHAR)) ASC, id ASC').last
+    assert_equal last, Developer.all.merge!(:order => 'COALESCE(developers.name, CAST(developers.salary as CHAR)) ASC, id ASC').to_a.last
+  end
+
   def test_find_reverse_ordered_last
     last  = Developer.all.merge!(:order => 'developers.salary DESC').last
     assert_equal last, Developer.all.merge!(:order => 'developers.salary DESC').to_a.last
@@ -1149,6 +1154,11 @@ class BasicsTest < ActiveRecord::TestCase
   def test_find_multiple_ordered_last
     last  = Developer.all.merge!(:order => 'developers.name, developers.salary DESC').last
     assert_equal last, Developer.all.merge!(:order => 'developers.name, developers.salary DESC').to_a.last
+  end
+
+  def test_find_multiple_ordered_last_with_use_of_sql_function
+    last  = Developer.all.merge!(:order => 'COALESCE(developers.name, CAST(developers.salary as CHAR)) DESC, id DESC').last
+    assert_equal last, Developer.all.merge!(:order => 'COALESCE(developers.name, CAST(developers.salary as CHAR)) DESC, id DESC').to_a.last
   end
 
   def test_find_keeps_multiple_order_values
