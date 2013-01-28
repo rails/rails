@@ -35,7 +35,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   def test_response_body_encoding
-    body = ["hello".encode('utf-8')]
+    body = ["hello".encode(Encoding::UTF_8)]
     response = ActionDispatch::Response.new 200, {}, body
     assert_equal Encoding::UTF_8, response.body.encoding
   end

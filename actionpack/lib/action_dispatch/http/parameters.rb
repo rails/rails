@@ -55,7 +55,7 @@ module ActionDispatch
       # should really prevent that from happening
       def encode_params(params)
         if params.is_a?(String)
-          return params.force_encoding("UTF-8").encode!
+          return params.force_encoding(Encoding::UTF_8).encode!
         elsif !params.is_a?(Hash)
           return params
         end
