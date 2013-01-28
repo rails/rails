@@ -286,7 +286,16 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      run_callbacks(:destroy) { super }
+      # Select the row to delete using a database lock before running the callbacks so that callbacks
+      # won't be run if the row has already been deleted by another process.
+      klass = self.class
+      sql = klass.where(klass.primary_key => self.id).select(klass.primary_key).lock(true).to_sql
+      row_exists = !!klass.connection.select_one(sql)
+      if row_exists
+        run_callbacks(:destroy) { super }
+      else
+        super
+      end
     end
 
     def touch(*) #:nodoc:

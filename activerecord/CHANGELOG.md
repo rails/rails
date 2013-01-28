@@ -1323,4 +1323,10 @@
 
     *Aaron Patterson*
 
+*   Destroy callbacks are only called if the row to be deleted has not already
+    been deleted by another process. This feature is only available if the database
+    supports a pessimistic locking mechanism.
+
+   *Brian Durand*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
