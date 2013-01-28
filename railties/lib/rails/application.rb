@@ -365,10 +365,6 @@ module Rails
         middleware.use ::Rack::Head
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
-
-        if config.action_dispatch.best_standards_support
-          middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
-        end
       end
     end
 
