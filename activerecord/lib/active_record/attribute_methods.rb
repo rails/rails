@@ -21,7 +21,7 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
-        # Use a mutex; we don't want two thread simaltaneously trying to define
+        # Use a mutex; we don't want two threads simultaneously trying to define
         # attribute methods.
         @attribute_methods_mutex.synchronize do
           return if attribute_methods_generated?
@@ -59,13 +59,11 @@ module ActiveRecord
           raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
         end
 
-        if superclass == Base
-          super
-        else
-          # If B < A and A defines its own attribute method, then we don't want to overwrite that.
-          defined = method_defined_within?(method_name, superclass, superclass.generated_attribute_methods)
-          defined && !ActiveRecord::Base.method_defined?(method_name) || super
-        end
+        return super if superclass == Base
+
+        # If B < A and A defines its own attribute method, then we don't want to overwrite that.
+        defined = method_defined_within?(method_name, superclass, superclass.generated_attribute_methods)
+        defined && !ActiveRecord::Base.method_defined?(method_name) || super
       end
 
       # A method name is 'dangerous' if it is already defined by Active Record, but
@@ -121,15 +119,11 @@ module ActiveRecord
     def method_missing(method, *args, &block) # :nodoc:
       unless self.class.attribute_methods_generated?
         self.class.define_attribute_methods
-
         if respond_to_without_attributes?(method)
-          send(method, *args, &block)
-        else
-          super
+          return send(method, *args, &block)
         end
-      else
-        super
       end
+      super
     end
 
     def attribute_missing(match, *args, &block) # :nodoc:
@@ -252,7 +246,7 @@ module ActiveRecord
     end
 
     # Returns the column object for the named attribute. Returns +nil+ if the
-    # named attribute not exists.
+    # named attribute doesn't exist.
     #
     #   class Person < ActiveRecord::Base
     #   end

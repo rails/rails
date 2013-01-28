@@ -457,7 +457,7 @@ module ActiveRecord
     #     has_many :people do
     #       def find_or_create_by_name(name)
     #         first_name, last_name = name.split(" ", 2)
-    #         find_or_create_by(first_name: first_name, last_name: last_name)
+    #         where(first_name: first_name, last_name: last_name).first_or_create
     #       end
     #     end
     #   end
@@ -472,7 +472,7 @@ module ActiveRecord
     #   module FindOrCreateByNameExtension
     #     def find_or_create_by_name(name)
     #       first_name, last_name = name.split(" ", 2)
-    #       find_or_create_by(first_name: first_name, last_name: last_name)
+    #       where(first_name: first_name, last_name: last_name).first_or_create
     #     end
     #   end
     #
@@ -621,7 +621,7 @@ module ActiveRecord
     #     belongs_to :commenter
     #   end
     #
-    # When using nested association, you will not be able to modify the association because there
+    # When using nested associations, you will not be able to modify the association because there
     # is not enough information to know what modification to make. For example, if you tried to
     # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the
     # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.

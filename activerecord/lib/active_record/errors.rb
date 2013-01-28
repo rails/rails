@@ -202,7 +202,7 @@ module ActiveRecord
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
+  #   relation.where!(title: 'write report')  # => ActiveRecord::ImmutableRelation
   #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
   class ImmutableRelation < ActiveRecordError
   end
