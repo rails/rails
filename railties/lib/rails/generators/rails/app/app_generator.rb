@@ -150,7 +150,7 @@ module Rails
                              desc: "Show Rails version number and quit"
 
       def initialize(*args)
-        raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
+        raise Error, "APP_PATH should be given. For details run: rails --help" if args[0].blank?
 
         super
 
