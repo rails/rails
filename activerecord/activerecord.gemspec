@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'activerecord'
-  s.version = '2.3.15'
+  s.version = '2.3.16'
   s.summary = 'Implements the ActiveRecord pattern for ORM.'
   s.description = 'Implements the ActiveRecord pattern (Fowler, PoEAA) for ORM. It ties database tables and classes together for business objects, like Customer or Subscription, that can find, save, and destroy themselves without resorting to manual SQL.'
 
@@ -13,5 +13,5 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--main', 'README']
   s.extra_rdoc_files = ['README']
 
-  s.add_dependency 'activesupport', '= 2.3.15'
+  s.add_dependency 'activesupport', '= 2.3.16'
 end
