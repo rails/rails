@@ -437,6 +437,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     ActionDispatch::Request.new(env)
   end
 
+  def test_current_page_with_http_head_method
+    @request = request_for_url("/", :method => :head)
+    assert current_page?(url_hash)
+    assert current_page?("http://www.example.com/")
+  end
+
   def test_current_page_with_simple_url
     @request = request_for_url("/")
     assert current_page?(url_hash)
