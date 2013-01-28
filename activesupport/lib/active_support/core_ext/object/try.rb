@@ -1,35 +1,43 @@
 class Object
-  # Invokes the public method identified by the symbol +method+, passing it any arguments
-  # and/or the block specified, just like the regular Ruby <tt>Object#public_send</tt> does.
+  # Invokes the public method whose name goes as first argument just like
+  # +public_send+ does, except that if the receiver does not respond to it the
+  # call returns +nil+ rather than raising an exception.
   #
-  # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
-  # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
+  # This method is defined to be able to write
   #
-  # This is also true if the receiving object does not implemented the tried method. It will
-  # return +nil+ in that case as well.
-  #
-  # If try is called without a method to call, it will yield any given block with the object.
-  #
-  # Please also note that +try+ is defined on +Object+, therefore it won't work with
-  # subclasses of +BasicObject+. For example, using try with +SimpleDelegator+ will
-  # delegate +try+ to target instead of calling it on delegator itself.
-  #
-  # Without +try+
-  #   @person && @person.name
-  # or
-  #   @person ? @person.name : nil
-  #
-  # With +try+
   #   @person.try(:name)
   #
-  # +try+ also accepts arguments and/or a block, for the method it is trying
-  #   Person.try(:find, 1)
-  #   @people.try(:collect) {|p| p.name}
+  # instead of
   #
-  # Without a method argument try will yield to the block unless the receiver is nil.
-  #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
+  #   @person ? @person.name : nil
   #
-  # +try+ behaves like +Object#public_send+, unless called on +NilClass+.
+  # +try+ returns +nil+ when called on +nil+ regardless of whether it responds
+  # to the method:
+  #
+  #   nil.try(:to_i) # => nil, rather than 0
+  #
+  # Arguments and blocks are forwarded to the method if invoked:
+  #
+  #   @posts.try(:each_slice, 2) do |a, b|
+  #     ...
+  #   end
+  #
+  # The number of arguments in the signature must match. If the object responds
+  # to the method the call is attempted and +ArgumentError+ is still raised
+  # otherwise.
+  #
+  # If +try+ is called without arguments it yields the receiver to a given
+  # block unless it is +nil+:
+  #
+  #   @person.try do |p|
+  #     ...
+  #   end
+  #
+  # Please also note that +try+ is defined on +Object+, therefore it won't work
+  # with instances of classes that do not have +Object+ among their ancestors,
+  # like direct subclasses of +BasicObject+. For example, using +try+ with
+  # +SimpleDelegator+ will delegate +try+ to the target instead of calling it on
+  # delegator itself.
   def try(*a, &b)
     if a.empty? && block_given?
       yield self
