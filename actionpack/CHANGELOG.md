@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix that CSRF protection and current_url? helper work with HEAD requests
+    now ActionDispatch::Head has been removed in favor of Rack::Head.
+
+    *Michiel Sikkes*
+
 *   Change asset_path to not include `SCRIPT_NAME` when it's used
     from a mounted engine (fixes #8119).
 
