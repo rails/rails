@@ -65,7 +65,7 @@ module ActiveRecord
             end
           end
 
-          counts.sum
+          counts.inject(0, &:+)
         end
 
         def truncate(name)
