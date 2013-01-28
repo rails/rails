@@ -81,7 +81,7 @@ module ActionView
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
           # expression
-          template_source = template.source.dup.force_encoding("BINARY")
+          template_source = template.source.dup.force_encoding(Encoding::ASCII_8BIT)
 
           erb = template_source.gsub(ENCODING_TAG, '')
           encoding = $2
