@@ -85,6 +85,8 @@ module ActiveRecord
         end
       end
 
+      # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
+      # queries should not be cached.
       def locked?(arel)
         arel.respond_to?(:locked) && arel.locked
       end
