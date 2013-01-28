@@ -229,10 +229,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_squish
-    original = %{ A string with tabs(\t\t), newlines(\n\n), and
-                  many spaces(  ). }
+    original = %{\u180E\u180E A string surrounded by unicode mongolian vowel separators,
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u180E\u180E}
 
-    expected = "A string with tabs( ), newlines( ), and many spaces( )."
+    expected = "A string surrounded by unicode mongolian vowel separators, " +
+      "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:
     assert_equal original.squish,  expected
