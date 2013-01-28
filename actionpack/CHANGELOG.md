@@ -761,7 +761,7 @@
 *   Removed old text helper apis from `highlight`, `excerpt` and `word_wrap`. *Jeremy Walker*
 
 *   Templates without a handler extension now raises a deprecation warning but still
-    defaults to ERb. In future releases, it will simply return the template contents. *Steve Klabnik*
+    defaults to ERB. In future releases, it will simply return the template contents. *Steve Klabnik*
 
 *   Deprecate `:disable_with` in favor of `data: { disable_with: "Text" }` option from `submit_tag`, `button_tag` and `button_to` helpers.
 
