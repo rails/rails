@@ -771,8 +771,8 @@ module ActionView
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
-      #   text_field(:session, :user, onchange: "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }")
-      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }"/>
+      #   text_field(:session, :user, onchange: "if ($('#session_user').val() === 'admin') { alert('Your login can not be admin!'); }")
+      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login can not be admin!'); }"/>
       #
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
@@ -792,8 +792,8 @@ module ActionView
       #   password_field(:account, :secret, class: "form_input", value: @account.secret)
       #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
       #
-      #   password_field(:user, :password, onchange: "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }")
-      #   # => <input type="password" id="user_password" name="user[password]" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
+      #   password_field(:user, :password, onchange: "if ($('#user_password').val().length > 30) { alert('Your password needs to be shorter!'); }")
+      #   # => <input type="password" id="user_password" name="user[password]" onchange="if ($('#user_password').val().length > 30) { alert('Your password needs to be shorter!'); }"/>
       #
       #   password_field(:account, :pin, size: 20, class: 'form_input')
       #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
