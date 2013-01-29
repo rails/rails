@@ -39,7 +39,9 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q([{"d":"1970-01-01","s":"http:\/\/example.com"},{"d":"1970-01-01","s":"http:\/\/example.com"}]) =>
       [{'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'},
        {'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'}],
-    "\"foobar\"" => "foobar"
+    "\"foobar\"" => "foobar",
+    "42"         => 42,
+    "null"       => nil
   }
 
   # load the default JSON backend
@@ -80,6 +82,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   def test_decoding_of_json_encoded_string
     assert_equal "foobar", ActiveSupport::JSON.decode(ActiveSupport::JSON.encode("foobar"))
+    assert_equal 42, ActiveSupport::JSON.decode(ActiveSupport::JSON.encode(42))
+    assert_equal nil, ActiveSupport::JSON.decode(ActiveSupport::JSON.encode(nil))
   end
 end
 
