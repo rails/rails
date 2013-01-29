@@ -1,10 +1,11 @@
 require "cases/helper"
+require 'models/club'
 require 'models/company'
 require "models/contract"
-require 'models/topic'
 require 'models/edge'
-require 'models/club'
 require 'models/organization'
+require 'models/possession'
+require 'models/topic'
 
 Company.has_many :accounts
 
@@ -502,5 +503,11 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_not_auto_table_name_prefix_if_column_joined
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
     assert_equal [7], Company.joins(:contracts).pluck(:developer_id).map(&:to_i)
+  end
+
+  def test_pluck_with_reserved_words
+    Possession.create!(:where => "Over There")
+
+    assert_equal ["Over There"], Possession.pluck(:where)
   end
 end
