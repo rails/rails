@@ -42,9 +42,9 @@ class TestJSONDecoding < ActiveSupport::TestCase
   }
 
   # load the default JSON backend
-  ActiveSupport::JSON.backend = 'Yaml'
+  ActiveSupport::JSON.backend = 'OkJson'
 
-  backends = %w(Yaml)
+  backends = %w(OkJson)
   backends << "JSONGem" if defined?(::JSON)
   backends << "Yajl" if defined?(::Yajl)
 
