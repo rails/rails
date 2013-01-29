@@ -594,9 +594,11 @@ module ActiveRecord
       end
 
       def extension_enabled?(name)
-        res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
-                   'SCHEMA'
-        res.column_types['exists'].type_cast res.rows.first.first
+        if supports_extensions
+          res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
+            'SCHEMA'
+          res.column_types['exists'].type_cast res.rows.first.first
+        end
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
