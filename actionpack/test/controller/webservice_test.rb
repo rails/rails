@@ -129,19 +129,6 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     $stderr = STDERR
   end
 
-  def test_register_and_use_yaml
-    with_test_route_set do
-      with_params_parsers Mime::YAML => Proc.new { |d| YAML.load(d) } do
-        post "/", {"entry" => "loaded from yaml"}.to_yaml,
-          {'CONTENT_TYPE' => 'application/x-yaml'}
-
-        assert_equal 'entry', @controller.response.body
-        assert @controller.params.has_key?(:entry)
-        assert_equal 'loaded from yaml', @controller.params["entry"]
-      end
-    end
-  end
-
   def test_register_and_use_xml_simple
     with_test_route_set do
       with_params_parsers Mime::XML => Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access } do
