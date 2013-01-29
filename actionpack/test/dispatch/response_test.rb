@@ -182,7 +182,8 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_headers = {
         'X-Frame-Options' => 'DENY',
         'X-Content-Type-Options' => 'nosniff',
-        'X-XSS-Protection' => '1;'
+        'X-XSS-Protection' => '1;',
+        'X-UA-Compatible' => 'chrome=1'
       }
       resp = ActionDispatch::Response.new.tap { |response|
         response.body = 'Hello'
@@ -192,6 +193,7 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal('DENY', resp.headers['X-Frame-Options'])
       assert_equal('nosniff', resp.headers['X-Content-Type-Options'])
       assert_equal('1;', resp.headers['X-XSS-Protection'])
+      assert_equal('chrome=1', resp.headers['X-UA-Compatible'])
     ensure
       ActionDispatch::Response.default_headers = nil
     end
