@@ -586,11 +586,15 @@ module ActiveRecord
       end
 
       def enable_extension(name)
-        exec_query "CREATE EXTENSION IF NOT EXISTS #{name}"
+        exec_query("CREATE EXTENSION IF NOT EXISTS #{name}").tap {
+          reload_type_map
+        }
       end
 
       def disable_extension(name)
-        exec_query "DROP EXTENSION IF EXISTS #{name} CASCADE"
+        exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
+          reload_type_map
+        }
       end
 
       def extension_enabled?(name)
@@ -665,6 +669,11 @@ module ActiveRecord
         end
 
       private
+
+        def reload_type_map
+          OID::TYPE_MAP.clear
+          initialize_type_map
+        end
 
         def initialize_type_map
           result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
