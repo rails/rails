@@ -1,5 +1,8 @@
 require 'rbconfig'
-require 'minitest/parallel_each'
+begin
+  require 'minitest/parallel_each'
+rescue LoadError
+end
 
 module ActiveSupport
   module Testing
