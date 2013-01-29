@@ -575,7 +575,7 @@ module ActiveRecord
         true
       end
 
-      # Returns true.
+      # Returns true if pg > 9.2
       def supports_extensions?
         postgresql_version >= 90200
       end
