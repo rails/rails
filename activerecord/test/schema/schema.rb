@@ -281,6 +281,10 @@ ActiveRecord::Schema.define do
     t.string :info
   end
 
+  create_table :having, :force => true do |t|
+    t.string :where
+  end
+
   create_table :guids, :force => true do |t|
     t.column :key, :string
   end

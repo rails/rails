@@ -1,5 +1,11 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Fix `ActiveRecord::Relation#pluck` when columns or tables are reserved words.
+    Backport #7536.
+    Fix #8968.
+
+    *Ian Lesperance + Yves Senn + Kaspar Schiess*
+
 *   Don't run explain on slow queries for database adapters that don't support it.
     Backport #6197.
 
