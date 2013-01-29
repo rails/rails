@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove `BestStandardsSupport` middleware, !DOCTYPE html already triggers
+    standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx
+    and ChromeFrame header has been moved to `config.action_dispatch.default_headers`
+
+    *Guillermo Iguaran*
+
 *   Fix CSRF protection and `current_url?` helper to work with HEAD requests
     now that `ActionDispatch::Head` has been removed in favor of `Rack::Head`.
 
@@ -31,11 +37,6 @@
     Permitted scalars filtering happens at any level of nesting.
 
     *Xavier Noria*
-
-*   `BestStandardsSupport` no longer duplicates `X-UA-Compatible` values on
-    each request to prevent header size from blowing up.
-
-    *Edward Anderson*
 
 *   Change the behavior of route defaults so that explicit defaults are no longer
     required where the key is not part of the path. For example:
