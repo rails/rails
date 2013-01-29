@@ -171,6 +171,12 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support database extensions?  As of this writing
+      # only postgresql does.
+      def supports_extensions?
+        false
+      end
+
       # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current

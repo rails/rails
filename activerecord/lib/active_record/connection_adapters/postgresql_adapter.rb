@@ -575,9 +575,28 @@ module ActiveRecord
         true
       end
 
+      # Returns true.
+      def supports_extensions?
+        postgresql_version >= 90200
+      end
+
       # Range datatypes weren't introduced until PostgreSQL 9.2
       def supports_ranges?
         postgresql_version >= 90200
+      end
+
+      def enable_extension(name)
+        exec_query "CREATE EXTENSION IF NOT EXISTS #{name}"
+      end
+
+      def disable_extension(name)
+        exec_query "DROP EXTENSION IF EXISTS #{name} CASCADE"
+      end
+
+      def extension_enabled?(name)
+        res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
+                   'SCHEMA'
+        res.column_types['exists'].type_cast res.rows.first.first
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
