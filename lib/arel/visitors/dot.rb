@@ -65,7 +65,6 @@ module Arel
         visit_edge o, "expr"
       end
       alias :visit_Arel_Nodes_Group             :unary
-      alias :visit_Arel_Nodes_BindParam         :unary
       alias :visit_Arel_Nodes_Grouping          :unary
       alias :visit_Arel_Nodes_Having            :unary
       alias :visit_Arel_Nodes_Limit             :unary
@@ -195,6 +194,7 @@ module Arel
       alias :visit_TrueClass :visit_String
       alias :visit_FalseClass :visit_String
       alias :visit_Arel_SqlLiteral :visit_String
+      alias :visit_Arel_Nodes_BindParam :visit_String
       alias :visit_Fixnum :visit_String
       alias :visit_BigDecimal :visit_String
       alias :visit_Float :visit_String
