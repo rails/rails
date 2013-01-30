@@ -8,12 +8,12 @@
 
     Before:
 
-        content_tag_for(:td, item, class: ["foo", "bar"]){}
+        content_tag_for(:td, item, class: ["foo", "bar"])
         #=> '<td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>'
 
     After:
 
-        content_tag_for(:td, item, class: ["foo", "bar"]){}
+        content_tag_for(:td, item, class: ["foo", "bar"])
         #=> '<td class="item foo bar" id="item_1"></td>'
 
     *Semyon Perepelitsa*
