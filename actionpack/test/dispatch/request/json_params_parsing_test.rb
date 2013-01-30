@@ -32,6 +32,10 @@ class JsonParamsParsingTest < ActionController::IntegrationTest
 
   test "nils are stripped from collections" do
     assert_parses(
+      {"person" => []},
+      "{\"person\":[]}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+    assert_parses(
       {"person" => nil},
       "{\"person\":[null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
