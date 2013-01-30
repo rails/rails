@@ -589,6 +589,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def quote value, column = nil
+        return value if Arel::Nodes::SqlLiteral === value
         @connection.quote value, column
       end
 
