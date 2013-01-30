@@ -6,7 +6,6 @@ module ActionDispatch
     config.action_dispatch.x_sendfile_header = nil
     config.action_dispatch.ip_spoofing_check = true
     config.action_dispatch.show_exceptions = true
-    config.action_dispatch.best_standards_support = true
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
     config.action_dispatch.rescue_templates = { }
@@ -21,7 +20,8 @@ module ActionDispatch
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'SAMEORIGIN',
       'X-XSS-Protection' => '1; mode=block',
-      'X-Content-Type-Options' => 'nosniff'
+      'X-Content-Type-Options' => 'nosniff',
+      'X-UA-Compatible' => 'chrome=1'
     }
 
     config.eager_load_namespaces << ActionDispatch

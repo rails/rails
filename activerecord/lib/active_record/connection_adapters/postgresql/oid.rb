@@ -239,6 +239,10 @@ module ActiveRecord
             @mapping[oid]
           end
 
+          def clear
+            @mapping.clear
+          end
+
           def key?(oid)
             @mapping.key? oid
           end

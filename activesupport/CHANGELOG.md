@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Improve `String#squish` to handle Unicode whitespace. *Antoine Lyset*
+
 *   Standardise on `to_time` returning an instance of `Time` in the local system timezone
     across `String`, `Time`, `Date`, `DateTime` and `ActiveSupport::TimeWithZone`.
 

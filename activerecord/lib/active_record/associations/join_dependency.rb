@@ -68,7 +68,7 @@ module ActiveRecord
             remove_duplicate_results!(base, records, association)
           end
         when Hash
-          associations.keys.each do |name|
+          associations.each_key do |name|
             reflection = base.reflections[name]
             remove_uniq_by_reflection(reflection, records)
 

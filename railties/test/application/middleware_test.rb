@@ -45,8 +45,7 @@ module ApplicationTests
         "ActionDispatch::ParamsParser",
         "Rack::Head",
         "Rack::ConditionalGet",
-        "Rack::ETag",
-        "ActionDispatch::BestStandardsSupport"
+        "Rack::ETag"
       ], middleware
     end
 

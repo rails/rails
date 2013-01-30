@@ -1,4 +1,9 @@
 require 'rbconfig'
+begin
+  require 'minitest/parallel_each'
+rescue LoadError
+end
+
 module ActiveSupport
   module Testing
     class RemoteError < StandardError

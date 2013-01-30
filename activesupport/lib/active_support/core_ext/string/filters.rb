@@ -3,6 +3,8 @@ class String
   # the string, and then changing remaining consecutive whitespace
   # groups into one space each.
   #
+  # Note that it handles both ASCII and Unicode whitespace like mongolian vowel separator (U+180E).
+  #
   #   %{ Multi-line
   #      string }.squish                   # => "Multi-line string"
   #   " foo   bar    \n   \t   boo".squish # => "foo bar boo"
@@ -12,8 +14,9 @@ class String
 
   # Performs a destructive squish. See String#squish.
   def squish!
-    strip!
-    gsub!(/\s+/, ' ')
+    gsub!(/\A[[:space:]]+/, '')
+    gsub!(/[[:space:]]+\z/, '')
+    gsub!(/[[:space:]]+/, ' ')
     self
   end
 

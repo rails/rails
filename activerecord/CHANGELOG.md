@@ -601,7 +601,7 @@
 
     *Matt Jones*
 
-*   Accept belongs_to (including polymorphic) association keys in queries.
+*   Accept `belongs_to` (including polymorphic) association keys in queries.
 
     The following queries are now equivalent:
 

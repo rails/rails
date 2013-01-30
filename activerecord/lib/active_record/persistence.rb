@@ -220,7 +220,7 @@ module ActiveRecord
         save
       end
     end
-    
+
     alias update_attributes update
 
     # Updates its receiver just like +update+ but calls <tt>save!</tt> instead
@@ -233,7 +233,7 @@ module ActiveRecord
         save!
       end
     end
-    
+
     alias update_attributes! update!
 
     # Equivalent to <code>update_columns(name => value)</code>.

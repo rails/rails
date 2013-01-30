@@ -11,20 +11,42 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    begin
-      @connection.transaction do
-        @connection.create_table('hstores') do |t|
-          t.hstore 'tags', :default => ''
-        end
-      end
-    rescue ActiveRecord::StatementInvalid
+    unless @connection.extension_enabled?('hstore')
+      @connection.enable_extension 'hstore'
       return skip "do not test on PG without hstore"
+    end
+
+    @connection.transaction do
+      @connection.create_table('hstores') do |t|
+        t.hstore 'tags', :default => ''
+      end
     end
     @column = Hstore.columns.find { |c| c.name == 'tags' }
   end
 
   def teardown
     @connection.execute 'drop table if exists hstores'
+  end
+
+  def test_hstore_enabled
+    assert @connection.extension_enabled?('hstore')
+  end
+
+  def test_disable_hstore
+    if @connection.extension_enabled?('hstore')
+      @connection.disable_extension 'hstore'
+      assert_not @connection.extension_enabled?('hstore')
+    end
+  end
+
+  def test_enable_hstore
+    if @connection.extension_enabled?('hstore')
+      @connection.disable_extension 'hstore'
+    end
+
+    assert_not @connection.extension_enabled?('hstore')
+    @connection.enable_extension 'hstore'
+    assert @connection.extension_enabled?('hstore')
   end
 
   def test_column

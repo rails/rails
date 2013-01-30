@@ -575,9 +575,34 @@ module ActiveRecord
         true
       end
 
+      # Returns true if pg > 9.2
+      def supports_extensions?
+        postgresql_version >= 90200
+      end
+
       # Range datatypes weren't introduced until PostgreSQL 9.2
       def supports_ranges?
         postgresql_version >= 90200
+      end
+
+      def enable_extension(name)
+        exec_query("CREATE EXTENSION IF NOT EXISTS #{name}").tap {
+          reload_type_map
+        }
+      end
+
+      def disable_extension(name)
+        exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
+          reload_type_map
+        }
+      end
+
+      def extension_enabled?(name)
+        if supports_extensions?
+          res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
+            'SCHEMA'
+          res.column_types['exists'].type_cast res.rows.first.first
+        end
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
@@ -644,6 +669,11 @@ module ActiveRecord
         end
 
       private
+
+        def reload_type_map
+          OID::TYPE_MAP.clear
+          initialize_type_map
+        end
 
         def initialize_type_map
           result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')

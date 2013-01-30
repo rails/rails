@@ -26,7 +26,7 @@ module ActionDispatch
 
       def generate_sid
         sid = SecureRandom.hex(16)
-        sid.encode!('UTF-8')
+        sid.encode!(Encoding::UTF_8)
         sid
       end
 

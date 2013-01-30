@@ -1,4 +1,3 @@
-
 module ActiveRecord
   # = Active Record Reflection
   module Reflection # :nodoc:

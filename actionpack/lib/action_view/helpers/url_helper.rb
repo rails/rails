@@ -514,7 +514,7 @@ module ActionView
                 "in a #request method"
         end
 
-        return false unless request.get?
+        return false unless request.get? || request.head?
 
         url_string = url_for(options)
 

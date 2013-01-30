@@ -17,7 +17,7 @@ module ActionView
     end
 
     def message
-      @string.force_encoding("BINARY")
+      @string.force_encoding(Encoding::ASCII_8BIT)
       "Your template was not saved as valid #{@encoding}. Please " \
       "either specify #{@encoding} as the encoding for your template " \
       "in your text editor, or mark the template with its " \
