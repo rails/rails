@@ -1,5 +1,23 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `content_tag_for` with array html option.
+    It would embed array as string instead of joining it like `content_tag` does:
+
+        content_tag(:td, class: ["foo", "bar"]){}
+        #=> '<td class="foo bar"></td>'
+
+    Before:
+
+        content_tag_for(:td, item, class: ["foo", "bar"]){}
+        #=> '<td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>'
+
+    After:
+
+        content_tag_for(:td, item, class: ["foo", "bar"]){}
+        #=> '<td class="item foo bar" id="item_1"></td>'
+
+    *Semyon Perepelitsa*
+
 *   Change asset_path to not include `SCRIPT_NAME` when it's used
     from a mounted engine (fixes #8119).
 
