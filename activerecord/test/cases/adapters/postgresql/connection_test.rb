@@ -108,7 +108,7 @@ module ActiveRecord
         @connection.verify!
         new_connection_pid = @connection.query('select pg_backend_pid()')
       ensure
-        raw_connection_class.class_eval <<-CODE
+        raw_connection_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
           alias query query_unfake
           undef query_fake
         CODE
