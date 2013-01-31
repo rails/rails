@@ -62,6 +62,10 @@ module ActiveRecord
           ConnectionSpecification.new(spec, adapter_method)
         end
 
+        # For DATABASE_URL, accept a limited concept of ints and floats
+        SIMPLE_INT = /^\d+$/
+        SIMPLE_FLOAT = /^\d+\.\d+$/
+
         def connection_url_to_hash(url) # :nodoc:
           config = URI.parse url
           adapter = config.scheme
@@ -77,6 +81,21 @@ module ActiveRecord
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+            # If anything looks numeric, make it numeric (e.g. pool count, timeout values, etc.)
+            options.map do |key,value|
+              options[key] = case value
+                             when SIMPLE_INT
+                               value.to_i
+                             when SIMPLE_FLOAT
+                               value.to_f
+                             when 'true'
+                               true
+                             when 'false'
+                               false
+                             else
+                               value
+                             end
+            end
             spec.merge!(options)
           end
           spec
