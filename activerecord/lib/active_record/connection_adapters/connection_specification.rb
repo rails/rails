@@ -63,7 +63,7 @@ module ActiveRecord
         end
 
         # For DATABASE_URL, accept a limited concept of ints and floats
-        SIMPLE_INT = /\A\d+$\z/
+        SIMPLE_INT = /\A\d+\z/
         SIMPLE_FLOAT = /\A\d+\.\d+\z/
 
         def connection_url_to_hash(url) # :nodoc:
