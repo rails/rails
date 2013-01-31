@@ -4,6 +4,7 @@ require 'thread_safe'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/array/extract_options'
 require 'action_controller/metal/exceptions'
 
 module ActionDispatch

@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/extract_options'
 require 'abstract_controller/collector'
 
 module ActionController #:nodoc:

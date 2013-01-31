@@ -2,6 +2,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/array/extract_options'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 
