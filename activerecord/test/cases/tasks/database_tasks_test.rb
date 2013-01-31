@@ -31,6 +31,12 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
       ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :foo}, "awesome-file.sql")
     end
+
+    def test_unregistered_task
+      assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :bar}, "awesome-file.sql")
+      end
+    end
   end
 
   class DatabaseTasksCreateTest < ActiveRecord::TestCase
