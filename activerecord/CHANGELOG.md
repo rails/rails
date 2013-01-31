@@ -131,11 +131,11 @@
       The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
 
     * New method `reversible` makes it possible to specify code to be run when migrating up or down.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#using-the-reversible-method)
+      See the [Guide on Migration](/guides/source/migrations.md#using-the-reversible-method)
 
     * New method `revert` will revert a whole migration or the given block.
       If migrating down, the given migration / block is run normally.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
+      See the [Guide on Migration](/guides/source/migrations.md#reverting-previous-migrations)
 
     Attempting to revert the methods `execute`, `remove_columns` and `change_column` will now
     raise an `IrreversibleMigration` instead of actually executing them without any output.
