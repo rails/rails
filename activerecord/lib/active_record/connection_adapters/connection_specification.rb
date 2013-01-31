@@ -76,29 +76,37 @@ module ActiveRecord
                    :port     => config.port,
                    :database => config.path.sub(%r{^/},""),
                    :host     => config.host }
+
           spec.reject!{ |_,value| value.blank? }
+
           uri_parser = URI::Parser.new
+
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
+
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
-            # If anything looks numeric, make it numeric (e.g. pool count, timeout values, etc.)
-            options.map do |key,value|
-              options[key] = case value
-                             when SIMPLE_INT
-                               value.to_i
-                             when SIMPLE_FLOAT
-                               value.to_f
-                             when 'true'
-                               true
-                             when 'false'
-                               false
-                             else
-                               value
-                             end
-            end
+
+            options.each { |key, value| options[key] = type_cast_value(value) }
+
             spec.merge!(options)
           end
+
           spec
+        end
+
+        def type_cast_value(value)
+          case value
+          when SIMPLE_INT
+            value.to_i
+          when SIMPLE_FLOAT
+            value.to_f
+          when 'true'
+            true
+          when 'false'
+            false
+          else
+            value
+          end
         end
       end
     end
