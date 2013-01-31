@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   The DATABASE_URL environment variable now converts ints, floats, and
+*   The `DATABASE_URL` environment variable now converts ints, floats, and
     the strings true and false to Ruby types. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the
     prepared_statements option is a boolean. These now work as expected:
@@ -12,7 +12,7 @@
 
     *Aaron Stone*
 
-*   Relation#merge now only overwrites where values on the LHS of the
+*   `Relation#merge` now only overwrites where values on the LHS of the
     merge. Consider:
 
         left  = Person.where(age: [13, 14, 15])
@@ -71,7 +71,7 @@
 
     Example:
 
-      relation.uniq.count # => SELECT COUNT(DISTINCT *)
+        relation.uniq.count # => SELECT COUNT(DISTINCT *)
 
     *Yves Senn + Kaspar Schiess*
 
