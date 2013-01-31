@@ -557,6 +557,9 @@ class Holiday < ActiveRecord::Base
 end
 ```
 
+Again, you must create a unique index on both columns to enforce the uniqueness
+constraint across two different database connections.
+
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
 true.
