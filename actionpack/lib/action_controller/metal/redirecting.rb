@@ -88,7 +88,7 @@ module ActionController
         # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
         # characters; and is terminated by a colon (":").
         # The protocol relative scheme starts with a double slash "//"
-        when %r{^(\w[\w+.-]*:|//).*}
+        when %r{\A(\w[\w+.-]*:|//).*}
           options
         when String
           request.protocol + request.host_with_port + options
