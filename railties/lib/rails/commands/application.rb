@@ -12,7 +12,7 @@ else
   unless ARGV.delete("--no-rc")
     railsrc = File.join(File.expand_path("~"), ".railsrc")
     if File.exist?(railsrc)
-      extra_args_string = File.open(railsrc).read
+      extra_args_string = File.read(railsrc)
       extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
       puts "Using #{extra_args.join(" ")} from #{railsrc}"
       ARGV.insert(1, *extra_args)
