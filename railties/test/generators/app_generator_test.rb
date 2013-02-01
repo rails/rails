@@ -70,7 +70,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    quietly { system 'rails new test' }
+    quietly { system 'rails new test --no-rc' }
     assert_equal false, $?.success?
   end
 
