@@ -137,7 +137,6 @@ use ActionDispatch::ParamsParser
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-use ActionDispatch::BestStandardsSupport
 run MyApp::Application.routes
 ```
 
@@ -215,7 +214,6 @@ And to remove browser related middleware,
 
 ```ruby
 # config/application.rb
-config.middleware.delete "ActionDispatch::BestStandardsSupport"
 config.middleware.delete "Rack::MethodOverride"
 ```
 
@@ -306,10 +304,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
  **`Rack::ETag`**
 
 * Adds ETag header on all String bodies. ETags are used to validate cache.
-
- **`ActionDispatch::BestStandardsSupport`**
-
-* Enables “best standards support” so that IE8 renders some elements correctly.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
