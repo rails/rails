@@ -757,6 +757,18 @@ ActiveRecord::Schema.define do
     t.string 'a$b'
   end
 
+  create_table :universes, :force => true do |t|
+    t.integer :stars_count, :default => 0
+  end
+
+  create_table :galaxies, :force => true do |t|
+    t.integer :universe_id
+  end
+
+  create_table :stars, :force => true do |t|
+    t.integer :galaxy_id
+  end
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|
