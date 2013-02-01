@@ -9,54 +9,85 @@ module Rails
       # of file to a new +TestRunner+ object, then invoke the evaluation. If
       # the argument is not a test suite name, it will be treated as a file
       # name and passed to the +TestRunner+ instance right away.
-      def start(arguments)
-        case arguments.first
+      def start(files, options)
+        case files.first
         when nil
-          new(Dir['test/**/*_test.rb']).run
+          new(Dir['test/**/*_test.rb'], options).run
         when 'models'
-          new(Dir['test/models/**/*_test.rb']).run
+          new(Dir['test/models/**/*_test.rb'], options).run
         when 'helpers'
-          new(Dir['test/helpers/**/*_test.rb']).run
+          new(Dir['test/helpers/**/*_test.rb'], options).run
         when 'units'
-          new(Dir['test/{models,helpers,unit}/**/*_test.rb']).run
+          new(Dir['test/{models,helpers,unit}/**/*_test.rb'], options).run
         when 'controllers'
-          new(Dir['test/controllers/**/*_test.rb']).run
+          new(Dir['test/controllers/**/*_test.rb'], options).run
         when 'mailers'
-          new(Dir['test/mailers/**/*_test.rb']).run
+          new(Dir['test/mailers/**/*_test.rb'], options).run
         when 'functionals'
-          new(Dir['test/{controllers,mailers,functional}/**/*_test.rb']).run
+          new(Dir['test/{controllers,mailers,functional}/**/*_test.rb'], options).run
         when 'integration'
-          new(Dir['test/integration/**/*_test.rb']).run
+          new(Dir['test/integration/**/*_test.rb'], options).run
         else
-          new(arguments).run
+          new(files, options).run
         end
       end
 
-      # Print out the help message which listed all of the test suite names.
-      def help_message
-        puts "Usage: rails test [path to test file(s) or test suite type]"
-        puts ""
-        puts "Run single test file, or a test suite, under Rails'"
-        puts "environment. If the file name(s) or suit name is omitted,"
-        puts "Rails will run all the test suites."
-        puts ""
-        puts "Support types of test suites:"
-        puts "-------------------------------------------------------------"
-        puts "* models (test/models/**/*)"
-        puts "* helpers (test/helpers/**/*)"
-        puts "* units (test/{models,helpers,unit}/**/*"
-        puts "* controllers (test/controllers/**/*)"
-        puts "* mailers (test/mailers/**/*)"
-        puts "* functionals (test/{controllers,mailers,functional}/**/*)"
-        puts "* integration (test/integration/**/*)"
-        puts "-------------------------------------------------------------"
+      # Parse arguments and set them as option flags
+      def parse_arguments(arguments)
+        options = {}
+        orig_arguments = arguments.dup
+
+        OptionParser.new do |opts|
+          opts.banner = "Usage: rails test [path to test file(s) or test suite type]"
+
+          opts.separator ""
+          opts.separator "Run single test file, or a test suite, under Rails'"
+          opts.separator "environment. If the file name(s) or suit name is omitted,"
+          opts.separator "Rails will run all the test suites."
+          opts.separator ""
+          opts.separator "Specific options:"
+
+          opts.on '-h', '--help', 'Display this help.' do
+            puts opts
+            exit
+          end
+
+          opts.on '-s', '--seed SEED', Integer, "Sets random seed" do |m|
+            options[:seed] = m.to_i
+          end
+
+          opts.on '-v', '--verbose', "Verbose. Show progress processing files." do
+            options[:verbose] = true
+          end
+
+          opts.on '-n', '--name PATTERN', "Filter test names on pattern (e.g. /foo/)" do |a|
+            options[:filter] = a
+          end
+
+          opts.separator ""
+          opts.separator "Support types of test suites:"
+          opts.separator "-------------------------------------------------------------"
+          opts.separator "* models (test/models/**/*)"
+          opts.separator "* helpers (test/helpers/**/*)"
+          opts.separator "* units (test/{models,helpers,unit}/**/*"
+          opts.separator "* controllers (test/controllers/**/*)"
+          opts.separator "* mailers (test/mailers/**/*)"
+          opts.separator "* functionals (test/{controllers,mailers,functional}/**/*)"
+          opts.separator "* integration (test/integration/**/*)"
+          opts.separator "-------------------------------------------------------------"
+
+          opts.parse! arguments
+          orig_arguments -= arguments
+        end
+        options
       end
     end
 
     # Create a new +TestRunner+ object with a list of test file paths.
-    def initialize(files)
+    def initialize(files, options)
       @files = files
       Rake::Task['test:prepare'].invoke
+      MiniTest::Unit.runner.options = options
       MiniTest::Unit.output = SilentUntilSyncStream.new(MiniTest::Unit.output)
     end
 

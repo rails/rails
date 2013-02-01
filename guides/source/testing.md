@@ -38,7 +38,6 @@ Rails creates a `test` folder for you as soon as you create a Rails project usin
 
 ```bash
 $ ls -F test
-
 controllers/    helpers/        mailers/        test_helper.rb
 fixtures/       integration/    models/
 ```
@@ -235,13 +234,10 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-You can also run a particular test method from the test case by running the test using Ruby and use the `-n` switch with the `test method name`.
+You can also run a particular test method from the test case by running the test and use the `-n` switch with the `test method name`.
 
 ```bash
-Run options: -n test_the_truth --seed 23064
-
-# Running tests:
-
+$ rails test test/models/post_test.rb -n test_the_truth
 .
 
 Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
@@ -265,10 +261,7 @@ end
 Let us run this newly added test.
 
 ```bash
-Run options: -n test_should_not_save_post_without_title --seed 38984
-
-# Running tests:
-
+$ rails test test/models/post_test.rb -n test_should_not_save_post_without_title
 F
 
 Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
@@ -308,11 +301,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ ruby -Itest test/models/post_test.rb -n test_should_not_save_post_without_title
-Run options: -n test_should_not_save_post_without_title --seed 62114
-
-# Running tests:
-
+$ rails test test/models/post_test.rb -n test_should_not_save_post_without_title
 .
 
 Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
@@ -337,11 +326,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ ruby -Itest test/models/post_test.rb -n test_should_report_error
-Run options: -n test_should_report_error --seed 22995
-
-# Running tests:
-
+$ rails test test/models/post_test.rb -n test_should_report_error
 E
 
 Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.

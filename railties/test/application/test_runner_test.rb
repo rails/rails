@@ -149,6 +149,27 @@ module ApplicationTests
       end
     end
 
+    def test_run_named_test
+      app_file 'test/unit/chu_2_koi_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class Chu2KoiTest < ActiveSupport::TestCase
+          def test_rikka
+            puts 'Rikka'
+          end
+
+          def test_sanae
+            puts 'Sanae'
+          end
+        end
+      RUBY
+
+      run_test_command('test/unit/chu_2_koi_test.rb -n test_rikka').tap do |output|
+        assert_match /Rikka/, output
+        assert_no_match /Sanae/, output
+      end
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bundle exec rails test #{arguments}` }

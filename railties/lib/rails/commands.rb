@@ -83,15 +83,12 @@ when 'server'
 when 'test'
   $LOAD_PATH.unshift("./test")
   require 'rails/commands/test_runner'
-  if ["-h", "--help"].include?(ARGV.first)
-    Rails::TestRunner.help_message
-    exit
-  else
-    require APP_PATH
-    Rails.application.require_environment!
-    Rails.application.load_tasks
-    Rails::TestRunner.start(ARGV)
-  end
+  options = Rails::TestRunner.parse_arguments(ARGV)
+
+  require APP_PATH
+  Rails.application.require_environment!
+  Rails.application.load_tasks
+  Rails::TestRunner.start(ARGV, options)
 
 when 'dbconsole'
   require 'rails/commands/dbconsole'
