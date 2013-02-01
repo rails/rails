@@ -4,13 +4,18 @@ require 'cases/helper'
 require 'models/topic'
 require 'models/person'
 
+require 'ruby-debug'
+
 class LengthValidationTest < ActiveModel::TestCase
 
   def teardown
     Topic.reset_callbacks(:validate)
   end
 
+
   def test_validates_length_of_with_allow_nil
+    
+
     Topic.validates_length_of( :title, :is => 5, :allow_nil => true )
 
     assert Topic.new("title" => "ab").invalid?
@@ -413,5 +418,15 @@ class LengthValidationTest < ActiveModel::TestCase
 
     t.title = ""
     assert t.valid?
+  end
+
+
+    def test_validates_with_diff_in_option
+    
+    Topic.validates_length_of( :title, :is => 5)
+    Topic.validates_length_of( :title, :is => 5, :if => Proc.new { false } )
+
+    assert Topic.new("title" => "david").valid?
+    assert Topic.new("title" => "david2").invalid?
   end
 end
