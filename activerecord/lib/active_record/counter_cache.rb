@@ -19,12 +19,6 @@ module ActiveRecord
       counters.each do |association|
         has_many_association = reflect_on_association(association.to_sym)
 
-        if has_many_association.options[:as]
-          has_many_association.options[:as].to_s.classify
-        else
-          self.name
-        end
-
         if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
           has_many_association = has_many_association.through_reflection
         end
