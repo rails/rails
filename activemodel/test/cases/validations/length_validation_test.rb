@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'cases/helper'
-
 require 'models/topic'
 require 'models/person'
 
@@ -413,5 +412,13 @@ class LengthValidationTest < ActiveModel::TestCase
 
     t.title = ""
     assert t.valid?
+  end
+
+  def test_validates_with_diff_in_option
+    Topic.validates_length_of( :title, :is => 5)
+    Topic.validates_length_of( :title, :is => 5, :if => Proc.new { false } )
+
+    assert Topic.new("title" => "david").valid?
+    assert Topic.new("title" => "david2").invalid?
   end
 end
