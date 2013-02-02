@@ -18,16 +18,32 @@ module ActiveRecord
       object = find(id)
       counters.each do |association|
         has_many_association = reflect_on_association(association.to_sym)
+        match_association    = nil
 
-        if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
+        child_class = if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
+                        has_many_association.source_reflection.klass
+                      else
+                        has_many_association.klass
+                      end
+
+        # traverse has_many :through chain
+        # looking for an association that should trigger counter_cache
+        while match_association.nil? && has_many_association.is_a?(ActiveRecord::Reflection::ThroughReflection)
           has_many_association = has_many_association.through_reflection
+          foreign_key          = has_many_association.foreign_key.to_s
+          association_class    = has_many_association.klass
+
+          association_belongs_to = association_class.reflect_on_all_associations(:belongs_to)
+          match_association      = association_belongs_to.find { |e| e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
         end
 
-        foreign_key  = has_many_association.foreign_key.to_s
-        child_class  = has_many_association.klass
-        belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
-        reflection   = belongs_to.find { |e| e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
-        counter_name = reflection.counter_cache_column
+        match_association ||= begin
+                                foreign_key = has_many_association.foreign_key.to_s
+                                belongs_to  = child_class.reflect_on_all_associations(:belongs_to)
+                                belongs_to.find { |e| e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+                              end
+
+        counter_name = match_association.counter_cache_column
 
         stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
           arel_table[counter_name] => object.send(association).count
