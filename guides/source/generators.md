@@ -310,7 +310,7 @@ In Rails 3.0 and above, generators don't just look in the source root for templa
 
 ```erb
 module <%= class_name %>Helper
-  attr_reader :<%= plural_name %>, <%= plural_name.singularize %>
+  attr_reader :<%= plural_name %>, :<%= plural_name.singularize %>
 end
 ```
 
