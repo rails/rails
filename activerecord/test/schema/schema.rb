@@ -759,6 +759,7 @@ ActiveRecord::Schema.define do
 
   create_table :universes, :force => true do |t|
     t.integer :stars_count, :default => 0
+    t.integer :planets_count, :default => 0
   end
 
   create_table :galaxies, :force => true do |t|
@@ -767,6 +768,10 @@ ActiveRecord::Schema.define do
 
   create_table :stars, :force => true do |t|
     t.integer :galaxy_id
+  end
+
+  create_table :planets, :force => true do |t|
+    t.integer :star_id
   end
 
   except 'SQLite' do

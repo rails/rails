@@ -16,6 +16,7 @@ require 'models/book'
 require 'models/universe'
 require 'models/galaxy'
 require 'models/star'
+require 'models/planet'
 
 class CounterCacheTest < ActiveRecord::TestCase
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
@@ -125,7 +126,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "reset counter of has_many :through medium association" do
+  test "reset counter of has_many :through (through association)" do
     subscriber = subscribers('second')
     Subscriber.reset_counters(subscriber.id, 'books')
     Subscriber.increment_counter('books_count', subscriber.id)
@@ -135,12 +136,21 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "reset counter of has_many :through target association" do
+  test "reset counter of has_many :through (source association)" do
     universe = Universe.create!
     Universe.increment_counter('stars_count', universe.id)
 
     assert_difference 'universe.reload.stars_count', -1 do
       Universe.reset_counters(universe.id, 'stars')
+    end
+  end
+
+  test "reset counter of deep has_many :through (source association)" do
+    universe = Universe.create!
+    Universe.increment_counter('planets_count', universe.id)
+
+    assert_difference 'universe.reload.planets_count', -1 do
+      Universe.reset_counters(universe.id, 'planets')
     end
   end
 end
