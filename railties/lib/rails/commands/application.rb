@@ -11,12 +11,7 @@ else
   ARGV.shift
   unless ARGV.delete("--no-rc")
     customrc = ARGV.index('--rc')
-    railsrc = if customrc
-      ARGV.delete_at(customrc)
-      ARGV.delete_at(customrc)
-    else
-      File.join(File.expand_path("~"), '.railsrc')
-    end
+    railsrc = customrc ? ARGV.slice!(customrc, 2).last : File.join(File.expand_path("~"), '.railsrc')
     if File.exist?(railsrc)
       extra_args_string = File.read(railsrc)
       extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
