@@ -259,7 +259,6 @@ class TextHelperTest < ActionView::TestCase
       http://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_picture_%28animation%29/January_20%2C_2007
       http://www.mail-archive.com/rails@lists.rubyonrails.org/
       http://www.amazon.com/Testing-Equal-Sign-In-Path/ref=pd_bbs_sr_1?ie=UTF8&s=books&qid=1198861734&sr=8-1
-      http://en.wikipedia.org/wiki/Texas_hold'em
       https://www.google.com/doku.php?id=gps:resource:scs:start
       http://connect.oraclecorp.com/search?search[q]=green+france&search[type]=Group
       http://of.openfoundry.org/projects/492/download#4th.Release.3
@@ -269,6 +268,11 @@ class TextHelperTest < ActionView::TestCase
     urls.each do |url|
       assert_equal generate_result(url), auto_link(url)
     end
+
+    assert_equal(
+      %{<a href="http://en.wikipedia.org/wiki/Texas_hold'em">http://en.wikipedia.org/wiki/Texas_hold&#39;em</a>},
+      auto_link("http://en.wikipedia.org/wiki/Texas_hold'em")
+    )
   end
 
   def generate_result(link_text, href = nil)
