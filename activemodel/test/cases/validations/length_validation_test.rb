@@ -367,4 +367,12 @@ class LengthValidationTest < ActiveModel::TestCase
   ensure
     Person.reset_callbacks(:validate)
   end
+
+  def test_validates_with_diff_in_option
+    Topic.validates_length_of( :title, :is => 5)
+    Topic.validates_length_of( :title, :is => 5, :if => Proc.new { false } )
+
+    assert Topic.new("title" => "david").valid?
+    assert Topic.new("title" => "david2").invalid?
+  end
 end
