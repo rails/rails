@@ -1,5 +1,23 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `content_tag_for` with array html option.
+    It would embed array as string instead of joining it like `content_tag` does:
+
+        content_tag(:td, class: ["foo", "bar"]){}
+        #=> '<td class="foo bar"></td>'
+
+    Before:
+
+        content_tag_for(:td, item, class: ["foo", "bar"])
+        #=> '<td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>'
+
+    After:
+
+        content_tag_for(:td, item, class: ["foo", "bar"])
+        #=> '<td class="item foo bar" id="item_1"></td>'
+
+    *Semyon Perepelitsa*
+
 *   Remove `BestStandardsSupport` middleware, !DOCTYPE html already triggers
     standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx
     and ChromeFrame header has been moved to `config.action_dispatch.default_headers`
@@ -230,7 +248,8 @@
 
 *   More descriptive error messages when calling `render :partial` with
     an invalid `:layout` argument.
-    #8376
+    
+    Fixes #8376.
 
         render partial: 'partial', layout: true
 

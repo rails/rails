@@ -7,6 +7,7 @@ end
 
 require 'digest/md5'
 require 'active_support/core_ext/marshal'
+require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
   module Cache

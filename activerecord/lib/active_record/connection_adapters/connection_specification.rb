@@ -62,6 +62,10 @@ module ActiveRecord
           ConnectionSpecification.new(spec, adapter_method)
         end
 
+        # For DATABASE_URL, accept a limited concept of ints and floats
+        SIMPLE_INT = /\A\d+\z/
+        SIMPLE_FLOAT = /\A\d+\.\d+\z/
+
         def connection_url_to_hash(url) # :nodoc:
           config = URI.parse url
           adapter = config.scheme
@@ -72,14 +76,37 @@ module ActiveRecord
                    :port     => config.port,
                    :database => config.path.sub(%r{^/},""),
                    :host     => config.host }
+
           spec.reject!{ |_,value| value.blank? }
+
           uri_parser = URI::Parser.new
+
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
+
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+
+            options.each { |key, value| options[key] = type_cast_value(value) }
+
             spec.merge!(options)
           end
+
           spec
+        end
+
+        def type_cast_value(value)
+          case value
+          when SIMPLE_INT
+            value.to_i
+          when SIMPLE_FLOAT
+            value.to_f
+          when 'true'
+            true
+          when 'false'
+            false
+          else
+            value
+          end
         end
       end
     end

@@ -41,6 +41,12 @@ class RecordTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_content_tag_for_with_array_css_class
+    expected = %(<tr class="record_tag_post special odd" id="record_tag_post_45"></tr>)
+    actual = content_tag_for(:tr, @post, class: ["special", "odd"])
+    assert_dom_equal expected, actual
+  end
+
   def test_content_tag_for_with_prefix_and_extra_html_options
     expected = %(<tr class="archived_record_tag_post special" id="archived_record_tag_post_45" style='background-color: #f0f0f0'></tr>)
     actual = content_tag_for(:tr, @post, :archived, class: "special", style: "background-color: #f0f0f0")

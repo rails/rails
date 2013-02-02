@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'active_support/json'
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/array/extract_options'
 
 class OrderedHashTest < ActiveSupport::TestCase
   def setup

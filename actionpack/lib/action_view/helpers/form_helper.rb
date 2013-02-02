@@ -8,7 +8,6 @@ require 'action_view/model_naming'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/string/inflections'
 
 module ActionView

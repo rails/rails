@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/array/extract_options'
 
 class ResourcesTest < ActionController::TestCase
   def test_default_restful_routes

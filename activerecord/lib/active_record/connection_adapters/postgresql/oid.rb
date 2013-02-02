@@ -84,7 +84,7 @@ module ActiveRecord
             @subtype = subtype
           end
 
-          def exctract_bounds(value)
+          def extract_bounds(value)
             from, to = value[1..-2].split(',')
             {
               from:          (value[1] == ',' || from == '-infinity') ? infinity(:negative => true) : from,
@@ -110,7 +110,7 @@ module ActiveRecord
             return if value.nil? || value == 'empty'
             return value if value.is_a?(::Range)
 
-            extracted = exctract_bounds(value)
+            extracted = extract_bounds(value)
 
             case @subtype
             when :date

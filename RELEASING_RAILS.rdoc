@@ -42,6 +42,9 @@ addressed, and that can impact your release date.
 Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
 
+This only needs done for major and minor releases, bugfix releases aren't a
+big enough deal, and are supposed to be backwards compatible.
+
 Send an email just giving a heads up about the upcoming release to these
 lists:
 
