@@ -479,7 +479,8 @@ module ActiveRecord #:nodoc:
       #   # Instantiates a single new object bypassing mass-assignment security
       #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
       def initialize(attributes = nil, options = {})
-        @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
+        defaults = Hash[self.class.column_defaults.map { |k, v| [k, v.duplicable? ? v.dup : v] }]
+        @attributes = self.class.initialize_attributes(defaults)
         @association_cache = {}
         @aggregation_cache = {}
         @attributes_cache = {}

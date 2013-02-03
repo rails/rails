@@ -1,5 +1,11 @@
 ## Rails 3.2.12 (unreleased) ##
 
+*   Don't update `column_defaults` when calling destructive methods on column with default value.
+    Backport c517602.
+    Fix #6115.
+
+    *Piotr Sarnacki + Aleksey Magusev + Alan Daud*
+
 *   When `#count` is used in conjunction with `#uniq` we perform `count(:distinct => true)`.
     Fix #6865.
 
