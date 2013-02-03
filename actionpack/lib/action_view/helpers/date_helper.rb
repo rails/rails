@@ -560,12 +560,16 @@ module ActionView
 
       # Returns a select tag with options for each of the months January through December with the current month
       # selected. The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are
-      # used as values (what's submitted to the server). It's also possible to use month numbers for the presentation
-      # instead of names -- set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you
-      # want both numbers and names, set the <tt>:add_month_numbers</tt> key in +options+ to true. If you would prefer
-      # to show month names as abbreviations, set the <tt>:use_short_month</tt> key in +options+ to true. If you want
-      # to use your own month names, set the <tt>:use_month_names</tt> key in +options+ to an array of 12 month names.
-      # If you want to display months with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
+      # used as values (what's submitted to the server).
+      #
+      # To show month numbers instead of names, set the <tt>:use_month_numbers</tt> key in +options+ to true.
+      # To show both numbers and names, set the <tt>:add_month_numbers</tt> key in +options+ to true.
+      # To show month names as abbreviations, set the <tt>:use_short_month</tt> key in +options+ to true.
+      # To show your own month names, set the <tt>:use_month_names</tt> key in +options+ to an array of 12 month names.
+      # To display months with a leading zero, set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
+      # To display months with a leading zero AND use month names, set the <tt>:add_two_digit_month_numbers</tt>
+      # key in +options+ to true.
+      #
       # Override the field name using the <tt>:field_name</tt> option, 'month' by default.
       #
       #   # Generates a select field for months that defaults to the current month that
@@ -583,6 +587,10 @@ module ActionView
       #   # Generates a select field for months that defaults to the current month that
       #   # will use keys like "1 - January", "3 - March".
       #   select_month(Date.today, add_month_numbers: true)
+      #
+      #   # Generates a select field for months that defaults to the current month that
+      #   # will use keys like "01 - January", "03 - March".
+      #   select_month(Date.today, add_two_digit_month_numbers: true)
       #
       #   # Generates a select field for months that defaults to the current month that
       #   # will use keys like "Jan", "Mar".
@@ -863,6 +871,10 @@ module ActionView
         #
         # If <tt>:add_month_numbers</tt> option is passed
         #  month_name(1) => "1 - January"
+        #
+        # If <tt>:add_two_digit_month_numbers</tt> option is passed
+        #  month_name(1) => "01 - January"
+
         def month_name(number)
           if @options[:use_month_numbers]
             number
@@ -870,6 +882,8 @@ module ActionView
             sprintf "%02d", number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
+          elsif @options[:add_two_digit_month_numbers]
+            "#{sprintf "%02d", number} - #{month_names[number]}"
           else
             month_names[number]
           end

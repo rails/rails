@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added "XX - Month" format to month_name helper. Common format for expiration dates.
+
+    *An Yu*
+
 *   Fix `content_tag_for` with array html option.
     It would embed array as string instead of joining it like `content_tag` does:
 
