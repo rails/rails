@@ -1,3 +1,7 @@
+*   Added "XX - Month" format to month_name helper. Common format for expiration dates.
+
+    *An Yu*, *Eric Chahin*
+
 *   Remove wrapping div with inline styles for hidden form fields.
 
     We are dropping HTML 4.01 and XHTML strict compliance since input tags directly
