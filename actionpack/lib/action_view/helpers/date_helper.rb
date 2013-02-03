@@ -874,7 +874,6 @@ module ActionView
         #
         # If <tt>:add_two_digit_month_numbers</tt> option is passed
         #  month_name(1) => "01 - January"
-
         def month_name(number)
           if @options[:use_month_numbers]
             number
