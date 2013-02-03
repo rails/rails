@@ -295,7 +295,7 @@ XML
   end
 
   def test_process_with_query_string
-    process :test_query_string, "GET", :q => 'test'
+    process :test_query_string, "GET", q: 'test'
     assert_equal "q=test", @response.body
   end
 

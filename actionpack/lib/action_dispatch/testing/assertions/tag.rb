@@ -94,7 +94,7 @@ module ActionDispatch
       # that allow optional closing tags (p, li, td). <em>You must explicitly
       # close all of your tags to use these assertions.</em>
       def assert_tag(*opts)
-        opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
+        opts = opts.size > 1 ? opts.last.merge({ tag: opts.first.to_s }) : opts.first
         tag = find_tag(opts)
         assert tag, "expected tag, but no tag found matching #{opts.inspect} in:\n#{@response.body.inspect}"
       end
@@ -113,7 +113,7 @@ module ActionDispatch
       #   assert_no_tag tag: "p",
       #              children: { count: 1..3, only: { tag: "img" } }
       def assert_no_tag(*opts)
-        opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
+        opts = opts.size > 1 ? opts.last.merge({ tag: opts.first.to_s }) : opts.first
         tag = find_tag(opts)
         assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
       end

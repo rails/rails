@@ -6,7 +6,7 @@ require 'pathname'
 class RenderJsonTest < ActionController::TestCase
   class JsonRenderable
     def as_json(options={})
-      hash = { :a => :b, :c => :d, :e => :f }
+      hash = { a: :b, c: :d, e: :f }
       hash.except!(*options[:except]) if options[:except]
       hash
     end

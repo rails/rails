@@ -3,7 +3,7 @@ module ActionDispatch
     YEAR = 31536000
 
     def self.default_hsts_options
-      { :expires => YEAR, :subdomains => false }
+      { expires: YEAR, subdomains: false }
     end
 
     def initialize(app, options = {})
