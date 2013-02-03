@@ -11,7 +11,7 @@ module ActionDispatch
       status       = env["PATH_INFO"][1..-1]
       request      = ActionDispatch::Request.new(env)
       content_type = request.formats.first
-      body         = { :status => status, :error => exception.message }
+      body         = { status: status, error: exception.message }
 
       render(status, content_type, body)
     end

@@ -779,7 +779,7 @@ module ActionView
         else
           month_options = []
           1.upto(12) do |month_number|
-            options = { :value => month_number }
+            options = { value: month_number }
             options[:selected] = "selected" if month == month_number
             month_options << content_tag(:option, month_name(month_number), options) + "\n"
           end
@@ -927,7 +927,7 @@ module ActionView
           select_options = []
           start.step(stop, step) do |i|
             value = leading_zeros ? sprintf("%02d", i) : i
-            tag_options = { :value => value }
+            tag_options = { value: value }
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text

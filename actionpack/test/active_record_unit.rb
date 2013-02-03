@@ -44,7 +44,7 @@ class ActiveRecordTestConnector
     private
       def setup_connection
         if Object.const_defined?(:ActiveRecord)
-          defaults = { :database => ':memory:' }
+          defaults = { database: ':memory:' }
           adapter = defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3'
           options = defaults.merge :adapter => adapter, :timeout => 500
           ActiveRecord::Base.establish_connection(options)

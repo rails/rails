@@ -150,7 +150,7 @@ class BasicController
       config.assets_dir = public_dir
       config.javascripts_dir = "#{public_dir}/javascripts"
       config.stylesheets_dir = "#{public_dir}/stylesheets"
-      config.assets          = ActiveSupport::InheritableOptions.new({ :prefix => "assets" })
+      config.assets          = ActiveSupport::InheritableOptions.new({ prefix: "assets" })
       config
     end
   end

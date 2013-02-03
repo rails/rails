@@ -334,8 +334,8 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          options = { :to => options } if options.is_a?(String)
-          match '/', { :as => :root, :via => :get }.merge!(options)
+          options = { to: options } if options.is_a?(String)
+          match '/', { as: :root, via: :get }.merge!(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -774,8 +774,8 @@ module ActionDispatch
         #   end
         def namespace(path, options = {})
           path = path.to_s
-          options = { :path => path, :as => path, :module => path,
-                      :shallow_path => path, :shallow_prefix => path }.merge!(options)
+          options = { path: path, as: path, module: path,
+                      shallow_path: path, shallow_prefix: path }.merge!(options)
           scope(options) { yield }
         end
 
@@ -1000,7 +1000,7 @@ module ActionDispatch
           end
 
           def resource_scope
-            { :controller => controller }
+            { controller: controller }
           end
 
           alias :collection_scope :path
@@ -1522,7 +1522,7 @@ module ActionDispatch
           end
 
           def nested_options #:nodoc:
-            options = { :as => parent_resource.member_name }
+            options = { as: parent_resource.member_name }
             options[:constraints] = {
               parent_resource.nested_param => param_constraint
             } if param_constraint?
@@ -1729,7 +1729,7 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = { :path_names => @set.resources_path_names }
+        @scope = { path_names: @set.resources_path_names }
         @concerns = {}
       end
 

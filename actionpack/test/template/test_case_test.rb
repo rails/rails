@@ -50,12 +50,12 @@ module ActionView
     end
 
     test "works without testing a helper module" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', developer: stub(name: 'Eloy'))
     end
 
     test "can render a layout with block" do
       assert_equal "Before (ChrisCruft)\n!\nAfter",
-                    render(:layout => "test/layout_for_partial", :locals => {:name => "ChrisCruft"}) {"!"}
+                    render(layout: "test/layout_for_partial", locals: {name: "ChrisCruft"}) {"!"}
     end
 
     helper AnotherTestHelper
@@ -103,14 +103,14 @@ module ActionView
           from_another_helper
         end
       end
-      assert_equal 'Howdy!', render(:partial => 'test/from_helper')
+      assert_equal 'Howdy!', render(partial: 'test/from_helper')
     end
   end
 
   class HelperInclusionTest < ActionView::TestCase
     module RenderHelper
       def render_from_helper
-        render :partial => 'customer', :collection => @customers
+        render partial: 'customer', collection: @customers
       end
     end
 
@@ -119,15 +119,15 @@ module ActionView
     test "helper class that is being tested is always included in view instance" do
       @controller.controller_path = 'test'
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match(/Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper'))
+      @customers = [stub(name: 'Eloy'), stub(name: 'Manfred')]
+      assert_match(/Hello: EloyHello: Manfred/, render(partial: 'test/from_helper'))
     end
   end
 
   class ControllerHelperMethod < ActionView::TestCase
     module SomeHelper
       def some_method
-        render :partial => 'test/from_helper'
+        render partial: 'test/from_helper'
       end
     end
 
@@ -149,7 +149,7 @@ module ActionView
     test "view_assigns returns a Hash of user defined ivars" do
       @a = 'b'
       @c = 'd'
-      assert_equal({:a => 'b', :c => 'd'}, view_assigns)
+      assert_equal({a: 'b', c: 'd'}, view_assigns)
     end
 
     test "view_assigns excludes internal ivars" do
@@ -167,7 +167,7 @@ module ActionView
       end
     end)
     test "is able to make methods available to the view" do
-      assert_equal 'Word!', render(:partial => 'test/from_helper')
+      assert_equal 'Word!', render(partial: 'test/from_helper')
     end
 
     def from_test_case; 'Word!'; end
@@ -211,14 +211,14 @@ module ActionView
     test "is able to use routes" do
       controller.request.assign_parameters(@routes, 'foo', 'index')
       assert_equal '/foo', url_for
-      assert_equal '/bar', url_for(:controller => 'bar')
+      assert_equal '/bar', url_for(controller: 'bar')
     end
 
     test "is able to use named routes" do
       with_routing do |set|
         set.draw { resources :contents }
         assert_equal 'http://test.host/contents/new', new_content_url
-        assert_equal 'http://test.host/contents/1',   content_url(:id => 1)
+        assert_equal 'http://test.host/contents/1',   content_url(id: 1)
       end
     end
 
@@ -229,13 +229,13 @@ module ActionView
             @routes ||= ActionDispatch::Routing::RouteSet.new
           end
 
-          routes.draw { get "bar", :to => lambda {} }
+          routes.draw { get "bar", to: lambda {} }
 
           def self.call(*)
           end
         end
 
-        set.draw { mount app => "/foo", :as => "foo_app" }
+        set.draw { mount app => "/foo", as: "foo_app" }
 
         assert_equal '/foo/bar', foo_app.bar_path
       end
@@ -250,21 +250,21 @@ module ActionView
           end
         end
 
-        assert_equal 'http://test.host/contents/new', render(:partial => 'test/from_helper')
+        assert_equal 'http://test.host/contents/new', render(partial: 'test/from_helper')
       end
     end
 
     test "is able to render partials with local variables" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
-      assert_equal 'Eloy', render(:partial => 'developers/developer',
-                                  :locals => { :developer => stub(:name => 'Eloy') })
+      assert_equal 'Eloy', render('developers/developer', developer: stub(name: 'Eloy'))
+      assert_equal 'Eloy', render(partial: 'developers/developer',
+                                  locals: { developer: stub(name: 'Eloy') })
     end
 
     test "is able to render partials from templates and also use instance variables" do
       @controller.controller_path = "test"
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
+      @customers = [stub(name: 'Eloy'), stub(name: 'Manfred')]
+      assert_match(/Hello: EloyHello: Manfred/, render(file: 'test/list'))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -272,8 +272,8 @@ module ActionView
 
       view
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
+      @customers = [stub(name: 'Eloy'), stub(name: 'Manfred')]
+      assert_match(/Hello: EloyHello: Manfred/, render(file: 'test/list'))
     end
 
   end
@@ -281,16 +281,16 @@ module ActionView
   class AssertionsTest < ActionView::TestCase
     def render_from_helper
       form_tag('/foo') do
-        safe_concat render(:text => '<ul><li>foo</li></ul>')
+        safe_concat render(text: '<ul><li>foo</li></ul>')
       end
     end
     helper_method :render_from_helper
 
     test "uses the output_buffer for assert_select" do
-      render(:partial => 'test/from_helper')
+      render(partial: 'test/from_helper')
 
       assert_select 'form' do
-        assert_select 'li', :text => 'foo'
+        assert_select 'li', text: 'foo'
       end
     end
   end
@@ -298,33 +298,33 @@ module ActionView
   class RenderTemplateTest < ActionView::TestCase
     test "supports specifying templates with a Regexp" do
       controller.controller_path = "fun"
-      render(:template => "fun/games/hello_world")
+      render(template: "fun/games/hello_world")
       assert_template %r{\Afun/games/hello_world\Z}
     end
 
     test "supports specifying partials" do
       controller.controller_path = "test"
-      render(:template => "test/calling_partial_with_layout")
-      assert_template :partial => "_partial_for_use_in_layout"
+      render(template: "test/calling_partial_with_layout")
+      assert_template partial: "_partial_for_use_in_layout"
     end
 
     test "supports specifying locals (passing)" do
       controller.controller_path = "test"
-      render(:template => "test/calling_partial_with_layout")
-      assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "David" }
+      render(template: "test/calling_partial_with_layout")
+      assert_template partial: "_partial_for_use_in_layout", locals: { name: "David" }
     end
 
     test "supports specifying locals (failing)" do
       controller.controller_path = "test"
-      render(:template => "test/calling_partial_with_layout")
+      render(template: "test/calling_partial_with_layout")
       assert_raise ActiveSupport::TestCase::Assertion, /Somebody else.*David/m do
-        assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
+        assert_template partial: "_partial_for_use_in_layout", locals: { name: "Somebody Else" }
       end
     end
 
     test 'supports different locals on the same partial' do
       controller.controller_path = "test"
-      render(:template => "test/render_two_partials")
+      render(template: "test/render_two_partials")
       assert_template partial: '_partial', locals: { 'first' => '1' }
       assert_template partial: '_partial', locals: { 'second' => '2' }
     end

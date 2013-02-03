@@ -5,7 +5,7 @@ module HTML #:nodoc:
   class Conditions < Hash #:nodoc:
     def initialize(hash)
       super()
-      hash = { :content => hash } unless Hash === hash
+      hash = { content: hash } unless Hash === hash
       hash = keys_to_symbols(hash)
       hash.each do |k,v|
         case k
