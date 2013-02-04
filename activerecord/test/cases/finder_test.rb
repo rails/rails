@@ -361,6 +361,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1,2,3,5,6,7,8,9], Comment.all.merge!(:where => {:id => [1..2, 3, 5, 6..8, 9]}).to_a.map(&:id).sort
   end
 
+  def test_find_on_hash_conditions_with_array_of_ranges
+    relation = Comment.where(:id => [1..2, 6..8])
+    assert_equal [1, 2, 6, 7, 8], relation.map(&:id).sort
+    sql = relation.to_sql
+    assert_no_match(/NULL/, sql)
+    assert_no_match(/1=0/, sql)
+  end
+
   def test_find_on_multiple_hash_conditions
     assert Topic.all.merge!(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => false }).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }).find(1) }
