@@ -126,7 +126,11 @@ module ActionController
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
             if defined?(@_rendered_views)
-              view = expected_partial.to_s.sub(/^_/,'')
+              view = expected_partial.to_s.sub(/^_/, '').sub(/\/_(?=[^\/]+\z)/, '/')
+
+              partial_was_not_rendered_msg = "expected %s to be rendered but it was not." % view
+              assert_includes @_rendered_views.rendered_views, view, partial_was_not_rendered_msg
+
               msg = 'expecting %s to be rendered with %s but was with %s' % [expected_partial,
                                                                              expected_locals,
                                                                              @_rendered_views.locals_for(view)]
