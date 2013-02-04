@@ -71,6 +71,18 @@ namespace :test do
     end
   end
 
+  # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
+  desc "Run tests quickly by merging all types and not resetting db"
+  Rake::TestTask.new(:all) do |t|
+    t.libs << "test"
+    t.pattern = "test/**/*_test.rb"
+  end
+
+  namespace :all do
+    desc "Run tests quickly, but also reset db"
+    task :db => %w[db:test:prepare test:all]
+  end
+
   Rake::TestTask.new(recent: "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
