@@ -90,7 +90,7 @@ module ActionController
       end
 
       def authenticate(request, &login_procedure)
-        unless request.authorization.blank?
+        unless request.authorization.blank? or decode_credentials(request).blank?
           login_procedure.call(*user_name_and_password(request))
         end
       end
