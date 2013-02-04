@@ -558,7 +558,8 @@ end
 ```
 
 Again, you must create a unique index on both columns to enforce the uniqueness
-constraint across two different database connections.
+constraint across two different database connections
+([read more](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)).
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
