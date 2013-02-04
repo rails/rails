@@ -32,15 +32,17 @@ module ActiveRecord
 
             array_predicates = ranges.map {|range| attribute.in(range)}
 
-            if values.include?(nil)
-              values = values.compact
-              if values.empty?
-                array_predicates << attribute.eq(nil)
+            if values.present?
+              if values.include?(nil)
+                values = values.compact
+                if values.empty?
+                  array_predicates << attribute.eq(nil)
+                else
+                  array_predicates << attribute.in(values.compact).or(attribute.eq(nil))
+                end
               else
-                array_predicates << attribute.in(values.compact).or(attribute.eq(nil))
+                array_predicates << attribute.in(values)
               end
-            else
-              array_predicates << attribute.in(values)
             end
 
             array_predicates.inject {|composite, predicate| composite.or(predicate)}
