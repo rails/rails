@@ -3,7 +3,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 
 class ERB
   module Util
-    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#x27;' }
+    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#x27;', "`" => '&#x60;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
 
     if RUBY_VERSION >= '1.9'
@@ -21,7 +21,7 @@ class ERB
         if s.html_safe?
           s
         else
-          s.gsub(/[&"'><]/, HTML_ESCAPE).html_safe
+          s.gsub(/[&"'><`]/, HTML_ESCAPE).html_safe
         end
       end
     else
@@ -30,7 +30,7 @@ class ERB
         if s.html_safe?
           s
         else
-          s.gsub(/[&"'><]/n) { |special| HTML_ESCAPE[special] }.html_safe
+          s.gsub(/[&"'><`]/n) { |special| HTML_ESCAPE[special] }.html_safe
         end
       end
     end
