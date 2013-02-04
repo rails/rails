@@ -23,7 +23,7 @@ module ActiveSupport
 
       # each implementation should define metrics and freeze the defaults
       DEFAULTS =
-        if ARGV.include?('--benchmark') # HAX for rake test
+        if ENV["BENCHMARK_TESTS"]
           { :runs => 4,
             :output => 'tmp/performance',
             :benchmark => true }
