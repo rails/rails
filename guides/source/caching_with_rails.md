@@ -99,14 +99,14 @@ end
 
 This method generates a cache key that depends on all products and can be used in the view:
 
-```ruby
+```erb
 <% cache(cache_key_for_products) do %>
   All available products:
 <% end %>
 ```
 You can also use an Active Record model as the cache key:
 
-```ruby
+```erb
 <% Product.all.each do |p| %>
   <% cache(p) do %>
     <%= link_to p.name, product_url(p) %>
@@ -118,7 +118,7 @@ Behind the scenes, a method called `cache_key` will be invoked on the model and 
 
 You can also combine the two schemes which is called "Russian Doll Caching":
 
-```ruby
+```erb
 <% cache(cache_key_for_products) do %>
   All available products:
   <% Product.all.each do |p| %>

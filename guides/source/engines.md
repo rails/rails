@@ -28,7 +28,7 @@ Engines can also be isolated from their host applications. This means that an ap
 
 It's important to keep in mind at all times that the application should **always** take precedence over its engines. An application is the object that has final say in what goes on in the universe (with the universe being the application's environment) where the engine should only be enhancing it, rather than changing it drastically.
 
-To see demonstrations of other engines, check out [Devise](https://github.com/plataformatec/devise), an engine that provides authentication for its parent applications, or [Forem](https://github.com/radar/forem), an engine that provides forum functionality. There's also [Spree](https://github.com/spree/spree) which provides an e-commerce platform, and [RefineryCMS](https://github.com/resolve/refinerycms), a CMS engine.
+To see demonstrations of other engines, check out [Devise](https://github.com/plataformatec/devise), an engine that provides authentication for its parent applications, or [Forem](https://github.com/radar/forem), an engine that provides forum functionality. There's also [Spree](https://github.com/spree/spree) which provides an e-commerce platform, and [RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
 
 Finally, engines would not have been possible without the work of James Adam, Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever meet them, don't forget to say thanks!
 
