@@ -4,6 +4,15 @@
 
     *Dan Kubb*
 
+*   Prevent `Callbacks#set_callback` from setting the same callback twice.
+
+        before_save :foo, :bar, :foo
+
+    will at first call `bar`, then `foo`. `foo` will no more be called
+    twice.
+
+    *Dmitriy Kiriyenko*
+
 *   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
     The encoding scheme was broken for unicode characters outside the basic
     multilingual plane; since json is assumed to be UTF-8, and we already force the

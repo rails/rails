@@ -141,6 +141,10 @@ module ActiveSupport
         @kind == _kind && @filter == _filter
       end
 
+      def duplicates?(other)
+        matches?(other.kind, other.filter)
+      end
+
       def _update_filter(filter_options, new_options)
         filter_options[:if].push(new_options[:unless]) if new_options.key?(:unless)
         filter_options[:unless].push(new_options[:if]) if new_options.key?(:if)
@@ -373,6 +377,30 @@ module ActiveSupport
         method << "halted ? false : (block_given? ? value : true)"
         method.compact.join("\n")
       end
+
+      def append(*callbacks)
+        callbacks.each { |c| append_one(c) }
+      end
+
+      def prepend(*callbacks)
+        callbacks.each { |c| prepend_one(c) }
+      end
+
+      private
+
+      def append_one(callback)
+        remove_duplicates(callback)
+        push(callback)
+      end
+
+      def prepend_one(callback)
+        remove_duplicates(callback)
+        unshift(callback)
+      end
+
+      def remove_duplicates(callback)
+        delete_if { |c| callback.duplicates?(c) }
+      end
     end
 
     module ClassMethods
@@ -496,11 +524,7 @@ module ActiveSupport
             Callback.new(chain, filter, type, options.dup, self)
           end
 
-          filters.each do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) }
-          end
-
-          options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
+          options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
 
           target.send("_#{name}_callbacks=", chain)
         end
