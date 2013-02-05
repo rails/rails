@@ -867,10 +867,11 @@ Client.exists?(1,2,3)
 Client.exists?([1,2,3])
 </ruby>
 
-Further more, +exists+ takes a +conditions+ option much like find:
+Further more, +exists+ takes a hash or array like what you would pass into a +conditions+ option:
 
 <ruby>
-Client.exists?(:conditions => "first_name = 'Ryan'")
+Client.exists?(:first_name => 'Ryan')
+Client.exists?(['first_name = ?', 'Ryan'])
 </ruby>
 
 It's even possible to use +exists?+ without any arguments:
