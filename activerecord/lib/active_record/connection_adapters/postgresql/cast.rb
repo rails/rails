@@ -30,8 +30,8 @@ module ActiveRecord
             nil
           elsif String === string
             Hash[string.scan(HstorePair).map { |k,v|
-              v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
-              k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
+              k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
               [k,v]
             }]
           else
