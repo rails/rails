@@ -85,7 +85,7 @@ You can also run any single test separately:
 $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
-You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
+You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
 
 ### Warnings
 
