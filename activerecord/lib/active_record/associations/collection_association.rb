@@ -109,7 +109,11 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, options, &block) }
         else
-          add_to_target(build_record(attributes, options)) do |record|
+          record = build_record nil, nil
+          set_inverse_instance record
+          record.assign_attributes(attributes, options)
+
+          add_to_target(record) do |record|
             yield(record) if block_given?
           end
         end
