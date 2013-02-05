@@ -19,6 +19,11 @@
 
     *Justin George*
 
+*   Support for Postgres citext data type enabling case-insensitive where 
+    values without needing to wrap in UPPER/LOWER sql functions
+
+    *Troy Kruthoff*
+
 *   The `DATABASE_URL` environment variable now converts ints, floats, and
     the strings true and false to Ruby types. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the

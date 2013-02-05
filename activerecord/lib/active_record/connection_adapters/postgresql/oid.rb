@@ -337,6 +337,7 @@ module ActiveRecord
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'citext', OID::Identity.new
         register_type 'ltree', OID::Identity.new
 
         register_type 'cidr', OID::Cidr.new
