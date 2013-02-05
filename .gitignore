@@ -4,6 +4,7 @@
 debug.log
 .Gemfile
 /.bundle
+/.ruby-version
 /.rbenv-version
 /.rvmrc
 /Gemfile.lock
