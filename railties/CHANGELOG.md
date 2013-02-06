@@ -19,6 +19,14 @@
 
     *Terence Lee*
 
+*   Rails now generate a `test/test_helper.rb` file with `fixtures :all` commented out by default,
+    since we don't want to force loading all fixtures for user when a single test is run. However,
+    fixtures are still going to be loaded automatically for test suites.
+
+    To force all fixtures to be create in your database, use `rails test -f` to run your test.
+
+    *Prem Sichanugrist*
+
 *   Add `rails test` command to run the test suite
 
     To run the whole test suite:

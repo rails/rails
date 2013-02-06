@@ -9,7 +9,10 @@ module Rails
       # of file to a new +TestRunner+ object, then invoke the evaluation. If
       # the argument is not a test suite name, it will be treated as a file
       # name and passed to the +TestRunner+ instance right away.
-      def start(files, options)
+      def start(files, options = {})
+        original_fixtures_options = options.delete(:fixtures)
+        options[:fixtures] = true
+
         case files.first
         when nil
           new(Dir['test/**/*_test.rb'], options).run
@@ -28,6 +31,7 @@ module Rails
         when 'integration'
           new(Dir['test/integration/**/*_test.rb'], options).run
         else
+          options[:fixtures] = original_fixtures_options
           new(files, options).run
         end
       end
@@ -50,6 +54,10 @@ module Rails
           opts.on '-h', '--help', 'Display this help.' do
             puts opts
             exit
+          end
+
+          opts.on '-f', '--fixtures', 'Load fixtures in test/fixtures/ before running the tests' do
+            options[:fixtures] = true
           end
 
           opts.on '-s', '--seed SEED', Integer, "Sets random seed" do |m|
@@ -87,6 +95,15 @@ module Rails
     def initialize(files, options)
       @files = files
       Rake::Task['test:prepare'].invoke
+
+      if options.delete(:fixtures)
+        if defined?(ActiveRecord::Base)
+          ActiveSupport::TestCase.send :include, ActiveRecord::TestFixtures
+          ActiveSupport::TestCase.fixture_path = "#{Rails.root}/test/fixtures/"
+          ActiveSupport::TestCase.fixtures :all
+        end
+      end
+
       MiniTest::Unit.runner.options = options
       MiniTest::Unit.output = SilentUntilSyncStream.new(MiniTest::Unit.output)
     end

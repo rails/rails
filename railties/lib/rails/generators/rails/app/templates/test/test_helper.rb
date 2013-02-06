@@ -6,11 +6,12 @@ class ActiveSupport::TestCase
 <% unless options[:skip_active_record] -%>
   ActiveRecord::Migration.check_pending!
 
-  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+  # Uncomment the `fixtures` line below to setup all fixtures in test/fixtures/*.yml for all tests
+  # in alphabetical order.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
   # -- they do not yet inherit this setting
-  fixtures :all
+  # fixtures :all
 
 <% end -%>
   # Add more helper methods to be used by all tests here...

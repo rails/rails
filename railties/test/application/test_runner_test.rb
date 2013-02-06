@@ -1,4 +1,5 @@
 require 'isolation/abstract_unit'
+require 'active_support/core_ext/string/strip'
 
 module ApplicationTests
   class TestRunnerTest < ActiveSupport::TestCase
@@ -170,9 +171,59 @@ module ApplicationTests
       end
     end
 
+    def test_not_load_fixtures_when_running_single_test
+      create_model_with_fixture
+      create_fixture_test :models, 'user'
+      assert_match /0 users/, run_test_command('test/models/user_test.rb')
+      assert_match /3 users/, run_test_command('test/models/user_test.rb -f')
+    end
+
+    def test_load_fixtures_when_running_test_suites
+      create_model_with_fixture
+      types = [:models, :helpers, [:units, :unit], :controllers, :mailers,
+        [:functionals, :functional], :integration]
+
+      types.each do |type, directory|
+        directory ||= type
+        create_fixture_test directory
+        assert_match /3 users/, run_test_command(type)
+        Dir.chdir(app_path) { FileUtils.rm_f "test/#{directory}" }
+      end
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bundle exec rails test #{arguments}` }
+      end
+
+      def create_model_with_fixture
+        script 'generate model user name:string'
+
+        app_file 'test/fixtures/users.yml', <<-YAML.strip_heredoc
+          vampire:
+            id: 1
+            name: Koyomi Araragi
+          crab:
+            id: 2
+            name: Senjougahara Hitagi
+          cat:
+            id: 3
+            name: Tsubasa Hanekawa
+        YAML
+
+        Dir.chdir(app_path) { `bundle exec rake db:migrate` }
+      end
+
+      def create_fixture_test(path = :unit, name = 'test')
+        app_file "test/#{path}/#{name}_test.rb", <<-RUBY
+          require 'test_helper'
+
+          class #{name.camelize}Test < ActiveSupport::TestCase
+            def test_fixture
+              puts "\#{User.count} users (\#{__FILE__})"
+            end
+          end
+        RUBY
       end
 
       def create_schema
