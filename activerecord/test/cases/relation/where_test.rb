@@ -35,5 +35,33 @@ module ActiveRecord
     def test_where_with_empty_hash_and_no_foreign_key
       assert_equal 0, Edge.where(:sink => {}).count
     end
+
+    def test_where_with_integer_for_string_column
+      count = Post.where(:title => 0).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_float_for_string_column
+      count = Post.where(:title => 0.0).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_boolean_for_string_column
+      count = Post.where(:title => false).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_decimal_for_string_column
+      count = Post.where(:title => BigDecimal.new(0)).count
+      if count > 0 && current_adapter?(:Mysql2Adapter)
+        return skip("upstream bug in mysql2")
+      end
+      assert_equal 0, count
+    end
+
+    def test_where_with_duration_for_string_column
+      count = Post.where(:title => 0.seconds).count
+      assert_equal 0, count
+    end
   end
 end
