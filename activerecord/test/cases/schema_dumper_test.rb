@@ -231,6 +231,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   if current_adapter?(:PostgreSQLAdapter)
+    if ActiveRecord::Base.connection.supports_extensions?
+      def test_schema_dump_includes_extensions
+        connection = ActiveRecord::Base.connection
+        unless connection.extension_enabled?('hstore')
+          connection.enable_extension 'hstore'
+        end
+        output = standard_dump
+        assert_match %r{enable_extension "hstore"}, output
+      end
+    end
+
     def test_schema_dump_includes_xml_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_xml_data_type"} =~ output

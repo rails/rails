@@ -35,6 +35,10 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     @connection.execute 'drop table if exists hstores'
   end
 
+  def test_hstore_included_in_extensions
+    assert @connection.extensions.include?('hstore'), "extension list should include hstore"
+  end
+
   def test_hstore_enabled
     assert @connection.extension_enabled?('hstore')
   end
