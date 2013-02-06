@@ -832,6 +832,19 @@ will recognize incoming paths beginning with `/photos` but route to the `Images`
 
 NOTE: Use `photos_path`, `new_photo_path`, etc. to generate paths for this resource.
 
+For namespaced controllers you can use the directory notation. For example:
+
+```ruby
+resources :user_permissions, controller: 'admin/user_permissions'
+```
+
+This will route to the `Admin::UserPermissions` controller.
+
+NOTE: Only the directory notation is supported. specifying the
+controller with ruby constant notation (eg. `:controller =>
+'Admin::UserPermissions'`) can lead to routing problems and results in
+a warning.
+
 ### Specifying Constraints
 
 You can use the `:constraints` option to specify a required format on the implicit `id`. For example:
