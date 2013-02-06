@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Modify `TimeWithZone#as_json` to include 3 decimal places of sub-second accuracy
+    by default, which is optional as per the ISO8601 spec, but extremely useful. Also
+    the default behaviour of Date#toJSON() in recent versions of Chrome, Safari and
+    Firefox.
+
 *   Improve `String#squish` to handle Unicode whitespace. *Antoine Lyset*
 
 *   Standardise on `to_time` returning an instance of `Time` in the local system timezone
