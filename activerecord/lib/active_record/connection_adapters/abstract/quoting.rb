@@ -25,13 +25,19 @@ module ActiveRecord
         when true, false
           if column && column.type == :integer
             value ? '1' : '0'
+          elsif column && [:text, :string, :binary].include?(column.type)
+            value ? "'1'" : "'0'"
           else
             value ? quoted_true : quoted_false
           end
           # BigDecimals need to be put in a non-normalized form and quoted.
         when nil        then "NULL"
-        when BigDecimal then value.to_s('F')
-        when Numeric, ActiveSupport::Duration then value.to_s
+        when Numeric, ActiveSupport::Duration
+          value = BigDecimal === value ? value.to_s('F') : value.to_s
+          if column && ![:integer, :float, :decimal].include?(column.type)
+            value = "'#{value}'"
+          end
+          value
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
         when Class      then "'#{value.to_s}'"
