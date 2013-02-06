@@ -36,6 +36,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
   end
 
   def test_hstore_included_in_extensions
+    assert @connection.respond_to?(:extensions), "connection should have a list of extensions"
     assert @connection.extensions.include?('hstore'), "extension list should include hstore"
   end
 
