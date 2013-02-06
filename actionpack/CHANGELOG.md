@@ -5,11 +5,11 @@
     `ArgumentError`.
 
     Example:
-            # This raises an ArgumentError:
-            resources :posts, :controller => "Admin::Posts"
+        # This raises an ArgumentError:
+        resources :posts, :controller => "Admin::Posts"
 
-            # Use directory notation instead:
-            resources :posts, :controller => "admin/posts"
+        # Use directory notation instead:
+        resources :posts, :controller => "admin/posts"
 
     *Yves Senn*
 
