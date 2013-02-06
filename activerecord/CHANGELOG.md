@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change behaviour with empty array in where clause,
+    the SQL generated when  when were passed an empty array was insecure in some cases
+
+    Roberto Miranda
+
 *   Raise ArgumentError instead of generate invalid SQL when empty hash is used in where clause value
 
     Roberto Miranda
