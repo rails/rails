@@ -230,6 +230,9 @@ module ActiveRecord
     #
     #   User.group(:name)
     #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
+    #
+    #   User.group('name AS grouped_name, age')
+    #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
     def group(*args)
       args.blank? ? self : spawn.group!(*args)
     end
