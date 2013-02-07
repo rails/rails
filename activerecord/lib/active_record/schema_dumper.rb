@@ -74,6 +74,7 @@ HEADER
         extensions.each do |extension|
           stream.puts "  enable_extension #{extension.inspect}"
         end
+        stream.puts
       end
 
       def tables(stream)
