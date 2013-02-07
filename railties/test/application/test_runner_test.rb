@@ -141,11 +141,11 @@ module ApplicationTests
       end
     end
 
-    def test_run_whole_suite
-      types = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration]
-      types.each { |type| create_test_file type, "foo_#{type}" }
+    def test_run_all_suites
+      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration]
+      suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command('') .tap do |output|
-        types.each { |type| assert_match /Foo#{type.to_s.camelize}Test/, output }
+        suites.each { |suite| assert_match /Foo#{suite.to_s.camelize}Test/, output }
         assert_match /7 tests, 7 assertions, 0 failures/, output
       end
     end
@@ -180,13 +180,13 @@ module ApplicationTests
 
     def test_load_fixtures_when_running_test_suites
       create_model_with_fixture
-      types = [:models, :helpers, [:units, :unit], :controllers, :mailers,
+      suites = [:models, :helpers, [:units, :unit], :controllers, :mailers,
         [:functionals, :functional], :integration]
 
-      types.each do |type, directory|
-        directory ||= type
+      suites.each do |suite, directory|
+        directory ||= suite
         create_fixture_test directory
-        assert_match /3 users/, run_test_command(type)
+        assert_match /3 users/, run_test_command(suite)
         Dir.chdir(app_path) { FileUtils.rm_f "test/#{directory}" }
       end
     end

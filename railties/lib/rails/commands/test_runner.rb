@@ -2,13 +2,13 @@ require 'optparse'
 require 'minitest/unit'
 
 module Rails
-  # Handling the all the logic behind +rails test+ command.
+  # Handles all logic behind +rails test+ command.
   class TestRunner
     class << self
-      # Parse the test suite name from the arguments array and pass in a list
-      # of file to a new +TestRunner+ object, then invoke the evaluation. If
-      # the argument is not a test suite name, it will be treated as a file
-      # name and passed to the +TestRunner+ instance right away.
+      # Creates a new +TestRunner+ object with an array of test files to run
+      # based on the arguments. When no arguments are provided, it runs all test
+      # files. When a suite argument is provided, it runs only the test files in
+      # that suite. Otherwise, it runs the specified test file(s).
       def start(files, options = {})
         original_fixtures_options = options.delete(:fixtures)
         options[:fixtures] = true
@@ -36,18 +36,18 @@ module Rails
         end
       end
 
-      # Parse arguments and set them as option flags
+      # Parses arguments and sets them as option flags
       def parse_arguments(arguments)
         options = {}
         orig_arguments = arguments.dup
 
         OptionParser.new do |opts|
-          opts.banner = "Usage: rails test [path to test file(s) or test suite type]"
+          opts.banner = "Usage: rails test [path to test file(s) or test suite]"
 
           opts.separator ""
-          opts.separator "Run single test file, or a test suite, under Rails'"
+          opts.separator "Run a specific test file(s) or a test suite, under Rails'"
           opts.separator "environment. If the file name(s) or suit name is omitted,"
-          opts.separator "Rails will run all the test suites."
+          opts.separator "Rails will run all tests."
           opts.separator ""
           opts.separator "Specific options:"
 
@@ -91,7 +91,7 @@ module Rails
       end
     end
 
-    # Create a new +TestRunner+ object with a list of test file paths.
+    # Creates a new +TestRunner+ object with a list of test file paths.
     def initialize(files, options)
       @files = files
       Rake::Task['test:prepare'].invoke
@@ -108,25 +108,25 @@ module Rails
       MiniTest::Unit.output = SilentUntilSyncStream.new(MiniTest::Unit.output)
     end
 
-    # Run the test files by evaluate each of them.
+    # Runs test files by evaluating each of them.
     def run
       @files.each { |filename| load(filename) }
     end
 
     # A null stream object which ignores everything until +sync+ has been set
-    # to true. This is only to be used to silence unnecessary output from
-    # MiniTest, as MiniTest calls +output.sync = true+ right before output the
-    # first test result.
+    # to true. This is only used to silence unnecessary output from MiniTest,
+    # as MiniTest calls +output.sync = true+ right before it outputs the first
+    # test result.
     class SilentUntilSyncStream < File
-      # Create a +SilentUntilSyncStream+ object by given a stream object that
-      # this stream should set +MiniTest::Unit.output+ to after +sync+ has been
+      # Creates a +SilentUntilSyncStream+ object by giving it a target stream
+      # object that will be assigned to +MiniTest::Unit.output+ after +sync+ is
       # set to true.
       def initialize(target_stream)
         @target_stream = target_stream
         super(File::NULL, 'w')
       end
 
-      # Swap +MiniTest::Unit.output+ to another stream when +sync+ is true.
+      # Swaps +MiniTest::Unit.output+ to another stream when +sync+ is true.
       def sync=(sync)
         if sync
           @target_stream.sync = true

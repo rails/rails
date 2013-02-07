@@ -19,7 +19,7 @@
 
     *Terence Lee*
 
-*   Rails now generate a `test/test_helper.rb` file with `fixtures :all` commented out by default,
+*   Rails now generates a `test/test_helper.rb` file with `fixtures :all` commented out by default,
     since we don't want to force loading all fixtures for user when a single test is run. However,
     fixtures are still going to be loaded automatically for test suites.
 
@@ -27,24 +27,27 @@
 
     *Prem Sichanugrist*
 
-*   Add `rails test` command to run the test suite
+*   Add `rails test` command for running tests
 
-    To run the whole test suite:
+    To run all tests:
 
         $ rails test
 
-    To run the test file(s):
-
-        $ rails test test/unit/foo_test.rb [test/unit/bar_test.rb ...]
-
-    To run the test suite
+    To run a test suite
 
         $ rails test [models,helpers,units,controllers,mailers,...]
 
+    To run a selected test file(s):
+
+        $ rails test test/unit/foo_test.rb [test/unit/bar_test.rb ...]
+
+    To run a single test from a test file
+
+        $ rails test test/unit/foo_test.rb -n test_the_truth
+
     For more information, see `rails test --help`.
 
-    This command will eventually replacing `rake test:*`, and `rake test`
-    command will actually invoking `rails test` instead.
+    This command will eventually replace `rake test:*` and `rake test` tasks
 
     *Prem Sichanugrist and Chris Toomey*
 

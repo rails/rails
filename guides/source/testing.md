@@ -1,8 +1,7 @@
 A Guide to Testing Rails Applications
 =====================================
 
-This guide covers built-in mechanisms offered by Rails to test your
-application.
+This guide covers built-in mechanisms in Rails for testing your application.
 
 After reading this guide, you will know:
 
@@ -234,7 +233,7 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-You can also run a particular test method from the test case by running the test and use the `-n` switch with the `test method name`.
+You can also run a particular test method from the test case by running the test and using `-n` switch with the `test method name`.
 
 ```bash
 $ rails test test/models/post_test.rb -n test_the_truth
@@ -245,7 +244,7 @@ Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-This will run all the test methods from the test case. Note that `test_helper.rb` is in the `test` directory, hence this directory needs to be added to the load path using the `-I` switch.
+This will run all test methods from the test case. Note that `test_helper.rb` is in the `test` directory, hence this directory needs to be added to the load path using the `-I` switch.
 
 The `.` (dot) above indicates a passing test. When a test fails you see an `F`; when a test throws an error you see an `E` in its place. The last line of the output is the summary.
 
