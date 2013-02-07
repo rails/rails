@@ -53,9 +53,6 @@ module ActiveRecord
 
     def test_where_with_decimal_for_string_column
       count = Post.where(:title => BigDecimal.new(0)).count
-      if count > 0 && current_adapter?(:Mysql2Adapter)
-        return skip("upstream bug in mysql2")
-      end
       assert_equal 0, count
     end
 
