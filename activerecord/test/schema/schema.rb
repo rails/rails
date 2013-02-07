@@ -486,6 +486,8 @@ ActiveRecord::Schema.define do
   create_table :price_estimates, :force => true do |t|
     t.string :estimate_of_type
     t.integer :estimate_of_id
+    t.string :thing_type
+    t.integer :thing_id
     t.integer :price
   end
 
