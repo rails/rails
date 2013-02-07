@@ -21,10 +21,15 @@ module ActiveRecord
       def cleanup_view_runtime
         if ActiveRecord::Base.connected?
           db_rt_before_render = ActiveRecord::LogSubscriber.reset_runtime
-          runtime = super
-          db_rt_after_render = ActiveRecord::LogSubscriber.reset_runtime
-          self.db_runtime = db_rt_before_render + db_rt_after_render
-          runtime - db_rt_after_render
+          begin
+            runtime = super
+            db_rt_after_render = ActiveRecord::LogSubscriber.reset_runtime
+            self.db_runtime =  (db_runtime || 0) + db_rt_before_render + db_rt_after_render
+            runtime - db_rt_after_render
+          rescue ActionView::MissingTemplate => e
+             self.db_runtime = (db_runtime || 0) + db_rt_before_render
+             raise e
+          end
         else
           super
         end
