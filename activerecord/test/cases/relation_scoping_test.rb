@@ -391,19 +391,19 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_default_scope_with_inheritance
     wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal Arel.sql("50000"), wheres[:salary]
   end
 
   def test_default_scope_with_module_includes
     wheres = ModuleIncludedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal Arel.sql("50000"), wheres[:salary]
   end
 
   def test_default_scope_with_multiple_calls
     wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal Arel.sql("50000"), wheres[:salary]
   end
 
   def test_scope_overwrites_default
