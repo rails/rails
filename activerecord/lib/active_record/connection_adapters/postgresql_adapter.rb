@@ -610,7 +610,7 @@ module ActiveRecord
           res = exec_query "SELECT extname from pg_extension", "SCHEMA"
           res.rows.map { |r| res.column_types['extname'].type_cast r.first }
         else
-          []
+          super
         end
       end
 
