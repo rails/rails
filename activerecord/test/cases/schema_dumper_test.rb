@@ -232,6 +232,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_extensions
       connection = ActiveRecord::Base.connection
+      skip unless connection.supports_extensions?
 
       connection.stubs(:extensions).returns(['hstore'])
       output = standard_dump
