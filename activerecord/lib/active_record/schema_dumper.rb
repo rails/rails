@@ -24,6 +24,7 @@ module ActiveRecord
 
     def dump(stream)
       header(stream)
+      extensions(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -64,6 +65,17 @@ HEADER
 
       def trailer(stream)
         stream.puts "end"
+      end
+
+      def extensions(stream)
+        return unless @connection.supports_extensions?
+        extensions = @connection.extensions
+        stream.puts <<EXTENSIONS
+# These are extensions that must be enabled in order to support this database
+EXTENSIONS
+        extensions.each do |extension|
+          stream.puts " enable_extension #{extension.inspect}"
+        end
       end
 
       def tables(stream)
