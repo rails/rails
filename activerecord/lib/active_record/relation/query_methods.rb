@@ -189,6 +189,16 @@ module ActiveRecord
     #   Model.select(:field, :other_field, :and_one_more)
     #   # => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
+    # You can also use one or more strings, which will be used unchanged as SELECT fields.
+    #
+    #   Model.select('field AS field_one', 'other_field AS field_two')
+    #   # => [#<Model field: "value", other_field: "value">]
+    #
+    # If an alias was specified, it will be accessible from the resulting objects:
+    #
+    #   Model.select('field AS field_one').first.field_one
+    #   # => "value"
+    #
     # Accessing attributes of an object that do not have fields retrieved by a select
     # will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
