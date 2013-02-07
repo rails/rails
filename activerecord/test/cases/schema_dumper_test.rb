@@ -237,8 +237,18 @@ class SchemaDumperTest < ActiveRecord::TestCase
       unless connection.extension_enabled?('hstore')
         connection.enable_extension 'hstore'
       end
+
       output = standard_dump
+      assert_match "# These are extensions that must be enabled", output
       assert_match %r{enable_extension "hstore"}, output
+
+      connection.extensions.each do |ext|
+        connection.disable_extension ext
+      end
+
+      output = standard_dump
+      assert_no_match "# These are extensions that must be enabled", output
+      assert_no_match %r{enable_extension}, output
     end
 
     def test_schema_dump_includes_xml_shorthand_definition

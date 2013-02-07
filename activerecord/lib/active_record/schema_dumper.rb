@@ -70,11 +70,13 @@ HEADER
       def extensions(stream)
         return unless @connection.supports_extensions?
         extensions = @connection.extensions
-        stream.puts "  # These are extensions that must be enabled in order to support this database"
-        extensions.each do |extension|
-          stream.puts "  enable_extension #{extension.inspect}"
+        if extensions.any?
+          stream.puts "  # These are extensions that must be enabled in order to support this database"
+          extensions.each do |extension|
+            stream.puts "  enable_extension #{extension.inspect}"
+          end
+          stream.puts
         end
-        stream.puts
       end
 
       def tables(stream)
