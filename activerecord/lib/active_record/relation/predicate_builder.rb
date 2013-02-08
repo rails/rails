@@ -17,6 +17,8 @@ module ActiveRecord
               queries.concat expand(association && association.klass, table, k, v)
             end
           end
+        elsif value.is_a?(Array) && value.empty?
+          raise ArgumentError, "Condition value in SQL clause can't be an empty array"
         else
           column = column.to_s
 
