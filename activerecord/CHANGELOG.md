@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Raise `ArgumentError` instead of generating invalid SQL when empty hash is
-    used in where clause value.
-
-    *Roberto Miranda*
-
 *   Quote numeric values being compared to non-numeric columns. Otherwise,
     in some database, the string column values will be coerced to a numeric
     allowing 0, 0.0 or false to match any string starting with a non-digit.

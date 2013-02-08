@@ -92,9 +92,7 @@ module ActiveRecord
     end
 
     def test_where_with_table_name_and_empty_hash
-      assert_raises(ArgumentError) do
-        Post.where(:posts => {})
-      end
+      assert_equal 0, Post.where(:posts => {}).count
     end
 
     def test_where_with_table_name_and_empty_array
@@ -102,9 +100,7 @@ module ActiveRecord
     end
 
     def test_where_with_empty_hash_and_no_foreign_key
-      assert_raises(ArgumentError) do
-        Edge.where(:sink => {}).count
-      end
+      assert_equal 0, Edge.where(:sink => {}).count
     end
 
     def test_where_with_blank_conditions

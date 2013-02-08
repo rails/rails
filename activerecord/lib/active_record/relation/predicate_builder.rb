@@ -8,7 +8,7 @@ module ActiveRecord
 
         if value.is_a?(Hash)
           if value.empty?
-            raise ArgumentError, "Condition value in SQL clause can't be an empty hash"
+            queries << '1 = 2'
           else
             table       = Arel::Table.new(column, default_table.engine)
             association = klass.reflect_on_association(column.to_sym)
