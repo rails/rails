@@ -4,7 +4,7 @@ require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
-class PostgresqlHstoreTest < ActiveRecord::TestCase
+class PostgresqlCitextTest < ActiveRecord::TestCase
   class Citext < ActiveRecord::Base
     self.table_name = 'citexts'
   end
@@ -32,14 +32,14 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert @connection.extension_enabled?('citext')
   end
 
-  def test_disable_hstore
+  def test_disable_citext
     if @connection.extension_enabled?('citext')
       @connection.disable_extension 'citext'
       assert_not @connection.extension_enabled?('citext')
     end
   end
 
-  def test_enable_hstore
+  def test_enable_citext
     if @connection.extension_enabled?('citext')
       @connection.disable_extension 'citext'
     end
@@ -58,10 +58,10 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert x.save!
   end
 
-  def test_select
-    @connection.execute "insert into citexts (cival) values('text')"
-    x = Citext.first
-    assert_equal('text', x.cival)
+  def test_select_case_insensitive
+    @connection.execute "insert into citexts (cival) values('Cased Text')"
+    x = Citext.where(cival: 'cased text').first
+    assert_equal('Cased Text', x.cival)
   end
 end
 
