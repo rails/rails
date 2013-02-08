@@ -13,7 +13,7 @@ module ActiveRecord
           table = Arel::Table.new(column, :engine => @engine)
 
           if value.empty?
-            '1 = 2'
+            raise ArgumentError, "Condition value in SQL clause can't be an empty hash"
           else
             build_from_hash(value, table, false)
           end
