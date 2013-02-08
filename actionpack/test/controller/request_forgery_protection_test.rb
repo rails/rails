@@ -66,6 +66,19 @@ class RequestForgeryProtectionControllerUsingException < ActionController::Base
   protect_from_forgery :only => %w(index meta), :with => :exception
 end
 
+class RequestForgeryProtectionControllerUsingNullSession < ActionController::Base
+  protect_from_forgery :with => :null_session
+
+  def signed
+    cookies.signed[:foo] = 'bar'
+    render :nothing => true
+  end
+
+  def encrypted
+    cookies.encrypted[:foo] = 'bar'
+    render :nothing => true
+  end
+end
 
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   self.allow_forgery_protection = false
@@ -284,6 +297,28 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
     assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
+  end
+end
+
+class NullSessionDummyKeyGenerator
+  def generate_key(secret)
+    '03312270731a2ed0d11ed091c2338a06'
+  end
+end
+
+class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase  
+  def setup
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
+  end
+
+  test 'should allow to set signed cookies' do
+    post :signed
+    assert_response :ok
+  end
+
+  test 'should allow to set encrypted cookies' do
+    post :encrypted
+    assert_response :ok
   end
 end
 
