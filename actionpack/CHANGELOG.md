@@ -13,11 +13,6 @@
 
     *Yves Senn*
 
-*   Fix error (#9168) which was produced by setting signed/encrypted 
-    cookie when :null_session forgery protection method was used.
-
-    *Andrey Chernih*
-
 *   `assert_template` can be used to verify the locals of partials,
     which live inside a directory.
     Fixes #8516.
