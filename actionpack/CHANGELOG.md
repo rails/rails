@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   We don't support the `:controller` option for route definitions
+    with the ruby constant notation. This will now result in an
+    `ArgumentError`.
+
+    Example:
+        # This raises an ArgumentError:
+        resources :posts, :controller => "Admin::Posts"
+
+        # Use directory notation instead:
+        resources :posts, :controller => "admin/posts"
+
+    *Yves Senn*
+
 *   `assert_template` can be used to verify the locals of partials,
     which live inside a directory.
     Fixes #8516.

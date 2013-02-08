@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Quote numeric values being compared to non-numeric columns. Otherwise,
+    in some database, the string column values will be coerced to a numeric
+    allowing 0, 0.0 or false to match any string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: 0) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Smith*
+
+*   Schema dumper supports dumping the enabled database extensions to `schema.rb`
+    (currently only supported by postgresql).
+
+    *Justin George*
+
 *   The `DATABASE_URL` environment variable now converts ints, floats, and
     the strings true and false to Ruby types. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the

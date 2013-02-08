@@ -605,6 +605,15 @@ module ActiveRecord
         end
       end
 
+      def extensions
+        if supports_extensions?
+          res = exec_query "SELECT extname from pg_extension", "SCHEMA"
+          res.rows.map { |r| res.column_types['extname'].type_cast r.first }
+        else
+          super
+        end
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
         @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i

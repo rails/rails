@@ -2833,20 +2833,51 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     end
   end
 
-  DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new
-  DefaultScopeRoutes.draw do
-    namespace :admin do
-      resources :storage_files, :controller => "StorageFiles"
+  def draw(&block)
+    @app = ActionDispatch::Routing::RouteSet.new
+    @app.draw(&block)
+  end
+
+  def test_valid_controller_options_inside_namespace
+    draw do
+      namespace :admin do
+        resources :storage_files, :controller => "storage_files"
+      end
     end
-  end
 
-  def app
-    DefaultScopeRoutes
-  end
-
-  def test_controller_options
     get '/admin/storage_files'
     assert_equal "admin/storage_files#index", @response.body
+  end
+
+  def test_resources_with_valid_namespaced_controller_option
+    draw do
+      resources :storage_files, :controller => 'admin/storage_files'
+    end
+
+    get 'storage_files'
+    assert_equal "admin/storage_files#index", @response.body
+  end
+
+  def test_warn_with_ruby_constant_syntax_controller_option
+    e = assert_raise(ArgumentError) do
+      draw do
+        namespace :admin do
+          resources :storage_files, :controller => "StorageFiles"
+        end
+      end
+    end
+
+    assert_match "'admin/StorageFiles' is not a supported controller name", e.message
+  end
+
+  def test_warn_with_ruby_constant_syntax_namespaced_controller_option
+    e = assert_raise(ArgumentError) do
+      draw do
+        resources :storage_files, :controller => 'Admin::StorageFiles'
+      end
+    end
+
+    assert_match "'Admin::StorageFiles' is not a supported controller name", e.message
   end
 end
 
