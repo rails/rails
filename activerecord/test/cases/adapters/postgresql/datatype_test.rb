@@ -36,6 +36,9 @@ end
 class PostgresqlLtree < ActiveRecord::Base
 end
 
+class PostgresqlCitext < ActiveRecord::Base
+end
+
 class PostgresqlDataTypeTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
