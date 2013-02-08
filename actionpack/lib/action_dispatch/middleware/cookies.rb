@@ -110,13 +110,17 @@ module ActionDispatch
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
+      def self.options_for_env(env) #:nodoc:
+        { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
+          encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
+          encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
+          token_key: env[TOKEN_KEY] }
+      end
+
       def self.build(request)
         env = request.env
         key_generator = env[GENERATOR_KEY]
-        options = { signed_cookie_salt: env[SIGNED_COOKIE_SALT],
-                    encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT],
-                    encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT],
-                    token_key: env[TOKEN_KEY] }
+        options = options_for_env env
 
         host = request.host
         secure = request.ssl?

@@ -126,7 +126,7 @@ module ActionController #:nodoc:
             host          = request.host
             secure        = request.ssl?
 
-            new(key_generator, host, secure)
+            new(key_generator, host, secure, options_for_env({}))
           end
 
           def write(*)
