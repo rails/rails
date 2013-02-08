@@ -515,9 +515,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_in_empty_array
-    assert_raises(ArgumentError) do
-      Author.all.where(:id => [])
-    end
+    authors = Author.all.where(:id => [])
+    assert authors.to_a.blank?
   end
 
   def test_where_with_ar_object

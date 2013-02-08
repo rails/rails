@@ -136,7 +136,7 @@ module ActiveRecord
           records = load_target if records == :all
 
           scope = through_association.scope
-          scope.where! construct_join_attributes(*records) unless records.empty?
+          scope.where! construct_join_attributes(*records)
 
           case method
           when :destroy

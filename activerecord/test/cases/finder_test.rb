@@ -808,6 +808,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [2, 1].sort, client_of.compact.sort
   end
 
+  def test_find_with_nil_inside_set_passed_for_attribute
+    client_of = Company.all.merge!(
+      :where => { :client_of => [nil] },
+      :order => 'client_of DESC'
+    ).map { |x| x.client_of }
+
+    assert_equal [], client_of.compact
+  end
+
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
       :includes => :author, :select => ' posts.*, authors.id as "author_id"',

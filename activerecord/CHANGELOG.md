@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Raise `ArgumentError` instead of generating `column IN (NULL)` SQL when
-    empty array is used in where clause value.
-
-    *Roberto Miranda*
-
 *   Raise `ArgumentError` instead of generating invalid SQL when empty hash is
     used in where clause value.
 
