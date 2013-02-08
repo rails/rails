@@ -20,10 +20,10 @@ module Rails
 
       def self.add_shared_options_for(name)
         class_option :builder,            type: :string, aliases: '-b',
-                                          desc: "Path to a #{name} builder (can be a filesystem path or URL)"
+                                          desc: "Path to some #{name} builder (can be a filesystem path or URL)"
 
         class_option :template,           type: :string, aliases: '-m',
-                                          desc: "Path to an #{name} template (can be a filesystem path or URL)"
+                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
