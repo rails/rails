@@ -443,7 +443,8 @@ class AssetTagHelperTest < ActionView::TestCase
     [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
       assert_equal 'Rails', image_alt("#{prefix}rails.png")
       assert_equal 'Rails', image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
-      assert_equal 'Avatar-0000', image_alt("#{prefix}avatar-0000.png")
+      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png") 
+      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")  
     end
   end
 
