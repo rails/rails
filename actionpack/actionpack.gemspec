@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency('activemodel',   version)
   s.add_dependency('rack-cache',    '~> 1.2')
   s.add_dependency('builder',       '~> 3.0.0')
-  s.add_dependency('rack',          '~> 1.4.3')
+  s.add_dependency('rack',          '~> 1.4.5')
   s.add_dependency('rack-test',     '~> 0.6.1')
   s.add_dependency('journey',       '~> 1.0.4')
   s.add_dependency('sprockets',     '~> 2.2.1')
