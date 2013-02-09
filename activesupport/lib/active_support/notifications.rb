@@ -146,11 +146,47 @@ module ActiveSupport
   # to log subscribers in a thread. You can use any queue implementation you want.
   #
   module Notifications
+
+    VALID_NOTIFICATION_TYPES = Set.new([:regular, :filesystem])
+
     class << self
-      attr_accessor :notifier
+      attr_accessor :notifiers
+
+      def notifier(type=:regular)
+        check_valid_type(type)
+        self.notifiers[type] ||= Fanout.new
+        self.notifiers[type]
+      end
+
+      def notifier=(new_notifier, type=:regular)
+        check_valid_type(type)
+        self.notifiers[type] = new_notifier
+      end
 
       def publish(name, *args)
         notifier.publish(name, *args)
+      end
+
+      def publish_with_type(type, name, *args)
+        notifier(type).publish(name, *args)
+      end
+
+      def listen_to_filesystem(name, paths, opts={})
+        listener = FileSystemChanges::FileSystemListener.new(paths, opts)
+        Thread.new do
+          listener.start_listening
+        end
+
+        Thread.new do
+          while true
+            while !listener.changed_files.empty?
+              changed_file = listener.changed_files.pop()
+              publish_with_type(:filesystem, name, {:changed_file => changed_file})
+            end
+          end
+        end
+
+        listener
       end
 
       def instrument(name, payload = {})
@@ -165,6 +201,10 @@ module ActiveSupport
         notifier.subscribe(*args, &block)
       end
 
+      def subscribe_with_type(type, *args, &block)
+        notifier(type).subscribe(*args, &block)
+      end
+
       def subscribed(callback, *args, &block)
         subscriber = subscribe(*args, &callback)
         yield
@@ -172,15 +212,35 @@ module ActiveSupport
         unsubscribe(subscriber)
       end
 
+      def subscribed_with_type(type, callback, *args, &block)
+        subscriber = subscribe_with_type(type, *args, &callback)
+        yield
+      ensure
+        unsubscribe_with_type(type, subscriber)
+      end
+
       def unsubscribe(args)
         notifier.unsubscribe(args)
       end
 
-      def instrumenter
-        Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
+      def unsubscribe_with_type(type, args)
+        notifier(type).unsubscribe(args)
+      end
+
+      def instrumenter(type=:regular)
+        check_valid_type(type)
+        Thread.current[:"instrumentation_#{notifier(type).object_id}"] ||= Instrumenter.new(notifier(type))
+      end
+
+      private
+
+      def check_valid_type(type)
+        if !VALID_NOTIFICATION_TYPES.include?(type)
+          raise ArgumentError, "Invalid notification type: #{type}. Valid types are :#{VALID_NOTIFICATION_TYPES.map { |type| type }.join(', :')}"
+        end
       end
     end
 
-    self.notifier = Fanout.new
+    self.notifiers = {}
   end
 end

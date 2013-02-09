@@ -36,6 +36,7 @@ module ActiveSupport
   autoload :FileUpdateChecker
   autoload :LogSubscriber
   autoload :Notifications
+  autoload :FileSystemChanges
 
   eager_autoload do
     autoload :BacktraceCleaner
