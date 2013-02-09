@@ -8,7 +8,7 @@ module ActiveRecord
 
         if value.is_a?(Hash)
           if value.empty?
-            queries << '1 = 2'
+            queries << '1=0'
           else
             table       = Arel::Table.new(column, default_table.engine)
             association = klass.reflect_on_association(column.to_sym)
