@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added notice message for destroy action in scaffold generator
+
+    *Rahul P. Chaudhari*
+
 *   Add --rc option to support the load of a custom rc file during the generation of a new app.
 
     *Amparo Luna*
