@@ -246,7 +246,7 @@ module ActionDispatch
                 raise ArgumentError, "missing :action"
               end
 
-              if controller.is_a?(String) && controller !~ /\A[a-z_\/]+\z/
+              if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
                 message = "'#{controller}' is not a supported controller name. This can lead to potential routing problems."
                 message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
                 raise ArgumentError, message
