@@ -346,7 +346,7 @@ module ActiveModel
           def initialize(options = {})
             options.symbolize_keys!
             @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
-            @regex = /^(#{Regexp.escape(@prefix)})(.+?)(#{Regexp.escape(@suffix)})$/
+            @regex = /\A(#{Regexp.escape(@prefix)})(.+?)(#{Regexp.escape(@suffix)})\z/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end

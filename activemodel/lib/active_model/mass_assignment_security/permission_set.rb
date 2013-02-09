@@ -17,7 +17,7 @@ module ActiveModel
     protected
 
       def remove_multiparameter_id(key)
-        key.to_s.gsub(/\(.+/, '')
+        key.to_s.gsub(/\(.+/m, '')
       end
     end
 
