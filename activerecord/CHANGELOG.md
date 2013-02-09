@@ -606,7 +606,7 @@
 
     After:
 
-        #=> SELECT * FROM users WHERE 1 = 2;
+        #=> SELECT * FROM users WHERE 1=0;
 
     *Damien Mathieu*
 
