@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change log level to `:warn` in production mode.
+
+    *Vladimir Sazhin*
+
 *   Add --rc option to support the load of a custom rc file during the generation of a new app.
 
     *Amparo Luna*

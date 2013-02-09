@@ -110,7 +110,7 @@ module Rails
       end
 
       def log_level
-        @log_level ||= Rails.env.production? ? :info : :debug
+        @log_level ||= Rails.env.production? ? :warn : :debug
       end
 
       def colorize_logging
