@@ -1031,6 +1031,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'users/home#index', @response.body
   end
 
+  def test_namespace_containing_numbers
+    draw do
+      namespace :v2 do
+        resources :subscriptions
+      end
+    end
+
+    get '/v2/subscriptions'
+    assert_equal 'v2/subscriptions#index', @response.body
+    assert_equal '/v2/subscriptions', v2_subscriptions_path
+  end
+
   def test_articles_with_id
     draw do
       controller :articles do
