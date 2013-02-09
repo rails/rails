@@ -39,7 +39,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         value = tokenize(value)
-        value_length = value.respond_to?(:length) ? value.length : value.to_s.length
+        value_length = value.to_s.length
         errors_options = options.except(*RESERVED_OPTIONS)
 
         CHECKS.each do |key, validity_check|
