@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module AttributeAssignment
     extend ActiveSupport::Concern
@@ -16,21 +15,17 @@ module ActiveRecord
 
       attributes                  = new_attributes.stringify_keys
       multi_parameter_attributes  = []
-      nested_parameter_attributes = []
 
       attributes = sanitize_for_mass_assignment(attributes)
 
       attributes.each do |k, v|
         if k.include?("(")
           multi_parameter_attributes << [ k, v ]
-        elsif v.is_a?(Hash)
-          nested_parameter_attributes << [ k, v ]
         else
           _assign_attribute(k, v)
         end
       end
 
-      assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
@@ -46,11 +41,6 @@ module ActiveRecord
       else
         raise UnknownAttributeError, "unknown attribute: #{k}"
       end
-    end
-
-    # Assign any deferred nested attributes after the base attributes have been set.
-    def assign_nested_parameter_attributes(pairs)
-      pairs.each { |k, v| _assign_attribute(k, v) }
     end
 
     # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
