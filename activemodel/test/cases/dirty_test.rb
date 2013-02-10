@@ -34,8 +34,7 @@ class DirtyTest < ActiveModel::TestCase
     end
 
     def size=(val)
-      attribute = :size
-      attribute_will_change!(attribute) unless val == @size
+      attribute_will_change!(:size) unless val == @size
       @size = val
     end
 
