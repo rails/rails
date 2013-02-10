@@ -30,14 +30,26 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "increment counter" do
-    assert_difference '@topic.reload.replies_count' do
+    assert_difference '@topic.reload.replies_count', +1 do
       Topic.increment_counter(:replies_count, @topic.id)
+    end
+  end
+
+  test "increment counter using another primary key" do
+    assert_difference '@topic.reload.replies_count', +1 do
+      Topic.increment_counter(:replies_count, @topic.title, "title")
     end
   end
 
   test "decrement counter" do
     assert_difference '@topic.reload.replies_count', -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
+    end
+  end
+
+  test "decrement counter using another primary key" do
+    assert_difference '@topic.reload.replies_count', -1 do
+      Topic.decrement_counter(:replies_count, @topic.title, "title")
     end
   end
 

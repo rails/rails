@@ -51,7 +51,8 @@ module ActiveRecord
       # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
       # * +counters+ - An Array of Hashes containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
-      #
+      # * +specified_primary_key+ - Specify primary key column name, this is optional and
+      #   default is table primary column.
       # ==== Examples
       #
       #   # For the Post with id of 5, decrement the comment_count by 1, and
@@ -69,14 +70,14 @@ module ActiveRecord
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #  WHERE id IN (10, 15)
-      def update_counters(id, counters)
+      def update_counters(id, specified_primary_key = nil, counters)
+        pk = specified_primary_key || primary_key
         updates = counters.map do |counter_name, value|
           operator = value < 0 ? '-' : '+'
           quoted_column = connection.quote_column_name(counter_name)
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
-
-        where(primary_key => id).update_all updates.join(', ')
+        where(pk => id).update_all updates.join(', ')
       end
 
       # Increment a numeric field by one, via a direct SQL update.
@@ -90,13 +91,15 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented or an Array of ids.
+      # * +specified_primary_key+ - Specify primary key column name, this is optional and
+      #   default is table primary column.
       #
       # ==== Examples
       #
       #   # Increment the post_count column for the record with an id of 5
       #   DiscussionBoard.increment_counter(:post_count, 5)
-      def increment_counter(counter_name, id)
-        update_counters(id, counter_name => 1)
+      def increment_counter(counter_name, id, specified_primary_key = nil)
+        update_counters(id, specified_primary_key, counter_name => 1)
       end
 
       # Decrement a numeric field by one, via a direct SQL update.
@@ -108,13 +111,15 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented or an Array of ids.
+      # * +specified_primary_key+ - Specify primary key column name, this is optional and
+      #   default is table primary column.
       #
       # ==== Examples
       #
       #   # Decrement the post_count column for the record with an id of 5
       #   DiscussionBoard.decrement_counter(:post_count, 5)
-      def decrement_counter(counter_name, id)
-        update_counters(id, counter_name => -1)
+      def decrement_counter(counter_name, id, specified_primary_key = nil)
+        update_counters(id, specified_primary_key, counter_name => -1)
       end
     end
   end

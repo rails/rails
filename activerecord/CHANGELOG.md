@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Update behavior of `counter_cache`, the counter will update after saving instead of assigning,
+     support update counters by assign `{foreign_key}_id`.
+    Avoiding resource assigned but not be saved but the counter has updated.
+
+    *Jasl*
+
 *   Raise ArgumentError instead of generate invalid SQL when empty hash is used in where clause value
 
     Roberto Miranda
