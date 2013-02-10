@@ -130,7 +130,7 @@ module ActiveRecord
         # Suffixes a, ?, c become regexp /(a|\?|c)$/
         def rebuild_attribute_method_regexp
           suffixes = attribute_method_suffixes.map { |s| Regexp.escape(s) }
-          @@attribute_method_regexp = /(#{suffixes.join('|')})$/.freeze
+          @@attribute_method_regexp = /(#{suffixes.join('|')})\z/.freeze
         end
 
         # Default to =, ?, _before_type_cast
