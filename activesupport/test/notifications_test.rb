@@ -24,6 +24,72 @@ module Notifications
     end
   end
 
+  class NotificationTypeTest < TestCase
+    MAX_FILESYSTEM_CHANGE_WAIT_TIME = 5
+
+    def test_raise_error_for_invalid_type
+      assert_raises ArgumentError do
+        ActiveSupport::Notifications.publish_with_type(:broken_type_name, "name")
+      end
+    end
+
+    def test_subscribe_to_filesystem
+      filesystem_events = []
+      named_filesystem_events = []
+      named_subscription = ActiveSupport::Notifications.subscribe_with_type(:filesystem, "filesystem_notification") { |*args| named_filesystem_events << [*args] }
+      subscription = ActiveSupport::Notifications.subscribe_with_type(:filesystem) { |*args| filesystem_events << [*args] }
+      ActiveSupport::Notifications.publish_with_type(:filesystem, "filesystem_notification", :foo)
+
+      assert_equal [["filesystem_notification", :foo]], named_filesystem_events
+      assert_equal [["filesystem_notification", :foo]], filesystem_events
+    end
+
+    def test_listen_to_filesystem_path
+      filesystem_events = []
+      subscription = ActiveSupport::Notifications.subscribe_with_type(:filesystem) { |*args| filesystem_events << [*args] }
+
+      listener = ActiveSupport::Notifications.listen_to_filesystem("test_filesystem_notification", Dir.getwd)
+      assert_equal [], filesystem_events
+
+      # NOTE: This sleep is necessary because system time is only accurate to the second.
+      # Thus, if we create a file within 1 second of starting the listener, we might
+      # trick the system into thinking the file wasn't actually added
+      sleep(1)
+
+      filename = find_unused_filename
+      File.open(filename, 'w') { |f| f.write("testing document") }
+
+      changed_file = false
+      start_time = Time.now
+      while !changed_file && Time.now - start_time < MAX_FILESYSTEM_CHANGE_WAIT_TIME
+        filesystem_events.each do |ary|
+          if ary[0] == "test_filesystem_notification" && ary[1][:changed_file].path == filename
+            changed_file = ary[1][:changed_file]
+            break
+          end
+        end
+      end
+
+      assert changed_file, "Filesystem change was not detected."
+      assert_equal filename, changed_file.path, "Incorrect path was detected for the filesystem change."
+      assert_equal :added, changed_file.type, "Incorrect type of filesystem change detected."
+    ensure
+      File.delete(filename)
+      listener.stop_listening
+    end
+
+    private
+
+    def find_unused_filename(root=Dir.getwd, int_size=9000000000)
+      filename = rand(int_size).to_s
+      while File.exist?(filename)
+        filename = rand(int_size).to_s
+      end
+
+      "#{root}/#{filename}"
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"
