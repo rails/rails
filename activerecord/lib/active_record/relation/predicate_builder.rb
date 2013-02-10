@@ -101,7 +101,11 @@ module ActiveRecord
         when Integer, ActiveSupport::Duration
           # Arel treats integers as literals, but they should be quoted when compared with strings
           table = attribute.relation
-          column = table.engine.connection.schema_cache.columns_hash(table.name)[attribute.name.to_s]
+          begin
+            column = table.engine.connection.schema_cache.columns_hash(table.name)[attribute.name.to_s]
+          rescue
+            attribute.eq(value)
+          end
           attribute.eq(Arel::Nodes::SqlLiteral.new(table.engine.connection.quote(value, column)))
         else
           attribute.eq(value)
