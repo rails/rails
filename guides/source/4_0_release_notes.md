@@ -3,7 +3,7 @@ Ruby on Rails 4.0 Release Notes
 
 Highlights in Rails 4.0:
 
-* Ruby 1.9.3 only
+* Ruby 2.0 preferred; 1.9.3+ required
 * Strong Parameters
 * Turbolinks
 * Russian Doll Caching
