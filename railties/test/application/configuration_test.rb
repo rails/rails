@@ -303,7 +303,7 @@ module ApplicationTests
 
       assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
                    ActiveRecord::Base.active_authorizers[:default].class
-      assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
+      assert_equal [], ActiveRecord::Base.active_authorizers[:default].to_a
     end
 
     test "registers interceptors with ActionMailer" do
