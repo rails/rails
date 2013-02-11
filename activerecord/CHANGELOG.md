@@ -1,15 +1,3 @@
-## Rails 3.2.12 (unreleased) ##
-
-*   Quote numeric values being compared to non-numeric columns. Otherwise,
-    in some database, the string column values will be coerced to a numeric
-    allowing 0, 0.0 or false to match any string starting with a non-digit.
-
-    Example:
-
-        App.where(apikey: 0) # => SELECT * FROM users WHERE apikey = '0'
-
-    *Dylan Smith*
-
 *   Don't update `column_defaults` when calling destructive methods on column with default value.
     Backport c517602.
     Fix #6115.
@@ -219,6 +207,18 @@
     Fixes #8131.
 
     *Gabriel Sobrinho, Ricardo Henrique*
+
+## Rails 3.2.12 ##
+
+*   Quote numeric values being compared to non-numeric columns. Otherwise,
+    in some database, the string column values will be coerced to a numeric
+    allowing 0, 0.0 or false to match any string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: 0) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Smith*
 
 ## Rails 3.2.11 (Jan 8, 2013) ##
 
