@@ -650,6 +650,14 @@ self.author = Blorgh.user_class.find_or_create_by(name: author_name)
 
 Resulting in something a little shorter, and more implicit in its behavior. The `user_class` method should always return a `Class` object.
 
+Since we changed the `user_class` method to no longer return a
+`String` but a `Class` we must also modify our `belongs_to` definition
+in the `Blorgh::Post` model:
+
+```ruby
+belongs_to :author, class_name: Blorgh.user_class.to_s
+```
+
 To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
 
 Create a new initializer at `config/initializers/blorgh.rb` inside the application where the `blorgh` engine is installed and put this content in it:
