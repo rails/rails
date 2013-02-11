@@ -221,6 +221,7 @@ module ActiveSupport #:nodoc:
         def end_of_day
           change(:hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
         end
+        alias :at_end_of_day, :end_of_day
 
         # Returns a new Time representing the start of the month (1st of the month, 0:00)
         def beginning_of_month
