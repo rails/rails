@@ -45,12 +45,6 @@ end
 # Add your own local bundler stuff
 instance_eval File.read '.Gemfile' if File.exists? '.Gemfile'
 
-platforms :mri do
-  group :test do
-    gem 'ruby-prof', '~> 0.11.2'
-  end
-end
-
 platforms :ruby do
   gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
