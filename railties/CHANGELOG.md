@@ -1,15 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Added notice message for destroy action in scaffold generator
+*   Add notice message for destroy action in scaffold generator.
 
     *Rahul P. Chaudhari*
 
-*   Add --rc option to support the load of a custom rc file during the generation of a new app.
+*   Add two new test rake tasks to speed up full test runs.
+
+    * `test:all`: run tests quickly by merging all types and not resetting db.
+    * `test:all:db`: run tests quickly, but also reset db.
+
+    *Ryan Davis*
+
+*   Add `--rc` option to support the load of a custom rc file during the generation of a new app.
 
     *Amparo Luna*
 
-*   Add --no-rc option to skip the loading of railsrc file during the generation of a new app.
-    
+*   Add `--no-rc` option to skip the loading of railsrc file during the generation of a new app.
+
     *Amparo Luna*
 
 *   Fixes database.yml when creating a new rails application with '.'
