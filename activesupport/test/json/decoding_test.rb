@@ -51,7 +51,10 @@ class TestJSONDecoding < ActiveSupport::TestCase
     # tests escaping of "\n" char with Yaml backend
     %q({"a":"\n"})  => {"a"=>"\n"},
     %q({"a":"\u000a"}) => {"a"=>"\n"},
-    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
+    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"},
+    "\"foobar\"" => "foobar",
+    "42"         => 42,
+    "null"       => nil
   }
 
   # load the default JSON backend
@@ -86,6 +89,12 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   def test_failed_json_decoding
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({: 1})) }
+  end
+
+  def test_decoding_of_json_encoded_string
+    assert_equal "foobar", ActiveSupport::JSON.decode(ActiveSupport::JSON.encode("foobar"))
+    assert_equal 42, ActiveSupport::JSON.decode(ActiveSupport::JSON.encode(42))
+    assert_equal nil, ActiveSupport::JSON.decode(ActiveSupport::JSON.encode(nil))
   end
 end
 
