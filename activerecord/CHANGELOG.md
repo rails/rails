@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow store accessors to be overrided like other attribute methods, e.g.:
+
+        class User < ActiveRecord::Base
+          store :settings, accessors: [ :color, :homepage ], coder: JSON
+
+          def color
+            super || 'red'
+          end
+        end
+
+    *Sergey Nartimov*
+
 *   Quote numeric values being compared to non-numeric columns. Otherwise,
     in some database, the string column values will be coerced to a numeric
     allowing 0, 0.0 or false to match any string starting with a non-digit.
