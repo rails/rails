@@ -57,7 +57,7 @@ The `--full` option tells the generator that you want to create an engine, inclu
     end
     ```
   * A file at `lib/blorgh/engine.rb` which is identical in function to a standard Rails application's `config/application.rb` file:
-  
+
     ```ruby
     module Blorgh
       class Engine < ::Rails::Engine
@@ -72,12 +72,12 @@ The `--mountable` option tells the generator that you want to create a "mountabl
   * A namespaced `ApplicationHelper` stub
   * A layout view template for the engine
   * Namespace isolation to `config/routes.rb`:
-  
+
     ```ruby
     Blorgh::Engine.routes.draw do
     end
     ```
- 
+
   * Namespace isolation to `lib/blorgh/engine.rb`:
 
     ```ruby
@@ -789,7 +789,7 @@ module Blorgh::Concerns::Models::Post
   extend ActiveSupport::Concern
 
   # 'included do' causes the included code to be evaluated in the
-  # context where it is included (post.rb), rather than be 
+  # context where it is included (post.rb), rather than be
   # executed in the module's context (blorgh/concerns/models/post).
   included do
     attr_accessor :author_name
