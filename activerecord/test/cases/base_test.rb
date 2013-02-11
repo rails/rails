@@ -1040,6 +1040,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil topic.content
   end
 
+  def test_should_raise_exception_on_assigning_already_serialized_content
+    topic = Topic.new
+    serialized_content = %w[foo bar].to_yaml
+    assert_raise(ActiveRecord::ActiveRecordError) { topic.content = serialized_content }
+  end
+
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
     myobj = MyObject.new('value1', 'value2')
     topic = Topic.new(:content => myobj)
