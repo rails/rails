@@ -1,5 +1,26 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `image_alt` method to work with underscored or hyphenated file names.
+    Currently, underscored filenames become 
+    `<img alt="A_long_file_name_with_underscores"` in HTML, which is 
+    poor for accessibility; Apple's VoiceOver Utility pronounces
+    each underscore. "A_long_file_name" thus becomes "A underscore 
+    long underscore file underscore name." This patch makes underscored 
+    or hyphenated file names (both of which are very popular naming
+    conventions) read more naturally in screen readers by converting
+    both hyphens and underscores to spaces.
+
+    Example:
+        # current implementation
+        image_tag('underscored_file_name.png') 
+        #=> <img alt="Underscored_file_name" src="/assets/underscored_file_name.png" />
+
+        # this patch
+        image_tag('underscored_file_name.png')
+        #=> <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
+
+    *Nick Cox*
+
 *   We don't support the `:controller` option for route definitions
     with the ruby constant notation. This will now result in an
     `ArgumentError`.
