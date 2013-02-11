@@ -78,7 +78,7 @@ spec = Gem::Specification.new do |s|
 
   s.requirements << 'none'
 
-  s.add_dependency('activesupport', '= 2.3.16' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 2.3.17' + PKG_BUILD)
   s.add_dependency('rack', '~> 1.1.0')
 
   s.require_path = 'lib'

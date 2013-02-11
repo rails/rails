@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'actionmailer'
-  s.version = '2.3.16'
+  s.version = '2.3.17'
   s.summary = 'Service layer for easy email delivery and testing.'
   s.description = 'Makes it trivial to test and deliver emails sent from a single service layer.'
 
@@ -10,5 +10,5 @@ Gem::Specification.new do |s|
 
   s.require_path = 'lib'
 
-  s.add_dependency 'actionpack', '= 2.3.16'
+  s.add_dependency 'actionpack', '= 2.3.17'
 end
