@@ -1,23 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix `image_alt` method to work with underscored or hyphenated file names.
-    Currently, underscored filenames become 
-    `<img alt="A_long_file_name_with_underscores"` in HTML, which is 
-    poor for accessibility; Apple's VoiceOver Utility pronounces
-    each underscore. "A_long_file_name" thus becomes "A underscore 
-    long underscore file underscore name." This patch makes underscored 
-    or hyphenated file names (both of which are very popular naming
-    conventions) read more naturally in screen readers by converting
-    both hyphens and underscores to spaces.
+*   Change `image_alt` method to replace underscores/hyphens to spaces in filenames.
 
-    Example:
-        # current implementation
-        image_tag('underscored_file_name.png') 
-        #=> <img alt="Underscored_file_name" src="/assets/underscored_file_name.png" />
+    Previously, underscored filenames became `alt="A_long_file_name_with_underscores"`
+    in HTML, which is poor for accessibility. For instance, Apple's VoiceOver Utility
+    pronounces each underscore. `A_long_file_name` thus would be read as `A underscore
+    long underscore file underscore name.` Now underscored or hyphenated filenames
+    (both of which are very popular naming conventions) read more naturally in
+    screen readers by converting both hyphens and underscores to spaces.
 
-        # this patch
+    Before:
         image_tag('underscored_file_name.png')
-        #=> <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
+        # => <img alt="Underscored_file_name" src="/assets/underscored_file_name.png" />
+
+    After:
+        image_tag('underscored_file_name.png')
+        # => <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
 
     *Nick Cox*
 
