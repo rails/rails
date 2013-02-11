@@ -2,7 +2,7 @@ module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
   # making the request. It does this by checking various headers that could
   # contain the address, and then picking the last-set address that is not
-  # on the list of trusted IPs. This follows the precendent set by e.g.
+  # on the list of trusted IPs. This follows the precedent set by e.g.
   # {the Tomcat server}[https://issues.apache.org/bugzilla/show_bug.cgi?id=50453],
   # with {reasoning explained at length}[http://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection]
   # by @gingerlime. A more detailed explanation of the algorithm is given
