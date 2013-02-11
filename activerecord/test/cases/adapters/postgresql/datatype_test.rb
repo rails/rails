@@ -545,13 +545,13 @@ _SQL
 
   def test_update_bit_string
     new_bit_string = '11111111'
-    new_bit_string_varying = 'FF'
+    new_bit_string_varying = '11111110'
     assert @first_bit_string.bit_string = new_bit_string
     assert @first_bit_string.bit_string_varying = new_bit_string_varying
     assert @first_bit_string.save
     assert @first_bit_string.reload
-    assert_equal @first_bit_string.bit_string, new_bit_string
-    assert_equal @first_bit_string.bit_string, @first_bit_string.bit_string_varying
+    assert_equal new_bit_string, @first_bit_string.bit_string
+    assert_equal new_bit_string_varying, @first_bit_string.bit_string_varying
   end
 
   def test_update_oid
