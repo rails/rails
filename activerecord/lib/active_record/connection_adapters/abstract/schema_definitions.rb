@@ -252,15 +252,12 @@ module ActiveRecord
         self
       end
 
-      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
-        class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{column_type}(*args)                                   # def string(*args)
-            options = args.extract_options!                           #   options = args.extract_options!
-            column_names = args                                       #   column_names = args
-            type = :'#{column_type}'                                  #   type = :string
-            column_names.each { |name| column(name, type, options) }  #   column_names.each { |name| column(name, type, options) }
-          end                                                         # end
-        EOV
+      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+        define_method column_type do |*args|
+          options = args.extract_options!
+          column_names = args
+          column_names.each { |name| column(name, column_type, options) }
+        end
       end
 
       # Adds index options to the indexes hash, keyed by column name
@@ -486,15 +483,13 @@ module ActiveRecord
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
-      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
-        class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{column_type}(*args)                                          # def string(*args)
-            options = args.extract_options!                                  #   options = args.extract_options!
-            args.each do |name|                                              #   column_names.each do |name|
-              @base.add_column(@table_name, name, :#{column_type}, options)  #     @base.add_column(@table_name, name, :string, options)
-            end                                                              #   end
-          end                                                                # end
-        EOV
+      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+        define_method column_type do |*args|
+          options = args.extract_options!
+          args.each do |name|
+            @base.add_column(@table_name, name, column_type, options)
+          end
+        end  
       end
 
       private
