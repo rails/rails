@@ -1268,6 +1268,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end
 
+  def test_becomes_changes_active_model_errors_base
+    company = Company.new(:name => "MyCompany")
+    account_client = company.becomes(AccountClient)
+    assert !account_client.valid?
+    assert_equal account_client.errors.instance_variable_get("@base"), account_client
+  end
+
   def test_becomes_includes_errors
     company = Company.new(:name => nil)
     assert !company.valid?

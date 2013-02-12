@@ -179,6 +179,7 @@ module ActiveRecord
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
+      became.errors.instance_variable_set("@base", became)
       became
     end
 
