@@ -24,6 +24,8 @@ class Person < ActiveRecord::Base
   has_many :agents, :class_name => 'Person', :foreign_key => 'primary_contact_id'
   has_many :agents_of_agents, :through => :agents, :source => :agents
   belongs_to :number1_fan, :class_name => 'Person'
+  has_many :pets, :foreign_key => :name, :primary_key => :first_name, :conditions => {:owner_id => 1}
+  has_many :petz, :foreign_key => :name, :primary_key => :first_name, :conditions => {:owner_id => 1}
 
   has_many :agents_posts,         :through => :agents,       :source => :posts
   has_many :agents_posts_authors, :through => :agents_posts, :source => :author
