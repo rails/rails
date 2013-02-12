@@ -24,6 +24,51 @@ module Notifications
     end
   end
 
+  class NotificationTypeTest < TestCase
+    MAX_FILESYSTEM_CHANGE_WAIT_TIME = 5
+
+    def test_listen_to_filesystem_path
+      filesystem_events = []
+
+      ActiveSupport::Notifications.publish_file_changes("test_filesystem_notification", Dir.getwd)
+      ActiveSupport::Notifications.subscribe("test_filesystem_notification") { |*args| filesystem_events << [*args] }
+      assert_equal [], filesystem_events
+
+      # NOTE: This sleep is necessary because system time is only accurate to the second.
+      # Thus, if we create a file within 1 second of starting the listener, we might
+      # trick the system into thinking the file wasn't actually added
+      sleep(1)
+
+      filename = find_unused_filename
+      File.open(filename, 'w') { |f| f.write("testing document") }
+
+      start_time = Time.now
+      while filesystem_events.empty? && Time.now - start_time < MAX_FILESYSTEM_CHANGE_WAIT_TIME
+        sleep(0.05)
+      end
+      assert !filesystem_events.empty?, "Filesystem change was not detected."
+      changed_file = filesystem_events[0][4][:changed_file]
+
+      assert_equal "test_filesystem_notification", filesystem_events[0][0], "Incorrect notifications group name."
+      assert_equal filename, changed_file.path, "Incorrect path was detected for the filesystem change."
+      assert_equal :added, changed_file.type, "Incorrect type of filesystem change detected."
+    ensure
+      ActiveSupport::Notifications.unpublish_file_changes
+      File.delete(filename)
+    end
+
+    private
+
+    def find_unused_filename(root=Dir.getwd, int_size=9000000000)
+      filename = rand(int_size).to_s
+      while File.exist?(filename)
+        filename = rand(int_size).to_s
+      end
+
+      "#{root}/#{filename}"
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"

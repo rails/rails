@@ -148,6 +148,7 @@ module ActiveSupport
   module Notifications
     class << self
       attr_accessor :notifier
+      @@listener = nil
 
       def publish(name, *args)
         notifier.publish(name, *args)
@@ -159,6 +160,31 @@ module ActiveSupport
         else
           yield payload if block_given?
         end
+      end
+
+      # Requires an array of paths, which are correspond to the files and
+      # directories to publish file changes from. All files within the
+      # specified directories will be watched (including within recursive
+      # subdirectories).
+      #
+      # Only a single array of paths can be watched at a time. Calling this
+      # method a second time will stop all notifications about the file
+      # changes from the set of paths from the first call to the method.
+      def publish_file_changes(name, paths, opts={})
+        opts[:notifications] = name
+        opts[:recurse] = true
+
+        @@listener.stop_listening if @@listener
+        @@listener = ActiveSupport::FileUpdateChecker.new(paths, {}, opts)
+
+        @@thread = Thread.new do
+          @@listener.start_listening
+        end
+      end
+
+      def unpublish_file_changes
+        @@listener.stop_listening if @@listener
+        @@listener = nil
       end
 
       def subscribe(*args, &block)
