@@ -692,6 +692,27 @@ The SQL that would be executed:
 SELECT * FROM posts WHERE id > 10 LIMIT 20
 ```
 
+### `unscope`
+
+The `except` method does not work when the relation is merged. For example:
+
+```ruby
+Post.comments.except(:order)
+```
+
+will still have an order if the order comes from a default scope on Comment. In order to remove all ordering, even from relations which are merged in, use unscope as follows:
+
+```ruby
+Post.order('id DESC').limit(20).unscope(:order) = Post.limit(20)
+Post.order('id DESC').limit(20).unscope(:order, :limit) = Post.all
+```
+
+You can additionally unscope specific where clauses. For example:
+
+```ruby
+Post.where(:id => 10).limit(1).unscope(:where => :id, :limit).order('id DESC') = Post.order('id DESC')
+```
+
 ### `only`
 
 You can also override conditions using the `only` method. For example:
