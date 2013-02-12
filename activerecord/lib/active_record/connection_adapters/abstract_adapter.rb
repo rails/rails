@@ -314,6 +314,10 @@ module ActiveRecord
         # override in derived class
         ActiveRecord::StatementInvalid.new(message)
       end
+
+      def valid_types?(type)
+        true
+      end
     end
   end
 end

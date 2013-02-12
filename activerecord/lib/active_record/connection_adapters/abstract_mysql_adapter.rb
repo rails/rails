@@ -750,6 +750,9 @@ module ActiveRecord
         execute("SET #{encoding} #{variable_assignments}", :skip_logging)
       end
 
+      def valid_type?(type)
+        !native_database_types[type].nil?
+      end  
     end
   end
 end

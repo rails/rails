@@ -599,6 +599,10 @@ module ActiveRecord
           end
         end
 
+        def valid_type?(type)
+          true
+        end
+
     end
   end
 end

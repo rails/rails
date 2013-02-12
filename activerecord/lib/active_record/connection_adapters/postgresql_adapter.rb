@@ -820,6 +820,10 @@ module ActiveRecord
         def table_definition
           TableDefinition.new(self)
         end
+
+        def valid_type?(type)
+          !native_database_types[type].nil?
+        end
     end
   end
 end

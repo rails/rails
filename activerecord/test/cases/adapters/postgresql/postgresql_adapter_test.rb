@@ -10,6 +10,15 @@ module ActiveRecord
         @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
+      def test_valid_column
+        column = @connection.column('ex').find { |col| col.name == 'id' }
+        assert @connection.valid_type?(column.type)
+      end
+
+      def test_invalid_column
+        assert !@connection.valid_type?(:foobar)
+      end
+
       def test_primary_key
         assert_equal 'id', @connection.primary_key('ex')
       end
