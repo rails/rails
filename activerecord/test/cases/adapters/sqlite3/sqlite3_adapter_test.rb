@@ -25,6 +25,15 @@ module ActiveRecord
         @conn.intercepted = true
       end
 
+      def test_valid_column
+        column = @conn.column('items').find { |col| col.name == 'id' }
+        assert @conn.valid_type?(column.type)
+      end
+
+      def test_invalid_column
+        assert @conn.valid_type?(:foobar)
+      end
+
       def teardown
         @conn.intercepted = false
         @conn.logged = []
