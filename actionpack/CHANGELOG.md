@@ -1,4 +1,4 @@
-## Rails 3.1.11 (unreleased)
+## Rails 3.1.11 (Fev 11, 2011) ##
 
 * Fixed JSON params parsing regression for non-object JSON content.
 

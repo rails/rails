@@ -1,4 +1,6 @@
-## Rails 3.1.11 (unreleased) ##
+## Rails 3.1.11 (Fev 11, 2011) ##
+
+*   No changes.
 
 ## Rails 3.1.10 (Jan 8, 2013) ##
 

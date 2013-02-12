@@ -1,4 +1,4 @@
-## Rails 3.1.11 (unreleased) ##
+## Rails 3.1.11 (Fev 11, 2011) ##
 
 *   Allow `multi_json` version `>= 1.3`, relaxing back to semantic versioning 2.0.0 (revert of #5861)
     Backport of #5896
