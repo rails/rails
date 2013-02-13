@@ -60,9 +60,13 @@ module FakeRecord
     end
 
     def quote thing, column = nil
-      if column && column.type == :integer
-        return 'NULL' if thing.nil?
-        return thing.to_i
+      if column && !thing.nil?
+        case column.type
+        when :integer
+          thing = thing.to_i
+        when :string
+          thing = thing.to_s
+        end
       end
 
       case thing
@@ -110,6 +114,10 @@ module FakeRecord
 
     def schema_cache
       connection
+    end
+
+    def quote thing, column = nil
+      connection.quote thing, column
     end
   end
 

@@ -119,6 +119,12 @@ module Arel
           sql.must_be_like %{ "users"."id" = 1 }
         end
 
+        it 'should use the column to quote integers' do
+          table = Table.new(:users)
+          sql = compile table[:name].eq(0)
+          sql.must_be_like %{ "users"."name" = '0' }
+        end
+
         it 'should handle nil' do
           sql = compile Nodes::Equality.new(@table[:name], nil)
           sql.must_be_like %{ "users"."name" IS NULL }
@@ -160,6 +166,12 @@ module Arel
         assert_match(/LIMIT 'omg'/, compile(sc))
       end
 
+      it "should quote LIMIT without column type coercion" do
+        table = Table.new(:users)
+        sc = table.where(table[:name].eq(0)).take(1).ast
+        assert_match(/WHERE "users"."name" = '0' LIMIT 1/, compile(sc))
+      end
+
       it "should visit_DateTime" do
         called_with = nil
         @conn.connection.extend(Module.new {
@@ -179,9 +191,9 @@ module Arel
       end
 
       it "should visit_Float" do
-        test = Table.new(:users)[:name].eq 2.14
+        test = Table.new(:products)[:price].eq 2.14
         sql = compile test
-        sql.must_be_like %{"users"."name" = 2.14}
+        sql.must_be_like %{"products"."price" = 2.14}
       end
 
       it "should visit_Not" do
