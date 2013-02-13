@@ -47,11 +47,11 @@ module Notifications
         sleep(0.05)
       end
       assert !filesystem_events.empty?, "Filesystem change was not detected."
-      changed_file = filesystem_events[0][4][:changed_file]
+      changed_file_hash = filesystem_events[0][4]
 
       assert_equal "test_filesystem_notification", filesystem_events[0][0], "Incorrect notifications group name."
-      assert_equal filename, changed_file.path, "Incorrect path was detected for the filesystem change."
-      assert_equal :added, changed_file.type, "Incorrect type of filesystem change detected."
+      assert_equal filename, changed_file_hash[:path], "Incorrect path was detected for the filesystem change."
+      assert_equal :added, changed_file_hash[:type], "Incorrect type of filesystem change detected."
     ensure
       ActiveSupport::Notifications.unpublish_file_changes
       File.delete(filename)

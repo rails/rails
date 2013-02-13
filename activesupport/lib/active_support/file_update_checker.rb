@@ -1,33 +1,4 @@
-require 'digest/md5'
-
 module ActiveSupport
-  # The ChangedFile class provides a means of accessing information about
-  # a file which has recently been changed. The class provides information
-  # about the time of the change, the path for the file which was changed
-  # and the type of change (whether the file was modified, added, or
-  # removed).
-  class ChangedFile
-    attr_accessor :path, :time, :type
-
-    VALID_CHANGE_TYPES = [:modified, :added, :removed]
-
-    def initialize(path, type)
-      check_change_type(type)
-
-      @path = path
-      @type = type
-      @time = Time.now
-    end
-
-    private
-
-    def check_change_type(type)
-      if !VALID_CHANGE_TYPES.include?(type)
-        raise ArgumentError, "Change type #{type} is invalid. Valid change types are :#{VALID_CHANGE_TYPES.join(', :')}"
-      end
-    end
-  end
-
   # FileUpdateChecker specifies the API used by Rails to watch files
   # and control reloading. The API depends on four methods:
   #
@@ -92,6 +63,38 @@ module ActiveSupport
   # Note that the start_listening method will continue infinitely, so it is
   # best called from within a new thread.
   class FileUpdateChecker
+    # The ChangedFile class provides a means of accessing information about
+    # a file which has recently been changed. The class provides information
+    # about the time of the change, the path for the file which was changed
+    # and the type of change (whether the file was modified, added, or
+    # removed).
+    class ChangedFile
+      class << self
+        VALID_CHANGE_TYPES = [:modified, :added, :removed]
+
+        def notifications_hash(path, type)
+          check_change_type(type)
+          {:path => path, :type => type, :time => Time.now}
+        end
+
+        def check_change_type(type)
+          if !VALID_CHANGE_TYPES.include?(type)
+            raise ArgumentError, "Change type #{type} is invalid. Valid change types are :#{VALID_CHANGE_TYPES.join(', :')}"
+          end
+        end
+      end
+
+      attr_accessor :path, :time, :type
+
+      def initialize(path, type)
+        self.class.check_change_type(type)
+
+        @path = path
+        @type = type
+        @time = Time.now
+      end
+    end
+
     attr_accessor :changed_files
 
     # It accepts two parameters on initialization. The first is an array
@@ -109,15 +112,6 @@ module ActiveSupport
     #   :filter -> Only chooses paths matching the regex
     #
     #   :ignore -> Ignores all paths matching the regex
-    #
-    #   :cache_type -> Determines the type of file_cache used. Options are
-    #   either :time or :checksum. If :time is chosen, then file changes are
-    #   determined via the system time (note that changes which happen within
-    #   a second of another change will not be noticed). If :checksum is
-    #   chosen then an MD5 hash is computed over the file and the hash is
-    #   checked for changes. Using :checksum will detect changes better than
-    #   :time, but :time has significant performance advantages. The default
-    #   :cache_type is :time.
     #
     #   :notifications -> Give the name of the group of the notifications
     #   which you would like to call upon file change. If this field is
@@ -220,7 +214,7 @@ module ActiveSupport
         deleted_files = @file_cache.keys - @files_alive.uniq
         deleted_files.each do |filename|
           @file_cache.delete(filename)
-          @changed_files.push(ChangedFile.new(filename, :removed))
+          push_changes(filename, :removed)
         end
       end
     end
@@ -262,7 +256,7 @@ module ActiveSupport
         validations << (path =~ @opts[:filter])
       end
       if @opts[:ignore]
-        validations << !(path =~ @opts[:ignore])
+        validations << (path !~ @opts[:ignore])
       end
 
       validations.all?
@@ -276,31 +270,21 @@ module ActiveSupport
     # using the check_file_for_changes submethod. If it is a directory,
     # the method appends the filepath to a list and returns that list.
     def handle_paths(expanded_filepaths)
-      new_directory_paths = []
+      files, new_directories = expanded_filepaths.partition { |fp| File.file?(fp) }
 
-      expanded_filepaths.each do |expanded_filepath|
-        if File.file?(expanded_filepath)
-          @files_alive << expanded_filepath
-          check_file_for_changes(expanded_filepath)
-        elsif File.directory?(expanded_filepath)
-          new_directory_paths << expanded_filepath
-        end
+      files.each do |filepath|
+        @files_alive << filepath
+        check_file_for_changes(filepath)
       end
 
-      new_directory_paths
+      new_directories
     end
 
     # Requires a filepath, and checks to see whether that file has been
-    # changed since the last pass.
-    #
-    # There are two ways for which this is done. If the cache_type is not
-    # set or is set to :time, then the last time the file was modified is
-    # placed into the cache. Each pass then checks if the modified time
-    # is greater than it was previously.
-    #
-    # If the cache_type option is set to :checksum, then an MD5 checksum
-    # is computed for each file. Each pass checks to see if the checksum
-    # has changed at all from the previous pass.
+    # changed since the last BFS scan. This checks for changed files
+    # by placing the last time the file was modified into the cache.
+    # Each BFS scan then checks if the modified time is greater than
+    # it was previously.
     #
     # If the method detects a change, then a ChangedFile object is created
     # with the path to the file and the type of change it was. The object
@@ -308,26 +292,25 @@ module ActiveSupport
     def check_file_for_changes(filepath)
       last_modified = File.mtime(filepath)
 
-      case @opts[:cache_type]
-      when nil, :time
-        new_filepath_value = last_modified
-      when :checksum
-        new_filepath_value = Digest::MD5.hexdigest(File.read(filepath))
-      else
-        raise "Cache type #{@opts[:cache_type]} is an invalid option."
-      end
-
-      if @file_cache[filepath] != new_filepath_value && @start_time <= last_modified
+      if @file_cache[filepath] != last_modified && @start_time <= last_modified
         change_type = (@file_cache[filepath] ? :modified : :added)
-        changed_file = ChangedFile.new(filepath, change_type)
-        if @opts[:notifications]
-          ActiveSupport::Notifications.instrument(@opts[:notifications], {:changed_file => changed_file})
-        else
-          @changed_files.push(changed_file)
-        end
+        push_changes(filepath, change_type)
       end
 
-      @file_cache[filepath] = new_filepath_value
+      @file_cache[filepath] = last_modified
+    end
+
+    # Pushes the changes in the filesystem to either the ActiveSupport
+    # Notifications system, or creates a ChangedFile object and sends it to
+    # the changed_files queue.
+    def push_changes(filepath, change_type)
+      if @opts[:notifications]
+        ActiveSupport::Notifications.instrument(@opts[:notifications],
+                ChangedFile.notifications_hash(filepath, change_type))
+      else
+        changed_file = ChangedFile.new(filepath, change_type)
+        @changed_files.push(changed_file)
+      end
     end
 
     def compile_glob(hash)
