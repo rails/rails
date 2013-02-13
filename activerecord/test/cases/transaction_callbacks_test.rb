@@ -5,8 +5,28 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :topics
 
+  class ReplyWithCallbacks < ActiveRecord::Base
+    self.table_name = :topics
+
+    belongs_to :topic, foreign_key: "parent_id"
+
+    validates_presence_of :content
+
+    after_commit :do_after_commit, on: :create
+
+    def history
+      @history ||= []
+    end
+
+    def do_after_commit
+      history << :commit_on_create
+    end
+  end
+
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
+
+    has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
     after_commit{|record| record.send(:do_after_commit, nil)}
     after_commit(:on => :create){|record| record.send(:do_after_commit, :create)}
@@ -91,6 +111,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     @new_record.save!
     assert_equal [:commit_on_create], @new_record.history
+  end
+
+  def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record_if_create_succeeds_creating_through_association
+    topic = TopicWithCallbacks.create!(:title => "New topic", :written_on => Date.today)
+    reply = topic.replies.create
+
+    assert_equal [], reply.history
   end
 
   def test_call_after_rollback_after_transaction_rollsback

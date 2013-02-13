@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Don't run after_commit callback when creating through an association
+    if saving the record fails.
+
+    *James Miller *
+
 *   Allow store accessors to be overrided like other attribute methods, e.g.:
 
         class User < ActiveRecord::Base
