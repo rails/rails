@@ -177,7 +177,7 @@ module ActiveSupport
         @@listener.stop_listening if @@listener
         @@listener = ActiveSupport::FileUpdateChecker.new(paths, {}, opts)
 
-        @@thread = Thread.new do
+        Thread.new do
           @@listener.start_listening
         end
       end
