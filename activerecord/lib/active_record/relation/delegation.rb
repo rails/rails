@@ -37,11 +37,9 @@ module ActiveRecord
                 end
               RUBY
             else
-              module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                def #{method}(*args, &block)
-                  scoping { @klass.send(#{method.inspect}, *args, &block) }
-                end
-              RUBY
+              define_method method do |*args, &block|
+                scoping { @klass.send(method, *args, &block) }
+              end
             end
           end
         end

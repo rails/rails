@@ -271,6 +271,20 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal 'lifo', topic.author_name
   end
 
+  # Method delegation for scope names which look like /\A[a-zA-Z_]\w*[!?]?\z/
+  # has been done by evaluating a string with a plain def statement. For scope
+  # names which contain spaces this approach doesn't work.
+  def test_spaces_in_scope_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      scope :"title containing space", -> { where("title LIKE '% %'") }
+      scope :approved, -> { where(:approved => true) }
+    end
+    assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
+    assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
+    end
+  end
+
   def test_find_all_should_behave_like_select
     assert_equal Topic.base.to_a.select(&:approved), Topic.base.to_a.find_all(&:approved)
   end
