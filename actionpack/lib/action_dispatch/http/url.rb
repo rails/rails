@@ -32,8 +32,12 @@ module ActionDispatch
           params.reject! { |_,v| v.to_param.nil? }
 
           result = build_host_url(options)
-          if options[:trailing_slash] && !path.ends_with?('/')
-            result << path.sub(/(\?|\z)/) { "/" + $& }
+          if options[:trailing_slash]
+            if path.include?('?')
+              result << path.sub(/\?/, '/\&')
+            else
+              result << path.sub(/[^\/]\z|\A\z/, '\&/')
+            end
           else
             result << path
           end
