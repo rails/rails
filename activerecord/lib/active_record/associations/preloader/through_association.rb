@@ -31,7 +31,8 @@ module ActiveRecord
             through_records = Array.wrap(owner.send(through_reflection.name))
 
             # Dont cache the association - we would only be caching a subset
-            if reflection.options[:source_type] && through_reflection.collection?
+            if (through_scope != through_reflection.klass.unscoped) ||
+               (reflection.options[:source_type] && through_reflection.collection?)
               owner.association(through_reflection.name).reset
             end
 
