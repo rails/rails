@@ -65,7 +65,7 @@ module ActiveSupport
 
       #used only for test
       def get_server_uri
-        @uri_to_set.dup
+        @uri_to_set ? @uri_to_set.dup : nil
       end
 
       def extract_acl(options)
@@ -113,7 +113,7 @@ module ActiveSupport
 
       def send_message(message)
         #TODO send msg using SSE
-        puts "[##{Process.ppid}]now push data to browser, data: \"#{message}\""
+        #puts "[##{Process.pid}]now push data to browser, data: \"#{message}\""
       end
     end
 
@@ -130,12 +130,7 @@ module ActiveSupport
         # Because we DRb server and Rinda server are running in the 
         # same process, a call to DRb.stop_service will enventually
         # stop both DRb server and Rinda server
-        p '=========='
-        p Thread.list
         DRb.stop_service
-        p '==============='
-        p Thread.list
-        p '================'
       end
 
       def startup_rinda_server
@@ -207,9 +202,10 @@ module ActiveSupport
         raise RuntimeError, 'call find_server first' unless @server_uri
 
         services = DRbObject.new_with_uri @server_uri
-
         controller = services.get_server_control_service
         controller.stop_server
+
+        reset_params_when_stop
       end
 
       # Public: Find a message server
@@ -247,9 +243,15 @@ module ActiveSupport
         method
       end
 
+      def reset_params_when_stop
+        @is_owner_process = false
+        @is_in_proc_server = false
+        @server_uri = nil
+      end
+
       def wait_in_proc_server
         if @_local_server_thread == nil
-          raise RuntimeError, "wait_in_proc_server can be called when your current process host a server"
+          raise RuntimeError, "wait_in_proc_server can be called when your current process host the server"
         end
         @_local_server_thread.join
       end
@@ -263,14 +265,13 @@ module ActiveSupport
       end
 
       def start_remote_server(options = {})
-        pid = fork do
+        fork do
           server = ActiveSupport::MessageBus::DiscoverableServer.new
 
           server.start_server
           server.wait_server
         end
       end
-
     end
   end
 end
