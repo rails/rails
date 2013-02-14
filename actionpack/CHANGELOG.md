@@ -1,3 +1,5 @@
+## Rails 3.2.13 (unreleased) ##
+
 *   Fix `assert_template` with `render :stream => true`.
     Fix #1743.
     Backport #5288.

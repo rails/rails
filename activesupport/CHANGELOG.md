@@ -1,3 +1,5 @@
+## Rails 3.2.13 (unreleased) ##
+
 *   Fix DateTime comparison with DateTime::Infinity object.
 
     *Dan Kubb*

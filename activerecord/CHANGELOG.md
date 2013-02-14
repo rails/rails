@@ -1,3 +1,5 @@
+## Rails 3.2.13 (unreleased) ##
+
 *   Preloading `has_many :through` associations with conditions won't
     cache the `:through` association. This will prevent invalid
     subsets to be cached.
