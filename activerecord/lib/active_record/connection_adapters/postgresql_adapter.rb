@@ -655,6 +655,10 @@ module ActiveRecord
         @use_insert_returning
       end
 
+      def valid_type?(type)
+        !native_database_types[type].nil?
+      end
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -886,10 +890,6 @@ module ActiveRecord
 
         def table_definition
           TableDefinition.new(self)
-        end
-
-        def valid_type?(type)
-          !native_database_types[type].nil?
         end
     end
   end

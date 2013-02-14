@@ -582,6 +582,10 @@ module ActiveRecord
         @config.fetch(:strict, true)
       end
 
+      def valid_type?(type)
+        !native_database_types[type].nil?
+      end  
+
       protected
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
@@ -747,10 +751,6 @@ module ActiveRecord
         # ...and send them all in one query
         execute("SET #{encoding} #{variable_assignments}", :skip_logging)
       end
-
-      def valid_type?(type)
-        !native_database_types[type].nil?
-      end  
     end
   end
 end
