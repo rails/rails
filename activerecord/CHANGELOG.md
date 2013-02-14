@@ -216,7 +216,7 @@
     *Gabriel Sobrinho, Ricardo Henrique*
 
 
-## Rails 3.2.12 (Fev 11, 2013) ##
+## Rails 3.2.12 (Feb 11, 2013) ##
 
 *   Quote numeric values being compared to non-numeric columns. Otherwise,
     in some database, the string column values will be coerced to a numeric
