@@ -73,6 +73,10 @@ module ActiveRecord::Associations::Builder
         def #{name.to_s.singularize}_ids
           association(:#{name}).ids_reader
         end
+
+        def has_#{name.to_s.pluralize}?
+          association(:#{name}).count != 0
+        end
       CODE
     end
 

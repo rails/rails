@@ -1747,4 +1747,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     david.posts_with_special_categorizations = []
     assert_equal [], david.posts_with_special_categorizations
   end
+
+  test 'has_#{association}s? is true when association has rows' do
+    david = authors(:david)
+
+    assert david.has_posts?
+  end
+
+  test 'has_#{association}s? is false when association is empty' do
+    david = authors(:david)
+
+    david.posts.destroy_all
+
+    assert !david.has_posts?
+  end
 end
