@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `better_errors` and `binding_of_caller` to the default Gemfile.
+
+    *Charlie Somerville*
+
 *   The public/index.html is no longer generated for new projects. Page is replaced by internal welcome_controller inside of railties
 
     *Richard Schneeman*

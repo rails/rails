@@ -9,6 +9,12 @@ source 'https://rubygems.org'
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry -%>
 
+# Use Better Errors for more advanced error pages in development
+group :development do
+  gem 'better_errors'
+  gem 'binding_of_caller', '>= 0.6.9'
+end
+
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
