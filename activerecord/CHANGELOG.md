@@ -1,4 +1,4 @@
-## Rails 3.1.11 (Fev 11, 2011) ##
+## Rails 3.1.11 (Feb 11, 2011) ##
 
 *   Quote numeric values being compared to non-numeric columns. Otherwise,
     in some database, the string column values will be coerced to a numeric

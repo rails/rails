@@ -1,4 +1,4 @@
-## Rails 3.1.11 (Fev 11, 2011) ##
+## Rails 3.1.11 (Feb 11, 2011) ##
 
 *   Fix issue with `attr_protected` where malformed input could circumvent protection.
     CVE-2013-0276
