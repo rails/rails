@@ -1,7 +1,7 @@
 *   Specify type of singular association during serialization *Steve Klabnik*
 
 
-## Rails 3.2.12 (Fev 11, 2013) ##
+## Rails 3.2.12 (Feb 11, 2013) ##
 
 *   Fix issue with `attr_protected` where malformed input could circumvent protection.
     CVE-2013-0276
