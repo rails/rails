@@ -1,4 +1,4 @@
-## Rails 3.2.13 (unreleased) ##
+## unreleased ##
 
 *   Specify type of singular association during serialization *Steve Klabnik*
 

@@ -1,4 +1,4 @@
-## Rails 3.2.13 (unreleased) ##
+## unreleased ##
 
 *   No changes.
 
