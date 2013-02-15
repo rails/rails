@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change `multiple_sources_tag` private method in asset_tag_helper.rb to
+    allow for options to be passed to the source tags.
+
+    Previously, in order to add type or media attributes to source tags you
+    would have had to construct the video/audio tag yourself. Now you can just
+    pass an array of hashes with the options you want to use.
+
+    Example:
+        video_tag([{ src: 'trailer.ogg', type: 'video/ogg'}])
+        # => <video><source src="/videos/trailer.ogg" type="video/ogg" /></video>
+
+    *Phil Nash*
+
 *   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
 
 *   New applications use an encrypted session store by default.

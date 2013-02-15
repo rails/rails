@@ -238,7 +238,8 @@ module ActionView
       # a single video tag will be returned. If +sources+ is an array, a video
       # tag with nested source tags for each source will be returned. The
       # +sources+ can be full paths or files that exists in your public videos
-      # directory.
+      # directory. If +sources+ is an array, it can also be an array of options
+      # for the source tag.
       #
       # ==== Options
       # You can add HTML attributes using the +options+. The +options+ supports
@@ -268,6 +269,8 @@ module ActionView
       #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag([{src: "trailer.ogg", type: "video/ogg; codecs=theora,vorbis" }])
+      #   # => <video><source src="/videos/trailer.ogg" type="video/ogg; codecs=theora,vorbis" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
@@ -278,9 +281,12 @@ module ActionView
         end
       end
 
-      # Returns an HTML audio tag for the +source+.
-      # The +source+ can be full path or file that exists in
-      # your public audios directory.
+      # Returns an html audio tag for the +sources+. If +sources+ is a string,
+      # a single audio tag will be returned. If +sources+ is an array, an audio
+      # tag with nested source tags for each source will be returned. The
+      # +sources+ can be full paths or files that exists in your public audios
+      # directory. If +sources+ is an array, it can also be an array of options
+      # for the source tag.
       #
       #   audio_tag("sound")
       #   # => <audio src="/audios/sound" />
@@ -290,6 +296,8 @@ module ActionView
       #   # => <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
       #   audio_tag("sound.wav", "sound.mid")
       #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #   audio_tag([{src: "sound.mp3", type: "audio/mpeg"}, "sound.mid"])
+      #   # => <audio><source src="/audios/sound.mp3" type="audio/mpeg" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
         multiple_sources_tag('audio', sources)
       end
@@ -303,7 +311,14 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
+              safe_join sources.map { |opts|
+                if opts.is_a?(String)
+                  opts = { src: send("path_to_#{type}", opts) }
+                else
+                  opts[:src] = send("path_to_#{type}", opts[:src])
+                end
+                tag("source", opts)
+              }
             end
           else
             options[:src] = send("path_to_#{type}", sources.first)
