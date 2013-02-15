@@ -1,9 +1,9 @@
 require 'rubygems'
 require 'rake'
 require 'rake/testtask'
-require 'rdoc/task'
+require 'rake/rdoctask'
 require 'rake/packagetask'
-require 'rubygems/package_task'
+require 'rake/gempackagetask'
 
 require File.join(File.dirname(__FILE__), 'lib', 'active_resource', 'version')
 
@@ -38,7 +38,7 @@ Rake::TestTask.new { |t|
 
 # Generate the RDoc documentation
 
-RDoc::Task.new { |rdoc|
+Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Resource -- Object-oriented REST services"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
@@ -69,7 +69,9 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('activesupport', '= 2.3.17' + PKG_BUILD)
 
   s.require_path = 'lib'
+  s.autorequire = 'active_resource'
 
+  s.has_rdoc = true
   s.extra_rdoc_files = %w( README )
   s.rdoc_options.concat ['--main',  'README']
   
@@ -79,7 +81,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "activeresource"
 end
   
-Gem::PackageTask.new(spec) do |p|
+Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true

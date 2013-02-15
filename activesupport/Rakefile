@@ -1,6 +1,6 @@
 require 'rake/testtask'
-require 'rdoc/task'
-require 'rubygems/package_task'
+require 'rake/rdoctask'
+require 'rake/gempackagetask'
 
 require File.join(File.dirname(__FILE__), 'lib', 'active_support', 'version')
 
@@ -27,7 +27,7 @@ dist_dirs = [ "lib", "test"]
 
 # Genereate the RDoc documentation
 
-RDoc::Task.new { |rdoc|
+Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Support -- Utility classes and standard library extensions from Rails"
   rdoc.options << '--line-numbers' << '--inline-source'
@@ -48,6 +48,7 @@ spec = Gem::Specification.new do |s|
 
   s.files = [ "CHANGELOG", "README" ] + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.require_path = 'lib'
+  s.has_rdoc = true
 
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
@@ -55,7 +56,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "activesupport"
 end
 
-Gem::PackageTask.new(spec) do |p|
+Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
