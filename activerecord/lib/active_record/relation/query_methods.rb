@@ -189,6 +189,16 @@ module ActiveRecord
     #   Model.select(:field, :other_field, :and_one_more)
     #   # => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
+    # You can also use one or more strings, which will be used unchanged as SELECT fields.
+    #
+    #   Model.select('field AS field_one', 'other_field AS field_two')
+    #   # => [#<Model field: "value", other_field: "value">]
+    #
+    # If an alias was specified, it will be accessible from the resulting objects:
+    #
+    #   Model.select('field AS field_one').first.field_one
+    #   # => "value"
+    #
     # Accessing attributes of an object that do not have fields retrieved by a select
     # will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
@@ -220,6 +230,9 @@ module ActiveRecord
     #
     #   User.group(:name)
     #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
+    #
+    #   User.group('name AS grouped_name, age')
+    #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
     def group(*args)
       args.blank? ? self : spawn.group!(*args)
     end
@@ -292,6 +305,11 @@ module ActiveRecord
     #
     #   User.joins(:posts)
     #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #
+    # You can use strings in order to customize your joins:
+    #
+    #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
+    #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
       args.compact.blank? ? self : spawn.joins!(*args.flatten)
     end

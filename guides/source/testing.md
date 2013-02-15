@@ -774,10 +774,13 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 Brief Note About `Test::Unit`
 -----------------------------
 
-Ruby ships with a boat load of libraries. One little gem of a library is `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
+Ruby ships with a boat load of libraries. Ruby 1.8 provides `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
 us to use all of the basic assertions in our tests.
 
+Ruby 1.9 introduced `MiniTest`, an updated version of `Test::Unit` which provides a backwards compatible API for `Test::Unit`. You could also use `MiniTest` in Ruby 1.8 by installing the `minitest` gem.
+
 NOTE: For more information on `Test::Unit`, refer to [test/unit Documentation](http://ruby-doc.org/stdlib/libdoc/test/unit/rdoc/)
+For more information on `MiniTest`, refer to [Minitest](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/minitest/unit/rdoc/)
 
 Setup and Teardown
 ------------------
