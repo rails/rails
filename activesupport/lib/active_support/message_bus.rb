@@ -1,6 +1,5 @@
 require 'drb/drb'
 require 'drb/acl'
-require 'drb/drb'
 require 'singleton'
 require 'rinda/ring'
 require 'rinda/tuplespace'

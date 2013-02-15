@@ -4,6 +4,7 @@ require 'rinda/ring'
 require 'abstract_unit'
 require 'active_support/message_bus'
 
+ENV['N'] = "1"  #ensure test case not run simultaneously
 
 class DRbServerTest < ActiveSupport::TestCase
   URI = "druby://localhost:8788";
@@ -133,113 +134,100 @@ class DRbServerTest < ActiveSupport::TestCase
   end
 end
 
-
 # The DiscoverableServer and MessageServer depends on Rinda
 # While Rinda can be only initialized properly per one process
 # So we put every test case into an extra process so that they 
 # don't disturb each other.
 #
+# We use ActiveSupport::Testing::Isolation to run every testcase 
+# in sepatate procss.
+#
 class DiscoverableServerTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+
   test 'DiscoverableServer can be auto discoverd' do
-    worker_pid = fork do
-      begin
-        server_pid = fork do
-          server = ActiveSupport::MessageBus::DiscoverableServer.new
-          #server.set_server_uri(URI); need not to know uri in advance
-          server.start_server
-          server.wait_server
-        end
-
-        sleep(1)  
-        DRb.start_service
-        ring_server = Rinda::RingFinger.primary
-        services = DRbObject.new_with_uri ring_server.__drburi
-        controller = services.get_server_control_service
-      ensure
-        controller.stop_server
-        sleep(1)
+    begin
+      server_pid = fork do
+        server = ActiveSupport::MessageBus::DiscoverableServer.new
+        #server.set_server_uri(URI); need not to know uri in advance
+        server.start_server
+        server.wait_server
       end
-    end
 
-    Process.waitpid(worker_pid)
+      sleep(1)  
+      DRb.start_service
+      ring_server = Rinda::RingFinger.primary
+      services = DRbObject.new_with_uri ring_server.__drburi
+      controller = services.get_server_control_service
+    ensure
+      controller.stop_server
+      sleep(1)
+    end
   end
 end
 
+
 class  MessageServerTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
 
   test 'start a InProc server' do
-    worker_pid = fork do
-      begin
-        server = ActiveSupport::MessageBus::MessageServer.instance
-        server.start_server :deploy => :InProc
-        server.send_message "David Wang"
-      ensure
-        server.stop_server
-      end
+    begin
+      server = ActiveSupport::MessageBus::MessageServer.instance
+      server.start_server :deploy => :InProc
+      server.send_message "David Wang"
+    ensure
+      server.stop_server
     end
-
-    Process.waitpid(worker_pid)
   end
 
   test 'start a StandAlone server' do
-    worker_pid = fork do
-      begin
-        server = ActiveSupport::MessageBus::MessageServer.instance
-        server.start_server :deploy => :StandAlone
+    begin
+      server = ActiveSupport::MessageBus::MessageServer.instance
+      server.start_server :deploy => :StandAlone
 
-        sleep(1) # waiting server to start
-        server.find_server
-        server.send_message "David Wang"
-      ensure
-        server.stop_server
-        sleep(1)
-      end
+      sleep(1) # waiting server to start
+      server.find_server
+      server.send_message "David Wang"
+    ensure
+      server.stop_server
+      sleep(1)
     end
-
-    Process.waitpid(worker_pid)
   end
 
   test 'find a InProc server in guest process' do
-    worker_pid = fork do 
-      begin
-        pid = fork do
-          server = ActiveSupport::MessageBus::MessageServer.instance
-          server.start_server :deploy => :InProc
-          server.wait_in_proc_server
-        end
-
-        sleep(1) 
-        remote_server = ActiveSupport::MessageBus::MessageServer.instance
-        remote_server.find_server
-        remote_server.send_message "David Wang"
-      ensure
-        remote_server.stop_server
-        sleep(1)
+    begin
+      pid = fork do
+        server = ActiveSupport::MessageBus::MessageServer.instance
+        server.start_server :deploy => :InProc
+        server.wait_in_proc_server
       end
-    end
 
-    Process.waitpid(worker_pid)
+      sleep(1) 
+      remote_server = ActiveSupport::MessageBus::MessageServer.instance
+      remote_server.find_server
+      remote_server.send_message "David Wang"
+    ensure
+      remote_server.stop_server
+      sleep(1)
+    end
   end
 
   test 'find a StandAlone server in guest process' do
-    worker_pid = fork do
-      begin
-        owner_pid = fork do
-          # This owner process do nothing but start a stand alone server
-          server = ActiveSupport::MessageBus::MessageServer.instance
-          server.start_server :deploy => :StandAlone
-        end
-
-        sleep(1) 
-        remote_server = ActiveSupport::MessageBus::MessageServer.instance
-        remote_server.find_server
-        remote_server.send_message "David Wang"
-      ensure
-        remote_server.stop_server
-        sleep(1)
+    begin
+      owner_pid = fork do
+        # This owner process do nothing but start a stand alone server
+        server = ActiveSupport::MessageBus::MessageServer.instance
+        server.start_server :deploy => :StandAlone
       end
-    end
 
-    Process.waitpid(worker_pid)
+      sleep(1) 
+      remote_server = ActiveSupport::MessageBus::MessageServer.instance
+      remote_server.find_server
+      remote_server.send_message "David Wang"
+    ensure
+      remote_server.stop_server
+      sleep(1)
+    end
   end
 end 
+
