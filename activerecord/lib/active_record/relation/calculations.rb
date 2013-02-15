@@ -14,7 +14,7 @@ module ActiveRecord
     #   Person.count(:age, distinct: true)
     #   # => counts the number of different age values
     #
-    # If used on a +group+, it returns a Hash whose keys represent the aggregated column,
+    # If +count+ is used with +group+, it returns a Hash whose keys represent the aggregated column,
     # and the values are the respective amounts:
     #
     #   Person.group(:city).count
