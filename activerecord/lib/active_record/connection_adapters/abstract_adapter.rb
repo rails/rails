@@ -305,10 +305,6 @@ module ActiveRecord
         pool.checkin self
       end
 
-      def valid_type?(type)
-        true
-      end
-
       protected
 
       def log(sql, name = "SQL", binds = [])
@@ -329,6 +325,10 @@ module ActiveRecord
       def translate_exception(exception, message)
         # override in derived class
         ActiveRecord::StatementInvalid.new(message)
+      end
+
+      def valid_types?(type)
+        true
       end
     end
   end
