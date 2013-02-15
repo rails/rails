@@ -409,8 +409,7 @@ module ActionDispatch
         if encrypted_message = @parent_jar[key]
           @encryptor.decrypt_and_verify(encrypted_message)
         end
-      rescue ActiveSupport::MessageVerifier::InvalidSignature,
-             ActiveSupport::MessageVerifier::InvalidMessage
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
         nil
       end
 
