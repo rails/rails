@@ -86,6 +86,7 @@ module ActiveModel
       #   #                   { "comments" => [ { "body" => "Don't think too hard" } ],
       #   #                     "title" => "So I was thinking" } ] }
       def as_json(options = nil)
+        options = options.to_h if options.respond_to?(:to_h)
         root = if options && options.key?(:root)
           options[:root]
         else
