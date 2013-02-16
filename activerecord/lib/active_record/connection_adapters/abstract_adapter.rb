@@ -171,14 +171,14 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support database extensions?  As of this writing
-      # only postgresql does.
+      # Does this adapter support database extensions? As of this writing only
+      # postgresql does.
       def supports_extensions?
         false
       end
 
-      # A list of extensions, to be filled in by databases that
-      # support them (at the moment, postgresql).
+      # A list of extensions, to be filled in by adapters that support them. At
+      # the moment only postgresql does.
       def extensions
         []
       end
