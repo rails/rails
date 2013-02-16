@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
+    when the units option is an empty hash or when its smallest key is larger than
+    the number.
+
+    Examples:
+
+        number_to_human(123, :units => {}) # => 123
+        number_to_human(123, :units => {:thousand => 'k'}) # => 123
+
+    Fixes #9269.
+
+    *Michael Hoffman*
+
 *   ActiveSupport::Gzip.compress allows two optional arguments for compression
     level and strategy.
 
