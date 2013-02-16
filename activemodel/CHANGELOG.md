@@ -3,7 +3,7 @@
 *   Fix issue with `attr_protected` where malformed input could circumvent protection.
     CVE-2013-0276
 
-    *joerncheen*
+    *joernchen*
 
 ## Rails 3.1.10 (Jan 8, 2013) ##
 
