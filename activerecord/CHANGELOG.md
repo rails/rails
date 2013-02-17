@@ -1,5 +1,45 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Simplified type casting code for timezone aware attributes to use the
+    `in_time_zone` method if it is available. This introduces a subtle change
+    of behavior when using `Date` instances as they are directly converted to
+    `ActiveSupport::TimeWithZone` instances without first being converted to
+    `Time` instances. For example:
+
+        # Rails 3.2 behavior
+        >> Date.today.to_time.in_time_zone
+        => Wed, 13 Feb 2013 07:00:00 UTC +00:00
+
+        # Rails 4.0 behavior
+        >> Date.today.in_time_zone
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+    On the plus side it now behaves the same whether you pass a `String` date
+    or an actual `Date` instance. For example:
+
+        # Rails 3.2 behavior
+        >> Date.civil(2013, 2, 13).to_time.in_time_zone
+        => Wed, 13 Feb 2013 07:00:00 UTC +00:00
+        >> Time.zone.parse("2013-02-13")
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+        # Rails 4.0 behavior
+        >> Date.civil(2013, 2, 13).in_time_zone
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+        >> "2013-02-13".in_time_zone
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+    If you need the old behavior you can convert the dates to times manually.
+    For example:
+
+        >> Post.new(created_at: Date.today).created_at
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+        >> Post.new(created_at: Date.today.to_time).created_at
+        => Wed, 13 Feb 2013 07:00:00 UTC +00:00
+
+    *Andrew White*
+
 *   Preloading `has_many :through` associations with conditions won't
     cache the `:through` association. This will prevent invalid
     subsets to be cached.
