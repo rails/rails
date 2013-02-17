@@ -2,8 +2,10 @@ require 'erb'
 
 class ERB
   module Util
-    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
+    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
+    HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+));)/
+    JSON_ESCAPE_REGEXP = /[&"><]/
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -14,12 +16,23 @@ class ERB
     # ==== Example:
     #   puts html_escape("is a > 0 & a < 10?")
     #   # => is a &gt; 0 &amp; a &lt; 10?
-    def html_escape(s)
-      s = s.to_s
-      if s.html_safe?
-        s
-      else
-        s.to_s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
+    if RUBY_VERSION > '1.9'
+      def html_escape(s)
+        s = s.to_s
+        if s.html_safe?
+          s
+        else
+          s.gsub(/[&"'><]/, HTML_ESCAPE).html_safe
+        end
+      end
+    else
+      def html_escape(s)
+        s = s.to_s
+        if s.html_safe?
+          s
+        else
+          s.gsub(/[&"'><]/){ |x| HTML_ESCAPE[x] }.html_safe
+        end
       end
     end
 
@@ -29,21 +42,50 @@ class ERB
     module_function :html_escape
     module_function :h
 
-    # A utility method for escaping HTML entities in JSON strings.
-    # This method is also aliased as <tt>j</tt>.
+    # A utility method for escaping HTML without affecting existing escaped entities.
     #
-    # In your ERb templates, use this method to escape any HTML entities:
-    #   <%=j @person.to_json %>
+    #   html_escape_once('1 < 2 &amp; 3')
+    #   # => "1 &lt; 2 &amp; 3"
     #
-    # ==== Example:
-    #   puts json_escape("is a > 0 & a < 10?")
-    #   # => is a \u003E 0 \u0026 a \u003C 10?
-    def json_escape(s)
-      s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+    #   html_escape_once('&lt;&lt; Accept & Checkout')
+    #   # => "&lt;&lt; Accept &amp; Checkout"
+    if RUBY_VERSION > '1.9'
+      def html_escape_once(s)
+        result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE)
+        s.html_safe? ? result.html_safe : result
+      end
+    else
+      def html_escape_once(s)
+        result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP) { |special| HTML_ESCAPE[special] }
+        s.html_safe? ? result.html_safe : result
+      end
     end
 
-    alias j json_escape
-    module_function :j
+    module_function :html_escape_once
+
+    # A utility method for escaping HTML entities in JSON strings
+    # using \uXXXX JavaScript escape sequences for string literals:
+    #
+    #   json_escape('is a > 0 & a < 10?')
+    #   # => is a \u003E 0 \u0026 a \u003C 10?
+    #
+    # Note that after this operation is performed the output is not
+    # valid JSON. In particular double quotes are removed:
+    #
+    #   json_escape('{"name":"john","created_at":"2010-04-28T01:39:31Z","id":1}')
+    #   # => {name:john,created_at:2010-04-28T01:39:31Z,id:1}
+    if RUBY_VERSION > '1.9'
+      def json_escape(s)
+        result = s.to_s.gsub(JSON_ESCAPE_REGEXP, JSON_ESCAPE)
+        s.html_safe? ? result.html_safe : result
+      end
+    else
+      def json_escape(s)
+        result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
+        s.html_safe? ? result.html_safe : result
+      end
+    end
+
     module_function :json_escape
   end
 end
@@ -54,7 +96,7 @@ class Object
   end
 end
 
-class Fixnum
+class Numeric
   def html_safe?
     true
   end
