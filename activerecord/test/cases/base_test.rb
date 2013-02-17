@@ -319,6 +319,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(true, cb.frickinawesome)
   end
 
+  def test_create_after_initialize_with_array_param
+    cbs = CustomBulb.create([{ name: 'Dude' }, { name: 'Bob' }])
+    assert_equal 'Dude', cbs[0].name
+    assert_equal 'Bob', cbs[1].name
+    assert cbs[0].frickinawesome
+    assert !cbs[1].frickinawesome
+  end
+
   def test_first_or_create
     parrot = Bird.first_or_create(:color => 'green', :name => 'parrot')
     assert parrot.persisted?
