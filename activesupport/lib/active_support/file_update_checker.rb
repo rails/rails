@@ -221,16 +221,15 @@ module ActiveSupport
     # Does a BFS on the set of starting directories and recursively calls
     # itself until there are no more files left.
     #
-    # Each path that is found in the directory is passed through valid_path?
-    # to look for new paths that are relevant. Paths are then parsed by
-    # handle_paths. New directories that are found form the BFS frontier
-    # and update_changed_files is called on these new directories.
+    # Paths are then parsed by handle_paths. New directories that are found
+    # form the BFS frontier and update_changed_files is called on these new
+    # directories.
     def update_changed_files(directories)
       new_directory_paths = []
 
       directories.each do |directory_path|
         expanded_filepaths = Dir.foreach(directory_path)
-        .select { |path| valid_path?(path) }
+        .reject { |path| path == ".." || path == "." }  # reject up and self directories on UNIX
         .map { |path| "#{directory_path}/#{path}" }
 
         new_directory_paths += handle_paths(expanded_filepaths)
@@ -245,10 +244,6 @@ module ActiveSupport
     # The method also removes .. and . as valid paths since they lead
     # to up and down directories.
     def valid_path?(path)
-      if path == ".." || path == "."
-        return false
-      end
-
       validations = []
       if @opts[:filter]
         validations << (path =~ @opts[:filter])
@@ -271,8 +266,10 @@ module ActiveSupport
       files, new_directories = expanded_filepaths.partition { |fp| File.file?(fp) }
 
       files.each do |filepath|
-        @files_alive << filepath
-        check_file_for_changes(filepath)
+        if valid_path?(filepath)
+          @files_alive << filepath
+          check_file_for_changes(filepath)
+        end
       end
 
       new_directories
