@@ -90,6 +90,8 @@ module ActionDispatch
         routes_to_display = filter_routes(filter)
 
         routes = collect_routes(routes_to_display)
+
+        formatter.header routes
         formatter.section routes
 
         @engines.each do |name, engine_routes|
@@ -155,15 +157,29 @@ module ActionDispatch
         @buffer << draw_section(routes)
       end
 
+      def header(routes)
+        @buffer << draw_header(routes)
+      end
+
       private
         def draw_section(routes)
-          name_width = routes.map { |r| r[:name].length }.max
-          verb_width = routes.map { |r| r[:verb].length }.max
-          path_width = routes.map { |r| r[:path].length }.max
+          name_width, verb_width, path_width = widths(routes)
 
           routes.map do |r|
             "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
           end
+        end
+
+        def draw_header(routes)
+          name_width, verb_width, path_width = widths(routes)
+
+          "#{"Prefix".rjust(name_width)} #{"Verb".ljust(verb_width)} #{"URI Pattern".ljust(path_width)} Controller#Action"
+        end
+
+        def widths(routes)
+          [routes.map { |r| r[:name].length }.max,
+           routes.map { |r| r[:verb].length }.max,
+           routes.map { |r| r[:path].length }.max]
         end
     end
 
