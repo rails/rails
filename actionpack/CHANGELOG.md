@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add a message when you have no routes defined to both `rake routes` and
+    GET "/rails/info/routes" that lets you know you have none defined and links
+    to the Rails Guide on the topic.
+
+    *Steve Klabnik*
+
 *   Change `image_alt` method to replace underscores/hyphens to spaces in filenames.
 
     Previously, underscored filenames became `alt="A_long_file_name_with_underscores"`
