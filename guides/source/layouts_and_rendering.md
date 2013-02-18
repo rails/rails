@@ -568,7 +568,8 @@ def show
   @book = Book.find_by_id(params[:id])
   if @book.nil?
     @books = Book.all
-    render "index", alert: "Your book was not found!"
+    flash[:alert] = "Your book was not found"
+    render "index"
   end
 end
 ```
