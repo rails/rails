@@ -13,6 +13,9 @@ env:
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
   - "GEM=ar:postgresql"
+matrix:
+  allow_failures:
+    - rvm: 2.0.0
 notifications:
   email: false
   irc:
