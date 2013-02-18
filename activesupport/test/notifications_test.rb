@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module/delegation'
+require 'tempfile'
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -30,7 +31,8 @@ module Notifications
     def test_listen_to_filesystem_path
       filesystem_events = []
 
-      ActiveSupport::Notifications.publish_file_changes("test_filesystem_notification", Dir.getwd)
+      dir = Dir.mktmpdir
+      ActiveSupport::Notifications.publish_file_changes("test_filesystem_notification", dir)
       ActiveSupport::Notifications.subscribe("test_filesystem_notification") { |*args| filesystem_events << [*args] }
       assert_equal [], filesystem_events
 
@@ -39,8 +41,8 @@ module Notifications
       # trick the system into thinking the file wasn't actually added
       sleep(1)
 
-      filename = find_unused_filename
-      File.open(filename, 'w') { |f| f.write("testing document") }
+      tmpfile = Tempfile.new('some_file', dir)
+      tmpfile.write "testing document" 
 
       start_time = Time.now
       while filesystem_events.empty? && Time.now - start_time < MAX_FILESYSTEM_CHANGE_WAIT_TIME
@@ -50,22 +52,10 @@ module Notifications
       changed_file_hash = filesystem_events[0][4]
 
       assert_equal "test_filesystem_notification", filesystem_events[0][0], "Incorrect notifications group name."
-      assert_equal filename, changed_file_hash[:path], "Incorrect path was detected for the filesystem change."
+      assert_equal tmpfile.path, changed_file_hash[:path], "Incorrect path was detected for the filesystem change."
       assert_equal :added, changed_file_hash[:type], "Incorrect type of filesystem change detected."
     ensure
       ActiveSupport::Notifications.unpublish_file_changes
-      File.delete(filename)
-    end
-
-    private
-
-    def find_unused_filename(root=Dir.getwd, int_size=9000000000)
-      filename = rand(int_size).to_s
-      while File.exist?(filename)
-        filename = rand(int_size).to_s
-      end
-
-      "#{root}/#{filename}"
     end
   end
 
