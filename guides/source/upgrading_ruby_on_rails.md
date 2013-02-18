@@ -83,6 +83,7 @@ get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
 * Rails 4.0 has removed ActionDispatch::BestStandardsSupport middleware, !DOCTYPE html already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`
+* In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
 ### Active Support
 
