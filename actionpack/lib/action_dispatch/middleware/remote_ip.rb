@@ -83,7 +83,7 @@ module ActionDispatch
 
       # This constant contains a regular expression that validates every known
       # form of IP v4 and v6 address, with or without abbreviations, adapted
-      # from {this gist}[https://gist.github.com/1289635].
+      # from {this gist}[https://gist.github.com/gazay/1289635].
       VALID_IP = %r{
         (^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$)                                                        | # ip v4
         (^(
