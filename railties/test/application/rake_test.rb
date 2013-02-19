@@ -141,7 +141,9 @@ module ApplicationTests
           get '/cart', to: 'cart#show'
         end
       RUBY
-      assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
+
+      output = Dir.chdir(app_path){ `rake routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
     end
 
     def test_rake_routes_displays_message_when_no_routes_are_defined
@@ -156,7 +158,7 @@ module ApplicationTests
         Please add some routes in config/routes.rb.
 
         For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
-        MESSAGE
+      MESSAGE
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
