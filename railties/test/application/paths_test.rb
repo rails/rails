@@ -54,11 +54,11 @@ module ApplicationTests
       assert_equal root("app", "controllers"), @paths["app/controllers"].expanded.first
     end
 
-    test "booting up Rails yields a list of paths that will be eager loaded" do
-      autoload_paths = @paths.autoload_paths
-      assert autoload_paths.include?(root("app/controllers"))
-      assert autoload_paths.include?(root("app/helpers"))
-      assert autoload_paths.include?(root("app/models"))
+    test "booting up Rails yields a list of paths that are eager" do
+      eager_load = @paths.eager_load
+      assert eager_load.include?(root("app/controllers"))
+      assert eager_load.include?(root("app/helpers"))
+      assert eager_load.include?(root("app/models"))
     end
 
     test "environments has a glob equal to the current environment" do
