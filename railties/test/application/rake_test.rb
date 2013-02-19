@@ -1,5 +1,6 @@
 # coding:utf-8
 require "isolation/abstract_unit"
+require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   class RakeTest < ActiveSupport::TestCase
@@ -149,13 +150,13 @@ module ApplicationTests
         end
       RUBY
 
-      assert_equal <<-MESSAGE, Dir.chdir(app_path){ `rake routes` }
-You don't have any routes defined!
+      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `rake routes` }
+        You don't have any routes defined!
 
-Please add some routes in config/routes.rb.
+        Please add some routes in config/routes.rb.
 
-For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
-MESSAGE
+        For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
+        MESSAGE
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
