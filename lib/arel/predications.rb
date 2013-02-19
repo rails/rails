@@ -29,7 +29,15 @@ module Arel
       when Arel::SelectManager
         Arel::Nodes::In.new(self, other.ast)
       when Range
-        if other.exclude_end?
+        if other.begin == -Float::INFINITY && other.end == Float::INFINITY
+          Nodes::NotIn.new self, []
+        elsif other.end == Float::INFINITY
+          Nodes::GreaterThanOrEqual.new(self, other.begin)
+        elsif other.begin == -Float::INFINITY && other.exclude_end?
+          Nodes::LessThan.new(self, other.end)
+        elsif other.begin == -Float::INFINITY
+          Nodes::LessThanOrEqual.new(self, other.end)
+        elsif other.exclude_end?
           left  = Nodes::GreaterThanOrEqual.new(self, other.begin)
           right = Nodes::LessThan.new(self, other.end)
           Nodes::And.new [left, right]
@@ -54,7 +62,15 @@ module Arel
       when Arel::SelectManager
         Arel::Nodes::NotIn.new(self, other.ast)
       when Range
-        if other.exclude_end?
+        if other.begin == -Float::INFINITY && other.end == Float::INFINITY
+          Nodes::In.new self, []
+        elsif other.end == Float::INFINITY
+          Nodes::LessThan.new(self, other.begin)
+        elsif other.begin == -Float::INFINITY && other.exclude_end?
+          Nodes::GreaterThanOrEqual.new(self, other.end)
+        elsif other.begin == -Float::INFINITY
+          Nodes::GreaterThan.new(self, other.end)
+        elsif other.exclude_end?
           left  = Nodes::LessThan.new(self, other.begin)
           right = Nodes::GreaterThanOrEqual.new(self, other.end)
           Nodes::Or.new left, right
