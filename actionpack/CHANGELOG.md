@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove support for parsing YAML parameters from request.
+
+    *Aaron Patterson*
+
 *   Add a message when you have no routes defined to both `rake routes` and
     GET "/rails/info/routes" that lets you know you have none defined and links
     to the Rails Guide on the topic.

@@ -215,10 +215,6 @@
 
     *Yves Senn*
 
-*   Remove support for parsing YAML parameters from request.
-
-    *Aaron Patterson*
-
 *   Support for PostgreSQL's `ltree` data type.
 
     *Rob Worley*
