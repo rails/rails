@@ -368,6 +368,8 @@ module ActiveRecord
     #   # triggers @brake.car.touch and @brake.car.corporation.touch
     #   @brake.touch
     def touch(name = nil)
+      raise ActiveRecordError, "can not touch on a new record object" unless persisted?
+
       attributes = timestamp_attributes_for_update_in_model
       attributes << name if name
 

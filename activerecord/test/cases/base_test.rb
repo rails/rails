@@ -1447,6 +1447,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
 
+  def test_touch_should_raise_error_on_a_new_object
+    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    assert_raises(ActiveRecord::ActiveRecordError) do
+      company.touch :updated_at
+    end
+  end
+
   def test_cache_key_format_is_precise_enough
     dev = Developer.first
     key = dev.cache_key
