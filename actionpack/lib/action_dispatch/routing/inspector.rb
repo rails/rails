@@ -91,6 +91,11 @@ module ActionDispatch
 
         routes = collect_routes(routes_to_display)
 
+        if routes.none?
+          formatter.no_routes
+          return formatter.result
+        end
+
         formatter.header routes
         formatter.section routes
 
@@ -161,6 +166,16 @@ module ActionDispatch
         @buffer << draw_header(routes)
       end
 
+      def no_routes
+        @buffer << <<-MESSAGE
+You don't have any routes defined!
+
+Please add some routes in config/routes.rb.
+
+For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
+MESSAGE
+      end
+
       private
         def draw_section(routes)
           name_width, verb_width, path_width = widths(routes)
@@ -195,6 +210,16 @@ module ActionDispatch
 
       def section(routes)
         @buffer << @view.render(partial: "routes/route", collection: routes)
+      end
+
+      def no_routes
+        @buffer << <<-MESSAGE
+<p>You don't have any routes defined!</p>
+<ul>
+<li>Please add some routes in config/routes.rb.</li>
+<li>For more information about routes, please <a href="http://guides.rubyonrails.org/routing.html">see the Rails Guide</a>.</li>
+</ul>
+MESSAGE
       end
 
       def result
