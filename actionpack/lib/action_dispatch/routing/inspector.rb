@@ -212,6 +212,10 @@ module ActionDispatch
         @buffer << @view.render(partial: "routes/route", collection: routes)
       end
 
+      # the header is part of the HTML page, so we don't construct it here.
+      def header(routes)
+      end
+
       def no_routes
         @buffer << <<-MESSAGE.strip_heredoc
           <p>You don't have any routes defined!</p>
