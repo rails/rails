@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActiveRecord now raises an error when blank arguments are passed to query
+    methods for which blank arguments do not make sense. This also occurs for
+    nil-like objects in arguments.
+
+    Example:
+
+        Post.limit()     # => raises error
+        Post.include([]) # => raises error
+    
+    *John Wang*
+
 *   Simplified type casting code for timezone aware attributes to use the
     `in_time_zone` method if it is available. This introduces a subtle change
     of behavior when using `Date` instances as they are directly converted to
