@@ -1114,7 +1114,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading does not cache has many association subset when preloaded with a through association" do
-    author = Author.includes(:comments_with_order_and_conditions, :posts).first
+    author = Author.where(:id => 1).includes(:comments_with_order_and_conditions, :posts).first
     assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
     assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
   end
