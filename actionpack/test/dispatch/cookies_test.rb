@@ -72,6 +72,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_invalid_encrypted_cookie
+      cookies[:invalid_cookie] = 'invalid--9170e00a57cfc27083363b5c75b835e477bd90cf'
+      head :ok
+    end
+
     def raise_data_overflow
       cookies.signed[:foo] = 'bye!' * 1024
       head :ok
@@ -336,6 +341,11 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
   end
 
+  def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
+    get :set_signed_cookie
+    assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+  end
+
   def test_encrypted_cookie
     get :set_encrypted_cookie
     cookies = @controller.send :cookies
@@ -346,9 +356,14 @@ class CookiesTest < ActionController::TestCase
     assert_equal 'bar', cookies.encrypted[:foo]
   end
 
-  def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
-    get :set_signed_cookie
-    assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+  def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
+    get :set_encrypted_cookie
+    assert_nil @controller.send(:cookies).encrypted[:non_existant_attribute]
+  end
+
+  def test_setting_invalid_encrypted_cookie_should_return_nil_when_accessing_it
+    get :set_invalid_encrypted_cookie
+    assert_nil @controller.send(:cookies).encrypted[:invalid_cookie]
   end
 
   def test_permanent_signed_cookie

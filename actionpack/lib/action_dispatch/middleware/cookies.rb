@@ -410,7 +410,7 @@ module ActionDispatch
           @encryptor.decrypt_and_verify(encrypted_message)
         end
       rescue ActiveSupport::MessageVerifier::InvalidSignature,
-             ActiveSupport::MessageVerifier::InvalidMessage
+             ActiveSupport::MessageEncryptor::InvalidMessage
         nil
       end
 
