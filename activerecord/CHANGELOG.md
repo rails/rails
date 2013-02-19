@@ -6,13 +6,11 @@
     *Yves Senn*
 
 *   ActiveRecord now raises an error when blank arguments are passed to query
-    methods for which blank arguments do not make sense. This also occurs for
-    nil-like objects in arguments.
+    methods for which blank arguments do not make sense.
 
     Example:
 
-        Post.limit()     # => raises error
-        Post.include([]) # => raises error
+        Post.includes()     # => raises error
 
     *John Wang*
 
