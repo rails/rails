@@ -65,18 +65,18 @@
 
         a_user = User.includes(:recent_comments).first
 
-        # this is preloaded
+        # This is preloaded.
         a_user.recent_comments
 
-        # fetching the recent_comments through the posts association won't preload it.
+        # This is not preloaded, fetched now.
         a_user.posts
 
     *Yves Senn*
 
-*   Don't run after_commit callback when creating through an association
+*   Don't run `after_commit` callbacks when creating through an association
     if saving the record fails.
 
-    *James Miller *
+    *James Miller*
 
 *   Allow store accessors to be overrided like other attribute methods, e.g.:
 
