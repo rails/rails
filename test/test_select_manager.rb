@@ -716,6 +716,36 @@ module Arel
         }
       end
 
+      it 'takes an order with multiple columns' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').order(table['foo'].asc, table['bar'].desc)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (ORDER BY "users"."foo" ASC, "users"."bar" DESC)
+        }
+      end
+
+      it 'takes a partition' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').partition(table['bar'])
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (PARTITION BY "users"."bar")
+        }
+      end
+
+      it 'takes a partition with multiple columns' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').partition(table['bar'], table['baz'])
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (PARTITION BY "users"."bar", "users"."baz")
+        }
+      end
+
       it 'takes a rows frame, unbounded preceding' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine

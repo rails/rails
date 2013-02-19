@@ -1,15 +1,25 @@
 module Arel
   module Nodes
     class Window < Arel::Nodes::Node
-      attr_accessor :orders, :framing
+      attr_accessor :orders, :framing, :partitions
 
       def initialize
         @orders = []
+        @partitions = []
+        @framing = nil
       end
 
       def order *expr
         # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
         @orders.concat expr.map { |x|
+          String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
+        }
+        self
+      end
+
+      def partition *expr
+        # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
+        @partitions.concat expr.map { |x|
           String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
         }
         self
@@ -39,7 +49,8 @@ module Arel
       def eql? other
         self.class == other.class &&
           self.orders == other.orders &&
-          self.framing == other.framing
+          self.framing == other.framing &&
+          self.partitions == other.partitions
       end
       alias :== :eql?
     end
