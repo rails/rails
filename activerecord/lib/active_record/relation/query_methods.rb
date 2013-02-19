@@ -108,7 +108,8 @@ module ActiveRecord
     #
     #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
     def includes(*args)
-      args.empty? ? self : spawn.includes!(*args)
+      check_empty_arguments("includes", *args)
+      spawn.includes!(*args)
     end
 
     def includes!(*args) # :nodoc:
@@ -125,7 +126,8 @@ module ActiveRecord
     #   FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
     #   "users"."id"
     def eager_load(*args)
-      args.blank? ? self : spawn.eager_load!(*args)
+      check_empty_arguments("eager_load", *args)
+      spawn.eager_load!(*args)
     end
 
     def eager_load!(*args) # :nodoc:
@@ -138,7 +140,8 @@ module ActiveRecord
     #   User.preload(:posts)
     #   => SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
-      args.blank? ? self : spawn.preload!(*args)
+      check_empty_arguments("preload", *args)
+      spawn.preload!(*args)
     end
 
     def preload!(*args) # :nodoc:
@@ -155,7 +158,8 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # => Query now knows the string references posts, so adds a JOIN
     def references(*args)
-      args.blank? ? self : spawn.references!(*args)
+      check_empty_arguments("references", *args)
+      spawn.references!(*args)
     end
 
     def references!(*args) # :nodoc:
@@ -234,7 +238,8 @@ module ActiveRecord
     #   User.group('name AS grouped_name, age')
     #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
     def group(*args)
-      args.blank? ? self : spawn.group!(*args)
+      check_empty_arguments("group", *args)
+      spawn.group!(*args)
     end
 
     def group!(*args) # :nodoc:
@@ -264,7 +269,8 @@ module ActiveRecord
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     def order(*args)
-      args.blank? ? self : spawn.order!(*args)
+      check_empty_arguments("order", *args)
+      spawn.order!(*args)
     end
 
     def order!(*args) # :nodoc:
@@ -289,7 +295,8 @@ module ActiveRecord
     #
     # generates a query with 'ORDER BY name ASC, id ASC'.
     def reorder(*args)
-      args.blank? ? self : spawn.reorder!(*args)
+      check_empty_arguments("reorder", *args)
+      spawn.reorder!(*args)
     end
 
     def reorder!(*args) # :nodoc:
@@ -311,7 +318,8 @@ module ActiveRecord
     #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
     #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
-      args.compact.blank? ? self : spawn.joins!(*args.flatten)
+      check_empty_arguments("joins", *args)
+      spawn.joins!(*args.flatten)
     end
 
     def joins!(*args) # :nodoc:
@@ -475,7 +483,8 @@ module ActiveRecord
     #
     #   Order.having('SUM(price) > 30').group('user_id')
     def having(opts, *rest)
-      opts.blank? ? self : spawn.having!(opts, *rest)
+      check_empty_arguments("having", opts)
+      spawn.having!(opts, *rest)
     end
 
     def having!(opts, *rest) # :nodoc:
@@ -912,5 +921,10 @@ module ActiveRecord
       end
     end
 
+    def check_empty_arguments(method_name, *args)
+      if args.blank?
+        raise ArgumentError, "The method .#{method_name}() must contain arguments."
+      end
+    end
   end
 end
