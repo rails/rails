@@ -167,13 +167,13 @@ module ActionDispatch
       end
 
       def no_routes
-        @buffer << <<-MESSAGE
-You don't have any routes defined!
+        @buffer << <<-MESSAGE.strip_heredoc
+          You don't have any routes defined!
 
-Please add some routes in config/routes.rb.
+          Please add some routes in config/routes.rb.
 
-For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
-MESSAGE
+          For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
+          MESSAGE
       end
 
       private
@@ -213,13 +213,13 @@ MESSAGE
       end
 
       def no_routes
-        @buffer << <<-MESSAGE
-<p>You don't have any routes defined!</p>
-<ul>
-<li>Please add some routes in config/routes.rb.</li>
-<li>For more information about routes, please <a href="http://guides.rubyonrails.org/routing.html">see the Rails Guide</a>.</li>
-</ul>
-MESSAGE
+        @buffer << <<-MESSAGE.strip_heredoc
+          <p>You don't have any routes defined!</p>
+          <ul>
+          <li>Please add some routes in config/routes.rb.</li>
+          <li>For more information about routes, please <a href="http://guides.rubyonrails.org/routing.html">see the Rails Guide</a>.</li>
+          </ul>
+          MESSAGE
       end
 
       def result
