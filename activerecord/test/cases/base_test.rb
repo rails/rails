@@ -327,29 +327,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert !cbs[1].frickinawesome
   end
 
-  def test_first_or_create
-    parrot = Bird.first_or_create(:color => 'green', :name => 'parrot')
-    assert parrot.persisted?
-    the_same_parrot = Bird.first_or_create(:color => 'yellow', :name => 'macaw')
-    assert_equal parrot, the_same_parrot
-  end
-
-  def test_first_or_create_bang
-    assert_raises(ActiveRecord::RecordInvalid) { Bird.first_or_create! }
-    parrot = Bird.first_or_create!(:color => 'green', :name => 'parrot')
-    assert parrot.persisted?
-    the_same_parrot = Bird.first_or_create!(:color => 'yellow', :name => 'macaw')
-    assert_equal parrot, the_same_parrot
-  end
-
-  def test_first_or_initialize
-    parrot = Bird.first_or_initialize(:color => 'green', :name => 'parrot')
-    assert_kind_of Bird, parrot
-    assert !parrot.persisted?
-    assert parrot.new_record?
-    assert parrot.valid?
-  end
-
   def test_load
     topics = Topic.all.merge!(:order => 'id').to_a
     assert_equal(4, topics.size)
