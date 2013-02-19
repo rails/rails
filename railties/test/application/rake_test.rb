@@ -143,6 +143,21 @@ module ApplicationTests
       assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
     end
 
+    def test_rake_routes_displays_message_when_no_routes_are_defined
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+        end
+      RUBY
+
+      assert_equal <<-MESSAGE, Dir.chdir(app_path){ `rake routes` }
+You don't have any routes defined!
+
+Please add some routes in config/routes.rb.
+
+For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
+MESSAGE
+    end
+
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
         rake_tasks do
