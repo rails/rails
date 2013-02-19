@@ -240,7 +240,7 @@
 *   Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
 
     * The methods `drop_table` and `remove_column` are now reversible, as long as the necessary information is given.
-      The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not revertible).
+      The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not reversible).
       The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
 
     * New method `reversible` makes it possible to specify code to be run when migrating up or down.
