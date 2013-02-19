@@ -1,5 +1,28 @@
 ## unreleased ##
 
+*   Preloading `has_many :through` associations with conditions won't
+    cache the `:through` association. This will prevent invalid
+    subsets to be cached.
+    Fixes #8423.
+    Backport #9252.
+
+    Example:
+
+        class User
+          has_many :posts
+          has_many :recent_comments, -> { where('created_at > ?', 1.week.ago) }, :through => :posts
+        end
+
+        a_user = User.includes(:recent_comments).first
+
+        # this is preloaded
+        a_user.recent_comments
+
+        # fetching the recent_comments through the posts association won't preload it.
+        a_user.posts
+
+    *Yves Senn*
+
 *   Fix handling of dirty time zone aware attributes
 
     Previously, when `time_zone_aware_attributes` were enabled, after
