@@ -1,3 +1,6 @@
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/hash/slice'
+
 module ActionDispatch
   module Http
     module URL
