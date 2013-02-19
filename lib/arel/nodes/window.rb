@@ -30,11 +30,19 @@ module Arel
       end
 
       def rows(expr = nil)
-        frame(Rows.new(expr))
+        if @framing
+          Rows.new(expr)
+        else
+          frame(Rows.new(expr))
+        end
       end
 
       def range(expr = nil)
-        frame(Range.new(expr))
+        if @framing
+          Range.new(expr)
+        else
+          frame(Range.new(expr))
+        end
       end
 
       def initialize_copy other
