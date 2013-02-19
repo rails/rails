@@ -172,7 +172,7 @@ module ActionDispatch
 
           Please add some routes in config/routes.rb.
 
-          For more information about routes, see the Rails Guide: http://guides.rubyonrails.org/routing.html .
+          For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
           MESSAGE
       end
 
@@ -216,8 +216,11 @@ module ActionDispatch
         @buffer << <<-MESSAGE.strip_heredoc
           <p>You don't have any routes defined!</p>
           <ul>
-          <li>Please add some routes in config/routes.rb.</li>
-          <li>For more information about routes, please <a href="http://guides.rubyonrails.org/routing.html">see the Rails Guide</a>.</li>
+            <li>Please add some routes in <tt>config/routes.rb</tt>.</li>
+            <li>
+              For more information about routes, please see the Rails guide
+              <a href="http://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.
+            </li>
           </ul>
           MESSAGE
       end
