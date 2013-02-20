@@ -40,7 +40,7 @@
 
     *Yves Senn*
 
-*   ActiveRecord now raises an error when blank arguments are passed to query
+*   Active Record now raises an error when blank arguments are passed to query
     methods for which blank arguments do not make sense.
 
     Example:
