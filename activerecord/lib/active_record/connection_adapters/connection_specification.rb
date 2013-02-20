@@ -38,7 +38,7 @@ module ActiveRecord
         private
         def resolve_string_connection(spec) # :nodoc:
           hash = configurations.fetch(spec) do |k|
-            connection_url_to_hash(k)
+            self.class.connection_url_to_hash(k)
           end
 
           raise(AdapterNotSpecified, "#{spec} database is not configured") unless hash
@@ -69,7 +69,7 @@ module ActiveRecord
         SIMPLE_INT = /\A\d+\z/
         SIMPLE_FLOAT = /\A\d+\.\d+\z/
 
-        def connection_url_to_hash(url) # :nodoc:
+        def self.connection_url_to_hash(url) # :nodoc:
           config = URI.parse url
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
