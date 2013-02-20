@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rename related indexes on `rename_table` and `rename_column`. This
+    does not affect indexes with custom names.
+
+    *Yves Senn*
+
 *   Prevent the creation of indices with too long names, which cause
     internal operations to fail (sqlite3 adapter only). The method
     `allowed_index_name_length` defines the length limit enforced by
