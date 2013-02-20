@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `time_zone_options_for_select` to call `dup` on the returned TimeZone array.
+    
+    Previously if you supplied :priority_zones options to `time_zone_options_for_select`
+    the memoized ActiveSupport::TimeZone.all array would be mutated.  Calling
+    `dup` prevents mutation of the main TimeZones array.
+    
+    *Brian McManus*
+    
 *   Remove support for parsing YAML parameters from request.
 
     *Aaron Patterson*
