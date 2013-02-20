@@ -468,6 +468,7 @@ module ActiveRecord
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
+        rename_table_indexes(table_name, new_name)
       end
 
       def add_column(table_name, column_name, type, options = {})
@@ -495,6 +496,7 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+        rename_column_indexes(table_name, column_name, new_column_name)
       end
 
       # Maps logical Rails types to MySQL-specific data types.
