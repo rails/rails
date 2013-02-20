@@ -108,7 +108,7 @@ module ActiveRecord
     #
     #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
     def includes(*args)
-      check_empty_arguments("includes", args)
+      has_arguments?("includes", args)
       spawn.includes!(*args)
     end
 
@@ -126,7 +126,7 @@ module ActiveRecord
     #   FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
     #   "users"."id"
     def eager_load(*args)
-      check_empty_arguments("eager_load", args)
+      has_arguments?("eager_load", args)
       spawn.eager_load!(*args)
     end
 
@@ -140,7 +140,7 @@ module ActiveRecord
     #   User.preload(:posts)
     #   => SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
-      check_empty_arguments("preload", args)
+      has_arguments?("preload", args)
       spawn.preload!(*args)
     end
 
@@ -158,7 +158,7 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # => Query now knows the string references posts, so adds a JOIN
     def references(*args)
-      check_empty_arguments("references", args)
+      has_arguments?("references", args)
       spawn.references!(*args)
     end
 
@@ -238,7 +238,7 @@ module ActiveRecord
     #   User.group('name AS grouped_name, age')
     #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
     def group(*args)
-      check_empty_arguments("group", args)
+      has_arguments?("group", args)
       spawn.group!(*args)
     end
 
@@ -269,7 +269,7 @@ module ActiveRecord
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     def order(*args)
-      check_empty_arguments("order", args)
+      has_arguments?("order", args)
       spawn.order!(*args)
     end
 
@@ -295,7 +295,7 @@ module ActiveRecord
     #
     # generates a query with 'ORDER BY name ASC, id ASC'.
     def reorder(*args)
-      check_empty_arguments("reorder", args)
+      has_arguments?("reorder", args)
       spawn.reorder!(*args)
     end
 
@@ -318,7 +318,7 @@ module ActiveRecord
     #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
     #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
-      check_empty_arguments("joins", args)
+      has_arguments?("joins", args)
       spawn.joins!(*args.compact.flatten)
     end
 
@@ -934,10 +934,10 @@ module ActiveRecord
     # passed into that method as an input. For example:
     #
     # def references(*args)
-    #   check_empty_arguments("references", args)
+    #   has_arguments?("references", args)
     #   ...
     # end
-    def check_empty_arguments(method_name, args)
+    def has_arguments?(method_name, args)
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
       end
