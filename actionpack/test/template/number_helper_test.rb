@@ -238,6 +238,10 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '12 ml', number_to_human(12, :units => volume)
     assert_equal '1.23 m3', number_to_human(1234567, :units => volume)
 
+    #Numbers smaller than smallest unit are returned unaltered
+    assert_equal '123', number_to_human(123, :units => {:thousand => 'k'})
+    assert_equal '123', number_to_human(123, :units => {})
+
     #Including fractionals
     distance = {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
     assert_equal '1.23 mm', number_to_human(0.00123, :units => distance)
@@ -264,6 +268,11 @@ class NumberHelperTest < ActionView::TestCase
 
     assert_equal '1&lt;script&gt;&lt;/script&gt;01', number_to_human(1.01, :separator => "<script></script>")
     assert_equal '100&lt;script&gt;&lt;/script&gt;000 Quadrillion', number_to_human(10**20, :delimiter => "<script></script>")
+  end
+
+  def test_number_to_human_with_custom_units_that_are_missing_the_needed_key
+    assert_equal '123', number_to_human(123, :units => {:thousand => 'k'})
+    assert_equal '123', number_to_human(123, :units => {})
   end
 
   def test_number_to_human_with_custom_format
