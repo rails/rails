@@ -903,7 +903,7 @@ Run `rake gems:install` to install the missing gems.
         end
 
       Object.const_set(:RELATIVE_RAILS_ROOT, ::RAILS_ROOT.dup) unless defined?(::RELATIVE_RAILS_ROOT)
-      ::RAILS_ROOT.replace @root_path
+      ::RAILS_ROOT.replace @root_path if ::RAILS_ROOT != @root_path
     end
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
