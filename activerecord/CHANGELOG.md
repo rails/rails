@@ -9,7 +9,7 @@
     internal operations to fail (sqlite3 adapter only). The method
     `allowed_index_name_length` defines the length limit enforced by
     rails. It's value defaults to `index_name_length` but can vary per adapter.
-    Fix #8264.
+    Fixes #8264.
 
     *Yves Senn*
 
@@ -36,7 +36,7 @@
     *John Wang*
 
 *   Descriptive error message when the necessary AR adapter gem was not found.
-    Fix #7313
+    Fixes #7313.
 
     *Yves Senn*
 
@@ -210,7 +210,7 @@
     *Lilibeth De La Cruz*
 
 *   When `#count` is used in conjunction with `#uniq` we perform `count(:distinct => true)`.
-    Fix #6865.
+    Fixes #6865.
 
     Example:
 
@@ -243,7 +243,7 @@
     *John Wang*
 
 *   Collection associations `#empty?` always respects builded records.
-    Fix #8879.
+    Fixes #8879.
 
     Example:
 
