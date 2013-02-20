@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Descriptive error message when the necessary AR adapter gem was not found.
+    Fix #7313
+
+    *Yves Senn*
+
 *   ActiveRecord now raises an error when blank arguments are passed to query
     methods for which blank arguments do not make sense. This also occurs for
     nil-like objects in arguments.
@@ -8,7 +13,7 @@
 
         Post.limit()     # => raises error
         Post.include([]) # => raises error
-    
+
     *John Wang*
 
 *   Simplified type casting code for timezone aware attributes to use the
