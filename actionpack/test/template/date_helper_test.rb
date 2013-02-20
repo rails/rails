@@ -1510,42 +1510,42 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, date_select("post", "written_on")
   end
-  
+
   def test_date_select_with_selected
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
-    
+
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
     expected << "</select>\n"
-    
+
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
     expected << %{<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7" selected="selected">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
     expected << "</select>\n"
-    
+
     expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
     expected << %{<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10" selected="selected">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n}
-    
+
     expected << "</select>\n"
-    
+
     assert_dom_equal expected, date_select("post", "written_on", :selected => Date.new(2004, 07, 10))
   end
 
   def test_date_select_with_selected_nil
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
-    
+
     expected = '<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="1"/>' + "\n"
-    
+
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
     expected << %{<option value=""></option>\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
     expected << "</select>\n"
-    
+
     expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
     expected << %{<option value=""></option>\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n}
-    
+
     expected << "</select>\n"
-    
+
     assert_dom_equal expected, date_select("post", "written_on", include_blank: true, discard_year: true, selected: nil)
   end
 
@@ -2296,7 +2296,7 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, datetime_select("post", "updated_at", discard_year: true, selected: nil)
   end
-  
+
   def test_datetime_select_defaults_to_time_zone_now_when_config_time_zone_is_set
     # The love zone is UTC+0
     mytz = Class.new(ActiveSupport::TimeZone) {
@@ -3160,14 +3160,14 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_tag_with_date
-    date = Date.today
-    expected = "<time datetime=\"#{date.rfc3339}\">#{I18n.l(date, :format => :long)}</time>"
+    date = Date.new(2013, 2, 20)
+    expected = '<time datetime="2013-02-20">February 20, 2013</time>'
     assert_equal expected, time_tag(date)
   end
 
   def test_time_tag_with_time
-    time = Time.now
-    expected = "<time datetime=\"#{time.xmlschema}\">#{I18n.l(time, :format => :long)}</time>"
+    time = Time.new(2013, 2, 20, 0, 0, 0, '+00:00')
+    expected = '<time datetime="2013-02-20T00:00:00+00:00">February 20, 2013 00:00</time>'
     assert_equal expected, time_tag(time)
   end
 
@@ -3184,8 +3184,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_tag_with_different_format
-    time = Time.now
-    expected = "<time datetime=\"#{time.xmlschema}\">#{I18n.l(time, :format => :short)}</time>"
+    time = Time.new(2013, 2, 20, 0, 0, 0, '+00:00')
+    expected = '<time datetime="2013-02-20T00:00:00+00:00">20 Feb 00:00</time>'
     assert_equal expected, time_tag(time, :format => :short)
   end
 
