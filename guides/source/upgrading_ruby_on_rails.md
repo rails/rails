@@ -97,14 +97,14 @@ Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
 
-The following changes are meant for upgrading your application to Rails 3.2.2, the latest 3.2.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.2.12, the latest 3.2.x version of Rails.
 
 ### Gemfile
 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.2.2'
+gem 'rails', '= 3.2.12'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
@@ -144,14 +144,14 @@ Upgrading from Rails 3.0 to Rails 3.1
 
 If your application is currently on any version of Rails older than 3.0.x, you should upgrade to Rails 3.0 before attempting an update to Rails 3.1.
 
-The following changes are meant for upgrading your application to Rails 3.1.3, the latest 3.1.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.1.11, the latest 3.1.x version of Rails.
 
 ### Gemfile
 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.1.3'
+gem 'rails', '= 3.1.11'
 gem 'mysql2'
 
 # Needed for the new asset pipeline
