@@ -11,11 +11,11 @@ module ActiveRecord
         @scope = scope
       end
 
-      # Returns a new relation expressing WHERE + NOT condition
-      # according to the conditions in the arguments.
+      # Returns a new relation expressing WHERE + NOT condition according to
+      # the conditions in the arguments.
       #
-      # #not accepts conditions in one of these formats: String, Array, Hash.
-      # See #where for more details on each format.
+      # +not+ accepts conditions as a string, array, or hash. See #where for
+      # more details on each format.
       #
       #    User.where.not("name = 'Jon'")
       #    # SELECT * FROM users WHERE NOT (name = 'Jon')
@@ -31,6 +31,10 @@ module ActiveRecord
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
+      #
+      #    User.where.not(name: "Jon", role: "admin")
+      #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+      #
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
