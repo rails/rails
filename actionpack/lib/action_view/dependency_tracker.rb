@@ -14,7 +14,8 @@ module ActionView
       end
     end
 
-    def self.register_tracker(handler, tracker)
+    def self.register_tracker(extension, tracker)
+      handler = Template.handler_for_extension(extension)
       @trackers[handler] = tracker
     end
 
@@ -42,26 +43,30 @@ module ActionView
       /x
 
       def self.call(name, template)
-        new(name, template).call
+        new(name, template).dependencies
       end
 
       def initialize(name, template)
         @name, @template = name, template
       end
 
-      def call
+      def dependencies
         render_dependencies + explicit_dependencies
       end
 
       private
         attr_reader :name, :template
 
+        def source
+          template.source
+        end
+
         def directory
           name.split("/")[0..-2].join("/")
         end
 
         def render_dependencies
-          template.source.scan(RENDER_DEPENDENCY).
+          source.scan(RENDER_DEPENDENCY).
             collect(&:second).uniq.
 
             # render(@topic)         => render("topics/topic")
@@ -77,10 +82,10 @@ module ActionView
         end
 
         def explicit_dependencies
-          template.source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+          source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
         end
     end
 
-    register_tracker Template::Handlers::ERB, ERBTracker
+    register_tracker :erb, ERBTracker
   end
 end

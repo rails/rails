@@ -2,8 +2,8 @@ require 'abstract_unit'
 require 'action_view/dependency_tracker'
 
 class DependencyTrackerTest < ActionView::TestCase
-  Neckbeard = Class.new
-  Bowtie = Class.new
+  Neckbeard = lambda {|template| template.source }
+  Bowtie = lambda {|template| template.source }
 
   class NeckbeardTracker
     def self.call(name, template)
@@ -24,11 +24,12 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 
   def setup
-    tracker.register_tracker(Neckbeard, NeckbeardTracker)
+    ActionView::Template.register_template_handler :neckbeard, Neckbeard
+    tracker.register_tracker(:neckbeard, NeckbeardTracker)
   end
 
   def teardown
-    tracker.remove_tracker(Neckbeard)
+    tracker.remove_tracker(:neckbeard)
   end
 
   def test_finds_tracker_by_template_handler

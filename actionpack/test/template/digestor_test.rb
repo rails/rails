@@ -6,7 +6,7 @@ class FixtureTemplate
 
   def initialize(template_path)
     @source = File.read(template_path)
-    @handler = ActionView::Template::Handlers::ERB
+    @handler = ActionView::Template.handler_for_extension(:erb)
   rescue Errno::ENOENT
     raise ActionView::MissingTemplate.new([], "", [], true, [])
   end
