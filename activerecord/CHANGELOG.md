@@ -361,7 +361,7 @@
     to the update query.
 
         class User < ActiveRecord::Base
-          default_scope where(active: true)
+          default_scope -> { where(active: true) }
         end
 
         user = User.first
