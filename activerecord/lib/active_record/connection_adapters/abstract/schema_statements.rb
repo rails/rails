@@ -647,10 +647,11 @@ module ActiveRecord
           index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length)
+            options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal)
 
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
+            max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
             if supports_partial_index?
               index_options = options[:where] ? " WHERE #{options[:where]}" : ""
@@ -665,10 +666,11 @@ module ActiveRecord
             end
 
             index_type = options
+            max_index_length = allowed_index_name_length
           end
 
-          if index_name.length > index_name_length
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+          if index_name.length > max_index_length
+            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
           end
           if index_name_exists?(table_name, index_name, false)
             raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"

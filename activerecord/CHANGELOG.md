@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent the creation of indices with too long names, which cause
+    internal operations to fail (sqlite3 adapter only). The method
+    `allowed_index_name_length` defines the length limit enforced by
+    rails. It's value defaults to `index_name_length` but can vary per adapter.
+    Fix #8264.
+
+    *Yves Senn*
+
 *   Fixing issue #776.
 
     Memory bloat in transactions is handled by having the transaction hold only
