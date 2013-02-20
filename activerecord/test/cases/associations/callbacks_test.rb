@@ -42,11 +42,12 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
 
   def test_removing_with_proc_callbacks
     first_post, second_post = @david.posts_with_callbacks[0, 2]
+    @david.posts_with_proc_callbacks << first_post
     @david.posts_with_proc_callbacks.delete(first_post)
-    assert_equal ["before_removing#{first_post.id}", "after_removing#{first_post.id}"], @david.post_log
+    assert_equal ["before_adding#{first_post.id}", "after_adding#{first_post.id}", "before_removing#{first_post.id}", "after_removing#{first_post.id}"], @david.post_log
     @david.posts_with_proc_callbacks.delete(second_post)
-    assert_equal ["before_removing#{first_post.id}", "after_removing#{first_post.id}", "before_removing#{second_post.id}",
-                  "after_removing#{second_post.id}"], @david.post_log
+
+    assert_equal ["before_adding#{first_post.id}", "after_adding#{first_post.id}", "before_removing#{first_post.id}", "after_removing#{first_post.id}", "before_removing#{second_post.id}"], @david.post_log
   end
 
   def test_multiple_callbacks
@@ -121,12 +122,12 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     jamis = developers(:jamis)
     activerecord = projects(:active_record)
     assert activerecord.developers_log.empty?
+    activerecord.developers_with_callbacks << david
     activerecord.developers_with_callbacks.delete(david)
-    assert_equal ["before_removing#{david.id}", "after_removing#{david.id}"], activerecord.developers_log
+    assert_equal ["before_adding#{david.id}", "after_adding#{david.id}", "before_removing#{david.id}", "after_removing#{david.id}"], activerecord.developers_log
 
     activerecord.developers_with_callbacks.delete(jamis)
-    assert_equal ["before_removing#{david.id}", "after_removing#{david.id}", "before_removing#{jamis.id}",
-                  "after_removing#{jamis.id}"], activerecord.developers_log
+    assert_equal ["before_adding#{david.id}", "after_adding#{david.id}", "before_removing#{david.id}", "after_removing#{david.id}", "before_removing#{jamis.id}"], activerecord.developers_log
   end
 
   def test_has_and_belongs_to_many_remove_callback_on_clear
