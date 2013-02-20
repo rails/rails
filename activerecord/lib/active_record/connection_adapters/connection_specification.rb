@@ -97,7 +97,7 @@ module ActiveRecord
           spec
         end
 
-        def type_cast_value(value)
+        def self.type_cast_value(value)
           case value
           when SIMPLE_INT
             value.to_i
