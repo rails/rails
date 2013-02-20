@@ -347,7 +347,53 @@ module ActiveRecord
       Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
+    def set_transaction_state(state) # :nodoc:
+      @transaction_state = state
+    end
+
+    def has_transactional_callbacks? # :nodoc:
+      !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_create_callbacks.empty?
+    end
+
     private
+
+    # Updates the attributes on this particular ActiveRecord object so that
+    # if it is associated with a transaction, then the state of the AR object
+    # will be updated to reflect the current state of the transaction
+    #
+    # The @transaction_state variable stores the states of the associated
+    # transaction. This relies on the fact that a transaction can only be in
+    # one rollback or commit (otherwise a list of states would be required)
+    # Each AR object inside of a transaction carries that transaction's
+    # TransactionState.
+    #
+    # This method checks to see if the ActiveRecord object's state reflects
+    # the TransactionState, and rolls back or commits the ActiveRecord object
+    # as appropriate.
+    #
+    # Since ActiveRecord objects can be inside multiple transactions, this
+    # method recursively goes through the parent of the TransactionState and
+    # checks if the ActiveRecord object reflects the state of the object.
+    def sync_with_transaction_state
+      update_attributes_from_transaction_state(@transaction_state, 0)
+    end
+
+    def update_attributes_from_transaction_state(transaction_state, depth)
+      if transaction_state && !has_transactional_callbacks?
+        unless @reflects_state[depth]
+          if transaction_state.committed?
+            committed!
+          elsif transaction_state.rolledback?
+            rolledback!
+          end
+          @reflects_state[depth] = true
+        end
+
+        if transaction_state.parent && !@reflects_state[depth+1]
+          update_attributes_from_transaction_state(transaction_state.parent, depth+1)
+        end
+      end
+    end
 
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
     # of the array, and then rescues from the possible NoMethodError. If those elements are
@@ -376,7 +422,8 @@ module ActiveRecord
       @new_record               = true
       @txn                      = nil
       @_start_transaction_state = {}
-      @transaction              = nil
+      @transaction_state        = nil
+      @reflects_state           = [false]
     end
   end
 end

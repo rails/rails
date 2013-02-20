@@ -460,7 +460,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert !transaction.state.committed?
 
     transaction.perform_rollback
-    
+
     assert transaction.state.rolledback?
     assert !transaction.state.committed?
   end
@@ -474,7 +474,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert !transaction.state.committed?
 
     transaction.perform_commit
-    
+
     assert !transaction.state.rolledback?
     assert transaction.state.committed?
   end
