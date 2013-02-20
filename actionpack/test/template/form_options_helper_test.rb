@@ -416,6 +416,13 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"D\">D</option>",
                  opts
   end
+  
+  def test_time_zone_options_with_priority_zones_does_not_mutate_time_zones
+    original_zones = ActiveSupport::TimeZone.all.dup
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
+    opts = time_zone_options_for_select( nil, zones )
+    assert_equal original_zones, ActiveSupport::TimeZone.all
+  end
 
   def test_time_zone_options_returns_html_safe_string
     assert time_zone_options_for_select.html_safe?
