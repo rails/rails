@@ -21,6 +21,8 @@ module ApplicationTests
 
       def set_database_url
         ENV['DATABASE_URL'] = "sqlite3://:@localhost/#{database_url_db_name}"
+        # ensure it's using the DATABASE_URL
+        FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
 
       def expected
