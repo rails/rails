@@ -21,6 +21,8 @@ module ApplicationTests
 
       def set_database_url
         ENV['DATABASE_URL'] = "sqlite3://:@localhost/#{database_url_db_name}"
+        # ensure it's using the DATABASE_URL
+        FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
 
       def expected
@@ -166,9 +168,16 @@ module ApplicationTests
       end
 
       test 'db:test:load_structure with database_url' do
-        require "#{app_path}/config/environment"
-        set_database_url
-        db_test_load_structure
+        old_rails_env = ENV["RAILS_ENV"]
+        ENV["RAILS_ENV"] = 'test'
+
+        begin
+          require "#{app_path}/config/environment"
+          set_database_url
+          db_test_load_structure
+        ensure
+          ENV["RAILS_ENV"] = old_rails_env
+        end
       end
     end
   end

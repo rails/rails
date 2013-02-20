@@ -1,4 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
+*   fix rake db:* tasks to work with DATABASE_URL and without config/database.yml
+
+    *Terence Lee*
 
 *   Add notice message for destroy action in scaffold generator.
 

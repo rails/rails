@@ -141,9 +141,7 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-        unless ENV['DATABASE_URL']
-          self.configurations = app.config.database_configuration
-        end
+        self.configurations = app.config.database_configuration
         establish_connection
       end
     end
