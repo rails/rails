@@ -1,13 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove support for parsing XML parameters from request. If you still want to parse XML
+    parameters, please install `actionpack-xml_parser' gem.
+
+    *Prem Sichanugrist*
+
 *   Fix `time_zone_options_for_select` to call `dup` on the returned TimeZone array.
-    
+
     Previously if you supplied :priority_zones options to `time_zone_options_for_select`
     the memoized ActiveSupport::TimeZone.all array would be mutated.  Calling
     `dup` prevents mutation of the main TimeZones array.
-    
+
     *Brian McManus*
-    
+
 *   Remove support for parsing YAML parameters from request.
 
     *Aaron Patterson*

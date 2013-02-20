@@ -116,9 +116,9 @@ When this form is submitted, the value of `params[:client]` will be `{"name" => 
 
 Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
-### JSON/XML parameters
+### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON or XML format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
+If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
 
 So for example, if you are sending this JSON parameter:
 
@@ -128,7 +128,7 @@ So for example, if you are sending this JSON parameter:
 
 You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
@@ -141,6 +141,8 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+
+NOTE: A support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
 
 ### Routing Parameters
 

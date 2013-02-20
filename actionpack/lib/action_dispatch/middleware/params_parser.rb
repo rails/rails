@@ -13,10 +13,7 @@ module ActionDispatch
       end
     end
 
-    DEFAULT_PARSERS = {
-      Mime::XML => :xml_simple,
-      Mime::JSON => :json
-    }
+    DEFAULT_PARSERS = { Mime::JSON => :json }
 
     def initialize(app, parsers = {})
       @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
@@ -36,19 +33,13 @@ module ActionDispatch
 
         return false if request.content_length.zero?
 
-        mime_type = content_type_from_legacy_post_data_format_header(env) ||
-          request.content_mime_type
-
-        strategy = @parsers[mime_type]
+        strategy = @parsers[request.content_mime_type]
 
         return false unless strategy
 
         case strategy
         when Proc
           strategy.call(request.raw_post)
-        when :xml_simple, :xml_node
-          data = request.deep_munge(Hash.from_xml(request.body.read) || {})
-          data.with_indifferent_access
         when :json
           data = ActiveSupport::JSON.decode(request.body)
           data = {:_json => data} unless data.is_a?(Hash)
@@ -56,21 +47,10 @@ module ActionDispatch
         else
           false
         end
-      rescue Exception => e # YAML, XML or Ruby code block errors
+      rescue Exception => e # JSON or Ruby code block errors
         logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
         raise ParseError.new(e.message, e)
-      end
-
-      def content_type_from_legacy_post_data_format_header(env)
-        if x_post_format = env['HTTP_X_POST_DATA_FORMAT']
-          case x_post_format.to_s.downcase
-          when 'yaml' then return Mime::YAML
-          when 'xml'  then return Mime::XML
-          end
-        end
-
-        nil
       end
 
       def logger(env)
