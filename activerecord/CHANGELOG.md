@@ -338,7 +338,7 @@
     *Rafael Mendonça França*
 
 *   Session variables can be set for the `mysql`, `mysql2`, and `postgresql` adapters
-    in the `variables: <hash>` parameter in `database.yml`. The key-value pairs of this
+    in the `variables: <hash>` parameter in `config/database.yml`. The key-value pairs of this
     hash will be sent in a `SET key = value` query on new database connections. See also:
     http://dev.mysql.com/doc/refman/5.0/en/set-statement.html
     http://www.postgresql.org/docs/8.3/static/sql-set.html
