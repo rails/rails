@@ -469,8 +469,6 @@ module ActiveRecord
       end
     end
 
-    # #where! is identical to #where, except that instead of returning a new relation, it adds
-    # the condition to the existing relation.
     def where!(opts = :chain, *rest) # :nodoc:
       if opts == :chain
         WhereChain.new(self)
@@ -636,7 +634,6 @@ module ActiveRecord
       spawn.from!(value, subquery_name)
     end
 
-    # Like #from, but modifies relation in place.
     def from!(value, subquery_name = nil) # :nodoc:
       self.from_value = [value, subquery_name]
       self
