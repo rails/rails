@@ -192,6 +192,14 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
       #
+      # Note that +create_join_table+ does not create any indices by default; you can use
+      # its block form to do so yourself:
+      #
+      #  create_join_table :products, :categories do |t|
+      #    t.index :products
+      #    t.index :categories
+      #  end
+      #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #  create_join_table(:assemblies, :parts, options: 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
       # generates:
