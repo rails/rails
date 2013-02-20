@@ -1,8 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
-    when the units option is an empty hash or when its smallest key is larger than
-    the number.
+    the units hash does not contain the needed key, e.g. when the number provided is
+    less than the largest key proivided.
 
     Examples:
 
