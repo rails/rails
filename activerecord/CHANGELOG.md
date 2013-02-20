@@ -327,15 +327,10 @@
     *Yves Senn*
 
 *   Add `ActiveRecord::Base.cache_timestamp_format` class attribute to control
-    the format of the timestamp value in the cache key.
-    This allows users to improve the precision of the cache key.
+    the format of the timestamp value in the cache key. Defaults to `:nsec`.
     Fixes #8195.
 
     *Rafael Mendonça França*
-
-*   Add `:nsec` date format. This can be used to improve the precision of cache key.
-
-    *Jamie Gaskins*
 
 *   Session variables can be set for the `mysql`, `mysql2`, and `postgresql` adapters
     in the `variables: <hash>` parameter in `database.yml`. The key-value pairs of this

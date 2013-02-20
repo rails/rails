@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `:nsec` date format.
+
+    *Jamie Gaskins*
+
 *   ActiveSupport::Gzip.compress allows two optional arguments for compression
     level and strategy.
 
