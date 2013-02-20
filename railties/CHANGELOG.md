@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The configuration option `config.assets.precompile` is no longer
+    in `config/environments/production.rb` but in
+    `config/application.rb`.
+
+    *Yves Senn*
+
 *   Add notice message for destroy action in scaffold generator.
 
     *Rahul P. Chaudhari*
