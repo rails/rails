@@ -996,6 +996,8 @@
     not submitted with the form. This is a behavior change, previously the hidden
     tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
+
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
 
