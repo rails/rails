@@ -9,7 +9,7 @@ module ActionDispatch
   # at GetIp#calculate_ip.
   #
   # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
-  # requires. Some Rack servers simply drop preceeding headers, and only report
+  # requires. Some Rack servers simply drop preceding headers, and only report
   # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
   # If you are behind multiple proxy servers (like Nginx to HAProxy to Unicorn)
   # then you should test your Rack server to make sure your data is good.
