@@ -61,11 +61,29 @@ module ActiveRecord
       include MonitorMixin
       include ColumnDumper
 
+      SIMPLE_INT = /\A\d+\z/
+
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
       attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
+
+      def self.type_cast_config_to_integer(config)
+        if config =~ SIMPLE_INT
+          config.to_i
+        else
+          config
+        end
+      end
+
+      def self.type_cast_config_to_boolean(config)
+        if config == "false"
+          false
+        else
+          config
+        end
+      end
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()

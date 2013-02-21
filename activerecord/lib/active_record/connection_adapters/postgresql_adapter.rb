@@ -478,7 +478,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
 
-        if config.fetch(:prepared_statements) { true }
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::PostgreSQL.new self
         else
           @visitor = BindSubstitution.new self
@@ -492,7 +492,7 @@ module ActiveRecord
 
         connect
         @statements = StatementPool.new @connection,
-                                        config.fetch(:statement_limit) { 1000 }
+                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
         if postgresql_version < 80200
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
@@ -500,7 +500,7 @@ module ActiveRecord
 
         initialize_type_map
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
-        @use_insert_returning = @config.key?(:insert_returning) ? @config[:insert_returning] : true
+        @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
       # Clears the prepared statements cache.

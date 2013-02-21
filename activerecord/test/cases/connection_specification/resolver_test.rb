@@ -43,27 +43,6 @@ module ActiveRecord
             encoding: "utf8" }, spec)
         end
 
-        def test_url_query_numeric
-          spec = resolve 'abstract://foo:123?encoding=utf8&int=500&float=10.9'
-          assert_equal({
-            adapter:  "abstract",
-            port:     123,
-            int:      500,
-            float:    10.9,
-            host:     "foo",
-            encoding: "utf8" }, spec)
-        end
-
-        def test_url_query_boolean
-          spec = resolve 'abstract://foo:123?true=true&false=false'
-          assert_equal({
-            adapter: "abstract",
-            port:    123,
-            true:    true,
-            false:   false,
-            host:    "foo" }, spec)
-        end
-
         def test_encoded_password
           password = 'am@z1ng_p@ssw0rd#!'
           encoded_password = URI.encode_www_form_component(password)

@@ -26,7 +26,7 @@ module ActiveRecord
         :results_as_hash => true
       )
 
-      db.busy_timeout(config[:timeout]) if config[:timeout]
+      db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     end
@@ -107,10 +107,10 @@ module ActiveRecord
 
         @active     = nil
         @statements = StatementPool.new(@connection,
-                                        config.fetch(:statement_limit) { 1000 })
+                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
-        if config.fetch(:prepared_statements) { true }
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::SQLite.new self
         else
           @visitor = BindSubstitution.new self
