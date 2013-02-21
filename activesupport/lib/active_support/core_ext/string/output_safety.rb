@@ -1,4 +1,5 @@
 require 'erb'
+require 'active_support/core_ext/kernel/singleton_class'
 
 class ERB
   module Util
@@ -10,11 +11,10 @@ class ERB
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
     #
-    # In your ERb templates, use this method to escape any unsafe content. For example:
+    # In your ERB templates, use this method to escape any unsafe content. For example:
     #   <%=h @person.name %>
     #
-    # ==== Example:
-    #   puts html_escape("is a > 0 & a < 10?")
+    #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     if RUBY_VERSION > '1.9'
       def html_escape(s)
@@ -36,11 +36,14 @@ class ERB
       end
     end
 
-    undef :h
+    # Aliasing twice issues a warning "discarding old...". Remove first to avoid it.
+    remove_method(:h)
     alias h html_escape
 
-    module_function :html_escape
     module_function :h
+
+    singleton_class.send(:remove_method, :html_escape)
+    module_function :html_escape
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
@@ -104,40 +107,114 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
+    UNSAFE_STRING_METHODS = %w(
+      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
+      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+    )
+
+    alias_method :original_concat, :concat
+    private :original_concat
+
+    class SafeConcatError < StandardError
+      def initialize
+        super 'Could not concatenate to the buffer because it is not html safe.'
+      end
+    end
+
+    def [](*args)
+      if args.size < 2
+        super
+      else
+        if html_safe?
+          new_safe_buffer = super
+          new_safe_buffer.instance_eval { @html_safe = true }
+          new_safe_buffer
+        else
+          to_str[*args]
+        end
+      end
+    end
+
+    def safe_concat(value)
+      raise SafeConcatError unless html_safe?
+      original_concat(value)
+    end
+
+    def initialize(*)
+      @html_safe = true
+      super
+    end
+
+    def initialize_copy(other)
+      super
+      @html_safe = other.html_safe?
+    end
+
+    def clone_empty
+      self[0, 0]
+    end
+
+    def concat(value)
+      if !html_safe? || value.html_safe?
+        super(value)
+      else
+        super(ERB::Util.h(value))
+      end
+    end
+    alias << concat
+
     def +(other)
       dup.concat(other)
     end
 
-    def html_safe?
-      true
+    def %(args)
+      args = Array(args).map do |arg|
+        if !html_safe? || arg.html_safe?
+          arg
+        else
+          ERB::Util.h(arg)
+        end
+      end
+
+      self.class.new(super(args))
     end
 
-    def html_safe
-      self
+    def html_safe?
+      defined?(@html_safe) && @html_safe
     end
 
     def to_s
       self
     end
 
+    def to_param
+      to_str
+    end
+
     def to_yaml(*args)
+      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
       to_str.to_yaml(*args)
+    end
+
+    UNSAFE_STRING_METHODS.each do |unsafe_method|
+      if 'String'.respond_to?(unsafe_method)
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
+            to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
+          end                                       # end
+
+          def #{unsafe_method}!(*args)              # def capitalize!(*args)
+            @html_safe = false                      #   @html_safe = false
+            super                                   #   super
+          end                                       # end
+        EOT
+      end
     end
   end
 end
 
 class String
-  alias safe_concat concat
-
-  def as_str
-    self
-  end
-
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
-  end
-
-  def html_safe?
-    false
   end
 end
