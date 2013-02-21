@@ -191,9 +191,9 @@ module ActionController
     #
     # +:name+ passes it is a key of +params+ whose associated value is of type
     # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
-    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+, or
-    # +ActionDispatch::Http::UploadedFile+. Otherwise, the key +:name+ is
-    # filtered out.
+    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+,
+    # +ActionDispatch::Http::UploadedFile+ or +Rack::Test::UploadedFile+.
+    # Otherwise, the key +:name+ is filtered out.
     #
     # You may declare that the parameter should be an array of permitted scalars
     # by mapping it to an empty array:
@@ -374,6 +374,7 @@ module ActionController
         StringIO,
         IO,
         ActionDispatch::Http::UploadedFile,
+        Rack::Test::UploadedFile,
       ]
 
       def permitted_scalar?(value)
