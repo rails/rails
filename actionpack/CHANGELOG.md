@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Determine the controller#action from only the matched path when using the
+    shorthand syntax. Previously the complete path was used, which led
+    to problems with nesting (scopes and namespaces).
+    Fixes #7554.
+
+    Example:
+
+        # this will route to questions#new
+        scope ':locale' do
+          get 'questions/new'
+        end
+
+    *Yves Senn*
+
 *   Remove support for parsing XML parameters from request. If you still want to parse XML
     parameters, please install `actionpack-xml_parser' gem.
 
