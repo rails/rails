@@ -21,10 +21,10 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def setup
-    @fake_timezones = %w(A B C D E).inject([]) do |zones, id|
+    @fake_timezones = %w(A B C D E).map do |id|
       tz = TZInfo::Timezone.loaded_zones[id] = stub(:name => id, :to_s => id)
       ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)
-      zones << tz
+      tz
     end
     ActiveSupport::TimeZone.stubs(:all).returns(@fake_timezones)
   end
@@ -351,7 +351,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_time_zone_options_no_parms
+  def test_time_zone_options_no_params
     opts = time_zone_options_for_select
     assert_dom_equal "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
