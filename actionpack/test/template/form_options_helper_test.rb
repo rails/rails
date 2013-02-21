@@ -1086,11 +1086,13 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_select_with_priority_zones_as_regexp
     @firm = Firm.new("D")
+
+    priority_zones = /A|D/
     @fake_timezones.each_with_index do |tz, i|
-      tz.stubs(:=~).returns(i.zero? || i == 3)
+      priority_zones.stubs(:===).with(tz).returns(i.zero? || i == 3)
     end
 
-    html = time_zone_select("firm", "time_zone", /A|D/)
+    html = time_zone_select("firm", "time_zone", priority_zones)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"D\" selected=\"selected\">D</option>" +
