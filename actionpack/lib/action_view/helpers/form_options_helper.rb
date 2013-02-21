@@ -508,9 +508,9 @@ module ActionView
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
-	        if priority_zones.is_a?(Regexp)
+          if priority_zones.is_a?(Regexp)
             priority_zones = model.all.find_all {|z| z =~ priority_zones}
-	        end
+          end
           zone_options += options_for_select(convert_zones[priority_zones], selected)
           zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
 
