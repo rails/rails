@@ -539,6 +539,20 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Fri, 31 Dec 1999 19:59:59 EST -05:00", twz.end_of_hour.inspect
   end
 
+  def test_beginning_of_minute
+    utc = Time.utc(2000, 1, 1, 0, 30, 10)
+    twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+    assert_equal "Fri, 31 Dec 1999 19:30:10 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", twz.beginning_of_hour.inspect
+  end
+
+  def test_end_of_minute
+    utc = Time.utc(2000, 1, 1, 0, 30, 10)
+    twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+    assert_equal "Fri, 31 Dec 1999 19:30:10 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:30:59 EST -05:00", twz.end_of_minute.inspect
+  end
+
   def test_since
     assert_equal "Fri, 31 Dec 1999 19:00:01 EST -05:00", @twz.since(1).inspect
   end
