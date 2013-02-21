@@ -1146,6 +1146,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'api/products#list', @response.body
   end
 
+  def test_match_shorthand_inside_scope_with_variables_with_controller
+    draw do
+      scope ':locale' do
+        match 'questions/new', via: [:get]
+      end
+    end
+
+    get '/de/questions/new'
+    assert_equal 'questions#new', @response.body
+    assert_equal 'de', @request.params[:locale]
+  end
+
+  def test_match_shorthand_inside_nested_namespaces_and_scopes_with_controller
+    draw do
+      namespace :api do
+        namespace :v3 do
+          scope ':locale' do
+            get "products/list"
+          end
+        end
+      end
+    end
+
+    get '/api/v3/en/products/list'
+    assert_equal 'api/v3/products#list', @response.body
+  end
+
   def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
     draw do
       resources :replies do

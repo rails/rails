@@ -50,7 +50,6 @@ module ActionDispatch
       class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
-        SHORTHAND_REGEX = %r{/[\w/]+$}
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
         attr_reader :scope, :path, :options, :requirements, :conditions, :defaults
@@ -111,17 +110,7 @@ module ActionDispatch
               @options[:controller] ||= /.+?/
             end
 
-            if using_match_shorthand?(path_without_format, @options)
-              to_shorthand    = @options[:to].blank?
-              @options[:to] ||= path_without_format.gsub(/\(.*\)/, "")[1..-1].sub(%r{/([^/]*)$}, '#\1')
-            end
-
-            @options.merge!(default_controller_and_action(to_shorthand))
-          end
-
-          # match "account/overview"
-          def using_match_shorthand?(path, options)
-            path && (options[:to] || options[:action]).nil? && path =~ SHORTHAND_REGEX
+            @options.merge!(default_controller_and_action)
           end
 
           def normalize_format!
@@ -214,7 +203,7 @@ module ActionDispatch
             Constraints.new(endpoint, blocks, @set.request_class)
           end
 
-          def default_controller_and_action(to_shorthand=nil)
+          def default_controller_and_action
             if to.respond_to?(:call)
               { }
             else
@@ -227,7 +216,7 @@ module ActionDispatch
               controller ||= default_controller
               action     ||= default_action
 
-              unless controller.is_a?(Regexp) || to_shorthand
+              unless controller.is_a?(Regexp)
                 controller = [@scope[:module], controller].compact.join("/").presence
               end
 
@@ -1383,6 +1372,11 @@ module ActionDispatch
             paths = [path] + rest
           end
 
+          path_without_format = path.to_s.sub(/\(\.:format\)$/, '')
+          if using_match_shorthand?(path_without_format, options)
+            options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+          end
+
           options[:anchor] = true unless options.key?(:anchor)
 
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
@@ -1391,6 +1385,10 @@ module ActionDispatch
 
           paths.each { |_path| decomposed_match(_path, options.dup) }
           self
+        end
+
+        def using_match_shorthand?(path, options)
+          path && (options[:to] || options[:action]).nil? && path =~ %r{/[\w/]+$}
         end
 
         def decomposed_match(path, options) # :nodoc:
