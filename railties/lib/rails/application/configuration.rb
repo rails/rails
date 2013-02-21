@@ -97,9 +97,9 @@ module Rails
         self
       end
 
-      # Loads and returns the contents of the #paths["config/database"]. The
-      # contents of the file are processed via ERB before being sent through
-      # YAML::load.
+      # Loads and returns the configuration of the database.
+      # First, looks at If ENV['DATABASE_URL'] if it's not present it uses the #paths["config/database"]
+      # The contents of the file are processed via ERB before being sent through YAML::load. 
       def database_configuration
         if ENV['DATABASE_URL']
           {Rails.env => ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.connection_url_to_hash(ENV['DATABASE_URL']).stringify_keys}
