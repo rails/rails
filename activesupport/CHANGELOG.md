@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added beginning_of_minute support to core_ext calculations for Time and DateTime
+
+    *Gagan Awhad*
+
 *   Add `:nsec` date format.
 
     *Jamie Gaskins*

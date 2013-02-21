@@ -188,6 +188,21 @@ class Time
   end
   alias :at_end_of_hour :end_of_hour
 
+  # Returns a new Time representing the start of the hour (x:xx:00)
+  def beginning_of_minute
+    change(:sec => 0)
+  end
+  alias :at_beginning_of_minute :beginning_of_minute
+
+  # Returns a new Time representing the end of the hour, x:59:59.999999 (.999999999 in ruby1.9)
+  def end_of_minute
+    change(
+      :sec => 59,
+      :usec => Rational(999999999, 1000)
+    )
+  end
+  alias :at_end_of_minute :end_of_minute
+
   # Returns a Range representing the whole day of the current time.
   def all_day
     beginning_of_day..end_of_day

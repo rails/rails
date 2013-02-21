@@ -123,6 +123,18 @@ class DateTime
     change(:min => 59, :sec => 59)
   end
   alias :at_end_of_hour :end_of_hour
+  
+  # Returns a new DateTime representing the start of the hour (hh:mm:00).
+  def beginning_of_minute
+    change(:sec => 0)
+  end
+  alias :at_beginning_of_minute :beginning_of_minute
+
+  # Returns a new DateTime representing the end of the minute (hh:mm:59).
+  def end_of_minute
+    change(:sec => 59)
+  end
+  alias :at_end_of_minute :end_of_minute
 
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0.
   #
