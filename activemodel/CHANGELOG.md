@@ -1,5 +1,26 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added a method so that validations can be easily cleared on a model.
+    For example:
+
+      class Person
+        include ActiveModel::Validations
+
+        validates_uniqueness_of :first_name
+        validate :cannot_be_robot
+
+        def cannot_be_robot
+          errors.add(:base, 'A person cannot be a robot') if person_is_robot
+        end
+      end
+
+    Now, if someone runs `Person.clear_validators!`, then the following occurs:
+
+      Person.validators                  # => []
+      Person._validate_callbacks.empty?  # => true
+
+    *John Wang*
+
 *   `has_secure_password` does not fail the confirmation validation
     when assigning empty String to `password` and `password_confirmation`.
 
