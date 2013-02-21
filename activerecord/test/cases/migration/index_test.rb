@@ -68,7 +68,7 @@ module ActiveRecord
         e = assert_raises(ArgumentError) {
           connection.add_index(table_name, "foo", name: too_long_index_name)
         }
-        assert_match /too long; the limit is #{connection.allowed_index_name_length} characters/, e.message
+        assert_match(/too long; the limit is #{connection.allowed_index_name_length} characters/, e.message)
 
         assert_not connection.index_name_exists?(table_name, too_long_index_name, false)
         connection.add_index(table_name, "foo", :name => good_index_name)
