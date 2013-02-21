@@ -455,10 +455,6 @@
 
 *   Failsafe exception returns `text/plain`. *Steve Klabnik*
 
-*   Remove `rack-cache` dependency from Action Pack and declare it on Gemfile
-
-    *Guillermo Iguaran*
-
 *   Rename internal variables on `ActionController::TemplateAssertions` to prevent
     naming collisions. `@partials`, `@templates` and `@layouts` are now prefixed with an underscore.
     Fix #7459.
@@ -544,9 +540,7 @@
     *Guillermo Iguaran*
 
 *   `ActionDispatch::Session::MemCacheStore` now uses `dalli` instead of the deprecated
-    `memcache-client` gem. As side effect the autoloading of unloaded classes objects
-    saved as values in session isn't supported anymore when mem_cache session store is
-    used, this can have an impact in apps only when config.cache_classes is false.
+    `memcache-client` gem.
 
     *Arun Agrawal + Guillermo Iguaran*
 
@@ -820,9 +814,9 @@
 *   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
     `Assertion` instead of `RoutingError` *David Chelimsky*
 
-*   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
+*   URL path parameters with invalid encoding now raise `ActionController::BadRequest`. *Andrew White*
 
-*   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
+*   Malformed query and request parameter hashes now raise `ActionController::BadRequest`. *Andrew White*
 
 *   Add `divider` option to `grouped_options_for_select` to generate a separator
     `optgroup` automatically, and deprecate `prompt` as third argument, in favor
@@ -849,7 +843,7 @@
 
     *Andrew White*
 
-*   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
+*   `respond_to` and `respond_with` now raise `ActionController::UnknownFormat` instead
     of directly returning head 406. The exception is rescued and converted to 406
     in the exception handling middleware. *Steven Soroka*
 
@@ -879,7 +873,7 @@
 *   Remove the leading \n added by textarea on `assert_select`. *Santiago Pastorino*
 
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
-    to `false`. This change breaks remote forms that need to work also without javascript,
+    to `false`. This change breaks remote forms that need to work also without JavaScript,
     so if you need such behavior, you can either set it to `true` or explicitly pass
     `authenticity_token: true` in form options.
 
@@ -973,9 +967,6 @@
 
 *   `check_box` with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
-
-*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
-    check that info. Closes #5245. *Santiago Pastorino*
 
 *   `label` form helper accepts `for: nil` to not generate the attribute. *Carlos Antonio da Silva*
 
