@@ -167,8 +167,7 @@ module ActionController #:nodoc:
 
     protected
       def handle_unverified_request
-        @forgery_protection ||= forgery_protection_strategy.new(self)
-        @forgery_protection.handle_unverified_request
+        forgery_protection_strategy.new(self).handle_unverified_request
       end
 
       # The actual before_action that is used. Modify this to change how you handle unverified requests.
