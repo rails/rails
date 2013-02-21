@@ -118,13 +118,17 @@ module ActionView
       def content_for(name, content = nil, &block)
         ivar = "@content_for_#{name}"
         content = capture(&block) if block_given?
-        instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{content}".html_safe)
+        instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{ERB::Util.html_escape(content)}".html_safe)
         nil
       end
 
       # Use an alternate output buffer for the duration of the block.
       # Defaults to a new empty string.
-      def with_output_buffer(buf = '') #:nodoc:
+      def with_output_buffer(buf = nil) #:nodoc:
+        unless buf
+          buf = ActiveSupport::SafeBuffer.new
+          buf.force_encoding(output_buffer.encoding) if output_buffer.respond_to?(:encoding) && buf.respond_to?(:force_encoding)
+        end
         self.output_buffer, old_buffer = buf, output_buffer
         yield
         output_buffer
