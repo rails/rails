@@ -2,6 +2,7 @@
 require 'isolation/abstract_unit'
 require 'active_support/core_ext/kernel/reporting'
 require 'rack/test'
+require 'yaml'
 
 module ApplicationTests
   class AssetsTest < Test::Unit::TestCase
