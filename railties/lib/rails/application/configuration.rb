@@ -97,7 +97,7 @@ module Rails
         self
       end
 
-      # Loads and returns the contents of the #database_configuration_file. The
+      # Loads and returns the contents of the #paths["config/database"]. The
       # contents of the file are processed via ERB before being sent through
       # YAML::load.
       def database_configuration
