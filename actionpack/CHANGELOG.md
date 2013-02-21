@@ -19,7 +19,7 @@
 
 *   Add a message when you have no routes defined to both `rake routes` and
     GET "/rails/info/routes" that lets you know you have none defined and links
-    to the Rails Guide on the topic.
+    to the Rails guide on the topic.
 
     *Steve Klabnik*
 
@@ -33,31 +33,30 @@
     screen readers by converting both hyphens and underscores to spaces.
 
     Before:
+
         image_tag('underscored_file_name.png')
         # => <img alt="Underscored_file_name" src="/assets/underscored_file_name.png" />
 
     After:
+
         image_tag('underscored_file_name.png')
         # => <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
 
     *Nick Cox*
 
-*   We don't support the `:controller` option for route definitions
-    with the ruby constant notation. This will now result in an
-    `ArgumentError`.
+*   We don't support Ruby constant notation in the `:controller` option for route
+    definitions. So, this raises an `ArgumentError` now:
 
-    Example:
-        # This raises an ArgumentError:
-        resources :posts, :controller => "Admin::Posts"
+        resources :posts, controller: "Admin::Posts" # WRONG
 
-        # Use directory notation instead:
-        resources :posts, :controller => "admin/posts"
+    Use path notation instead:
+
+        resources :posts, controller: "admin/posts" # RIGHT
 
     *Yves Senn*
 
 *   `assert_template` can be used to verify the locals of partials,
     which live inside a directory.
-    Fixes #8516.
 
         # Prefixed partials inside directories worked and still work.
         assert_template partial: 'directory/_partial', locals: {name: 'John'}
@@ -65,23 +64,25 @@
         # This did not work but does now.
         assert_template partial: 'directory/partial', locals: {name: 'John'}
 
+    Fixes #8516.
+
     *Yves Senn*
 
-*   Fix `content_tag_for` with array html option.
+*   Fix `content_tag_for` with array HTML option.
     It would embed array as string instead of joining it like `content_tag` does:
 
         content_tag(:td, class: ["foo", "bar"]){}
-        #=> '<td class="foo bar"></td>'
+        # => <td class="foo bar"></td>
 
     Before:
 
         content_tag_for(:td, item, class: ["foo", "bar"])
-        #=> '<td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>'
+        # => <td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>
 
     After:
 
         content_tag_for(:td, item, class: ["foo", "bar"])
-        #=> '<td class="item foo bar" id="item_1"></td>'
+        # => <td class="item foo bar" id="item_1"></td>
 
     *Semyon Perepelitsa*
 
@@ -101,27 +102,10 @@
 
     *Piotr Sarnacki*
 
-*   Add javascript based routing path matcher to `/rails/info/routes`.
+*   Add JavaScript based routing path matcher to `/rails/info/routes`.
     Routes can now be filtered by whether or not they match a path.
 
     *Richard Schneeman*
-
-*   Given
-
-        params.permit(:name)
-
-    `:name` passes if it is a key of `params` whose value is a permitted scalar.
-
-    Similarly, given
-
-        params.permit(tags: [])
-
-    `:tags` passes if it is a key of `params` whose value is an array of
-    permitted scalars.
-
-    Permitted scalars filtering happens at any level of nesting.
-
-    *Xavier Noria*
 
 *   Change the behavior of route defaults so that explicit defaults are no longer
     required where the key is not part of the path. For example:
@@ -129,7 +113,7 @@
         resources :posts, bucket_type: 'posts'
 
     will be required whenever constructing the url from a hash such as a functional
-    test or using url_for directly. However using the explicit form alters the
+    test or using `url_for` directly. However using the explicit form alters the
     behavior so it's not required:
 
         resources :projects, defaults: { bucket_type: 'projects' }
@@ -163,7 +147,7 @@
 
     *Colin Burn-Murdoch*
 
-*   Fixed json params parsing regression for non-object JSON content.
+*   Fixed JSON params parsing regression for non-object JSON content.
 
     *Dylan Smith*
 
@@ -201,12 +185,13 @@
 *   Do not append second slash to `root_url` when using `trailing_slash: true`
     Fix #8700
 
-    Example:
-        # before
-        root_url # => http://test.host//
+    Before:
 
-        # after
-        root_url # => http://test.host/
+        root_url(trailing_slash: true) # => http://test.host//
+
+    After:
+
+        root_url(trailing_slash: true) # => http://test.host/
 
     *Yves Senn*
 
@@ -230,8 +215,8 @@
 
     *Yves Senn*
 
-*   Added `Mime::NullType` class. This  allows to use html?, xml?, json?..etc when
-    the `format` of `request` is unknown, without raise an exception.
+*   Added `Mime::NullType` class. This  allows to use `html?`, `xml?`, `json?`, etc.
+    when the format of the request is unknown, without raising an exception.
 
     *Angelo Capilleri*
 
@@ -256,7 +241,7 @@
 
     *Matt Venables*
 
-*   Prevent raising EOFError on multipart GET request (IE issue). *Adam Stankiewicz*
+*   Prevent raising `EOFError` on multipart GET request (IE issue). *Adam Stankiewicz*
 
 *   Rename all action callbacks from *_filter to *_action to avoid the misconception that these
     callbacks are only suited for transforming or halting the response. With the new style,
