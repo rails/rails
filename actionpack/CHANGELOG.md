@@ -293,7 +293,7 @@
 
     *Stephen Ausman + Fabrizio Regini + Angelo Capilleri*
 
-*   Add filter capability to ActionController logs for redirect locations:
+*   Add logging filter capability for redirect URLs:
 
         config.filter_redirect << 'http://please.hide.it/'
 
@@ -392,22 +392,16 @@
     Before:
 
         check_box("post", "comment_ids", { multiple: true, index: "foo" }, 1)
-        #=> <input name=\"post[foo][comment_ids]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids]\" type=\"checkbox\" value=\"1\" />
+        # => <input name=\"post[foo][comment_ids]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids]\" type=\"checkbox\" value=\"1\" />
 
     After:
 
         check_box("post", "comment_ids", { multiple: true, index: "foo" }, 1)
-        #=> <input name=\"post[foo][comment_ids][]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids][]\" type=\"checkbox\" value=\"1\" />
+        # => <input name=\"post[foo][comment_ids][]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids][]\" type=\"checkbox\" value=\"1\" />
 
     Fix #8108.
 
     *Daniel Fox, Grant Hutchins & Trace Wax*
-
-*   `BestStandardsSupport` middleware now appends it's `X-UA-Compatible` value to app's
-    returned value if any.
-    Fix #8086.
-
-    *Nikita Afanasenko*
 
 *   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
     of generated select tags.
