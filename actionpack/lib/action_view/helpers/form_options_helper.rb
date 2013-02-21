@@ -560,7 +560,7 @@ module ActionView
       def time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
         zone_options = "".html_safe
 
-        zones = model.all.dup
+        zones = model.all
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
@@ -572,7 +572,7 @@ module ActionView
           zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
           zone_options.safe_concat "\n"
 
-          zones.reject! { |z| priority_zones.include?(z) }
+          zones = zones - priority_zones
         end
 
         zone_options.safe_concat options_for_select(convert_zones[zones], selected)
