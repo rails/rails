@@ -5,7 +5,7 @@ module ActionView
     module Tags
       class DateSelect < Base #:nodoc:
         def initialize(object_name, method_name, template_object, options, html_options)
-          @html_options = html_options
+          @html_options = (options.delete(:html) || {}).merge html_options
 
           super(object_name, method_name, template_object, options)
         end

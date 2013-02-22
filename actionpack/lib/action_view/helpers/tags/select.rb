@@ -5,7 +5,7 @@ module ActionView
         def initialize(object_name, method_name, template_object, choices, options, html_options)
           @choices = choices
           @choices = @choices.to_a if @choices.is_a?(Range)
-          @html_options = html_options
+          @html_options = (options.delete(:html) || {}).merge html_options
 
           super(object_name, method_name, template_object, options)
         end
