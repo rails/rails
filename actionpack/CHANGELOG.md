@@ -7,7 +7,7 @@
 
     Example:
 
-        # this will route to questions#new
+        # This will route to questions#new.
         scope ':locale' do
           get 'questions/new'
         end

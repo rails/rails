@@ -1,19 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
-    the units hash does not contain the needed key, e.g. when the number provided is less
-    than the largest key proivided.
+    the given units hash does not contain the needed key, e.g. when the number provided
+    is less than the largest key provided.
+    Fixes #9269.
 
     Examples:
 
-        number_to_human(123, :units => {}) # => 123
-        number_to_human(123, :units => {:thousand => 'k'}) # => 123
-
-    Fixes #9269.
+        number_to_human(123, units: {}) # => 123
+        number_to_human(123, units: { thousand: 'k' }) # => 123
 
     *Michael Hoffman*
 
-*   Added beginning_of_minute support to core_ext calculations for Time and DateTime
+*   Added `beginning_of_minute` support to core ext calculations for `Time` and `DateTime`.
 
     *Gagan Awhad*
 
@@ -21,7 +20,7 @@
 
     *Jamie Gaskins*
 
-*   ActiveSupport::Gzip.compress allows two optional arguments for compression
+*   `ActiveSupport::Gzip.compress` allows two optional arguments for compression
     level and strategy.
 
     *Beyond*
@@ -123,8 +122,9 @@
 
     *Francesco Rodriguez*
 
-*   Patched Marshal#load to work with constant autoloading.
-    Fixes autoloading with cache stores that relay on Marshal(MemCacheStore and FileStore). [fixes #8167]
+*   Patched `Marshal#load` to work with constant autoloading. Fixes autoloading
+    with cache stores that rely on `Marshal` (`MemCacheStore` and `FileStore`).
+    Fixes #8167.
 
     *Uriel Katz*
 
@@ -156,12 +156,11 @@
 
     *Nikita Afanasenko*
 
-*   Dependencies no longer trigger Kernel#autoload in remove_constant [fixes #8213]. *Xavier Noria*
+*   Dependencies no longer trigger `Kernel#autoload` in `remove_constant`. Fixes #8213. *Xavier Noria*
 
 *   Simplify mocha integration and remove monkey-patches, bumping mocha to 0.13.0. *James Mead*
 
-*   `#as_json` isolates options when encoding a hash.
-    Fix #8182
+*   `#as_json` isolates options when encoding a hash. Fixes #8182.
 
     *Yves Senn*
 
