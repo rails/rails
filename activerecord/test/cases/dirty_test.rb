@@ -529,7 +529,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('created_on')
 
     pirate = Pirate.find_by_catchphrase("Ahoy!")
-    pirate.update_attribute(:catchphrase, "Ninjas suck!")
+    pirate.update_attributes(catchphrase: "Ninjas suck!")
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']

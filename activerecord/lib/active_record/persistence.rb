@@ -204,8 +204,12 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
+    # This method has been deprecated in favor of <tt>update_column</tt> due to
+    # its similarity with <tt>update_attributes</tt>.
+    #
     def update_attribute(name, value)
       name = name.to_s
+      ActiveSupport::Deprecation.warn("update_attribute is deprecated and will be removed in Rails 4.1. Please use update_attributes or update_columns instead. Check their documentation for the implications.")
       verify_readonly_attribute(name)
       send("#{name}=", value)
       save(validate: false)
@@ -288,7 +292,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
-      increment(attribute, by).update_attribute(attribute, self[attribute])
+      increment(attribute, by).update_column(attribute, self[attribute])
     end
 
     # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
@@ -305,7 +309,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_attribute(attribute, self[attribute])
+      decrement(attribute, by).update_column(attribute, self[attribute])
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -322,7 +326,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def toggle!(attribute)
-      toggle(attribute).update_attribute(attribute, self[attribute])
+      toggle(attribute).update_column(attribute, self[attribute])
     end
 
     # Reloads the attributes of this object from the database.
