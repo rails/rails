@@ -519,7 +519,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get 'search' => 'search'
 
       scope ':locale' do
-        match 'questions/new', via: [:get]
+        match 'questions/new', :via => :get
       end
 
       namespace :api do
