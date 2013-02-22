@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
+    the units hash does not contain the needed key, e.g. when the number provided is less
+    than the largest key proivided.
+
+    Examples:
+
+        number_to_human(123, :units => {}) # => 123
+        number_to_human(123, :units => {:thousand => 'k'}) # => 123
+
+    Fixes #9269.
+
+    *Michael Hoffman*
+
 *   Added beginning_of_minute support to core_ext calculations for Time and DateTime
 
     *Gagan Awhad*

@@ -266,6 +266,11 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '100&lt;script&gt;&lt;/script&gt;000 Quadrillion', number_to_human(10**20, :delimiter => "<script></script>")
   end
 
+  def test_number_to_human_with_custom_units_that_are_missing_the_needed_key
+    assert_equal '123', number_to_human(123, :units => {:thousand => 'k'})
+    assert_equal '123', number_to_human(123, :units => {})
+  end
+
   def test_number_to_human_with_custom_format
     assert_equal '123 times Thousand', number_to_human(123456, :format => "%n times %u")
     volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
