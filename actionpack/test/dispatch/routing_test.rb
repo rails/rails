@@ -517,6 +517,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       get 'search' => 'search'
+
+      scope ':locale' do
+        match 'questions/new', via: [:get]
+      end
+
+      namespace :api do
+        namespace :v3 do
+          scope ':locale' do
+            get "products/list"
+          end
+        end
+      end
     end
   end
 
@@ -1414,6 +1426,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/api/products/list', api_products_list_path
       get '/api/products/list'
       assert_equal 'api/products#list', @response.body
+    end
+  end
+
+  def test_match_shorthand_inside_scope_with_variables_with_controller
+    with_test_routes do
+      get '/de/questions/new'
+      assert_equal 'questions#new', @response.body
+      assert_equal 'de', @request.params[:locale]
+    end
+  end
+
+  def test_match_shorthand_inside_nested_namespaces_and_scopes_with_controller
+    with_test_routes do
+      get '/api/v3/en/products/list'
+      assert_equal 'api/v3/products#list', @response.body
     end
   end
 
