@@ -690,7 +690,6 @@ uses_memcached 'memcached backed store' do
       @data = @cache.instance_variable_get(:@data)
       @cache.clear
       @cache.silence!
-      @cache.logger = Logger.new("/dev/null")
     end
 
     include CacheStoreBehavior
