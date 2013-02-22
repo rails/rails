@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   AR::Base#update_attribute has been deprecated. Use `update_column` if
+    you want to bypass mass-assignment protection, validations, callbacks,
+    and touching of updated_at. Otherwise please use `update_attributes`.
+
 *   Rename related indexes on `rename_table` and `rename_column`. This
     does not affect indexes with custom names.
 

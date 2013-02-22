@@ -383,10 +383,17 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute
     assert !Topic.find(1).approved?
-    Topic.find(1).update_attribute("approved", true)
+
+    ActiveSupport::Deprecation.silence do
+      Topic.find(1).update_attribute("approved", true)
+    end
+
     assert Topic.find(1).approved?
 
-    Topic.find(1).update_attribute(:approved, false)
+    ActiveSupport::Deprecation.silence do
+      Topic.find(1).update_attribute(:approved, false)
+    end
+
     assert !Topic.find(1).approved?
   end
 
@@ -396,7 +403,10 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
+
+    ActiveSupport::Deprecation.silence do
+      assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
+    end
   end
 
   def test_string_ids
@@ -409,7 +419,11 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_with_one_updated
     t = Topic.first
-    t.update_attribute(:title, 'super_title')
+
+    ActiveSupport::Deprecation.silence do
+      t.update_attribute(:title, 'super_title')
+    end
+
     assert_equal 'super_title', t.title
     assert !t.changed?, "topic should not have changed"
     assert !t.title_changed?, "title should not have changed"
@@ -423,10 +437,16 @@ class PersistencesTest < ActiveRecord::TestCase
     developer = Developer.find(1)
     prev_month = Time.now.prev_month
 
-    developer.update_attribute(:updated_at, prev_month)
+    ActiveSupport::Deprecation.silence do
+      developer.update_attribute(:updated_at, prev_month)
+    end
+
     assert_equal prev_month, developer.updated_at
 
-    developer.update_attribute(:salary, 80001)
+    ActiveSupport::Deprecation.silence do
+      developer.update_attribute(:salary, 80001)
+    end
+
     assert_not_equal prev_month, developer.updated_at
 
     developer.reload
