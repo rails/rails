@@ -889,6 +889,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.connection.drop_table(:hats) rescue nil
     end
 
+    def test_removing_and_renaming_column_preserves_custom_primary_key
+      ActiveRecord::Base.connection.create_table "my_table", :primary_key => "my_table_id", :force => true do |t|
+        t.integer "col_one"
+        t.string "col_two", :limit => 128, :null => false
+      end
+
+      ActiveRecord::Base.connection.remove_column("my_table", "col_two")
+      ActiveRecord::Base.connection.rename_column("my_table", "col_one", "col_three")
+
+      assert_equal 'my_table_id', ActiveRecord::Base.connection.primary_key('my_table')
+    ensure
+      ActiveRecord::Base.connection.drop_table(:my_table) rescue nil
+    end
+
     def test_change_type_of_not_null_column
       assert_nothing_raised do
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false

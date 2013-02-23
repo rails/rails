@@ -490,7 +490,11 @@ module ActiveRecord
         end
 
         def copy_table(from, to, options = {}) #:nodoc:
-          options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+          from_primary_key = primary_key(from)
+          options[:primary_key] = from_primary_key if from_primary_key != 'id'
+          unless options[:primary_key]
+            options[:id] = !columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == from_primary_key
+          end
           create_table(to, options) do |definition|
             @definition = definition
             columns(from).each do |column|
@@ -504,7 +508,7 @@ module ActiveRecord
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
-            @definition.primary_key(primary_key(from)) if primary_key(from)
+            @definition.primary_key(from_primary_key) if from_primary_key
             yield @definition if block_given?
           end
 
