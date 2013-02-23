@@ -420,7 +420,7 @@ module ActionController #:nodoc:
       end
 
       def response
-        @responses[format] || @responses[Mime::ALL]
+        @responses.fetch(format, @responses[Mime::ALL])
       end
 
       def negotiate_format(request)
