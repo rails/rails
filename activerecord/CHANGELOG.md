@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Sqlite now preserves custom primary keys when copying or altering tables.
+    Fixes #9367.
+    Backport #2312.
+
+    *Sean Scally + Yves Senn*
+
 *   Preloading `has_many :through` associations with conditions won't
     cache the `:through` association. This will prevent invalid
     subsets to be cached.
