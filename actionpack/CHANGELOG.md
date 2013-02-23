@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   New applications use an encrypted session store by default.
+
+    *Santiago Pastorino*
+
 *   Determine the controller#action from only the matched path when using the
     shorthand syntax. Previously the complete path was used, which led
     to problems with nesting (scopes and namespaces).
