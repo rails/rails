@@ -58,7 +58,7 @@ module ActiveRecord
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.
     #
-    #   Person.take # returns an object fetched by SELECT * FROM people
+    #   Person.take # returns an object fetched by SELECT * FROM people LIMIT 1
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
     #   Person.where(["name LIKE '%?'", name]).take
     def take(limit = nil)
