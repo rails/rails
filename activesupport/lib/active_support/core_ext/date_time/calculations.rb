@@ -59,7 +59,7 @@ class DateTime
       options.fetch(:day, day),
       options.fetch(:hour, hour),
       options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec),
+      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec + sec_fraction),
       options.fetch(:offset, offset),
       options.fetch(:start, start)
     )
