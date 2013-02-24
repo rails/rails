@@ -2,7 +2,7 @@ require "cases/migration/helper"
 
 module ActiveRecord
   class Migration
-    class RenameColumnTest < ActiveRecord::TestCase
+    class ColumnsTest < ActiveRecord::TestCase
       include ActiveRecord::Migration::TestHelper
 
       self.use_transactional_fixtures = false
