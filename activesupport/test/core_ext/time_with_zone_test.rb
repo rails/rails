@@ -326,6 +326,17 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal 946684800, twz.to_i
   end
 
+  def test_to_r
+    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii']).to_r
+    assert_equal Rational(946684800, 1), result
+    assert_kind_of Rational, result
+  end
+
+  def test_time_at
+    time = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii'])
+    assert_equal time, Time.at(time)
+  end
+
   def test_to_time
     with_env_tz 'US/Eastern' do
       assert_equal Time, @twz.to_time.class
