@@ -31,10 +31,6 @@ module <%= app_const_base %>
 
     # Disable the asset pipeline.
     config.assets.enabled = false
-<% else %>
-  # Precompile additional assets.
-  # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
-  # config.assets.precompile += %w( search.js )
 <% end -%>
   end
 end
