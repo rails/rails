@@ -317,6 +317,10 @@ module ActiveSupport
     end
     alias_method :tv_sec, :to_i
 
+    def to_r
+      utc.to_r
+    end
+
     # Return an instance of Time in the system timezone.
     def to_time
       utc.to_time
