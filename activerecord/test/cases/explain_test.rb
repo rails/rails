@@ -14,46 +14,9 @@ if ActiveRecord::Base.connection.supports_explain?
       base.connection
     end
 
-    def test_logging_query_plan_with_logger
-      base.logger.expects(:warn).with do |message|
-        message.starts_with?('EXPLAIN for:')
-      end
-
-      with_threshold(0) do
-        Car.where(:name => 'honda').to_a
-      end
-    end
-
-    def test_logging_query_plan_without_logger
-      original = base.logger
-      base.logger = nil
-
-      class << base.logger
-        def warn; raise "Should not be called" end
-      end
-
-      with_threshold(0) do
-        car = Car.where(:name => 'honda').first
-        assert_equal 'honda', car.name
-      end
-    ensure
-      base.logger = original
-    end
-
-    def test_collect_queries_for_explain
-      base.auto_explain_threshold_in_seconds = nil
-      queries = Thread.current[:available_queries_for_explain] = []
-
-      with_threshold(0) do
-        Car.where(:name => 'honda').to_a
-      end
-
-      sql, binds = queries[0]
-      assert_match "SELECT", sql
-      assert_match "honda", sql
-      assert_equal [], binds
-    ensure
-      Thread.current[:available_queries_for_explain] = nil
+    def test_relation_explain
+      message = Car.where(:name => 'honda').explain
+      assert_match(/^EXPLAIN for:/, message)
     end
 
     def test_collecting_queries_for_explain
@@ -66,16 +29,6 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_match "honda", sql
       assert_equal [], binds
       assert_equal [cars(:honda)], result
-    end
-
-    def test_logging_query_plan_when_counting_by_sql
-      base.logger.expects(:warn).with do |message|
-        message.starts_with?('EXPLAIN for:')
-      end
-
-      with_threshold(0) do
-        Car.count_by_sql "SELECT COUNT(*) FROM cars WHERE name = 'honda'"
-      end
     end
 
     def test_exec_explain_with_no_binds
@@ -113,25 +66,8 @@ if ActiveRecord::Base.connection.supports_explain?
 
       base.logger.expects(:warn).never
 
-      with_threshold(0) do
-        Car.where(:name => 'honda').to_a
-      end
+      Car.where(:name => 'honda').to_a
     end
 
-    def test_silence_auto_explain
-      base.expects(:collecting_sqls_for_explain).never
-      base.logger.expects(:warn).never
-      base.silence_auto_explain do
-        with_threshold(0) { Car.all.to_a }
-      end
-    end
-
-    def with_threshold(threshold)
-      current_threshold = base.auto_explain_threshold_in_seconds
-      base.auto_explain_threshold_in_seconds = threshold
-      yield
-    ensure
-      base.auto_explain_threshold_in_seconds = current_threshold
-    end
   end
 end
