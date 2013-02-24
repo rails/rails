@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `:on` option for `after_commit` and `after_rollback` now
+    accepts an Array of actions.
+    Fixes #988.
+
+    Example:
+
+           after_commit :update_cache on: [:create, :update]
+
 *   Rename related indexes on `rename_table` and `rename_column`. This
     does not affect indexes with custom names.
 

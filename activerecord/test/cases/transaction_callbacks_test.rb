@@ -312,3 +312,38 @@ class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
     assert_equal true, topic.record_updated
   end
 end
+
+class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  class TopicWithCallbacksOnMultipleActions < ActiveRecord::Base
+    self.table_name = :topics
+
+    after_commit(on: [:create, :destroy]) { |record| record.history << :create_and_destroy }
+    after_commit(on: [:create, :update]) { |record| record.history << :create_and_update }
+    after_commit(on: [:update, :destroy]) { |record| record.history << :update_and_destroy }
+
+    def clear_history
+      @history = []
+    end
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def test_after_commit_on_multiple_actions
+    topic = TopicWithCallbacksOnMultipleActions.new
+    topic.save
+    assert_equal [:create_and_update, :create_and_destroy], topic.history
+
+    topic.clear_history
+    topic.approved = true
+    topic.save
+    assert_equal [:update_and_destroy, :create_and_update], topic.history
+
+    topic.clear_history
+    topic.destroy
+    assert_equal [:update_and_destroy, :create_and_destroy], topic.history
+  end
+end
