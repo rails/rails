@@ -47,12 +47,12 @@ module ActiveRecord
             through_scope.where! reflection.foreign_type => options[:source_type]
           else
             unless reflection_scope.where_values.empty?
-              through_scope.includes_values = reflection_scope.values[:includes] || options[:source]
+              through_scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
               through_scope.where_values    = reflection_scope.values[:where]
             end
 
-            through_scope.order!      reflection_scope.values[:order]
             through_scope.references! reflection_scope.values[:references]
+            through_scope.order! reflection_scope.values[:order] if through_scope.eager_loading?
           end
 
           through_scope

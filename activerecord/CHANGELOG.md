@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Preloading ordered `has_many :through` associations does no longer
+    apply invalid ordering to the `:through` association.
+    Fixes #8663.
+
+    *Yves Senn*
+
 *   The auto explain feature has been removed. This feature was
     activated by configuring `config.active_record.auto_explain_threshold_in_seconds`.
     The configuration option was deprecated and has no more effect.
