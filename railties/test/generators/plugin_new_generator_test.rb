@@ -371,38 +371,3 @@ protected
     ::DEFAULT_PLUGIN_FILES
   end
 end
-
-class CustomPluginGeneratorTest < Rails::Generators::TestCase
-  include GeneratorsTestHelper
-  tests Rails::Generators::PluginNewGenerator
-
-  destination File.join(Rails.root, "tmp/bukkits")
-  arguments [destination_root]
-  include SharedCustomGeneratorTests
-
-  def test_overriding_test_framework
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/plugin_builders/spec_builder.rb"])
-    assert_file 'spec/spec_helper.rb'
-    assert_file 'spec/dummy'
-    assert_file 'Rakefile', /task default: :spec/
-    assert_file 'Rakefile', /# spec tasks in rakefile/
-  end
-
-protected
-  def default_files
-    ::DEFAULT_PLUGIN_FILES
-  end
-
-  def builder_class
-    :PluginBuilder
-  end
-
-  def builders_dir
-    "plugin_builders"
-  end
-
-  def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
-  end
-end
