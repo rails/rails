@@ -1,7 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Preloading ordered `has_many :through` associations does no longer
-    apply invalid ordering to the `:through` association.
+*   Preloading ordered `has_many :through` associations no longer applies
+    invalid ordering to the `:through` association.
     Fixes #8663.
 
     *Yves Senn*
