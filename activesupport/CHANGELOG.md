@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `ActiveSupport::TimeWithZone#to_r` for `Time#at` compatibility.
+
+    *stopdropandrew*
+
 *   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
     the given units hash does not contain the needed key, e.g. when the number provided
     is less than the largest key provided.
