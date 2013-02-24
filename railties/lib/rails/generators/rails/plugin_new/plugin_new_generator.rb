@@ -214,6 +214,18 @@ task :default => :test
 
       public_task :apply_rails_template, :run_bundle
 
+      def name
+        @name ||= begin
+          # same as ActiveSupport::Inflector#underscore except not replacing '-'
+          underscored = original_name.dup
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.downcase!
+
+          underscored
+        end
+      end
+
     protected
 
       def app_templates_dir
@@ -252,18 +264,6 @@ task :default => :test
 
       def original_name
         @original_name ||= File.basename(destination_root)
-      end
-
-      def name
-        @name ||= begin
-          # same as ActiveSupport::Inflector#underscore except not replacing '-'
-          underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-          underscored.downcase!
-
-          underscored
-        end
       end
 
       def camelized
