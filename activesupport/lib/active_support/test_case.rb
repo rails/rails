@@ -16,16 +16,6 @@ begin
 rescue LoadError
 end
 
-# FIXME: We force sorted test order below, but minitest includes --seed SEED in
-# the printed run options, which could be misleading, since users could assume
-# from that trace that tests are being randomized.
-MiniTest::Unit.class_eval do
-  alias original_help help
-  def help
-    original_help.sub(/--seed\s+\d+\s*/, '')
-  end
-end
-
 module ActiveSupport
   class TestCase < ::MiniTest::Unit::TestCase
     Assertion = MiniTest::Assertion
@@ -36,8 +26,8 @@ module ActiveSupport
       yield if $tags[tag]
     end
 
-    # FIXME: We have tests that depend on run order, we should fix that and
-    # remove this method (and remove the MiniTest::Unit help hack above).
+    # FIXME: we have tests that depend on run order, we should fix that and
+    # remove this method.
     def self.test_order # :nodoc:
       :sorted
     end
