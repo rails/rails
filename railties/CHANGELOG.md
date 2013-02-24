@@ -1,4 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
+
+*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed. Consider
+    using application template instead. See this guide for more detail:
+    http://guides.rubyonrails.org/rails_application_templates.html
+
+    *Prem Sichanugrist*
+
 *   fix rake db:* tasks to work with DATABASE_URL and without config/database.yml
 
     *Terence Lee*
