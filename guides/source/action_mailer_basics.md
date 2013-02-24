@@ -116,7 +116,7 @@ Setting this up is painfully simple.
 First off, we need to create a simple `User` scaffold:
 
 ```bash
-$ rails generate scaffold user name:string email:string login:string
+$ rails generate scaffold user name email login
 $ rake db:migrate
 ```
 
