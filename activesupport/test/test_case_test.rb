@@ -16,6 +16,9 @@ module ActiveSupport
       def options
         nil
       end
+
+      def record(*args)
+      end
     end
 
     if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions

@@ -23,10 +23,17 @@ module ApplicationTests
       boot_rails
       simple_controller
 
-      get '/foo'
-      assert last_response.body.include?("We're sorry, but something went wrong (500)")
+      # ActiveSupport::LogSubscriber.flush_all! in lib/rails/rack/logger.rb blew up in Ruby 2.0
+      # because it tries to open the database. This behavior doesn't happen in Ruby 1.9.3.
+      # However, regardless, the server blew up.
+      if RUBY_VERSION >= '2.0.0'
+        assert_raises (Errno::ENOENT) { get '/foo' }
+      else
+        get '/foo'
+        assert last_response.body.include?("We're sorry, but something went wrong (500)")
+      end
     end
-    
+
     test "uses DATABASE_URL env var when config/database.yml doesn't exist" do
       database_path = "/db/foo.sqlite3"
       FileUtils.rm_rf("#{app_path}/config/database.yml")
@@ -35,7 +42,7 @@ module ApplicationTests
 
       get '/foo'
       assert_equal 'foo', last_response.body
-      
+
       # clean up
       FileUtils.rm("#{app_path}/#{database_path}")
     end

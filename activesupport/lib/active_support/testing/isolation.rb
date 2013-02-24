@@ -12,8 +12,8 @@ module ActiveSupport
     end
 
     class ProxyTestResult
-      def initialize
-        @calls = []
+      def initialize(calls = [])
+        @calls = calls
       end
 
       def add_error(e)
@@ -25,6 +25,14 @@ module ActiveSupport
         @calls.each do |name, args|
           result.send(name, *args)
         end
+      end
+
+      def marshal_dump
+        @calls
+      end
+
+      def marshal_load(calls)
+        initialize(calls)
       end
 
       def method_missing(name, *args)
