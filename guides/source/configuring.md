@@ -268,8 +268,6 @@ config.middleware.delete "Rack::MethodOverride"
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
-* `config.active_record.auto_explain_threshold_in_seconds` configures the threshold for automatic EXPLAINs (`nil` disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
-
 * +config.active_record.cache_timestamp_format+ controls the format of the timestamp value in the cache key. Default is +:number+.
 
 The MySQL adapter adds one additional configuration option:

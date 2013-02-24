@@ -33,18 +33,16 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   # => [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
-      logging_query_plan do
-        result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
-        column_types = {}
+      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+      column_types = {}
 
-        if result_set.respond_to? :column_types
-          column_types = result_set.column_types
-        else
-          ActiveSupport::Deprecation.warn "the object returned from `select_all` must respond to `column_types`"
-        end
-
-        result_set.map { |record| instantiate(record, column_types) }
+      if result_set.respond_to? :column_types
+        column_types = result_set.column_types
+      else
+        ActiveSupport::Deprecation.warn "the object returned from `select_all` must respond to `column_types`"
       end
+
+      result_set.map { |record| instantiate(record, column_types) }
     end
 
     # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -57,10 +55,8 @@ module ActiveRecord
     #
     #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
     def count_by_sql(sql)
-      logging_query_plan do
-        sql = sanitize_conditions(sql)
-        connection.select_value(sql, "#{name} Count").to_i
-      end
+      sql = sanitize_conditions(sql)
+      connection.select_value(sql, "#{name} Count").to_i
     end
   end
 end
