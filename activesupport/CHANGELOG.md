@@ -2,6 +2,18 @@
 
 *   Added `ActiveSupport::TimeWithZone#to_r` for `Time#at` compatibility.
 
+    Before this change:
+
+        Time.zone = 'Tokyo'
+        time = Time.zone.now
+        time == Time.at(time) # => false
+
+    After the change:
+
+        Time.zone = 'Tokyo'
+        time = Time.zone.now
+        time == Time.at(time) # => true
+
     *stopdropandrew*
 
 *   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
