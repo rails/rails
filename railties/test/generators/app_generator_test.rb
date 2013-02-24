@@ -366,28 +366,3 @@ protected
     assert_file "Gemfile", /^gem\s+["']#{gem}["']$/
   end
 end
-
-class CustomAppGeneratorTest < Rails::Generators::TestCase
-  include GeneratorsTestHelper
-  tests Rails::Generators::AppGenerator
-
-  arguments [destination_root]
-  include SharedCustomGeneratorTests
-
-protected
-  def default_files
-    ::DEFAULT_APP_FILES
-  end
-
-  def builders_dir
-    "app_builders"
-  end
-
-  def builder_class
-    :AppBuilder
-  end
-
-  def action(*args, &block)
-    silence(:stdout) { generator.send(*args, &block) }
-  end
-end

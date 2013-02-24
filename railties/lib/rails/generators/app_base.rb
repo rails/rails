@@ -19,9 +19,6 @@ module Rails
       argument :app_path, type: :string
 
       def self.add_shared_options_for(name)
-        class_option :builder,            type: :string, aliases: '-b',
-                                          desc: "Path to some #{name} builder (can be a filesystem path or URL)"
-
         class_option :template,           type: :string, aliases: '-m',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
@@ -81,17 +78,6 @@ module Rails
 
       def builder
         @builder ||= begin
-          if path = options[:builder]
-            if URI(path).is_a?(URI::HTTP)
-              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-            else
-              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
-            end
-
-            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
-            instance_eval(&prok)
-          end
-
           builder_class = get_builder_class
           builder_class.send(:include, ActionMethods)
           builder_class.new(self)
