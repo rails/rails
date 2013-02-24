@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The auto explain feature has been removed. This feature was
+    activated by configuring `config.active_record.auto_explain_threshold_in_seconds`.
+    The configuration option was deprecated and has no more effect.
+
+    You can still use `ActiveRecord::Relation#explain` to see the EXPLAIN output for
+    any given relation.
+
+    *Yves Senn*
+
 *   The `:on` option for `after_commit` and `after_rollback` now
     accepts an Array of actions.
     Fixes #988.

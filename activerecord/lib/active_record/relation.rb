@@ -444,17 +444,7 @@ module ActiveRecord
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
     def load
-      unless loaded?
-        # We monitor here the entire execution rather than individual SELECTs
-        # because from the point of view of the user fetching the records of a
-        # relation is a single unit of work. You want to know if this call takes
-        # too long, not if the individual queries take too long.
-        #
-        # It could be the case that none of the queries involved surpass the
-        # threshold, and at the same time the sum of them all does. The user
-        # should get a query plan logged in that case.
-        logging_query_plan { exec_queries }
-      end
+      exec_queries unless loaded?
 
       self
     end
