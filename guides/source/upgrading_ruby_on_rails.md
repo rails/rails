@@ -47,6 +47,10 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) to a smoothly upgrade path.
 
+### Active Resource
+
+Rails 4.0 extracted Active Resource to its our gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
+
 ### Active Model
 
 * Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
