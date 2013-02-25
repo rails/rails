@@ -196,8 +196,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   '~> 4.0.0.beta'
-              gem 'coffee-rails', '~> 4.0.0.beta'
+              gem 'sass-rails',   '~> 4.0.0.beta1'
+              gem 'coffee-rails', '~> 4.0.0.beta1'
 
               # See https://github.com/sstephenson/execjs#readme for more supported runtimes
               #{javascript_runtime_gemfile_entry}

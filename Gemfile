@@ -9,7 +9,7 @@ gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
-gem 'coffee-rails', github: 'rails/coffee-rails'
+gem 'coffee-rails', '~> 4.0.0.beta1'
 
 # Needed for compiling the ActionDispatch::Journey parser
 gem 'racc', '>=1.4.6', require: false
