@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Run migrate:down & migrate:up in transaction if database supports
+
+    *Alexander Bondarev*
+
 *   Added Statement Cache to allow the caching of a single statement. The cache works by
     duping the relation returned from yielding a statement, which allows skipping the AST
     building phase for following executes. The cache returns results in array format.
