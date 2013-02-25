@@ -1420,6 +1420,19 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.reset_column_information
         assert !Person.column_methods_hash.include?(:last_name)
       end
+
+      def test_migrator_one_up_with_exception_and_rollback_using_run
+        assert !Person.column_methods_hash.include?(:last_name)
+
+        e = assert_raise(StandardError) do
+          ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/broken", 100)
+        end
+
+        assert_equal "An error has occurred, the migration canceled:\n\nSomething broke", e.message
+
+        Person.reset_column_information
+        assert !Person.column_methods_hash.include?(:last_name)
+      end
     end
 
     def test_finds_migrations
