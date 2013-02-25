@@ -1,6 +1,7 @@
 require 'rbconfig'
 require 'rake/testtask'
 require 'rails/test_unit/sub_test_task'
+require 'active_support/deprecation'
 
 TEST_CHANGES_SINCE = Time.now - 600
 
@@ -47,7 +48,11 @@ task default: :test
 
 desc 'Runs test:units, test:functionals, test:integration together'
 task :test do
-  Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
+  if ENV['TEST']
+    exec "bundle exec rails test #{ENV['TEST'].inspect}"
+  else
+    exec 'bundle exec rails test'
+  end
 end
 
 namespace :test do
@@ -56,19 +61,8 @@ namespace :test do
   end
 
   task :run do
-    errors = %w(test:units test:functionals test:integration).collect do |task|
-      begin
-        Rake::Task[task].invoke
-        nil
-      rescue => e
-        { task: task, exception: e }
-      end
-    end.compact
-
-    if errors.any?
-      puts errors.map { |e| "Errors running #{e[:task]}! #{e[:exception].inspect}" }.join("\n")
-      abort
-    end
+    ActiveSupport::Deprecation.warn "`rake test:run` is deprecated. Please use `rails test`."
+    exec 'bundle exec rails test'
   end
 
   # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
@@ -83,7 +77,13 @@ namespace :test do
     task :db => %w[db:test:prepare test:all]
   end
 
-  Rake::TestTask.new(recent: "test:prepare") do |t|
+  # Display deprecation message
+  task :deprecated do
+    task_name = ARGV.first
+    ActiveSupport::Deprecation.warn "`rake #{ARGV.first}` is deprecated with no replacement."
+  end
+
+  Rake::TestTask.new(recent: ["test:deprecated", "test:prepare"]) do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
       recent_tests('app/models/**/*.rb', 'test/models', since) +
@@ -94,9 +94,9 @@ namespace :test do
     t.libs << 'test'
     t.test_files = touched.uniq
   end
-  Rake::Task['test:recent'].comment = "Test recent changes"
+  Rake::Task['test:recent'].comment = "Deprecated; Test recent changes"
 
-  Rake::TestTask.new(uncommitted: "test:prepare") do |t|
+  Rake::TestTask.new(uncommitted: ["test:deprecated", "test:prepare"]) do |t|
     def t.file_list
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.split.map { |path| path.chomp[7 .. -1] }
@@ -118,44 +118,20 @@ namespace :test do
 
     t.libs << 'test'
   end
-  Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
+  Rake::Task['test:uncommitted'].comment = "Deprecated; Test changes since last checkin (only Subversion and Git)"
 
-  Rake::TestTask.new(single: "test:prepare") do |t|
-    t.libs << "test"
+  desc "Deprecated; Please use `rails test \"#{ENV['TEST']}\"`"
+  task :single do
+    ActiveSupport::Deprecation.warn "`rake test:single` is deprecated. Please use `rails test \"#{ENV['TEST']}\"`."
+    exec "bundle exec rails test #{test_suit_name}"
   end
 
-  Rails::SubTestTask.new(models: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/models/**/*_test.rb'
-  end
+  [:models, :helpers, :units, :controllers, :functionals, :integration].each do |test_suit_name|
+    desc "Deprecated; Please use `rails test #{test_suit_name}`"
+    task test_suit_name do
+      ActiveSupport::Deprecation.warn "`rake test:#{test_suit_name}` is deprecated. Please use `rails test #{test_suit_name}`."
 
-  Rails::SubTestTask.new(helpers: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/helpers/**/*_test.rb'
-  end
-
-  Rails::SubTestTask.new(units: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/{models,helpers,unit}/**/*_test.rb'
-  end
-
-  Rails::SubTestTask.new(controllers: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/controllers/**/*_test.rb'
-  end
-
-  Rails::SubTestTask.new(mailers: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/mailers/**/*_test.rb'
-  end
-
-  Rails::SubTestTask.new(functionals: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
-  end
-
-  Rails::SubTestTask.new(integration: "test:prepare") do |t|
-    t.libs << "test"
-    t.pattern = 'test/integration/**/*_test.rb'
+      exec "bundle exec rails test #{test_suit_name}"
+    end
   end
 end
