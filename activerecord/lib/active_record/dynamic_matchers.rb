@@ -1,5 +1,3 @@
-require 'active_record/deprecated_finders'
-
 module ActiveRecord
   module DynamicMatchers #:nodoc:
     # This code in this file seems to have a lot of indirection, but the indirection
