@@ -1257,7 +1257,7 @@
       * `:include` becomes `:includes`.
 
     The code to implement the deprecated features has been moved out to the
-    `activerecord-deprecated_finders` gem. This gem is a dependencyof Active
+    `activerecord-deprecated_finders` gem. This gem is a dependency of Active
     Record in Rails 4.0, so the interface works out of the box. It will no
     longer be a dependency from Rails 4.1 (you'll need to add it to the
     `Gemfile` in 4.1), and will be maintained until Rails 5.0.
