@@ -1,5 +1,9 @@
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
+*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+
+    *Hiroshige UMINO*
+
 *   Fixing issue #8345. Now throwing an error when one attempts to touch a
     new object that has not yet been persisted. For instance:
 
@@ -180,10 +184,6 @@
     (currently only supported by postgresql).
 
     *Justin George*
-
-*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
-
-    *Hiroshige UMINO*
 
 *   The database adpters now converts the options passed thought `DATABASE_URL`
     environment variable to the proper Ruby types before using. For example, SQLite requires
