@@ -53,7 +53,9 @@ module ActiveRecord
             attribute.eq(value.name)
           when Integer, ActiveSupport::Duration
             # Arel treats integers as literals, but they should be quoted when compared with strings
-            column = engine.connection.schema_cache.columns_hash[table.name][attribute.name.to_s]
+            table = table.relation if table.is_a?(Arel::Nodes::TableAlias)
+            schema_cache = table.engine.connection.schema_cache
+            column = schema_cache.table_exists?(table.name) ? schema_cache.columns_hash[table.name][attribute.name.to_s] : nil
             attribute.eq(Arel::Nodes::SqlLiteral.new(engine.connection.quote(value, column)))
           else
             attribute.eq(value)

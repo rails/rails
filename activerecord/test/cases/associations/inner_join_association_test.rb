@@ -6,12 +6,13 @@ require 'models/essay'
 require 'models/category'
 require 'models/categorization'
 require 'models/person'
+require 'models/pet'
 require 'models/tagging'
 require 'models/tag'
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
-           :taggings, :tags
+           :taggings, :tags, :pets
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).to_a
@@ -22,6 +23,19 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised do
       sql = Person.joins(:agents => {:agents => :agents}).joins(:agents => {:agents => {:primary_contact => :agents}}).to_sql
       assert_match(/agents_people_4/i, sql)
+    end
+  end
+
+  def test_construct_finder_sql_handles_integer_comparison_with_table_aliases
+    assert_nothing_raised do
+      sql = Person.joins(:agents).where('agents_people.followers_count' => 0).to_sql
+      assert_match(/agents_people/, sql)
+    end
+  end
+
+  def test_construct_finder_sql_handles_integer_comparison_with_arel_table_aliases
+    assert_nothing_raised do
+      Person.includes(:pets).where(:pets => {:created_at => Time.now}).length
     end
   end
 
