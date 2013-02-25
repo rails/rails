@@ -1,5 +1,5 @@
 module ActiveRecord
-  # = Active Record Belongs To Associations
+  # = Active Record Belongs To Association
   module Associations
     class BelongsToAssociation < SingularAssociation #:nodoc:
 
