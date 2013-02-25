@@ -189,7 +189,7 @@ module ActionView #:nodoc:
 
     # :nodoc:
     def self.xss_safe?
-      false
+      true
     end
 
     def self.cache_template_loading?

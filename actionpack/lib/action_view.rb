@@ -37,6 +37,7 @@ module ActionView
   end
 
   autoload :Base, 'action_view/base'
+  autoload :OutputBuffer, 'action_view/buffers'
   autoload :Helpers, 'action_view/helpers'
   autoload :InlineTemplate, 'action_view/inline_template'
   autoload :Partials, 'action_view/partials'
@@ -49,6 +50,8 @@ module ActionView
   autoload :TemplateHandler, 'action_view/template_handler'
   autoload :TemplateHandlers, 'action_view/template_handlers'
   autoload :Helpers, 'action_view/helpers'
+
+  ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end
 
 require 'active_support/core_ext/string/output_safety'

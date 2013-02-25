@@ -29,7 +29,7 @@ module ActionView
           ActiveSupport::Deprecation.warn("The binding argument of #concat is no longer needed.  Please remove it from your views and helpers.", caller)
         end
 
-        output_buffer.safe_concat(string)
+        output_buffer << string
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
@@ -323,7 +323,7 @@ module ActionView
       #   # => "<p class='description'>Look ma! A class!</p>"
       def simple_format(text, html_options={})
         start_tag = tag('p', html_options, true)
-        text = text.to_s.dup
+        text = ERB::Util.html_escape(text).to_str.dup
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br

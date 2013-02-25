@@ -72,6 +72,19 @@ class TagHelperTest < ActionView::TestCase
     assert_equal '<p><b>Hello</b></p>', output_buffer
   end
 
+  def test_content_tag_with_escaped_array_class
+    str = content_tag('p', "limelight", :class => ["song", "play>"])
+    assert_equal "<p class=\"song play&gt;\">limelight</p>", str
+
+    str = content_tag('p', "limelight", :class => ["song", "play"])
+    assert_equal "<p class=\"song play\">limelight</p>", str
+  end
+
+  def test_content_tag_with_unescaped_array_class
+    str = content_tag('p', "limelight", {:class => ["song", "play>"]}, false)
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
@@ -80,9 +93,9 @@ class TagHelperTest < ActionView::TestCase
     assert_equal '1 &lt; 2 &amp; 3', escape_once('1 < 2 &amp; 3')
   end
   
-  def test_double_escaping_attributes
+  def test_tag_honors_html_safe_for_param_values
     ['1&amp;2', '1 &lt; 2', '&#8220;test&#8220;'].each do |escaped|
-      assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped)
+      assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped.html_safe)
     end
   end
   

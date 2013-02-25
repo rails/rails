@@ -15,9 +15,6 @@ module ActionView
       # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative /controller/action
       # instead of the fully qualified URL like http://example.com/controller/action.
       #
-      # When called from a view, url_for returns an HTML escaped url. If you
-      # need an unescaped url, pass <tt>:escape => false</tt> in the +options+.
-      #
       # ==== Options
       # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path.
       # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (<tt>true</tt> by default unless <tt>:host</tt> is specified).
@@ -27,7 +24,6 @@ module ActionView
       # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.
       # * <tt>:user</tt> - Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
       # * <tt>:password</tt> - Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
-      # * <tt>:escape</tt> - Determines whether the returned URL will be HTML escaped or not (<tt>true</tt> by default).
       #
       # ==== Relying on named routes
       #
@@ -49,10 +45,7 @@ module ActionView
       #   <%= url_for(:action => 'play', :anchor => 'player') %>
       #   # => /messages/play/#player
       #
-      #   <%= url_for(:action => 'checkout', :anchor => 'tax&ship') %>
-      #   # => /testing/jump/#tax&amp;ship
-      #
-      #   <%= url_for(:action => 'checkout', :anchor => 'tax&ship', :escape => false) %>
+      #   <%= url_for(:action => 'jump', :anchor => 'tax&ship') %>
       #   # => /testing/jump/#tax&ship
       #
       #   <%= url_for(Workshop.new) %>
@@ -77,21 +70,17 @@ module ActionView
         options ||= {}
         url = case options
         when String
-          escape = true
           options
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
-          escape  = options.key?(:escape) ? options.delete(:escape) : true
           @controller.send(:url_for, options)
         when :back
-          escape = false
           @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
         else
-          escape = false
           polymorphic_path(options)
         end
 
-        escape ? escape_once(url).html_safe : url
+        url
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
@@ -236,8 +225,8 @@ module ActionView
             tag_options = nil
           end
 
-          href_attr = "href=\"#{url}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{name || url}</a>".html_safe
+          href_attr = "href=\"#{html_escape(url)}\"" unless href
+          "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
         end
       end
 
@@ -308,7 +297,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{html_escape(url)}\" class=\"button-to\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 
@@ -454,28 +443,30 @@ module ActionView
       #            :subject => "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
+        email_address = html_escape(email_address)
+
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode").to_s
         cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
 
-        string = ''
-        extras = ''
-        extras << "cc=#{CGI.escape(cc).gsub("+", "%20")}&" unless cc.nil?
-        extras << "bcc=#{CGI.escape(bcc).gsub("+", "%20")}&" unless bcc.nil?
-        extras << "body=#{CGI.escape(body).gsub("+", "%20")}&" unless body.nil?
-        extras << "subject=#{CGI.escape(subject).gsub("+", "%20")}&" unless subject.nil?
-        extras = "?" << extras.gsub!(/&?$/,"") unless extras.empty?
+        extras = []
+        extras << "cc=#{Rack::Utils.escape(cc).gsub("+", "%20")}" unless cc.nil?
+        extras << "bcc=#{Rack::Utils.escape(bcc).gsub("+", "%20")}" unless bcc.nil?
+        extras << "body=#{Rack::Utils.escape(body).gsub("+", "%20")}" unless body.nil?
+        extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}" unless subject.nil?
+        extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
 
-        email_address_obfuscated = html_escape(email_address)
+        email_address_obfuscated = email_address.dup
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
 
+        string = ''
+
         if encode == "javascript"
-          html = content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:"+html_escape(email_address)+extras }))
-          "document.write('#{escape_javascript(html)}');".each_byte do |c|
+          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
-          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>"
+          "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
         elsif encode == "hex"
           email_address_encoded = ''
           email_address_obfuscated.each_byte do |c|
@@ -489,9 +480,9 @@ module ActionView
             char = c.chr
             string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
           end
-          content_tag "a", name || email_address_encoded.html_safe, html_options.merge({ "href" => "#{string}#{extras}" })
+          content_tag "a", name || email_address_encoded.html_safe, html_options.merge("href" => "#{string}#{extras}".html_safe)
         else
-          content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
+          content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
         end
       end
 
@@ -538,7 +529,7 @@ module ActionView
       #   current_page?(:controller => 'library', :action => 'checkout')
       #   # => false
       def current_page?(options)
-        url_string = CGI.unescapeHTML(url_for(options))
+        url_string = url_for(options)
         request = @controller.request
         # We ignore any extra parameters in the request_uri if the 
         # submitted url doesn't have any either.  This lets the function
