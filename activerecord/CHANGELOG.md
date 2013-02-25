@@ -181,6 +181,10 @@
 
     *Justin George*
 
+*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+
+    *Hiroshige UMINO*
+
 *   The database adpters now converts the options passed thought `DATABASE_URL`
     environment variable to the proper Ruby types before using. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the
