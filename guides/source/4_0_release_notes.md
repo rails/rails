@@ -200,6 +200,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Remove IdentityMap.
 
+*   Remove automatic execution of EXPLAIN queries. The option `active_record.auto_explain_threshold_in_seconds` is no longer used and should be removed.
+
 *   Adds `ActiveRecord::NullRelation` and `ActiveRecord::Relation#none` implementing the null object pattern for the Relation class.
 
 *   Added `create_join_table` migration helper to create HABTM join tables.
