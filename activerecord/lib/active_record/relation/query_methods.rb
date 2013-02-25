@@ -214,7 +214,7 @@ module ActiveRecord
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(*fields)
       if block_given?
-        to_a.select { |*block_args| yield(*block_args) }
+        super
       else
         raise ArgumentError, 'Call this with at least one field' if fields.empty?
         spawn.select!(*fields)

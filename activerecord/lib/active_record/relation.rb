@@ -14,7 +14,7 @@ module ActiveRecord
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation, ::Enumerable
 
     attr_reader :table, :klass, :loaded
     attr_accessor :default_scoped
@@ -198,10 +198,6 @@ module ActiveRecord
       @records
     end
 
-    def as_json(options = nil) #:nodoc:
-      to_a.as_json(options)
-    end
-
     # Returns size of the records.
     def size
       loaded? ? @records.length : count
@@ -218,7 +214,7 @@ module ActiveRecord
     # Returns true if there are any records.
     def any?
       if block_given?
-        to_a.any? { |*block_args| yield(*block_args) }
+        super
       else
         !empty?
       end
@@ -227,7 +223,7 @@ module ActiveRecord
     # Returns true if there is more than one record.
     def many?
       if block_given?
-        to_a.many? { |*block_args| yield(*block_args) }
+        super
       else
         limit_value ? to_a.many? : size > 1
       end
