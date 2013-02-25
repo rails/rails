@@ -2,8 +2,6 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'arel', github: 'rails/arel', branch: 'master'
-
 gem 'mocha', '~> 0.13.0', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
