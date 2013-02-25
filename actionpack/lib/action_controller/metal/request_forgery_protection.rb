@@ -26,9 +26,8 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # Though even for API requests it is a good practice to use CSRF protection.
-  # API clients can send the CSRF token in a header property called
-  # X-CSRF-Token which Rails checks for.
+  # Even for API requests you may want to use CSRF protection. API clients can send 
+  # the CSRF token in a header property called X-CSRF-Token which Rails checks for.
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
   # which checks the token and resets the session if it doesn't match what was expected.
