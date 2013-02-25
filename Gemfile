@@ -18,8 +18,6 @@ gem 'racc', '>=1.4.6', require: false
 # it being automatically loaded by sprockets
 gem 'uglifier', require: false
 
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
-
 group :doc do
   gem 'sdoc',  github: 'voloko/sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
