@@ -21,7 +21,7 @@ module Rails
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
-          opts.on("-P","--pid=pid",String,
+          opts.on("-P", "--pid=pid", String,
                   "Specifies the PID file.",
                   "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
 
