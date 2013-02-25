@@ -14,11 +14,14 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/toy'
+require 'models/owner'
+require 'models/pet'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments, :sponsors, :members
+           :posts, :tags, :taggings, :comments, :sponsors, :members,
+           :owners, :pets, :toys
 
   def test_belongs_to
     Client.find(3).firm.name
@@ -340,6 +343,98 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     topic.update_columns(content: "rails is wonderfull")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
+  end
+
+  def test_belongs_to_touch_after_create
+    owner = Owner.first
+    previously_owner_updated_at = owner.updated_at
+
+    owner.pets.create(:name => "Fluffy the Third")
+    owner.reload
+
+    assert_not_equal previously_owner_updated_at, owner.updated_at
+  end
+
+  def test_belongs_to_touch_after_update
+    pet   = Pet.first
+    owner = pet.owner
+    previously_owner_updated_at = owner.updated_at
+
+    pet.name = "Fluffy the Third"
+    pet.save
+
+    assert_not_equal previously_owner_updated_at, pet.owner.updated_at
+  end
+
+  def test_belongs_to_touch_after_destroy
+    pet   = Pet.first
+    owner = pet.owner
+    previously_owner_updated_at = owner.updated_at
+
+    pet.destroy
+
+    assert_not_equal previously_owner_updated_at, pet.owner.updated_at
+  end
+
+  def test_belongs_to_touch_after_touch
+    pet   = Pet.first
+    owner = pet.owner
+    previously_owner_updated_at = owner.updated_at
+
+    pet.touch
+
+    assert_not_equal previously_owner_updated_at, pet.owner.updated_at
+  end
+
+  def test_belongs_to_touch_with_specific_attribute
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Pet'; end
+      belongs_to :owner, :touch => :happy_at
+    end
+
+    pet   = klass.first
+    owner = pet.owner
+    previously_owner_happy_at = owner.happy_at
+
+    pet.name = "Fluffy the Third"
+    pet.save
+
+    assert_not_equal previously_owner_happy_at, pet.owner.happy_at
+  end
+
+  def test_belongs_to_touch_with_counter_cache
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Pet'; end
+      belongs_to :owner, :counter_cache => :use_count, :touch => true
+    end
+
+    pet = klass.first
+    owner = pet.owner
+    owner.update_columns(happy_at: 3.days.ago)
+    previously_owner_updated_at = owner.updated_at
+
+    pet.name = "I'm a parrot"
+    pet.save
+
+    assert_not_equal previously_owner_updated_at, pet.owner.updated_at
+  end
+
+  def test_belongs_to_touch_with_parent_having_belongs_to_touch_on_grandparent
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, :touch => true
+    end
+
+    toy = klass.first
+    pet = toy.pet
+    owner = pet.owner
+    time = 3.days.ago
+
+    owner.update_columns(updated_at: time)
+    toy.touch
+    owner.reload
+
+    assert_not_equal time, owner.updated_at
   end
 
   def test_assignment_before_child_saved

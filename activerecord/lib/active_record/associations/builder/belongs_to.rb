@@ -45,18 +45,22 @@ module ActiveRecord::Associations::Builder
 
     def add_touch_callbacks(reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_touch_after_save_or_destroy_for_#{name}
+        def belongs_to_touch_after_save_for_#{name}
           record = #{name}
+          record.touch(#{options[:touch].inspect if options[:touch] != true}) unless record.nil?
+        end
 
-          unless record.nil?
-            record.touch #{options[:touch].inspect if options[:touch] != true}
+        def belongs_to_touch_after_destroy_for_#{name}
+          unless marked_for_destruction?
+            record = #{name}
+            record.touch(#{options[:touch].inspect if options[:touch] != true}) unless record.nil?
           end
         end
       CODE
 
-      model.after_save    "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      model.after_touch   "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      model.after_destroy "belongs_to_touch_after_save_or_destroy_for_#{name}"
+      model.after_save    "belongs_to_touch_after_save_for_#{name}"
+      model.after_touch   "belongs_to_touch_after_save_for_#{name}"
+      model.after_destroy "belongs_to_touch_after_destroy_for_#{name}"
     end
 
     def valid_dependent_options
