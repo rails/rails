@@ -367,6 +367,13 @@ module ActiveRecord
     #
     #   # triggers @brake.car.touch and @brake.car.corporation.touch
     #   @brake.touch
+    #
+    # Note that +touch+ must be used on a persisted object, or else an
+    # ActiveRecordError will be thrown. For example:
+    #
+    #   ball = Ball.new
+    #   ball.touch(:updated_at)   # => raises ActiveRecordError
+    #
     def touch(name = nil)
       raise ActiveRecordError, "can not touch on a new record object" unless persisted?
 
