@@ -129,8 +129,12 @@ module Rails
         `start #{url}`
       when /mac|darwin/
         `open #{url}`
-      else
+      when /linux/
         `xdg-open #{url}`
+      when /cygwin/
+        `cygstart #{url}`
+      else
+        puts "I don't know how to open your default browser..."
       end
     end
   end
