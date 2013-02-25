@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent `DateTime#change` from truncating the second fraction, when seconds
+    do not need to be changed.
+
+    *Chris Baynes*
+
 *   Added `ActiveSupport::TimeWithZone#to_r` for `Time#at` compatibility.
 
     Before this change:
