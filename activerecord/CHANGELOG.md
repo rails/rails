@@ -3,8 +3,10 @@
 *   Fixing issue #8345. Now throwing an error when one attempts to touch a
     new object that has not yet been persisted. For instance:
 
-      ball = Ball.new
-      ball.touch :updated_at   # => raises error
+    Example:
+
+        ball = Ball.new
+        ball.touch :updated_at   # => raises error
 
     It is not until the ball object has been persisted that it can be touched.
     This follows the behavior of update_column.
@@ -32,7 +34,9 @@
 
     Example:
 
-           after_commit :update_cache on: [:create, :update]
+        after_commit :update_cache on: [:create, :update]
+
+    *Yves Senn*
 
 *   Rename related indexes on `rename_table` and `rename_column`. This
     does not affect indexes with custom names.
