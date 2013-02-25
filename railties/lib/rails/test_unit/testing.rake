@@ -1,6 +1,7 @@
 require 'rbconfig'
 require 'rake/testtask'
 require 'rails/test_unit/sub_test_task'
+require 'active_support/deprecation'
 
 TEST_CHANGES_SINCE = Time.now - 600
 
@@ -77,9 +78,13 @@ namespace :test do
     task :db => %w[db:test:prepare test:all]
   end
 
-  Rails::TestTask.new(recent: "test:prepare") do |t|
-    warn "DEPRECATION WARNING: `rake test:recent` is deprecated"
+  # Display deprecation message
+  task :deprecated do
+    task_name = ARGV.first
+    ActiveSupport::Deprecation.warn "`rake #{ARGV.first}` is deprecated with no replacement."
+  end
 
+  Rake::TestTask.new(recent: ["test:deprecated", "test:prepare"]) do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
       recent_tests('app/models/**/*.rb', 'test/models', since) +
@@ -89,11 +94,9 @@ namespace :test do
 
     t.test_files = touched.uniq
   end
-  Rake::Task['test:recent'].comment = "Test recent changes"
+  Rake::Task['test:recent'].comment = "Deprecated; Test recent changes"
 
-  Rails::TestTask.new(uncommitted: "test:prepare") do |t|
-    warn "DEPRECATION WARNING: `rake test:uncommitted` is deprecated"
-
+  Rake::TestTask.new(uncommitted: ["test:deprecated", "test:prepare"]) do |t|
     def t.file_list
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.split.map { |path| path.chomp[7 .. -1] }
@@ -113,7 +116,7 @@ namespace :test do
       (unit_tests + functional_tests).uniq.select { |file| File.exist?(file) }
     end
   end
-  Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
+  Rake::Task['test:uncommitted'].comment = "Deprecated; Test changes since last checkin (only Subversion and Git)"
 
   Rails::TestTask.new(single: "test:prepare")
 
