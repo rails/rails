@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Fixing issue #8345. Now throwing an error when one attempts to touch a
     new object that has not yet been persisted. For instance:

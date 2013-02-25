@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.

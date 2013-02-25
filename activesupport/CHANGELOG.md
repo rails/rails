@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Prevent `DateTime#change` from truncating the second fraction, when seconds
     do not need to be changed.

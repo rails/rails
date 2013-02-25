@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
     and calculates number of functions.

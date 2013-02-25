@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
 
