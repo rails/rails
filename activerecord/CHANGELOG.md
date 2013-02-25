@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixing issue #8345. Now throwing an error when one attempts to touch a
+    new object that has not yet been persisted. For instance:
+
+      ball = Ball.new
+      ball.touch :updated_at   # => raises error
+
+    It is not until the ball object has been persisted that it can be touched.
+    This follows the behavior of update_column.
+
+    *John Wang*
+
 *   Preloading ordered `has_many :through` associations no longer applies
     invalid ordering to the `:through` association.
     Fixes #8663.
