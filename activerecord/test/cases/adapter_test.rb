@@ -1,9 +1,23 @@
 require "cases/helper"
+require "models/book"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     def setup
       @connection = ActiveRecord::Base.connection
+    end
+
+    ##
+    # PostgreSQL does not support null bytes in strings
+    unless current_adapter?(:PostgreSQLAdapter)
+      def test_update_prepared_statement
+        b = Book.create(name: "my \x00 book")
+        b.reload
+        assert_equal "my \x00 book", b.name
+        b.update_attributes(name: "my other \x00 book")
+        b.reload
+        assert_equal "my other \x00 book", b.name
+      end
     end
 
     def test_tables
