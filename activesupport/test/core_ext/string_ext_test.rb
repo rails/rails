@@ -72,8 +72,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_titleize
-    MixtureToTitleCase.each do |before, titleized|
+    MixtureToTitleize.each do |before, titleized|
       assert_equal(titleized, before.titleize)
+    end
+  end
+
+  def test_titlecase
+    MixtureToTitleCase.each do |before, titlecased|
+      assert_equal(titlecased, before.titlecase)
     end
   end
 

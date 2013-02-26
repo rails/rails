@@ -118,14 +118,21 @@ module ActiveSupport
     # create a nicer looking title. +titleize+ is meant for creating pretty
     # output. It is not used in the Rails internals.
     #
-    # +titleize+ is also aliased as +titlecase+.
-    #
     #   'man from the boondocks'.titleize   # => "Man From The Boondocks"
     #   'x-men: the last stand'.titleize    # => "X Men: The Last Stand"
     #   'TheManWithoutAPast'.titleize       # => "The Man Without A Past"
     #   'raiders_of_the_lost_ark'.titleize  # => "Raiders Of The Lost Ark"
     def titleize(word)
       humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { $&.capitalize }
+    end
+
+    # Capitalizes all the words where words are defined as separated by whitespace
+    #
+    #   'man from the boondocks'.titlecase   # => "Man From The Boondocks"
+    #   'TheManWithoutAPast'.titlecase       # => "TheManWithoutAPast"
+    #   'ActiveSupport::Cache'.titlecase     # => "ActiveSupport::Cache"
+    def titlecase(word)
+      word.gsub(/\s(\w)/) { $&.upcase }.gsub(/^\W*\w/) { $&.upcase }
     end
 
     # Create the name of a table like Rails does for models to table names. This

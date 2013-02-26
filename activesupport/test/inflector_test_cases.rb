@@ -213,7 +213,7 @@ module InflectorTestCases
     "underground"     => "Underground"
   }
 
-  MixtureToTitleCase = {
+  MixtureToTitleize = {
     'active_record'         => 'Active Record',
     'ActiveRecord'          => 'Active Record',
     'action web service'    => 'Action Web Service',
@@ -229,7 +229,30 @@ module InflectorTestCases
     "maybe you'll be there" => "Maybe You'll Be There",
     "¿por qué?"             => '¿Por Qué?',
     "Fred’s"                => "Fred’s",
-    "Fred`s"                => "Fred`s"
+    "Fred`s"                => "Fred`s",
+    'ActiveSupport::Cache'  => 'Active Support/Cache',
+    'laissez-faire'         => 'Laissez Faire'
+  }
+
+  MixtureToTitleCase = {
+    'active_record'        => 'Active_record',
+    'active record'        => 'Active Record',
+    'action web service'    => 'Action Web Service',
+    'Action Web Service'    => 'Action Web Service',
+    'Action web service'    => 'Action Web Service',
+    'actionwebservice'      => 'Actionwebservice',
+    'Actionwebservice'      => 'Actionwebservice',
+    "david's code"          => "David's Code",
+    "David's code"          => "David's Code",
+    "david's Code"          => "David's Code",
+    "sgt. pepper's"         => "Sgt. Pepper's",
+    "i've just seen a face" => "I've Just Seen A Face",
+    "maybe you'll be there" => "Maybe You'll Be There",
+    "¿por qué?"             => '¿Por Qué?',
+    "Fred’s"                => "Fred’s",
+    "Fred`s"                => "Fred`s",
+    'ActiveSupport::Cache'  => 'ActiveSupport::Cache',
+    'laissez-faire'         => 'Laissez-faire'
   }
 
   OrdinalNumbers = {

@@ -78,9 +78,15 @@ class InflectorTest < ActiveSupport::TestCase
     ActiveSupport::Inflector.inflections.uncountable "series" # Return to normal
   end
 
-  MixtureToTitleCase.each do |before, titleized|
+  MixtureToTitleize.each do |before, titleized|
     define_method "test_titleize_#{before}" do
       assert_equal(titleized, ActiveSupport::Inflector.titleize(before))
+    end
+  end
+
+  MixtureToTitleCase.each do |before, titlecased|
+    define_method "test_titlecase_#{before}" do
+      assert_equal(titlecased, ActiveSupport::Inflector.titlecase(before))
     end
   end
 
