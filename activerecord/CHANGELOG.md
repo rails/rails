@@ -1,8 +1,8 @@
 ## unreleased ##
-*   Fixes issue with overrding ActiveRecord reader methods with a
-    composed object and using that attribute as the scope of a
-    validates_uniqueness_of validation.
-    Backport of #7072
+
+*   Fix issue with overriding Active Record reader methods with a composed object
+    and using that attribute as the scope of a `uniqueness_of` validation.
+    Backport #7072.
 
     *Peter Brown*
 
