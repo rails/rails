@@ -797,6 +797,16 @@ You should put the `root` route at the top of the file, because it is the most p
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
+You can also use root inside namespaces and scopes as well.  For example:
+
+```ruby
+namespace :admin do
+  root to: "admin#index"
+end
+
+root to: "home#index"
+```
+
 ### Unicode character routes
 
 You can specify unicode character routes directly. For example:
