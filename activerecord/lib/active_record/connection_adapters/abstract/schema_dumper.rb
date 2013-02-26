@@ -4,7 +4,7 @@ module ActiveRecord
     # definitions to the Adapter instead of having it in the schema
     # dumper itself. This code represents the normal case.
     # We can then redefine how certain data types may be handled in the schema dumper on the 
-    # Adapter level by over-writing this code inside the database spececific adapters
+    # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column, types)
         spec = prepare_column_options(column, types)

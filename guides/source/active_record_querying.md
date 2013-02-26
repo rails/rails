@@ -299,7 +299,7 @@ Client.first(2)
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM clients LIMIT 2
+SELECT * FROM clients ORDER BY id ASC LIMIT 2
 ```
 
 #### last
@@ -315,7 +315,7 @@ Client.last(2)
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM clients ORDER By id DESC LIMIT 2
+SELECT * FROM clients ORDER BY id DESC LIMIT 2
 ```
 
 ### Retrieving Multiple Objects in Batches

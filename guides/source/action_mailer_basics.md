@@ -116,7 +116,7 @@ Setting this up is painfully simple.
 First off, we need to create a simple `User` scaffold:
 
 ```bash
-$ rails generate scaffold user name:string email:string login:string
+$ rails generate scaffold user name email login
 $ rake db:migrate
 ```
 
@@ -447,7 +447,7 @@ end
 Action Mailer Callbacks
 ---------------------------
 
-Action Mailer allows for you to specify a `before_action`, `after_action` and 'around_action'.
+Action Mailer allows for you to specify a `before_action`, `after_action` and `around_action`.
 
 * Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
 
