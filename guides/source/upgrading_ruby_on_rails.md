@@ -49,7 +49,7 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 ### Active Resource
 
-Rails 4.0 extracted Active Resource to its our gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
+Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
 
 ### Active Model
 
