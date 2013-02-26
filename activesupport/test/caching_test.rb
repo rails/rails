@@ -672,6 +672,18 @@ class FileStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_delete_does_not_delete_empty_parent_dir
+    sub_cache_dir = File.join(cache_dir, 'subdir/')
+    sub_cache_store = ActiveSupport::Cache::FileStore.new(sub_cache_dir)
+    assert_nothing_raised(Exception) do
+      assert sub_cache_store.write('foo', 'bar')
+      assert sub_cache_store.delete('foo')
+    end
+    assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
+    assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
+    assert Dir.entries(sub_cache_dir).reject {|f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f)}.empty?
+  end
+
   def test_log_exception_when_cache_read_fails
     File.expects(:exist?).raises(StandardError, "failed")
     @cache.send(:read_entry, "winston", {})

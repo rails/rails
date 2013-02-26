@@ -150,9 +150,9 @@ module ActiveSupport
 
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
-          return if dir == cache_path
+          return if File.realpath(dir) == File.realpath(cache_path)
           if Dir.entries(dir).reject {|f| EXCLUDED_DIRS.include?(f)}.empty?
-            File.delete(dir) rescue nil
+            Dir.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end
         end
