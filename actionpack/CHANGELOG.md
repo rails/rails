@@ -8,6 +8,7 @@
     pass an array of hashes with the options you want to use.
 
     Example:
+    
         video_tag([{ src: 'trailer.ogg', type: 'video/ogg'}])
         # => <video><source src="/videos/trailer.ogg" type="video/ogg" /></video>
 
