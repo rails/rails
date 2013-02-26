@@ -50,6 +50,11 @@ module ActionView
         end
       end
 
+      def add_stmt(src, code)
+        flush_newline_if_pending(src)
+        super
+      end
+
       def add_postamble(src)
         flush_newline_if_pending(src)
         src << '@output_buffer.to_s'
