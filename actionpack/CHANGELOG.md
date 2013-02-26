@@ -1,9 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Don't verify Regexp requirements for non-Regexp `:constraints`.
+    Fixes #9432.
+
+    Example:
+
+        get '/photos.:format' => 'feeds#photos', constraints: {format: 'xml'}
+
+    *Yves Senn*
+
 *   Make `ActionDispatch::Journey::Path::Pattern#new` raise more meaningful exception message.
 
     *Thierry Zires*
-
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
