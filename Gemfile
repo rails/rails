@@ -9,9 +9,6 @@ gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0.beta1'
 
-# Needed for compiling the ActionDispatch::Journey parser
-gem 'racc', '>=1.4.6', require: false
-
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', require: false
@@ -40,6 +37,9 @@ end
 platforms :ruby do
   gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
+
+  # Needed for compiling the ActionDispatch::Journey parser
+  gem 'racc', '>=1.4.6', require: false
 
   # AR
   gem 'sqlite3', '~> 1.3.6'
