@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+
+    *Hiroshige UMINO*
+
 *   Fix issue with overriding Active Record reader methods with a composed object
     and using that attribute as the scope of a `uniqueness_of` validation.
     Backport #7072.
