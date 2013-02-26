@@ -1,4 +1,10 @@
 ## unreleased ##
+*   Fixes issue with overrding ActiveRecord reader methods with a
+    composed object and using that attribute as the scope of a
+    validates_uniqueness_of validation.
+    Backport of #7072
+
+    *Peter Brown*
 
 *   Sqlite now preserves custom primary keys when copying or altering tables.
     Fixes #9367.
