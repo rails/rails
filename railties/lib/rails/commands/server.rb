@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
+require 'rbconfig'
 
 module Rails
   class Server < ::Rack::Server
@@ -18,6 +19,7 @@ module Rails
                   "Use custom rackup configuration file") { |v| options[:config] = v }
           opts.on("-d", "--daemon", "Make server run as a Daemon.") { options[:daemonize] = true }
           opts.on("-u", "--debugger", "Enable the debugger") { options[:debugger] = true }
+          opts.on("-o", "--open", "Open in default browser.") { options[:open] = true }
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
@@ -77,6 +79,8 @@ module Rails
         Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
       end
 
+      open_in_browser(url) if options[:open]
+
       super
     ensure
       # The '-h' option calls exit before @options is set.
@@ -111,9 +115,27 @@ module Rails
         environment:  (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:    false,
         debugger:     false,
+        open:         false,
         pid:          File.expand_path("tmp/pids/server.pid"),
         config:       File.expand_path("config.ru")
       })
+    end
+
+    def open_in_browser(url)
+      host_os = RbConfig::CONFIG['host_os']
+
+      case host_os
+      when /mswin|mingw/
+        `start #{url}`
+      when /mac|darwin/
+        `open #{url}`
+      when /linux/
+        `xdg-open #{url}`
+      when /cygwin/
+        `cygstart #{url}`
+      else
+        puts "I don't know how to open your default browser..."
+      end
     end
   end
 end
