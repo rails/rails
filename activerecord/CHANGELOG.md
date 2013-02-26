@@ -1,8 +1,4 @@
-## Rails 4.0.0.beta1 (February 25, 2013) ##
-
-*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
-
-    *Hiroshige UMINO*
+## Rails 4.0.0 (unreleased) ##
 
 *   Fix when performing an ordered join query. The bug only
     affected queries where the order was given with a symbol.
@@ -12,6 +8,17 @@
 
         # This will expand the order :name to "authors".name.
         Author.joins(:books).where('books.published = 1').order(:name)
+
+
+## Rails 4.0.0.beta1 (February 25, 2013) ##
+
+*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+
+    *Hiroshige UMINO*
+
+*   Update queries now use prepared statements.
+
+    *Olli Rissanen*
 
 *   Fixing issue #8345. Now throwing an error when one attempts to touch a
     new object that has not yet been persisted. For instance:

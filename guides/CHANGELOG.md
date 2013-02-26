@@ -1,3 +1,6 @@
+## Rails 4.0.0 (unreleased) ##
+
+
 ## Rails 4.0.0.beta1 (unreleased) ##
 
 *   Split Validations and Callbacks guide into two. *Steve Klabnik*
