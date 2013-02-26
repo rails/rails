@@ -11,6 +11,8 @@ require 'models/car'
 require 'models/engine'
 require 'models/wheel'
 require 'models/treasure'
+require 'models/invoice'
+require 'models/line_item'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -162,6 +164,13 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p1.touch
     assert_equal 1, p1.lock_version
+  end
+  
+  def test_touch_related_model_updates_lock_in_memory
+    p = Person.find(1)
+    lock_version = p.lock_version
+    p.references.first.touch
+    assert_equal lock_version + 1, p.lock_version
   end
 
   def test_lock_column_name_existing
