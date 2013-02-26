@@ -16,7 +16,8 @@ module ActionView
         else
           src << "@output_buffer.safe_append='"
           src << "\n" * @newline_pending if @newline_pending > 0
-          src << escape_text(text) << "';"
+          src << escape_text(text)
+          src << "';"
 
           @newline_pending = 0
         end
@@ -44,9 +45,9 @@ module ActionView
         flush_newline_if_pending(src)
         if code =~ BLOCK_EXPR
           # src << "@output_buffer.safe_append= " << code
-          fail '<%== not supported before Rails3'
+          fail '<%== with a block helper not supported before Rails3'
         else
-          src << "@output_buffer.safe_concat((" << code << ").to_s);"
+          src << "@output_buffer.safe_append=(" << code << ");"
         end
       end
 
