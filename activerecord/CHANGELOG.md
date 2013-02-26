@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+
+    *Hiroshige UMINO*
+
 *   Sqlite now preserves custom primary keys when copying or altering tables.
     Fixes #9367.
     Backport #2312.

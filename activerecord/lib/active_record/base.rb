@@ -553,7 +553,6 @@ module ActiveRecord #:nodoc:
         @new_record  = true
 
         ensure_proper_type
-        populate_with_current_scope_attributes
         super
       end
 
