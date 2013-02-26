@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not try to touch invalid (and thus not persisted) parent record
+    for a `belongs_to :parent, touch: true` association
+
+    *Olek Janiszewski*
+
 *   Fix when performing an ordered join query. The bug only
     affected queries where the order was given with a symbol.
     Fixes #9275.
@@ -12,7 +17,7 @@
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
-*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+*   Fix overriding of attributes by `default_scope` on `ActiveRecord::Base#dup`.
 
     *Hiroshige UMINO*
 

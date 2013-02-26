@@ -48,7 +48,7 @@ module ActiveRecord::Associations::Builder
         def belongs_to_touch_after_save_or_destroy_for_#{name}
           record = #{name}
 
-          unless record.nil?
+          unless record.nil? || record.new_record?
             record.touch #{options[:touch].inspect if options[:touch] != true}
           end
         end
