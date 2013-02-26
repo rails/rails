@@ -3,6 +3,8 @@
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
+*   Make ActionDispatch::Journey::Path::Pattern#new raise more meaningful exception message. *Thierry Zires*
+
 *   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
 
 *   New applications use an encrypted session store by default.
