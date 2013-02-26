@@ -3380,6 +3380,42 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
   end
 end
 
+class TestFormatConstraints < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get '/string', to: ok, constraints: { format: 'json'  }
+      get '/regexp',  to: ok, constraints: { format: /json/ }
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  def test_string_format_constraints
+    get 'http://www.example.com/string'
+    assert_response :success
+
+    get 'http://www.example.com/string.json'
+    assert_response :success
+
+    get 'http://www.example.com/string.html'
+    assert_response :not_found
+  end
+
+  def test_regexp_format_constraints
+    get 'http://www.example.com/regexp'
+    assert_response :success
+
+    get 'http://www.example.com/regexp.json'
+    assert_response :success
+
+    get 'http://www.example.com/regexp.html'
+    assert_response :not_found
+  end
+end
+
 class TestRouteDefaults < ActionDispatch::IntegrationTest
   stub_controllers do |routes|
     Routes = routes
