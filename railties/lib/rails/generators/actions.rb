@@ -215,7 +215,7 @@ module Rails
 
       # Make an entry in Rails routing file config/routes.rb
       #
-      #   route "root :to => 'welcome#index'"
+      #   route "root 'welcome#index'"
       def route(routing_code)
         log :route, routing_code
         sentinel = /\.routes\.draw do\s*$/
