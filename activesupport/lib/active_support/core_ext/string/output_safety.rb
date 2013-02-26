@@ -136,7 +136,7 @@ module ActiveSupport #:nodoc:
     end
 
     def safe_concat(value)
-      raise SafeConcatError unless html_safe?
+      raise SafeConcatError unless @html_safe
       original_concat(value)
     end
 
