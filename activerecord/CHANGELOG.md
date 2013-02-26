@@ -1,3 +1,13 @@
+*   Expand `#cache_key` to consult all relevant updated timestamps.
+
+    Previously only `updated_at` column was checked, now it will
+    consult other columns that received updated timestamps on save,
+    such as `updated_on`.  When multiple columns are present it will
+    use the most recent timestamp.
+    Fixes #9033.
+
+    *Brendon Murphy*
+
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
