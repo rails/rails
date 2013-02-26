@@ -456,6 +456,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal("/", routes.send(:root_path))
   end
 
+  def test_named_route_root_with_hash
+    rs.draw do
+      root "hello#index", as: :index
+    end
+
+    routes = setup_for_named_route
+    assert_equal("http://test.host/", routes.send(:index_url))
+    assert_equal("/", routes.send(:index_path))
+  end
+
+  def test_root_without_path_raises_argument_error
+    assert_raises ArgumentError do
+      rs.draw { root nil }
+    end
+  end
+
   def test_named_route_root_with_trailing_slash
     rs.draw do
       root "hello#index"
