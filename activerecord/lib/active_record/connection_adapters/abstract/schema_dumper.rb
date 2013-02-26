@@ -55,8 +55,8 @@ module ActiveRecord
           when IPAddr
             subnet_mask = value.instance_variable_get(:@mask_addr)
 
-            # If the subnet mask is equal to /32, don't output it
-            if subnet_mask == (2**32 - 1)
+            # If the subnet mask is equal to /32 for IPv4 or /128 for IPv6, don't output it
+            if (value.ipv4? && subnet_mask == IPAddr::IN4MASK) || subnet_mask == IPAddr::IN6MASK
               "\"#{value.to_s}\""
             else
               "\"#{value.to_s}/#{subnet_mask.to_s(2).count('1')}\""

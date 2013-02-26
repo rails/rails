@@ -262,7 +262,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_inet_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_network_addresses"} =~ output
-        assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1"}, output
+        assert_match %r{t.inet\s+"inet_address_v4",\s+default: "192.168.1.1"}, output
+        assert_match %r{t.inet\s+"inet_address_v6",\s+default: "2001:db8:85a3::8a2e:370:7334"}, output
       end
     end
 

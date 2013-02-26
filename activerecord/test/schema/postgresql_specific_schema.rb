@@ -146,7 +146,8 @@ _SQL
   CREATE TABLE postgresql_network_addresses (
     id SERIAL PRIMARY KEY,
     cidr_address CIDR default '192.168.1.0/24',
-    inet_address INET default '192.168.1.1',
+    inet_address_v4 INET default '192.168.1.1',
+    inet_address_v6 INET default '2001:0db8:85a3:0000:0000:8a2e:0370:7334/128',
     mac_address MACADDR default 'ff:ff:ff:ff:ff:ff'
   );
 _SQL
