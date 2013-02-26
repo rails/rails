@@ -1346,7 +1346,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'en', @request.params[:locale]
   end
 
-  def test_default_params
+  def test_default_string_params
     draw do
       get 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
       get 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
@@ -1364,6 +1364,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/scoped_pages'
     assert_equal 'home', @request.params[:id]
+  end
+
+  def test_default_integer_params
+    draw do
+      get 'inline_pages/(:page)', to: 'pages#show', page: 1
+      get 'default_pages/(:page)', to: 'pages#show', defaults: { page: 1 }
+
+      defaults page: 1 do
+        get 'scoped_pages/(:page)', to: 'pages#show'
+      end
+    end
+
+    get '/inline_pages'
+    assert_equal 1, @request.params[:page]
+
+    get '/default_pages'
+    assert_equal 1, @request.params[:page]
+
+    get '/scoped_pages'
+    assert_equal 1, @request.params[:page]
   end
 
   def test_resource_constraints
