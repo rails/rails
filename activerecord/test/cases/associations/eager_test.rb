@@ -1173,4 +1173,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
     assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
   end
+
+  test "works in combination with order(:symbol)" do
+    author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
+    assert_equal authors(:bob), author
+  end
 end
