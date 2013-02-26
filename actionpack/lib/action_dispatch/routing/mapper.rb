@@ -329,7 +329,6 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          options = { :to => options } if options.is_a?(String)
           match '/', { :as => :root, :via => :get }.merge!(options)
         end
 
@@ -1427,7 +1426,15 @@ module ActionDispatch
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
 
-        def root(options={})
+        def root(path, options={})
+          if path.is_a?(String)
+            options[:to] = path
+          elsif path.is_a?(Hash) and options.empty?
+            options = path
+          else
+            raise ArgumentError, "must be called with a path and/or options"
+          end
+
           if @scope[:scope_level] == :resources
             with_scope_level(:root) do
               scope(parent_resource.path) do
