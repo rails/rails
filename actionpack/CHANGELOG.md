@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Skip valid encoding checks for non-String parameters that come
+    from the matched route's defaults.
+    Fixes #9435.
+
+    Example:
+
+        root to: 'main#posts', page: 1
+
+    *Yves Senn*
+
 *   Don't verify Regexp requirements for non-Regexp `:constraints`.
     Fixes #9432.
 
