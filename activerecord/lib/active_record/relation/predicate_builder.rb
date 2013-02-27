@@ -40,9 +40,6 @@ module ActiveRecord
           when Class
             # FIXME: I think we need to deprecate this behavior
             attribute.eq(value.name)
-          when Integer, ActiveSupport::Duration
-            # Arel treats integers as literals, but they should be quoted when compared with strings
-            attribute.eq(Arel::Nodes::SqlLiteral.new(@engine.connection.quote(value, attribute.column)))
           else
             attribute.eq(value)
           end
