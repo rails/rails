@@ -79,23 +79,20 @@ module ActiveRecord
         end
 
         class Range < Type
-          attr_reader :subtype
-          def initialize(subtype)
-            @subtype = subtype
+          attr_reader :left_type, :right_type
+          def initialize(left_type, right_type)
+            @left_type  = left_type
+            @right_type = right_type
           end
 
           def extract_bounds(value)
             from, to = value[1..-2].split(',')
             {
-              from:          (value[1] == ',' || from == '-infinity') ? infinity(:negative => true) : from,
+              from:          (value[1] == ',' || from == '-infinity') ? -1 : from,
               to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
               exclude_start: (value[0] == '('),
               exclude_end:   (value[-1] == ')')
             }
-          end
-
-          def infinity(options = {})
-            ::Float::INFINITY * (options[:negative] ? -1 : 1)
           end
 
           def infinity?(value)
@@ -109,30 +106,26 @@ module ActiveRecord
           def type_cast(value)
             return if value.nil? || value == 'empty'
             return value if value.is_a?(::Range)
+            return unless range_compatible_type?(@left_type) && range_compatible_type?(@right_type)
 
             extracted = extract_bounds(value)
-
-            case @subtype
-            when :date
-              from  = ConnectionAdapters::Column.value_to_date(extracted[:from])
-              from -= 1.day if extracted[:exclude_start]
-              to    = ConnectionAdapters::Column.value_to_date(extracted[:to])
-            when :decimal
-              from  = BigDecimal.new(extracted[:from].to_s)
-              # FIXME: add exclude start for ::Range, same for timestamp ranges
-              to    = BigDecimal.new(extracted[:to].to_s)
-            when :time
-              from = ConnectionAdapters::Column.string_to_time(extracted[:from])
-              to   = ConnectionAdapters::Column.string_to_time(extracted[:to])
-            when :integer
-              from = to_integer(extracted[:from]) rescue value ? 1 : 0
-              from -= 1 if extracted[:exclude_start]
-              to   = to_integer(extracted[:to]) rescue value ? 1 : 0
-            else
-              return value
-            end
+            
+            # Use polymorphism instead of case/when 
+            from = @left_type.type_cast extracted[:from]
+            to   = @right_type.type_cast extracted[:to]
+            
+            from += 1 if extracted[:exclude_start]
 
             ::Range.new(from, to, extracted[:exclude_end])
+          end
+          
+          def range_compatible_type?(type)
+            case type
+            when Date, Time, Decimal, Integer
+              true
+            else
+              false
+            end
           end
         end
 
@@ -140,7 +133,7 @@ module ActiveRecord
           def type_cast(value)
             return if value.nil?
 
-            ConnectionAdapters::Column.value_to_integer value
+            ConnectionAdapters::Column.value_to_integer(value) rescue value ? 1 : 0
           end
         end
 
@@ -166,14 +159,14 @@ module ActiveRecord
 
         class Date < Type
           def type; :datetime; end
-
+          
           def type_cast(value)
             return if value.nil?
 
             # FIXME: probably we can improve this since we know it is PG
             # specific
             ConnectionAdapters::Column.value_to_date value
-          end
+          end  
         end
 
         class Time < Type
@@ -182,7 +175,7 @@ module ActiveRecord
 
             # FIXME: probably we can improve this since we know it is PG
             # specific
-            ConnectionAdapters::Column.string_to_dummy_time value
+            ConnectionAdapters::Column.string_to_time value
           end
         end
 
@@ -197,15 +190,15 @@ module ActiveRecord
         class Decimal < Type
           def type_cast(value)
             return if value.nil?
-
-            ConnectionAdapters::Column.value_to_decimal value
+            
+            BigDecimal.new(value.to_s)
           end
         end
 
         class Hstore < Type
-          def type_cast(value)
-            return if value.nil?
-
+          def type_cast_of_from(extracted)
+            return if extracted.nil?
+            
             ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
           end
         end
@@ -254,7 +247,7 @@ module ActiveRecord
             # When dealing with decimal columns:
             #
             # places after decimal  = fmod - 4 & 0xffff
-            # places before decimal = (fmod - 4) >> 16 & 0xffff
+            # places before decimal = (fmod - 4) > 16 & 0xffff
             if ftype == 1700 && (fmod - 4 & 0xffff).zero?
               ftype = 23
             end
@@ -295,10 +288,10 @@ module ActiveRecord
         alias_type    'int8', 'int2'
         alias_type    'oid',  'int2'
 
-        register_type 'daterange', OID::Range.new(:date)
-        register_type 'numrange', OID::Range.new(:decimal)
-        register_type 'tsrange', OID::Range.new(:time)
-        register_type 'int4range', OID::Range.new(:integer)
+        register_type 'daterange', OID::Range.new(OID::Date.new, OID::Date.new)
+        register_type 'numrange', OID::Range.new(OID::Decimal.new, OID::Decimal.new)
+        register_type 'tsrange', OID::Range.new(OID::Time.new, OID::Time.new)
+        register_type 'int4range', OID::Range.new(OID::Integer.new, OID::Integer.new)
         alias_type    'tstzrange', 'tsrange'
         alias_type    'int8range', 'int4range'
 
