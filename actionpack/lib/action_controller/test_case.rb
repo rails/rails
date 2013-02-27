@@ -106,7 +106,7 @@ module ActionController
           end
         assert matches_template, msg
       when Hash
-        options.assert_valid_keys(:layout, :partial, :locals, :count)
+        options.assert_valid_keys(:layout, :partial, :locals, :count, :file)
 
         if options.key?(:layout)
           expected_layout = options[:layout]
