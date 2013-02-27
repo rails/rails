@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Revert 408227d9c5ed7d, 'quote numeric'. This introduced some regressions.
+
+    *Steve Klabnik*
+
 *   Fix calculation of `db_runtime` property in
    `ActiveRecord::Railties::ControllerRuntime#cleanup_view_runtime`.
     Previously, after raising `ActionView::MissingTemplate`, `db_runtime` was
