@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Reverted 921a296a3390192a71abeec6d9a035cc6d1865c8, 'Quote numeric values
+    compared to string columns.' This caused several regressions.
+
+    *Steve Klabnik*
+
 *   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
 
     *Hiroshige UMINO*
