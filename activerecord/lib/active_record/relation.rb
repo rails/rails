@@ -376,9 +376,7 @@ module ActiveRecord
     # Deletes the records matching +conditions+ without instantiating the records
     # first, and hence not calling the +destroy+ method nor invoking callbacks. This
     # is a single SQL DELETE statement that goes straight to the database, much more
-    # efficient than +destroy_all+. Be careful with relations though, in particular
-    # <tt>:dependent</tt> rules defined on associations are not honored. Returns the
-    # number of rows affected.
+    # efficient than +destroy_all+. Returns the number of rows affected.
     #
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
@@ -392,6 +390,24 @@ module ActiveRecord
     #
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit scope
+    #
+    # Be careful with relations though, in particular <tt>:dependent</tt> rules defined
+    # on associations are not honored. Please note that in this case the delete_all operation
+    # is being invoked on models directly. The delete_all operation does honor <tt>:dependent</tt>
+    # rule if the delete_all is being invoked on an associated collection. For example in the
+    # following case <tt>:dependent</tt> option will be honored.
+    #
+    #   class Post < ActiveRecord::Base
+    #      has_many :comments, dependent: :destroy
+    #   end
+    #   class Comment < ActiveRecord::Base
+    #     before_destroy :show_msg
+    #     def show_msg; puts 'I am comment'; end
+    #   end
+    #
+    #   #=> Post.last.comments.delete_all
+    #
+    # In the above case the before destroy callbacks will be invoked .
     def delete_all(conditions = nil)
       raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
 
