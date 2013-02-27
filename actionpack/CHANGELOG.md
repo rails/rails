@@ -16,6 +16,12 @@
 
     *Yves Senn*
 
+*   Fixed regression when using `assert_template` to verify files sent using
+    `render file: 'README.md'`.
+    Fixes #9464.
+
+    *Justin Coyne*
+
 *   Skip valid encoding checks for non-String parameters that come
     from the matched route's defaults.
     Fixes #9435.
