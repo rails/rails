@@ -25,6 +25,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_construct_finder_sql_handles_integer_comparison_with_table_aliases
+    assert_nothing_raised do
+      sql = Person.joins(:agents).where('agents_people.followers_count' => 0).to_sql
+      assert_match(/agents_people/, sql)
+    end
+  end
+
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
     assert_no_match(/JOIN/i, sql)
