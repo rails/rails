@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   No changes.
+
+
+## Rails 3.2.13 (Feb 17, 2013) ##
+
 *   Determine the controller#action from only the matched path when using the
     shorthand syntax. Previously the complete path was used, which led
     to problems with nesting (scopes and namespaces).
