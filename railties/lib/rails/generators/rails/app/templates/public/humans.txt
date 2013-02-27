@@ -1,0 +1,9 @@
+/* TEAM */
+
+/* THANKS */
+
+/* SITE */
+Last update: <%= Date.today.to_s.gsub('-','/') %>
+Standards: HTML5, CSS3, ...
+Components: Rails
+Software: /* Software used for the development */
