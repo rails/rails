@@ -96,6 +96,10 @@ class ActionPackAssertionsController < ActionController::Base
     raise "post" if request.post?
     render :text => "request method: #{request.env['REQUEST_METHOD']}"
   end
+
+  def render_file
+    render :file => "test/hello_world"
+  end
 end
 
 # Used to test that assert_response includes the exception message
@@ -140,6 +144,11 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_tag_and_url_for
     get :render_url
     assert_tag :content => "/action_pack_assertions/flash_me"
+  end
+
+  def test_assert_file
+    get :render_file
+    assert_equal @response.body, 'Hello world!'
   end
 
   def test_get_request
@@ -439,6 +448,11 @@ class AssertTemplateTest < ActionController::TestCase
   def test_with_partial
     get :partial
     assert_template :partial => '_partial'
+  end
+
+  def test_with_file
+    get :partial
+    assert_template :file => '_partial'
   end
 
   def test_with_nil_passes_when_no_template_rendered
