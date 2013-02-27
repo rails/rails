@@ -122,35 +122,35 @@ module ActiveRecord
       def test_quote_float
         float = 1.2
         assert_equal float.to_s, @quoter.quote(float, nil)
-        assert_equal float.to_s, @quoter.quote(float, FakeColumn.new(:float))
+        assert_equal float.to_s, @quoter.quote(float, Object.new)
       end
 
       def test_quote_fixnum
         fixnum = 1
         assert_equal fixnum.to_s, @quoter.quote(fixnum, nil)
-        assert_equal fixnum.to_s, @quoter.quote(fixnum, FakeColumn.new(:integer))
+        assert_equal fixnum.to_s, @quoter.quote(fixnum, Object.new)
       end
 
       def test_quote_bignum
         bignum = 1 << 100
         assert_equal bignum.to_s, @quoter.quote(bignum, nil)
-        assert_equal bignum.to_s, @quoter.quote(bignum, FakeColumn.new(:integer))
+        assert_equal bignum.to_s, @quoter.quote(bignum, Object.new)
       end
 
       def test_quote_bigdecimal
         bigdec = BigDecimal.new((1 << 100).to_s)
         assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, nil)
-        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, FakeColumn.new(:decimal))
+        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, Object.new)
       end
 
       def test_dates_and_times
         @quoter.extend(Module.new { def quoted_date(value) 'lol' end })
         assert_equal "'lol'", @quoter.quote(Date.today, nil)
-        assert_equal "'lol'", @quoter.quote(Date.today, FakeColumn.new(:date))
+        assert_equal "'lol'", @quoter.quote(Date.today, Object.new)
         assert_equal "'lol'", @quoter.quote(Time.now, nil)
-        assert_equal "'lol'", @quoter.quote(Time.now, FakeColumn.new(:time))
+        assert_equal "'lol'", @quoter.quote(Time.now, Object.new)
         assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
-        assert_equal "'lol'", @quoter.quote(DateTime.now, FakeColumn.new(:datetime))
+        assert_equal "'lol'", @quoter.quote(DateTime.now, Object.new)
       end
 
       def test_crazy_object
