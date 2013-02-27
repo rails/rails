@@ -54,8 +54,10 @@ module ActionView
         render_dependencies + explicit_dependencies
       end
 
+      attr_reader :name, :template
+      private :name, :template
+
       private
-        attr_reader :name, :template
 
         def source
           template.source
