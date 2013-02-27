@@ -1,4 +1,5 @@
 require 'rails/railtie'
+require 'rails/engine/railties'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
 require 'rbconfig'
@@ -467,7 +468,7 @@ module Rails
     end
 
     def railties
-      @railties ||= self.class::Railties.new
+      @railties ||= Railties.new
     end
 
     # Returns a module with all the helpers defined for the engine.
