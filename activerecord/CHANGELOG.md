@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add an `add_index` override in Postgresql adapter and MySQL adapter
+    to allow custom index type support. Fixes #6101.
+
+    *Stefan Huber*
+
 *   Do not try to touch invalid (and thus not persisted) parent record
     for a `belongs_to :parent, touch: true` association
 
