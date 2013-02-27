@@ -74,7 +74,7 @@ module ActionDispatch
       def destroy
         clear
         options = self.options || {}
-        new_sid = @by.send(:destroy_session, @env, options[:id], options)
+        new_sid = @by.destroy_session @env, options[:id], options
         options[:id] = new_sid # Reset session id with a new value or nil
 
         # Load the new sid to be written with the response
