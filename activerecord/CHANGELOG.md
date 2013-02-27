@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Throw `NotImplementedError` when trying to instantiate Base or an abstract class.
+
+    *Aaron Weiner*
+
 *   Postgresql timestamp with time zone (timestamptz) datatype now returns a
     ActiveSupport::TimeWithZone instance instead of a string
 
