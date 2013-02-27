@@ -129,7 +129,7 @@ module ActionDispatch
             end
 
             if options[:format] == true
-              @requirements[:format] = /.+/
+              @requirements[:format] ||= /.+/
             elsif Regexp === options[:format]
               @requirements[:format] = options[:format]
             elsif String === options[:format]
