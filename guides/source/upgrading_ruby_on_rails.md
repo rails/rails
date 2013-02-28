@@ -47,6 +47,8 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) to a smoothly upgrade path.
 
+* Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
+
 ### Active Resource
 
 Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
