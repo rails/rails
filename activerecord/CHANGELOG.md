@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix ActiveRecord `subclass_from_attrs` when eager_load is false.
+    It cannot find subclass because all classes are loaded automatically
+    when it needs.
+
+    *Dmitry Vorotilin*
+
 *   Assigning "0.0" to a nullable numeric column does not make it dirty.
     Fix #9034.
 
