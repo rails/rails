@@ -62,6 +62,7 @@ module ActionController
     # Process controller specific options, as status, content-type and location.
     def _process_options(options) #:nodoc:
       status, content_type, location = options.values_at(:status, :content_type, :location)
+      location = location.call if location.respond_to?(:call)
 
       self.status = status if status
       self.content_type = content_type if content_type

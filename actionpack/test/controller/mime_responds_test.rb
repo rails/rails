@@ -562,6 +562,16 @@ class RespondWithController < ActionController::Base
     respond_with(resource, :location => "http://test.host/", :status => :created)
   end
 
+  def using_resource_with_location_proc
+    @customer = Customer.new("david", 13)
+    respond_with(@customer, :location => proc { "http://test.host/customers/#{@customer.id}" })
+  end
+
+  def using_resource_with_bad_location_proc
+    @customer = Customer.new("david", 13)
+    respond_with(@customer, :location => proc { raise "bad" })
+  end
+
   def using_invalid_resource_with_template
     respond_with(resource)
   end
@@ -1084,6 +1094,24 @@ class RespondWithControllerTest < ActionController::TestCase
     put :using_resource_with_status_and_location
     assert_equal errors.to_xml, @response.body
     assert_equal 422, @response.status
+    assert_equal nil, @response.location
+  end
+
+  def test_using_resource_with_location_proc
+    @request.accept = "text/html"
+    post :using_resource_with_location_proc
+
+    assert @response.redirect?
+    assert_equal "http://test.host/customers/13", @response.location
+  end
+
+  def test_using_resource_with_bad_location_proc
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    @request.accept = "text/xml"
+    post :using_resource_with_bad_location_proc
+
     assert_equal nil, @response.location
   end
 
