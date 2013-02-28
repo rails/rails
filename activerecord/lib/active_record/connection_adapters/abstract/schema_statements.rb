@@ -156,7 +156,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = table_definition
+        td = create_table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
         yield td if block_given?
@@ -298,10 +298,10 @@ module ActiveRecord
       def change_table(table_name, options = {})
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
-          yield Table.new(table_name, recorder)
+          yield update_table_definition(table_name, recorder)
           bulk_change_table(table_name, recorder.commands)
         else
-          yield Table.new(table_name, self)
+          yield update_table_definition(table_name, self)
         end
       end
 
@@ -727,8 +727,12 @@ module ActiveRecord
         end
 
       private
-      def table_definition
+      def create_table_definition
         TableDefinition.new(self)
+      end
+
+      def update_table_definition(table_name, base)
+        Table.new(table_name, base)
       end
     end
   end

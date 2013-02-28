@@ -65,6 +65,21 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_equal :hstore, @column.type
   end
 
+  def test_change_table_supports_hstore
+    @connection.transaction do
+      @connection.change_table('hstores') do |t|
+        t.hstore 'users', default: ''
+      end
+      Hstore.reset_column_information
+      column = Hstore.columns.find { |c| c.name == 'users' }
+      assert_equal :hstore, column.type
+
+      raise ActiveRecord::Rollback # reset the schema change
+    end
+  ensure
+    Hstore.reset_column_information
+  end
+
   def test_type_cast_hstore
     assert @column
 
