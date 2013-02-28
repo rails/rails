@@ -101,6 +101,19 @@ becomes
 get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
+* Rails 4.0 requires routes using `match` must specify the request method. For example:
+
+```ruby
+  # Rails 3.x
+  match "/" => "root#index"
+
+  # becomes
+  match "/" => "root#index", via: :get
+
+  # or
+  get "/" => "root#index"
+```
+
 * Rails 4.0 has removed ActionDispatch::BestStandardsSupport middleware, !DOCTYPE html already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`
 
 Remember you must also remove any references to the middleware from your application code, for example:
