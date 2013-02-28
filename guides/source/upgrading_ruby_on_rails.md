@@ -66,7 +66,16 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 ### Action Pack
 
-* There is an upgrading cookie store `UpgradeSignatureToEncryptionCookieStore` which helps you upgrading apps that use `CookieStore` to the new default `EncryptedCookieStore`. To use this `CookieStore` set `Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'` in `config/initializers/session_store.rb`. Additionally, add `Myapp::Application.config.secret_key_base = 'some secret'` in `config/initializers/secret_token.rb`. Do not remove `Myapp::Application.config.secret_token = 'some secret'`.
+* Rails 4.0 introduces a new `UpgradeSignatureToEncryptionCookieStore` cookie store. This is useful for upgrading apps using the old default `CookieStore` to the new default `EncryptedCookieStore`. To use this transitional cookie store, you'll want to leave your existing `secret_token` in place, add a new `secret_key_base`, and change your `session_store` like so:
+
+```ruby
+  # config/initializers/session_store.rb
+  Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: 'existing session key'
+
+  # config/initializers/secret_token.rb
+  Myapp::Application.config.secret_token = 'existing secret token'
+  Myapp::Application.config.secret_key_base = 'new secret key base'
+```
 
 * Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
 
