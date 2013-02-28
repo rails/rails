@@ -143,6 +143,8 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 
 * In Rails 4.0, a rescuable exception `ActionController::UnknownFormat` is raised when Rails doesn't know what to do with the request format, rather than responding with a head :not_acceptable (406).
 
+* In Rails 4.0 a generic rescuable exception `ActionDispatch::ParamsParser::ParseError` is raised when `ParamsParser` fails parsing request params. You will want to rescue from this generic exception instead of `MultiJson::DecodeError`, for example.
+
 * In Rails 4.0, `SCRIPT_NAME` is properly handled for mounted apps and engines. One caveat of the fix is that you should *not* set
 `default_url_options[:script_name]` explicitly if your server already passes correct `SCRIPT_NAME` to rack env.
 
