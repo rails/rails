@@ -131,6 +131,10 @@ The order in which helpers from more than one directory are loaded has changed i
 
 Active Record Observer and Action Controller Sweeper have been extracted to the `rails-observers` gem. You will need to add the `rails-observers` gem if you require these features.
 
+### sprockets-rails
+
+* `assets:precompile:primary` has been removed. Use `assets:precompile` instead.
+
 ### sass-rails
 
 * `asset_url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
