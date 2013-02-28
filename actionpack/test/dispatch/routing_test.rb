@@ -3407,6 +3407,8 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
 
       get '/string', to: ok, constraints: { format: 'json'  }
       get '/regexp',  to: ok, constraints: { format: /json/ }
+      get '/json_only', to: ok, format: true, constraints: { format: /json/ }
+      get '/xml_only', to: ok, format: 'xml'
     end
   end
 
@@ -3432,6 +3434,28 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
     assert_response :success
 
     get 'http://www.example.com/regexp.html'
+    assert_response :not_found
+  end
+
+  def test_enforce_with_format_true_with_constraint
+    get 'http://www.example.com/json_only.json'
+    assert_response :success
+
+    get 'http://www.example.com/json_only.html'
+    assert_response :not_found
+
+    get 'http://www.example.com/json_only'
+    assert_response :not_found
+  end
+
+  def test_enforce_with_string
+    get 'http://www.example.com/xml_only.xml'
+    assert_response :success
+
+    get 'http://www.example.com/xml_only'
+    assert_response :success
+
+    get 'http://www.example.com/xml_only.json'
     assert_response :not_found
   end
 end

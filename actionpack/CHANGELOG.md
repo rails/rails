@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `format: true` does not override existing format constraints.
+    Fixes #9466.
+
+    Example:
+
+        # this will force the .json extension
+        get '/json_only', to: ok, format: true, constraints: { format: /json/ }
+
+    *Yves Senn*
+
 *   Skip valid encoding checks for non-String parameters that come
     from the matched route's defaults.
     Fixes #9435.
