@@ -101,6 +101,8 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 
 * In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
+* In Rails 4.0, a rescuable exception `ActionController::UnknownFormat` is raised when Rails doesn't know what to do with the request format, rather than responding with a head :not_acceptable (406).
+
 ### Active Support
 
 Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
