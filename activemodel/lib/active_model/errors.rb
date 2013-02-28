@@ -310,8 +310,7 @@ module ActiveModel
     def add_on_empty(attributes, options = {})
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
-        is_empty = value.respond_to?(:empty?) ? value.empty? : false
-        add(attribute, :empty, options) if value.nil? || is_empty
+        add(attribute, :empty, options) if value.nil? || (value.respond_to?(:empty?) && value.empty?)
       end
     end
 
@@ -424,9 +423,7 @@ module ActiveModel
     end
 
   private
-    def normalize_message(attribute, message, options)
-      message ||= :invalid
-
+    def normalize_message(attribute, message = :invalid, options)
       case message
       when Symbol
         generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
