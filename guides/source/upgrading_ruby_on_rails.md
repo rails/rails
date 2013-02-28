@@ -49,6 +49,8 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
 
+* Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
+
 ### Active Resource
 
 Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
@@ -135,6 +137,15 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 
 * In Rails 4.0, `SCRIPT_NAME` is properly handled for mounted apps and engines. One caveat of the fix is that you should *not* set
 `default_url_options[:script_name]` explicitly if your server already passes correct `SCRIPT_NAME` to rack env.
+
+* Rails 4.0 deprecated `ActionController::Integration` in favor of `ActionDispatch::Integration`.
+* Rails 4.0 deprecated `ActionController::IntegrationTest` in favor of `ActionDispatch::IntegrationTest`.
+* Rails 4.0 deprecated `ActionController::PerformanceTest` in favor of `ActionDispatch::PerformanceTest`.
+* Rails 4.0 deprecated `ActionController::AbstractRequest` in favor of `ActionDispatch::Request`.
+* Rails 4.0 deprecated `ActionController::Request` in favor of `ActionDispatch::Request`.
+* Rails 4.0 deprecated `ActionController::AbstractResponse` in favor of `ActionDispatch::Response`.
+* Rails 4.0 deprecated `ActionController::Response` in favor of `ActionDispatch::Response`.
+* Rails 4.0 deprecated `ActionController::Routing` in favor of `ActionDispatch::Routing`.
 
 ### Active Support
 
