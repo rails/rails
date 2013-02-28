@@ -1,5 +1,8 @@
 ## unreleased ##
-*   Don't read csv file during executing db:fixtures:load.
+
+*   Don't read CSV files during execution of `db:fixtures:load`. CSV support for
+    fixtures was removed some time ago but the task was still loading them, even
+    though later the code was looking for the related yaml file instead.
 
     *kennyj*
 
@@ -8,7 +11,7 @@
 
     *Steve Klabnik*
 
-*   Fix overriding of attributes by default_scope on `ActiveRecord::Base#dup`.
+*   Fix overriding of attributes by `default_scope` on `ActiveRecord::Base#dup`.
 
     *Hiroshige UMINO*
 
