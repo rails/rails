@@ -161,10 +161,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      defaults = self.class.column_defaults.dup
-      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
-
-      @attributes   = self.class.initialize_attributes(defaults)
+      @attributes   = default_attributes
       @columns_hash = self.class.column_types.dup
 
       init_internals
@@ -404,6 +401,15 @@ module ActiveRecord
     # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
     def to_ary # :nodoc:
       nil
+    end
+
+    # The attributes that get set on all new records.  These attributes will be
+    # pulled from the column defaults and post-processed (if applicable).
+    def default_attributes
+      defaults = self.class.column_defaults.dup
+      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
+
+      self.class.initialize_attributes(defaults)
     end
 
     def init_internals
