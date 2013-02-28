@@ -263,7 +263,7 @@ module ActiveRecord
         attr_accessor :array
       end
 
-      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+      module ColumnMethods
         def xml(*args)
           options = args.extract_options!
           column(args[0], 'xml', options)
@@ -325,6 +325,10 @@ module ActiveRecord
         def json(name, options = {})
           column(name, 'json', options)
         end
+      end
+
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        include ColumnMethods
 
         def column(name, type = nil, options = {})
           super
@@ -342,6 +346,10 @@ module ActiveRecord
           @columns_hash[name] = definition
           definition
         end
+      end
+
+      class Table < ActiveRecord::ConnectionAdapters::Table
+        include ColumnMethods
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -884,8 +892,12 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def table_definition
+        def create_table_definition
           TableDefinition.new(self)
+        end
+
+        def update_table_definition(table_name, base)
+          Table.new(table_name, base)
         end
     end
   end

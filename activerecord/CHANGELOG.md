@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support PostgreSQL specific column types when using `change_table`.
+    Fixes #9480.
+
+    Example:
+
+        change_table :authors do |t|
+          t.hstore :books
+          t.json :metadata
+        end
+
+    *Yves Senn*
+
 *   Revert 408227d9c5ed7d, 'quote numeric'. This introduced some regressions.
 
     *Steve Klabnik*
