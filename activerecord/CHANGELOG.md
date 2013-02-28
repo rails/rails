@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix a problem wrong exception is occured
+    when raising no translatable exception in PostgreSQL. 
+
+    *kennyj*
+
 *   Support PostgreSQL specific column types when using `change_table`.
     Fixes #9480.
 
