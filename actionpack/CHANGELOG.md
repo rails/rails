@@ -5,7 +5,7 @@
 
     Example:
 
-        # this will force the .json extension
+        # This will force the .json extension.
         get '/json_only', to: ok, format: true, constraints: { format: /json/ }
 
     *Yves Senn*
