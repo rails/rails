@@ -17,6 +17,7 @@ module ActionView #:nodoc:
     autoload :FormHelper
     autoload :FormOptionsHelper
     autoload :FormTagHelper
+    autoload :HumansTxtHelper
     autoload :JavaScriptHelper, "action_view/helpers/javascript_helper"
     autoload :NumberHelper
     autoload :OutputSafetyHelper
@@ -44,6 +45,7 @@ module ActionView #:nodoc:
     include FormHelper
     include FormOptionsHelper
     include FormTagHelper
+    include HumansTxtHelper
     include JavaScriptHelper
     include NumberHelper
     include OutputSafetyHelper
