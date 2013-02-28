@@ -82,7 +82,17 @@ module ActiveRecord
           if options[:finder_sql]
             find_by_scan(*args)
           else
-            scope.find(*args)
+            # first check if the records exist in the association
+            records, ids = find_from_association(*args)
+            unless ids.blank?
+              if records
+                records << scope.find(ids)
+              else
+                records = scope.find(ids)
+              end
+            end
+
+            records
           end
         end
       end
@@ -554,6 +564,45 @@ module ActiveRecord
           else
             target.include?(record)
           end
+        end
+
+        # Checks to see if ids already exist in the associations and returns
+        # the records if found, as well as the ids that remain.
+        #
+        # The first return value is either an array of records found or nil
+        # if no records were found.
+        #
+        # The second return value is an array of ids that the database still
+        # needs to fetch, or nil, if all the ids have been found in the
+        # associations.
+        def find_from_association(*ids)
+          expects_array = ids.first.kind_of?(Array)
+          return [ids.first, nil] if expects_array && ids.first.empty?
+
+          ids = Set.new(ids.flatten.compact)
+          num_ids = ids.size
+          raise ActiveRecord::RecordNotFound if num_ids == 0
+
+          # Find records and subtracts away their ids from the set, so we know
+          # which ids are left.
+          records_found = find_records_and_set_inverses(ids)
+          ids.subtract(records_found.map(&:id))
+
+          unless expects_array || num_ids > 1
+            records_found = records_found.first
+          end
+
+          [records_found, ids.to_a]
+        end
+
+        # Finds the ids which exist inside the target association and sets
+        # their inverse instances
+        def find_records_and_set_inverses(ids)
+          load_target.select { |record|
+            ids.include?(record.id)
+          }.tap { |record|
+            set_inverse_instance record if record.is_a? ActiveRecord::Base
+          }
         end
 
         # If using a custom finder_sql, #find scans the entire collection.
