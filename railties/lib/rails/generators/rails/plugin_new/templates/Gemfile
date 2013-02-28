@@ -2,9 +2,6 @@ source "https://rubygems.org"
 
 <% if options[:skip_gemspec] -%>
 <%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
-<% if engine? && !options[:skip_javascript] -%>
-# gem "<%= "#{options[:javascript]}-rails" %>"
-<% end -%>
 <% else -%>
 # Declare your gem's dependencies in <%= name %>.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
@@ -12,11 +9,6 @@ source "https://rubygems.org"
 gemspec
 <% end -%>
 
-<% unless options[:javascript] == 'jquery' -%>
-# jquery-rails is used by the dummy application
-gem "jquery-rails"
-
-<% end -%>
 <% if options[:skip_gemspec] -%>
 group :development do
   gem "<%= gem_for_database %>"
