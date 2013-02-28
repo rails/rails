@@ -1,7 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix a problem wrong exception is occured
-    when raising no translatable exception in PostgreSQL. 
+*   Fix bug that raises the wrong exception when the exception handled by PostgreSQL adapter
+    doesn't respond to `#result`.
+    Fixes #8617.
 
     *kennyj*
 
