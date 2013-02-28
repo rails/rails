@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed `ActionView::Helpers::CaptureHelper#content_for` regression when trying to use it in
+    a boolean statement.
+    Fixes #9360.
+
+    *Nikolay Shebanov*
+
 *   `format: true` does not override existing format constraints.
     Fixes #9466.
 
@@ -1040,7 +1046,5 @@
 
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
-
-*   Fixed `ActionView::Helpers::CaptureHelper#content_for` regression (described in #9360). *Nikolay Shebanov*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/actionpack/CHANGELOG.md) for previous changes.
