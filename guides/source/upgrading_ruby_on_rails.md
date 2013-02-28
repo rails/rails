@@ -124,6 +124,10 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 The order in which helpers from more than one directory are loaded has changed in Rails 4.0. Previously, they were gathered and then sorted alphabetically. After upgrading to Rails 4.0, helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use the `helpers_path` parameter, this change will only impact the way of loading helpers from engines. If you rely on the ordering, you should check if correct methods are available after upgrade. If you would like to change the order in which engines are loaded, you can use `config.railties_order=` method.
 
+### Active Record Observer and Action Controller Sweeper
+
+Active Record Observer and Action Controller Sweeper have been extracted to the `rails-observers` gem. You will need to add the `rails-observers` gem if you require these features.
+
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------
 
