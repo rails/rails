@@ -156,7 +156,7 @@ module ActionView
           end
           nil
         else
-          @view_flow.get(name)
+          @view_flow.get(name).presence
         end
       end
 
