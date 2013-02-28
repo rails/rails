@@ -44,8 +44,8 @@ module ActiveRecord
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
-    # Inside migration files, the +t+ object in +create_table+ and
-    # +change_table+ is actually of this type:
+    # Inside migration files, the +t+ object in +create_table+
+    # is actually of this type:
     #
     #   class SomeMigration < ActiveRecord::Migration
     #     def up
@@ -489,7 +489,7 @@ module ActiveRecord
           args.each do |name|
             @base.add_column(@table_name, name, column_type, options)
           end
-        end  
+        end
       end
 
       private
