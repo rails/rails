@@ -10,3 +10,4 @@
 *   Guides updated to reflect new test locations. *Mike Moore*
 
 *   Guides have a responsive design. *Joe Fiorini*
+*   Change Service pages(404, etc). *Stanislav Sobolev*
