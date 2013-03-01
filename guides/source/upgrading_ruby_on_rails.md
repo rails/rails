@@ -95,7 +95,7 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 has removed Action and Page caching from Action Pack. You will need to add the `actionpack-action_caching` gem in order to use `caches_action` and the `actionpack-page_caching` to use `caches_pages` in your controllers.
 
-* Rails 4.0 has the removed XML parameters parser. You will need to add the `actionpack-xml_parser` gem if you require this feature.
+* Rails 4.0 has removed the XML parameters parser. You will need to add the `actionpack-xml_parser` gem if you require this feature.
 
 * Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
 
@@ -115,7 +115,7 @@ becomes
 get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
-* Rails 4.0 requires routes using `match` must specify the request method. For example:
+* Rails 4.0 requires that routes using `match` must specify the request method. For example:
 
 ```ruby
   # Rails 3.x
@@ -141,12 +141,9 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 
 * In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
-* In Rails 4.0, a rescuable exception `ActionController::UnknownFormat` is raised when Rails doesn't know what to do with the request format, rather than responding with a head :not_acceptable (406).
+* In Rails 4.0, `ActionController::UnknownFormat` is raised when the action doesn't handle the request format. By default, the exception is handled by responding with 406 Not Acceptable, but you can override that now. In Rails 3, 406 Not Acceptable was always returned. No overrides.
 
-* In Rails 4.0 a generic rescuable exception `ActionDispatch::ParamsParser::ParseError` is raised when `ParamsParser` fails parsing request params. You will want to rescue from this generic exception instead of `MultiJson::DecodeError`, for example.
-
-* In Rails 4.0, `SCRIPT_NAME` is properly handled for mounted apps and engines. One caveat of the fix is that you should *not* set
-`default_url_options[:script_name]` explicitly if your server already passes correct `SCRIPT_NAME` to rack env.
+* In Rails 4.0, a generic `ActionDispatch::ParamsParser::ParseError` exception is raised when `ParamsParser` fails to parse request params. You will want to rescue this exception instead of the low-level `MultiJson::DecodeError`, for example.
 
 * Rails 4.0 deprecated `ActionController::Integration` in favor of `ActionDispatch::Integration`.
 * Rails 4.0 deprecated `ActionController::IntegrationTest` in favor of `ActionDispatch::IntegrationTest`.
