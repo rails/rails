@@ -3,6 +3,8 @@
 
 ## Rails 4.0.0.beta1 (unreleased) ##
 
+*   Change Service pages(404, etc). *Stanislav Sobolev*
+
 *   Split Validations and Callbacks guide into two. *Steve Klabnik*
 
 *   New guide _Working with JavaScript in Rails_. *Steve Klabnik*
