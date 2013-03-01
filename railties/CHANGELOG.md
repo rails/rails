@@ -3,6 +3,8 @@
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
+*   Change Service pages(404, etc). *Stanislav Sobolev*
+
 *   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
     and calculates number of functions.
 
@@ -281,5 +283,6 @@
 
 *   Set config.action_mailer.async = true to turn on asynchronous
     message delivery *Brian Cardarella*
+
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/railties/CHANGELOG.md) for previous changes.
