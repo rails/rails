@@ -1,12 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `#append` method for collection associations behaves like`<<`.
+    `#prepend` is not defined and `<<` or `#append` should be used.
+    Fixes #7364.
+
+    *Yves Senn*
+
 *   Added support for creating a table via Rails migration generator.
-    For example, 
+    For example,
 
         rails g migration create_books title:string content:text
 
-    will generate a migration that creates a table called books with 
-    the listed attributes, without creating a model. 
+    will generate a migration that creates a table called books with
+    the listed attributes, without creating a model.
 
     *Sammy Larbi*
 
@@ -372,7 +378,7 @@
     deprecated and removed in future versions of Rails.
 
     *Amparo Luna + Guillermo Iguaran*
-    
+
 *   `after_commit` and `after_rollback` now validate the `:on` option and raise an `ArgumentError`
     if it is not one of `:create`, `:destroy` or `:update`
 
