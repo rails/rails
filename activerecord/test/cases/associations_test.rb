@@ -172,6 +172,18 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal 1, josh.posts.size
   end
 
+  def test_append_behaves_like_push
+    josh = Author.new(:name => "Josh")
+    josh.posts.append Post.new(:title => "New on Edge", :body => "More cool stuff!")
+    assert josh.posts.loaded?
+    assert_equal 1, josh.posts.size
+  end
+
+  def test_prepend_is_not_defined
+    josh = Author.new(:name => "Josh")
+    assert_raises(NoMethodError) { josh.posts.prepend Post.new }
+  end
+
   def test_save_on_parent_does_not_load_target
     david = developers(:david)
 
@@ -291,7 +303,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_requires_symbol_argument
-    assert_raises ArgumentError do 
+    assert_raises ArgumentError do
       Class.new(Post) do
         belongs_to "author"
       end
