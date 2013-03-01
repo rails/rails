@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added support for creating a table via Rails migration generator.
+    For example, 
+
+        rails g migration create_books title:string content:text
+
+    will generate a migration that creates a table called books with 
+    the listed attributes, without creating a model. 
+
+    *Sammy Larbi*
+
 *   Fix bug that raises the wrong exception when the exception handled by PostgreSQL adapter
     doesn't respond to `#result`.
     Fixes #8617.
@@ -362,7 +372,7 @@
     deprecated and removed in future versions of Rails.
 
     *Amparo Luna + Guillermo Iguaran*
-
+    
 *   `after_commit` and `after_rollback` now validate the `:on` option and raise an `ArgumentError`
     if it is not one of `:create`, `:destroy` or `:update`
 
@@ -1548,5 +1558,6 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
     *Aaron Patterson*
+
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
