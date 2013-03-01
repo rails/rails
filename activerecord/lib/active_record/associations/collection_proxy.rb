@@ -947,6 +947,11 @@ module ActiveRecord
         proxy_association.concat(records) && self
       end
       alias_method :push, :<<
+      alias_method :append, :<<
+
+      def prepend(*args)
+        raise NoMethodError, "prepend on association is not defined. Please use << or append"
+      end
 
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
       # of an array with the deleted objects, so methods can be chained. See
