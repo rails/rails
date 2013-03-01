@@ -2,6 +2,7 @@
 
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
+*   Change Service pages(404, etc). *Stanislav Sobolev*
 
 *   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
     and calculates number of functions.
