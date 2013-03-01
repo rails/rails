@@ -345,7 +345,7 @@ module ActiveRecord
       protected
         def construct_find_options!(options)
         end
-        
+
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin
@@ -395,7 +395,7 @@ module ActiveRecord
             end
           elsif @reflection.klass.scopes.include?(method)
             @reflection.klass.scopes[method].call(self, *args)
-          else          
+          else
             with_scope(construct_scope) do
               if block_given?
                 @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
