@@ -317,10 +317,6 @@ module ActiveRecord
         alias_type 'macaddr',  'text'
         alias_type 'uuid',     'text'
 
-        # FIXME: I don't think this is correct. We should probably be returning a parsed date,
-        # but the tests pass with a string returned.
-        register_type 'timestamptz', OID::Identity.new
-
         register_type 'money', OID::Money.new
         register_type 'bytea', OID::Bytea.new
         register_type 'bool', OID::Boolean.new
@@ -329,6 +325,7 @@ module ActiveRecord
         alias_type 'float8', 'float4'
 
         register_type 'timestamp', OID::Timestamp.new
+        register_type 'timestamptz', OID::Timestamp.new
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
 

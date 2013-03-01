@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Postgresql timestamp with time zone (timestamptz) datatype now returns a
+    ActiveSupport::TimeWithZone instance instead of a string
+
+    *Troy Kruthoff*
+
 *   Added support for creating a table via Rails migration generator.
     For example, 
 
