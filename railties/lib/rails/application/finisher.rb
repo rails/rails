@@ -81,7 +81,7 @@ module Rails
           self.reloaders << reloader
           # We need to set a to_prepare callback regardless of the reloader result, i.e.
           # models should be reloaded if any of the reloaders (i18n, routes) were updated.
-          ActionDispatch::Reloader.to_prepare(:prepend => true){ reloader.execute }
+          ActionDispatch::Reloader.to_prepare(:prepend => true){ reloader.execute_if_updated }
         else
           ActionDispatch::Reloader.to_cleanup(&callback)
         end
