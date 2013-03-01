@@ -239,9 +239,13 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_not Person.column_methods_hash.include?(:last_name)
 
-    migration = Struct.new(:name, :version) {
-      def migrate(x); raise 'Something broke'; end
-    }.new('zomg', 100)
+    migration = Class.new(ActiveRecord::Migration) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+        raise 'Something broke'
+      end
+    }.new
 
     migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
 
