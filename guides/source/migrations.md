@@ -179,6 +179,27 @@ class AddDetailsToProducts < ActiveRecord::Migration
 end
 ```
 
+If the migration name is of the form "CreateXXX" and is
+followed by a list of column names and types then a migration creating the table 
+XXX with the columns listed will be generated. For example:
+
+```bash
+$ rails generate migration CreateProducts name:string part_number:string
+```
+
+generates
+
+```ruby
+class CreateProducts < ActiveRecord::Migration
+  def change
+    create_table :products do |t|
+      t.string :name
+      t.string :part_number
+    end
+  end
+end
+```
+
 As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.

@@ -172,8 +172,19 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove
-    migration = "create_books"
+  def test_create_table_migration
+    run_generator ["create_books", "title:string", "content:text"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books/, change)
+        assert_match(/  t\.string :title/, change)
+        assert_match(/  t\.text :content/, change)
+      end
+    end
+  end
+
+  def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
+    migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
@@ -182,7 +193,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
-
+  
   def test_properly_identifies_usage_file
     assert generator_class.send(:usage_path)
   end
