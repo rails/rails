@@ -241,6 +241,8 @@ root to: "welcome#index"
 
 The `root to: "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to <http://localhost:3000/welcome/index> to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
 
+You should also remove the `public/index.html` file because it might otherwise take precedence over the routes defined in `config/routes.rb`.
+
 If you navigate to <http://localhost:3000> in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
 TIP: For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
