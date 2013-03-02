@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Postgresql timestamp with time zone (timestamptz) datatype now returns a
+    ActiveSupport::TimeWithZone instance instead of a string
+
+    *Troy Kruthoff*
+
 *   The `#append` method for collection associations behaves like`<<`.
     `#prepend` is not defined and `<<` or `#append` should be used.
     Fixes #7364.

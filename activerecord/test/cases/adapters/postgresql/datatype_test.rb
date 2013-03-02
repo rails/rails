@@ -573,6 +573,7 @@ _SQL
 
     @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
     assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
     ActiveRecord::Base.default_timezone = old_default_tz
     ActiveRecord::Base.time_zone_aware_attributes = old_tz
@@ -590,6 +591,7 @@ _SQL
 
     @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
     assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
     ActiveRecord::Base.default_timezone = old_default_tz
     ActiveRecord::Base.time_zone_aware_attributes = old_tz
