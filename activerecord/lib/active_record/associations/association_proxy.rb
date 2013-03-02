@@ -208,7 +208,9 @@ module ActiveRecord
         # Forwards any missing method call to the \target.
         def method_missing(method, *args, &block)
           if load_target
-            if @target.respond_to?(method)
+            if method == :to_a
+              Array(@target)
+            elsif @target.respond_to?(method)
               @target.send(method, *args, &block)
             else
               super
