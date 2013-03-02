@@ -555,6 +555,25 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver
   end
 
+  class MyI18nLocaleInterceptor
+    def self.delivering_email(mail)
+      I18n.locale = :pl
+    end
+    def self.delivered_email(mail)
+      I18n.locale = :en
+    end
+  end
+
+  test "you can register an interceptor to the mail object that gets passed the mail object before delivery and it happens before I18n rendering" do
+    ActionMailer::Base.register_interceptor(MyI18nLocaleInterceptor)
+    ActionMailer::Base.register_observer(MyI18nLocaleInterceptor) # cleanup
+    email = BaseMailer.implicit_with_locale
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternative", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
+  end
+
   test "you can register an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
     ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
     mail = BaseMailer.welcome
