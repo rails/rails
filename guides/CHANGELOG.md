@@ -1,5 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
-
+*   Change Service pages(404, etc). *Stanislav Sobolev*
 
 ## Rails 4.0.0.beta1 (unreleased) ##
 
