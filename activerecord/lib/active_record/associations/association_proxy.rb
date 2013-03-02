@@ -49,7 +49,7 @@ module ActiveRecord
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend
       delegate :to_param, :to => :proxy_target
-      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?$|^send$|proxy_|^respond_to_missing|^object_id$)/ }
+      instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id|to_a)$|^__|^respond_to_missing|proxy_/ }
 
       def initialize(owner, reflection)
         @owner, @reflection = owner, reflection
@@ -82,8 +82,7 @@ module ActiveRecord
       # Forwards <tt>===</tt> explicitly to the \target because the instance method
       # removal above doesn't catch it. Loads the \target if needed.
       def ===(other)
-        load_target
-        other === @target
+        other === load_target
       end
 
       # Returns the name of the table of the related class:
@@ -137,16 +136,14 @@ module ActiveRecord
 
       # Forwards the call to the target. Loads the \target if needed.
       def inspect
-        load_target
-        @target.inspect
+        load_target.inspect
       end
 
       def send(method, *args)
-        if proxy_respond_to?(method)
+        if proxy_respond_to?(method, true)
           super
         else
-          load_target
-          @target.send(method, *args)
+          load_target.send(method, *args)
         end
       end
 
@@ -230,8 +227,6 @@ module ActiveRecord
         # ActiveRecord::RecordNotFound is rescued within the method, and it is
         # not reraised. The proxy is \reset and +nil+ is the return value.
         def load_target
-          return nil unless defined?(@loaded)
-
           if !loaded? and (!@owner.new_record? || foreign_key_present)
             @target = find_target
           end
