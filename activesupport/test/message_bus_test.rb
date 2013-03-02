@@ -106,7 +106,7 @@ class DRbServerTest < ActiveSupport::TestCase
 
   test 'start_server and ServerControlService#stop in different processes' do
     
-    server_pid = fork do
+    fork do
       # URI is captured into sub process!
       server = ActiveSupport::MessageBus::DRbServer.new
       
@@ -147,7 +147,7 @@ class DiscoverableServerTest < ActiveSupport::TestCase
 
   test 'DiscoverableServer can be auto discoverd' do
     begin
-      server_pid = fork do
+      fork do
         server = ActiveSupport::MessageBus::DiscoverableServer.new
         #server.set_server_uri(URI); need not to know uri in advance
         server.start_server
@@ -156,7 +156,8 @@ class DiscoverableServerTest < ActiveSupport::TestCase
 
       sleep(1)  
       DRb.start_service
-      ring_server = Rinda::RingFinger.primary
+      finger = Rinda::RingFinger.new nil, ActiveSupport::MessageBus::DiscoverableServer::DEFAULT_PORT
+      ring_server = finger.lookup_ring_any
       services = DRbObject.new_with_uri ring_server.__drburi
       controller = services.get_server_control_service
     ensure
@@ -196,7 +197,7 @@ class  MessageServerTest < ActiveSupport::TestCase
 
   test 'find a InProc server in guest process' do
     begin
-      pid = fork do
+      fork do
         server = ActiveSupport::MessageBus::MessageServer.instance
         server.start_server :deploy => :InProc
         server.wait_in_proc_server
@@ -214,7 +215,7 @@ class  MessageServerTest < ActiveSupport::TestCase
 
   test 'find a StandAlone server in guest process' do
     begin
-      owner_pid = fork do
+      fork do
         # This owner process do nothing but start a stand alone server
         server = ActiveSupport::MessageBus::MessageServer.instance
         server.start_server :deploy => :StandAlone
@@ -229,5 +230,4 @@ class  MessageServerTest < ActiveSupport::TestCase
       sleep(1)
     end
   end
-end 
-
+end

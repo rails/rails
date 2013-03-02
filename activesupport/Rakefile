@@ -1,5 +1,6 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
+ENV['N'] = "1"
 
 task :default => :test
 Rake::TestTask.new do |t|

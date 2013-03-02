@@ -23,7 +23,12 @@ module ActiveSupport
         allow 127.0.0.1
         allow localhost
       )
-      @uri_to_set = nil 
+      
+      @uri_to_set = nil
+
+      def initialize()
+        @uri_to_set = nil 
+      end
 
       def start_server(options = {})
         acl = extract_acl(options)
@@ -119,6 +124,8 @@ module ActiveSupport
     # DiscoverableServer is a DRb server with auto discovery ablility
     # You can find it in the local network through a Rinda client
     class DiscoverableServer < DRbServer
+      DEFAULT_PORT = 7646
+
       def start_server(options = {})
         super(options)
 
@@ -134,7 +141,7 @@ module ActiveSupport
 
       def startup_rinda_server
         # DRb.start_service already called in super.start_server
-        Rinda::RingServer.new Rinda::TupleSpace.new
+        Rinda::RingServer.new Rinda::TupleSpace.new, DEFAULT_PORT
       end
     end
 
@@ -155,6 +162,12 @@ module ActiveSupport
       @is_owner_process = false
       @is_in_proc_server = false
       @server_uri = nil
+
+      def initialize()
+        @is_owner_process = false
+        @is_in_proc_server = false
+        @server_uri = nil
+      end
 
       # Public: Start the message server
       #
@@ -214,7 +227,9 @@ module ActiveSupport
         if !(@is_owner_process && @is_in_proc_server)
           DRb.start_service 
         end
-        ring_server = Rinda::RingFinger.primary
+
+        finger = Rinda::RingFinger.new nil, DiscoverableServer::DEFAULT_PORT
+        ring_server = finger.lookup_ring_any
         @server_uri = ring_server.__drburi
       end
 
