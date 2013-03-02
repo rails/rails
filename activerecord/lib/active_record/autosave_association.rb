@@ -331,7 +331,7 @@ module ActiveRecord
         end
 
         # reconstruct the SQL queries now that we know the owner's id
-        association.send(:construct_sql) if association.respond_to?(:construct_sql)
+        association.send(:construct_sql) if association.respond_to?(:construct_sql, true)
       end
     end
 
