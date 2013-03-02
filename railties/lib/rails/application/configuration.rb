@@ -98,14 +98,15 @@ module Rails
       end
 
       # Loads and returns the configuration of the database.
-      # First, looks at If ENV['DATABASE_URL'] if it's not present it uses the #paths["config/database"]
-      # The contents of the file are processed via ERB before being sent through YAML::load. 
       def database_configuration
-        if ENV['DATABASE_URL']
-          {Rails.env => ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.connection_url_to_hash(ENV['DATABASE_URL']).stringify_keys}
+        yaml = paths["config/database"].first
+        if File.exists?(yaml)
+          require "erb"
+          YAML.load ERB.new(IO.read(yaml)).result
+        elsif ENV['DATABASE_URL']
+          nil
         else
-          require 'erb'
-          YAML.load ERB.new(IO.read(paths["config/database"].first)).result
+          raise "Could not load database configuration. No such file - #{yaml}"
         end
       rescue Psych::SyntaxError => e
         raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
