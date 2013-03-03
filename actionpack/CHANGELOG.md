@@ -21,7 +21,7 @@
 
     *Sergey Nartimov*
 
-*   Eagerly populate the http method loookup cache so local project inflections do
+*   Eagerly populate the http method lookup cache so local project inflections do
     not interfere with use of underscore method ( and we don't need locks )
 
     *Aditya Sanghi*
