@@ -96,6 +96,12 @@ module ApplicationTests
       assert !middleware.include?("Rack::Lock")
     end
 
+    test "removes lock if allow concurrency is set" do
+      add_to_config "config.allow_concurrency = true"
+      boot!
+      assert !middleware.include?("Rack::Lock")
+    end
+
     test "removes static asset server if serve_static_assets is disabled" do
       add_to_config "config.serve_static_assets = false"
       boot!

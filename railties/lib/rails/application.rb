@@ -305,22 +305,8 @@ module Rails
     def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         app = self
-        if rack_cache = config.action_dispatch.rack_cache
-          begin
-            require 'rack/cache'
-          rescue LoadError => error
-            error.message << ' Be sure to add rack-cache to your Gemfile'
-            raise
-          end
 
-          if rack_cache == true
-            rack_cache = {
-              metastore: "rails:/",
-              entitystore: "rails:/",
-              verbose: false
-            }
-          end
-
+        if rack_cache = load_rack_cache
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
         end
@@ -337,12 +323,14 @@ module Rails
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
-        middleware.use ::Rack::Lock unless config.cache_classes
+        middleware.use ::Rack::Lock unless allow_concurrency?
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::RequestId
-        middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
+
+        # Must come after Rack::MethodOverride to properly log overridden methods
+        middleware.use ::Rails::Rack::Logger, config.log_tags
+        middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
         middleware.use ::ActionDispatch::DebugExceptions, app
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
@@ -366,6 +354,40 @@ module Rails
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
       end
+    end
+
+    def allow_concurrency?
+      if config.allow_concurrency.nil?
+        config.cache_classes
+      else
+        config.allow_concurrency
+      end
+    end
+
+    def load_rack_cache
+      rack_cache = config.action_dispatch.rack_cache
+      return unless rack_cache
+
+      begin
+        require 'rack/cache'
+      rescue LoadError => error
+        error.message << ' Be sure to add rack-cache to your Gemfile'
+        raise
+      end
+
+      if rack_cache == true
+        {
+          metastore: "rails:/",
+          entitystore: "rails:/",
+          verbose: false
+        }
+      else
+        rack_cache
+      end
+    end
+
+    def show_exceptions_app
+      config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
     end
 
     def build_original_fullpath(env) #:nodoc:
