@@ -165,7 +165,7 @@ module ActionDispatch
               super
               @path_parts   = @route.required_parts
               @arg_size     = @path_parts.size
-              @string_route = string_route(route)
+              @string_route = @route.optimized_path
             end
 
             def call(t, args)
@@ -179,14 +179,6 @@ module ActionDispatch
             end
 
             private
-
-            def string_route(route)
-              string_route = route.ast.to_s.dup
-              while string_route.gsub!(/\([^\)]*\)/, "")
-                true
-              end
-              string_route
-            end
 
             def optimized_helper(args)
               path = @string_route.dup

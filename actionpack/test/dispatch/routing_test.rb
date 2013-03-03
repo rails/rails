@@ -3198,6 +3198,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
       get '/foo' => ok, as: :foo
+      get '/post(/:action(/:id))' => ok, as: :posts
     end
   end
 
@@ -3214,6 +3215,11 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
 
   test 'named route called on included module' do
     assert_equal '/foo', foo_path
+  end
+
+  test 'nested optional segments are removed' do
+    assert_equal '/post', Routes.url_helpers.posts_path
+    assert_equal '/post', posts_path
   end
 end
 
