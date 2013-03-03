@@ -2,8 +2,11 @@ require 'date'
 require 'active_support/inflector/methods'
 require 'active_support/core_ext/date/zones'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/date_and_time/formatting'
 
 class Date
+  include DateAndTime::Formatting
+
   DATE_FORMATS = {
     :short        => '%e %b',
     :long         => '%B %e, %Y',
@@ -15,12 +18,6 @@ class Date
     },
     :rfc822       => '%e %b %Y'
   }
-
-  # Ruby 1.9 has Date#to_time which converts to localtime only.
-  remove_method :to_time
-
-  # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
-  remove_method :xmlschema
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
@@ -45,18 +42,16 @@ class Date
   #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)
-    if formatter = DATE_FORMATS[format]
-      if formatter.respond_to?(:call)
-        formatter.call(self).to_s
-      else
-        strftime(formatter)
-      end
-    else
-      to_default_s
-    end
+    apply_formatting(format)
   end
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
+
+  # Ruby 1.9 has Date#to_time which converts to localtime only.
+  remove_method :to_time
+
+  # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
+  remove_method :xmlschema
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect

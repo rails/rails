@@ -1,7 +1,10 @@
 require 'active_support/inflector/methods'
 require 'active_support/values/time_zone'
+require 'active_support/core_ext/date_and_time/formatting'
 
 class Time
+  include DateAndTime::Formatting
+
   DATE_FORMATS = {
     :db           => '%Y-%m-%d %H:%M:%S',
     :number       => '%Y%m%d%H%M%S',
@@ -44,14 +47,11 @@ class Time
   #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Time::DATE_FORMATS[:short_ordinal]  = ->(time) { time.strftime("%B #{time.day.ordinalize}") }
   def to_formatted_s(format = :default)
-    if formatter = DATE_FORMATS[format]
-      formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
-    else
-      to_default_s
-    end
+    apply_formatting(format)
   end
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
+
 
   # Returns the UTC offset as an +HH:MM formatted string.
   #
