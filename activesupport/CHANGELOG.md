@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
+    `#blame_file!` on Exceptions that do not have the Blamable mixin
+
+    *Andrew Kreiling*
+
 *   Fix DateTime comparison with DateTime::Infinity object.
 
     *Dan Kubb*
