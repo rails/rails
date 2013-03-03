@@ -278,6 +278,31 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert interests[1].man.equal? man
   end
 
+  def test_parent_instance_should_find_child_instance_using_child_instance_id
+    man = Man.create!
+    interest = Interest.create!
+    man.interests = [interest]
+
+    assert interest.equal?(man.interests.first), "The inverse association should use the interest already created and held in memory"
+    assert interest.equal?(man.interests.find(interest.id)), "The inverse association should use the interest already created and held in memory"
+    assert man.equal?(man.interests.first.man), "Two inversion should lead back to the same object that was originally held"
+    assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
+  end
+
+  def test_parent_instance_should_find_child_instance_using_child_instance_id_when_created
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
+    assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
+
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    man.name = "Ben Bitdiddle"
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
+    man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
   end
