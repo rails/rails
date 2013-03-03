@@ -1,3 +1,8 @@
+*   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
+    `#blame_file!` on Exceptions that do not have the Blamable mixin
+
+    *Andrew Kreiling*
+
 *   Override `Time.at` to support the passing of Time-like values when called with a single argument.
 
     *Andrew White*
