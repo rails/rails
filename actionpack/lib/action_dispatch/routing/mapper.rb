@@ -67,8 +67,6 @@ module ActionDispatch
         private
 
           def normalize_options!
-            path_without_format = @path.sub(/\(\.:format\)$/, '')
-
             @options.merge!(default_controller_and_action)
 
             requirements.each do |name, requirement|
