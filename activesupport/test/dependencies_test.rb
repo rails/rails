@@ -84,6 +84,20 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
+  def test_dependency_which_raises_doesnt_blindly_call_blame_file!
+    with_loading do
+      filename = 'dependencies/raises_exception_without_blame_file'
+      $raises_exception_load_count = 0
+
+      begin
+        require_dependency filename
+        flunk 'should have loaded dependencies/raises_exception which raises an exception'
+      rescue Exception => e
+        assert_equal 'I am not blamable!', e.message
+      end
+    end
+  end
+
   def test_warnings_should_be_enabled_on_first_load
     with_loading 'dependencies' do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
