@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove `connection#structure_dump`, which is no longer used. *Yves Senn*
+
 *   Make it possible to execute migrations without a transaction even
     if the database adapter supports DDL transactions.
     Fixes #9483.
