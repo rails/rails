@@ -317,6 +317,67 @@ module ActiveRecord
       self
     end
 
+    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
+                                     :limit, :offset, :joins, :includes, :from,
+                                     :readonly, :having])
+
+    # Removes an unwanted relation that is already defined on a chain of relations.
+    # This is useful when passing around chains of relations and would like to
+    # modify the relations without reconstructing the entire chain.
+    #
+    #   User.all.order('email DESC').unscope(:order) == User.all
+    #
+    # The method arguments are symbols which correspond to the names of the methods
+    # which should be unscoped. The valid arguments are given in VALID_UNSCOPING_VALUES.
+    # The method can also be called with multiple arguments. For example:
+    #
+    #   User.all.order('email DESC').select('id').where(:name => "John")
+    #       .unscope(:order, :select, :where) == User.all
+    #
+    # One can additionally pass a hash as an argument to unscope specific :where values.
+    # This is done by passing a hash with a single key-value pair. The key should be
+    # :where and the value should be the where value to unscope. For example:
+    #
+    #   User.all.where(:name => "John", :active => true).unscope(:where => :name)
+    #       == User.all.where(:active => true)
+    #
+    # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
+    # because #except will only affect a particular relation's values. It won't wipe
+    # the order, grouping, etc. when that relation is merged. For example:
+    #
+    #   Post.comments.except(:order)
+    #
+    # will still have an order if it comes from the default_scope on Comment.
+    def unscope(*args)
+      check_if_method_has_arguments!("unscope", args)
+      spawn.unscope!(*args)
+    end
+
+    def unscope!(*args)
+      args.flatten!
+
+      args.each do |scope|
+        case scope
+        when Symbol
+          symbol_unscoping(scope)
+        when Hash
+          scope.each do |key, target_value|
+            if key != :where
+              raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
+            end
+
+            Array(target_value).each do |val|
+              where_unscoping(val)
+            end
+          end
+        else
+          raise ArgumentError, "Unrecognized scoping: #{args.inspect}. Use .unscope(where: :attribute_name) or .unscope(:order), for example."
+        end
+      end
+
+      self
+    end
+
     # Performs a joins on +args+:
     #
     #   User.joins(:posts)
@@ -761,6 +822,39 @@ module ActiveRecord
     end
 
     private
+
+    def symbol_unscoping(scope)
+      if !VALID_UNSCOPING_VALUES.include?(scope)
+        raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
+      end
+
+      single_val_method = Relation::SINGLE_VALUE_METHODS.include?(scope)
+      unscope_code = :"#{scope}_value#{'s' unless single_val_method}="
+
+      case scope
+      when :order
+        self.send(:reverse_order_value=, false)
+        result = []
+      else
+        result = [] unless single_val_method
+      end
+
+      self.send(unscope_code, result)
+    end
+
+    def where_unscoping(target_value)
+      target_value_sym = target_value.to_sym
+
+      where_values.reject! do |rel|
+        case rel
+        when Arel::Nodes::In, Arel::Nodes::Equality
+          subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
+          subrelation.name.to_sym == target_value_sym
+        else
+          raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} is unimplemented."
+        end
+      end
+    end
 
     def custom_join_ast(table, joins)
       joins = joins.reject { |join| join.blank? }
