@@ -3,12 +3,12 @@
 *   Added functionality to unscope relations in a relations chain. For
     instance, if you are passed in a chain of relations as follows:
 
-        Posts.select(name: "John").order('id DESC')
+        User.where(name: "John").order('id DESC')
 
     but you want to get rid of order, then this feature allows you to do:
 
-        Posts.select(name: "John").order("id DESC").unscope(:order)
-            == Posts.select(name: "John")
+        User.where(name: "John").order('id DESC').unscope(:order)
+            == User.where(name: "John")
 
     The .unscope() function is more general than the .except() method because
     .except() only works on the relation it is acting on. However, .unscope()
