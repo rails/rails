@@ -325,21 +325,21 @@ module ActiveRecord
     # This is useful when passing around chains of relations and would like to
     # modify the relations without reconstructing the entire chain.
     #
-    #   User.all.order('email DESC').unscope(:order) == User.all
+    #   User.order('email DESC').unscope(:order) == User.all
     #
     # The method arguments are symbols which correspond to the names of the methods
     # which should be unscoped. The valid arguments are given in VALID_UNSCOPING_VALUES.
     # The method can also be called with multiple arguments. For example:
     #
-    #   User.all.order('email DESC').select('id').where(name: "John")
+    #   User.order('email DESC').select('id').where(name: "John")
     #       .unscope(:order, :select, :where) == User.all
     #
     # One can additionally pass a hash as an argument to unscope specific :where values.
     # This is done by passing a hash with a single key-value pair. The key should be
     # :where and the value should be the where value to unscope. For example:
     #
-    #   User.all.where(name: "John", active: true).unscope(where: :name)
-    #       == User.all.where(active: true)
+    #   User.where(name: "John", active: true).unscope(where: :name)
+    #       == User.where(active: true)
     #
     # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
     # because #except will only affect a particular relation's values. It won't wipe
