@@ -343,8 +343,3 @@ class ProductsController < ApplicationController
   end
 end
 ```
-
-Further reading
----------------
-
-* [Scaling Rails Screencasts](http://railslab.newrelic.com/scaling-rails)

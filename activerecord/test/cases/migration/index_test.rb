@@ -55,19 +55,31 @@ module ActiveRecord
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
 
-      def test_add_index_name_length_limit
-        good_index_name = 'x' * connection.index_name_length
+      def test_add_index_works_with_long_index_names
+        connection.add_index(table_name, "foo", name: good_index_name)
+
+        assert connection.index_name_exists?(table_name, good_index_name, false)
+        connection.remove_index(table_name, name: good_index_name)
+      end
+
+      def test_add_index_does_not_accept_too_long_index_names
         too_long_index_name = good_index_name + 'x'
 
-        assert_raises(ArgumentError) {
-          connection.add_index(table_name, "foo", :name => too_long_index_name)
+        e = assert_raises(ArgumentError) {
+          connection.add_index(table_name, "foo", name: too_long_index_name)
         }
+        assert_match(/too long; the limit is #{connection.allowed_index_name_length} characters/, e.message)
 
         assert_not connection.index_name_exists?(table_name, too_long_index_name, false)
         connection.add_index(table_name, "foo", :name => good_index_name)
+      end
+
+      def test_internal_index_with_name_matching_database_limit
+        good_index_name = 'x' * connection.index_name_length
+        connection.add_index(table_name, "foo", name: good_index_name, internal: true)
 
         assert connection.index_name_exists?(table_name, good_index_name, false)
-        connection.remove_index(table_name, :name => good_index_name)
+        connection.remove_index(table_name, name: good_index_name)
       end
 
       def test_index_symbol_names
@@ -196,6 +208,12 @@ module ActiveRecord
         connection.remove_index("testings", "last_name")
         assert !connection.index_exists?("testings", "last_name")
       end
+
+      private
+        def good_index_name
+          'x' * connection.allowed_index_name_length
+        end
+
     end
   end
 end

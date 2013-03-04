@@ -618,6 +618,35 @@ class GoodnessValidator < ActiveModel::Validator
 end
 ```
 
+Note that the validator will be initialized *only once* for the whole application
+life cycle, and not on each validation run, so be careful about using instance
+variables inside it.
+
+If your validator is complex enough that you want instance variables, you can
+easily use a plain old Ruby object instead:
+
+```ruby
+class Person < ActiveRecord::Base
+  validate do |person|
+    GoodnessValidator.new(person).validate
+  end
+end
+
+class GoodnessValidator
+  def initialize(person)
+    @person = person
+  end
+  
+  def validate
+    if some_complex_condition_involving_ivars_and_private_methods?
+      @person.errors[:base] << "This person is evil"
+    end
+  end
+  
+  # …
+end
+```
+
 ### `validates_each`
 
 This helper validates attributes against a block. It doesn't have a predefined

@@ -6,6 +6,7 @@ In this guide you will learn how controllers work and how they fit into the requ
 After reading this guide, you will know:
 
 * How to follow the flow of a request through a controller.
+* How to restrict parameters passed to your controller.
 * Why and how to store data in the session or cookies.
 * How to work with filters to execute code during request processing.
 * How to use Action Controller's built-in HTTP authentication.
@@ -116,9 +117,9 @@ When this form is submitted, the value of `params[:client]` will be `{"name" => 
 
 Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
-### JSON/XML parameters
+### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON or XML format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
+If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
 
 So for example, if you are sending this JSON parameter:
 
@@ -128,7 +129,7 @@ So for example, if you are sending this JSON parameter:
 
 You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
@@ -141,6 +142,8 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+
+NOTE: A support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
 
 ### Routing Parameters
 
@@ -168,6 +171,123 @@ These options will be used as a starting point when generating URLs, so it's pos
 
 If you define `default_url_options` in `ApplicationController`, as in the example above, it would be used for all URL generation. The method can also be defined in one specific controller, in which case it only affects URLs generated there.
 
+### Strong Parameters
+
+With strong parameters Action Controller parameters are forbidden to
+be used in Active Model mass assignments until they have been
+whitelisted. This means you'll have to make a conscious choice about
+which attributes to allow for mass updating and thus prevent
+accidentally exposing that which shouldn't be exposed.
+
+In addition, parameters can be marked as required and flow through a
+predefined raise/rescue flow to end up as a 400 Bad Request with no
+effort.
+
+```ruby
+class PeopleController < ActionController::Base
+  # This will raise an ActiveModel::ForbiddenAttributes exception
+  # because it's using mass assignment without an explicit permit
+  # step.
+  def create
+    Person.create(params[:person])
+  end
+
+  # This will pass with flying colors as long as there's a person key
+  # in the parameters, otherwise it'll raise a
+  # ActionController::MissingParameter exception, which will get
+  # caught by ActionController::Base and turned into that 400 Bad
+  # Request reply.
+  def update
+    person = current_account.people.find(params[:id])
+    person.update_attributes!(person_params)
+    redirect_to person
+  end
+
+  private
+    # Using a private method to encapsulate the permissible parameters
+    # is just a good pattern since you'll be able to reuse the same
+    # permit list between create and update. Also, you can specialize
+    # this method with per-user checking of permissible attributes.
+    def person_params
+      params.require(:person).permit(:name, :age)
+    end
+end
+```
+
+#### Permitted Scalar Values
+
+Given
+
+```ruby
+params.permit(:id)
+```
+
+the key `:id` will pass the whitelisting if it appears in `params` and
+it has a permitted scalar value associated. Otherwise the key is going
+to be filtered out, so arrays, hashes, or any other objects cannot be
+injected.
+
+The permitted scalar types are `String`, `Symbol`, `NilClass`,
+`Numeric`, `TrueClass`, `FalseClass`, `Date`, `Time`, `DateTime`,
+`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile` and
+`Rack::Test::UploadedFile`.
+
+To declare that the value in `params+ must be an array of permitted
+scalar values map the key to an empty array:
+
+```ruby
+params.permit(:id => [])
+```
+
+To whitelist an entire hash of parameters, the `permit!+ method can be
+used
+
+```ruby
+params.require(:log_entry).permit!
+```
+
+This will mark the `:log_entry` parameters hash and any subhash of it
+permitted.  Extreme care should be taken when using `permit!` as it
+will allow all current and future model attributes to be
+mass-assigned.
+
+#### Nested Parameters
+
+You can also use permit on nested parameters, like:
+
+```ruby
+params.permit(:name, {:emails => []},
+              :friends => [ :name,
+                            { :family => [ :name ], :hobbies => [] }])
+```
+
+This declaration whitelists the `name`, `emails` and `friends`
+attributes. It is expected that `emails` will be an array of permitted
+scalar values and that `friends` will be an array of resources with
+specific attributes : they should have a `name` attribute (any
+permitted scalar values allowed), a `hobbies` attribute as an array of
+permitted scalar values, and a `family` attribute which is restricted
+to having a `name` (any permitted scalar values allowed, too).
+
+#### Outside the Scope of Strong Parameters
+
+The strong parameter API was designed with the most common use cases
+in mind. It is not meant as a silver bullet to handle all your
+whitelisting problems. However you can easily mix the API with your
+own code to adapt to your situation.
+
+Imagine a situation where you want to whitelist an attribute
+containing a hash with any keys. Using strong parameters you can't
+allow a hash with any keys but you can use a simple assignment to get
+the job done:
+
+```ruby
+def product_params
+  params.require(:product).permit(:name).tap do |whitelisted|
+    whitelisted[:data] = params[:product][:data]
+  end
+end
+```
 
 Session
 -------

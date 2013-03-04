@@ -13,7 +13,7 @@ module ActionView
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
-    # would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
+    #   would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
@@ -642,6 +642,8 @@ module ActionView
       #     <time datetime="2010-11-03">Yesterday</time>
       #   time_tag Date.today, pubdate: true  # =>
       #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
+      #   time_tag Date.today, datetime: Date.today.strftime('%G-W%V') # =>
+      #     <time datetime="2010-W44">November 04, 2010</time>
       #
       #   <%= time_tag Time.now do %>
       #     <span>Right now</span>
@@ -651,7 +653,7 @@ module ActionView
         options  = args.extract_options!
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, :format => format)
-        datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.rfc3339
+        datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.iso8601
 
         content_tag(:time, content, options.reverse_merge(:datetime => datetime), &block)
       end

@@ -347,7 +347,7 @@ module ActiveRecord
         end
 
         # reconstruct the scope now that we know the owner's id
-        association.send(:reset_scope) if association.respond_to?(:reset_scope)
+        association.reset_scope if association.respond_to?(:reset_scope)
       end
     end
 

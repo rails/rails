@@ -74,6 +74,14 @@ module ActionDispatch
         end
       end
 
+      class OptimizedPath < String # :nodoc:
+        private
+
+        def visit_GROUP(node)
+          ""
+        end
+      end
+
       # Used for formatting urls (url_for)
       class Formatter < Visitor # :nodoc:
         attr_reader :options, :consumed

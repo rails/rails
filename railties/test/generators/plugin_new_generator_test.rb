@@ -63,13 +63,24 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
     assert_no_directory "test/integration/"
     assert_no_file "test"
-    assert_no_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
+    assert_file "Rakefile" do |contents|
+      assert_no_match(/APP_RAKEFILE/, contents)
+    end
   end
 
   def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
     run_generator [destination_root, "-T", "--mountable", '--dummy-path', 'my_dummy_app']
+    assert_file "Rakefile", /APP_RAKEFILE/
+  end
 
-    assert_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
+  def test_generating_adds_dummy_app_without_javascript_and_assets_deps
+    run_generator [destination_root]
+
+    assert_file "test/dummy/app/assets/stylesheets/application.css"
+
+    assert_file "test/dummy/app/assets/javascripts/application.js" do |contents|
+      assert_no_match(/jquery/, contents)
+    end
   end
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
@@ -112,7 +123,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
     assert_no_file "test/dummy/config/database.yml"
-    assert_no_match(/ActiveRecord/, File.read(File.join(destination_root, "test/test_helper.rb")))
+    assert_file "test/test_helper.rb" do |contents|
+      assert_no_match /ActiveRecord/, contents
+    end
   end
 
   def test_ensure_that_database_option_is_passed_to_app_generator
@@ -134,8 +147,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_skipping_javascripts_without_mountable_option
     run_generator
     assert_no_file "app/assets/javascripts/bukkits/application.js"
-    assert_no_file "vendor/assets/javascripts/jquery.js"
-    assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
   def test_javascripts_generation
@@ -143,33 +154,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/bukkits/application.js"
   end
 
-  def test_jquery_is_the_default_javascript_library
-    run_generator [destination_root, "--mountable"]
-    assert_file "app/assets/javascripts/bukkits/application.js" do |contents|
-      assert_match %r{^//= require jquery}, contents
-      assert_match %r{^//= require jquery_ujs}, contents
-    end
-    assert_file 'bukkits.gemspec' do |contents|
-      assert_match(/jquery-rails/, contents)
-    end
-  end
-
-  def test_other_javascript_libraries
-    run_generator [destination_root, "--mountable", '-j', 'prototype']
-    assert_file "app/assets/javascripts/bukkits/application.js" do |contents|
-      assert_match %r{^//= require prototype}, contents
-      assert_match %r{^//= require prototype_ujs}, contents
-    end
-    assert_file 'bukkits.gemspec' do |contents|
-      assert_match(/prototype-rails/, contents)
-    end
-  end
-
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
     assert_no_file "app/assets/javascripts/bukkits/application.js"
-    assert_no_file "vendor/assets/javascripts/jquery.js"
-    assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
   def test_template_from_dir_pwd
@@ -318,16 +305,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
       assert_no_match('gemspec', contents)
       assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
       assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
-      assert_match(/# gem "jquery-rails"/, contents)
-      assert_no_match(/# jquery-rails is used by the dummy application\ngem "jquery-rails"/, contents)
-    end
-  end
-
-  def test_skipping_gemspec_in_full_mode_with_javascript_option
-    run_generator [destination_root, "--skip-gemspec", "--full", "--javascript=prototype"]
-    assert_file "Gemfile" do |contents|
-      assert_match(/# gem "prototype-rails"/, contents)
-      assert_match(/# jquery-rails is used by the dummy application\ngem "jquery-rails"/, contents)
     end
   end
 
@@ -369,40 +346,5 @@ protected
 
   def default_files
     ::DEFAULT_PLUGIN_FILES
-  end
-end
-
-class CustomPluginGeneratorTest < Rails::Generators::TestCase
-  include GeneratorsTestHelper
-  tests Rails::Generators::PluginNewGenerator
-
-  destination File.join(Rails.root, "tmp/bukkits")
-  arguments [destination_root]
-  include SharedCustomGeneratorTests
-
-  def test_overriding_test_framework
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/plugin_builders/spec_builder.rb"])
-    assert_file 'spec/spec_helper.rb'
-    assert_file 'spec/dummy'
-    assert_file 'Rakefile', /task default: :spec/
-    assert_file 'Rakefile', /# spec tasks in rakefile/
-  end
-
-protected
-  def default_files
-    ::DEFAULT_PLUGIN_FILES
-  end
-
-  def builder_class
-    :PluginBuilder
-  end
-
-  def builders_dir
-    "plugin_builders"
-  end
-
-  def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
   end
 end

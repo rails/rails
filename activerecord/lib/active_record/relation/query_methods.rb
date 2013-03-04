@@ -11,11 +11,11 @@ module ActiveRecord
         @scope = scope
       end
 
-      # Returns a new relation expressing WHERE + NOT condition
-      # according to the conditions in the arguments.
+      # Returns a new relation expressing WHERE + NOT condition according to
+      # the conditions in the arguments.
       #
-      # #not accepts conditions in one of these formats: String, Array, Hash.
-      # See #where for more details on each format.
+      # +not+ accepts conditions as a string, array, or hash. See #where for
+      # more details on each format.
       #
       #    User.where.not("name = 'Jon'")
       #    # SELECT * FROM users WHERE NOT (name = 'Jon')
@@ -31,6 +31,10 @@ module ActiveRecord
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
+      #
+      #    User.where.not(name: "Jon", role: "admin")
+      #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+      #
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
@@ -108,7 +112,8 @@ module ActiveRecord
     #
     #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
     def includes(*args)
-      args.empty? ? self : spawn.includes!(*args)
+      check_if_method_has_arguments!("includes", args)
+      spawn.includes!(*args)
     end
 
     def includes!(*args) # :nodoc:
@@ -125,7 +130,8 @@ module ActiveRecord
     #   FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
     #   "users"."id"
     def eager_load(*args)
-      args.blank? ? self : spawn.eager_load!(*args)
+      check_if_method_has_arguments!("eager_load", args)
+      spawn.eager_load!(*args)
     end
 
     def eager_load!(*args) # :nodoc:
@@ -138,7 +144,8 @@ module ActiveRecord
     #   User.preload(:posts)
     #   => SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
-      args.blank? ? self : spawn.preload!(*args)
+      check_if_method_has_arguments!("preload", args)
+      spawn.preload!(*args)
     end
 
     def preload!(*args) # :nodoc:
@@ -155,7 +162,8 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # => Query now knows the string references posts, so adds a JOIN
     def references(*args)
-      args.blank? ? self : spawn.references!(*args)
+      check_if_method_has_arguments!("references", args)
+      spawn.references!(*args)
     end
 
     def references!(*args) # :nodoc:
@@ -189,6 +197,16 @@ module ActiveRecord
     #   Model.select(:field, :other_field, :and_one_more)
     #   # => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
+    # You can also use one or more strings, which will be used unchanged as SELECT fields.
+    #
+    #   Model.select('field AS field_one', 'other_field AS field_two')
+    #   # => [#<Model field: "value", other_field: "value">]
+    #
+    # If an alias was specified, it will be accessible from the resulting objects:
+    #
+    #   Model.select('field AS field_one').first.field_one
+    #   # => "value"
+    #
     # Accessing attributes of an object that do not have fields retrieved by a select
     # will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
@@ -220,8 +238,12 @@ module ActiveRecord
     #
     #   User.group(:name)
     #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
+    #
+    #   User.group('name AS grouped_name, age')
+    #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
     def group(*args)
-      args.blank? ? self : spawn.group!(*args)
+      check_if_method_has_arguments!("group", args)
+      spawn.group!(*args)
     end
 
     def group!(*args) # :nodoc:
@@ -251,7 +273,8 @@ module ActiveRecord
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     def order(*args)
-      args.blank? ? self : spawn.order!(*args)
+      check_if_method_has_arguments!("order", args)
+      spawn.order!(*args)
     end
 
     def order!(*args) # :nodoc:
@@ -261,6 +284,11 @@ module ActiveRecord
       references = args.reject { |arg| Arel::Node === arg }
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
+
+      # if a symbol is given we prepend the quoted table name
+      args = args.map { |arg|
+        arg.is_a?(Symbol) ? "#{quoted_table_name}.#{arg} ASC" : arg
+      }
 
       self.order_values = args + self.order_values
       self
@@ -276,7 +304,8 @@ module ActiveRecord
     #
     # generates a query with 'ORDER BY name ASC, id ASC'.
     def reorder(*args)
-      args.blank? ? self : spawn.reorder!(*args)
+      check_if_method_has_arguments!("reorder", args)
+      spawn.reorder!(*args)
     end
 
     def reorder!(*args) # :nodoc:
@@ -288,12 +317,79 @@ module ActiveRecord
       self
     end
 
+    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
+                                     :limit, :offset, :joins, :includes, :from,
+                                     :readonly, :having])
+
+    # Removes an unwanted relation that is already defined on a chain of relations.
+    # This is useful when passing around chains of relations and would like to
+    # modify the relations without reconstructing the entire chain.
+    #
+    #   User.order('email DESC').unscope(:order) == User.all
+    #
+    # The method arguments are symbols which correspond to the names of the methods
+    # which should be unscoped. The valid arguments are given in VALID_UNSCOPING_VALUES.
+    # The method can also be called with multiple arguments. For example:
+    #
+    #   User.order('email DESC').select('id').where(name: "John")
+    #       .unscope(:order, :select, :where) == User.all
+    #
+    # One can additionally pass a hash as an argument to unscope specific :where values.
+    # This is done by passing a hash with a single key-value pair. The key should be
+    # :where and the value should be the where value to unscope. For example:
+    #
+    #   User.where(name: "John", active: true).unscope(where: :name)
+    #       == User.where(active: true)
+    #
+    # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
+    # because #except will only affect a particular relation's values. It won't wipe
+    # the order, grouping, etc. when that relation is merged. For example:
+    #
+    #   Post.comments.except(:order)
+    #
+    # will still have an order if it comes from the default_scope on Comment.
+    def unscope(*args)
+      check_if_method_has_arguments!("unscope", args)
+      spawn.unscope!(*args)
+    end
+
+    def unscope!(*args)
+      args.flatten!
+
+      args.each do |scope|
+        case scope
+        when Symbol
+          symbol_unscoping(scope)
+        when Hash
+          scope.each do |key, target_value|
+            if key != :where
+              raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
+            end
+
+            Array(target_value).each do |val|
+              where_unscoping(val)
+            end
+          end
+        else
+          raise ArgumentError, "Unrecognized scoping: #{args.inspect}. Use .unscope(where: :attribute_name) or .unscope(:order), for example."
+        end
+      end
+
+      self
+    end
+
     # Performs a joins on +args+:
     #
     #   User.joins(:posts)
     #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #
+    # You can use strings in order to customize your joins:
+    #
+    #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
+    #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
-      args.compact.blank? ? self : spawn.joins!(*args.flatten)
+      check_if_method_has_arguments!("joins", args)
+      spawn.joins!(*args.compact.flatten)
     end
 
     def joins!(*args) # :nodoc:
@@ -439,8 +535,6 @@ module ActiveRecord
       end
     end
 
-    # #where! is identical to #where, except that instead of returning a new relation, it adds
-    # the condition to the existing relation.
     def where!(opts = :chain, *rest) # :nodoc:
       if opts == :chain
         WhereChain.new(self)
@@ -458,6 +552,7 @@ module ActiveRecord
     #   Order.having('SUM(price) > 30').group('user_id')
     def having(opts, *rest)
       opts.blank? ? self : spawn.having!(opts, *rest)
+      spawn.having!(opts, *rest)
     end
 
     def having!(opts, *rest) # :nodoc:
@@ -605,7 +700,6 @@ module ActiveRecord
       spawn.from!(value, subquery_name)
     end
 
-    # Like #from, but modifies relation in place.
     def from!(value, subquery_name = nil) # :nodoc:
       self.from_value = [value, subquery_name]
       self
@@ -728,6 +822,39 @@ module ActiveRecord
     end
 
     private
+
+    def symbol_unscoping(scope)
+      if !VALID_UNSCOPING_VALUES.include?(scope)
+        raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
+      end
+
+      single_val_method = Relation::SINGLE_VALUE_METHODS.include?(scope)
+      unscope_code = :"#{scope}_value#{'s' unless single_val_method}="
+
+      case scope
+      when :order
+        self.send(:reverse_order_value=, false)
+        result = []
+      else
+        result = [] unless single_val_method
+      end
+
+      self.send(unscope_code, result)
+    end
+
+    def where_unscoping(target_value)
+      target_value_sym = target_value.to_sym
+
+      where_values.reject! do |rel|
+        case rel
+        when Arel::Nodes::In, Arel::Nodes::Equality
+          subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
+          subrelation.name.to_sym == target_value_sym
+        else
+          raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} is unimplemented."
+        end
+      end
+    end
 
     def custom_join_ast(table, joins)
       joins = joins.reject { |join| join.blank? }
@@ -894,5 +1021,26 @@ module ActiveRecord
       end
     end
 
+    # Checks to make sure that the arguments are not blank. Note that if some
+    # blank-like object were initially passed into the query method, then this
+    # method will not raise an error.
+    #
+    # Example:
+    #
+    #    Post.references()   # => raises an error
+    #    Post.references([]) # => does not raise an error
+    #
+    # This particular method should be called with a method_name and the args
+    # passed into that method as an input. For example:
+    #
+    # def references(*args)
+    #   check_if_method_has_arguments!("references", args)
+    #   ...
+    # end
+    def check_if_method_has_arguments!(method_name, args)
+      if args.blank?
+        raise ArgumentError, "The method .#{method_name}() must contain arguments."
+      end
+    end
   end
 end

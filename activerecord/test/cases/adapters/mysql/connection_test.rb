@@ -19,6 +19,9 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   def test_connect_with_url
     run_without_connection do |orig|
       ar_config = ARTest.connection_config['arunit']
+
+      skip "This test doesn't work with custom socket location" if ar_config['socket']
+
       url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
       Klass.establish_connection(url)
       assert_equal ar_config['database'], Klass.connection.current_database

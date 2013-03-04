@@ -73,6 +73,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_with_order
+    authors = Author.includes(:favorite_authors).to_a
+    assert_no_queries { authors.map(&:favorite_authors) }
+  end
+
   def test_with_two_tables_in_from_without_getting_double_quoted
     posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
@@ -213,7 +218,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_finding_with_includes_on_null_belongs_to_association_with_same_include_includes_only_once
     post = posts(:welcome)
     post.update!(author: nil)
-    post = assert_queries(1) { Post.all.merge!(includes: {author_with_address: :author_address}).find(post.id) } 
+    post = assert_queries(1) { Post.all.merge!(includes: {author_with_address: :author_address}).find(post.id) }
     # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_equal nil, post.author_with_address
@@ -1161,5 +1166,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Comment.find(1).post,
       Post.where('1 = 0').scoping { Comment.preload(:post).find(1).post }
     )
+  end
+
+  test "preloading does not cache has many association subset when preloaded with a through association" do
+    author = Author.includes(:comments_with_order_and_conditions, :posts).first
+    assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
+    assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
+  end
+
+  test "works in combination with order(:symbol)" do
+    author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
+    assert_equal authors(:bob), author
   end
 end

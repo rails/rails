@@ -121,6 +121,7 @@
     var toggle = function(id) {
       var s = document.getElementById(id).style;
       s.display = s.display == 'none' ? 'block' : 'none';
+      return false;
     }
     var show = function(id) {
       document.getElementById(id).style.display = 'block';
@@ -129,13 +130,13 @@
       document.getElementById(id).style.display = 'none';
     }
     var toggleTrace = function() {
-      toggle('blame_trace');
+      return toggle('blame_trace');
     }
     var toggleSessionDump = function() {
-      toggle('session_dump');
+      return toggle('session_dump');
     }
     var toggleEnvDump = function() {
-      toggle('env_dump');
+      return toggle('env_dump');
     }
   </script>
 </head>

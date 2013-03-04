@@ -3,12 +3,16 @@ require 'pathname'
 module Rails
   module AppRailsLoader
     RUBY = File.join(*RbConfig::CONFIG.values_at("bindir", "ruby_install_name")) + RbConfig::CONFIG["EXEEXT"]
-    EXECUTABLE = 'bin/rails'
+    EXECUTABLES = ['bin/rails', 'script/rails']
 
     def self.exec_app_rails
-      cwd = Dir.pwd
-      return unless in_rails_application_or_engine? || in_rails_application_or_engine_subdirectory?
-      exec RUBY, EXECUTABLE, *ARGV if in_rails_application_or_engine?
+      cwd   = Dir.pwd
+
+      exe   = find_executable
+      exe ||= find_executable_in_parent_path
+      return unless exe
+
+      exec RUBY, exe, *ARGV if find_executable
       Dir.chdir("..") do
         # Recurse in a chdir block: if the search fails we want to be sure
         # the application is generated in the original working directory.
@@ -18,12 +22,16 @@ module Rails
       # could not chdir, no problem just return
     end
 
-    def self.in_rails_application_or_engine?
-      File.exists?(EXECUTABLE) && File.read(EXECUTABLE) =~ /(APP|ENGINE)_PATH/
+    def self.find_executable
+      EXECUTABLES.find do |exe|
+        File.exists?(exe) && File.read(exe) =~ /(APP|ENGINE)_PATH/
+      end
     end
 
-    def self.in_rails_application_or_engine_subdirectory?(path = Pathname.new(Dir.pwd))
-      File.exists?(File.join(path, EXECUTABLE)) || !path.root? && in_rails_application_or_engine_subdirectory?(path.parent)
+    def self.find_executable_in_parent_path(path = Pathname.new(Dir.pwd))
+      EXECUTABLES.find do |exe|
+        File.exists?(File.join(path, exe)) || !path.root? && find_executable_in_parent_path(path.parent)
+      end
     end
   end
 end

@@ -218,9 +218,8 @@ module ActiveRecord
       #   after_commit :do_bar, on: :update
       #   after_commit :do_baz, on: :destroy
       #
-      # Also, to have the callback fired on create and update, but not on destroy:
-      #
-      #   after_commit :do_zoo, if: :persisted?
+      #   after_commit :do_foo_bar, :on [:create, :update]
+      #   after_commit :do_bar_baz, :on [:update, :destroy]
       #
       # Note that transactional fixtures do not play well with this feature. Please
       # use the +test_after_commit+ gem to have these hooks fired in tests.
@@ -244,12 +243,14 @@ module ActiveRecord
         if options.is_a?(Hash) && options[:on]
           assert_valid_transaction_action(options[:on])
           options[:if] = Array(options[:if])
-          options[:if] << "transaction_include_action?(:#{options[:on]})"
+          fire_on = Array(options[:on]).map(&:to_sym)
+          options[:if] << "transaction_include_any_action?(#{fire_on})"
         end
       end
 
-      def assert_valid_transaction_action(action)
-        unless ACTIONS.include?(action.to_sym)
+      def assert_valid_transaction_action(actions)
+        actions = Array(actions)
+        if (actions - ACTIONS).any?
           raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS.join(",")}"
         end
       end
@@ -286,8 +287,11 @@ module ActiveRecord
     end
 
     # Call the after_commit callbacks
+    #
+    # Ensure that it is not called if the object was never persisted (failed create),
+    # but call it after the commit of a destroyed object
     def committed! #:nodoc:
-      run_callbacks :commit
+      run_callbacks :commit if destroyed? || persisted?
     ensure
       clear_transaction_record_state
     end
@@ -375,14 +379,16 @@ module ActiveRecord
     end
 
     # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
-    def transaction_include_action?(action) #:nodoc:
-      case action
-      when :create
-        transaction_record_state(:new_record)
-      when :destroy
-        destroyed?
-      when :update
-        !(transaction_record_state(:new_record) || destroyed?)
+    def transaction_include_any_action?(actions) #:nodoc:
+      actions.any? do |action|
+        case action
+        when :create
+          transaction_record_state(:new_record)
+        when :destroy
+          destroyed?
+        when :update
+          !(transaction_record_state(:new_record) || destroyed?)
+        end
       end
     end
   end

@@ -255,7 +255,6 @@ module ActiveSupport
       #     a method is created that calls the before_foo method
       #     on the object.
       def _compile_filter(filter)
-        method_name = "_callback_#{@kind}_#{next_id}"
         case filter
         when Array
           filter.map {|f| _compile_filter(f)}
@@ -264,11 +263,13 @@ module ActiveSupport
         when String
           "(#{filter})"
         when Proc
+          method_name = "_callback_#{@kind}_#{next_id}"
           @klass.send(:define_method, method_name, &filter)
           return method_name if filter.arity <= 0
 
           method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
+          method_name = "_callback_#{@kind}_#{next_id}"
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)

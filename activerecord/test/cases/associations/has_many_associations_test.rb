@@ -20,6 +20,8 @@ require 'models/car'
 require 'models/bulb'
 require 'models/engine'
 require 'models/categorization'
+require 'models/minivan'
+require 'models/speedometer'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
@@ -1746,5 +1748,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_equal [], david.posts_with_special_categorizations
     david.posts_with_special_categorizations = []
     assert_equal [], david.posts_with_special_categorizations
+  end
+
+  test "does not duplicate associations when used with natural primary keys" do
+    speedometer = Speedometer.create!(id: '4')
+    speedometer.minivans.create!(minivan_id: 'a-van-red' ,name: 'a van', color: 'red')
+
+    assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
+    assert_equal 1, speedometer.reload.minivans.to_a.size
   end
 end

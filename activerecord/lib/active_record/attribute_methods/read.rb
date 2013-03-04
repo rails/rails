@@ -74,7 +74,7 @@ module ActiveRecord
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         # If it's cached, just return it
-        # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/3552829.
+        # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/jonleighton/3552829.
         name = attr_name.to_s
         @attributes_cache[name] || @attributes_cache.fetch(name) {
           column = @columns_hash.fetch(name) {

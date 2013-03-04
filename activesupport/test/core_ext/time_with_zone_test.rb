@@ -326,6 +326,17 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal 946684800, twz.to_i
   end
 
+  def test_to_r
+    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii']).to_r
+    assert_equal Rational(946684800, 1), result
+    assert_kind_of Rational, result
+  end
+
+  def test_time_at
+    time = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii'])
+    assert_equal time, Time.at(time)
+  end
+
   def test_to_time
     with_env_tz 'US/Eastern' do
       assert_equal Time, @twz.to_time.class
@@ -537,6 +548,20 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
     assert_equal "Fri, 31 Dec 1999 19:30:00 EST -05:00", twz.inspect
     assert_equal "Fri, 31 Dec 1999 19:59:59 EST -05:00", twz.end_of_hour.inspect
+  end
+
+  def test_beginning_of_minute
+    utc = Time.utc(2000, 1, 1, 0, 30, 10)
+    twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+    assert_equal "Fri, 31 Dec 1999 19:30:10 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", twz.beginning_of_hour.inspect
+  end
+
+  def test_end_of_minute
+    utc = Time.utc(2000, 1, 1, 0, 30, 10)
+    twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+    assert_equal "Fri, 31 Dec 1999 19:30:10 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:30:59 EST -05:00", twz.end_of_minute.inspect
   end
 
   def test_since

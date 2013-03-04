@@ -580,7 +580,7 @@ module ActiveSupport
 
       unit = case units
       when Hash
-        units[DECIMAL_UNITS[display_exponent]]
+        units[DECIMAL_UNITS[display_exponent]] || ''
       when String, Symbol
         I18n.translate(:"#{units}.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
       else

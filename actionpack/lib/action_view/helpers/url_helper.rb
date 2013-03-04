@@ -241,13 +241,13 @@ module ActionView
       #   #      </div>
       #   #    </form>"
       #
-      #   <%= button_to "New", action: "new", form_class: "new-thing" %>
+      #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
       #
-      #   <%= button_to "Create", action: "create", remote: true, form: { "data-type" => "json" } %>
+      #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <div>
       #   #        <input value="Create" type="submit" />

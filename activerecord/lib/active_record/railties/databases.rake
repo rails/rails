@@ -2,7 +2,7 @@ require 'active_record'
 
 db_namespace = namespace :db do
   task :load_config do
-    ActiveRecord::Base.configurations = Rails.application.config.database_configuration
+    ActiveRecord::Base.configurations = Rails.application.config.database_configuration || {}
     ActiveRecord::Migrator.migrations_paths = Rails.application.paths['db/migrate'].to_a
 
     if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)

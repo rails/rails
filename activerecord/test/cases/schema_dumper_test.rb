@@ -261,22 +261,22 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_inet_shorthand_definition
       output = standard_dump
-      if %r{create_table "postgresql_network_address"} =~ output
-        assert_match %r{t.inet "inet_address"}, output
+      if %r{create_table "postgresql_network_addresses"} =~ output
+        assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1"}, output
       end
     end
 
     def test_schema_dump_includes_cidr_shorthand_definition
       output = standard_dump
-      if %r{create_table "postgresql_network_address"} =~ output
-        assert_match %r{t.cidr "cidr_address"}, output
+      if %r{create_table "postgresql_network_addresses"} =~ output
+        assert_match %r{t.cidr\s+"cidr_address",\s+default: "192.168.1.0/24"}, output
       end
     end
 
     def test_schema_dump_includes_macaddr_shorthand_definition
       output = standard_dump
-      if %r{create_table "postgresql_network_address"} =~ output
-        assert_match %r{t.macaddr "macaddr_address"}, output
+      if %r{create_table "postgresql_network_addresses"} =~ output
+        assert_match %r{t.macaddr\s+"mac_address",\s+default: "ff:ff:ff:ff:ff:ff"}, output
       end
     end
 

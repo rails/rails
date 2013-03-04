@@ -31,6 +31,8 @@ module ActionDispatch
           # If any of the path parameters has a invalid encoding then
           # raise since it's likely to trigger errors further on.
           params.each do |key, value|
+            next unless value.respond_to?(:valid_encoding?)
+
             unless value.valid_encoding?
               raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
             end
@@ -163,7 +165,7 @@ module ActionDispatch
               super
               @path_parts   = @route.required_parts
               @arg_size     = @path_parts.size
-              @string_route = string_route(route)
+              @string_route = @route.optimized_path
             end
 
             def call(t, args)
@@ -177,14 +179,6 @@ module ActionDispatch
             end
 
             private
-
-            def string_route(route)
-              string_route = route.ast.to_s.dup
-              while string_route.gsub!(/\([^\)]*\)/, "")
-                true
-              end
-              string_route
-            end
 
             def optimized_helper(args)
               path = @string_route.dup

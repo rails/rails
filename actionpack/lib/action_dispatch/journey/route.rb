@@ -71,6 +71,10 @@ module ActionDispatch
         Visitors::Formatter.new(path_options).accept(path.spec)
       end
 
+      def optimized_path
+        Visitors::OptimizedPath.new.accept(path.spec)
+      end
+
       def optional_parts
         path.optional_names.map { |n| n.to_sym }
       end

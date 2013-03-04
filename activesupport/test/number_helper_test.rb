@@ -301,6 +301,13 @@ module ActiveSupport
         end
       end
 
+      def test_number_to_human_with_custom_units_that_are_missing_the_needed_key
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal '123', number_helper.number_to_human(123, units: { thousand: 'k'})
+          assert_equal '123', number_helper.number_to_human(123, units: {})
+        end
+      end
+
       def test_number_to_human_with_custom_format
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal '123 times Thousand', number_helper.number_to_human(123456, :format => "%n times %u")

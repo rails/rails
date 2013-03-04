@@ -156,7 +156,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = table_definition
+        td = create_table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
         yield td if block_given?
@@ -191,6 +191,14 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      #
+      # Note that +create_join_table+ does not create any indices by default; you can use
+      # its block form to do so yourself:
+      #
+      #   create_join_table :products, :categories do |t|
+      #     t.index :products
+      #     t.index :categories
+      #   end
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #  create_join_table(:assemblies, :parts, options: 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
@@ -290,10 +298,10 @@ module ActiveRecord
       def change_table(table_name, options = {})
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
-          yield Table.new(table_name, recorder)
+          yield update_table_definition(table_name, recorder)
           bulk_change_table(table_name, recorder.commands)
         else
-          yield Table.new(table_name, self)
+          yield update_table_definition(table_name, self)
         end
       end
 
@@ -647,10 +655,11 @@ module ActiveRecord
           index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length)
+            options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal)
 
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
+            max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
             if supports_partial_index?
               index_options = options[:where] ? " WHERE #{options[:where]}" : ""
@@ -665,10 +674,11 @@ module ActiveRecord
             end
 
             index_type = options
+            max_index_length = allowed_index_name_length
           end
 
-          if index_name.length > index_name_length
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+          if index_name.length > max_index_length
+            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
           end
           if index_name_exists?(table_name, index_name, false)
             raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
@@ -694,9 +704,35 @@ module ActiveRecord
           column_names.map {|column_name| quote_column_name(column_name) }
         end
 
+        def rename_table_indexes(table_name, new_name)
+          indexes(new_name).each do |index|
+            generated_index_name = index_name(table_name, column: index.columns)
+            if generated_index_name == index.name
+              rename_index new_name, generated_index_name, index_name(new_name, column: index.columns)
+            end
+          end
+        end
+
+        def rename_column_indexes(table_name, column_name, new_column_name)
+          column_name, new_column_name = column_name.to_s, new_column_name.to_s
+          indexes(table_name).each do |index|
+            next unless index.columns.include?(new_column_name)
+            old_columns = index.columns.dup
+            old_columns[old_columns.index(new_column_name)] = column_name
+            generated_index_name = index_name(table_name, column: old_columns)
+            if generated_index_name == index.name
+              rename_index table_name, generated_index_name, index_name(table_name, column: index.columns)
+            end
+          end
+        end
+
       private
-      def table_definition
+      def create_table_definition
         TableDefinition.new(self)
+      end
+
+      def update_table_definition(table_name, base)
+        Table.new(table_name, base)
       end
     end
   end

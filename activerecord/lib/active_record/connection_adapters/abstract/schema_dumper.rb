@@ -1,10 +1,12 @@
+require 'ipaddr'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # The goal of this module is to move Adapter specific column
     # definitions to the Adapter instead of having it in the schema
     # dumper itself. This code represents the normal case.
     # We can then redefine how certain data types may be handled in the schema dumper on the 
-    # Adapter level by over-writing this code inside the database spececific adapters
+    # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column, types)
         spec = prepare_column_options(column, types)
@@ -50,6 +52,15 @@ module ActiveRecord
           when Range
             # infinity dumps as Infinity, which causes uninitialized constant error
             value.inspect.gsub('Infinity', '::Float::INFINITY')
+          when IPAddr
+            subnet_mask = value.instance_variable_get(:@mask_addr)
+
+            # If the subnet mask is equal to /32, don't output it
+            if subnet_mask == (2**32 - 1)
+              "\"#{value.to_s}\""
+            else
+              "\"#{value.to_s}/#{subnet_mask.to_s(2).count('1')}\""
+            end
           else
             value.inspect
           end

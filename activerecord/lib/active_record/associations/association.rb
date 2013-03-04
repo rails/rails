@@ -146,7 +146,7 @@ module ActiveRecord
 
       def interpolate(sql, record = nil)
         if sql.respond_to?(:to_proc)
-          owner.send(:instance_exec, record, &sql)
+          owner.instance_exec(record, &sql)
         else
           sql
         end

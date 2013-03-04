@@ -21,8 +21,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activesupport', version
   s.add_dependency 'builder',       '~> 3.1.0'
-  s.add_dependency 'rack',          '~> 1.5.0'
-  s.add_dependency 'rack-test',     '~> 0.6.1'
+  s.add_dependency 'rack',          '~> 1.5.2'
+  s.add_dependency 'rack-test',     '~> 0.6.2'
   s.add_dependency 'erubis',        '~> 2.7.0'
 
   s.add_development_dependency 'activemodel', version

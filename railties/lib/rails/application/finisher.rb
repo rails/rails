@@ -90,13 +90,6 @@ module Rails
         end
       end
 
-      # Disable dependency loading during request cycle
-      initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes
-          ActiveSupport::Dependencies.unhook!
-        end
-      end
-
       initializer :activate_queue_consumer do |app|
         if config.queue.class == ActiveSupport::Queue
           app.queue_consumer = config.queue_consumer || config.queue.consumer

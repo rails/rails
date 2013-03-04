@@ -412,7 +412,7 @@ This command will generate the `Thud` application, and then apply the template t
 Templates don't have to be stored on the local system, the `-m` option also supports online templates:
 
 ```bash
-$ rails new thud -m https://gist.github.com/722911.txt
+$ rails new thud -m https://gist.github.com/radar/722911/raw/
 ```
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.

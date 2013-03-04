@@ -321,6 +321,22 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, person_with_reader_and_post.size
   end
 
+  def test_no_arguments_to_query_methods_raise_errors
+    assert_raises(ArgumentError) { Topic.references() }
+    assert_raises(ArgumentError) { Topic.includes() }
+    assert_raises(ArgumentError) { Topic.preload() }
+    assert_raises(ArgumentError) { Topic.group() }
+    assert_raises(ArgumentError) { Topic.reorder() }
+  end
+
+  def test_blank_like_arguments_to_query_methods_dont_raise_errors
+    assert_nothing_raised { Topic.references([]) }
+    assert_nothing_raised { Topic.includes([]) }
+    assert_nothing_raised { Topic.preload([]) }
+    assert_nothing_raised { Topic.group([]) }
+    assert_nothing_raised { Topic.reorder([]) }
+  end
+
   def test_scoped_responds_to_delegated_methods
     relation = Topic.all
 

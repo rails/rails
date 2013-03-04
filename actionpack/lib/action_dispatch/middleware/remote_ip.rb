@@ -2,14 +2,14 @@ module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
   # making the request. It does this by checking various headers that could
   # contain the address, and then picking the last-set address that is not
-  # on the list of trusted IPs. This follows the precendent set by e.g.
+  # on the list of trusted IPs. This follows the precedent set by e.g.
   # {the Tomcat server}[https://issues.apache.org/bugzilla/show_bug.cgi?id=50453],
   # with {reasoning explained at length}[http://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection]
   # by @gingerlime. A more detailed explanation of the algorithm is given
   # at GetIp#calculate_ip.
   #
   # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
-  # requires. Some Rack servers simply drop preceeding headers, and only report
+  # requires. Some Rack servers simply drop preceding headers, and only report
   # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
   # If you are behind multiple proxy servers (like Nginx to HAProxy to Unicorn)
   # then you should test your Rack server to make sure your data is good.
@@ -83,7 +83,7 @@ module ActionDispatch
 
       # This constant contains a regular expression that validates every known
       # form of IP v4 and v6 address, with or without abbreviations, adapted
-      # from {this gist}[https://gist.github.com/1289635].
+      # from {this gist}[https://gist.github.com/gazay/1289635].
       VALID_IP = %r{
         (^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$)                                                        | # ip v4
         (^(

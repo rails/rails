@@ -4,7 +4,7 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_writer :middleware, :autoload_once_paths, :autoload_paths
+      attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
 
       def initialize(root=nil)
         super()
@@ -39,16 +39,16 @@ module Rails
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
 
-          paths.add "app",                 autoload: true, glob: "*"
+          paths.add "app",                 eager_load: true, glob: "*"
           paths.add "app/assets",          glob: "*"
-          paths.add "app/controllers",     autoload: true
-          paths.add "app/helpers",         autoload: true
-          paths.add "app/models",          autoload: true
-          paths.add "app/mailers",         autoload: true
+          paths.add "app/controllers",     eager_load: true
+          paths.add "app/helpers",         eager_load: true
+          paths.add "app/models",          eager_load: true
+          paths.add "app/mailers",         eager_load: true
           paths.add "app/views"
 
-          paths.add "app/controllers/concerns", autoload: true
-          paths.add "app/models/concerns",      autoload: true
+          paths.add "app/controllers/concerns", eager_load: true
+          paths.add "app/models/concerns",      eager_load: true
 
           paths.add "lib",                 load_path: true
           paths.add "lib/assets",          glob: "*"
@@ -76,13 +76,7 @@ module Rails
       end
 
       def eager_load_paths
-        ActiveSupport::Deprecation.warn "eager_load_paths is deprecated and all autoload_paths are now eagerly loaded."
-        autoload_paths
-      end
-
-      def eager_load_paths=(paths)
-        ActiveSupport::Deprecation.warn "eager_load_paths is deprecated and all autoload_paths are now eagerly loaded."
-        self.autoload_paths = paths
+        @eager_load_paths ||= paths.eager_load
       end
 
       def autoload_once_paths

@@ -3,7 +3,7 @@ Ruby on Rails 4.0 Release Notes
 
 Highlights in Rails 4.0:
 
-* Ruby 1.9.3 only
+* Ruby 2.0 preferred; 1.9.3+ required
 * Strong Parameters
 * Queue API
 * Turbolinks
@@ -204,6 +204,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 *   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in your `database.yml`.
 
 *   Remove IdentityMap.
+
+*   Remove automatic execution of EXPLAIN queries. The option `active_record.auto_explain_threshold_in_seconds` is no longer used and should be removed.
 
 *   Adds `ActiveRecord::NullRelation` and `ActiveRecord::Relation#none` implementing the null object pattern for the Relation class.
 

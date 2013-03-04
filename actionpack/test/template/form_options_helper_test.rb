@@ -21,10 +21,10 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def setup
-    @fake_timezones = %w(A B C D E).inject([]) do |zones, id|
+    @fake_timezones = %w(A B C D E).map do |id|
       tz = TZInfo::Timezone.loaded_zones[id] = stub(:name => id, :to_s => id)
       ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)
-      zones << tz
+      tz
     end
     ActiveSupport::TimeZone.stubs(:all).returns(@fake_timezones)
   end
@@ -351,7 +351,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_time_zone_options_no_parms
+  def test_time_zone_options_no_params
     opts = time_zone_options_for_select
     assert_dom_equal "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
@@ -415,6 +415,13 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"C\" selected=\"selected\">C</option>\n" +
                  "<option value=\"D\">D</option>",
                  opts
+  end
+
+  def test_time_zone_options_with_priority_zones_does_not_mutate_time_zones
+    original_zones = ActiveSupport::TimeZone.all.dup
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
+    time_zone_options_for_select(nil, zones)
+    assert_equal original_zones, ActiveSupport::TimeZone.all
   end
 
   def test_time_zone_options_returns_html_safe_string
@@ -1079,11 +1086,13 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_select_with_priority_zones_as_regexp
     @firm = Firm.new("D")
+
+    priority_zones = /A|D/
     @fake_timezones.each_with_index do |tz, i|
-      tz.stubs(:=~).returns(i.zero? || i == 3)
+      priority_zones.stubs(:===).with(tz).returns(i.zero? || i == 3)
     end
 
-    html = time_zone_select("firm", "time_zone", /A|D/)
+    html = time_zone_select("firm", "time_zone", priority_zones)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"D\" selected=\"selected\">D</option>" +

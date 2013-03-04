@@ -83,7 +83,7 @@ module SharedGeneratorTests
   end
 
   def test_template_is_executed_when_supplied
-    path = "http://gist.github.com/103208.txt"
+    path = "https://gist.github.com/josevalim/103208/raw/"
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
@@ -92,7 +92,7 @@ module SharedGeneratorTests
   end
 
   def test_template_is_executed_when_supplied_an_https_path
-    path = "https://gist.github.com/103208.txt"
+    path = "https://gist.github.com/josevalim/103208/raw/"
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
@@ -138,63 +138,5 @@ module SharedGeneratorTests
     run_generator [destination_root, '--skip-keeps', '--full']
     assert_file('.gitignore')
     assert_no_file('app/mailers/.keep')
-  end
-end
-
-module SharedCustomGeneratorTests
-  def setup
-    Rails.application = TestApp::Application
-    super
-    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
-  end
-
-  def teardown
-    super
-    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
-    Object.class_eval do
-      remove_const :AppBuilder if const_defined?(:AppBuilder)
-      remove_const :PluginBuilder if const_defined?(:PluginBuilder)
-    end
-    Rails.application = TestApp::Application.instance
-  end
-
-  def test_builder_option_with_empty_app_builder
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/#{builders_dir}/empty_builder.rb"])
-    default_files.each{ |path| assert_no_file path }
-  end
-
-  def test_builder_option_with_simple_plugin_builder
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/#{builders_dir}/simple_builder.rb"])
-    (default_files - ['.gitignore']).each{ |path| assert_no_file path }
-    assert_file ".gitignore", "foobar"
-  end
-
-  def test_builder_option_with_relative_path
-    here = File.expand_path(File.dirname(__FILE__))
-    FileUtils.cd(here)
-    run_generator([destination_root, "-b", "../fixtures/lib/#{builders_dir}/simple_builder.rb"])
-    FileUtils.cd(destination_root)
-    (default_files - ['.gitignore']).each{ |path| assert_no_file path }
-    assert_file ".gitignore", "foobar"
-  end
-
-  def test_builder_option_with_tweak_plugin_builder
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/#{builders_dir}/tweak_builder.rb"])
-    default_files.each{ |path| assert_file path }
-    assert_file ".gitignore", "foobar"
-  end
-
-  def test_builder_option_with_http
-    url = "http://gist.github.com/103208.txt"
-    template = "class #{builder_class}; end"
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    generator([destination_root], builder: url).expects(:open).with(url, 'Accept' => 'application/x-thor-template').returns(template)
-    quietly { generator.invoke_all }
-
-    default_files.each{ |path| assert_no_file(path) }
   end
 end

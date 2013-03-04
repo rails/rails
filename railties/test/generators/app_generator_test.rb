@@ -342,15 +342,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generated_environments_file_for_auto_explain
-    run_generator [destination_root, "--skip-active-record"]
-    %w(development production).each do |env|
-      assert_file "config/environments/#{env}.rb" do |file|
-        assert_no_match %r(auto_explain_threshold_in_seconds), file
-      end
-    end
-  end
-
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
@@ -364,30 +355,5 @@ protected
 
   def assert_gem(gem)
     assert_file "Gemfile", /^gem\s+["']#{gem}["']$/
-  end
-end
-
-class CustomAppGeneratorTest < Rails::Generators::TestCase
-  include GeneratorsTestHelper
-  tests Rails::Generators::AppGenerator
-
-  arguments [destination_root]
-  include SharedCustomGeneratorTests
-
-protected
-  def default_files
-    ::DEFAULT_APP_FILES
-  end
-
-  def builders_dir
-    "app_builders"
-  end
-
-  def builder_class
-    :AppBuilder
-  end
-
-  def action(*args, &block)
-    silence(:stdout) { generator.send(*args, &block) }
   end
 end

@@ -13,6 +13,9 @@ class RequestTest < ActiveSupport::TestCase
 
     assert_equal '/books', url_for(:only_path => true, :path => '/books')
 
+    assert_equal 'http://www.example.com/books/?q=code', url_for(trailing_slash: true, path: '/books?q=code')
+    assert_equal 'http://www.example.com/books/?spareslashes=////', url_for(trailing_slash: true, path: '/books?spareslashes=////')
+
     assert_equal 'http://www.example.com',  url_for
     assert_equal 'http://api.example.com',  url_for(:subdomain => 'api')
     assert_equal 'http://example.com',      url_for(:subdomain => false)
@@ -591,6 +594,11 @@ class RequestTest < ActiveSupport::TestCase
     request.expects(:parameters).at_least_once.returns({})
     assert_equal [Mime::HTML], request.formats
 
+    request = stub_request 'HTTP_ACCEPT' => '',
+                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+    request.expects(:parameters).at_least_once.returns({})
+    assert_equal [Mime::JS], request.formats
+    
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})

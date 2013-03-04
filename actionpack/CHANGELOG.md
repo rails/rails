@@ -1,21 +1,115 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   We don't support the `:controller` option for route definitions
-    with the ruby constant notation. This will now result in an
-    `ArgumentError`.
+*   Fixed `ActionView::Helpers::CaptureHelper#content_for` regression when trying to use it in
+    a boolean statement.
+    Fixes #9360.
+
+    *Nikolay Shebanov*
+
+*   `format: true` does not override existing format constraints.
+    Fixes #9466.
 
     Example:
-        # This raises an ArgumentError:
-        resources :posts, :controller => "Admin::Posts"
 
-        # Use directory notation instead:
-        resources :posts, :controller => "admin/posts"
+        # This will force the .json extension.
+        get '/json_only', to: ok, format: true, constraints: { format: /json/ }
+
+    *Yves Senn*
+
+*   Skip valid encoding checks for non-String parameters that come
+    from the matched route's defaults.
+    Fixes #9435.
+
+    Example:
+
+        root to: 'main#posts', page: 1
+
+    *Yves Senn*
+
+*   Don't verify Regexp requirements for non-Regexp `:constraints`.
+    Fixes #9432.
+
+    Example:
+
+        get '/photos.:format' => 'feeds#photos', constraints: {format: 'xml'}
+
+    *Yves Senn*
+
+*   Make `ActionDispatch::Journey::Path::Pattern#new` raise more meaningful exception message.
+
+    *Thierry Zires*
+
+## Rails 4.0.0.beta1 (February 25, 2013) ##
+
+*   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
+
+*   New applications use an encrypted session store by default.
+
+    *Santiago Pastorino*
+
+*   Determine the controller#action from only the matched path when using the
+    shorthand syntax. Previously the complete path was used, which led
+    to problems with nesting (scopes and namespaces).
+    Fixes #7554.
+
+    Example:
+
+        # This will route to questions#new.
+        scope ':locale' do
+          get 'questions/new'
+        end
+
+    *Yves Senn*
+
+*   Remove support for parsing XML parameters from request. If you still want to parse XML
+    parameters, please install `actionpack-xml_parser' gem.
+
+    *Prem Sichanugrist*
+
+*   Remove support for parsing YAML parameters from request.
+
+    *Aaron Patterson*
+
+*   Add a message when you have no routes defined to both `rake routes` and
+    GET "/rails/info/routes" that lets you know you have none defined and links
+    to the Rails guide on the topic.
+
+    *Steve Klabnik*
+
+*   Change `image_alt` method to replace underscores/hyphens to spaces in filenames.
+
+    Previously, underscored filenames became `alt="A_long_file_name_with_underscores"`
+    in HTML, which is poor for accessibility. For instance, Apple's VoiceOver Utility
+    pronounces each underscore. `A_long_file_name` thus would be read as `A underscore
+    long underscore file underscore name.` Now underscored or hyphenated filenames
+    (both of which are very popular naming conventions) read more naturally in
+    screen readers by converting both hyphens and underscores to spaces.
+
+    Before:
+
+        image_tag('underscored_file_name.png')
+        # => <img alt="Underscored_file_name" src="/assets/underscored_file_name.png" />
+
+    After:
+
+        image_tag('underscored_file_name.png')
+        # => <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
+
+    *Nick Cox*
+
+*   We don't support Ruby constant notation in the `:controller` option for route
+    definitions. So, this raises an `ArgumentError` now:
+
+        resources :posts, controller: "Admin::Posts" # WRONG
+
+    Use path notation instead:
+
+        resources :posts, controller: "admin/posts" # RIGHT
 
     *Yves Senn*
 
 *   `assert_template` can be used to verify the locals of partials,
     which live inside a directory.
-    Fixes #8516.
 
         # Prefixed partials inside directories worked and still work.
         assert_template partial: 'directory/_partial', locals: {name: 'John'}
@@ -23,23 +117,25 @@
         # This did not work but does now.
         assert_template partial: 'directory/partial', locals: {name: 'John'}
 
+    Fixes #8516.
+
     *Yves Senn*
 
-*   Fix `content_tag_for` with array html option.
+*   Fix `content_tag_for` with array HTML option.
     It would embed array as string instead of joining it like `content_tag` does:
 
         content_tag(:td, class: ["foo", "bar"]){}
-        #=> '<td class="foo bar"></td>'
+        # => <td class="foo bar"></td>
 
     Before:
 
         content_tag_for(:td, item, class: ["foo", "bar"])
-        #=> '<td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>'
+        # => <td class="item [&quot;foo&quot;, &quot;bar&quot;]" id="item_1"></td>
 
     After:
 
         content_tag_for(:td, item, class: ["foo", "bar"])
-        #=> '<td class="item foo bar" id="item_1"></td>'
+        # => <td class="item foo bar" id="item_1"></td>
 
     *Semyon Perepelitsa*
 
@@ -59,27 +155,10 @@
 
     *Piotr Sarnacki*
 
-*   Add javascript based routing path matcher to `/rails/info/routes`.
+*   Add JavaScript based routing path matcher to `/rails/info/routes`.
     Routes can now be filtered by whether or not they match a path.
 
     *Richard Schneeman*
-
-*   Given
-
-        params.permit(:name)
-
-    `:name` passes if it is a key of `params` whose value is a permitted scalar.
-
-    Similarly, given
-
-        params.permit(tags: [])
-
-    `:tags` passes if it is a key of `params` whose value is an array of
-    permitted scalars.
-
-    Permitted scalars filtering happens at any level of nesting.
-
-    *Xavier Noria*
 
 *   Change the behavior of route defaults so that explicit defaults are no longer
     required where the key is not part of the path. For example:
@@ -87,7 +166,7 @@
         resources :posts, bucket_type: 'posts'
 
     will be required whenever constructing the url from a hash such as a functional
-    test or using url_for directly. However using the explicit form alters the
+    test or using `url_for` directly. However using the explicit form alters the
     behavior so it's not required:
 
         resources :projects, defaults: { bucket_type: 'projects' }
@@ -121,7 +200,7 @@
 
     *Colin Burn-Murdoch*
 
-*   Fixed json params parsing regression for non-object JSON content.
+*   Fixed JSON params parsing regression for non-object JSON content.
 
     *Dylan Smith*
 
@@ -159,12 +238,13 @@
 *   Do not append second slash to `root_url` when using `trailing_slash: true`
     Fix #8700
 
-    Example:
-        # before
-        root_url # => http://test.host//
+    Before:
 
-        # after
-        root_url # => http://test.host/
+        root_url(trailing_slash: true) # => http://test.host//
+
+    After:
+
+        root_url(trailing_slash: true) # => http://test.host/
 
     *Yves Senn*
 
@@ -188,8 +268,8 @@
 
     *Yves Senn*
 
-*   Added `Mime::NullType` class. This  allows to use html?, xml?, json?..etc when
-    the `format` of `request` is unknown, without raise an exception.
+*   Added `Mime::NullType` class. This  allows to use `html?`, `xml?`, `json?`, etc.
+    when the format of the request is unknown, without raising an exception.
 
     *Angelo Capilleri*
 
@@ -214,7 +294,7 @@
 
     *Matt Venables*
 
-*   Prevent raising EOFError on multipart GET request (IE issue). *Adam Stankiewicz*
+*   Prevent raising `EOFError` on multipart GET request (IE issue). *Adam Stankiewicz*
 
 *   Rename all action callbacks from *_filter to *_action to avoid the misconception that these
     callbacks are only suited for transforming or halting the response. With the new style,
@@ -260,7 +340,7 @@
 
     *Stephen Ausman + Fabrizio Regini + Angelo Capilleri*
 
-*   Add filter capability to ActionController logs for redirect locations:
+*   Add logging filter capability for redirect URLs:
 
         config.filter_redirect << 'http://please.hide.it/'
 
@@ -359,22 +439,16 @@
     Before:
 
         check_box("post", "comment_ids", { multiple: true, index: "foo" }, 1)
-        #=> <input name=\"post[foo][comment_ids]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids]\" type=\"checkbox\" value=\"1\" />
+        # => <input name=\"post[foo][comment_ids]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids]\" type=\"checkbox\" value=\"1\" />
 
     After:
 
         check_box("post", "comment_ids", { multiple: true, index: "foo" }, 1)
-        #=> <input name=\"post[foo][comment_ids][]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids][]\" type=\"checkbox\" value=\"1\" />
+        # => <input name=\"post[foo][comment_ids][]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids][]\" type=\"checkbox\" value=\"1\" />
 
     Fix #8108.
 
     *Daniel Fox, Grant Hutchins & Trace Wax*
-
-*   `BestStandardsSupport` middleware now appends it's `X-UA-Compatible` value to app's
-    returned value if any.
-    Fix #8086.
-
-    *Nikita Afanasenko*
 
 *   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
     of generated select tags.
@@ -427,10 +501,6 @@
     *Francesco Rodriguez*
 
 *   Failsafe exception returns `text/plain`. *Steve Klabnik*
-
-*   Remove `rack-cache` dependency from Action Pack and declare it on Gemfile
-
-    *Guillermo Iguaran*
 
 *   Rename internal variables on `ActionController::TemplateAssertions` to prevent
     naming collisions. `@partials`, `@templates` and `@layouts` are now prefixed with an underscore.
@@ -517,9 +587,7 @@
     *Guillermo Iguaran*
 
 *   `ActionDispatch::Session::MemCacheStore` now uses `dalli` instead of the deprecated
-    `memcache-client` gem. As side effect the autoloading of unloaded classes objects
-    saved as values in session isn't supported anymore when mem_cache session store is
-    used, this can have an impact in apps only when config.cache_classes is false.
+    `memcache-client` gem.
 
     *Arun Agrawal + Guillermo Iguaran*
 
@@ -793,9 +861,9 @@
 *   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
     `Assertion` instead of `RoutingError` *David Chelimsky*
 
-*   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
+*   URL path parameters with invalid encoding now raise `ActionController::BadRequest`. *Andrew White*
 
-*   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
+*   Malformed query and request parameter hashes now raise `ActionController::BadRequest`. *Andrew White*
 
 *   Add `divider` option to `grouped_options_for_select` to generate a separator
     `optgroup` automatically, and deprecate `prompt` as third argument, in favor
@@ -822,7 +890,7 @@
 
     *Andrew White*
 
-*   `respond_to` and `respond_with` now raise ActionController::UnknownFormat instead
+*   `respond_to` and `respond_with` now raise `ActionController::UnknownFormat` instead
     of directly returning head 406. The exception is rescued and converted to 406
     in the exception handling middleware. *Steven Soroka*
 
@@ -852,7 +920,7 @@
 *   Remove the leading \n added by textarea on `assert_select`. *Santiago Pastorino*
 
 *   Changed default value for `config.action_view.embed_authenticity_token_in_remote_forms`
-    to `false`. This change breaks remote forms that need to work also without javascript,
+    to `false`. This change breaks remote forms that need to work also without JavaScript,
     so if you need such behavior, you can either set it to `true` or explicitly pass
     `authenticity_token: true` in form options.
 
@@ -946,9 +1014,6 @@
 
 *   `check_box` with `:form` html5 attribute will now replicate the `:form`
     attribute to the hidden field as well. *Carlos Antonio da Silva*
-
-*   Turn off verbose mode of rack-cache, we still have X-Rack-Cache to
-    check that info. Closes #5245. *Santiago Pastorino*
 
 *   `label` form helper accepts `for: nil` to not generate the attribute. *Carlos Antonio da Silva*
 

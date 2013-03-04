@@ -2,10 +2,11 @@ require 'abstract_unit'
 require 'fileutils'
 
 class FixtureTemplate
-  attr_reader :source
+  attr_reader :source, :handler
 
   def initialize(template_path)
     @source = File.read(template_path)
+    @handler = ActionView::Template.handler_for_extension(:erb)
   rescue Errno::ENOENT
     raise ActionView::MissingTemplate.new([], "", [], true, [])
   end

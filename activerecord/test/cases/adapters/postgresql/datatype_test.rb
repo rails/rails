@@ -545,13 +545,13 @@ _SQL
 
   def test_update_bit_string
     new_bit_string = '11111111'
-    new_bit_string_varying = 'FF'
+    new_bit_string_varying = '11111110'
     assert @first_bit_string.bit_string = new_bit_string
     assert @first_bit_string.bit_string_varying = new_bit_string_varying
     assert @first_bit_string.save
     assert @first_bit_string.reload
-    assert_equal @first_bit_string.bit_string, new_bit_string
-    assert_equal @first_bit_string.bit_string, @first_bit_string.bit_string_varying
+    assert_equal new_bit_string, @first_bit_string.bit_string
+    assert_equal new_bit_string_varying, @first_bit_string.bit_string_varying
   end
 
   def test_update_oid
@@ -573,6 +573,7 @@ _SQL
 
     @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
     assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
     ActiveRecord::Base.default_timezone = old_default_tz
     ActiveRecord::Base.time_zone_aware_attributes = old_tz
@@ -590,6 +591,7 @@ _SQL
 
     @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
     assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
     ActiveRecord::Base.default_timezone = old_default_tz
     ActiveRecord::Base.time_zone_aware_attributes = old_tz

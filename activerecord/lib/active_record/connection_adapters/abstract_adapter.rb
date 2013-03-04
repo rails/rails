@@ -61,11 +61,29 @@ module ActiveRecord
       include MonitorMixin
       include ColumnDumper
 
+      SIMPLE_INT = /\A\d+\z/
+
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
       attr_reader :schema_cache, :last_use, :in_use, :logger
       alias :in_use? :in_use
+
+      def self.type_cast_config_to_integer(config)
+        if config =~ SIMPLE_INT
+          config.to_i
+        else
+          config
+        end
+      end
+
+      def self.type_cast_config_to_boolean(config)
+        if config == "false"
+          false
+        else
+          config
+        end
+      end
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
@@ -171,14 +189,14 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support database extensions?  As of this writing
-      # only postgresql does.
+      # Does this adapter support database extensions? As of this writing only
+      # postgresql does.
       def supports_extensions?
         false
       end
 
-      # A list of extensions, to be filled in by databases that
-      # support them (at the moment, postgresql).
+      # A list of extensions, to be filled in by adapters that support them. At
+      # the moment only postgresql does.
       def extensions
         []
       end

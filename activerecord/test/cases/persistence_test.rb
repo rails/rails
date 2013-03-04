@@ -399,6 +399,14 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
   end
 
+  def test_string_ids
+    # FIXME: Fix this failing test
+    skip "Failing test. We need this fixed before 4.0.0"
+    mv = Minivan.where(:minivan_id => 1234).first_or_initialize
+    assert mv.new_record?
+    assert_equal '1234', mv.minivan_id
+  end
+
   def test_update_attribute_with_one_updated
     t = Topic.first
     t.update_attribute(:title, 'super_title')

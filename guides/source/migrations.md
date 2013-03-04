@@ -179,6 +179,27 @@ class AddDetailsToProducts < ActiveRecord::Migration
 end
 ```
 
+If the migration name is of the form "CreateXXX" and is
+followed by a list of column names and types then a migration creating the table 
+XXX with the columns listed will be generated. For example:
+
+```bash
+$ rails generate migration CreateProducts name:string part_number:string
+```
+
+generates
+
+```ruby
+class CreateProducts < ActiveRecord::Migration
+  def change
+    create_table :products do |t|
+      t.string :name
+      t.string :part_number
+    end
+  end
+end
+```
+
 As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
@@ -344,6 +365,16 @@ create_join_table :products, :categories, column_options: {null: true}
 will create the `product_id` and `category_id` with the `:null` option as
 `true`.
 
+`create_join_table` also accepts a block, which you can use to add indices
+(which are not created by default) or additional columns:
+
+```ruby
+create_join_table :products, :categories do |t|
+  t.index :products
+  t.index :categories
+end
+```
+
 ### Changing Tables
 
 A close cousin of `create_table` is `change_table`, used for changing existing
@@ -444,7 +475,7 @@ class ExampleMigration < ActiveRecord::Migration
   end
 ```
 
-Using `reversible` will insure that the instructions are executed in the
+Using `reversible` will ensure that the instructions are executed in the
 right order too. If the previous example migration is reverted,
 the `down` block will be run after the `home_page_url` column is removed and
 right before the table `products` is dropped.

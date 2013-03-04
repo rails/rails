@@ -391,19 +391,19 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_default_scope_with_inheritance
     wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
-    assert_equal Arel.sql("50000"), wheres[:salary]
+    assert_equal 50000,   wheres[:salary]
   end
 
   def test_default_scope_with_module_includes
     wheres = ModuleIncludedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
-    assert_equal Arel.sql("50000"), wheres[:salary]
+    assert_equal 50000,   wheres[:salary]
   end
 
   def test_default_scope_with_multiple_calls
     wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
-    assert_equal Arel.sql("50000"), wheres[:salary]
+    assert_equal 50000,   wheres[:salary]
   end
 
   def test_scope_overwrites_default
@@ -422,6 +422,150 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected = Developer.order('id DESC, name DESC').collect { |dev| [dev.name, dev.id] }
     received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
+  end
+
+  def test_unscope_overrides_default_scope
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = Developer.order('name ASC, id DESC').unscope(:order).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_after_reordering_and_combining
+    expected = Developer.order('id DESC, name DESC').collect { |dev| [dev.name, dev.id] }
+    received = DeveloperOrderedBySalary.reorder('name DESC').unscope(:order).order('id DESC, name DESC').collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+
+    expected_2 = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received_2 = Developer.order('id DESC, name DESC').unscope(:order).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected_2, received_2
+
+    expected_3 = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received_3 = Developer.reorder('name DESC').unscope(:order).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected_3, received_3
+  end
+
+  def test_unscope_with_where_attributes
+    expected = Developer.order('salary DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.where(name: 'David').unscope(where: :name).collect { |dev| dev.name }
+    assert_equal expected, received
+
+    expected_2 = Developer.order('salary DESC').collect { |dev| dev.name }
+    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({:where => :name}, :select).collect { |dev| dev.name }
+    assert_equal expected_2, received_2
+
+    expected_3 = Developer.order('salary DESC').collect { |dev| dev.name }
+    received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect { |dev| dev.name }
+    assert_equal expected_3, received_3
+  end
+
+  def test_unscope_multiple_where_clauses
+    expected = Developer.order('salary DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.where(name: 'Jamis').where(id: 1).unscope(where: [:name, :id]).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_unscope_with_grouping_attributes
+    expected = Developer.order('salary DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.group(:name).unscope(:group).collect { |dev| dev.name }
+    assert_equal expected, received
+
+    expected_2 = Developer.order('salary DESC').collect { |dev| dev.name }
+    received_2 = DeveloperOrderedBySalary.group("name").unscope(:group).collect { |dev| dev.name }
+    assert_equal expected_2, received_2
+  end
+
+  def test_unscope_with_limit_in_query
+    expected = Developer.order('salary DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.limit(1).unscope(:limit).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_order_to_unscope_reordering
+    expected = DeveloperOrderedBySalary.all.collect { |dev| [dev.name, dev.id] }
+    received = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_reverse_order
+    expected = Developer.all.collect { |dev| dev.name }
+    received = Developer.order('salary DESC').reverse_order.unscope(:order).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_unscope_select
+    expected = Developer.order('salary ASC').collect { |dev| dev.name }
+    received = Developer.order('salary DESC').reverse_order.select(:name => "Jamis").unscope(:select).collect { |dev| dev.name }
+    assert_equal expected, received
+
+    expected_2 = Developer.all.collect { |dev| dev.id }
+    received_2 = Developer.select(:name).unscope(:select).collect { |dev| dev.id }
+    assert_equal expected_2, received_2
+  end
+
+  def test_unscope_offset
+    expected = Developer.all.collect { |dev| dev.name }
+    received = Developer.offset(5).unscope(:offset).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_unscope_joins_and_select_on_developers_projects
+    expected = Developer.all.collect { |dev| dev.name }
+    received = Developer.joins('JOIN developers_projects ON id = developer_id').select(:id).unscope(:joins, :select).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_unscope_includes
+    expected = Developer.all.collect { |dev| dev.name }
+    received = Developer.includes(:projects).select(:id).unscope(:includes, :select).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_unscope_having
+    expected = DeveloperOrderedBySalary.all.collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.having("name IN ('Jamis', 'David')").unscope(:having).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_unscope_errors_with_invalid_value
+    assert_raises(ArgumentError) do
+      Developer.includes(:projects).where(name: "Jamis").unscope(:stupidly_incorrect_value)
+    end
+
+    assert_raises(ArgumentError) do
+      Developer.all.unscope(:includes, :select, :some_broken_value)
+    end
+
+    assert_raises(ArgumentError) do
+      Developer.order('name DESC').reverse_order.unscope(:reverse_order)
+    end
+
+    assert_raises(ArgumentError) do
+      Developer.order('name DESC').where(name: "Jamis").unscope()
+    end
+  end
+
+  def test_unscope_errors_with_non_where_hash_keys
+    assert_raises(ArgumentError) do
+      Developer.where(name: "Jamis").limit(4).unscope(limit: 4)
+    end
+
+    assert_raises(ArgumentError) do
+      Developer.where(name: "Jamis").unscope("where" => :name)
+    end
+  end
+
+  def test_unscope_errors_with_non_symbol_or_hash_arguments
+    assert_raises(ArgumentError) do
+      Developer.where(name: "Jamis").limit(3).unscope("limit")
+    end
+
+    assert_raises(ArgumentError) do
+      Developer.select("id").unscope("select")
+    end
+
+    assert_raises(ArgumentError) do 
+      Developer.select("id").unscope(5)
+    end
   end
 
   def test_order_in_default_scope_should_not_prevail

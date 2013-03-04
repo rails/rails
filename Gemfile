@@ -2,26 +2,16 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'arel', github: 'rails/arel', branch: 'master'
-
 gem 'mocha', '~> 0.13.0', require: false
-gem 'rack-test', github: 'brynary/rack-test'
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails', '~> 2.2.0', github: 'rails/jquery-rails'
+gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
-gem 'coffee-rails', github: 'rails/coffee-rails'
-
-gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders', branch: 'master'
-
-# Needed for compiling the ActionDispatch::Journey parser
-gem 'racc', '>=1.4.6', require: false
+gem 'coffee-rails', '~> 4.0.0.beta1'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', require: false
-
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 
 group :doc do
   gem 'sdoc',  github: 'voloko/sdoc'
@@ -47,6 +37,9 @@ end
 platforms :ruby do
   gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
+
+  # Needed for compiling the ActionDispatch::Journey parser
+  gem 'racc', '>=1.4.6', require: false
 
   # AR
   gem 'sqlite3', '~> 1.3.6'

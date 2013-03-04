@@ -20,7 +20,7 @@ module ActionDispatch
             @separators   = strexp.separators.join
             @anchored     = strexp.anchor
           else
-            raise "wtf bro: #{strexp}"
+            raise ArgumentError, "Bad expression: #{strexp}"
           end
 
           @names          = nil
