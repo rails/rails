@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `has_secure_password` does not fail the confirmation validation
+    when assigning empty String to `password` and `password_confirmation`.
+
+    Example:
+
+        # given User has_secure_password.
+        @user.password = ""
+        @user.password_confirmation = ""
+        @user.valid?(:update) # used to be false
+
 *   `validates_confirmation_of` does not override writer methods for
     the confirmation attribute if no reader is defined.
 

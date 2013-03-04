@@ -88,4 +88,10 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
   end
+
+  test "blank password_confirmation does not result in a confirmation error" do
+    @user.password = ""
+    @user.password_confirmation = ""
+    assert @user.valid?(:update), "user should be valid"
+  end
 end
