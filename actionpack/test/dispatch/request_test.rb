@@ -594,6 +594,11 @@ class RequestTest < ActiveSupport::TestCase
     request.expects(:parameters).at_least_once.returns({})
     assert_equal [Mime::HTML], request.formats
 
+    request = stub_request 'HTTP_ACCEPT' => '',
+                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+    request.expects(:parameters).at_least_once.returns({})
+    assert_equal [Mime::JS], request.formats
+    
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
