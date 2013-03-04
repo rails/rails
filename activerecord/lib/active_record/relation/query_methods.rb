@@ -331,15 +331,15 @@ module ActiveRecord
     # which should be unscoped. The valid arguments are given in VALID_UNSCOPING_VALUES.
     # The method can also be called with multiple arguments. For example:
     #
-    #   User.all.order('email DESC').select('id').where(:name => "John")
+    #   User.all.order('email DESC').select('id').where(name: "John")
     #       .unscope(:order, :select, :where) == User.all
     #
     # One can additionally pass a hash as an argument to unscope specific :where values.
     # This is done by passing a hash with a single key-value pair. The key should be
     # :where and the value should be the where value to unscope. For example:
     #
-    #   User.all.where(:name => "John", :active => true).unscope(:where => :name)
-    #       == User.all.where(:active => true)
+    #   User.all.where(name: "John", active: true).unscope(where: :name)
+    #       == User.all.where(active: true)
     #
     # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
     # because #except will only affect a particular relation's values. It won't wipe
