@@ -236,8 +236,9 @@ module ActiveRecord
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
-    #     Comment.first # SELECT * FROM comments WHERE post_id = 1
+    #     Comment.first
     #   end
+    #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
     #
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
