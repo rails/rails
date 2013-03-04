@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Reload the association target if it's stale. `@stale_state` should be nil
+    when a model isn't saved.
+    Fixes #7526.
+
+    *Larry Lv*
+
 *   Don't read CSV files during execution of `db:fixtures:load`. CSV support for
     fixtures was removed some time ago but the task was still loading them, even
     though later the code was looking for the related yaml file instead.
