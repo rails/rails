@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `validates_confirmation_of` does not override writer methods for
+    the confirmation attribute if no reader is defined.
+
+    Example:
+
+        class Blog
+            def title=(new_title)
+              @title = new_title.downcase
+            end
+
+            # previously this would override the setter above.
+            validates_confirmation_of :title
+        end
+
+    *Yves Senn*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
