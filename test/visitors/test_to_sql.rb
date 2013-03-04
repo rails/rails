@@ -230,6 +230,23 @@ module Arel
           }
         end
 
+        it 'can handle ranges bounded by infinity' do
+          node = @attr.in 1..Float::INFINITY
+          @visitor.accept(node).must_be_like %{
+            "users"."id" >= 1
+          }
+          node = @attr.in(-Float::INFINITY..3)
+          @visitor.accept(node).must_be_like %{
+            "users"."id" <= 3
+          }
+          node = @attr.in(-Float::INFINITY...3)
+          @visitor.accept(node).must_be_like %{
+            "users"."id" < 3
+          }
+          node = @attr.in(-Float::INFINITY..Float::INFINITY)
+          @visitor.accept(node).must_be_like %{1=1}
+        end
+
         it 'can handle subqueries' do
           table = Table.new(:users)
           subquery = table.project(:id).where(table[:name].eq('Aaron'))
@@ -314,6 +331,23 @@ module Arel
           @visitor.accept(node).must_be_like %{
             "users"."id" < 1 OR "users"."id" >= 3
           }
+        end
+
+        it 'can handle ranges bounded by infinity' do
+          node = @attr.not_in 1..Float::INFINITY
+          @visitor.accept(node).must_be_like %{
+            "users"."id" < 1
+          }
+          node = @attr.not_in(-Float::INFINITY..3)
+          @visitor.accept(node).must_be_like %{
+            "users"."id" > 3
+          }
+          node = @attr.not_in(-Float::INFINITY...3)
+          @visitor.accept(node).must_be_like %{
+            "users"."id" >= 3
+          }
+          node = @attr.not_in(-Float::INFINITY..Float::INFINITY)
+          @visitor.accept(node).must_be_like %{1=0}
         end
 
         it 'can handle subqueries' do
