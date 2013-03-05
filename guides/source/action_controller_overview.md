@@ -281,6 +281,15 @@ root-key because normally it does not exist when calling `new`:
 params.fetch(blog:, {}).permit(:title, :author)
 ```
 
+`accepts_nested_attributes_for` allows you update and destroy the
+associated records. This is based on the `id` and `_destroy`
+parameters:
+
+```ruby
+# permit :id and :_destroy
+params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
+```
+
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
