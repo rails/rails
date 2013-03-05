@@ -5,7 +5,7 @@
 source :gemcutter
 
 
-gem "minitest", "~>4.3.3", :group => [:development, :test]
+gem "minitest", "~>4.6.2", :group => [:development, :test]
 gem "hoe", "~>3.3.1", :group => [:development, :test]
 
 # vim: syntax=ruby
