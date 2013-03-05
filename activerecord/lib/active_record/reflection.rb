@@ -18,7 +18,7 @@ module ActiveRecord
           when :composed_of
             reflection = AggregateReflection.new(macro, name, options, active_record)
         end
-        write_inheritable_hash :reflections, name => reflection
+        write_inheritable_hiwa :reflections, name => reflection
         reflection
       end
 

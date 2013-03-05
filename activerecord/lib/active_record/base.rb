@@ -2307,7 +2307,7 @@ module ActiveRecord #:nodoc:
         def expand_hash_conditions_for_aggregates(attrs)
           expanded_attrs = {}
           attrs.each do |attr, value|
-            unless (aggregation = reflect_on_aggregation(attr.to_sym)).nil?
+            unless (aggregation = reflect_on_aggregation(attr)).nil?
               mapping = aggregate_mapping(aggregation)
               mapping.each do |field_attr, aggregate_attr|
                 if mapping.size == 1 && !value.respond_to?(aggregate_attr)

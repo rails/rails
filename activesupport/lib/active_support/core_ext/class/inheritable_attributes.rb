@@ -109,6 +109,11 @@ class Class # :nodoc:
     write_inheritable_attribute(key, read_inheritable_attribute(key).merge(hash))
   end
 
+  def write_inheritable_hiwa(key, hash)
+    write_inheritable_attribute(key, {}.with_indifferent_access) if read_inheritable_attribute(key).nil?
+    write_inheritable_attribute(key, read_inheritable_attribute(key).merge(hash))
+  end
+
   def read_inheritable_attribute(key)
     inheritable_attributes[key]
   end
