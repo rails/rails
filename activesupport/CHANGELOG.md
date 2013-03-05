@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   TimeWithZone#inspect will show you microseconds to aid in debugging
+
+    *Greg Vaughn*
+
 *   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
     
     *Charles Jones*

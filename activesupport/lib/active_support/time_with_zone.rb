@@ -128,7 +128,7 @@ module ActiveSupport
     end
 
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
+      "#{time.strftime('%a, %d %b %Y %H:%M:%S')}.#{'%06d' % usec} #{zone} #{formatted_offset}"
     end
 
     def xmlschema(fraction_digits = 0)
