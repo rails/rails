@@ -208,7 +208,7 @@ create      app/assets/stylesheets/welcome.css.scss
 
 Most important of these are of course the controller, located at `app/controllers/welcome_controller.rb` and the view, located at `app/views/welcome/index.html.erb`.
 
-Open the `app/views/welcome/index.html.erb` file in your text editor and edit it to contain a single line of code:
+Open the `app/views/welcome/index.html.erb` file in your text editor. Delete all of the existing code in the file, and replace it with the following single line of code:
 
 ```html
 <h1>Hello, Rails!</h1>
@@ -278,7 +278,7 @@ With the route defined, requests can now be made to `/posts/new` in the applicat
 
 ![Another routing error, uninitialized constant PostsController](images/getting_started/routing_error_no_controller.png)
 
-This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called `PostsController`. You can do this by running this command:
+This error occurs because the route needs to have a controller defined in order to serve the request. The solution to this particular problem is simple: create a controller called `PostsController`. You can do this by running this command:
 
 ```bash
 $ rails g controller posts

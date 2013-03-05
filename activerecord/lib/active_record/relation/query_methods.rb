@@ -5,7 +5,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
-    # In this case, #where must be chained with either #not, #like, or #not_like to return a new relation.
+    # In this case, #where must be chained with #not to return a new relation.
     class WhereChain
       def initialize(scope)
         @scope = scope

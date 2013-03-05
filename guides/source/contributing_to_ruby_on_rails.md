@@ -250,8 +250,6 @@ Your name can be added directly after the last word if you don't provide any cod
 
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
 
-You might want also to check out the [RailsBridge BugMash](http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash) as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
-
 ### Commit Your Changes
 
 When you're happy with the code on your computer, you need to commit the changes to Git:
