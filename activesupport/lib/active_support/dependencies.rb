@@ -547,6 +547,10 @@ module ActiveSupport #:nodoc:
         self
       end
 
+      def delete(key)
+        @store.delete(key)
+      end
+
       def clear!
         @store.clear
       end

@@ -14,6 +14,14 @@ module ActiveSupport
         assert !@cache.empty?
       end
 
+      def test_delete!
+        assert @cache.empty?
+        @cache.store(ClassCacheTest)
+        assert @cache.key?(ClassCacheTest.name)
+        @cache.delete(ClassCacheTest.name)
+        assert @cache.empty?
+      end
+
       def test_clear!
         assert @cache.empty?
         @cache.store(ClassCacheTest)
