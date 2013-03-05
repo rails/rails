@@ -403,7 +403,7 @@ module ActiveRecord
         node.left.relation.name == table_name
       }
 
-      Hash[equalities.map { |where| [where.left.name, where.right] }]
+      Hash[equalities.map { |where| [where.left.name, where.right] }].with_indifferent_access
     end
 
     def scope_for_create

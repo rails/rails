@@ -212,14 +212,14 @@ class MethodScopingTest < ActiveRecord::TestCase
     table = VerySpecialComment.arel_table
     relation = VerySpecialComment.scoped
     relation.where_values << table[:id].not_eq(1)
-    assert_equal({:type => "VerySpecialComment"}, relation.send(:scope_for_create))
+    assert_equal({'type' => "VerySpecialComment"}, relation.send(:scope_for_create))
   end
 
   def test_scoped_create
     new_comment = nil
 
     VerySpecialComment.send(:with_scope, :create => { :post_id => 1 }) do
-      assert_equal({:post_id => 1, :type => 'VerySpecialComment' }, VerySpecialComment.scoped.send(:scope_for_create))
+      assert_equal({'post_id' => 1, 'type' => 'VerySpecialComment' }, VerySpecialComment.scoped.send(:scope_for_create))
       new_comment = VerySpecialComment.create :body => "Wonderful world"
     end
 
@@ -228,7 +228,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_scoped_create_with_join_and_merge
     Comment.where(:body => "but Who's Buying?").joins(:post).merge(Post.where(:body => 'Peace Sells...')).with_scope do
-      assert_equal({:body => "but Who's Buying?"}, Comment.scoped.scope_for_create)
+      assert_equal({'body' => "but Who's Buying?"}, Comment.scoped.scope_for_create)
     end
   end
 
@@ -441,7 +441,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     comment = nil
     Comment.send(:with_scope, :create => { :post_id => 1}) do
       Comment.send(:with_scope, :create => { :post_id => 2}) do
-        assert_equal({:post_id => 2}, Comment.scoped.send(:scope_for_create))
+        assert_equal({'post_id' => 2}, Comment.scoped.send(:scope_for_create))
         comment = Comment.create :body => "Hey guys, nested scopes are broken. Please fix!"
       end
     end
@@ -453,7 +453,7 @@ class NestedScopingTest < ActiveRecord::TestCase
 
     Comment.send(:with_scope, :create => { :body => "Hey guys, nested scopes are broken. Please fix!" }) do
       Comment.send(:with_exclusive_scope, :create => { :post_id => 1 }) do
-        assert_equal({:post_id => 1}, Comment.scoped.send(:scope_for_create))
+        assert_equal({'post_id' => 1}, Comment.scoped.send(:scope_for_create))
         assert_blank Comment.new.body
         comment = Comment.create :body => "Hey guys"
       end
