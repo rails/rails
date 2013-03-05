@@ -413,6 +413,9 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>},
       link_to_unless(false, "Listing", url_hash)
 
+    assert_dom_equal %{<a href="/">Listing</a>},
+      link_to_unless(false, "Ignored", url_hash) { "Listing" }
+
     assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
 
     assert_equal "<strong>Showing</strong>",
