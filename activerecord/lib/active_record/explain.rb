@@ -6,7 +6,8 @@ module ActiveRecord
     def collecting_queries_for_explain # :nodoc:
       current = Thread.current
       original, current[:available_queries_for_explain] = current[:available_queries_for_explain], []
-      return yield, current[:available_queries_for_explain]
+      yield
+      return current[:available_queries_for_explain]
     ensure
       # Note that the return value above does not depend on this assigment.
       current[:available_queries_for_explain] = original
