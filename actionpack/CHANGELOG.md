@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix `ActionDispatch::Request#formats` when the Accept request-header is an
+    empty string. Fix #7774 [Backport #8977, #9541]
+
+    *Soylent + Maxime Réty*
+    
 *   Determine the controller#action from only the matched path when using the
     shorthand syntax. Previously the complete path was used, which led
     to problems with nesting (scopes and namespaces).
