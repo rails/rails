@@ -173,6 +173,7 @@ module ActiveRecord
       def inheritance_column=(value)
         @original_inheritance_column = inheritance_column
         @inheritance_column          = value.to_s
+        @explicit_inheritance_column = true
       end
 
       def set_inheritance_column(value = nil, &block) #:nodoc:
@@ -300,7 +301,8 @@ module ActiveRecord
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @column_names = @content_columns = @column_defaults = @columns = @columns_hash = nil
-        @dynamic_methods_hash = @inheritance_column = nil
+        @dynamic_methods_hash = nil
+        @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @arel_engine = @relation = nil
       end
 
