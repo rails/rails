@@ -269,6 +269,18 @@ permitted scalar values allowed), a `hobbies` attribute as an array of
 permitted scalar values, and a `family` attribute which is restricted
 to having a `name` (any permitted scalar values allowed, too).
 
+#### More Examples
+
+You want to also use the permitted attributes in the `new`
+action. This raises the problem that you can't use `require` on the
+root-key because normally it does not exist when calling `new`:
+
+```ruby
+# using `fetch` you can supply a default and use
+# the Strong Parameters API from there.
+params.fetch(blog:, {}).permit(:title, :author)
+```
+
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
