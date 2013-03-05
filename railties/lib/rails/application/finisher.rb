@@ -20,7 +20,7 @@ module Rails
       end
 
       initializer :add_builtin_route do |app|
-        if Rails.env.development?
+        if Rails.env.development? && !app.config.disable_builtin_routes
           app.routes.append do
             get '/rails/info/properties' => "rails/info#properties"
             get '/rails/info/routes'     => "rails/info#routes"

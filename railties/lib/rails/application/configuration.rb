@@ -11,7 +11,7 @@ module Rails
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change,
+                    :time_zone, :reload_classes_only_on_change, :disable_builtin_routes,
                     :beginning_of_week, :filter_redirect
 
       attr_writer :log_level
@@ -40,6 +40,7 @@ module Rails
         @railties_order                = [:all]
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
+        @disable_builtin_routes        = false
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
         @autoflush_log                 = true

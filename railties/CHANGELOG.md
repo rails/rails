@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `config.disable_builtin_routes` to disable loading of welcome and info routes.
+
+    *Sam Pohlenz*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 *   Change Service pages(404, etc). *Stanislav Sobolev*

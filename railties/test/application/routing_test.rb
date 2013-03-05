@@ -75,6 +75,27 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "rails/welcome with builtin routes disabled" do
+      add_to_config "config.disable_builtin_routes = true"
+      app("development")
+      get "/"
+      assert_equal 404, last_response.status
+    end
+
+    test "rails/info/routes with builtin routes disabled" do
+      add_to_config "config.disable_builtin_routes = true"
+      app("development")
+      get "/rails/info/routes"
+      assert_equal 404, last_response.status
+    end
+
+    test "rails/info/properties with builtin routes disabled" do
+      add_to_config "config.disable_builtin_routes = true"
+      app("development")
+      get "/rails/info/properties"
+      assert_equal 404, last_response.status
+    end
+
     test "simple controller" do
       simple_controller
 
