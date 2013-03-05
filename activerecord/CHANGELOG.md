@@ -1,8 +1,3 @@
-## unreleased ##
-
-*   No changes.
-
-
 ## Rails 3.2.13 (Feb 17, 2013) ##
 
 *   Reverted 921a296a3390192a71abeec6d9a035cc6d1865c8, 'Quote numeric values
@@ -227,16 +222,6 @@
     on these types.
 
     *Victor Costan*
-
-*   `#pluck` can be used on a relation with `select` clause.
-    Fixes #7551.
-    Backport of #8176.
-
-    Example:
-
-        Topic.select([:approved, :id]).order(:id).pluck(:id)
-
-    *Yves Senn*
 
 *   Use `nil?` instead of `blank?` to check whether dynamic finder with a bang
     should raise RecordNotFound.
