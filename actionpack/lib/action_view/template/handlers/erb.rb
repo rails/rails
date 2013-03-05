@@ -11,7 +11,7 @@ module ActionView
 
         def add_text(src, text)
           return if text.empty?
-          src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
+          src << "@output_buffer.safe_append='" << escape_text(text) << "';"
         end
 
         # Erubis toggles <%= and <%== behavior when escaping is enabled.
@@ -31,7 +31,7 @@ module ActionView
           if code =~ BLOCK_EXPR
             src << '@output_buffer.append= ' << code
           else
-            src << '@output_buffer.append= (' << code << ');'
+            src << '@output_buffer.append=(' << code << ');'
           end
         end
 
@@ -39,7 +39,7 @@ module ActionView
           if code =~ BLOCK_EXPR
             src << "@output_buffer.safe_append= " << code
           else
-            src << "@output_buffer.safe_concat((" << code << ").to_s);"
+            src << "@output_buffer.safe_append=(" << code << ");"
           end
         end
 
