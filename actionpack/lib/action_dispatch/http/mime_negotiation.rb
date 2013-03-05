@@ -98,8 +98,8 @@ module ActionDispatch
       BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
       def valid_accept_header
-        (xhr? && (accept || content_mime_type)) ||
-          (accept && accept !~ BROWSER_LIKE_ACCEPTS)
+        (xhr? && (accept.present? || content_mime_type)) ||
+          (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
       end
 
       def use_accept_header
