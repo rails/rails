@@ -181,7 +181,8 @@ module ActionDispatch
 
             if !via_all && options[:via].blank?
               msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
-                    "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                    "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
+                    "If you want to expose your action to GET, use `get` in the router:\n" \
                     "  Instead of: match \"controller#action\"\n" \
                     "  Do: get \"controller#action\""
               raise msg
