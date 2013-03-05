@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Altered where.not syntax to where_not. The behavior is the same, but
+    method-chaining is no longer necessary.
+
+    *Ernie Miller*
+
 *   Added functionality to unscope relations in a relations chain. For
     instance, if you are passed in a chain of relations as follows:
 
