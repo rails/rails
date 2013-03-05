@@ -278,7 +278,7 @@ root-key because normally it does not exist when calling `new`:
 ```ruby
 # using `fetch` you can supply a default and use
 # the Strong Parameters API from there.
-params.fetch(blog:, {}).permit(:title, :author)
+params.fetch(:blog, {}).permit(:title, :author)
 ```
 
 `accepts_nested_attributes_for` allows you update and destroy the
