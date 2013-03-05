@@ -28,7 +28,7 @@ module ActionView
       #   </pre>
       def debug(object)
         Marshal::dump(object)
-        object = ERB::Util.html_escape(object.to_yaml).gsub("  ", "&nbsp; ").html_safe
+        object = ERB::Util.html_escape(object.to_yaml).tr("  ", "&nbsp; ").html_safe
         content_tag(:pre, object, :class => "debug_dump")
       rescue Exception  # errors from Marshal or YAML
         # Object couldn't be dumped, perhaps because of singleton methods -- this is the fallback
