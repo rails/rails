@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
+    its payload.
+
+    *stopdropandrew*
+
 *   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
 
     *Charles Jones*
