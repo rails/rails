@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Make it possible to execute migrations without a transaction even
+    if the database adapter supports DDL transactions.
+    Fixes #9483.
+
+    Example:
+
+        class ChangeEnum < ActiveRecord::Migration
+          self.disable_ddl_transaction!
+          def up
+            execute "ALTER TYPE model_size ADD VALUE 'new_value'"
+          end
+        end
+
+    *Yves Senn*
+
 *   Assigning "0.0" to a nullable numeric column does not make it dirty.
     Fix #9034.
 
