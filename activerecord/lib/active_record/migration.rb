@@ -330,6 +330,23 @@ module ActiveRecord
   #
   # For a list of commands that are reversible, please see
   # <tt>ActiveRecord::Migration::CommandRecorder</tt>.
+  #
+  # == Transactional Migrations
+  #
+  # If the database adapter supports DDL transactions, all migrations will
+  # automatically be wrapped in a transaction. There are queries that you
+  # can't execute inside a transaction though, and for these situations
+  # you can turn the automatic transactions off.
+  #
+  #   class ChangeEnum < ActiveRecord::Migration
+  #     self.disable_ddl_transaction!
+  #     def up
+  #       execute "ALTER TYPE model_size ADD VALUE 'new_value'"
+  #     end
+  #   end
+  #
+  # Remember that you can still open your own transactions, even if you
+  # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
@@ -351,6 +368,7 @@ module ActiveRecord
 
     class << self
       attr_accessor :delegate # :nodoc:
+      attr_accessor :disable_ddl_transaction # :nodoc:
     end
 
     def self.check_pending!
@@ -365,8 +383,16 @@ module ActiveRecord
       new.migrate direction
     end
 
-    cattr_accessor :verbose
+    # Disable DDL transactions for this migration.
+    def self.disable_ddl_transaction!
+      @disable_ddl_transaction = true
+    end
 
+    def disable_ddl_transaction # :nodoc:
+      self.class.disable_ddl_transaction
+    end
+
+    cattr_accessor :verbose
     attr_accessor :name, :version
 
     def initialize(name = self.class.name, version = nil)
@@ -375,8 +401,8 @@ module ActiveRecord
       @connection = nil
     end
 
+    self.verbose = true
     # instantiate the delegate object after initialize is defined
-    self.verbose  = true
     self.delegate = new
 
     # Reverses the migration commands for the given block and
@@ -663,7 +689,7 @@ module ActiveRecord
       File.basename(filename)
     end
 
-    delegate :migrate, :announce, :write, :to => :migration
+    delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
 
@@ -856,12 +882,12 @@ module ActiveRecord
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         begin
-          ddl_transaction do
+          ddl_transaction(migration) do
             migration.migrate(@direction)
             record_version_state_after_migrating(migration.version)
           end
         rescue => e
-          canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
+          canceled_msg = use_transaction?(migration) ? "this and " : ""
           raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
       end
@@ -935,12 +961,16 @@ module ActiveRecord
     end
 
     # Wrap the migration in a transaction only if supported by the adapter.
-    def ddl_transaction
-      if Base.connection.supports_ddl_transactions?
+    def ddl_transaction(migration)
+      if use_transaction?(migration)
         Base.transaction { yield }
       else
         yield
       end
+    end
+
+    def use_transaction?(migration)
+      !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
     end
   end
 end
