@@ -1,10 +1,23 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
-    
+
     *Charles Jones*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
+
+*   Improve singularizing a singular for multiple cases.
+    Fixes #2608 #1825 #2395.
+
+    Example:
+
+        # Before
+        'address'.singularize # => 'addres'
+
+        # After
+        'address'.singularize # => 'address'
+
+    *Mark McSpadden*
 
 *   Prevent `DateTime#change` from truncating the second fraction, when seconds
     do not need to be changed.
