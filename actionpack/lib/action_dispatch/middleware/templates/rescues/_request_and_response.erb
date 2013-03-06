@@ -10,7 +10,7 @@
   clean_params.delete("action")
   clean_params.delete("controller")
 
-  request_dump = clean_params.empty? ? 'None' : clean_params.inspect.tr(',', ",\n")
+  request_dump = clean_params.empty? ? 'None' : clean_params.inspect.gsub(',', ",\n")
 
   def debug_hash(object)
     object.to_hash.sort_by { |k, v| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
@@ -31,4 +31,4 @@
 </div>
 
 <h2 style="margin-top: 30px">Response</h2>
-<p><b>Headers</b>:</p> <pre><%= defined?(@response) ? @response.headers.inspect.tr(',', ",\n") : 'None' %></pre>
+<p><b>Headers</b>:</p> <pre><%= defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre>
