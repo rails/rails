@@ -383,7 +383,7 @@ module ActionView
             name
           end
         else
-          link_to(name, options, html_options)
+          link_to(name, options, html_options, &block)
         end
       end
 
