@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Warn when `rake db:structure:dump` with a mysl database and
+    `mysqldump` is not in the PATH or fails.
+    Fixes #9518.
+
+    *Yves Senn*
+
+*   Remove `connection#structure_dump`, which is no longer used. *Yves Senn*
+
 *   Make it possible to execute migrations without a transaction even
     if the database adapter supports DDL transactions.
     Fixes #9483.

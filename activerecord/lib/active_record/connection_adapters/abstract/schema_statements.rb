@@ -516,11 +516,6 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_reference
 
-      # Returns a string of <tt>CREATE TABLE</tt> SQL statement(s) for recreating the
-      # entire structure of the database.
-      def structure_dump
-      end
-
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
