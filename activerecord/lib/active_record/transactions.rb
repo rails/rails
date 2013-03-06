@@ -338,6 +338,7 @@ module ActiveRecord
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
+      @_start_transaction_state[:save_called_in_callback] = (@new_record == false and @_start_transaction_state[:new_record])
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
       @_start_transaction_state[:new_record] = @new_record
       @_start_transaction_state[:destroyed] = @destroyed
@@ -383,11 +384,11 @@ module ActiveRecord
       actions.any? do |action|
         case action
         when :create
-          transaction_record_state(:new_record)
+          transaction_record_state(:new_record) || transaction_record_state(:save_called_in_callback)
         when :destroy
           destroyed?
         when :update
-          !(transaction_record_state(:new_record) || destroyed?)
+          !(transaction_record_state(:new_record) || transaction_record_state(:save_called_in_callback) || destroyed?)
         end
       end
     end
