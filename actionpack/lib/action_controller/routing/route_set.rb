@@ -496,7 +496,13 @@ module ActionController
       # Subclasses and plugins may override this method to extract further attributes
       # from the request, for use by route conditions and such.
       def extract_request_environment(request)
-        { :method => request.method }
+        {
+          :method => request.method,
+          :host   => request.host,
+          :domain => request.domain,
+          :subdomain => request.subdomains.first,
+          :fullsubdomain => request.subdomains.join('.')
+        }
       end
     end
   end

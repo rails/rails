@@ -212,6 +212,10 @@ module ActionController
         def recognition_conditions
           result = ["(match = #{Regexp.new(recognition_pattern).inspect}.match(path))"]
           result << "[conditions[:method]].flatten.include?(env[:method])" if conditions[:method]
+          result << "conditions[:host] === env[:host]" if conditions[:host]
+          result << "conditions[:domain] === env[:domain]" if conditions[:domain]
+          result << "conditions[:subdomain] === env[:subdomain]" if conditions[:subdomain]
+          result << "conditions[:fullsubdomain] === env[:fullsubdomain]" if conditions[:fullsubdomain]
           result
         end
 
