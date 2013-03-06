@@ -179,6 +179,17 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'Account') }
   end
 
+  def test_new_with_autoload_paths
+    path = File.expand_path('../../models/autoloadable', __FILE__)
+    ActiveSupport::Dependencies.autoload_paths << path
+
+    firm = Company.new(:type => 'ExtraFirm')
+    assert_equal ExtraFirm, firm.class
+  ensure
+    ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
+    ActiveSupport::Dependencies.clear
+  end
+
   def test_inheritance_condition
     assert_equal 10, Company.count
     assert_equal 2, Firm.count
