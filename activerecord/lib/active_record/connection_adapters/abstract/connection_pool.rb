@@ -152,9 +152,8 @@ module ActiveRecord
         end
 
         # A thread can remove an element from the queue without
-        # waiting if an only if the number of currently available
-        # connections is strictly greater than the number of waiting
-        # threads.
+        # waiting if and only if the number of currently available
+        # connections is greater than the number of waiting threads.
         def can_remove_no_wait?
           @queue.size > @num_waiting
         end
@@ -212,7 +211,7 @@ module ActiveRecord
         def run
           return unless frequency
           Thread.new(frequency, pool) { |t, p|
-            while true
+            loop do
               sleep t
               p.reap
             end

@@ -286,7 +286,7 @@ module ActiveRecord
     # Wrapper around +increment+ that saves the record. This method differs from
     # its non-bang version in that it passes through the attribute setter.
     # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # record is saved.
     def increment!(attribute, by = 1)
       increment(attribute, by).update_attribute(attribute, self[attribute])
     end
@@ -295,17 +295,15 @@ module ActiveRecord
     # The decrement is performed directly on the underlying attribute, no setter is invoked.
     # Only makes sense for number-based attributes. Returns +self+.
     def decrement(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] -= by
-      self
+      increment(attribute, -by)
     end
 
     # Wrapper around +decrement+ that saves the record. This method differs from
     # its non-bang version in that it passes through the attribute setter.
     # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # record is saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_attribute(attribute, self[attribute])
+      increment!(attribute, -by)
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -320,7 +318,7 @@ module ActiveRecord
     # Wrapper around +toggle+ that saves the record. This method differs from
     # its non-bang version in that it passes through the attribute setter.
     # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # record is saved.
     def toggle!(attribute)
       toggle(attribute).update_attribute(attribute, self[attribute])
     end
