@@ -11,8 +11,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def teardown
       @connection.drop_table :fruits rescue nil
-      @connection.drop_table :"_pre_fruits_suf_" rescue nil
-      @connection.drop_table :"_pre_schema_migrations_suf_" rescue nil
+      @connection.drop_table :"_p_fruits_s_" rescue nil
+      @connection.drop_table :"_p_schema_migrations_s_" rescue nil
     end
 
     def test_schema_define
@@ -24,8 +24,9 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_schema_define_with_table_prefix_and_suffix
-      ActiveRecord::Base.table_name_prefix = '_pre_'
-      ActiveRecord::Base.table_name_suffix = '_suf_'
+      # Use shorter prefix and suffix as in Oracle database identifier cannot be larger than 30 characters
+      ActiveRecord::Base.table_name_prefix = '_p_'
+      ActiveRecord::Base.table_name_suffix = '_s_'
 
       perform_schema_define!
 
