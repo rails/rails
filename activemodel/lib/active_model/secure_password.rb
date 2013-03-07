@@ -48,14 +48,14 @@ module ActiveModel
 
         attr_reader :password
 
+        include InstanceMethodsOnActivation
+
         if options.fetch(:validations, true)
           validates_confirmation_of :password
           validates_presence_of     :password, :on => :create
 
           before_create { raise "Password digest missing on new record" if password_digest.blank? }
         end
-
-        include InstanceMethodsOnActivation
 
         if respond_to?(:attributes_protected_by_default)
           def self.attributes_protected_by_default #:nodoc:
@@ -97,6 +97,12 @@ module ActiveModel
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine::DEFAULT_COST
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
+        end
+      end
+
+      def password_confirmation=(unencrypted_password)
+        unless unencrypted_password.blank?
+          @password_confirmation = unencrypted_password
         end
       end
     end
