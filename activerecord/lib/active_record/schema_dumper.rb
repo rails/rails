@@ -118,7 +118,7 @@ HEADER
 
           # then dump all non-primary key columns
           column_specs = columns.map do |column|
-            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
+            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
             @connection.column_spec(column, @types)
           end.compact

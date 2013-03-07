@@ -599,6 +599,10 @@ module ActiveRecord
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
 
+      def valid_type?(type)
+        !native_database_types[type].nil?
+      end
+
       protected
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have

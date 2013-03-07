@@ -499,6 +499,10 @@ module ActiveRecord
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
+      def valid_type?(type)
+        true
+      end
+
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
           exec_query(sql, name, binds)
