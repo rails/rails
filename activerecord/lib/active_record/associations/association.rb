@@ -129,8 +129,11 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on +find_target+,
       # which is expected to be provided by descendants.
       #
-      # If the \target is already \loaded it is just returned. Thus, you can call
-      # +load_target+ unconditionally to get the \target.
+      # If the \target is stale(the target no longer points to the record(s) that the
+      # relevant foreign_key(s) refers to.), force reload the \target.
+      #
+      # Otherwise if the \target is already \loaded it is just returned. Thus, you can
+      # call +load_target+ unconditionally to get the \target.
       #
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
@@ -139,11 +142,13 @@ module ActiveRecord
           begin
             if IdentityMap.enabled? && association_class && association_class.respond_to?(:base_class)
               @target = IdentityMap.get(association_class, owner[reflection.foreign_key])
-            else
+            elsif @stale_state && stale_target?
               @target = find_target
             end
           rescue NameError
             nil
+          ensure
+            @target ||= find_target
           end
         end
         loaded! unless loaded?
