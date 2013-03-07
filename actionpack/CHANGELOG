@@ -1,3 +1,22 @@
+*unreleased*
+
+* HTML safety: fix XSS vulnerability in the translate helper method for keys ending in 'html' not escaping variable interpolations.
+
+  Fixes XSS vulnerability in the translate helper method
+
+  There is a security vulnerability in the translate helper when using
+  the rails_xss plugin where translation strings with a name ending in
+  'html' are considered HTML safe. What happens is interpolated input
+  is not escaped, allowing "javascript:" or "data:" to be injected
+  into the "href" attribute.
+
+  It is based off of the 3.0 patch, however I'm not quite sure how to
+  deal with `keys` as an Array (since that is deprecated in 3.0). So
+  I've aired on the safer side and chosen to make all options
+  html-safe.
+ 
+  * Henry Hsu *
+
 *2.3.11 (February 9, 2011)*
 
 * Two security fixes. CVE-2011-0446, CVE-2011-0447

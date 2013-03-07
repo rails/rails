@@ -88,6 +88,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert translate("hello_html").html_safe?
   end
 
+  def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+    I18n.expects(:translate).with(["interpolated_html"], { :word => h('<World>'), :raise => true }).returns(['<a>Hello &lt;World&gt;</a>']).twice
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate("interpolated_html", :word => '<World>')
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate("interpolated_html", :word => stub(:to_s => "<World>"))
+  end
+
   def test_translation_returning_an_array_ignores_html_suffix
     I18n.expects(:translate).with(["foo_html"], :raise => true).returns(["foo", "bar"])
     assert_equal ["foo", "bar"], translate(:foo_html)
