@@ -61,6 +61,10 @@ migrations are wrapped in a transaction. If the database does not support this
 then when a migration fails the parts of it that succeeded will not be rolled
 back. You will have to rollback the changes that were made by hand.
 
+NOTE: There are certain queries that can't run inside a transaction. If your
+adapter supports DDL transactions you can use `disable_ddl_transaction!` to
+disable them for a single migration.
+
 If you wish for a migration to do something that Active Record doesn't know how
 to reverse, you can use `reversible`:
 
@@ -180,7 +184,7 @@ end
 ```
 
 If the migration name is of the form "CreateXXX" and is
-followed by a list of column names and types then a migration creating the table 
+followed by a list of column names and types then a migration creating the table
 XXX with the columns listed will be generated. For example:
 
 ```bash

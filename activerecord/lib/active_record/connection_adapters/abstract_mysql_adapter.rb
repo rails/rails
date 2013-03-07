@@ -332,20 +332,6 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def structure_dump #:nodoc:
-        if supports_views?
-          sql = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'"
-        else
-          sql = "SHOW TABLES"
-        end
-
-        select_all(sql, 'SCHEMA').map { |table|
-          table.delete('Table_type')
-          sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
-        }.join
-      end
-
       # Drops the database specified on the +name+ attribute
       # and creates it again using the provided +options+.
       def recreate_database(name, options = {})
