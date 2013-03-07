@@ -522,4 +522,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     account = Account.find(2)
     assert_queries { company.account = account }
   end
+
+  def test_has_one_assignment_triggers_save_on_change
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    ship = pirate.build_ship(name: 'old name')
+    ship.save!
+
+    ship.name = 'new name'
+    assert ship.changed?
+    assert_queries(2) do
+      # One query for updating name and second query for updating pirate_id
+      pirate.ship = ship
+    end
+
+    assert_equal 'new name', pirate.ship.reload.name
+  end
+
 end
