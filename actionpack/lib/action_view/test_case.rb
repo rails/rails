@@ -219,6 +219,7 @@ module ActionView
         :@_routes,
         :@controller,
         :@_layouts,
+        :@_files,
         :@_rendered_views,
         :@method_name,
         :@output_buffer,

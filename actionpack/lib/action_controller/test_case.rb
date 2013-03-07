@@ -16,6 +16,7 @@ module ActionController
       @_partials = Hash.new(0)
       @_templates = Hash.new(0)
       @_layouts = Hash.new(0)
+      @_files = Hash.new(0)
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
@@ -38,6 +39,16 @@ module ActionController
         end
 
         @_templates[path] += 1
+      end
+
+      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
+        path = payload[:identifier]
+        next if payload[:virtual_path] # files don't have virtual path
+        if path
+          @_files[path] += 1
+          @_files[path.split("/").last] += 1
+        end
+
       end
     end
 
@@ -106,7 +117,7 @@ module ActionController
           end
         assert matches_template, msg
       when Hash
-        options.assert_valid_keys(:layout, :partial, :locals, :count)
+        options.assert_valid_keys(:layout, :partial, :locals, :count, :file)
 
         if options.key?(:layout)
           expected_layout = options[:layout]
@@ -121,6 +132,10 @@ module ActionController
           when nil, false
             assert(@_layouts.empty?, msg)
           end
+        end
+
+        if options[:file]
+          assert_includes @_files.keys, options[:file]
         end
 
         if expected_partial = options[:partial]
