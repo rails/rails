@@ -1399,7 +1399,7 @@ Client.select(:id).map { |c| c.id }
 # or
 Client.select(:id).map(&:id)
 # or
-Client.select(:id).map { |c| [c.id, c.name] }
+Client.select(:id, :name).map { |c| [c.id, c.name] }
 ```
 
 with
