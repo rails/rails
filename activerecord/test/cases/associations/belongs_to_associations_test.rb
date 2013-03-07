@@ -21,9 +21,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
            :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
-    Client.find(3).firm.name
+    assert_not_nil Client.find(3).firm
     assert_equal companies(:first_firm).name, Client.find(3).firm.name
-    assert_not_nil Client.find(3).firm, "Microsoft should have a firm"
   end
 
   def test_belongs_to_with_primary_key
