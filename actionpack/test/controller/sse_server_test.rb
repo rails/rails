@@ -18,10 +18,10 @@ module ActionController
       end
 
       def send_an_sse
+        ActionController::ServerSentEvents.start_server
         ActionController::ServerSentEvents.subscribe(response)
-        ActionController::ServerSentEvents.start_sse_server
         response.stream.write "hello"
-        ActionController::ServerSentEvents.send_sse_hash({:data => "Hi my name is John."})
+        ActionController::ServerSentEvents.send_sse_hash({:data => "Hi my name is John"})
       end
     end
 
@@ -47,25 +47,34 @@ module ActionController
       response = TestResponse.new
 
       sse_data = "I'm sending an sse!"
+      assert_raise(ArgumentError) { ActionController::ServerSentEvents.subscribe(response) }
+      assert_raise(ArgumentError) { ActionController::ServerSentEvents.send_sse_hash({:data => sse_data}) }
+
+      ActionController::ServerSentEvents.start_server
       ActionController::ServerSentEvents.subscribe(response)
       ActionController::ServerSentEvents.send_sse_hash({:data => sse_data})
-
-      assert !ActionController::ServerSentEvents.empty_queue?
-      ActionController::ServerSentEvents.start_sse_server
-      sleep(1)  # Sleep so that the read queue has enough time to see the data
-      ActionController::ServerSentEvents.stop_sse_server
+      sleep(0.1)  # Sleep so that the read queue has enough time to see the data
 
       response.stream.close
-      assert_equal "\ndata: #{sse_data}\n\n", response.body
+      result = response.body
+      assert_match /^id: \w+$/, result
+      assert_match /^data: #{sse_data}$/, result
+    ensure
+      ActionController::ServerSentEvents.stop_server
     end
 
     def test_streaming_sses_through_controller_method
       @controller = TestController.new
       get :send_an_sse
 
-      sleep(1)  # Sleep so that the read queue has enough time to see the data
+      sleep(0.1)  # Sleep so that the read queue has enough time to see the data
       response.stream.close
-      assert_equal "hello\ndata: Hi my name is John.\n\n", response.body
+      result = response.body
+      assert_match /^data: Hi my name is John$/, result
+      assert_match /^id: \w+$/, result
+      assert_match /^hello$/, result
+    ensure
+      ActionController::ServerSentEvents.stop_server
     end
   end
 end

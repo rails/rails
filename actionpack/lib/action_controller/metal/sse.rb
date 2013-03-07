@@ -2,11 +2,16 @@ require 'securerandom'
 
 module ActionController
   module ServerSentEvents
+    OPTIONAL_SSE_FIELDS = [:name, :id, :retry]
+    REQUIRED_SSE_FIELDS = [:data]
+
+    SSE_FIELDS = OPTIONAL_SSE_FIELDS + REQUIRED_SSE_FIELDS
+
     class << self
       @@sse_server = nil
 
       def start_server
-        @@sse_server = SseServer.new()
+        @@sse_server ||= SseServer.new()
         @@sse_server.start
       end
 
@@ -39,18 +44,12 @@ module ActionController
 
       def started_server?
         unless @@sse_server && @@sse_server.continue_sending
-          raise ArgumentError, "SSE server has not been started. You must call start_sse_server first."
+          raise ArgumentError, "SSE server has not been started. You must call start_server first."
         end
       end
     end
 
-
     class SseServer
-      OPTIONAL_SSE_FIELDS = [:name, :id, :retry]
-      REQUIRED_SSE_FIELDS = [:data]
-
-      SSE_FIELDS = OPTIONAL_SSE_FIELDS + REQUIRED_SSE_FIELDS
-
       attr_reader :continue_sending
 
       def initialize(subscriber = nil)
@@ -100,19 +99,20 @@ module ActionController
       end
 
       # Starts the sse server and will begin sending any events that are are
-      # sent via the send_sse method.
+      # sent via the send_sse method. Returns if the server is already sending.
       def start
+        return if @continue_sending
+
         @continue_sending = true
         Thread.new do
-            while @continue_sending
-              unless empty_queue?
-                payload = @sse_queue.pop
-                stream_sse_payload(payload)
-              end
+          while @continue_sending
+            unless empty_queue?
+              payload = @sse_queue.pop
+              stream_sse_payload(payload)
             end
-
-            unsubscribe
           end
+
+          unsubscribe
         end
       end
 
@@ -140,12 +140,13 @@ module ActionController
       def convert_payload_to_message(payload)
         message_array = []
         SSE_FIELDS.each do |field|
-          if payload[field]
-            value = payload[field]
+          value = if payload[field]
+            payload[field]
           elsif field == :id
-            value = SecureRandom.hex
+            SecureRandom.hex
           end
-          message_array << "\n#{field}: #{value}"
+
+          message_array << "\n#{field}: #{value}" if value
         end
 
         message_array << "\n\n"
@@ -154,20 +155,20 @@ module ActionController
     end
 
     class ServerSentEvent
-      SseServer::SSE_FIELDS.each do |field|
+      SSE_FIELDS.each do |field|
         attr_reader field
       end
 
       def initialize(data, opts = {})
         @data = data
-        SseServer::SSE_FIELDS.each do |field|
+        SSE_FIELDS.each do |field|
           instance_variable_set("@#{field}", opts[field])
         end
       end
 
       def to_payload_hash
         payload = {}
-        SseServer::SSE_FIELDS.each do |field|
+        SSE_FIELDS.each do |field|
           payload[field] = send(field)
         end
 
