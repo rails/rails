@@ -14,6 +14,8 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/toy'
+require 'models/person'
+require 'models/reader'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -715,5 +717,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.create!(:sponsorable => toy)
 
     assert_equal toy, sponsor.reload.sponsorable
+  end
+
+  def test_saving_nested_association
+    post1, post2 = Post.limit(2)
+    person = Person.new(:first_name => 'foo')
+    reader = Reader.new(:post => post1)
+
+    reader.post_id = post2.id
+    person.readers = [reader]
+
+    assert person.save
+    assert_equal reader.post_id, post2.id
   end
 end

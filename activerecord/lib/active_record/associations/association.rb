@@ -46,6 +46,7 @@ module ActiveRecord
         @loaded = false
         IdentityMap.remove(target) if IdentityMap.enabled? && target
         @target = nil
+        @stale_state = nil
       end
 
       # Reloads the \target and returns +self+ on success.
@@ -134,15 +135,15 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
-        if find_target?
+        if (@stale_state && stale_target?) || find_target?
           begin
             if IdentityMap.enabled? && association_class && association_class.respond_to?(:base_class)
               @target = IdentityMap.get(association_class, owner[reflection.foreign_key])
+            else
+              @target = find_target
             end
           rescue NameError
             nil
-          ensure
-            @target ||= find_target
           end
         end
         loaded! unless loaded?
