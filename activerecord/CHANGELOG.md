@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Expand `#cache_key` to consult all relevant updated timestamps.
+
+    Previously only `updated_at` column was checked, now it will
+    consult other columns that received updated timestamps on save,
+    such as `updated_on`.  When multiple columns are present it will
+    use the most recent timestamp.
+    Fixes #9033.
+
+    *Brendon Murphy*
+
 *   Throw `NotImplementedError` when trying to instantiate `ActiveRecord::Base` or an abstract class.
 
     *Aaron Weiner*

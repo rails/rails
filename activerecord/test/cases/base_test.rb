@@ -1455,10 +1455,28 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal key, car.cache_key
   end
 
-  def test_cache_key_format_for_existing_record_with_nil_updated_at
+  def test_cache_key_format_for_existing_record_with_nil_updated_timestamps
     dev = Developer.first
-    dev.update_columns(updated_at: nil)
+    dev.update_columns(updated_at: nil, updated_on: nil)
     assert_match(/\/#{dev.id}$/, dev.cache_key)
+  end
+
+  def test_cache_key_for_updated_on
+    dev = Developer.first
+    dev.updated_at = nil
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_newer_updated_at
+    dev = Developer.first
+    dev.updated_at += 3600
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_newer_updated_on
+    dev = Developer.first
+    dev.updated_on += 3600
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
   end
 
   def test_touch_should_raise_error_on_a_new_object

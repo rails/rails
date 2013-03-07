@@ -219,6 +219,8 @@ ActiveRecord::Schema.define do
     t.integer  :salary, :default => 70000
     t.datetime :created_at
     t.datetime :updated_at
+    t.datetime :created_on
+    t.datetime :updated_on
   end
 
   create_table :developers_projects, :force => true, :id => false do |t|
