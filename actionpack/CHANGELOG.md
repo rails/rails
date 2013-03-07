@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed regression when using `assert_template` to verify files sent using
+    `render file: 'README.md'`.
+    Fixes #9464.
+
+    *Justin Coyne*
+
 *   Fixed `ActionView::Helpers::CaptureHelper#content_for` regression when trying to use it in
     a boolean statement.
     Fixes #9360.
@@ -15,12 +21,6 @@
         get '/json_only', to: ok, format: true, constraints: { format: /json/ }
 
     *Yves Senn*
-
-*   Fixed regression when using `assert_template` to verify files sent using
-    `render file: 'README.md'`.
-    Fixes #9464.
-
-    *Justin Coyne*
 
 *   Skip valid encoding checks for non-String parameters that come
     from the matched route's defaults.
