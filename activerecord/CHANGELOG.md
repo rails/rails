@@ -1,5 +1,11 @@
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
 
+*   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
+
+    Fix #8856.
+
+    *Chris Thompson*
+
 *   Allow to use databases.rake tasks without having `Rails.application`.
 
     *Piotr Sarnacki*
