@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Throw `NotImplementedError` when trying to instantiate `ActiveRecord::Base` or an abstract class.
+
+    *Aaron Weiner*
+
 *   Warn when `rake db:structure:dump` with a mysl database and
     `mysqldump` is not in the PATH or fails.
     Fixes #9518.
