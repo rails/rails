@@ -6,10 +6,6 @@ if ActiveRecord::Base.connection.supports_explain?
   class ExplainTest < ActiveRecord::TestCase
     fixtures :cars
 
-    def setup
-      @car = Car.where(name: 'honda')
-    end
-
     def base
       ActiveRecord::Base
     end
@@ -19,12 +15,13 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_relation_explain
-      assert_match(/^EXPLAIN for:/, @car.explain)
+      message = Car.where(:name => 'honda').explain
+      assert_match(/^EXPLAIN for:/, message)
     end
 
     def test_collecting_queries_for_explain
       queries = ActiveRecord::Base.collecting_queries_for_explain do
-        @car.to_a
+        Car.where(:name => 'honda').to_a
       end
 
       sql, binds = queries[0]
