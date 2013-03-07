@@ -687,6 +687,7 @@ ActiveRecord::Schema.define do
   create_table :traffic_lights, :force => true do |t|
     t.string   :location
     t.string   :state
+    t.text     :long_state, :null => false
     t.datetime :created_at
     t.datetime :updated_at
   end
