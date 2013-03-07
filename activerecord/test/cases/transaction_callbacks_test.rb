@@ -305,11 +305,25 @@ class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
     end
   end
 
+  class TopicWithSaveInAfterCreateCallback < ActiveRecord::Base
+    self.table_name = :topics
+    after_create { save! }
+    after_commit(on: :create) { self.was_created = true }
+    after_commit(on: :update) { self.was_updated = true }
+    attr_accessor :was_created, :was_updated
+  end
+
   def test_after_commit_in_save
     topic = TopicWithSaveInCallback.new()
     topic.save
     assert_equal true, topic.cached
     assert_equal true, topic.record_updated
+  end
+
+  def test_after_commit_on_create
+    topic = TopicWithSaveInAfterCreateCallback.create()
+    assert_equal true, topic.was_created
+    assert_equal nil, topic.was_updated
   end
 end
 
