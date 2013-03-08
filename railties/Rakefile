@@ -6,6 +6,8 @@ require 'rbconfig'
 
 
 task :default => :test
+
+desc "Run all unit tests"
 task :test => 'test:isolated'
 
 namespace :test do
