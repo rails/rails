@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Previously `Post.active.inactive` used to result in `Post.inactive`
+    since the last where clause used to win while combining scopes.
+    Now all the scopes will be merged using `AND`. Fixes #7365 .
+
+    *Neeraj Singh* and *Jon Leighton*
+
 *   Expand `#cache_key` to consult all relevant updated timestamps.
 
     Previously only `updated_at` column was checked, now it will
