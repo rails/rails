@@ -67,7 +67,7 @@ end
 
 platforms :jruby do
   gem 'json'
-  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.0'
+  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   # This is needed by now to let tests work on JRuby
   # TODO: When the JRuby guys merge jruby-openssl in
@@ -75,8 +75,8 @@ platforms :jruby do
   gem 'jruby-openssl'
 
   group :db do
-    gem 'activerecord-jdbcmysql-adapter', '>= 1.2.0'
-    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.0'
+    gem 'activerecord-jdbcmysql-adapter', '>= 1.2.7'
+    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.7'
   end
 end
 
