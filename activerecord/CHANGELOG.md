@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   When `:name` option is provided to `remove_index`, use it if there is no
+    index by the conventional name.
+
+    For example, previously if an index was removed like so
+    `remove_index :values, column: :value, name: 'a_different_name'`
+    the generated SQL would not contain the specified index name,
+    and hence the migration would fail.
+    Fixes #8858.
+
+    *Ezekiel Smithburg*
+
 *   Created block to by-pass the prepared statement bindings.
     This will allow to compose fragments of large SQL statements to
     avoid multiple round-trips between Ruby and the DB.
