@@ -373,10 +373,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
-    client = Client.new
-    client.firm_with_basic_id
-    client.firm_id = 1
-
+    client = Client.new("firm_id" => 1)
     assert_equal companies(:first_firm), client.firm_with_basic_id
   end
 
