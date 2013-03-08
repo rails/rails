@@ -27,10 +27,31 @@ module Rails
   class << self
     attr_accessor :application, :cache, :logger
 
-    # The Configuration instance used to configure the Rails environment
-    def configuration
-      application.config
+    # These methods access and write to the global configuration of the
+    # Rails application, denoted by +Rails.config+. Although multiple rails
+    # applications are allowed, only a single Rails.config is allowed. 
+    #
+    # The +Rails.config+ is set to the configuration of the first application
+    # that is initialized. For example,
+    #
+    #   class MyNewApp < Rails::Application
+    #   end
+    #
+    #   Rails.application = MyNewApp.new do |config|
+    #     config.some_configuration = "some configuration"
+    #   end
+    #
+    # If the above is the first application that is initialized, then
+    # +Rails.config+ will be set to the config of the above application.
+    def config
+      @config ||= application.config
     end
+
+    def config=(configuration)
+      @config = configuration
+    end
+
+    alias :configuration :config
 
     def initialize!
       application.initialize!

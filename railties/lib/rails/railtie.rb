@@ -112,7 +112,6 @@ module Rails
   # Be sure to look at the documentation of those specific classes for more information.
   #
   class Railtie
-    autoload :Configurable,  "rails/railtie/configurable"
     autoload :Configuration, "rails/railtie/configuration"
 
     include Initializable
@@ -121,6 +120,7 @@ module Rails
 
     class << self
       private :new
+      delegate :config, to: :instance
 
       def subclasses
         @subclasses ||= []
@@ -128,7 +128,9 @@ module Rails
 
       def inherited(base)
         unless base.abstract_railtie?
-          base.send(:include, Railtie::Configurable)
+          if !ABSTRACT_RAILTIES.include?(base.superclass.name)
+            raise "You cannot inherit from a #{self.superclass.name} child"
+          end
           subclasses << base
         end
       end
@@ -166,13 +168,38 @@ module Rails
         @railtie_name ||= generate_railtie_name(self.name)
       end
 
+      # Since Rails::Railtie cannot be instantiated, any methods that call
+      # +instance+ are intended to be called only on subclasses of a Railtie.
+      def instance
+        @instance ||= new
+      end
+
+      def respond_to?(*args)
+        super || instance.respond_to?(*args)
+      end
+
+      def configure(&block)
+        class_eval(&block)
+      end
+
       protected
+
         def generate_railtie_name(class_or_module)
           ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
+        end
+
+        def method_missing(*args, &block)
+          instance.send(*args, &block)
         end
     end
 
     delegate :railtie_name, to: :class
+
+    def initialize
+      if self.class == Rails::Railtie
+        raise "#{self.class.name} is abstract, you cannot instantiate it directly."
+      end
+    end
 
     def config
       @config ||= Railtie::Configuration.new

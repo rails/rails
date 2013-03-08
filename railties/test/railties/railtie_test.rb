@@ -19,10 +19,6 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
-    test "Rails::Railtie itself does not respond to config" do
-      assert !Rails::Railtie.respond_to?(:config)
-    end
-
     test "Railtie provides railtie_name" do
       begin
         class ::FooBarBaz < Rails::Railtie ; end
@@ -44,6 +40,10 @@ module RailtiesTest
       assert_raise RuntimeError do
         class Bar < Foo; end
       end
+    end
+
+    test "cannot instantiate a railtie object" do
+      assert_raise(RuntimeError) { Rails::Railtie.new }
     end
 
     test "config is available to railtie" do

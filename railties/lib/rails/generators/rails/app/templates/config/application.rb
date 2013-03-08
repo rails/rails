@@ -16,6 +16,9 @@ Bundler.require(*Rails.groups(assets: %w(development test)))
 
 module <%= app_const_base %>
   class Application < Rails::Application
+  end
+
+  Rails.application = Application.new do |config|
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.

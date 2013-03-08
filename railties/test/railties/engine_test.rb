@@ -416,11 +416,6 @@ YAML
       boot_rails
     end
 
-    test "Rails::Engine itself does not respond to config" do
-      boot_rails
-      assert !Rails::Engine.respond_to?(:config)
-    end
-
     test "initializers are executed after application configuration initializers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits

@@ -60,12 +60,15 @@ module Rails
 
     class << self
       def inherited(base)
-        raise "You cannot have more than one Rails::Application" if Rails.application
         super
-        Rails.application = base.instance
-        Rails.application.add_lib_to_load_path!
-        ActiveSupport.run_load_hooks(:before_configuration, base.instance)
       end
+
+      # Makes the +new+ method public.
+      #
+      # Note that Rails::Application inherits from Rails::Engine, which 
+      # inherits from Rails::Railtie and the +new+ method on Rails::Railtie is
+      # private
+      public :new
     end
 
     attr_accessor :assets, :sandbox
@@ -76,6 +79,28 @@ module Rails
 
     def initialize
       super
+
+      # If +Rails.application+ is already defined then the base configuration
+      # of the new application will be the global +Rails.config+ that was
+      # defined by the first application.
+      #
+      # If +Rails.application+ is not defined, we set the global rails config
+      # for all following applications (unless +Rails.config+ is reset to
+      # something else). This is also when we run the :before_configuration
+      # hooks and when we add lib to the load path of the application.
+      if Rails.application
+        @config = Rails.config
+      else
+        ActiveSupport.run_load_hooks(:before_configuration, self)
+        @config = Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+
+        Rails.config = @config
+        Rails.application = self
+        add_lib_to_load_path!
+      end
+
+      yield config if block_given?
+
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
@@ -222,7 +247,7 @@ module Rails
     end
 
     def config #:nodoc:
-      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+      @config ||= Rails.config
     end
 
     def to_app #:nodoc:
