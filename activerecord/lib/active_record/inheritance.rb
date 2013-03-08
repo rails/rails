@@ -170,12 +170,16 @@ module ActiveRecord
       # this will ignore the inheritance column and return nil
       def subclass_from_attrs(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
-        return if subclass_name.blank? || subclass_name == self.name
-        subclass = subclass_name.safe_constantize
-        unless subclasses.include?(subclass)
-          raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+
+        if subclass_name.present? && subclass_name != self.name
+          subclass = subclass_name.safe_constantize
+
+          unless subclasses.include?(subclass)
+            raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+          end
+
+          subclass
         end
-        subclass
       end
     end
 
