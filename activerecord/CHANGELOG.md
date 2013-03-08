@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Model.last :offset => 4, now given 4th record from the end. But not just last record.
+    Fixes #7441.
+
+    *kostya*
+
 *   Reload the association target if it's stale. `@stale_state` should be nil
     when a model isn't saved.
     Fixes #7526.
