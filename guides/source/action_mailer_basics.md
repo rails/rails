@@ -412,6 +412,19 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
+### Sending Emails without Template Rendering
+
+There may be cases in which you want to skip the template rendering step and supply the email body as a string. You can achive this using the `:body` option.
+In such cases don't forget to add the `:content_type` option. Rails will default to `text/plain` otherwise.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  def welcome_email(user,email_body)
+    mail(to: user.email, body: email_body, content_type: "text/html", subject: "Already rendered!")
+  end
+end
+```
+
 Receiving Emails
 ----------------
 
