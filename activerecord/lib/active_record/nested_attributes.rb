@@ -269,22 +269,35 @@ module ActiveRecord
             self.nested_attributes_options = nested_attributes_options
 
             type = (reflection.collection? ? :collection : :one_to_one)
-
-            # def pirate_attributes=(attributes)
-            #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes, mass_assignment_options)
-            # end
-            generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
-              if method_defined?(:#{association_name}_attributes=)
-                remove_method(:#{association_name}_attributes=)
-              end
-              def #{association_name}_attributes=(attributes)
-                assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
-              end
-            eoruby
+            generate_association_writer(association_name, type)
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
           end
         end
+      end
+
+      private
+
+      # Generates a writer method for this association. Serves as a point for
+      # accessing the objects in the association. For example, this method
+      # could generate the following:
+      #
+      #   def pirate_attributes=(attributes)
+      #     assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
+      #   end
+      #
+      # This redirects the attempts to write objects in an association through
+      # the helper methods defined below. Makes it seem like the nested
+      # associations are just regular associations.
+      def generate_association_writer(association_name, type)
+        generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
+          if method_defined?(:#{association_name}_attributes=)
+            remove_method(:#{association_name}_attributes=)
+          end
+          def #{association_name}_attributes=(attributes)
+            assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
+          end
+        eoruby
       end
     end
 
@@ -371,20 +384,7 @@ module ActiveRecord
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
       end
 
-      if limit = options[:limit]
-        limit = case limit
-        when Symbol
-          send(limit)
-        when Proc
-          limit.call
-        else
-          limit
-        end
-
-        if limit && attributes_collection.size > limit
-          raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
-        end
-      end
+      check_record_limit!(options[:limit], attributes_collection)
 
       if attributes_collection.is_a? Hash
         keys = attributes_collection.keys
@@ -433,6 +433,29 @@ module ActiveRecord
       end
     end
 
+    # Takes in a limit and checks if the attributes_collection has too many
+    # records. The method will take limits in the form of symbols, procs, and
+    # number-like objects (anything that can be compared with an integer).
+    #
+    # Will raise an TooManyRecords error if the attributes_collection is
+    # larger than the limit.
+    def check_record_limit!(limit, attributes_collection)
+      if limit
+        limit = case limit
+        when Symbol
+          send(limit)
+        when Proc
+          limit.call
+        else
+          limit
+        end
+
+        if limit && attributes_collection.size > limit
+          raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
+        end
+      end
+    end
+
     # Updates a record with the +attributes+ or marks it for destruction if
     # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
     def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
@@ -452,6 +475,11 @@ module ActiveRecord
       has_destroy_flag?(attributes) || call_reject_if(association_name, attributes)
     end
 
+    # Determines if a record with the particular +attributes+ should be
+    # rejected by calling the reject_if Symbol or Proc (if defined).
+    # The reject_if option is defined by +accepts_nested_attributes_for+.
+    #
+    # Returns false if there is a +destroy_flag+ on the attributes.
     def call_reject_if(association_name, attributes)
       return false if has_destroy_flag?(attributes)
       case callback = self.nested_attributes_options[association_name][:reject_if]
