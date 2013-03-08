@@ -462,6 +462,22 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
   end
 end
 
+class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
+  def test_drop_index_by_name
+    connection = Person.connection
+    connection.create_table :values, force: true do |t|
+      t.integer :value
+    end
+
+    assert_nothing_raised ArgumentError do
+      connection.add_index :values, :value, name: 'a_different_name'
+      connection.remove_index :values, column: :value, name: 'a_different_name'
+    end
+
+    connection.drop_table :values rescue nil
+  end
+end
+
 if ActiveRecord::Base.connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
