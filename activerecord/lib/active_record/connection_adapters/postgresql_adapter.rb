@@ -489,7 +489,7 @@ module ActiveRecord
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::PostgreSQL.new self
         else
-          @visitor = BindSubstitution.new self
+          @visitor = unprepared_visitor
         end
 
         @connection_parameters, @config = connection_parameters, config
