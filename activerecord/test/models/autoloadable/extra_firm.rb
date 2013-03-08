@@ -1,0 +1,2 @@
+class ExtraFirm < Company
+end

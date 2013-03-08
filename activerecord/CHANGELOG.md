@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix ActiveRecord `subclass_from_attrs` when eager_load is false.
+    It cannot find subclass because all classes are loaded automatically
+    when it needs.
+
+    *Dmitry Vorotilin*
+
 *   When `:name` option is provided to `remove_index`, use it if there is no
     index by the conventional name.
 
