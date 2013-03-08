@@ -339,7 +339,8 @@ module ActiveRecord
   # you can turn the automatic transactions off.
   #
   #   class ChangeEnum < ActiveRecord::Migration
-  #     self.disable_ddl_transaction!
+  #     disable_ddl_transaction!
+  #
   #     def up
   #       execute "ALTER TYPE model_size ADD VALUE 'new_value'"
   #     end

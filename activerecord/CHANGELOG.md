@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix ActiveRecord `subclass_from_attrs` when eager_load is false.
+*   Fix ActiveRecord `subclass_from_attrs` when `eager_load` is false.
     It cannot find subclass because all classes are loaded automatically
     when it needs.
 
@@ -24,7 +24,7 @@
     Example:
 
         sql = Post.connection.unprepared_statement do
-            Post.first.comments.to_sql
+          Post.first.comments.to_sql
         end
 
     *Cédric Fabianski*
@@ -106,7 +106,8 @@
     Example:
 
         class ChangeEnum < ActiveRecord::Migration
-          self.disable_ddl_transaction!
+          disable_ddl_transaction!
+
           def up
             execute "ALTER TYPE model_size ADD VALUE 'new_value'"
           end
