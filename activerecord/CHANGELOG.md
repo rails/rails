@@ -1,8 +1,50 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Previously `Post.active.inactive` used to result in `Post.inactive`
-    since the last where clause used to win while combining scopes.
-    Now all the scopes will be merged using `AND`. Fixes #7365 .
+*   Change the semantics of combining scopes to be the same as combining
+    class methods which return scopes. For example:
+
+        class User < ActiveRecord::Base
+          scope :active,   -> { where state: 'active' }
+          scope :inactive, -> { where state: 'inactive' }
+        end
+
+        class Post < ActiveRecord::Base
+          def self.active
+            where state: 'active'
+          end
+
+          def self.inactive
+            where state: 'inactive'
+          end
+        end
+
+        ### BEFORE ###
+
+        User.where(state: 'active').where(state: 'inactive')
+        # => SELECT * FROM users WHERE state = 'active' AND state = 'inactive'
+
+        User.active.inactive
+        # => SELECT * FROM users WHERE state = 'inactive'
+
+        Post.active.inactive
+        # => SELECT * FROM posts WHERE state = 'active' AND state = 'inactive'
+
+        ### AFTER ###
+
+        User.active.inactive
+        # => SELECT * FROM posts WHERE state = 'active' AND state = 'inactive'
+
+    Before this change, invoking a scope would merge it into the current
+    scope and return the result. `Relation#merge` applies "last where
+    wins" logic to de-duplicate the conditions, but this lead to
+    confusing and inconsistent behaviour. This fixes that.
+
+    If you really do want the "last where wins" logic, you can opt-in to
+    it like so:
+
+        User.active.merge(User.inactive)
+
+    Fixes #7365.
 
     *Neeraj Singh* and *Jon Leighton*
 
