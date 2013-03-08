@@ -119,9 +119,11 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert output.include?(expected), "#{expected.inspect} expected, but got:\n\n#{output}"
   end
 
-  def write_prompt(command)
+  def write_prompt(command, expected_output = nil)
     @master.puts command
     assert_output command
+    assert_output expected_output if expected_output
+    assert_output "> "
   end
 
   def kill(pid)
@@ -143,21 +145,17 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   def test_sandbox
     pid = spawn_console
 
-    write_prompt "Post.count"
-    assert_output "=> 0"
-
+    write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
-    assert_output "=> "
-
-    write_prompt "Post.count"
-    assert_output "=> 1"
+    write_prompt "Post.count", "=> 1"
 
     kill pid
 
     pid = spawn_console
 
-    write_prompt "Post.count"
-    assert_output "=> 0"
+    write_prompt "Post.count", "=> 0"
+    write_prompt "Post.transaction { Post.create; raise }"
+    write_prompt "Post.count", "=> 0"
   ensure
     kill pid
   end
