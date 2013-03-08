@@ -309,7 +309,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal post.comments.size, Post.joins(join).joins(join).where("posts.id = #{post.id}").size
   end
 
-  def test_chaining_should_use_latest_conditions_when_creating
+  def test_chaining_applies_last_conditions_when_creating
     post = Topic.rejected.new
     assert !post.approved?
 
@@ -323,7 +323,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert post.approved?
   end
 
-  def test_chaining_should_use_latest_conditions_when_searching
+  def test_chaining_combines_conditions_when_searching
     # Normal hash conditions
     assert_equal Topic.where(approved: false).where(approved: true).to_a, Topic.rejected.approved.to_a
     assert_equal Topic.where(approved: true).where(approved: false).to_a, Topic.approved.rejected.to_a

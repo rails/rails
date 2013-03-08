@@ -167,7 +167,6 @@ module ActiveRecord
                 scope = relation.merge(scope)
                 scope.default_scoped = default_scoped
               end
-
             else
               scope = body
             end
