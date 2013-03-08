@@ -118,6 +118,17 @@ module ActiveRecord
         @in_use = false
       end
 
+      def unprepared_visitor
+        self.class::BindSubstitution.new self
+      end
+
+      def unprepared_statement
+        old, @visitor = @visitor, unprepared_visitor
+        yield
+      ensure
+        @visitor = old
+      end
+
       # Returns the human-readable name of the adapter. Use mixed case - one
       # can always use downcase if needed.
       def adapter_name

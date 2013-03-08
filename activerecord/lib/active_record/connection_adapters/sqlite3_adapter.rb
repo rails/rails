@@ -113,7 +113,7 @@ module ActiveRecord
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::SQLite.new self
         else
-          @visitor = BindSubstitution.new self
+          @visitor = unprepared_visitor
         end
       end
 

@@ -714,6 +714,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
+  def test_relation_to_sql
+    sql = Post.connection.unprepared_statement do
+      Post.first.comments.to_sql
+    end
+    assert_no_match(/\?/, sql)
+  end
+
   def test_relation_merging_with_arel_equalities_keeps_last_equality
     devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
       Developer.where(Developer.arel_table[:salary].eq(9000))
