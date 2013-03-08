@@ -152,12 +152,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_render_file_absolute_path
     get :render_file_absolute_path
-    assert_match /\A= Action Pack/, @response.body
+    assert_match(/\A= Action Pack/, @response.body)
   end
 
   def test_render_file_relative_path
     get :render_file_relative_path
-    assert_match /\A= Action Pack/, @response.body
+    assert_match(/\A= Action Pack/, @response.body)
   end
 
   def test_get_request
