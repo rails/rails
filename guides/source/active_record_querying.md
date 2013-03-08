@@ -1203,7 +1203,7 @@ Just like `where` clauses scopes are merged using `AND` conditions.
 ```ruby
 class User < ActiveRecord::Base
   scope :active, -> { where state: 'active' }
-  scope :inactive, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
 end
 
 ```ruby
@@ -1216,8 +1216,7 @@ will have all conditions joined with `AND` .
 
 ```ruby
 User.active.where(state: 'finished')
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND
-"users"."state" = 'finished'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
 ```
 
 If we do want the `last where clause` to win then `Relation#merge` can
@@ -1235,7 +1234,7 @@ One important caveat is that `default_scope` will be overridden by
 class User < ActiveRecord::Base
   default_scope  { where state: 'pending' }
   scope :active, -> { where state: 'active' }
-  scope :inactive, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
 end
 
 User.all
