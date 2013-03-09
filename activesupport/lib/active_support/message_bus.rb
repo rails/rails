@@ -246,6 +246,20 @@ module ActiveSupport
         msg.send_message(message)
       end
 
+      # Public: Check if the message server is started in this host
+      def started?
+        server_exist = false
+        begin
+          @soc = UDPSocket.open
+          @soc.bind("", DiscoverableServer::DEFAULT_PORT)
+          @soc.close
+        rescue Errno::EADDRINUSE
+          server_exist = true
+        end
+
+        server_exist
+      end
+
       def extract_deploy_method(options = {})
         default_method = :InProc
         return default_method unless options

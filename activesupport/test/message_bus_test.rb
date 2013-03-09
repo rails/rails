@@ -229,4 +229,73 @@ class  MessageServerTest < ActiveSupport::TestCase
       sleep(1)
     end
   end
+
+  test 'if started works with InProc server' do
+    begin
+      server = ActiveSupport::MessageBus::MessageServer.instance
+      assert_equal false, server.started?
+      server.start_server :deploy => :InProc
+      assert_equal true, server.started?
+      server.send_message "David Wang"
+    ensure
+      server.stop_server
+    end
+  end
+
+  test 'if started works with StandAlone server' do 
+    begin
+      server = ActiveSupport::MessageBus::MessageServer.instance
+      assert_equal false, server.started?
+      server.start_server :deploy => :StandAlone
+
+      sleep(1) # waiting server to start
+      assert_equal true, server.started?
+      server.find_server
+      server.send_message "David Wang"
+    ensure
+      server.stop_server
+      sleep(1)
+    end
+    assert_equal false, server.started?
+  end
+
+  test 'if server started works with InProc server in guest process' do 
+    begin
+      fork do
+        server = ActiveSupport::MessageBus::MessageServer.instance
+        server.start_server :deploy => :InProc
+        server.wait_in_proc_server
+      end
+
+      sleep(1) 
+      remote_server = ActiveSupport::MessageBus::MessageServer.instance
+      assert_equal true, remote_server.started?
+      remote_server.find_server
+      remote_server.send_message "David Wang"
+    ensure
+      remote_server.stop_server
+      sleep(1)
+      assert_equal false, remote_server.started?
+    end
+  end
+
+  test 'if server started works with StandAlone server in guest process' do
+    begin
+      fork do
+        # This owner process do nothing but start a stand alone server
+        server = ActiveSupport::MessageBus::MessageServer.instance
+        server.start_server :deploy => :StandAlone
+      end
+
+      sleep(1) 
+      remote_server = ActiveSupport::MessageBus::MessageServer.instance
+      assert_equal true, remote_server.started?
+      remote_server.find_server
+      remote_server.send_message "David Wang"
+    ensure
+      remote_server.stop_server
+      sleep(1)
+      assert_equal false, remote_server.started?
+    end
+  end
 end
