@@ -84,7 +84,7 @@ module ActionView
             options["id"] = options.fetch("id"){ tag_id }
           end
 
-          options["name"] += "[]" if options["multiple"]
+          options["name"] += "[]" if options["multiple"] && !options["name"].ends_with?("[]")
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 

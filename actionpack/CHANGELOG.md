@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix incorrectly appended square brackets to a multiple select box
+    if an explicit name has been given and it already ends with "[]"
+
+    Before:
+
+        select(:category, [], {}, multiple: true, name: "post[category][]")
+        # => <select name="post[category][][]" ...>
+
+    After:
+
+        select(:category, [], {}, multiple: true, name: "post[category][]")
+        # => <select name="post[category][]" ...>
+
+    *Olek Janiszewski*
+
 *   Fixed regression when using `assert_template` to verify files sent using
     `render file: 'README.md'`.
     Fixes #9464.
