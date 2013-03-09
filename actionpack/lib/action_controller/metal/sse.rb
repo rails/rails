@@ -8,36 +8,36 @@ module ActionController
     SSE_FIELDS = OPTIONAL_SSE_FIELDS + REQUIRED_SSE_FIELDS
 
     class << self
-      @@sse_server = nil
+      @sse_server = nil
 
       def start_server
-        @@sse_server ||= SseServer.new()
-        @@sse_server.start
+        @sse_server ||= SseServer.new()
+        @sse_server.start
       end
 
       def stop_server
         started_server?
-        @@sse_server.stop
+        @sse_server.stop
       end
 
       def send_sse(sse)
         started_server?
-        @@sse_server.send_sse(sse)
+        @sse_server.send_sse(sse)
       end
 
       def send_sse_hash(sse_hash)
         started_server?
-        @@sse_server.send_sse_hash(sse_hash)
+        @sse_server.send_sse_hash(sse_hash)
       end
 
       def subscribe(response)
         started_server?
-        @@sse_server.subscribe(response)
+        @sse_server.subscribe(response)
       end
 
       def unsubscribe
         started_server?
-        @@sse_server.unsubscribe
+        @sse_server.unsubscribe
       end
 
       private
@@ -60,6 +60,10 @@ module ActionController
 
       # Sends an sse to the browser. Must be called after start_sse_server
       # has been called and while the sse server is still running.
+      #
+      # The input must be an object of class
+      # ActionController::ServerSentEvents::ServerSentEvent
+      # and it must have the +to_payload_hash+ method.
       def send_sse(sse)
         send_sse_hash(sse.to_payload_hash)
       end
@@ -106,7 +110,7 @@ module ActionController
         @continue_sending = true
         Thread.new do
           while @continue_sending
-            unless empty_queue?
+            if @subscriber && !empty_queue?
               payload = @sse_queue.pop
               stream_sse_payload(payload)
             end
