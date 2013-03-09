@@ -403,11 +403,24 @@ If you wish to override the default delivery options (e.g. SMTP credentials) whi
 
 ```ruby
 class UserMailer < ActionMailer::Base
-  def welcome_email(user,company)
+  def welcome_email(user, company)
     @user = user
     @url  = user_url(@user)
     delivery_options = { user_name: company.smtp_user, password: company.smtp_password, address: company.smtp_host }
     mail(to: user.email, subject: "Please see the Terms and Conditions attached", delivery_method_options: delivery_options)
+  end
+end
+```
+
+### Sending Emails without Template Rendering
+
+There may be cases in which you want to skip the template rendering step and supply the email body as a string. You can achieve this using the `:body` option.
+In such cases don't forget to add the `:content_type` option. Rails will default to `text/plain` otherwise.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  def welcome_email(user, email_body)
+    mail(to: user.email, body: email_body, content_type: "text/html", subject: "Already rendered!")
   end
 end
 ```
