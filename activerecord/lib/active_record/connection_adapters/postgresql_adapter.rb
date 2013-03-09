@@ -594,7 +594,7 @@ module ActiveRecord
       end
 
       def enable_extension(name)
-        exec_query("CREATE EXTENSION IF NOT EXISTS #{name}").tap {
+        exec_query("CREATE EXTENSION IF NOT EXISTS \"#{name}\"").tap {
           reload_type_map
         }
       end
