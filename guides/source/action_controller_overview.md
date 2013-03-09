@@ -290,7 +290,7 @@ parameters:
 params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
 ```
 
-Hasesh with integer keys are treated differently and you can declare
+Hashes with integer keys are treated differently and you can declare
 the attributes as if they were direct children. You get this kind of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
