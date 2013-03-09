@@ -48,6 +48,11 @@ module ActionController
       info("Sent data #{event.payload[:filename]} (#{event.duration.round(1)}ms)")
     end
 
+    def unpermitted_parameters(event)
+      unpermitted_keys = event.payload[:keys]
+      debug("Unpermitted parameters: #{unpermitted_keys.join(", ")}")
+    end
+
     %w(write_fragment read_fragment exist_fragment?
        expire_fragment expire_page write_page).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
