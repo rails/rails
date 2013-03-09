@@ -339,7 +339,8 @@ module ActionController
         if unpermitted_keys.any?
           case self.class.action_on_unpermitted_parameters
           when :log
-            ActionController::Base.logger.debug "Unpermitted parameters: #{unpermitted_keys.join(", ")}"
+            name = "unpermitted_parameters.action_controller"
+            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
           end
