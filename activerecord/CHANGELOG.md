@@ -120,7 +120,7 @@
     *Yves Senn*
 
 *   Assigning "0.0" to a nullable numeric column does not make it dirty.
-    Fix #9034.
+    Fixes #9034.
 
     Example:
 
@@ -555,17 +555,17 @@
     *Marc-André Lafortune*
 
 *   Serialized attributes can be serialized in integer columns.
-    Fix #8575.
+    Fixes #8575.
 
     *Rafael Mendonça França*
 
 *   Keep index names when using `alter_table` with sqlite3.
-    Fix #3489.
+    Fixes #3489.
 
     *Yves Senn*
 
 *   Add ability for postgresql adapter to disable user triggers in `disable_referential_integrity`.
-    Fix #5523.
+    Fixes #5523.
 
     *Gary S. Weaver*
 
@@ -588,7 +588,7 @@
     *Matthew Robertson*
 
 *   Recognize migrations placed in directories containing numbers and 'rb'.
-    Fix #8492
+    Fixes #8492.
 
     *Yves Senn*
 
@@ -646,13 +646,13 @@
 
 *   Fix performance problem with `primary_key` method in PostgreSQL adapter when having many schemas.
     Uses `pg_constraint` table instead of `pg_depend` table which has many records in general.
-    Fix #8414
+    Fixes #8414.
 
     *kennyj*
 
 *   Do not instantiate intermediate Active Record objects when eager loading.
     These records caused `after_find` to run more than expected.
-    Fix #3313
+    Fixes #3313.
 
     *Yves Senn*
 
@@ -673,12 +673,13 @@
 
 *   Fix dirty attribute checks for `TimeZoneConversion` with nil and blank
     datetime attributes. Setting a nil datetime to a blank string should not
-    result in a change being flagged. Fix #8310
+    result in a change being flagged.
+    Fixes #8310.
 
     *Alisdair McDiarmid*
 
 *   Prevent mass assignment to the type column of polymorphic associations when using `build`
-    Fix #8265
+    Fixes #8265.
 
     *Yves Senn*
 
@@ -731,7 +732,7 @@
     *Bogdan Gusiev*
 
 *   `:counter_cache` option for `has_many` associations to support custom named counter caches.
-    Fix #7993
+    Fixes #7993.
 
     *Yves Senn*
 
@@ -755,7 +756,7 @@
     *Nikita Afanasenko*
 
 *   Use query cache/uncache when using `DATABASE_URL`.
-    Fix #6951.
+    Fixes #6951.
 
     *kennyj*
 
@@ -764,7 +765,7 @@
     *Henrik Nyh*
 
 *   The `create_table` method raises an `ArgumentError` when the primary key column is redefined.
-    Fix #6378
+    Fixes #6378.
 
     *Yves Senn*
 
@@ -874,7 +875,7 @@
     *Alexey Muranov*
 
 *   The postgres adapter now supports tables with capital letters.
-    Fix #5920
+    Fixes #5920.
 
     *Yves Senn*
 
@@ -896,7 +897,7 @@
     *Francesco Rodriguez*
 
 *   Fix `reset_counters` crashing on `has_many :through` associations.
-    Fix #7822.
+    Fixes #7822.
 
     *lulalala*
 
@@ -971,7 +972,7 @@
     *Guillermo Iguaran*
 
 *   Fix the return of querying with an empty hash.
-    Fix #6971.
+    Fixes #6971.
 
         User.where(token: {})
 
@@ -987,7 +988,7 @@
 
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
-    Fix #7661.
+    Fixes #7661.
 
     *Ernie Miller*
 

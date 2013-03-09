@@ -39,13 +39,13 @@
     *Amparo Luna*
 
 *   Fixes database.yml when creating a new rails application with '.'
-    Fix #8304
+    Fixes #8304.
 
     *Jeremy W. Rowe*
 
 *   Restore Rails::Engine::Railties#engines with deprecation to ensure
     compatibility with gems such as Thinking Sphinx
-    Fix #8551
+    Fixes #8551.
 
     *Tim Raymond*
 
@@ -119,7 +119,7 @@
 
 *   Environment name can be a start substring of the default environment names
     (production, development, test). For example: tes, pro, prod, dev, devel.
-    Fix #8628.
+    Fixes #8628.
 
     *Mykola Kyryk*
 
@@ -129,7 +129,7 @@
 
 *   Quote column names in generates fixture files. This prevents
     conflicts with reserved YAML keywords such as 'yes' and 'no'
-    Fix #8612.
+    Fixes #8612.
 
     *Yves Senn*
 
@@ -162,19 +162,19 @@
 *   Add `db` to list of folders included by `rake notes` and `rake notes:custom`. *Antonio Cangiano*
 
 *   Engines with a dummy app include the rake tasks of dependencies in the app namespace.
-    Fix #8229
+    Fixes #8229.
 
     *Yves Senn*
 
 *   Add `sqlserver.yml` template file to satisfy `-d sqlserver` being passed to `rails new`.
-    Fix #6882
+    Fixes #6882.
 
     *Robert Nesius*
 
 *   Rake test:uncommitted finds git directory in ancestors *Nicolas Despres*
 
 *   Add dummy app Rake tasks when `--skip-test-unit` and `--dummy-path` is passed to the plugin generator.
-    Fix #8121
+    Fixes #8121.
 
     *Yves Senn*
 
