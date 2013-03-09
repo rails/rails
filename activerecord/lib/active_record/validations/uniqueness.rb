@@ -2,6 +2,10 @@ module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
       def initialize(options)
+        if options[:conditions] && !options[:conditions].respond_to?(:call)
+          raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
+                               "Pass a callable instead: `conditions: -> { where('approved = ?', true) }`"
+        end
         super({ case_sensitive: true }.merge!(options))
       end
 
@@ -19,7 +23,7 @@ module ActiveRecord
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
         relation = scope_relation(record, table, relation)
         relation = finder_class.unscoped.where(relation)
-        relation.merge!(options[:conditions]) if options[:conditions]
+        relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
           error_options = options.except(:case_sensitive, :scope, :conditions)
@@ -116,7 +120,7 @@ module ActiveRecord
       # of the title attribute:
       #
       #   class Article < ActiveRecord::Base
-      #     validates_uniqueness_of :title, conditions: where('status != ?', 'archived')
+      #     validates_uniqueness_of :title, conditions: -> { where('status != ?', 'archived') }
       #   end
       #
       # When the record is created, a check is performed to make sure that no
@@ -132,7 +136,7 @@ module ActiveRecord
       #   the uniqueness constraint.
       # * <tt>:conditions</tt> - Specify the conditions to be included as a
       #   <tt>WHERE</tt> SQL fragment to limit the uniqueness constraint lookup
-      #   (e.g. <tt>conditions: where('status = ?', 'active')</tt>).
+      #   (e.g. <tt>conditions: -> { where('status = ?', 'active') }</tt>).
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
       #   non-text columns (+true+ by default).
       # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the
