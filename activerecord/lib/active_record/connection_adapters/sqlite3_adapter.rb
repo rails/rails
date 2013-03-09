@@ -602,7 +602,6 @@ module ActiveRecord
             super
           end
         end
-
     end
   end
 end

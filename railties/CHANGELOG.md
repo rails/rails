@@ -1,26 +1,28 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add --rc option to support the load of a custom rc file during the generation of a new app.
+*   Add notice message for destroy action in scaffold generator.
+
+    *Rahul P. Chaudhari*
+
+*   Add two new test rake tasks to speed up full test runs.
+
+    * `test:all`: run tests quickly by merging all types and not resetting db.
+    * `test:all:db`: run tests quickly, but also reset db.
+
+    *Ryan Davis*
+
+*   Add `--rc` option to support the load of a custom rc file during the generation of a new app.
 
     *Amparo Luna*
 
-*   Add --no-rc option to skip the loading of railsrc file during the generation of a new app.
-    
+*   Add `--no-rc` option to skip the loading of railsrc file during the generation of a new app.
+
     *Amparo Luna*
 
 *   Fixes database.yml when creating a new rails application with '.'
     Fix #8304
 
     *Jeremy W. Rowe*
-
-*   Deprecate the `eager_load_paths` configuration and alias it to `autoload_paths`.
-    Since the default in Rails 4.0 is to run in 'threadsafe' mode we need to eager
-    load all of the paths in `autoload_paths`. This may have unintended consequences
-    if you have added 'lib' to `autoload_paths` such as loading unneeded code or
-    code intended only for development and/or test environments. If this applies to
-    your application you should thoroughly check what is being eager loaded.
-
-    *Andrew White*
 
 *   Restore Rails::Engine::Railties#engines with deprecation to ensure
     compatibility with gems such as Thinking Sphinx

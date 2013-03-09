@@ -64,7 +64,7 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.autoload_paths << "#{app_path}/lib"
+        config.eager_load_paths << "#{app_path}/lib"
       RUBY
 
       require "#{app_path}/config/environment"

@@ -16,11 +16,11 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 3 and above requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible.
-* Rails 3.2.x will be the last branch to support Ruby 1.8.7.
-* Rails 4 will support only Ruby 1.9.3.
+* Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
+* Rails 3.2.x is the last branch to support Ruby 1.8.7.
+* Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
 
-TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
+TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
@@ -83,6 +83,17 @@ get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
 * Rails 4.0 has removed ActionDispatch::BestStandardsSupport middleware, !DOCTYPE html already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`
+
+Remember you must also remove any references to the middleware from your application code, for example:
+
+```ruby
+# Raise exception
+config.middleware.insert_before(Rack::Lock, ActionDispatch::BestStandardsSupport)
+```
+
+Also check your environment settings for `config.action_dispatch.best_standards_support` and remove it if present.
+
+* In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
 ### Active Support
 

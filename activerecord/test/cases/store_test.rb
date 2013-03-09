@@ -35,6 +35,12 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal '(123) 456-7890', @john.phone_number
   end
 
+  test "overriding a read accessor using super" do
+    @john.settings[:color] = nil
+
+    assert_equal 'red', @john.color
+  end
+
   test "updating the store will mark it as changed" do
     @john.color = 'red'
     assert @john.settings_changed?
@@ -64,6 +70,12 @@ class StoreTest < ActiveRecord::TestCase
     @john.phone_number = '(123) 456-7890'
 
     assert_equal '1234567890', @john.settings[:phone_number]
+  end
+
+  test "overriding a write accessor using super" do
+    @john.color = 'yellow'
+
+    assert_equal 'blue', @john.color
   end
 
   test "preserve store attributes data in HashWithIndifferentAccess format without any conversion" do

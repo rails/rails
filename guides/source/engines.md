@@ -57,7 +57,7 @@ The `--full` option tells the generator that you want to create an engine, inclu
     end
     ```
   * A file at `lib/blorgh/engine.rb` which is identical in function to a standard Rails application's `config/application.rb` file:
-  
+
     ```ruby
     module Blorgh
       class Engine < ::Rails::Engine
@@ -72,12 +72,12 @@ The `--mountable` option tells the generator that you want to create a "mountabl
   * A namespaced `ApplicationHelper` stub
   * A layout view template for the engine
   * Namespace isolation to `config/routes.rb`:
-  
+
     ```ruby
     Blorgh::Engine.routes.draw do
     end
     ```
- 
+
   * Namespace isolation to `lib/blorgh/engine.rb`:
 
     ```ruby
@@ -395,7 +395,7 @@ def create
   @post = Post.find(params[:post_id])
   @comment = @post.comments.create(params[:comment])
   flash[:notice] = "Comment has been created!"
-  redirect_to post_path
+  redirect_to posts_path
 end
 ```
 
@@ -650,6 +650,14 @@ self.author = Blorgh.user_class.find_or_create_by(name: author_name)
 
 Resulting in something a little shorter, and more implicit in its behavior. The `user_class` method should always return a `Class` object.
 
+Since we changed the `user_class` method to no longer return a
+`String` but a `Class` we must also modify our `belongs_to` definition
+in the `Blorgh::Post` model:
+
+```ruby
+belongs_to :author, class_name: Blorgh.user_class.to_s
+```
+
 To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
 
 Create a new initializer at `config/initializers/blorgh.rb` inside the application where the `blorgh` engine is installed and put this content in it:
@@ -789,7 +797,7 @@ module Blorgh::Concerns::Models::Post
   extend ActiveSupport::Concern
 
   # 'included do' causes the included code to be evaluated in the
-  # context where it is included (post.rb), rather than be 
+  # context where it is included (post.rb), rather than be
   # executed in the module's context (blorgh/concerns/models/post).
   included do
     attr_accessor :author_name

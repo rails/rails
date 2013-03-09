@@ -21,7 +21,7 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or higher
+* The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer
 * The [RubyGems](http://rubygems.org/) packaging system
     * To learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
 * A working installation of the [SQLite3 Database](http://www.sqlite.org)
@@ -84,7 +84,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 1.9.3p327
+ruby 1.9.3p385
 ```
 
 To install Rails, use the `gem install` command provided by RubyGems:

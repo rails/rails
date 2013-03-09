@@ -171,16 +171,22 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support database extensions?  As of this writing
-      # only postgresql does.
+      # Does this adapter support database extensions? As of this writing only
+      # postgresql does.
       def supports_extensions?
         false
+      end
+
+      # A list of extensions, to be filled in by adapters that support them. At
+      # the moment only postgresql does.
+      def extensions
+        []
       end
 
       # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current
-      # +binds+
+      # +binds+.
       def substitute_at(column, index)
         Arel::Nodes::BindParam.new '?'
       end

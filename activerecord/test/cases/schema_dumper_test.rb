@@ -1,6 +1,5 @@
 require "cases/helper"
 
-
 class SchemaDumperTest < ActiveRecord::TestCase
   def setup
     super
@@ -231,6 +230,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   if current_adapter?(:PostgreSQLAdapter)
+    def test_schema_dump_includes_extensions
+      connection = ActiveRecord::Base.connection
+      skip unless connection.supports_extensions?
+
+      connection.stubs(:extensions).returns(['hstore'])
+      output = standard_dump
+      assert_match "# These are extensions that must be enabled", output
+      assert_match %r{enable_extension "hstore"}, output
+
+      connection.stubs(:extensions).returns([])
+      output = standard_dump
+      assert_no_match "# These are extensions that must be enabled", output
+      assert_no_match %r{enable_extension}, output
+    end
+
     def test_schema_dump_includes_xml_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_xml_data_type"} =~ output

@@ -214,10 +214,24 @@ module ActionView
       end
 
       # Returns a string suitable for an html image tag alt attribute.
-      # +src+ is meant to be an image file path.
-      # It removes the basename of the file path and the digest, if any.
+      # The +src+ argument is meant to be an image file path.
+      # The method removes the basename of the file path and the digest,
+      # if any. It also removes hyphens and underscores from file names and
+      # replaces them with spaces, returning a space-separated, titleized
+      # string.
+      #
+      # ==== Examples
+      #
+      #   image_tag('rails.png')
+      #   # => <img alt="Rails" src="/assets/rails.png" />
+      #
+      #   image_tag('hyphenated-file-name.png')
+      #   # => <img alt="Hyphenated file name" src="/assets/hyphenated-file-name.png" />
+      #
+      #   image_tag('underscored_file_name.png')
+      #   # => <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
       def image_alt(src)
-        File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').capitalize
+        File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').tr('-_', ' ').capitalize
       end
 
       # Returns an html video tag for the +sources+. If +sources+ is a string,

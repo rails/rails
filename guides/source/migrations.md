@@ -444,7 +444,7 @@ class ExampleMigration < ActiveRecord::Migration
   end
 ```
 
-Using `reversible` will insure that the instructions are executed in the
+Using `reversible` will ensure that the instructions are executed in the
 right order too. If the previous example migration is reverted,
 the `down` block will be run after the `home_page_url` column is removed and
 right before the table `products` is dropped.

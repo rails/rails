@@ -1,5 +1,110 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActiveRecord now raises an error when blank arguments are passed to query
+    methods for which blank arguments do not make sense. This also occurs for
+    nil-like objects in arguments.
+
+    Example:
+
+        Post.limit()     # => raises error
+        Post.include([]) # => raises error
+    
+    *John Wang*
+
+*   Simplified type casting code for timezone aware attributes to use the
+    `in_time_zone` method if it is available. This introduces a subtle change
+    of behavior when using `Date` instances as they are directly converted to
+    `ActiveSupport::TimeWithZone` instances without first being converted to
+    `Time` instances. For example:
+
+        # Rails 3.2 behavior
+        >> Date.today.to_time.in_time_zone
+        => Wed, 13 Feb 2013 07:00:00 UTC +00:00
+
+        # Rails 4.0 behavior
+        >> Date.today.in_time_zone
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+    On the plus side it now behaves the same whether you pass a `String` date
+    or an actual `Date` instance. For example:
+
+        # Rails 3.2 behavior
+        >> Date.civil(2013, 2, 13).to_time.in_time_zone
+        => Wed, 13 Feb 2013 07:00:00 UTC +00:00
+        >> Time.zone.parse("2013-02-13")
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+        # Rails 4.0 behavior
+        >> Date.civil(2013, 2, 13).in_time_zone
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+        >> "2013-02-13".in_time_zone
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+    If you need the old behavior you can convert the dates to times manually.
+    For example:
+
+        >> Post.new(created_at: Date.today).created_at
+        => Wed, 13 Feb 2013 00:00:00 UTC +00:00
+
+        >> Post.new(created_at: Date.today.to_time).created_at
+        => Wed, 13 Feb 2013 07:00:00 UTC +00:00
+
+    *Andrew White*
+
+*   Preloading `has_many :through` associations with conditions won't
+    cache the `:through` association. This will prevent invalid
+    subsets to be cached.
+    Fixes #8423.
+
+    Example:
+
+        class User
+          has_many :posts
+          has_many :recent_comments, -> { where('created_at > ?', 1.week.ago) }, :through => :posts
+        end
+
+        a_user = User.includes(:recent_comments).first
+
+        # This is preloaded.
+        a_user.recent_comments
+
+        # This is not preloaded, fetched now.
+        a_user.posts
+
+    *Yves Senn*
+
+*   Don't run `after_commit` callbacks when creating through an association
+    if saving the record fails.
+
+    *James Miller*
+
+*   Allow store accessors to be overrided like other attribute methods, e.g.:
+
+        class User < ActiveRecord::Base
+          store :settings, accessors: [ :color, :homepage ], coder: JSON
+
+          def color
+            super || 'red'
+          end
+        end
+
+    *Sergey Nartimov*
+
+*   Quote numeric values being compared to non-numeric columns. Otherwise,
+    in some database, the string column values will be coerced to a numeric
+    allowing 0, 0.0 or false to match any string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: 0) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Smith*
+
+*   Schema dumper supports dumping the enabled database extensions to `schema.rb`
+    (currently only supported by postgresql).
+
+    *Justin George*
+
 *   The `DATABASE_URL` environment variable now converts ints, floats, and
     the strings true and false to Ruby types. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the
@@ -110,10 +215,6 @@
 
     *Yves Senn*
 
-*   Remove support for parsing YAML parameters from request.
-
-    *Aaron Patterson*
-
 *   Support for PostgreSQL's `ltree` data type.
 
     *Rob Worley*
@@ -139,7 +240,7 @@
 *   Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
 
     * The methods `drop_table` and `remove_column` are now reversible, as long as the necessary information is given.
-      The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not revertible).
+      The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not reversible).
       The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
 
     * New method `reversible` makes it possible to specify code to be run when migrating up or down.
@@ -591,7 +692,7 @@
 
     After:
 
-        #=> SELECT * FROM users WHERE 1 = 2;
+        #=> SELECT * FROM users WHERE 1=0;
 
     *Damien Mathieu*
 

@@ -1,4 +1,3 @@
-require 'digest/md5'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'monitor'
 
@@ -170,7 +169,7 @@ module ActionDispatch # :nodoc:
     alias_method :status_message, :message
 
     def respond_to?(method)
-      if method.to_sym == :to_path
+      if method.to_s == 'to_path'
         stream.respond_to?(:to_path)
       else
         super

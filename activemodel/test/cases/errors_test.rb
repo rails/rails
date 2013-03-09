@@ -274,6 +274,13 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add_on_empty :name, :message => 'custom'
   end
 
+  test "add_on_empty generates message with empty string value" do
+    person = Person.new
+    person.name = ''
+    person.errors.expects(:generate_message).with(:name, :empty, {})
+    person.errors.add_on_empty :name
+  end
+
   test "add_on_blank generates message" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :blank, {})

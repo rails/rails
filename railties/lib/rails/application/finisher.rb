@@ -89,13 +89,6 @@ module Rails
           ActionDispatch::Reloader.to_cleanup(&callback)
         end
       end
-
-      # Disable dependency loading during request cycle
-      initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes
-          ActiveSupport::Dependencies.unhook!
-        end
-      end
     end
   end
 end

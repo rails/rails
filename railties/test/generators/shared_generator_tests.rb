@@ -83,7 +83,7 @@ module SharedGeneratorTests
   end
 
   def test_template_is_executed_when_supplied
-    path = "http://gist.github.com/103208.txt"
+    path = "https://gist.github.com/josevalim/103208/raw/"
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
@@ -92,7 +92,7 @@ module SharedGeneratorTests
   end
 
   def test_template_is_executed_when_supplied_an_https_path
-    path = "https://gist.github.com/103208.txt"
+    path = "https://gist.github.com/josevalim/103208/raw/"
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
@@ -188,7 +188,7 @@ module SharedCustomGeneratorTests
   end
 
   def test_builder_option_with_http
-    url = "http://gist.github.com/103208.txt"
+    url = "https://gist.github.com/josevalim/103208/raw/"
     template = "class #{builder_class}; end"
     template.instance_eval "def read; self; end" # Make the string respond to read
 
