@@ -139,20 +139,20 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_hidden_field_tags_from_flat_hash
-    actual = hidden_field_tags_from_flat_hash({ :a => 'b', 'c' => 3 }, :id => nil)
+    actual = hidden_field_tags_from_flat_hash({ a: 'b', 'c' => 3 }, id: nil)
     expected = %(<input name="a" type="hidden" value="b" />\n) +
                %(<input name="c" type="hidden" value="3" />)
     assert_dom_equal expected, actual
   end
 
   def test_flat_param_hash_from_nested_hash
-    actual = flat_param_hash_from_nested_hash(:a => { :b => ['c', 'd']}, 'e' => 5)
+    actual = flat_param_hash_from_nested_hash(a: { b: ['c', 'd']}, 'e' => 5)
     expected = { 'a[b]' => ['c', 'd'], 'e' => 5 }
     assert_equal expected, actual
   end
 
   def test_hidden_field_tags_from_nested_hash
-    actual = hidden_field_tags_from_nested_hash({ :a => { :b => ['c', 'd']}, 'e' => 5 }, :id => nil)
+    actual = hidden_field_tags_from_nested_hash({ a: { b: ['c', 'd']}, 'e' => 5 }, id: nil)
     expected = %(<input name="a[b][]" type="hidden" value="c" />\n) +
                %(<input name="a[b][]" type="hidden" value="d" />\n) +
                %(<input name="e" type="hidden" value="5" />)
