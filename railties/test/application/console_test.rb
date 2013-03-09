@@ -106,13 +106,13 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def assert_output(expected, timeout = 5)
+  def assert_output(expected, timeout = 1)
     timeout = Time.now + timeout
 
     output = ""
     until output.include?(expected) || Time.now > timeout
       if IO.select([@master], [], [], 0.1)
-        output << @master.readpartial(100)
+        output << @master.read(1)
       end
     end
 
