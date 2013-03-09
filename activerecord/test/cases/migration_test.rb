@@ -738,6 +738,26 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     clear
   end
 
+  def test_copying_migrations_preserving_magic_comments
+    ActiveRecord::Base.timestamped_migrations = false
+    @migrations_path = MIGRATIONS_ROOT + "/valid"
+    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+    copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/magic"})
+    assert File.exists?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
+    assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
+
+    expected = "# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
+    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..1].join.chomp
+
+    files_count = Dir[@migrations_path + "/*.rb"].length
+    copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/magic"})
+    assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+    assert copied.empty?
+  ensure
+    clear
+  end
+
   def test_skipping_migrations
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]

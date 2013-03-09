@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   When copying migrations, preserve their magic comments and content encoding.
+
+    *OZAWA Sakuro*
+
 *   Fix ActiveRecord `subclass_from_attrs` when `eager_load` is false.
     It cannot find subclass because all classes are loaded automatically
     when it needs.
