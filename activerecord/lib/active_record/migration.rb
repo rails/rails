@@ -634,8 +634,17 @@ module ActiveRecord
         source_migrations = ActiveRecord::Migrator.migrations(path)
 
         source_migrations.each do |migration|
-          source = File.read(migration.filename)
-          source = "# This migration comes from #{scope} (originally #{migration.version})\n#{source}"
+          source = File.binread(migration.filename)
+          inserted_comment = "# This migration comes from #{scope} (originally #{migration.version})\n"
+          if /\A#.*\b(?:en)?coding:\s*\S+/ =~ source
+            # If we have a magic comment in the original migration,
+            # insert our comment after the first newline(end of the magic comment line)
+            # so the magic keep working.
+            # Note that magic comments must be at the first line(except sh-bang).
+            source[/\n/] = "\n#{inserted_comment}"
+          else
+            source = "#{inserted_comment}#{source}"
+          end
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
             if options[:on_skip] && duplicate.scope != scope.to_s
@@ -649,7 +658,7 @@ module ActiveRecord
           old_path, migration.filename = migration.filename, new_path
           last = migration
 
-          File.open(migration.filename, "w") { |f| f.write source }
+          File.binwrite(migration.filename, source)
           copied << migration
           options[:on_copy].call(scope, migration, old_path) if options[:on_copy]
           destination_migrations << migration
