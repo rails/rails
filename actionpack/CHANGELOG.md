@@ -252,12 +252,12 @@
     Client-IP and Remote-Addr headers, in that order. Document the rationale
     for that decision, and describe the options that can be passed to the
     RemoteIp middleware to change it.
-    Fix #7979
+    Fixes #7979.
 
     *André Arko*, *Steve Klabnik*, *Alexey Gaziev*
 
 *   Do not append second slash to `root_url` when using `trailing_slash: true`
-    Fix #8700
+    Fixes #8700.
 
     Before:
 
@@ -285,7 +285,7 @@
 
 *   Do not append `charset=` parameter when `head` is called with a
     `:content_type` option.
-    Fix #8661.
+    Fixes #8661.
 
     *Yves Senn*
 
@@ -443,7 +443,7 @@
 
 *   Render every partial with a new `ActionView::PartialRenderer`. This resolves
     issues when rendering nested partials.
-    Fix #8197.
+    Fixes #8197.
 
     *Yves Senn*
 
@@ -451,7 +451,7 @@
     of mime types where template text is not html escaped by default. It prevents `Jack & Joe`
     from rendering as `Jack &amp; Joe` for the whitelisted mime types. The default whitelist
     contains `text/plain`.
-    Fix #7976.
+    Fixes #7976.
 
     *Joost Baaij*
 
@@ -467,7 +467,7 @@
         check_box("post", "comment_ids", { multiple: true, index: "foo" }, 1)
         # => <input name=\"post[foo][comment_ids][]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids][]\" type=\"checkbox\" value=\"1\" />
 
-    Fix #8108.
+    Fixes #8108.
 
     *Daniel Fox, Grant Hutchins & Trace Wax*
 
@@ -490,7 +490,7 @@
     *Josh Peek*
 
 *   `assert_template` can be used to assert on the same template with different locals
-    Fix #3675.
+    Fixes #3675.
 
     *Yves Senn*
 
@@ -501,7 +501,7 @@
 *   Accept `:remote` as symbolic option for `link_to` helper. *Riley Lynch*
 
 *   Warn when the `:locals` option is passed to `assert_template` outside of a view test case
-    Fix #3415.
+    Fixes #3415.
 
     *Yves Senn*
 
@@ -525,12 +525,12 @@
 
 *   Rename internal variables on `ActionController::TemplateAssertions` to prevent
     naming collisions. `@partials`, `@templates` and `@layouts` are now prefixed with an underscore.
-    Fix #7459.
+    Fixes #7459.
 
     *Yves Senn*
 
 *   `resource` and `resources` don't modify the passed options hash.
-    Fix #7777.
+    Fixes #7777.
 
     *Yves Senn*
 
@@ -594,7 +594,7 @@
     *Guillermo Iguaran*
 
 *   Log now displays the correct status code when an exception is raised.
-    Fix #7646.
+    Fixes #7646.
 
     *Yves Senn*
 
