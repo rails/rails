@@ -106,7 +106,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def assert_output(expected, timeout = 0.2)
+  def assert_output(expected, timeout = 5)
     timeout = Time.now + timeout
 
     output = ""
@@ -138,7 +138,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       in: @slave, out: @slave, err: @slave
     )
 
-    assert_output "> ", 5
+    assert_output "> ", 30
     pid
   end
 
@@ -157,6 +157,6 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "Post.transaction { Post.create; raise }"
     write_prompt "Post.count", "=> 0"
   ensure
-    kill pid
+    kill pid if pid
   end
 end
