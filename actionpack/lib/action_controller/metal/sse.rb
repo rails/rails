@@ -16,7 +16,7 @@ module ActionController
       end
 
       def stop_server
-        started_server?
+        @sse_server ||= SseServer.new()
         @sse_server.stop
       end
 
@@ -31,20 +31,21 @@ module ActionController
       end
 
       def subscribe(response)
-        started_server?
+        @sse_server ||= SseServer.new(:start_on_initialize => true)
         @sse_server.subscribe(response)
       end
 
       def unsubscribe
-        started_server?
+        @sse_server ||= SseServer.new(:start_on_initialize => true)
         @sse_server.unsubscribe
       end
 
       private
 
       def started_server?
-        unless @@sse_server && @@sse_server.continue_sending
-          raise ArgumentError, "SSE server has not been started. You must call start_server first."
+        @sse_server ||= SseServer.new(:start_on_initialize => true)
+        unless @sse_server.continue_sending
+          raise ArgumentError, "SSE server has been stopped. You must call start_server first."
         end
       end
     end
@@ -52,10 +53,14 @@ module ActionController
     class SseServer
       attr_reader :continue_sending
 
-      def initialize(subscriber = nil)
+      def initialize(opts = {})
         @sse_queue = Queue.new
         @continue_sending = false
-        @subscriber = subscriber
+        @subscriber = opts[:subscriber]
+
+        if opts[:start_on_initialize]
+          start
+        end
       end
 
       # Sends an sse to the browser. Must be called after start_sse_server
@@ -165,7 +170,7 @@ module ActionController
 
       def initialize(data, opts = {})
         @data = data
-        SSE_FIELDS.each do |field|
+        OPTIONAL_SSE_FIELDS.each do |field|
           instance_variable_set("@#{field}", opts[field])
         end
       end

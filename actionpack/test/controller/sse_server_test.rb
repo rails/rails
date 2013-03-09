@@ -68,7 +68,7 @@ module ActionController
 
       assert_equal name, sse_object.name, "Should be able to access sse object's name attribute"
       assert_equal retry_time, sse_object.retry, "Should be able to access sse object's retry attribute"
-      assert_equal data, sse_object.name, "Should be able to access sse object's data attribute"
+      assert_equal data, sse_object.data, "Should be able to access sse object's data attribute"
 
       payload = sse_object.to_payload_hash
       assert_equal 4, payload.size, "The payload hash should contain 4 items"
@@ -83,19 +83,20 @@ module ActionController
       sse_data = "I bet this is awesome, dude"
       sse_server = ActionController::ServerSentEvents::SseServer.new
       sse_server.subscribe(response)
-      sse_server.unsubscribe(response)
+      sse_server.unsubscribe
       sse_server.send_sse_hash({:data => sse_data})
 
       assert !sse_server.empty_queue?, "There exists data in the queue, so it shouldn't be empty"
       sse_server.start
 
-      assert !sse_server.empty_queue?, "There is no subscriber on the queue, so it shouldn't be empty"
-      sse_server.subscribe(response)
-      assert sse_server.empty_queue?, "The server should have sent the sse to the response"
+      new_response = TestResponse.new
+      assert !sse_server.empty_queue?, "There is no subscriber, so queue shouldn't be empty"
+      sse_server.subscribe(new_response)
 
       sleep(0.1)
-      response.stream.close
-      result = response.body
+      assert sse_server.empty_queue?, "The server should have sent the sse to the response"
+      new_response.stream.close
+      result = new_response.body
       assert_match /^data: #{sse_data}$/, result
     end
 
@@ -118,17 +119,34 @@ module ActionController
       sse_object = ActionController::ServerSentEvents::ServerSentEvent.new(data, {:name => name, :retry => retry_time})
 
       assert sse_server.empty_queue?, "Sse server should be initialized with an empty queue"
-      assert
+      assert !sse_server.continue_sending, "Sse server should not be sending when initialized"
+
+      sse_server.send_sse(sse_object)
+      assert !sse_server.empty_queue?, "Sse server should have a non-empty queue after an sse is sent"
+
+      sse_server.start
+      response = TestResponse.new
+      sse_server.subscribe(response)
+      sleep(0.1)
+      response.stream.close
+      result = response.body
+
+      assert_match /^data: #{data}$/, result
+      assert_match /^name: #{name}$/, result
+      assert_match /^retry: #{retry_time}$/, result
+    end
+
+    def test_start_on_initialize_works_correctly
+      sse_server = ActionController::ServerSentEvents::SseServer.new(:start_on_initialize => true)
+      assert sse_server.continue_sending, "Sse server should be started when start_on_initialize is set"
+      sse_server.send_sse_hash(:data => "So much data!")
+      assert !sse_server.empty_queue?, "Sse queue should not be empty when sse hash is sent"
     end
 
     def test_streaming_sses_in_response_stream
       response = TestResponse.new
 
       sse_data = "I'm sending an sse!"
-      assert_raise(ArgumentError) { ActionController::ServerSentEvents.subscribe(response) }
-      assert_raise(ArgumentError) { ActionController::ServerSentEvents.send_sse_hash({:data => sse_data}) }
-
-      ActionController::ServerSentEvents.start_server
       ActionController::ServerSentEvents.subscribe(response)
       ActionController::ServerSentEvents.send_sse_hash({:data => sse_data})
       sleep(0.1)  # Sleep so that the read queue has enough time to see the data
@@ -137,8 +155,6 @@ module ActionController
       result = response.body
       assert_match /^id: \w+$/, result
       assert_match /^data: #{sse_data}$/, result
-    ensure
-      ActionController::ServerSentEvents.stop_server
     end
 
     def test_streaming_sses_through_controller_method
@@ -151,8 +167,6 @@ module ActionController
       assert_match /^data: Hi my name is John$/, result
       assert_match /^id: \w+$/, result
       assert_match /^hello$/, result
-    ensure
-      ActionController::ServerSentEvents.stop_server
     end
   end
 end
