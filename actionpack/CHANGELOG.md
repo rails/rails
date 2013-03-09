@@ -5,6 +5,23 @@
 
 ## Rails 3.2.13 (Feb 17, 2013) ##
 
+*   Fix incorrectly appended square brackets to a multiple select box
+    if an explicit name has been given and it already ends with "[]".
+
+    Before:
+
+        select(:category, [], {}, multiple: true, name: "post[category][]")
+        # => <select name="post[category][][]" ...>
+
+    After:
+
+        select(:category, [], {}, multiple: true, name: "post[category][]")
+        # => <select name="post[category][]" ...>
+
+    Backport #9616.
+
+    *Olek Janiszewski*
+
 *   Determine the controller#action from only the matched path when using the
     shorthand syntax. Previously the complete path was used, which led
     to problems with nesting (scopes and namespaces).
