@@ -191,6 +191,39 @@ module ApplicationTests
       end
     end
 
+    def test_run_different_environment_using_env_var
+      app_file 'test/unit/env_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class EnvTest < ActiveSupport::TestCase
+          def test_env
+            puts Rails.env
+          end
+        end
+      RUBY
+
+      assert_match /development/, Dir.chdir(app_path) { `RAILS_ENV=development bundle exec rails test test/unit/env_test.rb` }
+    end
+
+    def test_run_different_environment_using_e_tag
+      app_file 'test/unit/env_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class EnvTest < ActiveSupport::TestCase
+          def test_env
+            puts Rails.env
+          end
+        end
+      RUBY
+
+      assert_match /development/, run_test_command('-e development test/unit/env_test.rb')
+    end
+
+    def test_generated_scaffold_works_with_rails_test
+      create_scaffold
+      assert_match /0 failures, 0 errors, 0 skips/, run_test_command('')
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bundle exec rails test #{arguments}` }
@@ -211,7 +244,7 @@ module ApplicationTests
             name: Tsubasa Hanekawa
         YAML
 
-        Dir.chdir(app_path) { `bundle exec rake db:migrate` }
+        run_migration
       end
 
       def create_fixture_test(path = :unit, name = 'test')
@@ -250,6 +283,16 @@ module ApplicationTests
             end
           end
         RUBY
+      end
+
+      def create_scaffold
+        script 'generate scaffold user name:string'
+        Dir.chdir(app_path) { File.exist?('app/models/user.rb') }
+        run_migration
+      end
+
+      def run_migration
+        Dir.chdir(app_path) { `bundle exec rake db:migrate` }
       end
   end
 end

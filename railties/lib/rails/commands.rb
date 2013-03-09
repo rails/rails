@@ -84,10 +84,9 @@ when 'test'
   $LOAD_PATH.unshift("./test")
   require 'rails/commands/test_runner'
   options = Rails::TestRunner.parse_arguments(ARGV)
+  ENV['RAILS_ENV'] ||= options[:environment] || 'test'
 
   require APP_PATH
-  Rails.application.require_environment!
-  Rails.application.load_tasks
   Rails::TestRunner.start(ARGV, options)
 
 when 'dbconsole'

@@ -56,6 +56,10 @@ module Rails
             exit
           end
 
+          opts.on '-e', '--environment NAME', String, 'Specifies the environment to run this test under' do |e|
+            options[:environment] = e
+          end
+
           opts.on '-f', '--fixtures', 'Load fixtures in test/fixtures/ before running the tests' do
             options[:fixtures] = true
           end
@@ -68,8 +72,8 @@ module Rails
             options[:verbose] = true
           end
 
-          opts.on '-n', '--name PATTERN', "Filter test names on pattern (e.g. /foo/)" do |a|
-            options[:filter] = a
+          opts.on '-n', '--name PATTERN', "Filter test names on pattern (e.g. /foo/)" do |n|
+            options[:filter] = n
           end
 
           opts.separator ""
@@ -94,7 +98,9 @@ module Rails
     # Creates a new +TestRunner+ object with a list of test file paths.
     def initialize(files, options)
       @files = files
-      Rake::Task['test:prepare'].invoke
+
+      Rails.application.load_tasks
+      Rake::Task['db:test:load'].invoke
 
       if options.delete(:fixtures)
         if defined?(ActiveRecord::Base)
