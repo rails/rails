@@ -1,12 +1,29 @@
 ## unreleased ##
 
+*   Fix incorrectly appended square brackets to a multiple select box
+    if an explicit name has been given and it already ends with "[]".
+
+    Before:
+
+        select(:category, [], {}, multiple: true, name: "post[category][]")
+        # => <select name="post[category][][]" ...>
+
+    After:
+
+        select(:category, [], {}, multiple: true, name: "post[category][]")
+        # => <select name="post[category][]" ...>
+
+    Backport #9616.
+
+    *Olek Janiszewski*
+
 *   Fix `ActionDispatch::Request#formats` when the Accept request-header is an
     empty string. Fix #7774 [Backport #8977, #9541]
 
     *Soylent + Maxime Réty*
 
 ## Rails 3.2.13.rc1 (Feb 17, 2013) ##
-    
+
 *   Determine the controller#action from only the matched path when using the
     shorthand syntax. Previously the complete path was used, which led
     to problems with nesting (scopes and namespaces).
