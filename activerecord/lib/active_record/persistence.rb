@@ -410,7 +410,7 @@ module ActiveRecord
     def relation_for_destroy
       pk         = self.class.primary_key
       column     = self.class.columns_hash[pk]
-      substitute = connection.substitute_at(column, 0)
+      substitute = self.class.connection.substitute_at(column, 0)
 
       relation = self.class.unscoped.where(
         self.class.arel_table[pk].eq(substitute))
