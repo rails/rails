@@ -575,6 +575,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_multiple_and_with_explicit_name_ending_with_brackets
+    output_buffer =  select(:post, :category, [], {include_hidden: false}, multiple: true, name: 'post[category][]')
+    assert_dom_equal(
+      "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+  end
+
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
     output_buffer =  select(:post, :category, "", {}, :multiple => true, :disabled => true)
     assert_dom_equal(
