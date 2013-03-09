@@ -2,7 +2,6 @@ require 'drb/drb'
 require 'drb/acl'
 require 'rinda/ring'
 require 'abstract_unit'
-require 'active_support/message_bus'
 
 ENV['N'] = "1"  #ensure test case not run simultaneously
 
