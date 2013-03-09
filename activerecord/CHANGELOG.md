@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Uniqueness validation allows you to pass `:conditions` to limit
+    the constraint lookup.
+
+    Example:
+
+        validates_uniqueness_of :title, conditions: -> { where('approved = ?', true) }
+
+    *Mattias Pfeiffer + Yves Senn*
+
 *   `connection` is deprecated as an instance method.
     This allows end-users to have a `connection` method on their models
     without clashing with Active Record internals.
