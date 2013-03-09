@@ -2,7 +2,7 @@
 
 *   `connection` is deprecated as an instance method.
     This allows end-users to have a `connection` method on their models
-    without clashing with ActiveRecord internals.
+    without clashing with Active Record internals.
 
     *Ben Moss*
 
@@ -10,9 +10,8 @@
 
     *OZAWA Sakuro*
 
-*   Fix ActiveRecord `subclass_from_attrs` when `eager_load` is false.
-    It cannot find subclass because all classes are loaded automatically
-    when it needs.
+*   Fix `subclass_from_attrs` when `eager_load` is false. It cannot find
+    subclass because all classes are loaded automatically when it needs.
 
     *Dmitry Vorotilin*
 
