@@ -14,6 +14,7 @@ module ActionController
   #         response.stream.write "hello world\n"
   #         sleep 1
   #       }
+  #     ensure
   #       response.stream.close
   #     end
   #   end
