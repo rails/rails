@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `connection` is deprecated as an instance method.
+    This allows end-users to have a `connection` method on their models
+    without clashing with ActiveRecord internals.
+
+    *Ben Moss*
+
 *   When copying migrations, preserve their magic comments and content encoding.
 
     *OZAWA Sakuro*
