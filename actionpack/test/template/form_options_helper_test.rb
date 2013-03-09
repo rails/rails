@@ -79,6 +79,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_priority_values
+    assert_dom_equal(
+      "<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :priority => ["Cabe", "Babe"])
+    )
+  end
+
+  def test_collection_options_with_preselected_and_disabled_and_priority_values
+    assert_dom_equal(
+      "<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :selected => "Cabe", :disabled => "Babe", :priority => ["Cabe", "Babe"])
+    )
+  end
+
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
@@ -157,6 +171,34 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_array_options_for_select_with_selection_and_disabled_and_priority_value
+    assert_dom_equal(
+      "<option disabled=\"disabled\" value=\"&lt;USA&gt;\">&lt;USA&gt;</option>\n<option value=\"Japan\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden", "Japan" ], :selected => "Denmark", :disabled => "<USA>", :priority => ["<USA>", "Japan"])
+    )
+  end
+
+  def test_array_options_for_select_with_selected_priority_value
+    assert_dom_equal(
+      "<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\" selected=\"selected\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Denmark\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], :selected => "Japan", :priority => ["Sweden", "Japan"])
+    )
+  end
+
+  def test_array_options_for_select_with_unselected_priority_value
+    assert_dom_equal(
+      "<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], :selected => "Denmark", :priority => ["Sweden", "Japan"])
+    )
+  end
+
+  def test_array_options_for_select_with_non_existing_priority_value
+    assert_dom_equal(
+      "<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], :selected => "Denmark", :priority => ["Zweden"])
+    )
+  end
+
   def test_range_options_for_select
     assert_dom_equal(
       "<option value=\"1\">1</option>\n<option value=\"2\">2</option>\n<option value=\"3\">3</option>",
@@ -191,6 +233,10 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"Dollar\" selected=\"selected\">$</option>\n<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ]).split("\n").join("\n")
+    )
+    assert_dom_equal(
+      "<option value=\"Dollar\">$</option>\n<option value=\"Yen\">Y</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Dollar\">$</option>\n<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Yen\">Y</option>",
+      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>", "Y" => "Yen" }, :priority => [ "$", "Y" ]).split("\n").join("\n")
     )
   end
 
@@ -385,11 +431,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( nil, zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
-                 "<option value=\"E\">E</option>" +
+                 "<option value=\"E\">E</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>",
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
@@ -397,11 +445,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( "E", zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
-                 "<option value=\"E\" selected=\"selected\">E</option>" +
+                 "<option value=\"E\" selected=\"selected\">E</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>",
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
@@ -409,11 +459,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( "C", zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
-                 "<option value=\"E\">E</option>" +
+                 "<option value=\"E\">E</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\" selected=\"selected\">C</option>\n" +
-                 "<option value=\"D\">D</option>",
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
@@ -778,6 +830,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_priority_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"hest\">hest</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), :priority => 'hest')
+    )
+  end
+
   def test_select_with_disabled_array
     @post = Post.new
     @post.category = "<mus>"
@@ -1075,10 +1136,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     html = time_zone_select("firm", "time_zone", zones )
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html
@@ -1095,10 +1158,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     html = time_zone_select("firm", "time_zone", priority_zones)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html

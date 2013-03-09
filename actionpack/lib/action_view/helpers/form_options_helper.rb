@@ -334,15 +334,42 @@ module ActionView
       #   # => <option value="Advanced">Advanced</option>
       #   # => <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
+      # If you wish to specify priority option tags, set +selected+ to be a hash, with <tt>:priority</tt> being 
+      # either a value or array of values to be placed at the top of the options.
+      #
+      #   options_for_select(["Afghanistan", "Bahrain", "Cook Islands", "USA"], priority: ["USA"])
+      #   # => <option value="USA">USA</option>
+      #   # => <option value="" disabled="disabled">-------------</option>
+      #   # => <option value="Afghanistan">Afghanistan</option>
+      #   # => <option value="Bahrain">Bahrain</option>
+      #   # => <option value="Cook Islands">AdvancedCook Islands</option>
+      #   # => <option value="USA">USA</option>
+      #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
         return container if String === container
 
-        selected, disabled = extract_selected_and_disabled(selected).map do |r|
+        selected, disabled, priority = extract_select_options(selected).map do |r|
           Array(r).map { |item| item.to_s }
         end
 
-        container.map do |element|
+        if priority && priority.any?
+          priority_container = container.select do |element|
+            text, value = option_text_and_value(element).map { |item| item.to_s }
+            option_value_selected?(value, priority)
+          end
+          if priority_container.any?
+            priority_options = options_for_select(priority_container, :selected => selected, :disabled => disabled)
+            unless priority_options.blank?
+              priority_options.safe_concat "\n"
+              priority_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
+              priority_options.safe_concat "\n"
+              selected = nil if priority_options =~ / selected="selected"/
+            end
+          end
+        end
+
+        options = container.map do |element|
           html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element).map { |item| item.to_s }
 
@@ -352,6 +379,8 @@ module ActionView
 
           content_tag_string(:option, text, html_attributes)
         end.join("\n").html_safe
+
+        priority_options ? priority_options.safe_concat(options) : options
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
@@ -370,9 +399,10 @@ module ActionView
       # If +selected+ is specified as a Proc, those members of the collection that return true for the anonymous
       # function are the selected values.
       #
-      # +selected+ can also be a hash, specifying both <tt>:selected</tt> and/or <tt>:disabled</tt> values as required.
+      # +selected+ can also be a hash, specifying <tt>:selected</tt>, <tt>:disabled</tt> and/or
+      # <tt>:priortity</tt> values as required.
       #
-      # Be sure to specify the same class as the +value_method+ when specifying selected or disabled options.
+      # Be sure to specify the same class as the +value_method+ when specifying selected, disabled or priority options.
       # Failure to do this will produce undesired results. Example:
       #   options_from_collection_for_select(@people, 'id', 'name', '1')
       # Will not select a person with the id of 1 because 1 (an Integer) is not the same as '1' (a string)
@@ -382,10 +412,13 @@ module ActionView
         options = collection.map do |element|
           [value_for_collection(element, text_method), value_for_collection(element, value_method)]
         end
-        selected, disabled = extract_selected_and_disabled(selected)
+
+        selected, disabled, priority = extract_select_options(selected)
+
         select_deselect = {
           :selected => extract_values_from_collection(collection, value_method, selected),
-          :disabled => extract_values_from_collection(collection, value_method, disabled)
+          :disabled => extract_values_from_collection(collection, value_method, disabled),
+          :priority => extract_values_from_collection(collection, value_method, priority)
         }
 
         options_for_select(options, select_deselect)
@@ -558,24 +591,14 @@ module ActionView
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
       def time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
-        zone_options = "".html_safe
-
-        zones = model.all
-        convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
-
+        container = model.all
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = zones.grep(priority_zones)
+            priority_zones = container.grep(priority_zones)
           end
-
-          zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
-          zone_options.safe_concat "\n"
-
-          zones = zones - priority_zones
+          priority_zones = priority_zones.map(&:to_s)
         end
-
-        zone_options.safe_concat options_for_select(convert_zones[zones], selected)
+        options_from_collection_for_select(container, 'to_s', 'name', :selected => selected, :priority => priority_zones)
       end
 
       # Returns radio button tags for the collection of existing return values
@@ -726,14 +749,14 @@ module ActionView
           Array(selected).include? value
         end
 
-        def extract_selected_and_disabled(selected)
+        def extract_select_options(selected)
           if selected.is_a?(Proc)
             [selected, nil]
           else
             selected = Array.wrap(selected)
             options = selected.extract_options!.symbolize_keys
             selected_items = options.fetch(:selected, selected)
-            [selected_items, options[:disabled]]
+            [selected_items, options[:disabled], options[:priority]]
           end
         end
 

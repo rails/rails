@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   form.select, options_for_select and options_from_collection_for_select now
+    accept a `priority` option. When specified the given values will be placed
+    at the top of select options, followed by all the options separated by a line.
+
+    *Lawrence Pit*
+
 *   Fixed regression when using `assert_template` to verify files sent using
     `render file: 'README.md'`.
     Fixes #9464.
