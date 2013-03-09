@@ -1248,7 +1248,7 @@ User.where(state: 'inactive')
 ```
 
 As you can see above the `default_scope` is being overridden by both
-`scope` and `where` condition.
+`scope` and `where` conditions.
 
 
 ### Applying a default scope
