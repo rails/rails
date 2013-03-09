@@ -24,6 +24,8 @@ module Rails
           opts.on("-P","--pid=pid",String,
                   "Specifies the PID file.",
                   "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
+          opts.on("-o", "--open[=uri_path]",
+                  "Open the app in a default web browser") {|v| options[:open_url] = true; options[:uri_path] = v || '' }
 
           opts.separator ""
 
@@ -77,7 +79,15 @@ module Rails
         Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
       end
 
-      super
+      if options[:open_url]
+        url.sub!(options[:Host], '127.0.0.1') if options[:Host] == default_options[:Host]
+        launchy_proc = proc { 
+          url = URI.join(url, options[:uri_path]) rescue url
+          launchy("Opening #{app.class.parent_name}", url) 
+        }
+      end
+
+      super &launchy_proc
     ensure
       # The '-h' option calls exit before @options is set.
       # If we call 'options' with it unset, we get double help banners.
@@ -115,5 +125,14 @@ module Rails
         config:       File.expand_path("config.ru")
       })
     end
+
+    private
+      def launchy(message, url)
+        print "\n#{message}..."
+        $stdout.flush
+
+        Launchy.open(url)
+        puts "done"
+      end
   end
 end
