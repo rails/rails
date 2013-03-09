@@ -1,5 +1,30 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add helper methods to convert flat or nested hashes into a sequence of
+    hidden input fields to be submitted with the form.
+
+    Example:
+
+        hidden_field_tags_from_nested_hash({ :a => { :b => ['c', 'd']}, 'e' => 5 }, :id => nil)
+
+    Output:
+
+        <input name="a[b][]" type="hidden" value="c" />
+        <input name="a[b][]" type="hidden" value="d" />
+        <input name="e" type="hidden" value="5" />
+
+    This method in fact just combines two other:
+
+        hidden_field_tags_from_flat_hash(hash, options = {})
+
+    and
+
+        flat_param_hash_from_nested_hash(nested_hash, key_prefix = '')
+
+    (Originally based on http://marklunds.com/articles/one/314.)
+
+    *Alexey Muranov*
+
 *   Integration and functional tests allow headers and rack env
     variables to be passed when performing requests.
     Fixes #6513.
