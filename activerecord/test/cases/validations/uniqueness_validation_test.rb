@@ -348,7 +348,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_conditions
-    Topic.validates_uniqueness_of :title, conditions: -> { where('approved = ?', true) }
+    Topic.validates_uniqueness_of :title, conditions: -> { where(approved: true) }
     Topic.create("title" => "I'm a topic", "approved" => true)
     Topic.create("title" => "I'm an unapproved topic", "approved" => false)
 
@@ -361,7 +361,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   def test_validate_uniqueness_with_non_callable_conditions_is_not_supported
     assert_raises(ArgumentError) {
-      Topic.validates_uniqueness_of :title, conditions: Topic.where('approved = ?', true)
+      Topic.validates_uniqueness_of :title, conditions: Topic.where(approved: true)
     }
   end
 
