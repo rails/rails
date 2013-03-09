@@ -334,8 +334,11 @@ module ActionView
       #   # => <option value="Advanced">Advanced</option>
       #   # => <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
-      # If you wish to specify priority option tags, set +selected+ to be a hash, with <tt>:priority</tt> being 
-      # either a value or array of values to be placed at the top of the options.
+      # If you wish to specify priority option tags, set +selected+ to be a hash, with <tt>:priority</tt> being
+      # either a value or array of values to be placed at the top of the options. You can then also specify
+      # how the separator should look like using the <tt>:priority_separator</tt> option, which can be a String
+      # or a Proc receiving the container. Set the <tt>:priority_unique</tt> option to +true+ if the values
+      # in the priority list should be unique, i.e. they will not be shown below the separator.
       #
       #   options_for_select(["Afghanistan", "Bahrain", "Cook Islands", "USA"], priority: ["USA"])
       #   # => <option value="USA">USA</option>
@@ -349,38 +352,54 @@ module ActionView
       def options_for_select(container, selected = nil)
         return container if String === container
 
-        selected, disabled, priority = extract_select_options(selected).map do |r|
-          Array(r).map { |item| item.to_s }
-        end
+        selected, disabled, priority, priority_separator, priority_unique = extract_select_options(selected)
+        selected = Array(selected).map(&:to_s)
+        disabled = Array(disabled).map(&:to_s)
+        priority = Array(priority).map(&:to_s)
 
-        if priority && priority.any?
-          priority_container = container.select do |element|
-            text, value = option_text_and_value(element).map { |item| item.to_s }
-            option_value_selected?(value, priority)
-          end
-          if priority_container.any?
-            priority_options = options_for_select(priority_container, :selected => selected, :disabled => disabled)
-            unless priority_options.blank?
-              priority_options.safe_concat "\n"
-              priority_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
-              priority_options.safe_concat "\n"
-              selected = nil if priority_options =~ / selected="selected"/
-            end
-          end
-        end
-
-        options = container.map do |element|
+        options, priority_options = [], []
+        container.each do |element|
           html_attributes = option_html_attributes(element)
-          text, value = option_text_and_value(element).map { |item| item.to_s }
+          text, value = option_text_and_value(element).map(&:to_s)
+          is_priority = priority.include?(value)
+          is_selected = selected.include?(value)
 
-          html_attributes[:selected] = 'selected' if option_value_selected?(value, selected)
-          html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
+          html_attributes[:selected] = true if is_selected
+          html_attributes[:disabled] = true if disabled.include?(value)
           html_attributes[:value] = value
 
-          content_tag_string(:option, text, html_attributes)
-        end.join("\n").html_safe
+          option = content_tag_string(:option, text, html_attributes)
 
-        priority_options ? priority_options.safe_concat(options) : options
+          if is_priority
+            priority_options << option
+            if is_selected && !priority_unique
+              html_attributes.delete(:selected)
+              option = content_tag_string(:option, text, html_attributes)
+            end
+          end
+
+          options << option unless is_priority && priority_unique
+        end
+
+        options = options.join("\n").html_safe
+
+        if priority_options.empty?
+          options
+        else
+          priority_separator = if priority_separator.nil?
+            '-------------'
+          elsif priority_separator.is_a?(Proc)
+            priority_separator.call(container)
+          else
+            priority_separator.to_s
+          end
+
+          priority_options = priority_options.join("\n").html_safe
+          priority_options.safe_concat "\n"
+          priority_options.safe_concat content_tag(:option, priority_separator, value: '', disabled: true)
+          priority_options.safe_concat "\n"
+          priority_options.safe_concat(options)
+        end
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
@@ -399,8 +418,8 @@ module ActionView
       # If +selected+ is specified as a Proc, those members of the collection that return true for the anonymous
       # function are the selected values.
       #
-      # +selected+ can also be a hash, specifying <tt>:selected</tt>, <tt>:disabled</tt> and/or
-      # <tt>:priortity</tt> values as required.
+      # +selected+ can also be a hash, specifying <tt>:selected</tt>, <tt>:disabled</tt>, <tt>:priority</tt>,
+      # <tt>:priority_separator</tt> and/or <tt>:priority_unique</tt> values as required.
       #
       # Be sure to specify the same class as the +value_method+ when specifying selected, disabled or priority options.
       # Failure to do this will produce undesired results. Example:
@@ -413,12 +432,14 @@ module ActionView
           [value_for_collection(element, text_method), value_for_collection(element, value_method)]
         end
 
-        selected, disabled, priority = extract_select_options(selected)
+        selected, disabled, priority, priority_separator, priority_unique = extract_select_options(selected)
 
         select_deselect = {
-          :selected => extract_values_from_collection(collection, value_method, selected),
-          :disabled => extract_values_from_collection(collection, value_method, disabled),
-          :priority => extract_values_from_collection(collection, value_method, priority)
+          selected: extract_values_from_collection(collection, value_method, selected),
+          disabled: extract_values_from_collection(collection, value_method, disabled),
+          priority: extract_values_from_collection(collection, value_method, priority),
+          priority_separator: priority_separator,
+          priority_unique: priority_unique
         }
 
         options_for_select(options, select_deselect)
@@ -598,7 +619,7 @@ module ActionView
           end
           priority_zones = priority_zones.map(&:to_s)
         end
-        options_from_collection_for_select(container, 'to_s', 'name', :selected => selected, :priority => priority_zones)
+        options_from_collection_for_select(container, 'to_s', 'name', selected: selected, priority: priority_zones, priority_unique: true)
       end
 
       # Returns radio button tags for the collection of existing return values
@@ -745,18 +766,14 @@ module ActionView
           end
         end
 
-        def option_value_selected?(value, selected)
-          Array(selected).include? value
-        end
-
         def extract_select_options(selected)
           if selected.is_a?(Proc)
-            [selected, nil]
+            [selected, nil, nil, nil, nil]
           else
             selected = Array.wrap(selected)
             options = selected.extract_options!.symbolize_keys
             selected_items = options.fetch(:selected, selected)
-            [selected_items, options[:disabled], options[:priority]]
+            [selected_items, options[:disabled], options[:priority], options[:priority_separator], options[:priority_unique]]
           end
         end
 

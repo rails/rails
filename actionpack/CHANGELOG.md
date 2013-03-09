@@ -1,8 +1,30 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   form.select, options_for_select and options_from_collection_for_select now
-    accept a `priority` option. When specified the given values will be placed
-    at the top of select options, followed by all the options separated by a line.
+*   `form.select`, `options_for_select` and `options_from_collection_for_select`
+    now accept `priority`, `priority_separator` and `priority_unique` options.
+    When specified the given `priority` values will be placed at the top of the
+    select options, followed by all the options separated by the
+    `priority_separator` (which defaults to "-------------"). If `priority_unique`
+    is set to +true+ the values from the priority list will not be shown below
+    the separator.
+
+    Examples:
+
+        f.select :country, COUNTRIES, :priority => ["United States", "Canada"]
+
+        options_for_select({"English" => "en", "German" => "de", "Dutch" => "nl", "Japanese" => "jp"},
+                           priority: ["en", "jp"],
+                           priority_separator: "-----",
+                           priority_unique: true)
+        # => <option value="en">English</option>
+        #    <option value="jp">Japanese</option>
+        #    <option value="" disabled="disabled">-----</option>
+        #    <option value="de">German</option>
+        #    <option value="nl">Dutch</option>
+
+        options_for_select(["Denmark", "Japan", "Sweden", "United States"],
+                           priority: "Japan",
+                           priority_separator: lambda {|options| '-' * options.max_by(&:length).length})
 
     *Lawrence Pit*
 
