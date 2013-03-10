@@ -733,6 +733,16 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
     assert_equal "http://www.example.com/foo", @module.asset_url("foo")
   end
 
+  def test_asset_url_with_script_name
+    @module.instance_eval do
+      def request
+        Struct.new(:base_url, :script_name).new("http://www.example.com", "/app")
+      end
+    end
+
+    assert_equal "http://www.example.com/app/foo", @module.asset_url("foo")
+  end
+
   def test_asset_url_with_config_asset_host
     @module.instance_eval do
       def config
