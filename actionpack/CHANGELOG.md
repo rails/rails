@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `time_zone_options_for_select` now shows all time zones below the separator
+    when priority time zones are specified, even when a time zone is specified
+    as a priority time zone.
+
+    *Lawrence Pit*
+
 *   `form.select`, `options_for_select` and `options_from_collection_for_select`
     now accept `priority`, `priority_separator` and `priority_unique` options.
     When specified the given `priority` values will be placed at the top of the

@@ -619,7 +619,7 @@ module ActionView
           end
           priority_zones = priority_zones.map(&:to_s)
         end
-        options_from_collection_for_select(container, 'to_s', 'name', selected: selected, priority: priority_zones, priority_unique: true)
+        options_from_collection_for_select(container, 'to_s', 'name', selected: selected, priority: priority_zones)
       end
 
       # Returns radio button tags for the collection of existing return values

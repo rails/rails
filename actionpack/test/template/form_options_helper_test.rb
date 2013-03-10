@@ -469,8 +469,10 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"E\">E</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>",
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
@@ -481,8 +483,10 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"E\" selected=\"selected\">E</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>",
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
@@ -493,8 +497,10 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"E\">E</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\" selected=\"selected\">C</option>\n" +
-                 "<option value=\"D\">D</option>",
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
@@ -1181,8 +1187,10 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"D\" selected=\"selected\">D</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html
@@ -1201,8 +1209,10 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"D\" selected=\"selected\">D</option>\n" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html
