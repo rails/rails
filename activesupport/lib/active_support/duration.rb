@@ -55,6 +55,17 @@ module ActiveSupport
       false
     end
 
+    class << self
+      # Parses a string and returns a Duration instance.
+      def parse(string)
+        string.scan(/(-?\d*\.?\d+) (second|hour|day|week|month|year)/).collect do |match|
+          unit = match[1].to_sym
+          unit_value = match[0] =~ /\./ ? match[0].to_f : match[0].to_i
+          unit_value.send(unit)
+        end.reduce(:+)
+      end
+    end
+
     # Calculates a new Time or Date that is as far in the future
     # as this Duration represents.
     def since(time = ::Time.current)
