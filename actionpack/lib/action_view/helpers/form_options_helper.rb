@@ -565,14 +565,14 @@ module ActionView
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = zones.select { |z| z =~ priority_zones }
+            priority_zones = zones.grep(priority_zones)
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
           zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
           zone_options.safe_concat "\n"
 
-          zones.reject! { |z| priority_zones.include?(z) }
+          zones = zones - priority_zones
         end
 
         zone_options.safe_concat options_for_select(convert_zones[zones], selected)

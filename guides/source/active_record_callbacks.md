@@ -342,19 +342,17 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ActiveRecord::Base
-  attr_accessor :delete_file
+  after_commit :delete_picture_file_from_disk, :on => [:destroy]
 
-  after_destroy do |picture_file|
-    picture_file.delete_file = picture_file.filepath
-  end
-
-  after_commit do |picture_file|
-    if picture_file.delete_file && File.exist?(picture_file.delete_file)
-      File.delete(picture_file.delete_file)
-      picture_file.delete_file = nil
+  def delete_picture_file_from_disk
+    if File.exist?(filepath)
+      File.delete(filepath)
     end
   end
 end
 ```
+
+NOTE: the `:on` option specifies when a callback will be fired. If you
+don't supply the `:on` option the callback will fire for every action.
 
 The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.

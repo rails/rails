@@ -137,6 +137,10 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal 'bar', content_for(:title)
   end
 
+  def test_content_for_returns_nil_when_content_missing
+    assert_equal nil, content_for(:some_missing_key)
+  end
+
   def test_content_for_question_mark
     assert ! content_for?(:title)
     content_for :title, 'title'

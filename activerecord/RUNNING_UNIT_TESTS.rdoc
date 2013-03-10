@@ -2,7 +2,7 @@
 
 If you don't have the environment set make sure to read
 
-    http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#testing-active-record.
+    http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#testing-active-record
 
 == Running the Tests
 

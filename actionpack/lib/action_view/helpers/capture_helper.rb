@@ -156,7 +156,7 @@ module ActionView
           end
           nil
         else
-          @view_flow.get(name)
+          @view_flow.get(name).presence
         end
       end
 
@@ -180,7 +180,7 @@ module ActionView
       #     <title>My Website</title>
       #     <%= yield :script %>
       #   </head>
-      #   <body class="<%= content_for?(:right_col) ? 'one-column' : 'two-column' %>">
+      #   <body class="<%= content_for?(:right_col) ? 'two-column' : 'one-column' %>">
       #     <%= yield %>
       #     <%= yield :right_col %>
       #   </body>

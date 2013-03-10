@@ -2,26 +2,16 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'arel', github: 'rails/arel', branch: 'master'
-
 gem 'mocha', '~> 0.13.0', require: false
-gem 'rack-test', github: 'brynary/rack-test'
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails', '~> 2.2.0', github: 'rails/jquery-rails'
+gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
-gem 'coffee-rails', github: 'rails/coffee-rails'
-
-gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders', branch: 'master'
-
-# Needed for compiling the ActionDispatch::Journey parser
-gem 'racc', '>=1.4.6', require: false
+gem 'coffee-rails', '~> 4.0.0.beta1'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', require: false
-
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 
 group :doc do
   gem 'sdoc',  github: 'voloko/sdoc'
@@ -40,13 +30,16 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 platforms :mri do
   group :test do
     gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
-    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0'
+    gem 'debugger' if !ENV['TRAVIS']
   end
 end
 
 platforms :ruby do
   gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
+
+  # Needed for compiling the ActionDispatch::Journey parser
+  gem 'racc', '>=1.4.6', require: false
 
   # AR
   gem 'sqlite3', '~> 1.3.6'
@@ -60,7 +53,7 @@ end
 
 platforms :jruby do
   gem 'json'
-  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.0'
+  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   # This is needed by now to let tests work on JRuby
   # TODO: When the JRuby guys merge jruby-openssl in
@@ -68,8 +61,8 @@ platforms :jruby do
   gem 'jruby-openssl'
 
   group :db do
-    gem 'activerecord-jdbcmysql-adapter', '>= 1.2.0'
-    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.0'
+    gem 'activerecord-jdbcmysql-adapter', '>= 1.2.7'
+    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.7'
   end
 end
 

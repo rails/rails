@@ -5,8 +5,10 @@ module ActiveRecord
     included do
       ##
       # :singleton-method:
-      # Indicates the format used to generate the timestamp format in the cache key.
-      # This is +:number+, by default.
+      # Indicates the format used to generate the timestamp in the cache key.
+      # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
+      #
+      # This is +:nsec+, by default.
       class_attribute :cache_timestamp_format, :instance_writer => false
       self.cache_timestamp_format = :nsec
     end
@@ -47,7 +49,7 @@ module ActiveRecord
       case
       when new_record?
         "#{self.class.model_name.cache_key}/new"
-      when timestamp = self[:updated_at]
+      when timestamp = max_updated_column_timestamp
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
       else

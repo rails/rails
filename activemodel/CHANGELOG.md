@@ -1,5 +1,35 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `has_secure_password` does not fail the confirmation validation
+    when assigning empty String to `password` and `password_confirmation`.
+
+    Example:
+
+        # Given User has_secure_password.
+        @user.password = ""
+        @user.password_confirmation = ""
+        @user.valid?(:update) # used to be false
+
+    *Yves Senn*
+
+*   `validates_confirmation_of` does not override writer methods for
+    the confirmation attribute if no reader is defined.
+
+    Example:
+
+        class Blog
+          def title=(new_title)
+            @title = new_title.downcase
+          end
+
+          # previously this would override the setter above.
+          validates_confirmation_of :title
+        end
+
+    *Yves Senn*
+
+## Rails 4.0.0.beta1 (February 25, 2013) ##
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
@@ -19,7 +49,7 @@
 
     *Roberto Vasquez Angel*
 
-*   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`
+*   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`.
 
     *Renato Mascarenhas*
 
@@ -27,9 +57,11 @@
 
     *Rafael Mendonça França*
 
-*   Specify type of singular association during serialization *Steve Klabnik*
+*   Specify type of singular association during serialization.
 
-*   Fixed length validator to correctly handle nil values. Fixes #7180.
+    *Steve Klabnik*
+
+*   Fixed length validator to correctly handle `nil`. Fixes #7180.
 
     *Michal Zima*
 
@@ -53,24 +85,27 @@
 
     *Guillermo Iguaran*
 
-*   Due to a change in builder, nil values and empty strings now generates
+*   Due to a change in builder, `nil` and empty strings now generate
     closed tags, so instead of this:
 
         <pseudonyms nil=\"true\"></pseudonyms>
 
-    It generates this:
+    it generates this:
 
         <pseudonyms nil=\"true\"/>
 
     *Carlos Antonio da Silva*
 
-*   Changed inclusion and exclusion validators to accept a symbol for `:in` option.
+*   Inclusion/exclusion validators accept a method name passed as a symbol to the
+    `:in` option.
 
-    This allows to use dynamic inclusion/exclusion values using methods, besides the current lambda/proc support.
+    This allows to use dynamic inclusion/exclusion values using methods, besides
+    the current lambda/proc support.
 
     *Gabriel Sobrinho*
 
-*   `AM::Validation#validates` ability to pass custom exception to `:strict` option.
+*   `ActiveModel::Validation#validates` ability to pass custom exception to the
+    `:strict` option.
 
     *Bogdan Gusiev*
 
@@ -81,7 +116,7 @@
 
     *Anthony Alberto*
 
-*   Changed `AM::Serializers::JSON.include_root_in_json' default value to false.
+*   Changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to false.
     Now, AM Serializers and AR objects have the same default behaviour. Fixes #6578.
 
         class User < ActiveRecord::Base; end
@@ -108,16 +143,31 @@
 
     *Francesco Rodriguez*
 
-*   Passing false hash values to `validates` will no longer enable the corresponding validators *Steve Purcell*
+*   Passing false hash values to `validates` will no longer enable the corresponding validators.
 
-*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
+    *Steve Purcell*
 
-*   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
+*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute`.
 
-*   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
+    *Brian Cardarella*
 
-*   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
+*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with AP out of box.
 
-*   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide *Jan Berdajs + Egor Homakov*
+    *Guillermo Iguaran*
+
+*   `AM::Errors#to_json`: support `:full_messages` parameter.
+
+    *Bogdan Gusiev*
+
+*   Trim down Active Model API by removing `valid?` and `errors.full_messages`.
+
+    *José Valim*
+
+*   When `^` or `$` are used in the regular expression provided to `validates_format_of`
+    and the `:multiline` option is not set to true, an exception will be raised. This is
+    to prevent security vulnerabilities when using `validates_format_of`. The problem is
+    described in detail in the Rails security guide.
+
+    *Jan Berdajs + Egor Homakov*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activemodel/CHANGELOG.md) for previous changes.

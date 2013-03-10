@@ -50,6 +50,10 @@ module ActionController #:nodoc:
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
+      # Holds the class which implements the request forgery protection.
+      config_accessor :forgery_protection_strategy
+      self.forgery_protection_strategy = nil
+
       # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
       config_accessor :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
@@ -82,14 +86,14 @@ module ActionController #:nodoc:
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
-        include protection_method_module(options[:with] || :null_session)
+        self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
         prepend_before_action :verify_authenticity_token, options
       end
 
       private
 
-      def protection_method_module(name)
+      def protection_method_class(name)
         ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
       rescue NameError
         raise ArgumentError, 'Invalid request forgery protection method, use :null_session, :exception, or :reset_session'
@@ -97,16 +101,21 @@ module ActionController #:nodoc:
     end
 
     module ProtectionMethods
-      module NullSession
-        protected
+      class NullSession
+        def initialize(controller)
+          @controller = controller
+        end
 
         # This is the method that defines the application behavior when a request is found to be unverified.
         def handle_unverified_request
+          request = @controller.request
           request.session = NullSessionHash.new(request.env)
           request.env['action_dispatch.request.flash_hash'] = nil
           request.env['rack.session.options'] = { skip: true }
           request.env['action_dispatch.cookies'] = NullCookieJar.build(request)
         end
+
+        protected
 
         class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
           def initialize(env)
@@ -135,16 +144,20 @@ module ActionController #:nodoc:
         end
       end
 
-      module ResetSession
-        protected
+      class ResetSession
+        def initialize(controller)
+          @controller = controller
+        end
 
         def handle_unverified_request
-          reset_session
+          @controller.reset_session
         end
       end
 
-      module Exception
-        protected
+      class Exception
+        def initialize(controller)
+          @controller = controller
+        end
 
         def handle_unverified_request
           raise ActionController::InvalidAuthenticityToken
@@ -153,6 +166,10 @@ module ActionController #:nodoc:
     end
 
     protected
+      def handle_unverified_request
+        forgery_protection_strategy.new(self).handle_unverified_request
+      end
+
       # The actual before_action that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?

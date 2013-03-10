@@ -299,7 +299,7 @@ Client.first(2)
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM clients LIMIT 2
+SELECT * FROM clients ORDER BY id ASC LIMIT 2
 ```
 
 #### last
@@ -315,7 +315,7 @@ Client.last(2)
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM clients ORDER By id DESC LIMIT 2
+SELECT * FROM clients ORDER BY id DESC LIMIT 2
 ```
 
 ### Retrieving Multiple Objects in Batches
@@ -690,6 +690,27 @@ The SQL that would be executed:
 
 ```sql
 SELECT * FROM posts WHERE id > 10 LIMIT 20
+```
+
+### `unscope`
+
+The `except` method does not work when the relation is merged. For example:
+
+```ruby
+Post.comments.except(:order)
+```
+
+will still have an order if the order comes from a default scope on Comment. In order to remove all ordering, even from relations which are merged in, use unscope as follows:
+
+```ruby
+Post.order('id DESC').limit(20).unscope(:order) = Post.limit(20)
+Post.order('id DESC').limit(20).unscope(:order, :limit) = Post.all
+```
+
+You can additionally unscope specific where clauses. For example:
+
+```ruby
+Post.where(:id => 10).limit(1).unscope(:where => :id, :limit).order('id DESC') = Post.order('id DESC')
 ```
 
 ### `only`
@@ -1175,6 +1196,61 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.posts.created_before(time)
 ```
 
+### Merging of scopes
+
+Just like `where` clauses scopes are merged using `AND` conditions.
+
+```ruby
+class User < ActiveRecord::Base
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+```ruby
+User.active.inactive
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
+```
+
+We can mix and match `scope` and `where` conditions and the final sql
+will have all conditions joined with `AND` .
+
+```ruby
+User.active.where(state: 'finished')
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
+```
+
+If we do want the `last where clause` to win then `Relation#merge` can
+be used .
+
+```ruby
+User.active.merge(User.inactive)
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+One important caveat is that `default_scope` will be overridden by
+`scope` and `where` conditions.
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope  { where state: 'pending' }
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+User.all
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+User.where(state: 'inactive')
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+As you can see above the `default_scope` is being overridden by both
+`scope` and `where` conditions.
+
+
 ### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
@@ -1378,7 +1454,7 @@ Client.select(:id).map { |c| c.id }
 # or
 Client.select(:id).map(&:id)
 # or
-Client.select(:id).map { |c| [c.id, c.name] }
+Client.select(:id, :name).map { |c| [c.id, c.name] }
 ```
 
 with
@@ -1608,45 +1684,6 @@ EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
 ```
 
 under MySQL.
-
-### Automatic EXPLAIN
-
-Active Record is able to run EXPLAIN automatically on slow queries and log its
-output. This feature is controlled by the configuration parameter
-
-```ruby
-config.active_record.auto_explain_threshold_in_seconds
-```
-
-If set to a number, any query exceeding those many seconds will have its EXPLAIN
-automatically triggered and logged. In the case of relations, the threshold is
-compared to the total time needed to fetch records. So, a relation is seen as a
-unit of work, no matter whether the implementation of eager loading involves
-several queries under the hood.
-
-A threshold of `nil` disables automatic EXPLAINs.
-
-The default threshold in development mode is 0.5 seconds, and `nil` in test and
-production modes.
-
-INFO. Automatic EXPLAIN gets disabled if Active Record has no logger, regardless
-of the value of the threshold.
-
-#### Disabling Automatic EXPLAIN
-
-Automatic EXPLAIN can be selectively silenced with `ActiveRecord::Base.silence_auto_explain`:
-
-```ruby
-ActiveRecord::Base.silence_auto_explain do
-  # no automatic EXPLAIN is triggered here
-end
-```
-
-That may be useful for queries you know are slow but fine, like a heavyweight
-report of an admin interface.
-
-As its name suggests, `silence_auto_explain` only silences automatic EXPLAINs.
-Explicit calls to `ActiveRecord::Relation#explain` run.
 
 ### Interpreting EXPLAIN
 

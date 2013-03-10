@@ -33,7 +33,7 @@ module ActionView
       #   (by passing <tt>false</tt>).  Remote forms may omit the embedded authenticity token
       #   by setting <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
       #   This is helpful when you're fragment-caching the form. Remote forms get the
-      #   authenticity from the <tt>meta</tt> tag, so embedding is unnecessary unless you
+      #   authenticity token from the <tt>meta</tt> tag, so embedding is unnecessary unless you
       #   support browsers without JavaScript.
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
@@ -778,7 +778,7 @@ module ActionView
 
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
+          name.to_s.delete(']').gsub(/[^-a-zA-Z0-9:.]/, "_")
         end
     end
   end

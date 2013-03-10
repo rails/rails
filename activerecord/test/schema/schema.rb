@@ -219,6 +219,8 @@ ActiveRecord::Schema.define do
     t.integer  :salary, :default => 70000
     t.datetime :created_at
     t.datetime :updated_at
+    t.datetime :created_on
+    t.datetime :updated_on
   end
 
   create_table :developers_projects, :force => true, :id => false do |t|
@@ -540,8 +542,6 @@ ActiveRecord::Schema.define do
   create_table :price_estimates, :force => true do |t|
     t.string :estimate_of_type
     t.integer :estimate_of_id
-    t.string :thing_type
-    t.integer :thing_id
     t.integer :price
   end
 
@@ -687,6 +687,7 @@ ActiveRecord::Schema.define do
   create_table :traffic_lights, :force => true do |t|
     t.string   :location
     t.string   :state
+    t.text     :long_state, :null => false
     t.datetime :created_at
     t.datetime :updated_at
   end

@@ -178,12 +178,6 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
       If migrating down, the given migration / block is run normally.
       See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
 
-*   Adds some metadata columns to `schema_migrations` table.
-
-    * `migrated_at`
-    * `fingerprint` - an md5 hash of the migration.
-    * `name` - the filename minus version and extension.
-
 *   Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 
 *   Add `Relation#load` to explicitly load the record and return `self`.
@@ -199,6 +193,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 *   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in your `database.yml`.
 
 *   Remove IdentityMap.
+
+*   Remove automatic execution of EXPLAIN queries. The option `active_record.auto_explain_threshold_in_seconds` is no longer used and should be removed.
 
 *   Adds `ActiveRecord::NullRelation` and `ActiveRecord::Relation#none` implementing the null object pattern for the Relation class.
 

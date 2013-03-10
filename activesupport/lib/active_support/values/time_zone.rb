@@ -62,6 +62,7 @@ module ActiveSupport
       "Newfoundland"                 => "America/St_Johns",
       "Brasilia"                     => "America/Sao_Paulo",
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
+      "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",

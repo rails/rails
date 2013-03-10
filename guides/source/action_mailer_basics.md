@@ -116,7 +116,7 @@ Setting this up is painfully simple.
 First off, we need to create a simple `User` scaffold:
 
 ```bash
-$ rails generate scaffold user name:string email:string login:string
+$ rails generate scaffold user name email login
 $ rake db:migrate
 ```
 
@@ -403,11 +403,24 @@ If you wish to override the default delivery options (e.g. SMTP credentials) whi
 
 ```ruby
 class UserMailer < ActionMailer::Base
-  def welcome_email(user,company)
+  def welcome_email(user, company)
     @user = user
     @url  = user_url(@user)
     delivery_options = { user_name: company.smtp_user, password: company.smtp_password, address: company.smtp_host }
     mail(to: user.email, subject: "Please see the Terms and Conditions attached", delivery_method_options: delivery_options)
+  end
+end
+```
+
+### Sending Emails without Template Rendering
+
+There may be cases in which you want to skip the template rendering step and supply the email body as a string. You can achieve this using the `:body` option.
+In such cases don't forget to add the `:content_type` option. Rails will default to `text/plain` otherwise.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  def welcome_email(user, email_body)
+    mail(to: user.email, body: email_body, content_type: "text/html", subject: "Already rendered!")
   end
 end
 ```
@@ -447,7 +460,7 @@ end
 Action Mailer Callbacks
 ---------------------------
 
-Action Mailer allows for you to specify a `before_action`, `after_action` and 'around_action'.
+Action Mailer allows for you to specify a `before_action`, `after_action` and `around_action`.
 
 * Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
 
@@ -507,7 +520,6 @@ The following configuration options are best made in one of the environment file
 
 | Configuration | Description |
 |---------------|-------------|
-|`template_root`|Determines the base from which template references will be made.|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
 |`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port`  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|

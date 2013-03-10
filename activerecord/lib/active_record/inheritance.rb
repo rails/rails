@@ -15,6 +15,9 @@ module ActiveRecord
       # and if the inheritance column is attr accessible, it initializes an
       # instance of the given subclass instead of the base class
       def new(*args, &block)
+        if abstract_class? || self == Base
+          raise NotImplementedError, "#{self} is an abstract class and can not be instantiated."
+        end
         if (attrs = args.first).is_a?(Hash)
           if subclass = subclass_from_attrs(attrs)
             return subclass.new(*args, &block)
@@ -167,11 +170,16 @@ module ActiveRecord
       # this will ignore the inheritance column and return nil
       def subclass_from_attrs(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
-        return nil if subclass_name.blank? || subclass_name == self.name
-        unless subclass = subclasses.detect { |sub| sub.name == subclass_name }
-          raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+
+        if subclass_name.present? && subclass_name != self.name
+          subclass = subclass_name.safe_constantize
+
+          unless subclasses.include?(subclass)
+            raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+          end
+
+          subclass
         end
-        subclass
       end
     end
 

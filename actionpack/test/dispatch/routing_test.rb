@@ -1146,6 +1146,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'api/products#list', @response.body
   end
 
+  def test_match_shorthand_inside_scope_with_variables_with_controller
+    draw do
+      scope ':locale' do
+        match 'questions/new', via: [:get]
+      end
+    end
+
+    get '/de/questions/new'
+    assert_equal 'questions#new', @response.body
+    assert_equal 'de', @request.params[:locale]
+  end
+
+  def test_match_shorthand_inside_nested_namespaces_and_scopes_with_controller
+    draw do
+      namespace :api do
+        namespace :v3 do
+          scope ':locale' do
+            get "products/list"
+          end
+        end
+      end
+    end
+
+    get '/api/v3/en/products/list'
+    assert_equal 'api/v3/products#list', @response.body
+  end
+
   def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
     draw do
       resources :replies do
@@ -1319,7 +1346,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'en', @request.params[:locale]
   end
 
-  def test_default_params
+  def test_default_string_params
     draw do
       get 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
       get 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
@@ -1337,6 +1364,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/scoped_pages'
     assert_equal 'home', @request.params[:id]
+  end
+
+  def test_default_integer_params
+    draw do
+      get 'inline_pages/(:page)', to: 'pages#show', page: 1
+      get 'default_pages/(:page)', to: 'pages#show', defaults: { page: 1 }
+
+      defaults page: 1 do
+        get 'scoped_pages/(:page)', to: 'pages#show'
+      end
+    end
+
+    get '/inline_pages'
+    assert_equal 1, @request.params[:page]
+
+    get '/default_pages'
+    assert_equal 1, @request.params[:page]
+
+    get '/scoped_pages'
+    assert_equal 1, @request.params[:page]
   end
 
   def test_resource_constraints
@@ -3151,6 +3198,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
       get '/foo' => ok, as: :foo
+      get '/post(/:action(/:id))' => ok, as: :posts
     end
   end
 
@@ -3167,6 +3215,11 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
 
   test 'named route called on included module' do
     assert_equal '/foo', foo_path
+  end
+
+  test 'nested optional segments are removed' do
+    assert_equal '/post', Routes.url_helpers.posts_path
+    assert_equal '/post', posts_path
   end
 end
 
@@ -3350,6 +3403,66 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
 
     get 'http://www.example.com:8080/regexp'
     assert_response :success
+  end
+end
+
+class TestFormatConstraints < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+
+      get '/string', to: ok, constraints: { format: 'json'  }
+      get '/regexp',  to: ok, constraints: { format: /json/ }
+      get '/json_only', to: ok, format: true, constraints: { format: /json/ }
+      get '/xml_only', to: ok, format: 'xml'
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  def test_string_format_constraints
+    get 'http://www.example.com/string'
+    assert_response :success
+
+    get 'http://www.example.com/string.json'
+    assert_response :success
+
+    get 'http://www.example.com/string.html'
+    assert_response :not_found
+  end
+
+  def test_regexp_format_constraints
+    get 'http://www.example.com/regexp'
+    assert_response :success
+
+    get 'http://www.example.com/regexp.json'
+    assert_response :success
+
+    get 'http://www.example.com/regexp.html'
+    assert_response :not_found
+  end
+
+  def test_enforce_with_format_true_with_constraint
+    get 'http://www.example.com/json_only.json'
+    assert_response :success
+
+    get 'http://www.example.com/json_only.html'
+    assert_response :not_found
+
+    get 'http://www.example.com/json_only'
+    assert_response :not_found
+  end
+
+  def test_enforce_with_string
+    get 'http://www.example.com/xml_only.xml'
+    assert_response :success
+
+    get 'http://www.example.com/xml_only'
+    assert_response :success
+
+    get 'http://www.example.com/xml_only.json'
+    assert_response :not_found
   end
 end
 

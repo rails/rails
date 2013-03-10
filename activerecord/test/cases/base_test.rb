@@ -307,6 +307,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("last_read", ex.errors[0].attribute)
   end
 
+  def test_initialize_abstract_class
+    e = assert_raises(NotImplementedError) do
+      FirstAbstractClass.new
+    end
+    assert_equal("FirstAbstractClass is an abstract class and can not be instantiated.", e.message)
+  end
+
+  def test_initialize_base
+    e = assert_raises(NotImplementedError) do
+      ActiveRecord::Base.new
+    end
+    assert_equal("ActiveRecord::Base is an abstract class and can not be instantiated.", e.message)
+  end
+
   def test_create_after_initialize_without_block
     cb = CustomBulb.create(:name => 'Dude')
     assert_equal('Dude', cb.name)
@@ -1441,10 +1455,35 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal key, car.cache_key
   end
 
-  def test_cache_key_format_for_existing_record_with_nil_updated_at
+  def test_cache_key_format_for_existing_record_with_nil_updated_timestamps
     dev = Developer.first
-    dev.update_columns(updated_at: nil)
+    dev.update_columns(updated_at: nil, updated_on: nil)
     assert_match(/\/#{dev.id}$/, dev.cache_key)
+  end
+
+  def test_cache_key_for_updated_on
+    dev = Developer.first
+    dev.updated_at = nil
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_newer_updated_at
+    dev = Developer.first
+    dev.updated_at += 3600
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_newer_updated_on
+    dev = Developer.first
+    dev.updated_on += 3600
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_touch_should_raise_error_on_a_new_object
+    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    assert_raises(ActiveRecord::ActiveRecordError) do
+      company.touch :updated_at
+    end
   end
 
   def test_cache_key_format_is_precise_enough

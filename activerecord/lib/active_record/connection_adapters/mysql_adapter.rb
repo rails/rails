@@ -126,7 +126,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super
         @statements = StatementPool.new(@connection,
-                                        config.fetch(:statement_limit) { 1000 })
+                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @client_encoding = nil
         connect
       end

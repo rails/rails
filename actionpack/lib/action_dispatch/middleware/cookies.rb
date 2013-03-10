@@ -205,7 +205,7 @@ module ActionDispatch
       end
 
       # Removes the cookie on the client machine by setting the value to an empty string
-      # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
+      # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
       def delete(key, options = {})
         return unless @cookies.has_key? key.to_s

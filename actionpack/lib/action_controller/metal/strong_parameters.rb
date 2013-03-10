@@ -191,9 +191,9 @@ module ActionController
     #
     # +:name+ passes it is a key of +params+ whose associated value is of type
     # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
-    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+, or
-    # +ActionDispatch::Http::UploadedFile+. Otherwise, the key +:name+ is
-    # filtered out.
+    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+,
+    # +ActionDispatch::Http::UploadedFile+ or +Rack::Test::UploadedFile+.
+    # Otherwise, the key +:name+ is filtered out.
     #
     # You may declare that the parameter should be an array of permitted scalars
     # by mapping it to an empty array:
@@ -339,7 +339,8 @@ module ActionController
         if unpermitted_keys.any?
           case self.class.action_on_unpermitted_parameters
           when :log
-            ActionController::Base.logger.debug "Unpermitted parameters: #{unpermitted_keys.join(", ")}"
+            name = "unpermitted_parameters.action_controller"
+            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
           end
@@ -374,6 +375,7 @@ module ActionController
         StringIO,
         IO,
         ActionDispatch::Http::UploadedFile,
+        Rack::Test::UploadedFile,
       ]
 
       def permitted_scalar?(value)

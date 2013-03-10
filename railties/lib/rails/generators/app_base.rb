@@ -19,9 +19,6 @@ module Rails
       argument :app_path, type: :string
 
       def self.add_shared_options_for(name)
-        class_option :builder,            type: :string, aliases: '-b',
-                                          desc: "Path to some #{name} builder (can be a filesystem path or URL)"
-
         class_option :template,           type: :string, aliases: '-m',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
@@ -81,17 +78,6 @@ module Rails
 
       def builder
         @builder ||= begin
-          if path = options[:builder]
-            if URI(path).is_a?(URI::HTTP)
-              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-            else
-              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
-            end
-
-            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
-            instance_eval(&prok)
-          end
-
           builder_class = get_builder_class
           builder_class.send(:include, ActionMethods)
           builder_class.new(self)
@@ -210,9 +196,8 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', '~> 2.0.0.rc1'
-              gem 'sass-rails',   '~> 4.0.0.beta'
-              gem 'coffee-rails', '~> 4.0.0.beta'
+              gem 'sass-rails',   '~> 4.0.0.beta1'
+              gem 'coffee-rails', '~> 4.0.0.beta1'
 
               # See https://github.com/sstephenson/execjs#readme for more supported runtimes
               #{javascript_runtime_gemfile_entry}

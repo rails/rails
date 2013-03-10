@@ -155,7 +155,7 @@ creates six different routes in your application, all mapping to the `Geocoders`
 | PATCH/PUT | /geocoder      | update  | update the one and only geocoder resource     |
 | DELETE    | /geocoder      | destroy | delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers.
+NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`).
 
 A singular resourceful route generates these helpers:
 
@@ -796,6 +796,16 @@ root 'pages#main' # shortcut for the above
 You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
+
+You can also use root inside namespaces and scopes as well.  For example:
+
+```ruby
+namespace :admin do
+  root to: "admin#index"
+end
+
+root to: "home#index"
+```
 
 ### Unicode character routes
 

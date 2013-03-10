@@ -31,7 +31,7 @@ module ActiveRecord
           return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
           super
         end
-        
+
         def blob_or_text_column?
           sql_type =~ /blob/i || type == :text
         end
@@ -140,10 +140,10 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
 
-        if config.fetch(:prepared_statements) { true }
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::MySQL.new self
         else
-          @visitor = BindSubstitution.new self
+          @visitor = unprepared_visitor
         end
       end
 
@@ -212,6 +212,8 @@ module ActiveRecord
         if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
+        elsif value.kind_of?(BigDecimal)
+          value.to_s("F")
         else
           super
         end
@@ -329,20 +331,6 @@ module ActiveRecord
       end
 
       # SCHEMA STATEMENTS ========================================
-
-      def structure_dump #:nodoc:
-        if supports_views?
-          sql = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'"
-        else
-          sql = "SHOW TABLES"
-        end
-
-        select_all(sql, 'SCHEMA').map { |table|
-          table.delete('Table_type')
-          sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
-        }.join
-      end
 
       # Drops the database specified on the +name+ attribute
       # and creates it again using the provided +options+.
@@ -468,6 +456,7 @@ module ActiveRecord
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
+        rename_table_indexes(table_name, new_name)
       end
 
       def add_column(table_name, column_name, type, options = {})
@@ -495,6 +484,7 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+        rename_column_indexes(table_name, column_name, new_column_name)
       end
 
       # Maps logical Rails types to MySQL-specific data types.
@@ -579,7 +569,7 @@ module ActiveRecord
       end
 
       def strict_mode?
-        @config.fetch(:strict, true)
+        self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
 
       protected
@@ -720,7 +710,7 @@ module ActiveRecord
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
         wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
-        variables[:wait_timeout] = wait_timeout
+        variables[:wait_timeout] = self.class.type_cast_config_to_integer(wait_timeout)
 
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables

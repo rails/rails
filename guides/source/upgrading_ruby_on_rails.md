@@ -43,11 +43,29 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of Rails, the new order was applied after the previously defined order. But this is no longer true. Check [Active Record Query guide](active_record_querying.html#ordering) for more information.
 
-* Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
+* Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
+
+* Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) to a smoothly upgrade path.
+
+* Rails 4.0 requires that scopes use a callable object such as a Proc or lambda:
+
+```ruby
+  scope :active, where(active: true)
+
+  # becomes
+  scope :active, -> { where active: true }
+```
+
+* Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
+* Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
+
+### Active Resource
+
+Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
 
 ### Active Model
 
-* Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
+* Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail, the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
 
 * Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behaviour. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
 
@@ -60,13 +78,28 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 ### Action Pack
 
-* There is an upgrading cookie store `UpgradeSignatureToEncryptionCookieStore` which helps you upgrading apps that use `CookieStore` to the new default `EncryptedCookieStore`. To use this `CookieStore` set `Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'` in `config/initializers/session_store.rb`. Additionally, add `Myapp::Application.config.secret_key_base = 'some secret'` in `config/initializers/secret_token.rb`. Do not remove `Myapp::Application.config.secret_token = 'some secret'`.
+* Rails 4.0 introduces a new `UpgradeSignatureToEncryptionCookieStore` cookie store. This is useful for upgrading apps using the old default `CookieStore` to the new default `EncryptedCookieStore`. To use this transitional cookie store, you'll want to leave your existing `secret_token` in place, add a new `secret_key_base`, and change your `session_store` like so:
+
+```ruby
+  # config/initializers/session_store.rb
+  Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: 'existing session key'
+
+  # config/initializers/secret_token.rb
+  Myapp::Application.config.secret_token = 'existing secret token'
+  Myapp::Application.config.secret_key_base = 'new secret key base'
+```
 
 * Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
 
 * Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use `ActionController::Base.default_static_extension` instead.
 
 * Rails 4.0 has removed Action and Page caching from Action Pack. You will need to add the `actionpack-action_caching` gem in order to use `caches_action` and the `actionpack-page_caching` to use `caches_pages` in your controllers.
+
+* Rails 4.0 has removed the XML parameters parser. You will need to add the `actionpack-xml_parser` gem if you require this feature.
+
+* Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
+
+* Rails 4.0 deprecates the `dom_id` and `dom_class` methods. You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
@@ -82,7 +115,20 @@ becomes
 get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
-* Rails 4.0 has removed ActionDispatch::BestStandardsSupport middleware, !DOCTYPE html already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`
+* Rails 4.0 requires that routes using `match` must specify the request method. For example:
+
+```ruby
+  # Rails 3.x
+  match "/" => "root#index"
+
+  # becomes
+  match "/" => "root#index", via: :get
+
+  # or
+  get "/" => "root#index"
+```
+
+* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
 Remember you must also remove any references to the middleware from your application code, for example:
 
@@ -95,6 +141,21 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 
 * In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
+* In Rails 4.0, `ActionController::UnknownFormat` is raised when the action doesn't handle the request format. By default, the exception is handled by responding with 406 Not Acceptable, but you can override that now. In Rails 3, 406 Not Acceptable was always returned. No overrides.
+
+* In Rails 4.0, a generic `ActionDispatch::ParamsParser::ParseError` exception is raised when `ParamsParser` fails to parse request params. You will want to rescue this exception instead of the low-level `MultiJson::DecodeError`, for example.
+
+* In Rails 4.0, `SCRIPT_NAME` is properly nested when engines are mounted on an app that's served from a URL prefix. You no longer have to set `default_url_options[:script_name]` to work around overwritten URL prefixes.
+
+* Rails 4.0 deprecated `ActionController::Integration` in favor of `ActionDispatch::Integration`.
+* Rails 4.0 deprecated `ActionController::IntegrationTest` in favor of `ActionDispatch::IntegrationTest`.
+* Rails 4.0 deprecated `ActionController::PerformanceTest` in favor of `ActionDispatch::PerformanceTest`.
+* Rails 4.0 deprecated `ActionController::AbstractRequest` in favor of `ActionDispatch::Request`.
+* Rails 4.0 deprecated `ActionController::Request` in favor of `ActionDispatch::Request`.
+* Rails 4.0 deprecated `ActionController::AbstractResponse` in favor of `ActionDispatch::Response`.
+* Rails 4.0 deprecated `ActionController::Response` in favor of `ActionDispatch::Response`.
+* Rails 4.0 deprecated `ActionController::Routing` in favor of `ActionDispatch::Routing`.
+
 ### Active Support
 
 Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
@@ -103,19 +164,31 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 The order in which helpers from more than one directory are loaded has changed in Rails 4.0. Previously, they were gathered and then sorted alphabetically. After upgrading to Rails 4.0, helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use the `helpers_path` parameter, this change will only impact the way of loading helpers from engines. If you rely on the ordering, you should check if correct methods are available after upgrade. If you would like to change the order in which engines are loaded, you can use `config.railties_order=` method.
 
+### Active Record Observer and Action Controller Sweeper
+
+Active Record Observer and Action Controller Sweeper have been extracted to the `rails-observers` gem. You will need to add the `rails-observers` gem if you require these features.
+
+### sprockets-rails
+
+* `assets:precompile:primary` has been removed. Use `assets:precompile` instead.
+
+### sass-rails
+
+* `asset_url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
+
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
 
-The following changes are meant for upgrading your application to Rails 3.2.2, the latest 3.2.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.2.12, the latest 3.2.x version of Rails.
 
 ### Gemfile
 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.2.2'
+gem 'rails', '= 3.2.12'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
@@ -155,14 +228,14 @@ Upgrading from Rails 3.0 to Rails 3.1
 
 If your application is currently on any version of Rails older than 3.0.x, you should upgrade to Rails 3.0 before attempting an update to Rails 3.1.
 
-The following changes are meant for upgrading your application to Rails 3.1.3, the latest 3.1.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.1.11, the latest 3.1.x version of Rails.
 
 ### Gemfile
 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.1.3'
+gem 'rails', '= 3.1.11'
 gem 'mysql2'
 
 # Needed for the new asset pipeline
