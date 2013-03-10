@@ -42,13 +42,13 @@ module ActionController
       end
 
       ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
-        path = payload[:identifier]
         next if payload[:virtual_path] # files don't have virtual path
+
+        path = payload[:identifier]
         if path
           @_files[path] += 1
           @_files[path.split("/").last] += 1
         end
-
       end
     end
 
