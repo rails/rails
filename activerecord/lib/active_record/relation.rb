@@ -367,7 +367,7 @@ module ActiveRecord
     #   Todo.destroy(todos)
     def destroy(id)
       if id.is_a?(Array)
-        id.map { |one_id| destroy(one_id) }
+        id.map { |one_id| find(one_id).destroy }
       else
         find(id).destroy
       end
