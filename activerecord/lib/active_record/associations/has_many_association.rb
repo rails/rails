@@ -25,7 +25,7 @@ module ActiveRecord
             load_target.each(&:mark_for_destruction)
           end
 
-          delete_all
+          delete_all_from_dependency
         end
       end
 

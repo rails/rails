@@ -65,6 +65,7 @@ module ActiveRecord
       def reset
         super
         @target = []
+        @delete_all_from_dependency = nil
       end
 
       def select(select = nil)
@@ -204,16 +205,9 @@ module ActiveRecord
         dependent = options[:dependent]
 
         if records.first == :all
-
-          if dependent && dependent == :destroy
-            message = 'In Rails 4.1 delete_all on associations would not fire callbacks. ' \
-                      'It means if the :dependent option is :destroy then the associated ' \
-                      'records would be deleted without loading and invoking callbacks.'
-
-            ActiveRecord::Base.logger ? ActiveRecord::Base.logger.warn(message) : $stderr.puts(message)
-          end
-
-          if loaded? || dependent == :destroy
+          if !@delete_all_from_dependency
+            delete_or_destroy(load_target, :delete_all)
+          elsif loaded? || dependent == :destroy
             delete_or_destroy(load_target, dependent)
           else
             delete_records(:all, dependent)
@@ -373,6 +367,13 @@ module ActiveRecord
       def null_scope?
         owner.new_record? && !foreign_key_present?
       end
+
+      protected
+        # called from handle_dependency in order to use the dependent option
+        def delete_all_from_dependency
+          @delete_all_from_dependency = true 
+          delete_all
+        end
 
       private
 
