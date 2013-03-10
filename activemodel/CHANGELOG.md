@@ -5,10 +5,12 @@
 
     Example:
 
-        # given User has_secure_password.
+        # Given User has_secure_password.
         @user.password = ""
         @user.password_confirmation = ""
         @user.valid?(:update) # used to be false
+
+    *Yves Senn*
 
 *   `validates_confirmation_of` does not override writer methods for
     the confirmation attribute if no reader is defined.
@@ -16,12 +18,12 @@
     Example:
 
         class Blog
-            def title=(new_title)
-              @title = new_title.downcase
-            end
+          def title=(new_title)
+            @title = new_title.downcase
+          end
 
-            # previously this would override the setter above.
-            validates_confirmation_of :title
+          # previously this would override the setter above.
+          validates_confirmation_of :title
         end
 
     *Yves Senn*

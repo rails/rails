@@ -1196,6 +1196,61 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.posts.created_before(time)
 ```
 
+### Merging of scopes
+
+Just like `where` clauses scopes are merged using `AND` conditions.
+
+```ruby
+class User < ActiveRecord::Base
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+```ruby
+User.active.inactive
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
+```
+
+We can mix and match `scope` and `where` conditions and the final sql
+will have all conditions joined with `AND` .
+
+```ruby
+User.active.where(state: 'finished')
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
+```
+
+If we do want the `last where clause` to win then `Relation#merge` can
+be used .
+
+```ruby
+User.active.merge(User.inactive)
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+One important caveat is that `default_scope` will be overridden by
+`scope` and `where` conditions.
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope  { where state: 'pending' }
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+User.all
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+User.where(state: 'inactive')
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+As you can see above the `default_scope` is being overridden by both
+`scope` and `where` conditions.
+
+
 ### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
@@ -1399,7 +1454,7 @@ Client.select(:id).map { |c| c.id }
 # or
 Client.select(:id).map(&:id)
 # or
-Client.select(:id).map { |c| [c.id, c.name] }
+Client.select(:id, :name).map { |c| [c.id, c.name] }
 ```
 
 with

@@ -178,12 +178,6 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
       If migrating down, the given migration / block is run normally.
       See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
 
-*   Adds some metadata columns to `schema_migrations` table.
-
-    * `migrated_at`
-    * `fingerprint` - an md5 hash of the migration.
-    * `name` - the filename minus version and extension.
-
 *   Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 
 *   Add `Relation#load` to explicitly load the record and return `self`.

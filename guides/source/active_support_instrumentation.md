@@ -450,7 +450,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
   data # { extra: :information }
 ```
 
-You may also subscribe to events matching a regular expresssion. This enables you to subscribe to
+You may also subscribe to events matching a regular expression. This enables you to subscribe to
 multiple events at once. Here's you could subscribe to everything from `ActionController`.
 
 ```ruby
