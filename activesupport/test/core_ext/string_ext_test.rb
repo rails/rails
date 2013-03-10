@@ -383,6 +383,103 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   end
 end
 
+class StringNumericTest < ActiveSupport::TestCase
+  setup do
+    @fix_num      = {act: "1",              exp: 1}
+    @float        = {act: "1.0",            exp: 1.0}
+    @not_numeric  = {act: "1not_numeric1",  exp: nil}
+    @big_num      = {act: "1" * 10,         exp: 1111111111}
+  end
+
+  teardown do
+    @fix_num      = nil
+    @float        = nil
+    @not_numeric  = nil
+    @big_num      = nil
+  end
+
+   # test cases for respond to methods
+  test "should respond to is_integer?" do
+    assert_respond_to "", :is_integer?
+  end
+
+  test "should respond to is_float?" do
+    assert_respond_to "", :is_float?
+  end
+
+  test "should respond to is_numeric?" do
+    assert_respond_to "", :is_numeric?
+  end
+
+  test "should respond to to_numeric" do
+    assert_respond_to "", :to_numeric
+  end
+
+  # test cases for is_integer? method
+  test "should be an integer value" do
+    assert @fix_num[:act].is_integer?, "A string is not integer value"
+  end
+
+  test "a big number should be an integer value" do
+    assert @big_num[:act].is_integer?, "A string is not integer value"
+  end
+
+  test "should not be an integer value" do
+    assert !@not_numeric[:act].is_integer?, "A string is integer value"
+  end
+
+  test "a float value should not be an integer value" do
+    assert !@float[:act].is_integer?, "A string is integer value"
+  end
+
+  # test cases for is_numeric? method
+  test "should be a numeric value" do
+    assert @fix_num[:act].is_numeric?, "A string is not numeric value"
+  end
+
+  test "a big number should be a numeric value" do
+    assert @big_num[:act].is_numeric?, "A string is not numeric value"
+  end
+
+  test "should not be a numeric value" do
+    assert !@not_numeric[:act].is_numeric?, "A string is numeric value"
+  end
+
+  test "a float value should be a numeric value" do
+    assert @float[:act].is_numeric?, "A string is not numeric value"
+  end
+
+  # test cases for is_float? method
+  test "an integer value should not be a float value" do
+    assert !@fix_num[:act].is_float?, "A string is float value"
+  end
+
+  test "should not be a float value" do
+    assert !@not_numeric[:act].is_float?, "A string is float value"
+  end
+
+  test "should be a float value" do
+    assert @float[:act].is_float?, "A string is not float value"
+  end
+
+  # test cases for to_numeric method
+  test "should be converted to an integer value" do
+    assert_equal @fix_num[:exp], @fix_num[:act].to_numeric 
+  end
+
+  test "should be converted to a float value" do
+    assert_equal @float[:exp], @float[:act].to_numeric 
+  end
+
+  test "should be converted to a big number value" do
+    assert_equal @big_num[:exp], @big_num[:act].to_numeric
+  end
+
+  test "should not be converted to numeric value" do
+    assert_equal @not_numeric[:exp], @not_numeric[:act].to_numeric
+  end
+end
+
 class OutputSafetyTest < ActiveSupport::TestCase
   def setup
     @string = "hello"
