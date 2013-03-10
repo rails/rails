@@ -23,5 +23,5 @@ gem 'jbuilder', '~> 1.0.1'
 
 <% unless defined?(JRUBY_VERSION) -%>
 # To use debugger
-# gem 'debugger'
+# gem 'debugger', group: [:development, :test]
 <% end -%>
