@@ -164,7 +164,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
         return
       end
 
-      object.each do |k,v|
+      object.each_value do |v|
         case v
         when Hash
           assert_utf8(v)
