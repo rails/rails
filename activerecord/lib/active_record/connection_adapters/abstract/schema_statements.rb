@@ -402,6 +402,26 @@ module ActiveRecord
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
+      # Sets or removes a +NOT NULL+ constraint on a column. The +null+ flag
+      # indicates wheter the value can be +NULL+. For example
+      #
+      #   change_column_null(:users, :nickname, false)
+      #
+      # says nicknames cannot be +NULL+ (adds the constraint), whereas
+      #
+      #   change_column_null(:users, :nickname, true)
+      #
+      # allows them to be +NULL+ (drops the constraint).
+      #
+      # The method accepts an optional fourth argument to replace existing
+      # +NULL+s with some other value. Use that one when enabling the
+      # constraint if needed, since otherwise those rows would not be valid.
+      #
+      # Please note the fourth argument does not set a column's default.
+      def change_column_null(table_name, column_name, null, default = nil)
+        raise NotImplementedError, "change_column_null is not implemented"
+      end
+
       # Renames a column.
       #
       #   rename_column(:suppliers, :description, :name)
