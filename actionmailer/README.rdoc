@@ -22,7 +22,7 @@ the email.
 This can be as simple as:
 
   class Notifier < ActionMailer::Base
-    default from: 'system@loudthinking.com'
+    default :from => 'system@loudthinking.com'
 
     def welcome(recipient)
       @recipient = recipient
