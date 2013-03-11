@@ -970,7 +970,7 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 ```
 
-Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use `Category.joins(:posts).select("distinct(categories.id)")`.
+Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use `Category.joins(:posts).uniq`.
 
 #### Joining Multiple Associations
 
