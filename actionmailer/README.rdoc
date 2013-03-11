@@ -1,6 +1,6 @@
 = Action Mailer -- Easy email delivery and testing
 
-Action Mailer is a framework for designing email-service layers. These layers
+Action Mailer is a framework for designing email service layers. These layers
 are used to consolidate code for sending out forgotten passwords, welcome
 wishes on signup, invoices for billing, and any other use case that requires
 a written notification to either a person or another system.
