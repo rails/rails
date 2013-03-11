@@ -50,12 +50,10 @@ module ApplicationTests
       assert_match /SyntaxError/, error_stream.read
     end
 
-    def test_invoke_rake_test_prepare
+    def test_invoke_rake_db_test_load
       app_file "lib/tasks/test.rake", <<-RUBY
-        namespace :test do
-          task :prepare do
-            puts "Hello World"
-          end
+        task 'db:test:load' do
+          puts "Hello World"
         end
       RUBY
       create_test_file
