@@ -58,7 +58,7 @@ module ActiveSupport
     class << self
       # Parses a string and returns a Duration instance.
       def parse(string)
-        string.scan(/(-?\d*\.?\d+) (second|hour|day|week|month|year)/).collect do |match|
+        string.scan(/(-?\d*\.?\d+) (second|minute|hour|day|week|month|year)/).collect do |match|
           unit = match[1].to_sym
           unit_value = match[0] =~ /\./ ? match[0].to_f : match[0].to_i
           unit_value.send(unit)
