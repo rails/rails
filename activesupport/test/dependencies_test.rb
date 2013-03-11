@@ -878,7 +878,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_autoload_doesnt_shadow_name_error
     with_autoloading_fixtures do
       Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
-      2.times do |i|
+      2.times do
         begin
           ::RaisesNameError::FooBarBaz.object_id
           flunk 'should have raised NameError when autoloaded file referenced FooBarBaz'
