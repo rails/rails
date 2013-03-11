@@ -13,7 +13,8 @@ module ActionDispatch
       'ActionController::UnknownFormat'            => :not_acceptable,
       'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
       'ActionController::BadRequest'               => :bad_request,
-      'ActionController::ParameterMissing'         => :bad_request
+      'ActionController::ParameterMissing'         => :bad_request,
+      'ActionController::EmptyParameter'           => :bad_request
     )
 
     cattr_accessor :rescue_templates
