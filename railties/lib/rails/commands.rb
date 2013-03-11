@@ -5,6 +5,7 @@ aliases = {
   "d"  => "destroy",
   "c"  => "console",
   "s"  => "server",
+  "t"  => "test",
   "db" => "dbconsole",
   "r"  => "runner"
 }
@@ -16,6 +17,7 @@ The most common rails commands are:
  generate    Generate new code (short-cut alias: "g")
  console     Start the Rails console (short-cut alias: "c")
  server      Start the Rails server (short-cut alias: "s")
+ test        Running the test file (short-cut alias: "t")
  dbconsole   Start a console for the database specified in config/database.yml
              (short-cut alias: "db")
  new         Create a new Rails application. "rails new my_app" creates a
@@ -77,6 +79,15 @@ when 'server'
     Dir.chdir(Rails.application.root)
     server.start
   end
+
+when 'test'
+  $LOAD_PATH.unshift("./test")
+  require 'rails/commands/test_runner'
+  options = Rails::TestRunner.parse_arguments(ARGV)
+  ENV['RAILS_ENV'] ||= options[:environment] || 'test'
+
+  require APP_PATH
+  Rails::TestRunner.start(ARGV, options)
 
 when 'dbconsole'
   require 'rails/commands/dbconsole'
