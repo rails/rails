@@ -19,6 +19,38 @@
 
     *Terence Lee*
 
+*   Rails now generates a `test/test_helper.rb` file with `fixtures :all` commented out by default,
+    since we don't want to force loading all fixtures for user when a single test is run. However,
+    fixtures are still going to be loaded automatically for test suites.
+
+    To force all fixtures to be create in your database, use `rails test -f` to run your test.
+
+    *Prem Sichanugrist*
+
+*   Add `rails test` command for running tests
+
+    To run all tests:
+
+        $ rails test
+
+    To run a test suite
+
+        $ rails test [models,helpers,units,controllers,mailers,...]
+
+    To run a selected test file(s):
+
+        $ rails test test/unit/foo_test.rb [test/unit/bar_test.rb ...]
+
+    To run a single test from a test file
+
+        $ rails test test/unit/foo_test.rb -n test_the_truth
+
+    For more information, see `rails test --help`.
+
+    This command will eventually replace `rake test:*` and `rake test` tasks
+
+    *Prem Sichanugrist and Chris Toomey*
+
 *   Add notice message for destroy action in scaffold generator.
 
     *Rahul P. Chaudhari*
