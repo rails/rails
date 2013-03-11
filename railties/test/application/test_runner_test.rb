@@ -18,8 +18,8 @@ module ApplicationTests
     def test_should_not_display_heading
       create_test_file
       run_test_command.tap do |output|
-        assert_no_match /Run options:/, output
-        assert_no_match /Running tests:/, output
+        assert_no_match "Run options:", output
+        assert_no_match "Running tests:", output
       end
     end
 
@@ -34,24 +34,24 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match /Current Environment: test/, run_test_command('test/unit/env_test.rb')
+      assert_match "Current Environment: test", run_test_command('test/unit/env_test.rb')
     end
 
     def test_run_shortcut
       create_test_file :models, 'foo'
       output = Dir.chdir(app_path) { `bundle exec rails t test/models/foo_test.rb` }
-      assert_match /1 tests, 1 assertions, 0 failures/, output
+      assert_match "1 tests, 1 assertions, 0 failures", output
     end
 
     def test_run_single_file
       create_test_file :models, 'foo'
-      assert_match /1 tests, 1 assertions, 0 failures/, run_test_command("test/models/foo_test.rb")
+      assert_match "1 tests, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
     end
 
     def test_run_multiple_files
       create_test_file :models,  'foo'
       create_test_file :models,  'bar'
-      assert_match /2 tests, 2 assertions, 0 failures/, run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
+      assert_match "2 tests, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
     end
 
     def test_run_file_with_syntax_error
@@ -62,7 +62,7 @@ module ApplicationTests
 
       error_stream = Tempfile.new('error')
       redirect_stderr(error_stream) { run_test_command('test/models/error_test.rb') }
-      assert_match /SyntaxError/, error_stream.read
+      assert_match "SyntaxError", error_stream.read
     end
 
     def test_invoke_rake_db_test_load
@@ -72,7 +72,7 @@ module ApplicationTests
         end
       RUBY
       create_test_file
-      assert_match /Hello World/, run_test_command
+      assert_match "Hello World", run_test_command
     end
 
     def test_run_models
@@ -80,9 +80,9 @@ module ApplicationTests
       create_test_file :models, 'bar'
       create_test_file :controllers, 'foobar_controller'
       run_test_command("models").tap do |output|
-        assert_match /FooTest/, output
-        assert_match /BarTest/, output
-        assert_match /2 tests, 2 assertions, 0 failures/, output
+        assert_match "FooTest", output
+        assert_match "BarTest", output
+        assert_match "2 tests, 2 assertions, 0 failures", output
       end
     end
 
@@ -91,9 +91,9 @@ module ApplicationTests
       create_test_file :helpers, 'bar_helper'
       create_test_file :controllers, 'foobar_controller'
       run_test_command('helpers').tap do |output|
-        assert_match /FooHelperTest/, output
-        assert_match /BarHelperTest/, output
-        assert_match /2 tests, 2 assertions, 0 failures/, output
+        assert_match "FooHelperTest", output
+        assert_match "BarHelperTest", output
+        assert_match "2 tests, 2 assertions, 0 failures", output
       end
     end
 
@@ -103,10 +103,10 @@ module ApplicationTests
       create_test_file :unit, 'baz_unit'
       create_test_file :controllers, 'foobar_controller'
       run_test_command('units').tap do |output|
-        assert_match /FooTest/, output
-        assert_match /BarHelperTest/, output
-        assert_match /BazUnitTest/, output
-        assert_match /3 tests, 3 assertions, 0 failures/, output
+        assert_match "FooTest", output
+        assert_match "BarHelperTest", output
+        assert_match "BazUnitTest", output
+        assert_match "3 tests, 3 assertions, 0 failures", output
       end
     end
 
@@ -115,9 +115,9 @@ module ApplicationTests
       create_test_file :controllers, 'bar_controller'
       create_test_file :models, 'foo'
       run_test_command('controllers').tap do |output|
-        assert_match /FooControllerTest/, output
-        assert_match /BarControllerTest/, output
-        assert_match /2 tests, 2 assertions, 0 failures/, output
+        assert_match "FooControllerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "2 tests, 2 assertions, 0 failures", output
       end
     end
 
@@ -126,9 +126,9 @@ module ApplicationTests
       create_test_file :mailers, 'bar_mailer'
       create_test_file :models, 'foo'
       run_test_command('mailers').tap do |output|
-        assert_match /FooMailerTest/, output
-        assert_match /BarMailerTest/, output
-        assert_match /2 tests, 2 assertions, 0 failures/, output
+        assert_match "FooMailerTest", output
+        assert_match "BarMailerTest", output
+        assert_match "2 tests, 2 assertions, 0 failures", output
       end
     end
 
@@ -138,10 +138,10 @@ module ApplicationTests
       create_test_file :functional, 'baz_functional'
       create_test_file :models, 'foo'
       run_test_command('functionals').tap do |output|
-        assert_match /FooMailerTest/, output
-        assert_match /BarControllerTest/, output
-        assert_match /BazFunctionalTest/, output
-        assert_match /3 tests, 3 assertions, 0 failures/, output
+        assert_match "FooMailerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "BazFunctionalTest", output
+        assert_match "3 tests, 3 assertions, 0 failures", output
       end
     end
 
@@ -149,8 +149,8 @@ module ApplicationTests
       create_test_file :integration, 'foo_integration'
       create_test_file :models, 'foo'
       run_test_command('integration').tap do |output|
-        assert_match /FooIntegration/, output
-        assert_match /1 tests, 1 assertions, 0 failures/, output
+        assert_match "FooIntegration", output
+        assert_match "1 tests, 1 assertions, 0 failures", output
       end
     end
 
@@ -158,8 +158,8 @@ module ApplicationTests
       suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration]
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command('') .tap do |output|
-        suites.each { |suite| assert_match /Foo#{suite.to_s.camelize}Test/, output }
-        assert_match /7 tests, 7 assertions, 0 failures/, output
+        suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
+        assert_match "7 tests, 7 assertions, 0 failures", output
       end
     end
 
@@ -179,16 +179,16 @@ module ApplicationTests
       RUBY
 
       run_test_command('test/unit/chu_2_koi_test.rb -n test_rikka').tap do |output|
-        assert_match /Rikka/, output
-        assert_no_match /Sanae/, output
+        assert_match "Rikka", output
+        assert_no_match "Sanae", output
       end
     end
 
     def test_not_load_fixtures_when_running_single_test
       create_model_with_fixture
       create_fixture_test :models, 'user'
-      assert_match /0 users/, run_test_command('test/models/user_test.rb')
-      assert_match /3 users/, run_test_command('test/models/user_test.rb -f')
+      assert_match "0 users", run_test_command('test/models/user_test.rb')
+      assert_match "3 users", run_test_command('test/models/user_test.rb -f')
     end
 
     def test_load_fixtures_when_running_test_suites
@@ -199,7 +199,7 @@ module ApplicationTests
       suites.each do |suite, directory|
         directory ||= suite
         create_fixture_test directory
-        assert_match /3 users/, run_test_command(suite)
+        assert_match "3 users", run_test_command(suite)
         Dir.chdir(app_path) { FileUtils.rm_f "test/#{directory}" }
       end
     end
@@ -216,7 +216,7 @@ module ApplicationTests
       RUBY
 
       ENV['RAILS_ENV'] = 'development'
-      assert_match /development/, run_test_command('test/unit/env_test.rb')
+      assert_match "development", run_test_command('test/unit/env_test.rb')
     end
 
     def test_run_different_environment_using_e_tag
@@ -230,12 +230,12 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match /development/, run_test_command('-e development test/unit/env_test.rb')
+      assert_match "development", run_test_command('-e development test/unit/env_test.rb')
     end
 
     def test_generated_scaffold_works_with_rails_test
       create_scaffold
-      assert_match /0 failures, 0 errors, 0 skips/, run_test_command('')
+      assert_match "0 failures, 0 errors, 0 skips", run_test_command('')
     end
 
     private
