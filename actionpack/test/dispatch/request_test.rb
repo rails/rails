@@ -370,16 +370,16 @@ class RequestTest < ActiveSupport::TestCase
   test "xml http request" do
     request = stub_request
 
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    assert_equal false, request.xml_http_request?
+    assert_equal false, request.xhr?
 
     request = stub_request 'HTTP_X_REQUESTED_WITH' => 'DefinitelyNotAjax1.0'
     assert !request.xml_http_request?
     assert !request.xhr?
 
     request = stub_request 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
-    assert request.xml_http_request?
-    assert request.xhr?
+    assert_equal true, request.xml_http_request?
+    assert_equal true, request.xhr?
   end
 
   test "reports ssl" do
