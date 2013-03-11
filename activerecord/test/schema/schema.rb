@@ -77,6 +77,11 @@ ActiveRecord::Schema.define do
     t.integer     :value
   end
 
+  create_table :test_models, :force => true do |t|
+  t.string :name
+  t.string :badness
+end
+
   create_table :binaries, :force => true do |t|
     t.string :name
     t.binary :data

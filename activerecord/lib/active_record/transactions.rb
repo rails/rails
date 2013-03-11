@@ -266,20 +266,24 @@ module ActiveRecord
     end
 
     def save(*) #:nodoc:
+      p "in save"
       rollback_active_record_state! do
         with_transaction_returning_status { super }
       end
     end
 
     def save!(*) #:nodoc:
+      p "in save!"
       with_transaction_returning_status { super }
     end
 
     # Reset id and @new_record if the transaction rolls back.
     def rollback_active_record_state!
+      p "in rollback_active_record"
       remember_transaction_record_state
       yield
     rescue Exception
+      p "in restore_transaction_record_state"
       restore_transaction_record_state
       raise
     ensure
@@ -291,6 +295,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object
     def committed! #:nodoc:
+      p "in committed"
       run_callbacks :commit if destroyed? || persisted?
     ensure
       clear_transaction_record_state
@@ -299,6 +304,7 @@ module ActiveRecord
     # Call the after rollback callbacks. The restore_state argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state = false) #:nodoc:
+      p "in rolledback!"
       run_callbacks :rollback
     ensure
       restore_transaction_record_state(force_restore_state)
@@ -307,7 +313,9 @@ module ActiveRecord
     # Add the record to the current transaction so that the :after_rollback and :after_commit callbacks
     # can be called.
     def add_to_transaction
+      p "in add_to_transaction"
       if self.class.connection.add_transaction_record(self)
+        p "about to remember_transaction_record_state"
         remember_transaction_record_state
       end
     end
@@ -319,30 +327,47 @@ module ActiveRecord
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status
+      p "in with_transaction_returning_stfatus"
       status = nil
       self.class.transaction do
         add_to_transaction
+        p "after adding in with transaction"
         begin
+          p "in bgein"
+
           status = yield
+           p status
         rescue ActiveRecord::Rollback
+          p "in rollback"
+
           @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+          
           status = nil
         end
 
         raise ActiveRecord::Rollback unless status
+        p "raised raollback"
       end
       status
+      p "at wtih end"
     end
 
     protected
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
+      p "in remember_transaction_record_state"
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
+      p "After id"
       @_start_transaction_state[:new_record] = @new_record
+      p "after new record"
       @_start_transaction_state[:destroyed] = @destroyed
+      p "After destroy"
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+      p "after level"
+      p @_start_transaction_state[:level]
       @_start_transaction_state[:frozen?] = @attributes.frozen?
+      p "after frozen"
     end
 
     # Clear the new record state and id of a record.
@@ -353,8 +378,11 @@ module ActiveRecord
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
     def restore_transaction_record_state(force = false) #:nodoc:
+      p "now in restore transaction"
       unless @_start_transaction_state.empty?
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+        p "level is now"
+        p @_start_transaction_state[:level]
         if @_start_transaction_state[:level] < 1 || force
           restore_state = @_start_transaction_state
           was_frozen = restore_state[:frozen?]
