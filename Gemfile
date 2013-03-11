@@ -35,6 +35,8 @@ group :test do
   platforms :mri_19, :mri_20 do
     gem 'debugger' if !ENV['TRAVIS']
   end
+
+  gem 'benchmark-ips'
 end
 
 platforms :ruby do
@@ -79,5 +81,3 @@ end
 
 # A gem necessary for ActiveRecord tests with IBM DB
 gem 'ibm_db' if ENV['IBM_DB']
-
-gem 'benchmark-ips'
