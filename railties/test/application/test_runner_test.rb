@@ -7,6 +7,7 @@ module ApplicationTests
 
     def setup
       build_app
+      ENV['RAILS_ENV'] = nil
       create_schema
     end
 
@@ -20,6 +21,20 @@ module ApplicationTests
         assert_no_match /Run options:/, output
         assert_no_match /Running tests:/, output
       end
+    end
+
+    def test_run_in_test_environment
+      app_file 'test/unit/env_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class EnvTest < ActiveSupport::TestCase
+          def test_env
+            puts "Current Environment: \#{Rails.env}"
+          end
+        end
+      RUBY
+
+      assert_match /Current Environment: test/, run_test_command('test/unit/env_test.rb')
     end
 
     def test_run_shortcut
@@ -200,7 +215,8 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match /development/, Dir.chdir(app_path) { `RAILS_ENV=development bundle exec rails test test/unit/env_test.rb` }
+      ENV['RAILS_ENV'] = 'development'
+      assert_match /development/, run_test_command('test/unit/env_test.rb')
     end
 
     def test_run_different_environment_using_e_tag
