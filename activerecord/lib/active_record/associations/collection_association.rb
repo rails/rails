@@ -204,6 +204,15 @@ module ActiveRecord
         dependent = options[:dependent]
 
         if records.first == :all
+
+          if dependent && dependent == :destroy
+            message = 'In Rails 4.1 delete_all on associations would not fire callbacks. ' \
+                      'It means if the :dependent option is :destroy then the associated ' \
+                      'records would be deleted without loading and invoking callbacks.'
+
+            ActiveRecord::Base.logger ? ActiveRecord::Base.logger.warn(message) : $stderr.puts(message)
+          end
+
           if loaded? || dependent == :destroy
             delete_or_destroy(load_target, dependent)
           else
