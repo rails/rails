@@ -33,7 +33,7 @@ group :test do
   end
 
   platforms :mri_19, :mri_20 do
-    gem 'debugger' if !ENV['TRAVIS']
+    gem 'debugger'
   end
 
   gem 'benchmark-ips'
