@@ -29,6 +29,11 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert @visitor.valid?(:create), 'visitor should be valid'
   end
 
+  test "nil confirmation" do
+    @user.password = "hunter2"
+    assert !@user.valid?(:create), 'user should be invalid'
+  end
+
   test "blank password doesn't override previous password" do
     @user.password = 'test'
     @user.password = ''
