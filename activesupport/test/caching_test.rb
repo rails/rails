@@ -1,7 +1,7 @@
 require 'logger'
 require 'abstract_unit'
 require 'active_support/cache'
-require 'dependecies_test_helpers'
+require 'dependencies_test_helpers'
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_entry_legacy_optional_ivars
@@ -564,7 +564,7 @@ module LocalCacheBehavior
 end
 
 module AutoloadingCacheBehavior
-  include DependeciesTestHelpers
+  include DependenciesTestHelpers
   def test_simple_autoloading
     with_autoloading_fixtures do
       @cache.write('foo', E.new)
