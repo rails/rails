@@ -853,10 +853,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, firm.clients_of_firm(true).size
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
-    # Should not be destroyed since the association is not dependent.
-    assert_nothing_raised do
-      assert_nil Client.find(client_id).firm
-    end
+    # Should be deleted since clear calls delete_all
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_clearing_updates_counter_cache
@@ -881,14 +879,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_id = firm.dependent_clients_of_firm.first.id
     assert_equal 1, firm.dependent_clients_of_firm.size
 
-    # :dependent means destroy is called on each client
+    # :dependent options is ignored since method is called on association
     firm.dependent_clients_of_firm.clear
 
     assert_equal 0, firm.dependent_clients_of_firm.size
     assert_equal 0, firm.dependent_clients_of_firm(true).size
-    assert_equal [client_id], Client.destroyed_client_ids[firm.id]
+    assert_equal [], Client.destroyed_client_ids[firm.id]
 
-    # Should be destroyed since the association is dependent.
+    # Should be deleted since clear calls delete_all
     assert_nil Client.find_by_id(client_id)
   end
 
@@ -1683,8 +1681,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert post.taggings_with_delete_all.count > 0
     assert !post.taggings_with_delete_all.loaded?
 
-    # 2 queries: one DELETE and another to update the counter cache
-    assert_queries(2) do
+    # 3 queries: one SELECT to call the before_remove/after_remove callbacks, one DELETE and another to update the counter cache
+    assert_queries(3) do
       post.taggings_with_delete_all.delete_all
     end
   end
