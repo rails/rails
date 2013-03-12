@@ -1524,4 +1524,17 @@ class RelationTest < ActiveRecord::TestCase
     assert merged.to_sql.include?("wtf")
     assert merged.to_sql.include?("bbq")
   end
+
+  test "respond to .each delegated method" do
+    assert Topic.respond_to?(:each)
+  end
+
+  test ".each does not raise any exception" do
+    assert_nothing_raised { Post.each }
+  end
+
+  test ".each returns an Enumerator" do
+    each = Post.each
+    assert_equal each.class, Enumerator
+  end
 end
