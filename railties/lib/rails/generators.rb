@@ -315,5 +315,7 @@ module Rails
         paths.uniq!
         paths
       end
+
+    ActiveSupport.run_load_hooks(:generators, Rails::Generators)
   end
 end
