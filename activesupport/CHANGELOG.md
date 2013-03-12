@@ -1,3 +1,7 @@
+*   Added Date#all_week/month/quarter/year for generating date ranges.
+
+    *Dmitriy Meremyanin*
+
 *   Add `Time.zone.yesterday` and `Time.zone.tomorrow`. These follow the
     behavior of Ruby's `Date.yesterday` and `Date.tomorrow` but return localized
     versions, similar to how `Time.zone.today` has returned a localized version
