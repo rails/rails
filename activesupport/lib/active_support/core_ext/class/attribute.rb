@@ -73,9 +73,6 @@ class Class
     instance_reader = instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
 
-    # We use class_eval here rather than define_method because class_attribute
-    # may be used in a performance sensitive context therefore the overhead that
-    # define_method introduces may become significant.
     attrs.each do |name|
       define_singleton_method(name) { nil }
       define_singleton_method("#{name}?") { !!public_send(name) }
