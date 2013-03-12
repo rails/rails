@@ -198,7 +198,7 @@ module ActiveRecord
     #                                     { title: 'Bar' } ])
     #
     # The keys of the hash which is the value for +:posts_attributes+ are
-    # ignores in this case.
+    # ignored in this case.
     # However, it is not allowed to use +'id'+ or +:id+ for one of
     # such keys, otherwise the hash will be wrapped in an array and
     # interpreted as an attribute hash for a single post.
