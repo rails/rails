@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'pp'
 require 'active_support/dependencies'
-require 'dependecies_test_helpers'
+require 'dependencies_test_helpers'
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -20,7 +20,7 @@ class DependenciesTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
   end
 
-  include DependeciesTestHelpers
+  include DependenciesTestHelpers
 
   def test_depend_on_path
     skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'

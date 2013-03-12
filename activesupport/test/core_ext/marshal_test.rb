@@ -1,10 +1,10 @@
 require 'abstract_unit'
 require 'active_support/core_ext/marshal'
-require 'dependecies_test_helpers'
+require 'dependencies_test_helpers'
 
 class MarshalTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
-  include DependeciesTestHelpers
+  include DependenciesTestHelpers
 
   def teardown
     ActiveSupport::Dependencies.clear
