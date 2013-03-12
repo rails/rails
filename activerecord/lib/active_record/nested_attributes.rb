@@ -115,10 +115,10 @@ module ActiveRecord
     # hashes if they fail to pass your criteria. For example, the previous
     # example could be rewritten as:
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
-    #    end
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
+    #   end
     #
     #   params = { member: {
     #     name: 'joe', posts_attributes: [
@@ -135,19 +135,19 @@ module ActiveRecord
     #
     # Alternatively, :reject_if also accepts a symbol for using methods:
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: :new_record?
-    #    end
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: :new_record?
+    #   end
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: :reject_posts
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: :reject_posts
     #
-    #      def reject_posts(attributed)
-    #        attributed['title'].blank?
-    #      end
-    #    end
+    #     def reject_posts(attributed)
+    #       attributed['title'].blank?
+    #     end
+    #   end
     #
     # If the hash contains an <tt>id</tt> key that matches an already
     # associated record, the matching record will be modified:
