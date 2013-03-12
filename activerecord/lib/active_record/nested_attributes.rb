@@ -90,8 +90,9 @@ module ActiveRecord
     #     accepts_nested_attributes_for :posts
     #   end
     #
-    # You can now set or update attributes on an associated post model through
-    # the attribute hash.
+    # You can now set or update attributes on the associated posts through
+    # an attribute hash for a member: include the key +:posts_attributes+
+    # with an array of hashes of post attributes as a value.
     #
     # For each hash that does _not_ have an <tt>id</tt> key a new record will
     # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
@@ -182,6 +183,29 @@ module ActiveRecord
     #   member.posts.length # => 2
     #   member.save
     #   member.reload.posts.length # => 1
+    #
+    # Nested attributes for an associated collection can also be passed in
+    # the form of a hash of hashes instead of an array of hashes:
+    #
+    #   Member.create(name:             'joe',
+    #                 posts_attributes: { first:  { title: 'Foo' },
+    #                                     second: { title: 'Bar' } })
+    #
+    # has the same effect as
+    #
+    #   Member.create(name:             'joe',
+    #                 posts_attributes: [ { title: 'Foo' },
+    #                                     { title: 'Bar' } ])
+    #
+    # The keys of the hash which is the value for +:posts_attributes+ are
+    # ignores in this case.
+    # However, it is not allowed to use +'id'+ or +:id+ for one of
+    # such keys, otherwise the hash will be wrapped in an array and
+    # interpreted as an attribute hash for a single post.
+    #
+    # Passing attributes for an associated collection in the form of a hash
+    # of hashes can be used with hashes generated from HTTP/HTML parameters,
+    # where there maybe no natural way to submit an array of hashes.
     #
     # === Saving
     #
