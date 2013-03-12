@@ -7,7 +7,7 @@ class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets
 
   def setup
-    @developer = Developer.first
+    @developer = Developer.find(12)
     @previously_updated_at = @developer.updated_at
   end
 
@@ -28,6 +28,12 @@ class TimestampTest < ActiveRecord::TestCase
     @developer.touch
     
     assert @previously_updated_at != @developer.updated_at
+  end
+
+  def test_touching_a_record_updates_its_timestamp_after_reload
+    @developer.touch
+    
+    assert @previously_updated_at != @developer.reload.updated_at
   end
   
   def test_touching_a_different_attribute

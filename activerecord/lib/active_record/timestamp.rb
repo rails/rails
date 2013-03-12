@@ -26,15 +26,17 @@ module ActiveRecord
     #   product.touch(:designed_at) # updates the designed_at attribute
     def touch(attribute = nil)
       current_time = current_time_from_proper_timezone
+      attrs_to_update = []
 
       if attribute
         write_attribute(attribute, current_time)
+        attrs_to_update << attribute
       else
-        write_attribute('updated_at', current_time) if respond_to?(:updated_at)
-        write_attribute('updated_on', current_time) if respond_to?(:updated_on)
+        write_attribute('updated_at', current_time) and attrs_to_update << 'updated_at' if respond_to?(:updated_at)
+        write_attribute('updated_on', current_time) and attrs_to_update << attribute if respond_to?(:updated_on)
       end
-
-      save!
+      
+      self.class.update_all(attrs_to_update.inject({}){|hash, key| hash[key] = current_time; hash}, { self.class.primary_key => self.id})
     end
 
 

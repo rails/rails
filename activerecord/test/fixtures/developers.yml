@@ -2,7 +2,7 @@ david:
   id: 1
   name: David
   salary: 80000
-
+  
 jamis:
   id: 2
   name: Jamis
@@ -19,3 +19,12 @@ poor_jamis:
   id: 11
   name: Jamis
   salary: 9000
+
+paco:
+  id: 12
+  name: Paco
+  salary: 80000
+  created_at: 2003-07-16t15:28:11.2233+01:00
+  updated_at: 2003-07-16t15:28:11.2233+01:00
+  
+  
