@@ -600,7 +600,7 @@ module ActiveRecord
       end
 
       def disable_extension(name)
-        exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
+        exec_query("DROP EXTENSION IF EXISTS \"#{name}\" CASCADE").tap {
           reload_type_map
         }
       end
