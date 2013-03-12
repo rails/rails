@@ -53,10 +53,19 @@ module ActionController
       unless request.ssl?
         redirect_options = {:protocol => 'https://', :status => :moved_permanently}
         redirect_options.merge!(:host => host) if host
+        redirect_options.merge!(:format => request.params['format']) if request_path_has_format?
         redirect_options.merge!(:params => request.query_parameters)
         flash.keep if respond_to?(:flash)
         redirect_to redirect_options
       end
     end
+
+    private
+
+      def request_path_has_format?
+        format = request.params['format']
+        Mime::Type.lookup_by_extension(format) &&
+        request.path =~ /\.#{format}/ && request.format.send("#{format}?")
+      end
   end
 end

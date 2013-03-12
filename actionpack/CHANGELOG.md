@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* force_ssl adds the format of request to redirected url
+
+  *Angelo Capilleri*
+
 *   Fix incorrectly appended square brackets to a multiple select box
     if an explicit name has been given and it already ends with "[]"
 
