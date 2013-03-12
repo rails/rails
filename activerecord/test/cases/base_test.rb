@@ -1499,6 +1499,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal scope, Bird.uniq
   end
 
+  def test_distinct_delegates_to_scoped
+    scope = stub
+    Bird.stubs(:all).returns(mock(:distinct => scope))
+    assert_equal scope, Bird.distinct
+  end
+
   def test_table_name_with_2_abstract_subclasses
     assert_equal "photos", Photo.table_name
   end

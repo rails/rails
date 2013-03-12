@@ -82,7 +82,7 @@ class FinderTest < ActiveRecord::TestCase
 
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
-    assert Topic.order(:id).uniq.exists?
+    assert Topic.order(:id).distinct.exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result

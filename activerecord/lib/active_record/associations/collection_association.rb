@@ -174,7 +174,7 @@ module ActiveRecord
 
           reflection.klass.count_by_sql(custom_counter_sql)
         else
-          if association_scope.uniq_value
+          if association_scope.distinct_value
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
             count_options[:distinct] = true
@@ -246,14 +246,14 @@ module ActiveRecord
       # +count_records+, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
-          if association_scope.uniq_value
+          if association_scope.distinct_value
             target.uniq.size
           else
             target.size
           end
         elsif !loaded? && !association_scope.group_values.empty?
           load_target.size
-        elsif !loaded? && !association_scope.uniq_value && target.is_a?(Array)
+        elsif !loaded? && !association_scope.distinct_value && target.is_a?(Array)
           unsaved_records = target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
@@ -306,12 +306,13 @@ module ActiveRecord
         end
       end
 
-      def uniq
+      def distinct
         seen = {}
         load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
+      alias uniq distinct
 
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
@@ -352,7 +353,7 @@ module ActiveRecord
         callback(:before_add, record)
         yield(record) if block_given?
 
-        if association_scope.uniq_value && index = @target.index(record)
+        if association_scope.distinct_value && index = @target.index(record)
           @target[index] = record
         else
           @target << record

@@ -341,7 +341,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 5, Account.count(:firm_id)
   end
 
-  def test_count_with_uniq
+  def test_count_with_distinct
+    assert_equal 4, Account.select(:credit_limit).distinct.count
     assert_equal 4, Account.select(:credit_limit).uniq.count
   end
 
