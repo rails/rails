@@ -1,4 +1,4 @@
-module DependeciesTestHelpers
+module DependenciesTestHelpers
   def with_loading(*from)
     old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load
     this_dir = File.dirname(__FILE__)
