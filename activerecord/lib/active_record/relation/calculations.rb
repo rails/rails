@@ -11,7 +11,7 @@ module ActiveRecord
     #   Person.count(:all)
     #   # => performs a COUNT(*) (:all is an alias for '*')
     #
-    #   Person.count(:age, distinct: true)
+    #   Person.distinct.count(:age)
     #   # => counts the number of different age values
     #
     # If +count+ is used with +group+, it returns a Hash whose keys represent the aggregated column,
@@ -199,7 +199,12 @@ module ActiveRecord
       operation = operation.to_s.downcase
 
       # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)
-      distinct = options[:distinct] || self.distinct_value
+      distinct = self.distinct_value
+      if options.has_key?(:distinct)
+        ActiveSupport::Deprecation.warn "The :distinct option for `Relation#count` is deprecated. " \
+          "Please use `Relation#distinct` instead. (eg. `relation.distinct.count`)"
+        distinct = options[:distinct]
+      end
 
       if operation == "count"
         column_name ||= (select_for_count || :all)

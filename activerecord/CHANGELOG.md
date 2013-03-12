@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `:distinct` option for `Relation#count` is deprecated. You
+    should use `Relation#distinct` instead.
+
+    Example:
+
+        # Before
+        Post.select(:author_name).count(distinct: true)
+
+        # After
+        Post.select(:author_name).distinct.count
+
+    *Yves Senn*
+
 *   Rename `Relation#uniq` to `Relation#distinct`. `#uniq` is still
     available as an alias but we encourage to use `#distinct` instead.
     Also `Relation#uniq_value` is aliased to `Relation#distinct_value`,

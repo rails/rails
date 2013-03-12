@@ -174,13 +174,14 @@ module ActiveRecord
 
           reflection.klass.count_by_sql(custom_counter_sql)
         else
+          relation = scope
           if association_scope.distinct_value
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            count_options[:distinct] = true
+            relation = relation.distinct
           end
 
-          value = scope.count(column_name, count_options)
+          value = relation.count(column_name)
 
           limit  = options[:limit]
           offset = options[:offset]
