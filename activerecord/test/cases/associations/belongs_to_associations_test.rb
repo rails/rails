@@ -201,14 +201,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
 
-    sponsor.sponsorable = Member.new :name => "Bert"
+    sponsor.sponsorable = Member.new(:name => "Bert")
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
     assert_equal "members", sponsor.association(:sponsorable).aliased_table_name
   end
 
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
-    member = Member.create :name => "Bert"
+    member = Member.create(:name => "Bert")
     sponsor.sponsorable = member
 
     assert_equal member, sponsor.sponsorable
