@@ -22,6 +22,9 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def setup
     @member = members(:groucho)
+    @organization = organizations(:nsa)
+    @new_organization = organizations(:discordians)
+    @member_detail = MemberDetail.new(:extra_data => 'Extra')
   end
 
   def test_has_one_through_with_has_one
@@ -156,9 +159,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_assigning_to_has_one_through_preserves_decorated_join_record
-    @organization = organizations(:nsa)
     assert_difference 'MemberDetail.count', 1 do
-      @member_detail = MemberDetail.new(:extra_data => 'Extra')
       @member.member_detail = @member_detail
       @member.organization = @organization
     end
@@ -168,11 +169,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_reassigning_has_one_through
-    @organization = organizations(:nsa)
-    @new_organization = organizations(:discordians)
-
     assert_difference 'MemberDetail.count', 1 do
-      @member_detail = MemberDetail.new(:extra_data => 'Extra')
       @member.member_detail = @member_detail
       @member.organization = @organization
     end
@@ -192,8 +189,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_preloading_has_one_through_on_belongs_to
     assert_not_nil @member.member_type
-    @organization = organizations(:nsa)
-    @member_detail = MemberDetail.new
     @member.member_detail = @member_detail
     @member.organization = @organization
     @member_details = assert_queries(3) do
@@ -222,7 +217,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_through_belongs_to_after_destroy
-    @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    
     @member.member_detail = @member_detail
     @member.save!
 
