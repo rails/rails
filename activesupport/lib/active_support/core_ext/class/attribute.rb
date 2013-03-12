@@ -77,38 +77,43 @@ class Class
     # may be used in a performance sensitive context therefore the overhead that
     # define_method introduces may become significant.
     attrs.each do |name|
-      class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def self.#{name}() nil end
-        def self.#{name}?() !!#{name} end
+      define_singleton_method(name) { nil }
+      define_singleton_method("#{name}?") { !!public_send(name) }
 
-        def self.#{name}=(val)
-          singleton_class.class_eval do
-            remove_possible_method(:#{name})
-            define_method(:#{name}) { val }
-          end
+      ivar = "@#{name}"
 
-          if singleton_class?
-            class_eval do
-              remove_possible_method(:#{name})
-              def #{name}
-                defined?(@#{name}) ? @#{name} : singleton_class.#{name}
+      define_singleton_method("#{name}=") do |val|
+        singleton_class.class_eval do
+          remove_possible_method(name)
+          define_method(name) { val }
+        end
+
+        if singleton_class?
+          class_eval do
+            remove_possible_method(name)
+            define_method(name) do
+              if instance_variable_defined? ivar
+                instance_variable_get ivar
+              else
+                singleton_class.send name
               end
             end
           end
-          val
         end
+        val
+      end
 
-        if instance_reader
-          remove_possible_method :#{name}
-          def #{name}
-            defined?(@#{name}) ? @#{name} : self.class.#{name}
-          end
-
-          def #{name}?
-            !!#{name}
+      if instance_reader
+        remove_possible_method name
+        define_method(name) do
+          if instance_variable_defined?(ivar)
+            instance_variable_get ivar
+          else
+            self.class.public_send name
           end
         end
-      RUBY
+        define_method("#{name}?") { !!public_send(name) }
+      end
 
       attr_writer name if instance_writer
     end
