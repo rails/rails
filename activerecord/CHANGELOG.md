@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Delegate `.each` to `.all` for ActiveRecord models.
+
+    Example:
+
+        Model.each { ... }
+        # Same as Model.all.each { ... }
+
+    *Andrey Ognevsky*
+
 *   Promotes `change_column_null` to the migrations API. This macro sets/removes
     `NOT NULL` constraints, and accepts an optional argument to replace existing
     `NULL`s if needed. The adapters for SQLite, MySQL, PostgreSQL, and (at least)

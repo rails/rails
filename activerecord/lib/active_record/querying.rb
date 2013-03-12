@@ -10,6 +10,7 @@ module ActiveRecord
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :references, :none, :to => :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :ids, :to => :all
+    delegate :each, :to => :all
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call
