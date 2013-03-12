@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::TestCase
-  fixtures :customers, :companies, :comments
+  fixtures :customers, :companies, :comments, :binaries
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -70,6 +70,10 @@ class CopyTableTest < ActiveRecord::TestCase
       copied_pk = @connection.primary_key('owners_unconventional')
       assert_equal original_pk, copied_pk
     end
+  end
+
+  def test_copy_table_with_binary_column
+    test_copy_table 'binaries', 'binaries2'
   end
 
 protected

@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix quoting for sqlite migrations using copy_table_contents() with binary
+    columns.
+
+    These would fail with "SQLite3::SQLException: unrecognized token" because
+    the column was not being passed to quote() so the data was not quoted
+    correctly.
+
+    *Matthew M. Boedicker*
+
 *   Promotes `change_column_null` to the migrations API. This macro sets/removes
     `NOT NULL` constraints, and accepts an optional argument to replace existing
     `NULL`s if needed. The adapters for SQLite, MySQL, PostgreSQL, and (at least)

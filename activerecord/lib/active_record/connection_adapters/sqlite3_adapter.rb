@@ -583,9 +583,17 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
           quoted_to = quote_table_name(to)
+
+          raw_column_mappings = Hash[columns(from).map { |c| [c.name, c] }]
+
           exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
             sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
-            sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
+
+            column_values = columns.map do |col|
+              quote(row[column_mappings[col]], raw_column_mappings[col])
+            end
+
+            sql << column_values * ', '
             sql << ')'
             exec_query sql
           end
