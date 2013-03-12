@@ -403,7 +403,7 @@ module ActiveRecord
       end
 
       # Sets or removes a +NOT NULL+ constraint on a column. The +null+ flag
-      # indicates wheter the value can be +NULL+. For example
+      # indicates whether the value can be +NULL+. For example
       #
       #   change_column_null(:users, :nickname, false)
       #
