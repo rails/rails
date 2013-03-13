@@ -281,7 +281,7 @@ root-key because normally it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-`accepts_nested_attributes_for` allows you update and destroy the
+`accepts_nested_attributes_for` allows you to update and destroy
 associated records. This is based on the `id` and `_destroy`
 parameters:
 
