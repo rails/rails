@@ -12,9 +12,11 @@ module ActionDispatch
       HEADER_REGEXP = /\A[A-Za-z-]+\z/
 
       include Enumerable
+      attr_reader :env
 
       def initialize(env = {})
-        @env = env
+        @env = {}
+        merge!(env)
       end
 
       def [](key)
@@ -34,6 +36,18 @@ module ActionDispatch
 
       def each(&block)
         @env.each(&block)
+      end
+
+      def merge(headers_or_env)
+        headers = Http::Headers.new(env.dup)
+        headers.merge!(headers_or_env)
+        headers
+      end
+
+      def merge!(headers_or_env)
+        headers_or_env.each do |key, value|
+          self[env_name(key)] = value
+        end
       end
 
       private

@@ -8,7 +8,23 @@ class HeaderTest < ActiveSupport::TestCase
     )
   end
 
-  test "each" do
+  test "#new with mixed headers and env" do
+    headers = ActionDispatch::Http::Headers.new(
+      "Content-Type" => "application/json",
+      "HTTP_REFERER" => "/some/page",
+      "Host" => "http://test.com")
+
+    assert_equal({"CONTENT_TYPE" => "application/json",
+                  "HTTP_REFERER" => "/some/page",
+                  "HTTP_HOST" => "http://test.com"}, headers.env)
+  end
+
+  test "#env returns the headers as env variables" do
+    assert_equal({"CONTENT_TYPE" => "text/plain",
+                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+  end
+
+  test "#each iterates through the env variables" do
     headers = []
     @headers.each { |pair| headers << pair }
     assert_equal [["CONTENT_TYPE", "text/plain"],
@@ -53,5 +69,32 @@ class HeaderTest < ActiveSupport::TestCase
   test "fetch" do
     assert_equal "text/plain", @headers.fetch("content-type", nil)
     assert_equal "not found", @headers.fetch("not-found", "not found")
+  end
+
+  test "#merge! headers with mutation" do
+    @headers.merge!("Host" => "http://example.test",
+                    "Content-Type" => "text/html")
+    assert_equal({"HTTP_HOST" => "http://example.test",
+                  "CONTENT_TYPE" => "text/html",
+                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+  end
+
+  test "#merge! env with mutation" do
+    @headers.merge!("HTTP_HOST" => "http://first.com",
+                    "CONTENT_TYPE" => "text/html")
+    assert_equal({"HTTP_HOST" => "http://first.com",
+                  "CONTENT_TYPE" => "text/html",
+                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+  end
+
+  test "merge without mutation" do
+    combined = @headers.merge("HTTP_HOST" => "http://example.com",
+                              "CONTENT_TYPE" => "text/html")
+    assert_equal({"HTTP_HOST" => "http://example.com",
+                  "CONTENT_TYPE" => "text/html",
+                  "HTTP_REFERER" => "/some/page"}, combined.env)
+
+    assert_equal({"CONTENT_TYPE" => "text/plain",
+                  "HTTP_REFERER" => "/some/page"}, @headers.env)
   end
 end

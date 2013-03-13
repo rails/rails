@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActionDispatch::IntegrationTest` allows headers and rack env
+    variables to be passed when performing requests.
+    Fixes #6513.
+
+    Example:
+
+        get "/success", {}, "HTTP_REFERER" => "http://test.com/",
+                            "Host" => "http://test.com"
+
+    *Yves Senn*
+
 *   Http::Headers respects headers that are not prefixed with HTTP_
 
     *Yves Senn*
