@@ -1,24 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-
-## Rails 4.0.0.beta1 (February 25, 2013) ##
-*   Change Service pages(404, etc). *Stanislav Sobolev*
-
-*   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
-    and calculates number of functions.
-
-    *Hendy Tanata*
-
-*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed. Consider
-    using application template instead. See this guide for more detail:
-    http://guides.rubyonrails.org/rails_application_templates.html
-
-    *Prem Sichanugrist*
-
-*   fix rake db:* tasks to work with DATABASE_URL and without config/database.yml
-
-    *Terence Lee*
-
 *   Rails now generates a `test/test_helper.rb` file with `fixtures :all` commented out by default,
     since we don't want to force loading all fixtures for user when a single test is run. However,
     fixtures are still going to be loaded automatically for test suites.
@@ -47,9 +28,29 @@
 
     For more information, see `rails test --help`.
 
-    This command will eventually replace `rake test:*` and `rake test` tasks
+    This command will eventually replace `rake test:*` and `rake test` tasks.
 
     *Prem Sichanugrist and Chris Toomey*
+
+*   Improve service pages with new layout (404, etc). *Stanislav Sobolev*
+
+
+## Rails 4.0.0.beta1 (February 25, 2013) ##
+
+*   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
+    and calculates number of functions.
+
+    *Hendy Tanata*
+
+*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed.
+    Consider using application template instead. See this guide for more detail:
+    http://guides.rubyonrails.org/rails_application_templates.html
+
+    *Prem Sichanugrist*
+
+*   Fix `rake db:*` tasks to work with `DATABASE_URL` and without `config/database.yml`.
+
+    *Terence Lee*
 
 *   Add notice message for destroy action in scaffold generator.
 
