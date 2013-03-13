@@ -159,10 +159,10 @@ module ActionDispatch
     # Returns the +String+ full path including params of the last URL requested.
     #
     #    app.get "/articles"
-    #    app.response.fullpath # => "/articles"
+    #    app.request.fullpath # => "/articles"
     #
     #    app.get "/articles?page=2"
-    #    app.response.fullpath # => "/articles?page=2"
+    #    app.request.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
