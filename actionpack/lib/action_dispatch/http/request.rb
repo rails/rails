@@ -156,14 +156,30 @@ module ActionDispatch
       @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
     end
 
+    # Returns the +String+ full path including params of the last URL requested.
+    #
+    #    app.get "/articles"
+    #    app.response.fullpath # => "/articles"
+    #
+    #    app.get "/articles?page=2"
+    #    app.response.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
 
+    # Returns the original request URL as a +String+
+    #
+    #    app.get "/articles?page=2"
+    #    app.request.original_url
+    #    # => "http://www.example.com/articles?page=2"
     def original_url
       base_url + original_fullpath
     end
 
+    # The +String+ MIME type of the request
+    #
+    #    app.get "/articles"
+    #    # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type.to_s
     end
