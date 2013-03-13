@@ -77,7 +77,7 @@ ActiveRecord::Schema.define do
     t.integer     :value
   end
 
-  create_table :test_models, :force => true do |t|
+  create_table :save_models, :force => true do |t|
   t.string :name
   t.string :badness
 end

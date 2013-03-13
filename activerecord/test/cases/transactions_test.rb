@@ -5,7 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
-require 'models/testmodel'
+require 'models/savemodel'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -16,22 +16,37 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test
-    @topic = Topic.new
+    @topic = SaveModel.new
     begin
-      Topic.transaction do
+      SaveModel.transaction do
         @topic.save
       end
     rescue ActiveRecord::StatementInvalid
     end
     p @topic.new_record?
-    assert @topic.new_record?
+    assert @topic.new_record?, "New_record? should return true"
+     # should return true
+  end
+
+   def test2
+    @topic = SaveModel.new
+    begin
+      SaveModel.transaction do
+        @topic.save
+        @topic.save
+        raise "exception"
+      end
+    rescue ActiveRecord::StatementInvalid
+    end
+    p @topic.new_record?
+    assert @topic.new_record?, "New_record? should return true"
      # should return true
   end
 
   def test_save_exclaim_returns_new_record
-    @topic = TestModel.new
+    @topic = SaveModel.new
     begin
-      TestModel.transaction do
+      SaveModel.transaction do
         @topic.save!
       end
     rescue ActiveRecord::StatementInvalid
