@@ -3,14 +3,16 @@ require 'abstract_unit'
 class HeaderTest < ActiveSupport::TestCase
   def setup
     @headers = ActionDispatch::Http::Headers.new(
-      "HTTP_CONTENT_TYPE" => "text/plain"
+      "CONTENT_TYPE" => "text/plain",
+      "HTTP_REFERER" => "/some/page"
     )
   end
 
   def test_each
     headers = []
     @headers.each { |pair| headers << pair }
-    assert_equal [["HTTP_CONTENT_TYPE", "text/plain"]], headers
+    assert_equal [["CONTENT_TYPE", "text/plain"],
+                  ["HTTP_REFERER", "/some/page"]], headers
   end
 
   def test_setter
@@ -19,19 +21,24 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   def test_key?
-    assert @headers.key?('HTTP_CONTENT_TYPE')
-    assert @headers.include?('HTTP_CONTENT_TYPE')
+    assert @headers.key?('CONTENT_TYPE')
+    assert @headers.include?('CONTENT_TYPE')
   end
 
   def test_fetch_with_block
     assert_equal 'omg', @headers.fetch('notthere') { 'omg' }
   end
 
-  test "content type" do
+  test "accessing http header" do
+    assert_equal "/some/page", @headers["Referer"]
+    assert_equal "/some/page", @headers["referer"]
+    assert_equal "/some/page", @headers["HTTP_REFERER"]
+  end
+
+  test "accessing special header" do
     assert_equal "text/plain", @headers["Content-Type"]
     assert_equal "text/plain", @headers["content-type"]
     assert_equal "text/plain", @headers["CONTENT_TYPE"]
-    assert_equal "text/plain", @headers["HTTP_CONTENT_TYPE"]
   end
 
   test "fetch" do

@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Http::Headers respects headers that are not prefixed with HTTP_
+
+    *Yves Senn*
+
 *   Fix incorrectly appended square brackets to a multiple select box
     if an explicit name has been given and it already ends with "[]"
 
