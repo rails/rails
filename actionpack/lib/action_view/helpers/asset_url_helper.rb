@@ -133,6 +133,8 @@ module ActionView
         end
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
+        request = self.request if respond_to?(:request)
+        relative_url_root ||= request.script_name if request
         if relative_url_root
           source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
         end

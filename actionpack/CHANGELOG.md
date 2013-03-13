@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `asset_path` respects SCRIPT_NAME. Fixes #2992. *Yves Senn*
+
 *   Fix incorrectly appended square brackets to a multiple select box
     if an explicit name has been given and it already ends with "[]"
 

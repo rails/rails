@@ -443,8 +443,8 @@ class AssetTagHelperTest < ActionView::TestCase
     [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
       assert_equal 'Rails', image_alt("#{prefix}rails.png")
       assert_equal 'Rails', image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
-      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png") 
-      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")  
+      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png")
+      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")
     end
   end
 
@@ -731,6 +731,16 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
 
     assert @module.request
     assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+  end
+
+  def test_asset_url_with_script_name
+    @module.instance_eval do
+      def request
+        Struct.new(:base_url, :script_name).new("http://www.example.com", "/app")
+      end
+    end
+
+    assert_equal "http://www.example.com/app/foo", @module.asset_url("foo")
   end
 
   def test_asset_url_with_config_asset_host
