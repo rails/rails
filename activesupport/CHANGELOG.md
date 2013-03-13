@@ -1,6 +1,9 @@
 ## unreleased ##
 
-*   No changes.
+*   Fix `ActiveSupport::TimeZone.parse` when time is at a local DST jump.
+    Fixes #9678.
+
+    *Andrew White*
 
 
 ## Rails 3.2.13.rc1 (Feb 17, 2013) ##

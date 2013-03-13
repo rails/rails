@@ -268,13 +268,23 @@ module ActiveSupport
     #   Time.zone.now                 # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #   Time.zone.parse('22:30:00')   # => Fri, 31 Dec 1999 22:30:00 HST -10:00
     def parse(str, now=now)
-      date_parts = Date._parse(str)
-      return if date_parts.blank?
-      time = Time.parse(str, now) rescue DateTime.parse(str)
-      if date_parts[:offset].nil?
-        ActiveSupport::TimeWithZone.new(nil, self, time)
+      parts = Date._parse(str, false)
+      return if parts.empty?
+
+      time = Time.utc(
+        parts.fetch(:year, now.year),
+        parts.fetch(:mon, now.month),
+        parts.fetch(:mday, now.day),
+        parts.fetch(:hour, 0),
+        parts.fetch(:min, 0),
+        parts.fetch(:sec, 0),
+        parts.fetch(:sec_fraction, 0) * 1000000
+      )
+
+      if parts[:offset]
+        TimeWithZone.new(time - parts[:offset], self)
       else
-        time.in_time_zone(self)
+        TimeWithZone.new(nil, self, time)
       end
     end
 
