@@ -359,21 +359,9 @@ module ActiveRecord
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
     def restore_transaction_record_state(force=false) #:nodoc:
-    
       unless @_start_transaction_state.empty?
-        p "in restore"
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        p "after level"
-
-        # if @_start_transaction_state[:level] == 1
-        #   force = true
-        #   p "forced "
-        # end 
-        p @_start_transaction_state[:level]
-        p "new record is"
-        p @_start_transaction_state[:new_record]
         if @_start_transaction_state[:level] <= 1 || force
-          p "in restoring state"
           restore_state = @_start_transaction_state
           was_frozen = restore_state[:frozen?]
           @attributes = @attributes.dup if @attributes.frozen?
