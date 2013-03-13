@@ -363,9 +363,9 @@ module ActiveRecord
 
       private
         def derive_class_name
-          class_name = name.to_s.camelize
+          class_name = name.to_s
           class_name = class_name.singularize if collection?
-          class_name
+          class_name.camelize
         end
 
         def derive_foreign_key
