@@ -21,7 +21,11 @@ module TestUnit # :nodoc:
           return if attributes_names.empty?
 
           attributes_names.map do |name|
-            "#{name}: @#{singular_table_name}.#{name}"
+            if %w(password password_confirmation).include?(name) && attributes.any?(&:password_digest?)
+              "#{name}: 'secret'"
+            else
+              "#{name}: @#{singular_table_name}.#{name}"
+            end
           end.sort.join(', ')
         end
     end
