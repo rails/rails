@@ -1,7 +1,7 @@
 module ActionDispatch
   module Http
     class Headers
-      NON_PREFIX_VARIABLES = %w(
+      CGI_VARIABLES = %w(
         CONTENT_TYPE CONTENT_LENGTH
         HTTPS AUTH_TYPE GATEWAY_INTERFACE
         PATH_INFO PATH_TRANSLATED QUERY_STRING
@@ -9,7 +9,7 @@ module ActionDispatch
         REQUEST_METHOD SCRIPT_NAME
         SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE
       )
-      HEADER_REGEXP = /\A[A-Za-z-]+\z/
+      HTTP_HEADER = /\A[A-Za-z0-9-]+\z/
 
       include Enumerable
       attr_reader :env
@@ -52,16 +52,11 @@ module ActionDispatch
 
       private
       def env_name(key)
-        if key =~ HEADER_REGEXP
-          cgi_name(key)
-        else
-          key
+        key = key.to_s
+        if key =~ HTTP_HEADER
+          key = key.upcase.tr('-', '_')
+          key = "HTTP_" + key unless CGI_VARIABLES.include?(key)
         end
-      end
-
-      def cgi_name(key)
-        key = key.upcase.gsub(/-/, '_')
-        key = "HTTP_#{key}" unless NON_PREFIX_VARIABLES.include?(key)
         key
       end
     end

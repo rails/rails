@@ -38,6 +38,13 @@ class HeaderTest < ActiveSupport::TestCase
     assert_equal "127.0.0.1", @headers["HTTP_HOST"]
   end
 
+  test "headers can contain numbers" do
+    @headers["Content-MD5"] = "Q2hlY2sgSW50ZWdyaXR5IQ=="
+
+    assert_equal "Q2hlY2sgSW50ZWdyaXR5IQ==", @headers["Content-MD5"]
+    assert_equal "Q2hlY2sgSW50ZWdyaXR5IQ==", @headers["HTTP_CONTENT_MD5"]
+  end
+
   test "set new env variables" do
     @headers["HTTP_HOST"] = "127.0.0.1"
 
@@ -96,5 +103,25 @@ class HeaderTest < ActiveSupport::TestCase
 
     assert_equal({"CONTENT_TYPE" => "text/plain",
                   "HTTP_REFERER" => "/some/page"}, @headers.env)
+  end
+
+  test "env variables with . are not modified" do
+    headers = ActionDispatch::Http::Headers.new
+    headers.merge! "rack.input" => "",
+     "rack.request.cookie_hash" => "",
+     "action_dispatch.logger" => ""
+
+    assert_equal(["action_dispatch.logger",
+                  "rack.input",
+                  "rack.request.cookie_hash"], headers.env.keys.sort)
+  end
+
+  test "symbols are treated as strings" do
+    headers = ActionDispatch::Http::Headers.new(:SERVER_NAME => "example.com",
+                                                "HTTP_REFERER" => "/",
+                                                :Host => "test.com")
+    assert_equal "example.com", headers["SERVER_NAME"]
+    assert_equal "/", headers[:HTTP_REFERER]
+    assert_equal "test.com", headers["HTTP_HOST"]
   end
 end
