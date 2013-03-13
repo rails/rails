@@ -1,4 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
+*   After extraction of mass-assignment attributes (which protects [id, type]
+    by default) we can pass id to update_attributes and it will update
+    another record because id will be used in where statement. We never have
+    to change id in where statement because we try to set/replace fields for
+    already loaded record but we have to try to set new id for that record.
+
+    *Dmitry Vorotilin*
 
 *   Models with multiple counter cache associations now update correctly on destroy.
     See #7706.

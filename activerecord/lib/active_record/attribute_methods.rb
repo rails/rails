@@ -348,7 +348,7 @@ module ActiveRecord
     # Filters the primary keys and readonly attributes from the attribute names.
     def attributes_for_update(attribute_names)
       attribute_names.select do |name|
-        column_for_attribute(name) && !pk_attribute?(name) && !readonly_attribute?(name)
+        column_for_attribute(name) && !readonly_attribute?(name)
       end
     end
 
