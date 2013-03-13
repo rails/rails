@@ -34,7 +34,7 @@ module ActiveSupport
         acl = extract_acl(options)
 
         DRb.install_acl(acl)
-        DRb.start_service(@uri_to_set, ServiceFacory.instance) # what if call second time?
+        DRb.start_service(@uri_to_set, ServiceFactory.instance) # what if call second time?
 
         controller = ServerControlService.instance
         controller.server = self
@@ -87,7 +87,7 @@ module ActiveSupport
 
     # The front object for out DRb server
     # It's actually a service factory, and currently it provide 2 service
-    class ServiceFacory
+    class ServiceFactory
       include Singleton
 
       def get_server_control_service
@@ -115,9 +115,9 @@ module ActiveSupport
     class MessageService
       include DRbUndumped
 
-      def send_message(message)
+      def send_message(message, debug)
         #TODO send msg using SSE
-        #puts "[##{Process.pid}]now push data to browser, data: \"#{message}\""
+        p message if debug
       end
     end
 
@@ -237,13 +237,13 @@ module ActiveSupport
       #
       # message  - An arbitrary object to carry message
       #
-      def send_message(message)
+      def send_message(message, debug = false)
         raise RuntimeError, 'call find_server first' unless @server_uri
 
         services = DRbObject.new_with_uri @server_uri
         
         msg = services.get_message_service
-        msg.send_message(message)
+        msg.send_message(message, debug)
       end
 
       # Public: Check if the message server is started in this host
