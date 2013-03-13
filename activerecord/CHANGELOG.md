@@ -125,7 +125,7 @@
 
     *Aaron Weiner*
 
-*   Warn when `rake db:structure:dump` with a mysl database and
+*   Warn when `rake db:structure:dump` with a MySQL database and
     `mysqldump` is not in the PATH or fails.
     Fixes #9518.
 
