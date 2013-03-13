@@ -1,32 +1,41 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class HeaderTest < ActiveSupport::TestCase
-  def setup
+  setup do
     @headers = ActionDispatch::Http::Headers.new(
       "CONTENT_TYPE" => "text/plain",
       "HTTP_REFERER" => "/some/page"
     )
   end
 
-  def test_each
+  test "each" do
     headers = []
     @headers.each { |pair| headers << pair }
     assert_equal [["CONTENT_TYPE", "text/plain"],
                   ["HTTP_REFERER", "/some/page"]], headers
   end
 
-  def test_setter
-    @headers['foo'] = "bar"
-    assert_equal "bar", @headers['foo']
+  test "set new headers" do
+    @headers["Host"] = "127.0.0.1"
+
+    assert_equal "127.0.0.1", @headers["Host"]
+    assert_equal "127.0.0.1", @headers["HTTP_HOST"]
   end
 
-  def test_key?
-    assert @headers.key?('CONTENT_TYPE')
-    assert @headers.include?('CONTENT_TYPE')
+  test "set new env variables" do
+    @headers["HTTP_HOST"] = "127.0.0.1"
+
+    assert_equal "127.0.0.1", @headers["Host"]
+    assert_equal "127.0.0.1", @headers["HTTP_HOST"]
   end
 
-  def test_fetch_with_block
-    assert_equal 'omg', @headers.fetch('notthere') { 'omg' }
+  test "key?" do
+    assert @headers.key?("CONTENT_TYPE")
+    assert @headers.include?("CONTENT_TYPE")
+  end
+
+  test "fetch with block" do
+    assert_equal "omg", @headers.fetch("notthere") { "omg" }
   end
 
   test "accessing http header" do
@@ -43,6 +52,6 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "fetch" do
     assert_equal "text/plain", @headers.fetch("content-type", nil)
-    assert_equal "not found", @headers.fetch('not-found', 'not found')
+    assert_equal "not found", @headers.fetch("not-found", "not found")
   end
 end

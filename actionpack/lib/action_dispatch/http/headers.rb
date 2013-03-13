@@ -14,37 +14,41 @@ module ActionDispatch
       include Enumerable
 
       def initialize(env = {})
-        @headers = env
+        @env = env
       end
 
-      def [](header_name)
-        @headers[env_name(header_name)]
+      def [](key)
+        @env[env_name(key)]
       end
 
-      def []=(k,v); @headers[k] = v; end
-      def key?(k); @headers.key? k; end
+      def []=(key, value)
+        @env[env_name(key)] = value
+      end
+
+      def key?(key); @env.key? key; end
       alias :include? :key?
 
-      def fetch(header_name, *args, &block)
-        @headers.fetch env_name(header_name), *args, &block
+      def fetch(key, *args, &block)
+        @env.fetch env_name(key), *args, &block
       end
 
       def each(&block)
-        @headers.each(&block)
+        @env.each(&block)
       end
 
       private
-
-      # Converts a HTTP header name to an environment variable name if it is
-      # not contained within the headers hash.
-      def env_name(header_name)
-        @headers.include?(header_name) ? header_name : cgi_name(header_name)
+      def env_name(key)
+        if key =~ HEADER_REGEXP
+          cgi_name(key)
+        else
+          key
+        end
       end
 
-      def cgi_name(k)
-        k = k.upcase.gsub(/-/, '_')
-        k = "HTTP_#{k.upcase.gsub(/-/, '_')}" unless NON_PREFIX_VARIABLES.include?(k)
-        k
+      def cgi_name(key)
+        key = key.upcase.gsub(/-/, '_')
+        key = "HTTP_#{key}" unless NON_PREFIX_VARIABLES.include?(key)
+        key
       end
     end
   end
