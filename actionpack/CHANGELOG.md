@@ -1,13 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `ActionDispatch::IntegrationTest` allows headers and rack env
+*   Integration and functional tests allow headers and rack env
     variables to be passed when performing requests.
     Fixes #6513.
 
     Example:
 
+        # integration test
         get "/success", {}, "HTTP_REFERER" => "http://test.com/",
-                            "Host" => "http://test.com"
+                            "Accepts" => "text/plain, text/html"
+
+        # functional test
+        @request.headers["Accepts"] = "text/plain, text/html"
 
     *Yves Senn*
 
