@@ -12,6 +12,11 @@
 
     *Juan M. Cuello + Dembskiy Alexander*
 
+*   Prevent mutation of AR collections during Marshal#dump. This caused breakage
+    when storing model objects in session or cache, among other things.
+
+    *Mack Earnhardt*
+
 *   Reload the association target if it's stale. `@stale_state` should be nil
     when a model isn't saved.
     Fixes #7526.

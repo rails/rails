@@ -905,4 +905,26 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
     assert_equal [tags(:general)], post.reload.tags
   end
+
+  def test_marshal_unsaved_with_has_many_through
+    dump1 = dump2 = nil
+    post_body = "Frist Toast #{SecureRandom.hex}"
+
+    post = posts(:welcome)
+
+    assert_no_queries do
+      post.comments.build(:body => post_body)
+      person = Person.new(:first_name => "Gaga")
+      person.posts << post
+
+      dump1 = Marshal.dump(person)
+      dump2 = Marshal.dump(person)
+    end
+
+    assert_equal dump1, dump2
+
+    loaded_person = Marshal.load(dump1)
+    assert_equal "Gaga", loaded_person.first_name
+    assert loaded_person.posts.first.comments.detect{|c| c.body == post_body}
+  end
 end
