@@ -232,6 +232,22 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2012, 5, 28, 7, 0, 0), twz.utc
   end
 
+  def test_parse_doesnt_use_local_dst
+    with_env_tz 'US/Eastern' do
+      zone = ActiveSupport::TimeZone['UTC']
+      twz = zone.parse('2013-03-10 02:00:00')
+      assert_equal Time.utc(2013, 3, 10, 2, 0, 0), twz.time
+    end
+  end
+
+  def test_parse_handles_dst_jump
+    with_env_tz 'US/Eastern' do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      twz = zone.parse('2013-03-10 02:00:00')
+      assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
+    end
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get('America/New_York')
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
