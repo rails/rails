@@ -37,7 +37,7 @@ module Rails
     #   class MyNewApp < Rails::Application
     #   end
     #
-    #   Rails.application = MyNewApp.new do |config|
+    #   MyNewApp.new do
     #     config.some_configuration = "some configuration"
     #   end
     #
@@ -67,6 +67,18 @@ module Rails
         require 'rails/backtrace_cleaner'
         Rails::BacktraceCleaner.new
       end
+    end
+
+    # This method stores the rake tasks for the main Rails application.
+    # Whenever a new application is configured, the new rake tasks are
+    # sent to this method.
+    #
+    # The +@rake_tasks+ variable serves as a global store of all the rake
+    # tasks available to any application that has been configured.
+    def rake_tasks(&blk)
+      @rake_tasks ||= []
+      @rake_tasks << blk if blk
+      @rake_tasks
     end
 
     def root
