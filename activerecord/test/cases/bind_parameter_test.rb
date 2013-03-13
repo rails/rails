@@ -23,8 +23,6 @@ module ActiveRecord
       @listener   = LogListener.new
       @pk         = Topic.columns.find { |c| c.primary }
       ActiveSupport::Notifications.subscribe('sql.active_record', @listener)
-
-      skip_if_prepared_statement_caching_is_not_supported
     end
 
     def teardown
@@ -32,6 +30,8 @@ module ActiveRecord
     end
 
     def test_binds_are_logged
+      return skip_bind_parameter_test unless supports_statement_cache?
+
       sub   = @connection.substitute_at(@pk, 0)
       binds = [[@pk, 1]]
       sql   = "select * from topics where id = #{sub}"
@@ -43,6 +43,8 @@ module ActiveRecord
     end
 
     def test_find_one_uses_binds
+      return skip_bind_parameter_test unless supports_statement_cache?
+
       Topic.find(1)
       binds = [[@pk, 1]]
       message = @listener.calls.find { |args| args[4][:binds] == binds }
@@ -50,6 +52,8 @@ module ActiveRecord
     end
 
     def test_logs_bind_vars
+      return skip_bind_parameter_test unless supports_statement_cache?
+
       pk = Topic.columns.find { |x| x.primary }
 
       payload = {
@@ -82,8 +86,12 @@ module ActiveRecord
 
     private
 
-    def skip_if_prepared_statement_caching_is_not_supported
-      return skip('prepared statement caching is not supported') unless @connection.supports_statement_cache?
+    def skip_bind_parameter_test
+      skip('prepared statement caching is not supported')
+    end
+
+    def supports_statement_cache?
+      @connection.supports_statement_cache?
     end
   end
 end
