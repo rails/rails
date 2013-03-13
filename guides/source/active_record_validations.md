@@ -566,8 +566,8 @@ If you validate the absence of an object associated via a `has_one` or
 `has_many` relationship, it will check that the object is neither `present?` nor
 `marked_for_destruction?`.
 
-Since `false.present?` is false, if you want to validate the presence of a boolean
-field you should use `validates :field_name, inclusion: { in: [true, false] }`.
+Since `false.present?` is false, if you want to validate the absence of a boolean
+field you should use `validates :field_name, exclusion: { in: [true, false] }`.
 
 The default error message is _"must be blank"_.
 
