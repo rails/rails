@@ -1,22 +1,20 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
-
 <% unless attributes.empty? -%>
-one:
+<% %w(one two).each do |name| %>
+<%= name %>:
 <% attributes.each do |attribute| -%>
+  <%- if attribute.password_digest? -%>
+  password_digest: <%%= BCrypt::Password.create('secret') %>
+  <%- else -%>
   <%= yaml_key_value(attribute.column_name, attribute.default) %>
+  <%- end -%>
   <%- if attribute.polymorphic? -%>
   <%= yaml_key_value("#{attribute.name}_type", attribute.human_name) %>
   <%- end -%>
 <% end -%>
-
-two:
-<% attributes.each do |attribute| -%>
-  <%= yaml_key_value(attribute.column_name, attribute.default) %>
-  <%- if attribute.polymorphic? -%>
-  <%= yaml_key_value("#{attribute.name}_type", attribute.human_name) %>
-  <%- end -%>
 <% end -%>
 <% else -%>
+
 # This model initially had no columns defined.  If you add columns to the
 # model remove the '{}' from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below

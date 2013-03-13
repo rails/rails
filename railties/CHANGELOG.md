@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add support for generate scaffold password:digest
+
+    * adds password_digest attribute to the migration
+    * adds has_secure_password to the model
+    * adds password and password_confirmation password_fields to _form.html
+    * omits password from index.html and show.html
+    * adds password and password_confirmation to the controller
+    * adds unencrypted password and password_confirmation to the controller test
+    * adds encrypted password_digest to the fixture
+
+    *Sam Ruby*
+
 *   Rails now generates a `test/test_helper.rb` file with `fixtures :all` commented out by default,
     since we don't want to force loading all fixtures for user when a single test is run. However,
     fixtures are still going to be loaded automatically for test suites.
