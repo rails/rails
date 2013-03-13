@@ -179,6 +179,7 @@ module ActionDispatch
     # The +String+ MIME type of the request
     #
     #    app.get "/articles"
+    #    app.request.media_type
     #    # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type.to_s
