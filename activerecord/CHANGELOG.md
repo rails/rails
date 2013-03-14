@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
+
+    Fix #8856.
+
+    *Chris Thompson*
+
 *   Fix quoting for sqlite migrations using copy_table_contents() with binary
     columns.
 
