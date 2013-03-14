@@ -1,3 +1,10 @@
+*   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
+    in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
+    `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
+    `Hash#deep_symbolize_keys!`.
+
+    *OZAWA Sakuro*
+
 *   Override `Time.at` to support the passing of Time-like values when called with a single argument.
 
     *Andrew White*
