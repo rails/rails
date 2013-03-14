@@ -185,7 +185,7 @@ module ActiveRecord
         assert_not_nil connection
         threads = []
         4.times do |i|
-          threads << Thread.new(i) do |pool_count|
+          threads << Thread.new(i) do
             connection = pool.connection
             assert_not_nil connection
             connection.close
