@@ -30,11 +30,9 @@ module ApplicationTests
       app_file "config/environment.rb", <<-RUBY
         SuperMiddleware = Struct.new(:app)
 
-        AppTemplate::Application.configure do
+        AppTemplate::Application.new do
           config.middleware.use SuperMiddleware
-        end
-
-        AppTemplate::Application.initialize!
+        end.initialize!
       RUBY
 
       assert_match("SuperMiddleware", Dir.chdir(app_path){ `rake middleware` })

@@ -143,7 +143,7 @@ module TestHelpers
       app.config.active_support.deprecation = :log
 
       yield app if block_given?
-      app.initialize!
+      app.new.initialize!
 
       app.routes.draw do
         get "/" => "omg#index"

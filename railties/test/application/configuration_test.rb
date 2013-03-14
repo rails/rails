@@ -158,7 +158,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.initialize!
+      assert AppTemplate::Application.new.initialize!
     end
 
     test "application is always added to eager_load namespaces" do
@@ -330,7 +330,7 @@ module ApplicationTests
     end
 
     test "request forgery token param can be changed" do
-      make_basic_app do
+      make_basic_app do |app|
         app.config.action_controller.request_forgery_protection_token = '_xsrf_token_here'
       end
 

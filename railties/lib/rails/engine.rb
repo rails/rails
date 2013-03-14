@@ -406,6 +406,20 @@ module Rails
         end
         nil
       end
+
+      def find_root_with_flag(flag, default=nil) #:nodoc:
+        root_path = called_from
+
+        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
+          parent = File.dirname(root_path)
+          root_path = parent != root_path && parent
+        end
+
+        root = File.exist?("#{root_path}/#{flag}") ? root_path : default
+        raise "Could not find root path for #{self}" unless root
+
+        Pathname.new File.realpath root
+      end
     end
 
     delegate :middleware, :root, :paths, to: :config
@@ -528,7 +542,7 @@ module Rails
 
     # Define the configuration object for the engine.
     def config
-      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
+      @config ||= Engine::Configuration.new(self.class.find_root_with_flag("lib"))
     end
 
     # Load data from db/seeds.rb file. It can be used in to load engines'
@@ -647,20 +661,6 @@ module Rails
 
     def has_migrations? #:nodoc:
       paths["db/migrate"].existent.any?
-    end
-
-    def find_root_with_flag(flag, default=nil) #:nodoc:
-      root_path = self.class.called_from
-
-      while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
-        parent = File.dirname(root_path)
-        root_path = parent != root_path && parent
-      end
-
-      root = File.exist?("#{root_path}/#{flag}") ? root_path : default
-      raise "Could not find root path for #{self}" unless root
-
-      Pathname.new File.realpath root
     end
 
     def default_middleware_stack #:nodoc:

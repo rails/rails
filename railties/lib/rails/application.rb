@@ -88,13 +88,40 @@ module Rails
         Rails.config
       end
 
-      # Send the this method to the global set of rake tasks for the main Rails
-      # app. Rake tasks are shared across applications should they should be
-      # kept in the +@rake_tasks+ instance variable in the +Rails+ module.
+      # Send this call to the global set of rake tasks for the main Rails
+      # app. Rake tasks are shared across applications and so they should be
+      # kept in the +@rake_tasks+ variable in the +Rails+ module.
+      #
       # To do this, we send any +rake_tasks+ that are obtained from configuring
       # a particular app up to the +Rails.rake_tasks+ method.
+      #
+      # This method overwrites the rake_tasks in the Rails::Railtie superclass
+      # so that the rake tasks are kept in the Rails module.
       def rake_tasks(&block)
         Rails.rake_tasks(&block)
+      end
+
+      def paths
+        Rails.config.paths
+      end
+
+      # This is for backwards compatibility, so that one can still defined a
+      # subclass of Rails.application and initialize on that class. For example:
+      #
+      #   class MyApp < Rails::Application
+      #   end
+      #   MyApp.initialize!
+      #
+      # The preferred method for initializing an application, however, is to
+      # call +MyApp.new+, however.
+      def initialize!
+        if Rails.application
+          raise "You have already initializated a Rails::Application. You may only call the initialize! method once. Use Rails::Application.new to create a new application instead."
+        else
+          app = new
+          Rails.application = app
+          app.initialize!
+        end
       end
 
       # Makes the +new+ method public.
@@ -121,26 +148,50 @@ module Rails
       @ordered_railties = nil
       @railties         = nil
 
-      # If +Rails.application+ is already defined then the base configuration
-      # of the new application will be the global +Rails.config+ that was
-      # defined by the first application.
+      # If a block is provided and there is not already +Rails.application+
+      # defined, then we overwrite the previous global rails config file
+      # with a new configuration what will be configured by the block provided.
       #
-      # If +Rails.application+ is not defined, we set the global rails config
-      # for all following applications (unless +Rails.config+ is reset to
-      # something else). This is also when we run the :before_configuration
-      # hooks and when we add lib to the load path of the application.
-      if Rails.application
-        @config = Rails.config
-      else
-        ActiveSupport.run_load_hooks(:before_configuration, self)
-        @config = Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
-
+      # Otherwise we use the global config that is already defined. This is
+      # mostly for backwards compatibility. For example, this means we can 
+      # still support the old way of defining applications in the
+      # config/application.rb file like so:
+      #
+      #   class Application < Rails::Application
+      #     config.time_zone = 'Eastern Time (US & Canada)'
+      #   end
+      #   Application.new
+      #
+      # However, when a block is given in the new application, the
+      # configuration in the block will overwrite the configuration defined
+      # in the class. For example:
+      #
+      #   class Application < Rails::Application
+      #     config.time_zone = 'Eastern Time (US & Canada)'
+      #   end
+      #   Application.new do
+      #     config.time_zone = 'Pacific Time (US & Canada)'
+      #   end
+      #
+      # In the above, the resulting time zone would be given by
+      # config.time_zone = 'Pacfic Time (US & Canada)' and the configuration
+      # defined in the class would be completed erased.
+      if block_given? && !Rails.application
+        @config = Application::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
         Rails.config = @config
+      else
+        @config = Rails.config
+      end
+
+      # Run the load hooks and set the main Rails app if there isn't already
+      # a +Rails.application+ defined.
+      unless Rails.application
+        ActiveSupport.run_load_hooks(:before_configuration, self)
         Rails.application = self
         add_lib_to_load_path!
       end
 
-      class_eval(&block)
+      instance_eval(&block) if block_given?
     end
 
     # Returns true if the application is initialized.
@@ -279,8 +330,39 @@ module Rails
       Finisher.initializers_for(self)
     end
 
-    def config #:nodoc:
+    # Returns the rails global application configuration in +Rails.config+.
+    #
+    # When configuring an application, you will actually be configuring the
+    # global configuration inside of the Rails module.
+    def config
       Rails.config
+    end
+
+    # Sends any runner called in the +instance_eval+ of a new application up
+    # to the +runner+ method defined in Rails::Railtie.
+    def runner(&blk)
+      self.class.runner(&blk)
+    end
+
+    # Sends the +isolate_namespace+ method up to the class method.
+    def isolate_namespace(mod)
+      self.class.isolate_namespace(mod)
+    end
+
+    # Sends rake tasks to the class method. The class method overwrites the
+    # Rails::Railtie definition of +rake_tasks+ and sends the rake tasks
+    # up the the Rails module. This prevents any particular application from
+    # storing their own rake tasks and makes sure that the rake tasks are
+    # global.
+    def rake_tasks(&block)
+      self.class.rake_tasks(&block)
+    end
+
+    # Sends the initializers to the +initializer+ method defined in the
+    # Rails::Initializable module. Each Rails::Application class has its own
+    # set of initializers, as defined by the Initializable module.
+    def initializer(name, opts={}, &block)
+      self.class.initializer(name, opts, &block)
     end
 
     def to_app #:nodoc:
