@@ -89,6 +89,8 @@ ActiveRecord::Schema.define do
     t.integer :pirate_id
   end
 
+  add_index :birds, [:name, :color], :unique => true, :name => 'unique_birds_index'
+
   create_table :books, :force => true do |t|
     t.integer :author_id
     t.column :name, :string

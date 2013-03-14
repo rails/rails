@@ -320,15 +320,20 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          records_to_destroy = []
-          records.each do |record|
-            next if record.destroyed?
+          not_destroyed_records = records.delete_if(&:destroyed?)
 
+          records_to_destroy, records_to_save = not_destroyed_records.partition do |record|
+            autosave && record.marked_for_destruction?
+          end
+
+          records_to_destroy.each do |record|
+            association.destroy(record)
+          end
+
+          records_to_save.each do |record|
             saved = true
 
-            if autosave && record.marked_for_destruction?
-              records_to_destroy << record
-            elsif autosave != false && (@new_record_before_save || record.new_record?)
+            if autosave != false && (@new_record_before_save || record.new_record?)
               if autosave
                 saved = association.insert_record(record, false)
               else
@@ -339,10 +344,6 @@ module ActiveRecord
             end
 
             raise ActiveRecord::Rollback unless saved
-          end
-
-          records_to_destroy.each do |record|
-            association.destroy(record)
           end
         end
 

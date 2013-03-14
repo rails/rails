@@ -754,6 +754,18 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_equal before, @pirate.reload.birds
   end
 
+  def test_should_destroy_marked_childs_before_new_child_savings
+    @pirate.birds.create! name: 'Parrot', color: 'Colorful'
+    @pirate.birds.create! name: 'Sparrow', color: 'Asphalt'
+
+    @pirate.birds.each(&:mark_for_destruction)
+
+    @pirate.birds.build name: 'Parrot', color: 'Colorful'
+    @pirate.birds.build name: 'Sparrow', color: 'Asphalt'
+
+    @pirate.save!
+  end
+
   def test_when_new_record_a_child_marked_for_destruction_should_not_affect_other_records_from_saving
     @pirate = @ship.build_pirate(:catchphrase => "Arr' now I shall keep me eye on you matey!") # new record
 
