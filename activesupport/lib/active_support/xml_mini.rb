@@ -106,7 +106,7 @@ module ActiveSupport
         else
           value.call(merged_options, key.to_s.singularize)
         end
-      elsif value.respond_to?(:to_xml)
+      elsif value.respond_to?(:to_xml) && !options[:skip_to_xml]
         value.to_xml(merged_options)
       else
         type_name ||= TYPE_NAMES[value.class.name]
