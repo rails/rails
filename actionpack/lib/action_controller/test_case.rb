@@ -451,37 +451,57 @@ module ActionController
 
       end
 
-      # Executes a request simulating GET HTTP method and set/volley the response
+      # Simulate a GET request with the given parameters.
+      #
+      # - +action+: The controller action to call
+      # - +parameters+: The HTTP parameters that you want to pass. This may
+      #   be +nil+,
+      #   a Hash, or a String that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or
+      #   <tt>multipart/form-data</tt>).
+      # - +session+: A Hash of parameters to store in the session. This my be +nil+.
+      # - +flash+: A Hash of parameters to store in the flash. This my be +nil+.
+      #
+      # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
+      # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
+      # Note that the request method is not verified. The different methods are
+      # available to make the tests more expressive.
       def get(action, *args)
         process(action, "GET", *args)
       end
 
-      # Executes a request simulating POST HTTP method and set/volley the response
+      # Simulate a POST request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def post(action, *args)
         process(action, "POST", *args)
       end
 
-      # Executes a request simulating PATCH HTTP method and set/volley the response
+      # Simulate a PATCH request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def patch(action, *args)
         process(action, "PATCH", *args)
       end
 
-      # Executes a request simulating PUT HTTP method and set/volley the response
+      # Simulate a PUT request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def put(action, *args)
         process(action, "PUT", *args)
       end
 
-      # Executes a request simulating DELETE HTTP method and set/volley the response
+      # Simulate a DELETE request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def delete(action, *args)
         process(action, "DELETE", *args)
       end
 
-      # Executes a request simulating HEAD HTTP method and set/volley the response
+      # Simulate a HEAD request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def head(action, *args)
         process(action, "HEAD", *args)
       end
 
-      # Executes a request simulating OPTIONS HTTP method and set/volley the response
+      # Simulate a OPTIONS request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def options(action, *args)
         process(action, "OPTIONS", *args)
       end
