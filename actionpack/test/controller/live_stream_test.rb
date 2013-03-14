@@ -48,6 +48,10 @@ module ActionController
         end
         response.stream.close
       end
+
+      def with_stale
+        render :text => 'stale' if stale?(:etag => "123")
+      end
     end
 
     tests TestController
@@ -116,6 +120,17 @@ module ActionController
       get :render_text
       assert_equal 'zomg', response.body
       assert response.stream.closed?, 'stream should be closed'
+    end
+
+    def test_stale_without_etag
+      get :with_stale
+      assert_equal 200, @response.status.to_i
+    end
+
+    def test_stale_with_etag
+      @request.if_none_match = Digest::MD5.hexdigest("123")
+      get :with_stale
+      assert_equal 304, @response.status.to_i
     end
   end
 end
