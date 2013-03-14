@@ -1,4 +1,4 @@
-require 'active_support/xml_mini' unless defined?(XmlMini)
+require 'active_support/xml_mini'
 
 (ActiveSupport::XmlMini::TYPE_NAMES.keys.collect(&:constantize) - [Array, Hash] + [NilClass]).each do |klass|
   klass.class_eval do
