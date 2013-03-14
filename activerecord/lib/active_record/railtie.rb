@@ -49,7 +49,7 @@ module ActiveRecord
       Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
-    runner do |app|
+    runner do
       require "active_record/base"
     end
 
@@ -64,7 +64,7 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
-    initializer "active_record.migration_error" do |app|
+    initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after "::ActionDispatch::Callbacks",
           "ActiveRecord::Migration::CheckPending"
@@ -158,7 +158,7 @@ module ActiveRecord
     end
 
     # Expose database runtime to controller for logging.
-    initializer "active_record.log_runtime" do |app|
+    initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
