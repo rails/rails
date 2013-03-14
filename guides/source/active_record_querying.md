@@ -1297,7 +1297,7 @@ recommended that you use the block form of `unscoped`:
 
 ```ruby
 Client.unscoped {
-  Client.created_before(Time.zome.now)
+  Client.created_before(Time.zone.now)
 }
 ```
 

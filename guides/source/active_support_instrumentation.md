@@ -273,7 +273,7 @@ Action Mailer
   to: ["users@rails.com", "ddh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "..." # ommitted for beverity
+  mail: "..." # omitted for brevity
 }
 ```
 
@@ -299,7 +299,7 @@ Action Mailer
   to: ["users@rails.com", "ddh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "..." # ommitted for beverity
+  mail: "..." # omitted for brevity
 }
 ```
 
