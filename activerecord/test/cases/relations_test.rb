@@ -1224,6 +1224,15 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_turn_off_eager_loading_with_conditions_on_joins
+    original_value = ActiveRecord::Base.disable_implicit_join_references
+    ActiveRecord::Base.disable_implicit_join_references = true
+    scope = Topic.where(author_email_address: 'my.example@gmail.com').includes(:replies)
+    assert_not scope.eager_loading?
+  ensure
+     ActiveRecord::Base.time_zone_aware_attributes = original_value
+  end
+
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
