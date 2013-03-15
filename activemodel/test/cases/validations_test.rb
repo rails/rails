@@ -213,7 +213,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 'is too short (minimum is 2 characters)', t.errors[key][0]
   end
 
-  def test_validaton_with_if_and_on
+  def test_validation_with_if_and_on
     Topic.validates_presence_of :title, :if => Proc.new{|x| x.author_name = "bad"; true }, :on => :update
 
     t = Topic.new(:title => "")
@@ -361,7 +361,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_dup_validity_is_independent
     Topic.validates_presence_of :title
-    topic = Topic.new("title" => "Litterature")
+    topic = Topic.new("title" => "Literature")
     topic.valid?
 
     duped = topic.dup

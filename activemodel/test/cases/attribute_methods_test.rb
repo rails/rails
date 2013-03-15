@@ -194,7 +194,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_raises(NoMethodError) { ModelWithAttributes.new.foo }
   end
 
-  test 'acessing a suffixed attribute' do
+  test 'accessing a suffixed attribute' do
     m = ModelWithAttributes2.new
     m.attributes = { 'foo' => 'bar' }
 
