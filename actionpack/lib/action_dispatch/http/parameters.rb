@@ -18,7 +18,7 @@ module ActionDispatch
             query_parameters.dup
           end
           params.merge!(path_parameters)
-          encode_params(params).with_indifferent_access
+          params.with_indifferent_access
         end
       end
       alias :params :parameters
@@ -50,40 +50,33 @@ module ActionDispatch
 
     private
 
+      # Convert nested Hash to HashWithIndifferentAccess
+      # and UTF-8 encode both keys and values in nested Hash.
+      #
       # TODO: Validate that the characters are UTF-8. If they aren't,
       # you'll get a weird error down the road, but our form handling
       # should really prevent that from happening
-      def encode_params(params)
+      def normalize_encode_params(params)
         if params.is_a?(String)
           return params.force_encoding(Encoding::UTF_8).encode!
         elsif !params.is_a?(Hash)
           return params
         end
 
-        params.each_value do |v|
-          case v
-          when Hash
-            encode_params(v)
-          when Array
-            v.map! {|el| encode_params(el) }
-          else
-            encode_params(v)
-          end
+        new_hash = {}
+        params.each do |k, v|
+          new_key = k.is_a?(String) ? k.dup.force_encoding("UTF-8").encode! : k
+          new_hash[new_key] =
+            case v
+            when Hash
+              normalize_encode_params(v)
+            when Array
+              v.map! {|el| normalize_encode_params(el) }
+            else
+              normalize_encode_params(v)
+            end
         end
-      end
-
-      # Convert nested Hash to ActiveSupport::HashWithIndifferentAccess
-      def normalize_parameters(value)
-        case value
-        when Hash
-          h = {}
-          value.each { |k, v| h[k] = normalize_parameters(v) }
-          h.with_indifferent_access
-        when Array
-          value.map { |e| normalize_parameters(e) }
-        else
-          value
-        end
+        new_hash.with_indifferent_access
       end
     end
   end
