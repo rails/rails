@@ -51,9 +51,12 @@ module ActiveRecord
               super
             end
           when Numeric
-            return super unless column.sql_type == 'money'
-            # Not truly string input, so doesn't require (or allow) escape string syntax.
-            "'#{value}'"
+            if column.sql_type == 'money' || [:string, :text].include?(column.type)
+              # Not truly string input, so doesn't require (or allow) escape string syntax.
+              "'#{value}'"
+            else
+              super
+            end
           when String
             case column.sql_type
             when 'bytea' then "'#{escape_bytea(value)}'"
