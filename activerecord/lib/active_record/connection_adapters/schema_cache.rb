@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      attr_reader :primary_keys, :tables, :version
+      attr_reader :tables, :version
       attr_accessor :connection
 
       def initialize(conn)
@@ -12,6 +12,14 @@ module ActiveRecord
         @primary_keys = {}
         @tables       = {}
         prepare_default_proc
+      end
+
+      def primary_keys(table_name = nil)
+        if table_name
+          @primary_keys[table_name]
+        else
+          @primary_keys.dup
+        end
       end
 
       # A cached lookup for table existence.
@@ -35,7 +43,7 @@ module ActiveRecord
         if table
           @columns[table]
         else
-          @columns
+          @columns.dup
         end
       end
 
@@ -45,7 +53,7 @@ module ActiveRecord
         if table
           @columns_hash[table]
         else
-          @columns_hash
+          @columns_hash.dup
         end
       end
 
@@ -89,7 +97,7 @@ module ActiveRecord
         end
 
         @columns_hash.default_proc = Proc.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
+          h[table_name] = Hash[columns(table_name).map { |col|
             [col.name, col]
           }]
         end
