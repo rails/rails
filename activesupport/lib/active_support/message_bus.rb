@@ -19,7 +19,6 @@ module ActiveSupport
     # This class is for internal use
     class DRbServer
       DEFAULT_ACL = %w(
-        deny all
         allow 127.0.0.1
         allow localhost
       )
