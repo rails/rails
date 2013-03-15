@@ -453,14 +453,12 @@ module ActionController
 
       # Simulate a GET request with the given parameters.
       #
-      # - +action+: The controller action to call
+      # - +action+: The controller action to call.
       # - +parameters+: The HTTP parameters that you want to pass. This may
-      #   be +nil+,
-      #   a Hash, or a String that is appropriately encoded
-      #   (<tt>application/x-www-form-urlencoded</tt> or
-      #   <tt>multipart/form-data</tt>).
-      # - +session+: A Hash of parameters to store in the session. This my be +nil+.
-      # - +flash+: A Hash of parameters to store in the flash. This my be +nil+.
+      #   be +nil+, a Hash, or a String that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
+      # - +session+: A Hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A Hash of parameters to store in the flash. This may be +nil+.
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
