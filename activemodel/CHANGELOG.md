@@ -111,7 +111,7 @@
 
 *   Changed `ActiveModel::Serializers::Xml::Serializer#add_associations` to by default
     propagate `:skip_types, :dasherize, :camelize` keys to included associations.
-    It can be overriden on each association by explicitly specifying the option on one
+    It can be overridden on each association by explicitly specifying the option on one
     or more associations
 
     *Anthony Alberto*
