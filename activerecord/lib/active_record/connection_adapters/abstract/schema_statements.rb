@@ -172,7 +172,14 @@ module ActiveRecord
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
         td = create_table_definition
-        td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+
+        unless options[:id] == false
+          pk = options.fetch(:primary_key) {
+            Base.get_primary_key table_name.to_s.singularize
+          }
+
+          td.primary_key pk
+        end
 
         yield td if block_given?
 
