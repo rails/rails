@@ -104,7 +104,7 @@ Example:
       )
 
       if email.has_attachments?
-        email.attachments.each do |attachment| 
+        email.attachments.each do |attachment|
           page.attachments.create({
             file: attachment, description: email.subject
           })
