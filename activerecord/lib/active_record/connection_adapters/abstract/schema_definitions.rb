@@ -29,6 +29,7 @@ module ActiveRecord
         column_options = {}
         column_options[:null] = null unless null.nil?
         column_options[:default] = default unless default.nil?
+        column_options[:column] = self
         add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
         column_sql
       end
@@ -36,7 +37,7 @@ module ActiveRecord
       private
 
         def add_column_options!(sql, options)
-          base.add_column_options!(sql, options.merge(:column => self))
+          base.add_column_options!(sql, options)
         end
     end
 

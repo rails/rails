@@ -632,7 +632,13 @@ module ActiveRecord
         if options[:array] || options[:column].try(:array)
           sql << '[]'
         end
-        super
+
+        column = options.fetch(:column) { return super }
+        if column.type == :uuid && options[:default] =~ /\(\)/
+          sql << " DEFAULT #{options[:default]}"
+        else
+          super
+        end
       end
 
       # Set the authorized user for this session
