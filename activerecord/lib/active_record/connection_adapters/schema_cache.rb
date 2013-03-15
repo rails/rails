@@ -1,7 +1,9 @@
+require 'active_support/deprecation/reporting'
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      attr_reader :tables, :version
+      attr_reader :version
       attr_accessor :connection
 
       def initialize(conn)
@@ -18,6 +20,7 @@ module ActiveRecord
         if table_name
           @primary_keys[table_name]
         else
+          ActiveSupport::Deprecation.warn('call primary_keys with a table name!')
           @primary_keys.dup
         end
       end
@@ -38,11 +41,21 @@ module ActiveRecord
         end
       end
 
+      def tables(name = nil)
+        if name
+          @tables[name]
+        else
+          ActiveSupport::Deprecation.warn('call tables with a name!')
+          @tables.dup
+        end
+      end
+
       # Get the columns for a table
       def columns(table = nil)
         if table
           @columns[table]
         else
+          ActiveSupport::Deprecation.warn('call columns with a table name!')
           @columns.dup
         end
       end
@@ -53,6 +66,7 @@ module ActiveRecord
         if table
           @columns_hash[table]
         else
+          ActiveSupport::Deprecation.warn('call columns_hash with a table name!')
           @columns_hash.dup
         end
       end
@@ -64,6 +78,12 @@ module ActiveRecord
         @primary_keys.clear
         @tables.clear
         @version = nil
+      end
+
+      def size
+        [@columns, @columns_hash, @primary_keys, @tables].map { |x|
+          x.size
+        }.inject :+
       end
 
       # Clear out internal caches for table with +table_name+.

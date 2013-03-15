@@ -8,6 +8,7 @@ gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0.beta1'
+gem 'arel', :path => '/Users/aaron/git/arel'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
