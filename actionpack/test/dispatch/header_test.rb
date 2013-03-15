@@ -8,15 +8,15 @@ class HeaderTest < ActiveSupport::TestCase
     )
   end
 
-  test "#new with mixed headers and env" do
+  test "#new does not normalize the data" do
     headers = ActionDispatch::Http::Headers.new(
       "Content-Type" => "application/json",
       "HTTP_REFERER" => "/some/page",
       "Host" => "http://test.com")
 
-    assert_equal({"CONTENT_TYPE" => "application/json",
+    assert_equal({"Content-Type" => "application/json",
                   "HTTP_REFERER" => "/some/page",
-                  "HTTP_HOST" => "http://test.com"}, headers.env)
+                  "Host" => "http://test.com"}, headers.env)
   end
 
   test "#env returns the headers as env variables" do
@@ -117,11 +117,21 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "symbols are treated as strings" do
-    headers = ActionDispatch::Http::Headers.new(:SERVER_NAME => "example.com",
-                                                "HTTP_REFERER" => "/",
-                                                :Host => "test.com")
+    headers = ActionDispatch::Http::Headers.new
+    headers.merge!(:SERVER_NAME => "example.com",
+                   "HTTP_REFERER" => "/",
+                   :Host => "test.com")
     assert_equal "example.com", headers["SERVER_NAME"]
     assert_equal "/", headers[:HTTP_REFERER]
     assert_equal "test.com", headers["HTTP_HOST"]
+  end
+
+  test "headers directly modifies the passed environment" do
+    env = {"HTTP_REFERER" => "/"}
+    headers = ActionDispatch::Http::Headers.new(env)
+    headers['Referer'] = "http://example.com/"
+    headers.merge! "CONTENT_TYPE" => "text/plain"
+    assert_equal({"HTTP_REFERER"=>"http://example.com/",
+                  "CONTENT_TYPE"=>"text/plain"}, env)
   end
 end

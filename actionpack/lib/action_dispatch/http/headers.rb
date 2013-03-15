@@ -15,8 +15,7 @@ module ActionDispatch
       attr_reader :env
 
       def initialize(env = {})
-        @env = {}
-        merge!(env)
+        @env = env
       end
 
       def [](key)
