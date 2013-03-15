@@ -94,7 +94,7 @@ module ActiveSupport
       end
 
       def get_message_service
-        MessageService.new
+        MessageService.instance
       end
     end
 
@@ -112,6 +112,7 @@ module ActiveSupport
 
     # Send messages to browser through SSEs
     class MessageService
+      include Singleton
       include DRbUndumped
 
       def send_message(message, debug)
