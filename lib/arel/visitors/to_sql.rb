@@ -147,11 +147,11 @@ key on UpdateManager using UpdateManager#key=
 
         return nil unless table_exists? table
 
-        column_cache[table][name]
+        column_cache(table)[name]
       end
 
-      def column_cache
-        @schema_cache.columns_hash
+      def column_cache(table)
+        @schema_cache.columns_hash(table)
       end
 
       def visit_Arel_Nodes_Values o

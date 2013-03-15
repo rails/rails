@@ -3,7 +3,7 @@ module FakeRecord
   end
 
   class Connection
-    attr_reader :tables, :columns_hash
+    attr_reader :tables
     attr_accessor :visitor
 
     def initialize(visitor = nil)
@@ -29,6 +29,10 @@ module FakeRecord
         'products' => 'id'
       }
       @visitor = visitor
+    end
+
+    def columns_hash table_name
+      @columns_hash[table_name]
     end
 
     def primary_key name
