@@ -232,7 +232,7 @@ The permitted scalar types are `String`, `Symbol`, `NilClass`,
 `StringIO`, `IO`, `ActionDispatch::Http::UploadedFile` and
 `Rack::Test::UploadedFile`.
 
-To declare that the value in `params+ must be an array of permitted
+To declare that the value in `params` must be an array of permitted
 scalar values map the key to an empty array:
 
 ```ruby
