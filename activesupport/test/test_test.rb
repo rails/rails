@@ -3,7 +3,7 @@ require 'abstract_unit'
 class AssertDifferenceTest < ActiveSupport::TestCase
   def setup
     @object = Class.new do
-      attr_accessor :num
+      attr_accessor :num, :exp
       def increment
         self.num += 1
       end
@@ -11,8 +11,17 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       def decrement
         self.num -= 1
       end
+
+      def increase_exp
+        self.exp += num * 2
+      end
+
+      def decrease_exp
+        self.exp -= num * 2
+      end
     end.new
     @object.num = 0
+    @object.exp = 0
   end
 
   def test_assert_not
@@ -29,6 +38,14 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_assert_no_difference
     assert_no_difference '@object.num' do
       # ...
+    end
+  end
+
+  def test_assert_no_difference_with_hash_as_expression_raises_argument_error
+    assert_raises ArgumentError do
+      assert_no_difference '@object.num' => 1 do
+        @object.increment
+      end
     end
   end
 
@@ -82,6 +99,22 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     assert_raises(MiniTest::Assertion) do
       assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
         @object.increment
+      end
+    end
+  end
+
+  def test_passed_with_hash_as_expression
+    assert_difference '@object.num' => 1, '@object.exp' => 2 do
+      @object.increment
+      @object.increase_exp
+    end
+  end
+
+  def test_failed_with_hash_as_expression
+    assert_raises(MiniTest::Assertion) do
+      assert_difference({'@object.num' => 1, '@object.exp' => 3}, 'something went wrong') do
+        @object.increment
+        @object.increase_exp
       end
     end
   end

@@ -60,8 +60,25 @@ module ActiveSupport
       #   assert_difference 'Article.count', -1, 'An Article should be destroyed' do
       #     post :delete, id: ...
       #   end
-      def assert_difference(expression, difference = 1, message = nil, &block)
-        expressions = Array(expression)
+      #
+      # A hash of expressions can be passed in and evaluated:
+      #
+      #   assert_difference 'Article.count' => 1, 'Post.count' => 2 do
+      #     post :create, article: {...}
+      #   end
+      #
+      # An error message can be specified with hash as expression:
+      #
+      #  assert_difference({'Article.count' => 1, 'Post.count' => 2}, 'An Article should be created with two posts.') do
+      #    post :create, article: {...}
+      #  end
+      #
+      def assert_difference(expression, *args, &block)
+        expressions, difference, message = if expression.is_a?(Hash)
+          [expression.keys, nil, args[0]]
+        else
+          [Array(expression), args[0] || 1, args[1]]
+        end
 
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
@@ -71,9 +88,9 @@ module ActiveSupport
         yield
 
         expressions.zip(exps).each_with_index do |(code, e), i|
-          error  = "#{code.inspect} didn't change by #{difference}"
-          error  = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + difference, e.call, error)
+          error = "#{code.inspect} didn't change by #{difference || expression[code]}"
+          error = "#{message}.\n#{error}" if message
+          assert_equal(before[i] + (difference || expression[code]), e.call, error)
         end
       end
 
@@ -90,6 +107,7 @@ module ActiveSupport
       #     post :create, article: invalid_attributes
       #   end
       def assert_no_difference(expression, message = nil, &block)
+        raise(ArgumentError, "Argument cannot be a hash.") if expression.is_a?(Hash)
         assert_difference expression, 0, message, &block
       end
 
