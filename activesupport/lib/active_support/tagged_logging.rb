@@ -54,6 +54,14 @@ module ActiveSupport
         end
     end
 
+    def self.create(f, formatter, level)
+      logger = ActiveSupport::Logger.new f
+      logger.formatter = formatter
+      logger = new(logger)
+      logger.level = ActiveSupport::Logger.const_get(level.to_s.upcase)
+      logger
+    end
+
     def self.new(logger)
       # Ensure we set a default formatter so we aren't extending nil!
       logger.formatter ||= ActiveSupport::Logger::SimpleFormatter.new

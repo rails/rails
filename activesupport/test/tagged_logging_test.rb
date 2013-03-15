@@ -22,6 +22,17 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert logger.formatter.respond_to?(:tagged)
   end
 
+  test 'creates a tagged logger with the appropriate level and formatter' do
+    stringio = StringIO.new
+    logger = ActiveSupport::TaggedLogging.create(stringio, ActiveSupport::Logger::SimpleFormatter.new, :debug)
+    logger.debug("foo")
+
+    assert_not_nil logger.formatter
+    assert logger.formatter.respond_to?(:tagged)
+    assert_equal 0, logger.level
+    assert stringio.string.include?("foo")
+  end
+
   test "tagged once" do
     @logger.tagged("BCX") { @logger.info "Funky time" }
     assert_equal "[BCX] Funky time\n", @output.string
