@@ -338,6 +338,10 @@ module ActiveRecord
           self
         end
 
+        def xml(options = {})
+          column(args[0], :text, options)
+        end
+
         private
 
         def create_column_definition(base, name, type)

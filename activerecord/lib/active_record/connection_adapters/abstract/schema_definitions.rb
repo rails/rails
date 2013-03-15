@@ -72,15 +72,6 @@ module ActiveRecord
         @base = base
       end
 
-      def xml(*args)
-        raise NotImplementedError unless %w{
-          sqlite mysql mysql2
-        }.include? @base.adapter_name.downcase
-
-        options = args.extract_options!
-        column(args[0], :text, options)
-      end
-
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name)
