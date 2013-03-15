@@ -278,5 +278,17 @@ module ActiveRecord
       assert_equal [NullRelation], relation.extending_values
       assert relation.is_a?(NullRelation)
     end
+
+    test "distinct!" do
+      relation.distinct! :foo
+      assert_equal :foo, relation.distinct_value
+      assert_equal :foo, relation.uniq_value # deprecated access
+    end
+
+    test "uniq! was replaced by distinct!" do
+      relation.uniq! :foo
+      assert_equal :foo, relation.distinct_value
+      assert_equal :foo, relation.uniq_value # deprecated access
+    end
   end
 end
