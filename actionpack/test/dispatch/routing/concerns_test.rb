@@ -13,6 +13,10 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
         resources :comments, options
       end
 
+      concern 'taggable' do |options|
+        resources 'tags', options
+      end
+
       concern :image_attachable do
         resources :images, only: :index
       end
@@ -28,6 +32,8 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
       resource :picture, concerns: :commentable do
         resources :posts, concerns: :commentable
       end
+
+      resource :article, concerns: %w(commentable taggable)
 
       scope "/videos" do
         concerns :commentable, except: :destroy
@@ -48,6 +54,13 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
     get "/picture/comments"
     assert_equal "200", @response.code
     assert_equal "/picture/comments", picture_comments_path
+  end
+
+  def test_accessing_concern_defined_using_string
+    get "/article/tags"
+    assert_equal "200", @response.code
+    assert_equal "/article/tags", article_tags_path
+    assert_equal "/article/comments", article_comments_path
   end
 
   def test_accessing_concern_from_nested_resource

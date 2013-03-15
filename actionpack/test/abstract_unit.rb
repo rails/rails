@@ -359,6 +359,7 @@ end
 class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
+class TagsController < ResourcesController; end
 class ReviewsController < ResourcesController; end
 class AuthorsController < ResourcesController; end
 class LogosController < ResourcesController; end
