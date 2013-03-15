@@ -1711,7 +1711,7 @@ module ActionDispatch
         # <tt>call</tt>.
         def concern(name, callable = nil, &block)
           callable ||= lambda { |mapper, options| mapper.instance_exec(options, &block) }
-          @concerns[name] = callable
+          @concerns[name.to_sym] = callable
         end
 
         # Use the named concerns
@@ -1728,7 +1728,7 @@ module ActionDispatch
         def concerns(*args)
           options = args.extract_options!
           args.flatten.each do |name|
-            if concern = @concerns[name]
+            if concern = @concerns[name.to_sym]
               concern.call(self, options)
             else
               raise ArgumentError, "No concern named #{name} was found!"
