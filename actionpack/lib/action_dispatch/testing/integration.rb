@@ -269,7 +269,6 @@ module ActionDispatch
 
         # Performs the actual request.
         def process(method, path, parameters = nil, headers_or_env = nil)
-          rack_env = Http::Headers.new(headers_or_env || {}).env
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
@@ -300,10 +299,12 @@ module ActionDispatch
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
           }
+          # this modifies the passed env directly
+          Http::Headers.new(env).merge!(headers_or_env || {})
 
           session = Rack::Test::Session.new(_mock_session)
 
-          env.merge!(rack_env)
+          env.merge!(env)
 
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri

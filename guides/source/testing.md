@@ -501,6 +501,21 @@ You also have access to three instance variables in your functional tests:
 * `@request` - The request
 * `@response` - The response
 
+### Setting Headers and CGI variables
+
+Headers and cgi variables can be set directly on the `@request`
+instance variable:
+
+```ruby
+# setting a HTTP Header
+@request.headers["Accepts"] = "text/plain, text/html"
+get :index # simulate the request with custom header
+
+# setting a CGI variable
+@request.headers["HTTP_REFERER"] = "http://example.com/home"
+post :create # simulate the request with custom env variable
+```
+
 ### Testing Templates and Layouts
 
 If you want to make sure that the response rendered the correct template and layout, you can use the `assert_template`

@@ -57,6 +57,10 @@ class TestCaseTest < ActionController::TestCase
       render :text => request.protocol
     end
 
+    def test_headers
+      render text: JSON.dump(request.headers.env)
+    end
+
     def test_html_output
       render :text => <<HTML
 <html>
@@ -624,6 +628,24 @@ XML
     page = {:name => "Page name", :month => 4, :year => 2004, :day => 6}
     get :test_params, :page => page
     assert_equal 2004, page[:year]
+  end
+
+  test "set additional HTTP headers" do
+    @request.headers['Referer'] = "http://nohost.com/home"
+    @request.headers['Content-Type'] = "application/rss+xml"
+    get :test_headers
+    parsed_env = JSON.parse(@response.body)
+    assert_equal "http://nohost.com/home", parsed_env["HTTP_REFERER"]
+    assert_equal "application/rss+xml", parsed_env["CONTENT_TYPE"]
+  end
+
+  test "set additional env variables" do
+    @request.headers['HTTP_REFERER'] = "http://example.com/about"
+    @request.headers['CONTENT_TYPE'] = "application/json"
+    get :test_headers
+    parsed_env = JSON.parse(@response.body)
+    assert_equal "http://example.com/about", parsed_env["HTTP_REFERER"]
+    assert_equal "application/json", parsed_env["CONTENT_TYPE"]
   end
 
   def test_id_converted_to_string
