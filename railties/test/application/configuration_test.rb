@@ -670,5 +670,26 @@ module ApplicationTests
         end
       end
     end
+
+    test "set logger to STDOUT by default" do
+      stdout = capture(:stdout) do
+        app = build_app
+
+        controller :omg, <<-RUBY
+          class OmgController < ApplicationController
+            def index
+              Rails.logger.info "HI MOM"
+              render text: "omg"
+            end
+          end
+        RUBY
+
+        require "#{app_path}/config/environment"
+
+        get "/omg/index"
+      end
+
+      assert stdout.include?("HI MOM"), "STDOUT does not include 'HI MOM', #{stdout}"
+    end
   end
 end

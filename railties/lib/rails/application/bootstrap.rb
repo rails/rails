@@ -39,11 +39,7 @@ INFO
           f.binmode
           f.sync = config.autoflush_log # if true make sure every write flushes
 
-          logger = ActiveSupport::Logger.new f
-          logger.formatter = config.log_formatter
-          logger = ActiveSupport::TaggedLogging.new(logger)
-          logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
-          logger
+          logger = ActiveSupport::TaggedLogging.create(f, config.log_formatter, config.log_level)
         rescue StandardError
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
           logger.level = ActiveSupport::Logger::WARN
