@@ -98,7 +98,7 @@ module ActiveRecord
         # if we get current version during initialization, it happens stack over flow.
         @version = ActiveRecord::Migrator.current_version
         [@version] + [@columns, @columns_hash, @primary_keys, @tables].map { |val|
-          val.dup.tap { |h| h.default_proc = nil }
+          Hash[val]
         }
       end
 
