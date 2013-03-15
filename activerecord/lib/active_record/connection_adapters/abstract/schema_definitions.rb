@@ -24,6 +24,10 @@ module ActiveRecord
         base.type_to_sql(type.to_sym, limit, precision, scale)
       end
 
+      def primary_key?
+        type == :primary_key
+      end
+
       def to_sql
         column_sql = "#{base.quote_column_name(name)} #{sql_type}"
         column_options = {}
@@ -299,7 +303,7 @@ module ActiveRecord
       end
 
       def primary_key_column_name
-        primary_key_column = columns.detect { |c| c.type == :primary_key }
+        primary_key_column = columns.detect { |c| c.primary_key? }
         primary_key_column && primary_key_column.name
       end
 
