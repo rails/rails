@@ -25,7 +25,7 @@ module ActiveRecord
       end
 
       def primary_key?
-        type == :primary_key
+        type.to_sym == :primary_key
       end
 
       def to_sql
@@ -34,7 +34,7 @@ module ActiveRecord
         column_options[:null] = null unless null.nil?
         column_options[:default] = default unless default.nil?
         column_options[:column] = self
-        add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
+        add_column_options!(column_sql, column_options) unless primary_key?
         column_sql
       end
 
