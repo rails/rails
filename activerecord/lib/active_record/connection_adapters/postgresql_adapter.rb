@@ -340,11 +340,8 @@ module ActiveRecord
 
         private
 
-        def new_column_definition(base, name, type)
-          definition = ColumnDefinition.new base, name, type
-          @columns << definition
-          @columns_hash[name] = definition
-          definition
+        def create_column_definition(base, name, type)
+          ColumnDefinition.new base, name, type
         end
       end
 

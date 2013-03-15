@@ -16,7 +16,6 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
-
       def string_to_binary(value)
         value
       end
@@ -296,8 +295,12 @@ module ActiveRecord
       end
 
       private
+      def create_column_definition(base, name, type)
+        ColumnDefinition.new base, name, type
+      end
+
       def new_column_definition(base, name, type)
-        definition = ColumnDefinition.new base, name, type
+        definition = create_column_definition base, name, type
         @columns << definition
         @columns_hash[name] = definition
         definition
