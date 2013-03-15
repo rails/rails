@@ -86,9 +86,9 @@ Or, you can set custom gzip compression level (level names are taken from +Zlib+
 caches_page :image, :gzip => :best_speed
 </ruby>
 
-NOTE: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. A workaround for this limitation is to include the parameters in the page's path, e.g. +/productions/page/1+.
+NOTE: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. A workaround for this limitation is to include the parameters in the products's path, e.g. +/products/page/1+.
 
-INFO: Page caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
+INFO: Page caching runs as an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
 
 h4. Action Caching
 
