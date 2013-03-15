@@ -30,8 +30,8 @@ class Author < ActiveRecord::Base
   has_many :comments_desc, -> { order('comments.id DESC') }, :through => :posts, :source => :comments
   has_many :limited_comments, -> { limit(1) }, :through => :posts, :source => :comments
   has_many :funky_comments, :through => :posts, :source => :comments
-  has_many :ordered_uniq_comments, -> { uniq.order('comments.id') }, :through => :posts, :source => :comments
-  has_many :ordered_uniq_comments_desc, -> { uniq.order('comments.id DESC') }, :through => :posts, :source => :comments
+  has_many :ordered_uniq_comments, -> { distinct.order('comments.id') }, :through => :posts, :source => :comments
+  has_many :ordered_uniq_comments_desc, -> { distinct.order('comments.id DESC') }, :through => :posts, :source => :comments
   has_many :readonly_comments, -> { readonly }, :through => :posts, :source => :comments
 
   has_many :special_posts
@@ -78,7 +78,7 @@ class Author < ActiveRecord::Base
   has_many :categories_like_general, -> { where(:name => 'General') }, :through => :categorizations, :source => :category, :class_name => 'Category'
 
   has_many :categorized_posts, :through => :categorizations, :source => :post
-  has_many :unique_categorized_posts, -> { uniq }, :through => :categorizations, :source => :post
+  has_many :unique_categorized_posts, -> { distinct }, :through => :categorizations, :source => :post
 
   has_many :nothings, :through => :kateggorisatons, :class_name => 'Category'
 
@@ -91,7 +91,7 @@ class Author < ActiveRecord::Base
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :tagging_tags,    :through => :taggings, :source => :tag
 
-  has_many :similar_posts, -> { uniq }, :through => :tags, :source => :tagged_posts
+  has_many :similar_posts, -> { distinct }, :through => :tags, :source => :tagged_posts
   has_many :distinct_tags, -> { select("DISTINCT tags.*").order("tags.name") }, :through => :posts, :source => :tags
 
   has_many :tags_with_primary_key, :through => :posts

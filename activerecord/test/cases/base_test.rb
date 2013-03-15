@@ -1105,7 +1105,7 @@ class BasicsTest < ActiveRecord::TestCase
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
     assert_nothing_raised do
-      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count(distinct: true)
+      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     end
     assert_equal res6, res7
   end
@@ -1497,6 +1497,12 @@ class BasicsTest < ActiveRecord::TestCase
     scope = stub
     Bird.stubs(:all).returns(mock(:uniq => scope))
     assert_equal scope, Bird.uniq
+  end
+
+  def test_distinct_delegates_to_scoped
+    scope = stub
+    Bird.stubs(:all).returns(mock(:distinct => scope))
+    assert_equal scope, Bird.distinct
   end
 
   def test_table_name_with_2_abstract_subclasses

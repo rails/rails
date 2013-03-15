@@ -76,6 +76,7 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
+* `distinct`
 * `uniq`
 * `where`
 
@@ -580,10 +581,10 @@ ActiveModel::MissingAttributeError: missing attribute: <attribute>
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
 
-If you would like to only grab a single record per unique value in a certain field, you can use `uniq`:
+If you would like to only grab a single record per unique value in a certain field, you can use `distinct`:
 
 ```ruby
-Client.select(:name).uniq
+Client.select(:name).distinct
 ```
 
 This would generate SQL like:
@@ -595,10 +596,10 @@ SELECT DISTINCT name FROM clients
 You can also remove the uniqueness constraint:
 
 ```ruby
-query = Client.select(:name).uniq
+query = Client.select(:name).distinct
 # => Returns unique names
 
-query.uniq(false)
+query.distinct(false)
 # => Returns all names, even if there are duplicates
 ```
 
@@ -1438,7 +1439,7 @@ Client.where(active: true).pluck(:id)
 # SELECT id FROM clients WHERE active = 1
 # => [1, 2, 3]
 
-Client.uniq.pluck(:role)
+Client.distinct.pluck(:role)
 # SELECT DISTINCT role FROM clients
 # => ['admin', 'member', 'guest']
 

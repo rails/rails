@@ -10,7 +10,7 @@ module ActiveRecord
                             :extending]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
-                            :reverse_order, :uniq, :create_with]
+                            :reverse_order, :distinct, :create_with]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
@@ -504,6 +504,12 @@ module ActiveRecord
     # nested hashes which partially match, e.g. { a: :b } & { a: [:b, :c] }
     def joined_includes_values
       includes_values & joins_values
+    end
+
+    # +uniq+ and +uniq!+ are silently deprecated. +uniq_value+ delegates to +distinct_value+
+    # to maintain backwards compatibility. Use +distinct_value+ instead.
+    def uniq_value
+      distinct_value
     end
 
     # Compares two relations for equality.
