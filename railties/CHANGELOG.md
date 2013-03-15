@@ -1,9 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   New rails apps log to STDOUT by default
-
-    *Terence Lee*
-
 *   Add support for generate scaffold password:digest
 
     * adds password_digest attribute to the migration

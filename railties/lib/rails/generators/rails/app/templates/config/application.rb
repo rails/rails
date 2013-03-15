@@ -32,7 +32,5 @@ module <%= app_const_base %>
     # Disable the asset pipeline.
     config.assets.enabled = false
 <% end -%>
-
-    config.logger = ActiveSupport::TaggedLogging.create(STDOUT, config.log_formatter, config.log_level)
   end
 end
