@@ -239,8 +239,8 @@ scalar values map the key to an empty array:
 params.permit(:id => [])
 ```
 
-To whitelist an entire hash of parameters, the `permit!+ method can be
-used
+To whitelist an entire hash of parameters, the `permit!` method can be
+used:
 
 ```ruby
 params.require(:log_entry).permit!
