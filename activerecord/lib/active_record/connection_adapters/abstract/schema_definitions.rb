@@ -63,15 +63,14 @@ module ActiveRecord
     class TableDefinition
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
-      attr_accessor :indexes
+      attr_accessor :columns, :indexes
 
       def initialize(base)
+        @columns = []
         @columns_hash = {}
         @indexes = {}
         @base = base
       end
-
-      def columns; @columns_hash.values; end
 
       def xml(*args)
         raise NotImplementedError unless %w{
@@ -302,6 +301,7 @@ module ActiveRecord
 
       def new_column_definition(base, name, type)
         definition = create_column_definition base, name, type
+        @columns << definition
         @columns_hash[name] = definition
         definition
       end
