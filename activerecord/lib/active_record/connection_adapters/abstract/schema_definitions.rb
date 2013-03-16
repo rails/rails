@@ -217,7 +217,12 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
-        column = self[name] || new_column_definition(name, type)
+        column = @columns_hash.fetch(name) {
+          col = new_column_definition(name, type)
+          @columns << col
+          @columns_hash[name] = col
+          col
+        }
 
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
@@ -273,10 +278,7 @@ module ActiveRecord
       end
 
       def new_column_definition(name, type)
-        definition = create_column_definition name, type
-        @columns << definition
-        @columns_hash[name] = definition
-        definition
+        create_column_definition name, type
       end
 
       def primary_key_column_name
