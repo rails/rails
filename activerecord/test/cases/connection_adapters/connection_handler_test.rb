@@ -23,6 +23,14 @@ module ActiveRecord
         assert !@handler.active_connections?
       end
 
+     def test_connected?
+        @handler.retrieve_connection(@klass)
+        assert @handler.connected?(@klass)
+
+        @handler.remove_connection(@klass)
+        assert_not @handler.connected?(@klass)
+      end
+
       def test_retrieve_connection_pool_with_ar_base
         assert_nil @handler.retrieve_connection_pool(ActiveRecord::Base)
       end
