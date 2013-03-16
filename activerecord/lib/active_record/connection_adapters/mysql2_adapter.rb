@@ -4,7 +4,7 @@ gem 'mysql2', '~> 0.3.10'
 require 'mysql2'
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys

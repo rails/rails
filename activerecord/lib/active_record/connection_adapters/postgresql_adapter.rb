@@ -16,7 +16,7 @@ require 'pg'
 require 'ipaddr'
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     VALID_CONN_PARAMS = [:host, :hostaddr, :port, :dbname, :user, :password, :connect_timeout,
                          :client_encoding, :options, :application_name, :fallback_application_name,
                          :keepalives, :keepalives_idle, :keepalives_interval, :keepalives_count,
@@ -24,7 +24,7 @@ module ActiveRecord
                          :requirepeer, :krbsrvname, :gsslib, :service]
 
     # Establishes a connection to the database that's used by all Active Record objects
-    def postgresql_connection(config) # :nodoc:
+    def postgresql_connection(config)
       conn_params = config.symbolize_keys
 
       conn_params.delete_if { |_, v| v.nil? }

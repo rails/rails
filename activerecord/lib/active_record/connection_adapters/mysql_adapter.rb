@@ -16,9 +16,9 @@ class Mysql
 end
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
-    def mysql_connection(config) # :nodoc:
+    def mysql_connection(config)
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]
