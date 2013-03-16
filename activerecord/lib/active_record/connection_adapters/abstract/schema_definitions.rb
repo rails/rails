@@ -236,6 +236,10 @@ module ActiveRecord
         self
       end
 
+      def remove_column(name)
+        @columns_hash.delete name.to_s
+      end
+
       [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
         define_method column_type do |*args|
           options = args.extract_options!
