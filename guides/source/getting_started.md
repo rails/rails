@@ -568,7 +568,7 @@ interested in. We also use an instance variable (prefixed by `@`) to
 hold a reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
-Now, create a new file `app/view/posts/show.html.erb` with the following
+Now, create a new file `app/views/posts/show.html.erb` with the following
 content:
 
 ```html+erb
