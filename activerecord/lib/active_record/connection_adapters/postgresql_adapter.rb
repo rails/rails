@@ -627,19 +627,6 @@ module ActiveRecord
         @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
 
-      def add_column_options!(sql, options)
-        if options[:array] || options[:column].try(:array)
-          sql << '[]'
-        end
-
-        column = options.fetch(:column) { return super }
-        if column.type == :uuid && options[:default] =~ /\(\)/
-          sql << " DEFAULT #{options[:default]}"
-        else
-          super
-        end
-      end
-
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!

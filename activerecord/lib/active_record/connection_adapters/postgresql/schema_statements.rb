@@ -15,6 +15,19 @@ module ActiveRecord
 
           sql
         end
+
+        def add_column_options!(sql, options)
+          if options[:array] || options[:column].try(:array)
+            sql << '[]'
+          end
+
+          column = options.fetch(:column) { return super }
+          if column.type == :uuid && options[:default] =~ /\(\)/
+            sql << " DEFAULT #{options[:default]}"
+          else
+            super
+          end
+        end
       end
 
       def schema_creation
