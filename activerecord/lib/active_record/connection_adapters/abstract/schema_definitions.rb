@@ -20,29 +20,9 @@ module ActiveRecord
         value
       end
 
-      def sql_type
-        base.type_to_sql(type.to_sym, limit, precision, scale)
-      end
-
       def primary_key?
         type.to_sym == :primary_key
       end
-
-      def to_sql
-        column_sql = "#{base.quote_column_name(name)} #{sql_type}"
-        column_options = {}
-        column_options[:null] = null unless null.nil?
-        column_options[:default] = default unless default.nil?
-        column_options[:column] = self
-        add_column_options!(column_sql, column_options) unless primary_key?
-        column_sql
-      end
-
-      private
-
-        def add_column_options!(sql, options)
-          base.add_column_options!(sql, options)
-        end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -287,7 +267,8 @@ module ActiveRecord
       # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
-        columns.map { |c| c.to_sql } * ', '
+        viz = @base.schema_creation
+        columns.map { |c| viz.accept c }.join ', '
       end
 
       private
