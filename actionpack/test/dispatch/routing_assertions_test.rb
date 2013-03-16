@@ -48,6 +48,13 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_recognizes({ :controller => 'articles', :action => 'index', :page => '1' }, '/articles', { :page => '1' })
   end
 
+  def test_assert_recognizes_with_query_parameters
+    assert_raise(Assertion) do
+      assert_recognizes({:controller => 'articles', :action => 'index'}, '/articles?pager=1')
+    end
+    assert_recognizes({:controller => 'articles', :action => 'index', :pager => '1'}, '/articles?pager=1')
+  end
+
   def test_assert_recognizes_with_method
     assert_recognizes({ :controller => 'articles', :action => 'create' }, { :path => '/articles', :method => :post })
     assert_recognizes({ :controller => 'articles', :action => 'update', :id => '1' }, { :path => '/articles/1', :method => :put })

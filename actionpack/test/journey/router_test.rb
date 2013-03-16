@@ -32,6 +32,11 @@ module ActionDispatch
         def path_info; env['PATH_INFO']; end
         def request_method; env['REQUEST_METHOD']; end
         def ip; env['REMOTE_ADDR']; end
+
+        def query_parameters
+          {}
+        end
+
       end
 
       def test_dashes
