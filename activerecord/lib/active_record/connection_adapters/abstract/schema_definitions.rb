@@ -48,11 +48,10 @@ module ActiveRecord
     class TableDefinition
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
-      attr_accessor :columns, :indexes
+      attr_accessor :indexes
       attr_reader :name, :temporary, :options
 
       def initialize(types, name, temporary, options)
-        @columns = []
         @columns_hash = {}
         @indexes = {}
         @native = types
@@ -60,6 +59,8 @@ module ActiveRecord
         @options = options
         @name = name
       end
+
+      def columns; @columns_hash.values; end
 
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
@@ -217,12 +218,7 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
-        column = @columns_hash.fetch(name) {
-          col = new_column_definition(name, type)
-          @columns << col
-          @columns_hash[name] = col
-          col
-        }
+        column = @columns_hash[name] ||= new_column_definition(name, type)
 
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
