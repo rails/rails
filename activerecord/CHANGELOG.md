@@ -2,26 +2,26 @@
 
 *   Counter caches on associations will now stay valid when attributes are
     updated (not just when records are created or destroyed), for example,
-    when calling +update_attributes+. The following code now works:
+    when calling `update_attributes`. The following code now works:
 
-      class Comment < ActiveRecord::Base
-        belongs_to :post, counter_cache: true
-      end
+        class Comment < ActiveRecord::Base
+          belongs_to :post, counter_cache: true
+        end
 
-      class Post < ActiveRecord::Base
-        has_many :comments
-      end
+        class Post < ActiveRecord::Base
+          has_many :comments
+        end
 
-      post = Post.create
-      comment = Comment.create
+        post = Post.create
+        comment = Comment.create
 
-      post.comments << comment
-      post.save.reload.comments_count     # => 1
-      comment.update_attributes(:post_id => nil)
+        post.comments << comment
+        post.save.reload.comments_count # => 1
+        comment.update_attributes(post_id: nil)
 
-      post.save.reload.comments_count     # => 0
+        post.save.reload.comments_count # => 0
 
-    Updating the id of a +belongs_to+ object with the id of a new object will
+    Updating the id of a `belongs_to` object with the id of a new object will
     also keep the count accurate.
 
     *John Wang*
