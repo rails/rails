@@ -1,6 +1,8 @@
 ## unreleased ##
 
-*   No changes.
+*   Adding the --no-rc option to skip the loading of railsrc file during the generation of a new app.
+    *Adam Dalton*
+
 
 
 ## Rails 3.2.13.rc1 (Feb 17, 2013) ##
