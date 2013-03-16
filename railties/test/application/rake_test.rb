@@ -91,19 +91,9 @@ module ApplicationTests
         raise 'models'
       RUBY
 
-      app_file "test/controllers/one_controller_test.rb", <<-RUBY
-        raise 'controllers'
-      RUBY
-
-      app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise 'integration'
-      RUBY
-
       silence_stderr do
         output = Dir.chdir(app_path) { `rake test 2>&1` }
         assert_match 'models', output
-        assert_match 'controllers', output
-        assert_match 'integration', output
       end
     end
 
@@ -133,6 +123,19 @@ module ApplicationTests
         silence_stderr { `rake test:uncommitted` }
         assert_equal 1, $?.exitstatus
       end
+    end
+
+    def test_rake_test_deprecation_messages
+      Dir.chdir(app_path){ `rails generate scaffold user name:string` }
+      Dir.chdir(app_path){ `rake db:migrate` }
+
+      %w(run recent uncommitted models helpers units controllers functionals integration).each do |test_suit_name|
+        output = Dir.chdir(app_path) { `rake test:#{test_suit_name} 2>&1` }
+        assert_match /DEPRECATION WARNING: `rake test:#{test_suit_name}` is deprecated/, output
+      end
+
+      assert_match /DEPRECATION WARNING: `rake test:single` is deprecated/,
+        Dir.chdir(app_path) { `rake test:single TEST=test/models/user_test.rb 2>&1` }
     end
 
     def test_rake_routes_calls_the_route_inspector

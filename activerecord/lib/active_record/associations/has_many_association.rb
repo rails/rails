@@ -23,9 +23,10 @@ module ActiveRecord
           if options[:dependent] == :destroy
             # No point in executing the counter update since we're going to destroy the parent anyway
             load_target.each(&:mark_for_destruction)
+            destroy_all
+          else
+            delete_all
           end
-
-          delete_all
         end
       end
 

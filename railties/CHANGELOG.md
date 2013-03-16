@@ -1,21 +1,66 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add support for generate scaffold password:digest
+
+    * adds password_digest attribute to the migration
+    * adds has_secure_password to the model
+    * adds password and password_confirmation password_fields to _form.html
+    * omits password from index.html and show.html
+    * adds password and password_confirmation to the controller
+    * adds unencrypted password and password_confirmation to the controller test
+    * adds encrypted password_digest to the fixture
+
+    *Sam Ruby*
+
+*   Rails now generates a `test/test_helper.rb` file with `fixtures :all` commented out by default,
+    since we don't want to force loading all fixtures for user when a single test is run. However,
+    fixtures are still going to be loaded automatically for test suites.
+
+    To force all fixtures to be create in your database, use `rails test -f` to run your test.
+
+    *Prem Sichanugrist*
+
+*   Add `rails test` command for running tests
+
+    To run all tests:
+
+        $ rails test
+
+    To run a test suite
+
+        $ rails test [models,helpers,units,controllers,mailers,...]
+
+    To run a selected test file(s):
+
+        $ rails test test/unit/foo_test.rb [test/unit/bar_test.rb ...]
+
+    To run a single test from a test file
+
+        $ rails test test/unit/foo_test.rb -n test_the_truth
+
+    For more information, see `rails test --help`.
+
+    This command will eventually replace `rake test:*` and `rake test` tasks.
+
+    *Prem Sichanugrist and Chris Toomey*
+
+*   Improve service pages with new layout (404, etc). *Stanislav Sobolev*
+
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
-*   Change Service pages(404, etc). *Stanislav Sobolev*
 
 *   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
     and calculates number of functions.
 
     *Hendy Tanata*
 
-*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed. Consider
-    using application template instead. See this guide for more detail:
+*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed.
+    Consider using application template instead. See this guide for more detail:
     http://guides.rubyonrails.org/rails_application_templates.html
 
     *Prem Sichanugrist*
 
-*   fix rake db:* tasks to work with DATABASE_URL and without config/database.yml
+*   Fix `rake db:*` tasks to work with `DATABASE_URL` and without `config/database.yml`.
 
     *Terence Lee*
 

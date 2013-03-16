@@ -105,7 +105,7 @@ module RailtiesTest
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `bundle exec rake railties:install:migrations`
+        `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
       end

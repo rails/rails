@@ -156,14 +156,31 @@ module ActionDispatch
       @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
     end
 
+    # Returns the +String+ full path including params of the last URL requested.
+    #
+    #    app.get "/articles"
+    #    app.request.fullpath # => "/articles"
+    #
+    #    app.get "/articles?page=2"
+    #    app.request.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
 
+    # Returns the original request URL as a +String+
+    #
+    #    app.get "/articles?page=2"
+    #    app.request.original_url
+    #    # => "http://www.example.com/articles?page=2"
     def original_url
       base_url + original_fullpath
     end
 
+    # The +String+ MIME type of the request
+    #
+    #    app.get "/articles"
+    #    app.request.media_type
+    #    # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type.to_s
     end
@@ -256,7 +273,7 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      @env["action_dispatch.request.query_parameters"] ||= (normalize_encode_params(super) || {})
     rescue TypeError => e
       raise ActionController::BadRequest.new(:query, e)
     end
@@ -264,7 +281,7 @@ module ActionDispatch
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      @env["action_dispatch.request.request_parameters"] ||= (normalize_encode_params(super) || {})
     rescue TypeError => e
       raise ActionController::BadRequest.new(:request, e)
     end

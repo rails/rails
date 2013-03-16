@@ -16,7 +16,6 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
-
       def string_to_binary(value)
         value
       end
@@ -25,19 +24,24 @@ module ActiveRecord
         base.type_to_sql(type.to_sym, limit, precision, scale)
       end
 
+      def primary_key?
+        type.to_sym == :primary_key
+      end
+
       def to_sql
         column_sql = "#{base.quote_column_name(name)} #{sql_type}"
         column_options = {}
         column_options[:null] = null unless null.nil?
         column_options[:default] = default unless default.nil?
-        add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
+        column_options[:column] = self
+        add_column_options!(column_sql, column_options) unless primary_key?
         column_sql
       end
 
       private
 
         def add_column_options!(sql, options)
-          base.add_column_options!(sql, options.merge(:column => self))
+          base.add_column_options!(sql, options)
         end
     end
 
@@ -71,15 +75,6 @@ module ActiveRecord
         @columns_hash = {}
         @indexes = {}
         @base = base
-      end
-
-      def xml(*args)
-        raise NotImplementedError unless %w{
-          sqlite mysql mysql2
-        }.include? @base.adapter_name.downcase
-
-        options = args.extract_options!
-        column(args[0], :text, options)
       end
 
       # Appends a primary key definition to the table definition.
@@ -292,19 +287,23 @@ module ActiveRecord
       # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
-        @columns.map { |c| c.to_sql } * ', '
+        columns.map { |c| c.to_sql } * ', '
       end
 
       private
+      def create_column_definition(base, name, type)
+        ColumnDefinition.new base, name, type
+      end
+
       def new_column_definition(base, name, type)
-        definition = ColumnDefinition.new base, name, type
+        definition = create_column_definition base, name, type
         @columns << definition
         @columns_hash[name] = definition
         definition
       end
 
       def primary_key_column_name
-        primary_key_column = columns.detect { |c| c.type == :primary_key }
+        primary_key_column = columns.detect { |c| c.primary_key? }
         primary_key_column && primary_key_column.name
       end
 

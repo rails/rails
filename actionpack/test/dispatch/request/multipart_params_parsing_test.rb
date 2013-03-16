@@ -1,13 +1,15 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
-      attr_accessor :last_request_parameters
+      attr_accessor :last_request_parameters, :last_parameters
     end
 
     def parse
       self.class.last_request_parameters = request.request_parameters
+      self.class.last_parameters = request.parameters
       head :ok
     end
 
@@ -28,6 +30,23 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses bracketed parameters" do
     assert_equal({ 'foo' => { 'baz' => 'bar'}}, parse_multipart('bracketed_param'))
+  end
+
+  test "parse single utf8 parameter" do
+    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => 'Iñtërnâtiônàlizætiøn_value'}, 
+                 parse_multipart('single_utf8_param'), "request.request_parameters")
+    assert_equal(
+      'Iñtërnâtiônàlizætiøn_value',
+      TestController.last_parameters['Iñtërnâtiônàlizætiøn_name'], "request.parameters")
+  end
+
+  test "parse bracketed utf8 parameter" do
+    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => { 
+      'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'} }, 
+      parse_multipart('bracketed_utf8_param'), "request.request_parameters")
+    assert_equal(
+      {'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'},
+      TestController.last_parameters['Iñtërnâtiônàlizætiøn_name'], "request.parameters")
   end
 
   test "parses text file" do

@@ -1105,7 +1105,7 @@ class BasicsTest < ActiveRecord::TestCase
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
     assert_nothing_raised do
-      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count(distinct: true)
+      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     end
     assert_equal res6, res7
   end
@@ -1156,8 +1156,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').to_a
-    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).to_a
+    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on').to_a
+    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at', 'developers.created_on', 'developers.updated_on']).to_a
   end
 
   def test_find_symbol_ordered_last
@@ -1358,9 +1358,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns['posts']
+    c1 = Post.connection.schema_cache.columns('posts')
     ActiveRecord::Base.clear_cache!
-    c2 = Post.connection.schema_cache.columns['posts']
+    c2 = Post.connection.schema_cache.columns('posts')
     assert_not_equal c1, c2
   end
 
@@ -1497,6 +1497,12 @@ class BasicsTest < ActiveRecord::TestCase
     scope = stub
     Bird.stubs(:all).returns(mock(:uniq => scope))
     assert_equal scope, Bird.uniq
+  end
+
+  def test_distinct_delegates_to_scoped
+    scope = stub
+    Bird.stubs(:all).returns(mock(:distinct => scope))
+    assert_equal scope, Bird.distinct
   end
 
   def test_table_name_with_2_abstract_subclasses

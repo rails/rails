@@ -27,11 +27,16 @@ gem 'dalli', '>= 2.2.1'
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exists? local_gemfile
 
-platforms :mri do
-  group :test do
-    gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
-    gem 'debugger' if !ENV['TRAVIS']
+group :test do
+  platforms :mri_19 do
+    gem 'ruby-prof', '~> 0.11.2'
   end
+
+  platforms :mri_19, :mri_20 do
+    gem 'debugger'
+  end
+
+  gem 'benchmark-ips'
 end
 
 platforms :ruby do
@@ -76,5 +81,3 @@ end
 
 # A gem necessary for ActiveRecord tests with IBM DB
 gem 'ibm_db' if ENV['IBM_DB']
-
-gem 'benchmark-ips'

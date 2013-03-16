@@ -1,5 +1,82 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Counter caches on associations will now stay valid when attributes are
+    updated (not just when records are created or destroyed), for example,
+    when calling `update_attributes`. The following code now works:
+
+        class Comment < ActiveRecord::Base
+          belongs_to :post, counter_cache: true
+        end
+
+        class Post < ActiveRecord::Base
+          has_many :comments
+        end
+
+        post = Post.create
+        comment = Comment.create
+
+        post.comments << comment
+        post.save.reload.comments_count # => 1
+        comment.update_attributes(post_id: nil)
+
+        post.save.reload.comments_count # => 0
+
+    Updating the id of a `belongs_to` object with the id of a new object will
+    also keep the count accurate.
+
+    *John Wang*
+
+*   Referencing join tables implicitly was deprecated. There is a
+    possibility that these deprecation warnings are shown even if you
+    don't make use of that feature. You can now disable the feature entirely.
+    Fixes #9712.
+
+    Example:
+
+        # in your configuration
+        config.active_record.disable_implicit_join_references = true
+
+        # or directly
+        ActiveRecord::Base.disable_implicit_join_references = true
+
+    *Yves Senn*
+
+*   The `:distinct` option for `Relation#count` is deprecated. You
+    should use `Relation#distinct` instead.
+
+    Example:
+
+        # Before
+        Post.select(:author_name).count(distinct: true)
+
+        # After
+        Post.select(:author_name).distinct.count
+
+    *Yves Senn*
+
+*   Rename `Relation#uniq` to `Relation#distinct`. `#uniq` is still
+    available as an alias but we encourage to use `#distinct` instead.
+    Also `Relation#uniq_value` is aliased to `Relation#distinct_value`,
+    this is a temporary solution and you should migrate to `distinct_value`.
+
+    *Yves Senn*
+
+*   Fix quoting for sqlite migrations using copy_table_contents() with binary
+    columns.
+
+    These would fail with "SQLite3::SQLException: unrecognized token" because
+    the column was not being passed to quote() so the data was not quoted
+    correctly.
+
+    *Matthew M. Boedicker*
+
+*   Promotes `change_column_null` to the migrations API. This macro sets/removes
+    `NOT NULL` constraints, and accepts an optional argument to replace existing
+    `NULL`s if needed. The adapters for SQLite, MySQL, PostgreSQL, and (at least)
+    Oracle, already implement this method.
+
+    *Xavier Noria*
+
 *   Uniqueness validation allows you to pass `:conditions` to limit
     the constraint lookup.
 
@@ -109,7 +186,7 @@
 
     *Aaron Weiner*
 
-*   Warn when `rake db:structure:dump` with a mysl database and
+*   Warn when `rake db:structure:dump` with a MySQL database and
     `mysqldump` is not in the PATH or fails.
     Fixes #9518.
 

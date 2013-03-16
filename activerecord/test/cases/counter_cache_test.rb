@@ -131,4 +131,11 @@ class CounterCacheTest < ActiveRecord::TestCase
       Subscriber.reset_counters(subscriber.id, 'books')
     end
   end
+
+  test "the passed symbol needs to be an association name" do
+    e = assert_raises(ArgumentError) do
+      Topic.reset_counters(@topic.id, :replies_count)
+    end
+    assert_equal "'Topic' has no association called 'replies_count'", e.message
+  end
 end

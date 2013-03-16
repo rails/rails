@@ -103,7 +103,7 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 ```
 
-If it says something like "Rails 3.2.9", you are ready to continue.
+If it says something like "Rails 4.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 

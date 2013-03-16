@@ -239,7 +239,7 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      return true if name =~ re || MAPPING[name] =~ re
+      re === name || re === MAPPING[name]
     end
 
     # Returns a textual representation of this time zone.

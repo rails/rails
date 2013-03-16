@@ -95,7 +95,7 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_force_reload
     firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
-    firm.clients.each {|c|} # forcing to load all clients
+    firm.clients.each {} # forcing to load all clients
     assert firm.clients.empty?, "New firm shouldn't have client objects"
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 
@@ -236,6 +236,11 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     assert david.projects.scope.is_a?(ActiveRecord::Relation)
     assert_equal david.projects, david.projects.scope
+  end
+
+  test "proxy object is cached" do
+    david = developers(:david)
+    assert david.projects.equal?(david.projects)
   end
 end
 

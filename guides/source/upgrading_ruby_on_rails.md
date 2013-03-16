@@ -103,6 +103,32 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
+* Rails 4.0 correctly prefers the first named route defined in `config/routes.rb` if a clashing route is found later. Check the output of `rake routes` before upgrading and remove unused named routes to avoid issues.
+
+```ruby
+  # config/routes.rb
+  get 'one' => 'test#example', as: :example
+  get 'two' => 'test#example', as: :example
+
+  # Rails 3
+  <%= example_path %> # => '/two'
+
+  # Rails 4
+  <%= example_path %> # => '/one'
+```
+
+```ruby
+  # config/routes.rb
+  resources :examples
+  get 'clashing/:id' => 'test#example', as: :example
+
+  # Rails 3
+  <%= example_path(1) %> # => '/clashing/1'
+
+  # Rails 4
+  <%= example_path(1) %> # => '/examples/1'
+```
+
 * Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
 ```ruby

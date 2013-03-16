@@ -338,13 +338,14 @@ module ActiveRecord
           self
         end
 
+        def xml(options = {})
+          column(args[0], :text, options)
+        end
+
         private
 
-        def new_column_definition(base, name, type)
-          definition = ColumnDefinition.new base, name, type
-          @columns << definition
-          @columns_hash[name] = definition
-          definition
+        def create_column_definition(base, name, type)
+          ColumnDefinition.new base, name, type
         end
       end
 
@@ -600,7 +601,7 @@ module ActiveRecord
       end
 
       def disable_extension(name)
-        exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
+        exec_query("DROP EXTENSION IF EXISTS \"#{name}\" CASCADE").tap {
           reload_type_map
         }
       end
@@ -631,7 +632,13 @@ module ActiveRecord
         if options[:array] || options[:column].try(:array)
           sql << '[]'
         end
-        super
+
+        column = options.fetch(:column) { return super }
+        if column.type == :uuid && options[:default] =~ /\(\)/
+          sql << " DEFAULT #{options[:default]}"
+        else
+          super
+        end
       end
 
       # Set the authorized user for this session

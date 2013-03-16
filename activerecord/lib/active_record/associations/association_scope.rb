@@ -22,7 +22,7 @@ module ActiveRecord
       private
 
       def column_for(table_name, column_name)
-        columns = alias_tracker.connection.schema_cache.columns_hash[table_name]
+        columns = alias_tracker.connection.schema_cache.columns_hash(table_name)
         columns[column_name]
       end
 

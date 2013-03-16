@@ -238,7 +238,7 @@ module ActiveRecord
 
         @checkout_timeout = spec.config[:checkout_timeout] || 5
         @dead_connection_timeout = spec.config[:dead_connection_timeout] || 5
-        @reaper  = Reaper.new self, spec.config[:reaping_frequency]
+        @reaper  = Reaper.new(self, spec.config[:reaping_frequency] || 10)
         @reaper.run
 
         # default max pool size to 5

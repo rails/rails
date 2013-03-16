@@ -1,5 +1,24 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Integration and functional tests allow headers and rack env
+    variables to be passed when performing requests.
+    Fixes #6513.
+
+    Example:
+
+        # integration test
+        get "/success", {}, "HTTP_REFERER" => "http://test.com/",
+                            "Accepts" => "text/plain, text/html"
+
+        # functional test
+        @request.headers["Accepts"] = "text/plain, text/html"
+
+    *Yves Senn*
+
+*   Http::Headers respects headers that are not prefixed with HTTP_
+
+    *Yves Senn*
+
 *   Fix incorrectly appended square brackets to a multiple select box
     if an explicit name has been given and it already ends with "[]"
 
