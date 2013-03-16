@@ -901,7 +901,7 @@ module ActiveRecord
         end
 
         def create_table_definition
-          TableDefinition.new(self)
+          TableDefinition.new native_database_types
         end
 
         def update_table_definition(table_name, base)

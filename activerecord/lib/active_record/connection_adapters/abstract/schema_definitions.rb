@@ -50,11 +50,11 @@ module ActiveRecord
       # that have been defined.
       attr_accessor :columns, :indexes
 
-      def initialize(base)
+      def initialize(types)
         @columns = []
         @columns_hash = {}
         @indexes = {}
-        @base = base
+        @native = types
       end
 
       # Appends a primary key definition to the table definition.
@@ -281,7 +281,7 @@ module ActiveRecord
       end
 
       def native
-        @base.native_database_types
+        @native
       end
     end
 
