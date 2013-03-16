@@ -18,10 +18,12 @@ module ActiveRecord
         def quote(value, column = nil) #:nodoc:
           return super unless column
 
+          sql_type = type_to_sql(column.type, column.limit, column.precision, column.scale)
+
           case value
           when Range
-            if /range$/ =~ column.sql_type
-              "'#{PostgreSQLColumn.range_to_string(value)}'::#{column.sql_type}"
+            if /range$/ =~ sql_type
+              "'#{PostgreSQLColumn.range_to_string(value)}'::#{sql_type}"
             else
               super
             end
@@ -32,13 +34,13 @@ module ActiveRecord
               super
             end
           when Hash
-            case column.sql_type
+            case sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
             when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
           when IPAddr
-            case column.sql_type
+            case sql_type
             when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
             else super
             end
@@ -51,14 +53,14 @@ module ActiveRecord
               super
             end
           when Numeric
-            if column.sql_type == 'money' || [:string, :text].include?(column.type)
+            if sql_type == 'money' || [:string, :text].include?(column.type)
               # Not truly string input, so doesn't require (or allow) escape string syntax.
               "'#{value}'"
             else
               super
             end
           when String
-            case column.sql_type
+            case sql_type
             when 'bytea' then "'#{escape_bytea(value)}'"
             when 'xml'   then "xml '#{quote_string(value)}'"
             when /^bit/
