@@ -2808,6 +2808,11 @@ class TestAltApp < ActionDispatch::IntegrationTest
     def x_header
       @env["HTTP_X_HEADER"] || ""
     end
+
+    def query_parameters
+      {}
+    end
+
   end
 
   class XHeader

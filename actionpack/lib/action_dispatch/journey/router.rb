@@ -38,6 +38,10 @@ module ActionDispatch
           env['REMOTE_ADDR']
         end
 
+        def query_parameters
+          {}
+        end
+
         def [](k); env[k]; end
       end
 
@@ -139,7 +143,7 @@ module ActionDispatch
             match_values = match_data.captures.map { |v| v && Utils.unescape_uri(v) }
             info = Hash[match_names.zip(match_values).find_all { |_, y| y }]
 
-            [match_data, r.defaults.merge(info), r]
+            [match_data, r.defaults.merge(info).merge(req.query_parameters) , r]
           }
         end
 
