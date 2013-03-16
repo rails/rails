@@ -113,14 +113,22 @@ module ActiveRecord
 
         private
 
+        def visit_AlterTable(o)
+          sql = "ALTER TABLE #{quote_table_name(o.name)} "
+
+          if col = o.add
+            sql_type = type_to_sql(col.type.to_sym, col.limit, col.precision, col.scale)
+            sql << "ADD #{quote_column_name(col.name)} #{sql_type}"
+            add_column_options!(sql, column_options(col))
+          end
+
+          sql
+        end
+
         def visit_ColumnDefinition(o)
           sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
           column_sql = "#{quote_column_name(o.name)} #{sql_type}"
-          column_options = {}
-          column_options[:null] = o.null unless o.null.nil?
-          column_options[:default] = o.default unless o.default.nil?
-          column_options[:column] = o
-          add_column_options!(column_sql, column_options) unless o.primary_key?
+          add_column_options!(column_sql, column_options(o)) unless o.primary_key?
           column_sql
         end
 
@@ -130,6 +138,14 @@ module ActiveRecord
           create_sql << o.columns.map { |c| accept c }.join(', ')
           create_sql << ") #{o.options}"
           create_sql
+        end
+
+        def column_options(o)
+          column_options = {}
+          column_options[:null] = o.null unless o.null.nil?
+          column_options[:default] = o.default unless o.default.nil?
+          column_options[:column] = o
+          column_options
         end
 
         def quote_column_name(name)

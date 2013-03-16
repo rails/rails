@@ -262,12 +262,7 @@ module ActiveRecord
       end
       alias :belongs_to :references
 
-      private
-      def create_column_definition(name, type)
-        ColumnDefinition.new name, type
-      end
-
-      def new_column_definition(name, type, options)
+      def new_column_definition(name, type, options) # :nodoc:
         column = create_column_definition name, type
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
@@ -281,6 +276,11 @@ module ActiveRecord
         column
       end
 
+      private
+      def create_column_definition(name, type)
+        ColumnDefinition.new name, type
+      end
+
       def primary_key_column_name
         primary_key_column = columns.detect { |c| c.primary_key? }
         primary_key_column && primary_key_column.name
@@ -288,6 +288,23 @@ module ActiveRecord
 
       def native
         @native
+      end
+    end
+
+    class AlterTable # :nodoc:
+      attr_reader :add
+
+      def initialize(td)
+        @td  = td
+        @add = nil
+      end
+
+      def name; @td.name; end
+
+      def add_column(name, type, options)
+        name = name.to_s
+        type = type.to_sym
+        @add = @td.new_column_definition(name, type, options)
       end
     end
 
