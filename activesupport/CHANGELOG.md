@@ -1,10 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fixed a bug in Inflector#underscore where acroynms are incorrectly parsed as camelCases.
+*   Fixed a bug in `ActiveSupport::Inflector#underscore` where acroynms are
+    incorrectly parsed as camelCases.
 
     *Fred Wu*
 
-*   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
+*   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
 
     *Charles Jones*
 
