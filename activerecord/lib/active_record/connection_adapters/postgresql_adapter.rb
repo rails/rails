@@ -344,8 +344,8 @@ module ActiveRecord
 
         private
 
-        def create_column_definition(base, name, type)
-          ColumnDefinition.new base, name, type
+        def create_column_definition(name, type)
+          ColumnDefinition.new name, type
         end
       end
 

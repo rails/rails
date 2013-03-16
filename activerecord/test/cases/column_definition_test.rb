@@ -36,7 +36,7 @@ module ActiveRecord
       def test_should_not_include_default_clause_when_default_is_null
         column = Column.new("title", nil, "varchar(20)")
         column_def = ColumnDefinition.new(
-          @adapter, column.name, "string",
+          column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
           assert_equal "title varchar(20)", @viz.accept(column_def)
       end
@@ -44,7 +44,7 @@ module ActiveRecord
       def test_should_include_default_clause_when_default_is_present
         column = Column.new("title", "Hello", "varchar(20)")
         column_def = ColumnDefinition.new(
-          @adapter, column.name, "string",
+          column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
           assert_equal %Q{title varchar(20) DEFAULT 'Hello'}, @viz.accept(column_def)
       end
@@ -52,7 +52,7 @@ module ActiveRecord
       def test_should_specify_not_null_if_null_option_is_false
         column = Column.new("title", "Hello", "varchar(20)", false)
         column_def = ColumnDefinition.new(
-          @adapter, column.name, "string",
+          column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
           assert_equal %Q{title varchar(20) DEFAULT 'Hello' NOT NULL}, @viz.accept(column_def)
       end

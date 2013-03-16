@@ -15,7 +15,7 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
       def string_to_binary(value)
         value
       end
@@ -213,7 +213,7 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
-        column = self[name] || new_column_definition(@base, name, type)
+        column = self[name] || new_column_definition(name, type)
 
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
@@ -272,12 +272,12 @@ module ActiveRecord
       end
 
       private
-      def create_column_definition(base, name, type)
-        ColumnDefinition.new base, name, type
+      def create_column_definition(name, type)
+        ColumnDefinition.new name, type
       end
 
-      def new_column_definition(base, name, type)
-        definition = create_column_definition base, name, type
+      def new_column_definition(name, type)
+        definition = create_column_definition name, type
         @columns << definition
         @columns_hash[name] = definition
         definition
