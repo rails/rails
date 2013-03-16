@@ -552,11 +552,11 @@ module ActiveRecord
         (pool && pool.connection) or raise ConnectionNotEstablished
       end
 
-      # Returns true if a connection that's accessible to this class has
-      # already been opened.
+      # Returns +true+ if a connection that's accessible to this class has
+      # already been opened. Otherwise, returns +false+.
       def connected?(klass)
         conn = retrieve_connection_pool(klass)
-        conn && conn.connected?
+        !!conn && conn.connected?
       end
 
       # Remove the connection for this class. This will close the active

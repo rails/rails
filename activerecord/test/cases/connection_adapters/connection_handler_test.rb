@@ -25,10 +25,10 @@ module ActiveRecord
 
      def test_connected?
         @handler.retrieve_connection(@klass)
-        assert @handler.connected?(@klass)
+        assert_equal true, @handler.connected?(@klass)
 
         @handler.remove_connection(@klass)
-        assert_not @handler.connected?(@klass)
+        assert_equal false, @handler.connected?(@klass)
       end
 
       def test_retrieve_connection_pool_with_ar_base
