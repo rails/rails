@@ -6,20 +6,20 @@ module Arel
       # `top` wouldn't really work here. I.e. User.select("distinct first_name").limit(10) would generate
       # "select top 10 distinct first_name from users", which is invalid query! it should be
       # "select distinct top 10 first_name from users"
-      def visit_Arel_Nodes_Top o
+      def visit_Arel_Nodes_Top o, a
         ""
       end
 
-      def visit_Arel_Nodes_SelectStatement o
+      def visit_Arel_Nodes_SelectStatement o, a
         if !o.limit && !o.offset
-          return super o
+          return super o, a
         end
 
-        select_order_by = "ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?
+        select_order_by = "ORDER BY #{o.orders.map { |x| visit x, a }.join(', ')}" unless o.orders.empty?
 
         is_select_count = false
         sql = o.cores.map { |x|
-          core_order_by = select_order_by || determine_order_by(x)
+          core_order_by = select_order_by || determine_order_by(x, a)
           if select_count? x
             x.projections = [row_num_literal(core_order_by)]
             is_select_count = true
@@ -27,7 +27,7 @@ module Arel
             x.projections << row_num_literal(core_order_by)
           end
 
-          visit_Arel_Nodes_SelectCore x
+          visit_Arel_Nodes_SelectCore x, a
         }.join
 
         sql = "SELECT _t.* FROM (#{sql}) as _t WHERE #{get_offset_limit_clause(o)}"
@@ -46,11 +46,11 @@ module Arel
         end
       end
 
-      def determine_order_by x
+      def determine_order_by x, a
         unless x.groups.empty?
-          "ORDER BY #{x.groups.map { |g| visit g }.join ', ' }"
+          "ORDER BY #{x.groups.map { |g| visit g, a }.join ', ' }"
         else
-          "ORDER BY #{find_left_table_pk(x.froms)}"
+          "ORDER BY #{find_left_table_pk(x.froms, a)}"
         end
       end
 
@@ -64,9 +64,9 @@ module Arel
 
       # fixme raise exception of there is no pk?
       # fixme!! Table.primary_key will be depricated. What is the replacement??
-      def find_left_table_pk o
-        return visit o.primary_key if o.instance_of? Arel::Table
-        find_left_table_pk o.left if o.kind_of? Arel::Nodes::Join
+      def find_left_table_pk o, a
+        return visit o.primary_key, a if o.instance_of? Arel::Table
+        find_left_table_pk o.left, a if o.kind_of? Arel::Nodes::Join
       end
     end
   end

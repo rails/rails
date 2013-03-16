@@ -13,22 +13,22 @@ module Arel
 
       private
 
-      def visit_Arel_Nodes_Assignment o
+      def visit_Arel_Nodes_Assignment o, a
         if o.right.is_a? Arel::Nodes::BindParam
-          "#{visit o.left} = #{visit o.right}"
+          "#{visit o.left, a} = #{visit o.right, a}"
         else
           super
         end
       end
 
-      def visit_Arel_Nodes_BindParam o
+      def visit_Arel_Nodes_BindParam o, a
         if @block
           @block.call
         else
           super
         end
       end
-      
+
     end
   end
 end
