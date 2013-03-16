@@ -263,14 +263,6 @@ module ActiveRecord
       end
       alias :belongs_to :references
 
-      # Returns a String whose contents are the column definitions
-      # concatenated together. This string can then be prepended and appended to
-      # to generate the final SQL to create the table.
-      def to_sql
-        viz = @base.schema_creation
-        columns.map { |c| viz.accept c }.join ', '
-      end
-
       private
       def create_column_definition(name, type)
         ColumnDefinition.new name, type

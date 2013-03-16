@@ -189,7 +189,7 @@ module ActiveRecord
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
         create_sql << "#{quote_table_name(table_name)} ("
-        create_sql << td.to_sql
+        create_sql << schema_creation.accept(td)
         create_sql << ") #{options[:options]}"
         execute create_sql
         td.indexes.each_pair { |c,o| add_index table_name, c, o }

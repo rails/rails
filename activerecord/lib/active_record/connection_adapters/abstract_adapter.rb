@@ -124,6 +124,10 @@ module ActiveRecord
           column_sql
         end
 
+        def visit_TableDefinition(o)
+          o.columns.map { |c| accept c }.join ', '
+        end
+
         def quote_column_name(name)
           @conn.quote_column_name name
         end
