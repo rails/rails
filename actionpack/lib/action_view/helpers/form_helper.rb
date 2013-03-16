@@ -433,7 +433,7 @@ module ActionView
 
         builder = instantiate_builder(object_name, object, options)
         output  = capture(builder, &block)
-        html_options[:multipart] = builder.multipart?
+        html_options[:multipart] ||= builder.multipart?
 
         form_tag(options[:url] || {}, html_options) { output }
       end
