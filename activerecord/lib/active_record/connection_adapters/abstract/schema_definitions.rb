@@ -292,11 +292,11 @@ module ActiveRecord
     end
 
     class AlterTable # :nodoc:
-      attr_reader :add
+      attr_reader :adds
 
       def initialize(td)
-        @td  = td
-        @add = nil
+        @td   = td
+        @adds = []
       end
 
       def name; @td.name; end
@@ -304,7 +304,7 @@ module ActiveRecord
       def add_column(name, type, options)
         name = name.to_s
         type = type.to_sym
-        @add = @td.new_column_definition(name, type, options)
+        @adds << @td.new_column_definition(name, type, options)
       end
     end
 

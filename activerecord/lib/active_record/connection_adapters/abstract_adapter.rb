@@ -116,7 +116,7 @@ module ActiveRecord
         def visit_AlterTable(o)
           sql = "ALTER TABLE #{quote_table_name(o.name)} "
 
-          if col = o.add
+          o.adds.each do |col|
             sql_type = type_to_sql(col.type.to_sym, col.limit, col.precision, col.scale)
             sql << "ADD #{quote_column_name(col.name)} #{sql_type}"
             add_column_options!(sql, column_options(col))
