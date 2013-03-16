@@ -171,7 +171,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = create_table_definition
+        td = create_table_definition table_name, options[:temporary], options[:options]
 
         unless options[:id] == false
           pk = options.fetch(:primary_key) {
@@ -187,11 +187,7 @@ module ActiveRecord
           drop_table(table_name, options)
         end
 
-        create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
-        create_sql << "#{quote_table_name(table_name)} ("
-        create_sql << schema_creation.accept(td)
-        create_sql << ") #{options[:options]}"
-        execute create_sql
+        execute schema_creation.accept td
         td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
@@ -829,8 +825,8 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition
-        TableDefinition.new native_database_types
+      def create_table_definition(name, temporary, options)
+        TableDefinition.new native_database_types, name, temporary, options
       end
 
       def update_table_definition(table_name, base)

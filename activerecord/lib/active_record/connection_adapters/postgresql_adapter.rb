@@ -900,8 +900,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition
-          TableDefinition.new native_database_types
+        def create_table_definition(name, temporary, options)
+          TableDefinition.new native_database_types, name, temporary, options
         end
 
         def update_table_definition(table_name, base)

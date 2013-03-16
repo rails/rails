@@ -125,11 +125,19 @@ module ActiveRecord
         end
 
         def visit_TableDefinition(o)
-          o.columns.map { |c| accept c }.join ', '
+          create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
+          create_sql << "#{quote_table_name(o.name)} ("
+          create_sql << o.columns.map { |c| accept c }.join(', ')
+          create_sql << ") #{o.options}"
+          create_sql
         end
 
         def quote_column_name(name)
           @conn.quote_column_name name
+        end
+
+        def quote_table_name(name)
+          @conn.quote_table_name name
         end
 
         def type_to_sql(type, limit, precision, scale)
