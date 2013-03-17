@@ -172,6 +172,11 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_new_with_abstract_class
+    assert_raise(NotImplementedError) { AbstractCompany.new }
+    assert_raise(NotImplementedError) { ActiveRecord::Base.new }
+  end
+
   def test_new_with_invalid_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'InvalidType') }
   end
