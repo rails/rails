@@ -219,6 +219,64 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "hidden"))
       end
 
+      # Creates a sequence of hidden inputs to store a flat hash of strings.
+      #
+      # === Example
+      #
+      #   hidden_field_tags_from_flat_hash({ :a => 'b', 'c' => 3 }, :id => nil)
+      #
+      #   # => <input name="a" type="hidden" value="b" />
+      #   #    <input name="c" type="hidden" value="3" />
+      def hidden_field_tags_from_flat_hash(hash, options = {})
+        [].tap do |tag_array|
+          hash.each_pair do |name, value|
+            if value.is_a?(Enumerable)
+              name = "#{ name }[]"
+              value.each do |v|
+                tag_array << hidden_field_tag(name, v, options)
+              end
+            else
+              tag_array << hidden_field_tag(name, value, options)
+            end
+          end
+        end.join("\n").html_safe
+      end
+
+      #--
+      # This function is used in `hidden_field_tags_from_nested_hash`
+      #++
+      def flat_param_hash_from_nested_hash(nested_hash, key_prefix = '') # :nodoc:
+        combine_key_with_prefix = if key_prefix.blank?
+                                    lambda { |k| "#{ k }" } # duplicates `k` if it is a String
+                                  else
+                                    lambda { |k| "#{ key_prefix }[#{ k }]" }
+                                  end
+
+        {}.tap do |flat_hash|
+          nested_hash.each_pair do |key, value|
+            combined_key = combine_key_with_prefix[key]
+            if value.is_a?(Hash)
+              flat_hash.merge!(flat_param_hash_from_nested_hash(value, combined_key))
+            else
+              flat_hash[combined_key] = value
+            end
+          end
+        end
+      end
+
+      # Creates a sequence of hidden inputs to store a possibly nested hash of strings.
+      #
+      # === Example
+      #
+      #   hidden_field_tags_from_nested_hash({ :a => { :b => ['c', 'd']}, 'e' => 5 }, :id => nil)
+      #
+      #   # => <input name="a[b][]" type="hidden" value="c" />
+      #   #    <input name="a[b][]" type="hidden" value="d" />
+      #   #    <input name="e" type="hidden" value="5" />
+      def hidden_field_tags_from_nested_hash(hash, options = {})
+        hidden_field_tags_from_flat_hash(flat_param_hash_from_nested_hash(hash), options)
+      end
+
       # Creates a file upload field. If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
