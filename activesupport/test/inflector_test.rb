@@ -324,7 +324,7 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   def test_underscore_as_reverse_of_dasherize
-    UnderscoresToDashes.each do |underscored, dasherized|
+    UnderscoresToDashes.each_key do |underscored|
       assert_equal(underscored, ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.dasherize(underscored)))
     end
   end
