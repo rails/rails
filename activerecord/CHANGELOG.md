@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The length of the `version` column in the `schema_migrations` table
+    created by the `mysql2` adapter is 191 if the encoding is "utf8mb4".
+
+    The "utf8" encoding in MySQL has support for a maximum of 3 bytes per character,
+    and only contains characters from the BMP. The recently added
+    [utf8mb4](http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html)
+    encoding extends the support to four bytes. As of this writing, said encoding
+    is supported in the betas of the `mysql2` gem.
+
+    Setting the encoding to "utf8mb4" has
+    [a few implications](http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-upgrading.html).
+    This change addresses the max length for indexes, which is 191 instead of 255.
+
+    *Xavier Noria*
+
 *   Counter caches on associations will now stay valid when attributes are
     updated (not just when records are created or destroyed), for example,
     when calling `update_attributes`. The following code now works:
