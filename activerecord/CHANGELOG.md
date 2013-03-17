@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `rake db:create` does not change permissions of the MySQL root user.
+    Fixes #8079.
+
+    *Yves Senn*
+
 *   The length of the `version` column in the `schema_migrations` table
     created by the `mysql2` adapter is 191 if the encoding is "utf8mb4".
 
