@@ -58,7 +58,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_headers
-      render text: JSON.dump(request.headers.env)
+      render text: request.headers.env.to_json
     end
 
     def test_html_output
