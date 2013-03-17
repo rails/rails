@@ -115,14 +115,13 @@ module ActiveRecord
 
         def visit_AlterTable(o)
           sql = "ALTER TABLE #{quote_table_name(o.name)} "
+          sql << o.adds.map { |col| visit_AddColumn col }.join(' ')
+        end
 
-          o.adds.each do |col|
-            sql_type = type_to_sql(col.type.to_sym, col.limit, col.precision, col.scale)
-            sql << "ADD #{quote_column_name(col.name)} #{sql_type}"
-            add_column_options!(sql, column_options(col))
-          end
-
-          sql
+        def visit_AddColumn(o)
+          sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
+          sql = "ADD #{quote_column_name(o.name)} #{sql_type}"
+          add_column_options!(sql, column_options(o))
         end
 
         def visit_ColumnDefinition(o)
@@ -162,6 +161,7 @@ module ActiveRecord
 
         def add_column_options!(column_sql, column_options)
           @conn.add_column_options! column_sql, column_options
+          column_sql
         end
       end
 

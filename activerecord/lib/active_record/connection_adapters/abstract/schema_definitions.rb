@@ -15,7 +15,7 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after) #:nodoc:
       def string_to_binary(value)
         value
       end
@@ -273,6 +273,8 @@ module ActiveRecord
         column.scale     = options[:scale]
         column.default   = options[:default]
         column.null      = options[:null]
+        column.first     = options[:first]
+        column.after     = options[:after]
         column
       end
 

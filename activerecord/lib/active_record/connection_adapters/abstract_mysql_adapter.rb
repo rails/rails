@@ -3,6 +3,27 @@ require 'arel/visitors/bind_visitor'
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+      class SchemaCreation < AbstractAdapter::SchemaCreation
+        private
+
+        def visit_AddColumn(o)
+          add_column_position!(super, o)
+        end
+
+        def add_column_position!(sql, column)
+          if column.first
+            sql << " FIRST"
+          elsif column.after
+            sql << " AFTER #{quote_column_name(column.after)}"
+          end
+          sql
+        end
+      end
+
+      def schema_creation
+        SchemaCreation.new self
+      end
+
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict
 
@@ -457,10 +478,6 @@ module ActiveRecord
       def rename_table(table_name, new_name)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
-      end
-
-      def add_column(table_name, column_name, type, options = {})
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{add_column_sql(table_name, column_name, type, options)}")
       end
 
       def change_column_default(table_name, column_name, default)

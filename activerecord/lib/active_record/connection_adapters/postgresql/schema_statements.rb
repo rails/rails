@@ -4,16 +4,10 @@ module ActiveRecord
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
-        def visit_AlterTable(o)
-          sql = "ALTER TABLE #{quote_table_name(o.name)} "
-
-          o.adds.each do |col|
-            sql_type = type_to_sql(col.type.to_sym, col.limit, col.precision, col.scale)
-            sql << "ADD COLUMN #{quote_column_name(col.name)} #{sql_type}"
-            add_column_options!(sql, column_options(col))
-          end
-
-          sql
+        def visit_AddColumn(o)
+          sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
+          sql = "ADD COLUMN #{quote_column_name(o.name)} #{sql_type}"
+          add_column_options!(sql, column_options(o))
         end
 
         def add_column_options!(sql, options)
