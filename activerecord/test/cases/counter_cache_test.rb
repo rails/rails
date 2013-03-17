@@ -118,7 +118,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "reset the right counter if two have the same foreign key" do
     michael = people(:michael)
     assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      Person.reset_counters(michael.id, :followers)
+      Person.reset_counters(michael.id, :friends_too)
     end
   end
 

@@ -280,7 +280,7 @@ ActiveRecord::Schema.define do
 
   create_table :friendships, :force => true do |t|
     t.integer :friend_id
-    t.integer :person_id
+    t.integer :follower_id
   end
 
   create_table :goofy_string_id, :force => true, :id => false do |t|
@@ -494,6 +494,7 @@ ActiveRecord::Schema.define do
     t.integer    :lock_version, :null => false, :default => 0
     t.string     :comments
     t.integer    :followers_count, :default => 0
+    t.integer    :friends_too_count, :default => 0
     t.references :best_friend
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
