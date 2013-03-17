@@ -167,11 +167,13 @@ class InflectorTest < ActiveSupport::TestCase
   def test_underscore_acronym_sequence
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")
+      inflect.acronym("APIs")
       inflect.acronym("JSON")
       inflect.acronym("HTML")
     end
 
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
+    assert_equal("namespaced/apis", ActiveSupport::Inflector.underscore("Namespaced::APIs"))
   end
 
   def test_underscore
