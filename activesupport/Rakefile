@@ -15,8 +15,6 @@ namespace :test do
   end
 end
 
-# Create compressed packages
-dist_dirs = [ "lib", "test"]
 
 spec = eval(File.read('activesupport.gemspec'))
 
