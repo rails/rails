@@ -11,7 +11,7 @@
     *Soylent + Maxime Réty*
 
 
-## Rails 3.2.13 ##
+## Rails 3.2.13 (Mar 18, 2013) ##
 
 *   Fix incorrectly appended square brackets to a multiple select box
     if an explicit name has been given and it already ends with "[]".
