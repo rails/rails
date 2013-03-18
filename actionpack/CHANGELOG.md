@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Include I18n locale fallbacks in view lookup.
+    Fixes GH#3512.
+
+    *Juan Barreneche*
+
 *   Integration and functional tests allow headers and rack env
     variables to be passed when performing requests.
     Fixes #6513.
