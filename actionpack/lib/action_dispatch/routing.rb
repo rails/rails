@@ -157,30 +157,6 @@ module ActionDispatch
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
   #
-  # == Default route
-  #
-  # Consider the following route, which you will find commented out at the
-  # bottom of your generated <tt>config/routes.rb</tt>:
-  #
-  #   match ':controller(/:action(/:id))(.:format)'
-  #
-  # This route states that it expects requests to consist of a
-  # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in
-  # turn is followed optionally by an <tt>:id</tt>, which in turn is followed
-  # optionally by a <tt>:format</tt>.
-  #
-  # Suppose you get an incoming request for <tt>/blog/edit/22</tt>, you'll end
-  # up with:
-  #
-  #   params = { controller: 'blog',
-  #              action:     'edit',
-  #              id:         '22'
-  #           }
-  #
-  # By not relying on default routes, you improve the security of your
-  # application since not all controller actions, which includes actions you
-  # might add at a later time, are exposed by default.
-  #
   # == HTTP Methods
   #
   # Using the <tt>:via</tt> option when specifying a route allows you to
