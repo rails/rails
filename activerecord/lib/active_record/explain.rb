@@ -9,7 +9,7 @@ module ActiveRecord
       yield
       return current[:available_queries_for_explain]
     ensure
-      # Note that the return value above does not depend on this assigment.
+      # Note that the return value above does not depend on this assignment.
       current[:available_queries_for_explain] = original
     end
 

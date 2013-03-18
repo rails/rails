@@ -193,7 +193,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_finding_with_includes_on_has_one_assocation_with_same_include_includes_only_once
+  def test_finding_with_includes_on_has_one_association_with_same_include_includes_only_once
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
