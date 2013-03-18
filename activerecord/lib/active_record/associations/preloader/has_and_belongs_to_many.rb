@@ -35,7 +35,7 @@ module ActiveRecord
         # record
         def associated_records_by_owner
           records = {}
-          super.each do |owner_key, rows|
+          super.each_value do |rows|
             rows.map! { |row| records[row[klass.primary_key]] ||= klass.instantiate(row) }
           end
         end
