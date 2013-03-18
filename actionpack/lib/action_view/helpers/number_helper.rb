@@ -360,7 +360,7 @@ module ActionView
 
       end
 
-      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
+      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
       # Formats the bytes in +number+ into a more understandable
       # representation (e.g., giving it 1500 yields 1.5 KB). This
@@ -452,7 +452,7 @@ module ActionView
       end
 
       DECIMAL_UNITS = {0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
-        -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto}.freeze
+        -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto}
 
       # Pretty prints (formats and approximates) a number in a way it
       # is more readable by humans (eg.: 1200000000 becomes "1.2
