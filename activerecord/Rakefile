@@ -1,9 +1,9 @@
 require 'rubygems'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 require File.join(File.dirname(__FILE__), 'lib', 'active_record', 'version')
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
@@ -157,7 +157,7 @@ task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
 
 # Generate the RDoc documentation
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Record -- Object-relation mapping put on rails"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
@@ -199,9 +199,7 @@ spec = Gem::Specification.new do |s|
   s.files.delete FIXTURES_ROOT + "/fixture_database.sqlite3"
   s.files.delete FIXTURES_ROOT + "/fixture_database_2.sqlite3"
   s.require_path = 'lib'
-  s.autorequire = 'active_record'
 
-  s.has_rdoc = true
   s.extra_rdoc_files = %w( README )
   s.rdoc_options.concat ['--main',  'README']
 
@@ -211,7 +209,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "activerecord"
 end
 
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true

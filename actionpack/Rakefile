@@ -1,9 +1,9 @@
 require 'rubygems'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require File.join(File.dirname(__FILE__), 'lib', 'action_pack', 'version')
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
@@ -45,7 +45,7 @@ end
 
 # Genereate the RDoc documentation
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Pack -- On rails from request to response"
   rdoc.options << '--line-numbers' << '--inline-source'
@@ -76,14 +76,12 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "actionpack"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.has_rdoc = true
   s.requirements << 'none'
 
   s.add_dependency('activesupport', '= 2.3.17' + PKG_BUILD)
   s.add_dependency('rack', '~> 1.1.0')
 
   s.require_path = 'lib'
-  s.autorequire = 'action_controller'
 
   s.files = [ "Rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG", "MIT-LICENSE" ]
   dist_dirs.each do |dir|
@@ -91,7 +89,7 @@ spec = Gem::Specification.new do |s|
   end
 end
   
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true

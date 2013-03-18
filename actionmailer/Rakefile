@@ -1,9 +1,9 @@
 require 'rubygems'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require File.join(File.dirname(__FILE__), 'lib', 'action_mailer', 'version')
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
@@ -29,7 +29,7 @@ Rake::TestTask.new { |t|
 
 
 # Generate the RDoc documentation
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Mailer -- Easy email delivery and testing"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
@@ -56,17 +56,15 @@ spec = Gem::Specification.new do |s|
 
   s.add_dependency('actionpack', '= 2.3.17' + PKG_BUILD)
 
-  s.has_rdoc = true
   s.requirements << 'none'
   s.require_path = 'lib'
-  s.autorequire = 'action_mailer'
 
   s.files = [ "Rakefile", "install.rb", "README", "CHANGELOG", "MIT-LICENSE" ]
   s.files = s.files + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.files = s.files + Dir.glob( "test/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
 end
   
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true

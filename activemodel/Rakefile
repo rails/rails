@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 
 task :default => :test
 
@@ -13,7 +13,7 @@ Rake::TestTask.new do |t|
 end
 
 # Generate the RDoc documentation
-Rake::RDocTask.new do |rdoc|
+RDoc::Task.new do |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Model"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'

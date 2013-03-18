@@ -1,7 +1,7 @@
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
+require 'rdoc/task'
+require 'rubygems/package_task'
 
 require 'date'
 require 'rbconfig'
@@ -267,7 +267,7 @@ task :generate_app_doc do
   system %{cd #{PKG_DESTINATION}; rake doc:app}
 end
 
-Rake::RDocTask.new { |rdoc|
+RDoc::Task.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Railties -- Gluing the Engine to the Rails"
   rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
@@ -320,13 +320,11 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('activeresource',   '= 2.3.17' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
-  s.has_rdoc = false
 
   s.files = PKG_FILES
   s.require_path = 'lib'
   s.bindir = "bin"                               # Use these for applications.
   s.executables = ["rails"]
-  s.default_executable = "rails"
 
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
@@ -334,7 +332,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "rails"
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
+Gem::PackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
