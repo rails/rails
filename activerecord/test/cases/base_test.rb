@@ -307,20 +307,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("last_read", ex.errors[0].attribute)
   end
 
-  def test_initialize_abstract_class
-    e = assert_raises(NotImplementedError) do
-      FirstAbstractClass.new
-    end
-    assert_equal("FirstAbstractClass is an abstract class and can not be instantiated.", e.message)
-  end
-
-  def test_initialize_base
-    e = assert_raises(NotImplementedError) do
-      ActiveRecord::Base.new
-    end
-    assert_equal("ActiveRecord::Base is an abstract class and can not be instantiated.", e.message)
-  end
-
   def test_create_after_initialize_without_block
     cb = CustomBulb.create(:name => 'Dude')
     assert_equal('Dude', cb.name)
