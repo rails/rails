@@ -56,6 +56,12 @@ module Rails
 
     alias :configuration :config
 
+    # This method allows you to configure the global +Rails.config+ from inside
+    # environment files.
+    def configure
+      yield config if block_given?
+    end
+
     def initialize!
       application.initialize!
     end
