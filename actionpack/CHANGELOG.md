@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow default url options to accept host with protocol such as `http://`
+
+        config.action_mailer.default_url_options = { host: "http://mydomain.com" }
+
+    *Richard Schneeman*
+
 *   Ensure that digest authentication responds with a 401 status when a basic
     header is received.
 
