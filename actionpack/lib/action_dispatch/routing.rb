@@ -78,7 +78,7 @@ module ActionDispatch
   # Example:
   #
   #   # In routes.rb
-  #   match '/login' => 'accounts#login', as: 'login'
+  #   get '/login' => 'accounts#login', as: 'login'
   #
   #   # With render, redirect_to, tests, etc.
   #   redirect_to login_url
@@ -104,9 +104,9 @@ module ActionDispatch
   #
   #   # In routes.rb
   #   controller :blog do
-  #     match 'blog/show'     => :list
-  #     match 'blog/delete'   => :delete
-  #     match 'blog/edit/:id' => :edit
+  #     get 'blog/show'     => :list
+  #     get 'blog/delete'   => :delete
+  #     get 'blog/edit/:id' => :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit
@@ -116,7 +116,7 @@ module ActionDispatch
   #
   # Routes can generate pretty URLs. For example:
   #
-  #   match '/articles/:year/:month/:day' => 'articles#find_by_id', constraints: {
+  #   get '/articles/:year/:month/:day' => 'articles#find_by_id', constraints: {
   #     year:       /\d{4}/,
   #     month:      /\d{1,2}/,
   #     day:        /\d{1,2}/
@@ -131,7 +131,7 @@ module ActionDispatch
   # You can specify a regular expression to define a format for a parameter.
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /\d{5}(-\d{4})?/
   #     }
   #
@@ -139,13 +139,13 @@ module ActionDispatch
   # expression modifiers:
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /hx\d\d\s\d[a-z]{2}/i
   #     }
   #   end
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /# Postcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
@@ -153,7 +153,7 @@ module ActionDispatch
   #     }
   #   end
   #
-  # Using the multiline match modifier will raise an +ArgumentError+.
+  # Using the multiline modifier will raise an +ArgumentError+.
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
   #
@@ -213,13 +213,13 @@ module ActionDispatch
   #
   # You can redirect any path to another path using the redirect helper in your router:
   #
-  #   match "/stories" => redirect("/posts")
+  #   get "/stories" => redirect("/posts")
   #
   # == Unicode character routes
   #
   # You can specify unicode character routes in your router:
   #
-  #   match "こんにちは" => "welcome#index"
+  #   get "こんにちは" => "welcome#index"
   #
   # == Routing to Rack Applications
   #
@@ -227,7 +227,7 @@ module ActionDispatch
   # index action in the PostsController, you can specify any Rack application
   # as the endpoint for a matcher:
   #
-  #   match "/application.js" => Sprockets
+  #   get "/application.js" => Sprockets
   #
   # == Reloading routes
   #
