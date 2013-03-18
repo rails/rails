@@ -366,6 +366,8 @@ module ActiveSupport
     # TimeWithZone with the existing +time_zone+.
     def method_missing(sym, *args, &block)
       wrap_with_time_zone time.__send__(sym, *args, &block)
+    rescue NoMethodError => e
+      raise e, e.message.sub(time.inspect, self.inspect), e.backtrace
     end
 
     private
