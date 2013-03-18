@@ -17,7 +17,7 @@ class TransliterateTest < ActiveSupport::TestCase
     # some reason or other are floating in the middle of all the letters.
     string = (0xC0..0x17E).to_a.reject {|c| [0xD7, 0xF7].include?(c)}.pack("U*")
     string.each_char do |char|
-      assert_match %r{^[a-zA-Z']*$}, ActiveSupport::Inflector.transliterate(string)
+      assert_match %r{^[a-zA-Z']*$}, ActiveSupport::Inflector.transliterate(char)
     end
   end
 
