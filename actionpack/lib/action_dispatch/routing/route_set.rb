@@ -253,9 +253,9 @@ module ActionDispatch
 
         def define_named_route_methods(name, route)
           define_url_helper route, :"#{name}_path",
-            route.defaults.merge(:use_route => name, :only_path => true)
+            route.defaults.merge(use_route: name, only_path: true)
           define_url_helper route, :"#{name}_url",
-            route.defaults.merge(:use_route => name, :only_path => false)
+            route.defaults.merge(use_route: name, only_path: false)
         end
       end
 
@@ -266,7 +266,7 @@ module ActionDispatch
       alias :routes :set
 
       def self.default_resources_path_names
-        { :new => 'new', :edit => 'edit' }
+        { new: 'new', edit: 'edit' }
       end
 
       def initialize(request_class = ActionDispatch::Request)
@@ -282,8 +282,8 @@ module ActionDispatch
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new(@set, {
-          :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class})
+          parameters_key: PARAMETERS_KEY,
+          request_class:  request_class})
         @formatter = Journey::Formatter.new @set
       end
 
@@ -371,7 +371,7 @@ module ActionDispatch
             # Rails.application.routes.url_helpers.url_for(args)
             @_routes = routes
             class << self
-              delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
+              delegate :url_for, :optimize_routes_generation?, to: '@_routes'
             end
 
             # Make named_routes available in the module singleton
@@ -633,11 +633,11 @@ module ActionDispatch
         params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
-          :path => path,
-          :script_name => script_name,
-          :params => params,
-          :user => user,
-          :password => password
+          path:        path,
+          script_name: script_name,
+          params:      params,
+          user:        user,
+          password:    password
         }))
       end
 
@@ -651,7 +651,7 @@ module ActionDispatch
         extras = environment[:extras] || {}
 
         begin
-          env = Rack::MockRequest.env_for(path, {:method => method})
+          env = Rack::MockRequest.env_for(path, {method: method})
         rescue URI::InvalidURIError => e
           raise ActionController::RoutingError, e.message
         end
