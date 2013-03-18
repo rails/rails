@@ -613,12 +613,11 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       def dump_schema_information #:nodoc:
-        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-
         ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
+          insert_statement_for_version(sm.version)
         }.join "\n\n"
       end
+
 
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
@@ -638,7 +637,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          execute insert_statement_for_version(version)
         end
 
         inserted = Set.new
@@ -646,7 +645,7 @@ module ActiveRecord
           if inserted.include?(v)
             raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
           elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+            execute insert_statement_for_version(v)
             inserted << v
           end
         end
@@ -835,6 +834,11 @@ module ActiveRecord
 
       def update_table_definition(table_name, base)
         Table.new(table_name, base)
+      end
+
+      def insert_statement_for_version(version)
+        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+        "INSERT INTO #{sm_table} (version, migrated_at) VALUES ('#{version}', NOW());"
       end
     end
   end

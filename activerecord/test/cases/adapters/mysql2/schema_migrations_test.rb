@@ -16,7 +16,8 @@ module ActiveRecord
           config[:encoding] = 'utf8mb4'
           conn.initialize_schema_migrations_table
 
-          assert conn.column_exists?(smtn, :version, :string, limit: Mysql2Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4)
+          assert conn.column_exists?(smtn, :version, :string, limit: Mysql3Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4)
+          assert conn.column_exists?(smtv, :migrated_at, :datetime)
         ensure
           config[:encoding] = original_encoding
         end
