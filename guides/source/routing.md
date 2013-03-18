@@ -530,7 +530,7 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 
 ### Bound Parameters
 
-When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider one of the default Rails routes:
+When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider this route:
 
 ```ruby
 get ':controller(/:action(/:id))'
