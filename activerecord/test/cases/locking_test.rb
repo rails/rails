@@ -341,9 +341,6 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-
-# TODO: The Sybase, and OpenBase adapters currently have no support for pessimistic locking
-
 unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
