@@ -35,7 +35,7 @@ module AbstractController
       end
 
       def inherited(klass) # :nodoc:
-        # define the abstract ivar on subclasses so that we don't get
+        # Define the abstract ivar on subclasses so that we don't get
         # uninitialized ivar warnings
         unless klass.instance_variable_defined?(:@abstract)
           klass.instance_variable_set(:@abstract, false)
