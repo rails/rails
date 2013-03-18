@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.email    = 'david@loudthinking.com'
   s.homepage = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'bin/**/*', 'lib/**/{*,.[a-z]*}']
+  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'bin/**/*', 'lib/**/*.rb']
   s.require_path = 'lib'
 
   s.bindir      = 'bin'
