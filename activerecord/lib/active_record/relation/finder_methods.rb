@@ -37,7 +37,7 @@ module ActiveRecord
     end
 
     # Finds the first record matching the specified conditions. There
-    # is no implied ording so if order matters, you should specify it
+    # is no implied ordering so if order matters, you should specify it
     # yourself.
     #
     # If no record is found, returns <tt>nil</tt>.
