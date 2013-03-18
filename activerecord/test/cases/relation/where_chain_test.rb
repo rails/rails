@@ -6,26 +6,31 @@ module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
     fixtures :posts
 
+    def setup
+      super
+      @name = 'title'
+    end
+
     def test_not_eq
-      expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], 'hello')
+      expected = Arel::Nodes::NotEqual.new(Post.arel_table[@name], 'hello')
       relation = Post.where.not(title: 'hello')
       assert_equal([expected], relation.where_values)
     end
 
     def test_not_null
-      expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], nil)
+      expected = Arel::Nodes::NotEqual.new(Post.arel_table[@name], nil)
       relation = Post.where.not(title: nil)
       assert_equal([expected], relation.where_values)
     end
 
     def test_not_in
-      expected = Arel::Nodes::NotIn.new(Post.arel_table[:title], %w[hello goodbye])
+      expected = Arel::Nodes::NotIn.new(Post.arel_table[@name], %w[hello goodbye])
       relation = Post.where.not(title: %w[hello goodbye])
       assert_equal([expected], relation.where_values)
     end
 
     def test_association_not_eq
-      expected = Arel::Nodes::NotEqual.new(Comment.arel_table[:title], 'hello')
+      expected = Arel::Nodes::NotEqual.new(Comment.arel_table[@name], 'hello')
       relation = Post.joins(:comments).where.not(comments: {title: 'hello'})
       assert_equal(expected.to_sql, relation.where_values.first.to_sql)
     end
@@ -33,20 +38,20 @@ module ActiveRecord
     def test_not_eq_with_preceding_where
       relation = Post.where(title: 'hello').where.not(title: 'world')
 
-      expected = Arel::Nodes::Equality.new(Post.arel_table[:title], 'hello')
+      expected = Arel::Nodes::Equality.new(Post.arel_table[@name], 'hello')
       assert_equal(expected, relation.where_values.first)
 
-      expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], 'world')
+      expected = Arel::Nodes::NotEqual.new(Post.arel_table[@name], 'world')
       assert_equal(expected, relation.where_values.last)
     end
 
     def test_not_eq_with_succeeding_where
       relation = Post.where.not(title: 'hello').where(title: 'world')
 
-      expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], 'hello')
+      expected = Arel::Nodes::NotEqual.new(Post.arel_table[@name], 'hello')
       assert_equal(expected, relation.where_values.first)
 
-      expected = Arel::Nodes::Equality.new(Post.arel_table[:title], 'world')
+      expected = Arel::Nodes::Equality.new(Post.arel_table[@name], 'world')
       assert_equal(expected, relation.where_values.last)
     end
 
@@ -65,10 +70,10 @@ module ActiveRecord
     def test_chaining_multiple
       relation = Post.where.not(author_id: [1, 2]).where.not(title: 'ruby on rails')
 
-      expected = Arel::Nodes::NotIn.new(Post.arel_table[:author_id], [1, 2])
+      expected = Arel::Nodes::NotIn.new(Post.arel_table['author_id'], [1, 2])
       assert_equal(expected, relation.where_values[0])
 
-      expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], 'ruby on rails')
+      expected = Arel::Nodes::NotEqual.new(Post.arel_table[@name], 'ruby on rails')
       assert_equal(expected, relation.where_values[1])
     end
   end
