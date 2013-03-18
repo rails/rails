@@ -1,4 +1,4 @@
-## Rails 3.2.13 (Feb 17, 2013) ##
+## unrelesed ##
 
 *   Reload the association target if it's stale. `@stale_state` should be nil
     when a model isn't saved.
@@ -13,7 +13,7 @@
     *kennyj*
 
 
-## Rails 3.2.13.rc1 (Feb 17, 2013) ##
+## Rails 3.2.13 ##
 
 *   Reverted 921a296a3390192a71abeec6d9a035cc6d1865c8, 'Quote numeric values
     compared to string columns.' This caused several regressions.
