@@ -42,6 +42,7 @@ module Rails
       set_environment
     end
 
+    # TODO: this is no longer required but we keep it for the moment to support older config.ru files.
     def app
       @app ||= begin
         app = super
