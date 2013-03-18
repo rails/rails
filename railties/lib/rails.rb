@@ -44,7 +44,7 @@ module Rails
     # If the above is the first application that is initialized, then
     # +Rails.config+ will be set to the config of the above application.
     def config
-      @config ||= Application::Configuration.new(Rails::Engine.find_root_with_flag("config.ru", Dir.pwd)))
+      @config ||= Application::Configuration.new(Rails::Engine.find_root_with_flag("config.ru", Dir.pwd))
     end
 
     # The @config variable is set on the first instantiation of a

@@ -40,10 +40,11 @@ module Rails
   #
   #   1)  require "config/boot.rb" to setup load paths
   #   2)  require railties and engines
-  #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
-  #   4)  Run config.before_configuration callbacks
-  #   5)  Load config/environments/ENV.rb
-  #   6)  Run config.before_initialize callbacks
+  #   3)  Run config.before_initialize callbacks
+  #   4)  Define Rails.config then Rails.application by defining "class MyApp::Application < Rails::Application"
+  #       and calling "MyApp.new"
+  #   5)  Run config.before_configuration callbacks
+  #   6)  Load config/environments/ENV.rb
   #   7)  Run Railtie#initializer defined by railties, engines and application.
   #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
   #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
