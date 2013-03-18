@@ -467,7 +467,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts_with_comments = people(:michael).posts.merge(:includes => :comments, :order => 'posts.id').to_a
     posts_with_author = people(:michael).posts.merge(:includes => :author, :order => 'posts.id').to_a
     posts_with_comments_and_author = people(:michael).posts.merge(:includes => [ :comments, :author ], :order => 'posts.id').to_a
-    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum + post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
   end
@@ -523,7 +523,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit
     posts = Post.all.merge!(:order => 'posts.id asc', :includes => [ :author, :comments ], :limit => 2).to_a
     assert_equal 2, posts.size
-    assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal 3, posts.inject(0) { |sum, post| sum + post.comments.size }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
