@@ -20,7 +20,7 @@ module ActiveRecord
             table = Arel::Table.new(table_name, engine)
           end
 
-          attribute = table[column.to_sym]
+          attribute = table[column]
 
           case value
           when ActiveRecord::Relation

@@ -3,10 +3,9 @@
 *   No changes.
 
 
-## Rails 3.2.13.rc1 (Feb 17, 2013) ##
+## Rails 3.2.13 ##
 
 *   No changes.
-
 
 ## Rails 3.2.12 (Feb 11, 2013) ##
 

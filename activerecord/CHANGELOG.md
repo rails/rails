@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.13 (Feb 17, 2013) ##
 
 *   Reload the association target if it's stale. `@stale_state` should be nil
     when a model isn't saved.
@@ -237,16 +237,6 @@
     on these types.
 
     *Victor Costan*
-
-*   `#pluck` can be used on a relation with `select` clause.
-    Fixes #7551.
-    Backport of #8176.
-
-    Example:
-
-        Topic.select([:approved, :id]).order(:id).pluck(:id)
-
-    *Yves Senn*
 
 *   Use `nil?` instead of `blank?` to check whether dynamic finder with a bang
     should raise RecordNotFound.
