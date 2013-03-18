@@ -8,7 +8,7 @@ module ActiveRecord
           conn = ActiveRecord::Base.connection
 
           smtn = ActiveRecord::Migrator.schema_migrations_table_name
-          conn.drop_table(smtn) if conn.table_exists?(smtn)
+          conn.drop_table(smtn) if conn.table_exists(smtn)
 
           config = conn.instance_variable_get(:@config)
           original_encoding = config[:encoding]
@@ -17,7 +17,7 @@ module ActiveRecord
           conn.initialize_schema_migrations_table
 
           assert conn.column_exists?(smtn, :version, :string, limit: Mysql3Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4)
-          assert conn.column_exists?(smtv, :migrated_at, :datetime)
+          assert conn.column_exists?(smtv, :migrated_at, :datetime, null: true)
         ensure
           config[:encoding] = original_encoding
         end
