@@ -161,7 +161,7 @@ module ActiveRecord
 
         def value_to_date(value)
           if value.is_a?(String)
-            return nil if value.empty?
+            return nil if value.blank?
             fast_string_to_date(value) || fallback_string_to_date(value)
           elsif value.respond_to?(:to_date)
             value.to_date
@@ -172,14 +172,14 @@ module ActiveRecord
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          return nil if string.empty?
+          return nil if string.blank?
 
           fast_string_to_time(string) || fallback_string_to_time(string)
         end
 
         def string_to_dummy_time(string)
           return string unless string.is_a?(String)
-          return nil if string.empty?
+          return nil if string.blank?
 
           dummy_time_string = "2000-01-01 #{string}"
 
@@ -192,7 +192,7 @@ module ActiveRecord
 
         # convert something to a boolean
         def value_to_boolean(value)
-          if value.is_a?(String) && value.empty?
+          if value.is_a?(String) && value.blank?
             nil
           else
             TRUE_VALUES.include?(value)
