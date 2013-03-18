@@ -69,6 +69,22 @@ module ActionDispatch
   # <tt>Routing::Mapper::Scoping#namespace</tt>, and
   # <tt>Routing::Mapper::Scoping#scope</tt>.
   #
+  # == Non-resourceful routes
+  #
+  # For routes that don't fit the <tt>resources</tt> mold, you can use the HTTP helper
+  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
+  #
+  #   get 'post/:id' => 'posts#show'
+  #   post 'post/:id' => 'posts#create_comment'
+  #
+  # If your route needs to respond to more than one HTTP method (or all methods) then using the
+  # <tt>:via</tt> option on <tt>match</tt> is preferable.
+  #
+  #   match 'post/:id' => 'posts#show', via: [:get, :post]
+  #
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
+  # URL will route to the <tt>show</tt> action.
+  #
   # == Named routes
   #
   # Routes can be named by passing an <tt>:as</tt> option,
@@ -156,34 +172,6 @@ module ActionDispatch
   # Using the multiline modifier will raise an +ArgumentError+.
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
-  #
-  # == HTTP Methods
-  #
-  # Using the <tt>:via</tt> option when specifying a route allows you to
-  # restrict it to a specific HTTP method.  Possible values are <tt>:post</tt>,
-  # <tt>:get</tt>, <tt>:patch</tt>, <tt>:put</tt>, <tt>:delete</tt> and
-  # <tt>:any</tt>.  If your route needs to respond to more than one method you
-  # can use an array, e.g. <tt>[ :get, :post ]</tt>.  The default value is
-  # <tt>:any</tt> which means that the route will respond to any of the HTTP
-  # methods.
-  #
-  #   match 'post/:id' => 'posts#show', via: :get
-  #   match 'post/:id' => 'posts#create_comment', via: :post
-  #
-  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
-  #
-  # === HTTP helper methods
-  #
-  # An alternative method of specifying which HTTP method a route should respond to is to use the helper
-  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
-  #
-  #   get 'post/:id' => 'posts#show'
-  #   post 'post/:id' => 'posts#create_comment'
-  #
-  # This syntax is less verbose and the intention is more apparent to someone else reading your code,
-  # however if your route needs to respond to more than one HTTP method (or all methods) then using the
-  # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
   # == External redirects
   #
