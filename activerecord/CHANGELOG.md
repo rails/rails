@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   If inverse_of is true on an association, then when one calls +find()+ on
+    the association, ActiveRecord will first look through the in-memory objects
+    in the association for a particular id. Then, it will go to the DB if it
+    is not found. This is accomplished by calling +find_by_scan+ in
+    collection associations whenever +options[:inverse_of]+ is not nil.
+
+    Fixes #9470.
+
+    *John Wang*
+
 *   `rake db:create` does not change permissions of the MySQL root user.
     Fixes #8079.
 
