@@ -249,6 +249,14 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
+  test "when sent a basic auth header, returns Unauthorized" do
+    @request.env['HTTP_AUTHORIZATION'] = 'Basic Gwf2aXq8ZLF3Hxq='
+
+    get :display
+
+    assert_response :unauthorized
+  end
+
   private
 
   def encode_credentials(options)

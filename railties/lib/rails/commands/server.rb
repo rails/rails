@@ -42,6 +42,7 @@ module Rails
       set_environment
     end
 
+    # TODO: this is no longer required but we keep it for the moment to support older config.ru files.
     def app
       @app ||= begin
         app = super
@@ -61,7 +62,7 @@ module Rails
       url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
       puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-      puts "=> Call with -d to detach" unless options[:daemonize]
+      puts "=> Run `rails server -h` for more startup options"
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 

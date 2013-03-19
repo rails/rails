@@ -25,4 +25,13 @@ class LocalizedTemplatesTest < ActionController::TestCase
   ensure
     I18n.locale = old_locale
   end
+
+  def test_use_fallback_locales
+    I18n.locale = :"de-AT"
+    I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
+    I18n.fallbacks[:"de-AT"] = [:de]
+
+    get :hello_world
+    assert_equal "Gutten Tag", @response.body
+  end
 end

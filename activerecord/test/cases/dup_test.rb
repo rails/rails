@@ -110,7 +110,7 @@ module ActiveRecord
     def test_dup_validity_is_independent
       repair_validations(Topic) do
         Topic.validates_presence_of :title
-        topic = Topic.new("title" => "Litterature")
+        topic = Topic.new("title" => "Literature")
         topic.valid?
 
         duped = topic.dup

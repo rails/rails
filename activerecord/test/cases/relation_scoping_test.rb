@@ -390,20 +390,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_with_inheritance
     wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
-    assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal "Jamis", wheres['name']
+    assert_equal 50000,   wheres['salary']
   end
 
   def test_default_scope_with_module_includes
     wheres = ModuleIncludedPoorDeveloperCalledJamis.all.where_values_hash
-    assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal "Jamis", wheres['name']
+    assert_equal 50000,   wheres['salary']
   end
 
   def test_default_scope_with_multiple_calls
     wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
-    assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal "Jamis", wheres['name']
+    assert_equal 50000,   wheres['salary']
   end
 
   def test_scope_overwrites_default
@@ -563,7 +563,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
       Developer.select("id").unscope("select")
     end
 
-    assert_raises(ArgumentError) do 
+    assert_raises(ArgumentError) do
       Developer.select("id").unscope(5)
     end
   end

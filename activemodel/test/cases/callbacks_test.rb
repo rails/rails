@@ -107,7 +107,7 @@ class CallbacksTest < ActiveModel::TestCase
   test "after_create callbacks with both callbacks declared in one line" do
     assert_equal ["callback1", "callback2"], Violin1.new.create.history
   end
-  test "after_create callbacks with both callbacks declared in differnt lines" do
+  test "after_create callbacks with both callbacks declared in different lines" do
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
   end
 
