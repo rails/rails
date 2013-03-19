@@ -1,4 +1,3 @@
-
 module ActionDispatch
   module Http
     module Cache
