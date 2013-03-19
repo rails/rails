@@ -134,7 +134,7 @@ module Rails
     #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
     #
     def env_config
-      @env_config ||= begin
+      @app_env_config ||= begin
         if config.secret_key_base.nil?
           ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base in config/initializers/secret_token.rb file. " +
             "This should be used instead of the old deprecated config.secret_token in order to use the new EncryptedCookieStore. " +
