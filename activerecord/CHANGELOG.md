@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Resets the postgres search path in the structure.sql after the structure
+    is dumped in order to find schema_migrations table when multiples schemas
+    are used.
+    Fixes #9796.
+
+    *Juan M. Cuello + Dembskiy Alexander*
+
 *   Reload the association target if it's stale. `@stale_state` should be nil
     when a model isn't saved.
     Fixes #7526.
