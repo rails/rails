@@ -634,15 +634,15 @@ module Rails
       end
     end
 
+    def routes? #:nodoc:
+      @routes
+    end
+
     protected
 
     def run_tasks_blocks(*) #:nodoc:
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
-    end
-
-    def routes? #:nodoc:
-      @routes
     end
 
     def has_migrations? #:nodoc:
