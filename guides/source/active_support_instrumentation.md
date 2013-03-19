@@ -465,7 +465,7 @@ Creating custom events
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
 all the heavy lifting for you. Simply call `instrument` with a `name`, `payload` and a block.
 The notification will be sent after the block returns. `ActiveSupport` will generate the start and end times
-as well as the unique ID. All data passed into the `insturment` call will make it into the payload.
+as well as the unique ID. All data passed into the `instrument` call will make it into the payload.
 
 Here's an example:
 
