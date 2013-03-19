@@ -68,6 +68,12 @@ class RecordIdentifierWithoutDeprecationController < ActionController::Base
   include ActionView::RecordIdentifier
 end
 
+class ActionMissingController < ActionController::Base
+  def action_missing(action)
+    render :text => "Response for #{action}"
+  end
+end
+
 class ControllerClassTests < ActiveSupport::TestCase
 
   def test_controller_path
@@ -185,6 +191,12 @@ class PerformActionTest < ActionController::TestCase
     use_controller NonEmptyController
     assert_raise(AbstractController::ActionNotFound) { get :hidden_action }
     assert_raise(AbstractController::ActionNotFound) { get :another_hidden_action }
+  end
+
+  def test_action_missing_should_work
+    use_controller ActionMissingController
+    get :arbitrary_action
+    assert_equal "Response for arbitrary_action", @response.body
   end
 end
 

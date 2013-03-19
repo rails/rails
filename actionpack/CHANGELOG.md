@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed ActionController#action_missing not being called.
+    Fixes GH#9799.
+
+    *Janko Luin*
+
 *   Ensure that digest authentication responds with a 401 status when a basic
     header is received.
 
