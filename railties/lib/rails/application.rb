@@ -79,7 +79,7 @@ module Rails
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
-      @env_config       = nil
+      @app_env_config   = nil
       @ordered_railties = nil
       @railties         = nil
     end
