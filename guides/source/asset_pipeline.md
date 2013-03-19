@@ -768,7 +768,7 @@ end
 ```
 
 Now that you have a `Template` class, it's time to associate it with an
-extenstion for template files:
+extension for template files:
 
 ```ruby
 Sprockets.register_engine '.bang', BangBang::Template
