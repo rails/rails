@@ -158,29 +158,27 @@ module ActionDispatch
 
     # Returns the +String+ full path including params of the last URL requested.
     #
-    #    app.get "/articles"
-    #    app.request.fullpath # => "/articles"
+    #    # get "/articles"
+    #    request.fullpath # => "/articles"
     #
-    #    app.get "/articles?page=2"
-    #    app.request.fullpath # => "/articles?page=2"
+    #    # get "/articles?page=2"
+    #    request.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
 
-    # Returns the original request URL as a +String+
+    # Returns the original request URL as a +String+.
     #
-    #    app.get "/articles?page=2"
-    #    app.request.original_url
-    #    # => "http://www.example.com/articles?page=2"
+    #    # get "/articles?page=2"
+    #    request.original_url # => "http://www.example.com/articles?page=2"
     def original_url
       base_url + original_fullpath
     end
 
-    # The +String+ MIME type of the request
+    # The +String+ MIME type of the request.
     #
-    #    app.get "/articles"
-    #    app.request.media_type
-    #    # => "application/x-www-form-urlencoded"
+    #    # get "/articles"
+    #    request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type.to_s
     end
