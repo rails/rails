@@ -251,6 +251,11 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '4.5  tens', number_to_human(45, :units => {:unit => "", :ten => ' tens   '})
   end
 
+  def test_number_to_human_with_custom_units_that_are_missing_the_needed_key
+    assert_equal '123', number_to_human(123, :units => {:thousand => 'k'})
+    assert_equal '123', number_to_human(123, :units => {})
+  end
+
   def test_number_to_human_with_custom_format
     assert_equal '123 times Thousand', number_to_human(123456, :format => "%n times %u")
     volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
