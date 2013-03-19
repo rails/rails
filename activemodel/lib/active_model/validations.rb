@@ -169,6 +169,49 @@ module ActiveModel
         _validators.values.flatten.uniq
       end
 
+      # Clears all of the validators and validations.
+      #
+      # Note that this will clear anything that is being used to validate
+      # the model for both the +validates_with+ and +validate+ methods.
+      # It clears the validators that are created with an invocation of
+      # +validates_with+ and the callbacks that are set by an invocation
+      # of +validate+.
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     validates_with MyValidator
+      #     validates_with OtherValidator, on: :create
+      #     validates_with StrictValidator, strict: true
+      #     validate :cannot_be_robot
+      #
+      #     def cannot_be_robot
+      #       errors.add(:base, 'A person cannot be a robot') if person_is_robot
+      #     end
+      #   end
+      #
+      #   Person.validators
+      #   # => [
+      #   #      #<MyValidator:0x007fbff403e808 @options={}>,
+      #   #      #<OtherValidator:0x007fbff403d930 @options={on: :create}>,
+      #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
+      #   #    ]
+      #
+      # If one runs Person.clear_validators! and then checks to see what
+      # validators this class has, you would obtain:
+      #
+      #   Person.validators # => []
+      #
+      # Also, the callback set by +validate :cannot_be_robot+ will be erased
+      # so that:
+      #
+      #   Person._validate_callbacks.empty?  # => true
+      #
+      def clear_validators!
+        reset_callbacks(:validate)
+        _validators.clear
+      end
+
       # List all validators that are being used to validate a specific attribute.
       #
       #   class Person
