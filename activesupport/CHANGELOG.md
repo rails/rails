@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveSupport::TimeWithZone` raises `NoMethodError` in proper context.
+    Fixes #9772.
+
+    *Yves Senn*
+
 *   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
 
     *Charles Jones*

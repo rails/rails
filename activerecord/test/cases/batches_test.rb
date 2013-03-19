@@ -11,7 +11,7 @@ class EachTest < ActiveRecord::TestCase
     Post.count('id') # preheat arel's table cache
   end
 
-  def test_each_should_excecute_one_query_per_batch
+  def test_each_should_execute_one_query_per_batch
     assert_queries(Post.count + 1) do
       Post.find_each(:batch_size => 1) do |post|
         assert_kind_of Post, post

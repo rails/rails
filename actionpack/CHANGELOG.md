@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Ensure that digest authentication responds with a 401 status when a basic
+    header is received.
+
+    *Brad Dunbar*
+
+*   Include I18n locale fallbacks in view lookup.
+    Fixes GH#3512.
+
+    *Juan Barreneche*
+
 *   Integration and functional tests allow headers and rack env
     variables to be passed when performing requests.
     Fixes #6513.
