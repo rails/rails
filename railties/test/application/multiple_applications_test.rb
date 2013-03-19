@@ -18,11 +18,25 @@ module ApplicationTests
     def setup
       build_app(initializers: true)
       app
-      #boot_rails
     end
 
     def teardown
       teardown_app
+    end
+
+    def test_cloning_an_application_makes_a_shallow_copy
+      clone = Rails.application.clone
+
+      assert_equal Rails.application.config, clone.config
+      assert_equal Rails.application.reloaders, clone.reloaders
+      assert_equal Rails.application.routes_reloader, clone.routes_reloader
+      assert_equal Rails.application.railties, clone.railties
+      assert_equal Rails.application.routes, clone.routes
+      assert_equal Rails.application.helpers, clone.helpers
+      assert_equal Rails.application.env_config, clone.env_config
+
+      Rails.application.config.secret_key_base = "555555555"
+      assert_equal Rails.application.config, clone.config
     end
 
     def test_initialization_of_multiple_copies_of_same_application

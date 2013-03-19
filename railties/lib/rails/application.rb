@@ -133,9 +133,9 @@ module Rails
       public :new
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :assets, :sandbox, :reloaders
+    attr_writer :config, :railties, :routes_reloader, :routes, :helpers, :env_config
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -193,6 +193,32 @@ module Rails
       end
 
       instance_eval(&block) if block_given?
+    end
+
+    # Makes a shallow copy of this application. Changing any of the
+    # configuration on the original or new copy will change the configuration
+    # on both. The variables that are shared are:
+    #
+    #  reloaders, route_reloader, env_config,
+    #  ordered_railties, railties, config
+    #
+    # One can use this method to create multiple instances of the same rails
+    # application which share the same configuration. For example:
+    #
+    #  apps = 10.times.map do
+    #    Rails.application.clone
+    #  end
+    #
+    def clone
+      obj = self.class.new
+      obj.config = @config
+      obj.railties = railties
+      obj.routes_reloader = routes_reloader
+      obj.reloaders = reloaders
+      obj.routes = routes
+      obj.helpers = helpers
+      obj.env_config = env_config
+      obj
     end
 
     # Returns true if the application is initialized.
@@ -336,7 +362,7 @@ module Rails
     # When configuring an application, you will actually be configuring the
     # global configuration inside of the Rails module.
     def config
-      Rails.config
+      @config ||= Rails.config
     end
 
     # Sends any runner called in the +instance_eval+ of a new application up
