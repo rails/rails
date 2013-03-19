@@ -43,7 +43,7 @@ if RUBY_PLATFORM =~ /java/
       assert_equal 'x', Hash.from_xml(attack_xml)["member"]
     end
 
-  def test_not_allowed_to_expand_parameter_entities_to_files
+    def test_not_allowed_to_expand_parameter_entities_to_files
       attack_xml = <<-EOT
       <!DOCTYPE member [
         <!ENTITY % b SYSTEM "file://#{FILES_DIR}/jdom_entities.txt">
