@@ -79,7 +79,7 @@ module ActiveRecord
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          if options[:finder_sql]
+          if options[:finder_sql] || options[:inverse_of]
             find_by_scan(*args)
           else
             scope.find(*args)
@@ -567,7 +567,8 @@ module ActiveRecord
           end
         end
 
-        # If using a custom finder_sql, #find scans the entire collection.
+        # If using a custom finder_sql or if the :inverse_of option has been
+        # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
           ids           = args.flatten.compact.map{ |arg| arg.to_i }.uniq
