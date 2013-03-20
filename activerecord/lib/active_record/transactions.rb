@@ -277,12 +277,15 @@ module ActiveRecord
 
     # Reset id and @new_record if the transaction rolls back.
     def rollback_active_record_state!
+      p "in rollback"
       remember_transaction_record_state
       yield
     rescue Exception
+      p "after exception rescued"
       restore_transaction_record_state
       raise
     ensure
+      p "before clearing"
       clear_transaction_record_state
     end
 
@@ -321,10 +324,12 @@ module ActiveRecord
     def with_transaction_returning_status
       status = nil
       self.class.transaction do
+
         add_to_transaction
         begin
           status = yield
         rescue ActiveRecord::Rollback
+          p "in rescue rollback "
           @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
           status = nil
         end
@@ -343,6 +348,7 @@ module ActiveRecord
       @_start_transaction_state[:destroyed] = @destroyed
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
       @_start_transaction_state[:frozen?] = @attributes.frozen?
+
     end
 
     # Clear the new record state and id of a record.
@@ -352,10 +358,10 @@ module ActiveRecord
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-    def restore_transaction_record_state(force = false) #:nodoc:
+    def restore_transaction_record_state(force=false) #:nodoc:
       unless @_start_transaction_state.empty?
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        if @_start_transaction_state[:level] < 1 || force
+        if @_start_transaction_state[:level] <= 1 || force
           restore_state = @_start_transaction_state
           was_frozen = restore_state[:frozen?]
           @attributes = @attributes.dup if @attributes.frozen?

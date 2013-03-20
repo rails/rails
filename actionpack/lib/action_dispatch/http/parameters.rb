@@ -60,7 +60,7 @@ module ActionDispatch
           return params
         end
 
-        params.each do |k, v|
+        params.each_value do |v|
           case v
           when Hash
             encode_params(v)
