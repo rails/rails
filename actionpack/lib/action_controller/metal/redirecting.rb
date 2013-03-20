@@ -68,7 +68,7 @@ module ActionController
 
       self.status        = _extract_redirect_to_status(options, response_status)
       self.location      = _compute_redirect_to_location(options)
-      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.h(location)}\">redirected</a>.</body></html>"
+      self.response_body = _show_response_body
     end
 
     private
@@ -99,6 +99,10 @@ module ActionController
         else
           url_for(options)
         end.delete("\0\r\n")
+      end
+      
+      def _show_response_body
+        "<html><body>You are being <a href=\"#{ERB::Util.h(location)}\">redirected</a>.</body></html>"
       end
   end
 end
