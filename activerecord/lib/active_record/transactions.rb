@@ -277,15 +277,12 @@ module ActiveRecord
 
     # Reset id and @new_record if the transaction rolls back.
     def rollback_active_record_state!
-      p "in rollback"
       remember_transaction_record_state
       yield
     rescue Exception
-      p "after exception rescued"
       restore_transaction_record_state
       raise
     ensure
-      p "before clearing"
       clear_transaction_record_state
     end
 
