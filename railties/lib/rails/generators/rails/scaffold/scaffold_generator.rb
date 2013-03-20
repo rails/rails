@@ -8,6 +8,7 @@ module Rails
 
       class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
+      class_option :assets, type: :boolean, default: true
 
       def handle_skip
         @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
