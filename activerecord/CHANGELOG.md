@@ -525,7 +525,7 @@
 
     *Justin George*
 
-*   The database adpters now converts the options passed thought `DATABASE_URL`
+*   The database adapters now converts the options passed thought `DATABASE_URL`
     environment variable to the proper Ruby types before using. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the
     prepared_statements option is a boolean. These now work as expected:
