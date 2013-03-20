@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Models with multiple counter cache associations now update correctly on destroy.
+    See #7706.
+
+    *Ian Young*
+
 *   If inverse_of is true on an association, then when one calls +find()+ on
     the association, ActiveRecord will first look through the in-memory objects
     in the association for a particular id. Then, it will go to the DB if it
