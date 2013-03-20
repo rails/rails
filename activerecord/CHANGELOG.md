@@ -10,9 +10,6 @@
     are used.
     Fixes #9796.
 
-*   Support PostgreSQL specific column types when using `change_table`.
-    Fixes #9480.
-
     *Juan M. Cuello + Dembskiy Alexander*
 
 *   Reload the association target if it's stale. `@stale_state` should be nil
