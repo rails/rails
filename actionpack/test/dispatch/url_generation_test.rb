@@ -48,6 +48,14 @@ module TestUrlGeneration
       https!
       assert_equal "http://www.example.com/foo", foo_url(:protocol => "http")
     end
+
+    test "extracting protocol from host when protocol not present" do
+      assert_equal "httpz://www.example.com/foo", foo_url(host: "httpz://www.example.com", protocol: nil)
+    end
+
+    test "formatting host when protocol is present" do
+      assert_equal "http://www.example.com/foo", foo_url(host: "httpz://www.example.com", protocol: "http://")
+    end
   end
 end
 

@@ -59,8 +59,9 @@ module ActionDispatch
           result = ""
 
           unless options[:only_path]
+            protocol = extract_protocol(options)
             unless options[:protocol] == false
-              result << (options[:protocol] || "http")
+              result << protocol
               result << ":" unless result.match(%r{:|//})
             end
             result << "//" unless result.match("//")
@@ -81,6 +82,16 @@ module ActionDispatch
           else
             ""
           end
+        end
+
+        # Extracts protocol http:// or https:// from options[:host]
+        # needs to be called whether the :protocol is being used or not
+        def extract_protocol(options)
+          if options[:host] && match = options[:host].match(/(^.*:\/\/)(.*)/)
+            options[:protocol] ||= match[1]
+            options[:host]     =   match[2]
+          end
+          options[:protocol] || "http"
         end
 
         def host_or_subdomain_and_domain(options)
