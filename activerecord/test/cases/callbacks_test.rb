@@ -520,7 +520,7 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_inheritence_of_callbacks
+  def test_inheritance_of_callbacks
     parent = ParentDeveloper.new
     assert !parent.after_save_called
     parent.save

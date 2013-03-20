@@ -614,7 +614,7 @@ module ActiveRecord
     #
     # The returned <tt>ActiveRecord::NullRelation</tt> inherits from Relation and implements the
     # Null Object pattern. It is an object with defined null behavior and always returns an empty
-    # array of records without quering the database.
+    # array of records without querying the database.
     #
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
