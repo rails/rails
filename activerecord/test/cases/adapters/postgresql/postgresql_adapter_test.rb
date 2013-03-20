@@ -188,6 +188,12 @@ module ActiveRecord
         assert_equal "DISTINCT posts.title, posts.updater_id AS alias_0", @connection.distinct("posts.title", ["posts.updater_id desc nulls last"])
       end
 
+      def test_raise_error_when_cannot_translate_exception
+        assert_raise TypeError do
+          @connection.send(:log, nil) { @connection.execute(nil) }
+        end
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|

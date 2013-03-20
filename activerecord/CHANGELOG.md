@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix a problem wrong exception is occured
+    when raising no translatable exception in PostgreSQL.
+
+    *kennyj*
+
 *   Resets the postgres search path in the structure.sql after the structure
     is dumped in order to find schema_migrations table when multiples schemas
     are used.
