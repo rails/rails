@@ -519,8 +519,7 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.query 'SELECT 1'
-        true
+        @connection.connect_poll != PG::PGRES_POLLING_FAILED
       rescue PGError
         false
       end

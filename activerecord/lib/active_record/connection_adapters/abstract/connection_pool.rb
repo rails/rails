@@ -406,7 +406,9 @@ module ActiveRecord
         synchronize do
           stale = Time.now - @dead_connection_timeout
           connections.dup.each do |conn|
-            remove conn if conn.in_use? && stale > conn.last_use && !conn.active?
+            if conn.in_use? && stale > conn.last_use && !conn.active?
+              remove conn
+            end
           end
         end
       end
