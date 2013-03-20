@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fixed assets loading performance in 3.2.13.
+
+    The PR #8756 uses Sprockets for resolving files that already exists on disk, for those files their extensions don't need to be rewritten. Fixes #9803.
+
+    *Fred Wu*
+
 *   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
     the units hash does not contain the needed key, e.g. when the number provided is less
     than the largest key proivided.
