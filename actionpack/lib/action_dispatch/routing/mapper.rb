@@ -198,7 +198,7 @@ module ActionDispatch
           end
 
           def request_method_condition
-            if via = @options[:via]
+            if (via = @options[:via]) && (via != :all)
               list = Array(via).map { |m| m.to_s.dasherize.upcase }
               { :request_method => list }
             else
@@ -313,6 +313,7 @@ module ActionDispatch
         #
         #      match 'path' => 'c#a', :via => :get
         #      match 'path' => 'c#a', :via => [:get, :post]
+        #      match 'path' => 'c#a', :via => :all
         #
         # [:to]
         #   Points to a +Rack+ endpoint. Can be an object that responds to
