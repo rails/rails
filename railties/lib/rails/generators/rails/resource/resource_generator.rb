@@ -14,7 +14,7 @@ module Rails
       class_option :actions, type: :array, banner: "ACTION ACTION", default: [],
                              desc: "Actions for the resource controller"
 
-      hook_for :resource_route, required: true
+      hook_for :resource_route, type: :boolean, default: true
     end
   end
 end

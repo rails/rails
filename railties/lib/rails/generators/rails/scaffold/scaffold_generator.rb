@@ -6,8 +6,7 @@ module Rails
       remove_hook_for :resource_controller
       remove_class_option :actions
 
-      class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
-      class_option :stylesheet_engine, desc: "Engine for Stylesheets"
+      class_option :helper, type: :boolean, default: true
 
       def handle_skip
         @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
@@ -15,14 +14,8 @@ module Rails
 
       hook_for :scaffold_controller, required: true
 
-      hook_for :assets do |assets|
+      hook_for :assets, type: :boolean, default: true do |assets|
         invoke assets, [controller_name]
-      end
-
-      hook_for :stylesheet_engine do |stylesheet_engine|
-        if behavior == :invoke
-          invoke stylesheet_engine, [controller_name]
-        end
       end
     end
   end
