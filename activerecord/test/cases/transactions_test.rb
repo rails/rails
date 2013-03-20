@@ -5,6 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
+require 'models/savemodel'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -13,6 +14,33 @@ class TransactionTest < ActiveRecord::TestCase
   def setup
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
+
+  def test_save_returns_new_record
+    @topic = SaveModel.new
+    begin
+      SaveModel.transaction do
+        @topic.save
+      end
+    rescue ActiveRecord::StatementInvalid
+    end
+    p @topic.new_record?
+    assert @topic.new_record?, "New_record? should return true"
+     # should return true
+  end
+
+
+  def test_save_bang_returns_new_record
+    @topic = SaveModel.new
+    begin
+      SaveModel.transaction do
+        @topic.save!
+      end
+    rescue ActiveRecord::StatementInvalid
+    end
+      assert @topic.new_record?,  "New_record? should return true"
+       # should return true
+  end
+
 
   def test_raise_after_destroy
     assert_not @first.frozen?
@@ -105,6 +133,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
+
 
   def test_raising_exception_in_callback_rollbacks_in_save
     def @first.after_save_for_transaction
