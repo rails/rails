@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fixed `ActionController#action_missing` not being called.
+    Fixes #9799.
+
+    *Janko Luin*
+
 *   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
     the units hash does not contain the needed key, e.g. when the number provided is less
     than the largest key proivided.
