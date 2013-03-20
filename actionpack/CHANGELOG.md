@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Raise an `ArgumentError` when a clashing named route is defined.
+
+    *Trevor Turk*
+
 *   Allow default url options to accept host with protocol such as `http://`
 
         config.action_mailer.default_url_options = { host: "http://mydomain.com" }

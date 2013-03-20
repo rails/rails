@@ -103,31 +103,19 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
-* Rails 4.0 correctly prefers the first named route defined in `config/routes.rb` if a clashing route is found later. Check the output of `rake routes` before upgrading and remove unused named routes to avoid issues.
+* Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
 
 ```ruby
-  # config/routes.rb
   get 'one' => 'test#example', as: :example
   get 'two' => 'test#example', as: :example
-
-  # Rails 3
-  <%= example_path %> # => '/two'
-
-  # Rails 4
-  <%= example_path %> # => '/one'
 ```
 
 ```ruby
-  # config/routes.rb
   resources :examples
   get 'clashing/:id' => 'test#example', as: :example
-
-  # Rails 3
-  <%= example_path(1) %> # => '/clashing/1'
-
-  # Rails 4
-  <%= example_path(1) %> # => '/examples/1'
 ```
+
+In the first case, you can simply avoid using the same name for multiple routes. In the second, you can use the `only` or `except` options provided by the `resources` method to restrict the routes created as detailed in the [Routing Guide](http://guides.rubyonrails.org/routing.html#restricting-the-routes-created).
 
 * Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 

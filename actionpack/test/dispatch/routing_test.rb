@@ -2577,22 +2577,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::UrlGenerationError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
-  def test_named_routes_collision_is_avoided_unless_explicitly_given_as
-    draw do
-      scope :as => "routes" do
-        get "/c/:id", :as => :collision, :to => "collision#show"
-        get "/collision", :to => "collision#show"
-        get "/no_collision", :to => "collision#show", :as => nil
-
-        get "/fc/:id", :as => :forced_collision, :to => "forced_collision#show"
-        get "/forced_collision", :as => :forced_collision, :to => "forced_collision#show"
-      end
-    end
-
-    assert_equal "/c/1", routes_collision_path(1)
-    assert_equal "/fc/1", routes_forced_collision_path(1)
-  end
-
   def test_redirect_argument_error
     routes = Class.new { include ActionDispatch::Routing::Redirection }.new
     assert_raises(ArgumentError) { routes.redirect Object.new }
@@ -2604,9 +2588,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "/c/:id", :as => :collision, :to => "collision#show"
         get "/collision", :to => "collision#show"
         get "/no_collision", :to => "collision#show", :as => nil
-
-        get "/fc/:id", :as => :forced_collision, :to => "forced_collision#show"
-        get "/forced_collision", :as => :forced_collision, :to => "forced_collision#show"
       end
     end
 
@@ -2654,6 +2635,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     assert_raise(ArgumentError) do
       draw { get '/products', :to => 'products#index', :as => '1products' }
+    end
+  end
+
+  def test_duplicate_route_name_raises_error
+    assert_raise(ArgumentError) do
+      draw do
+        get '/collision', :to => 'collision#show', :as => 'collision'
+        get '/duplicate', :to => 'duplicate#show', :as => 'collision'
+      end
+    end
+  end
+
+  def test_duplicate_route_name_via_resources_raises_error
+    assert_raise(ArgumentError) do
+      draw do
+        resources :collisions
+        get '/collision', :to => 'collision#show', :as => 'collision'
+      end
     end
   end
 
