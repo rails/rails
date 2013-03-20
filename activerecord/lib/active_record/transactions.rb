@@ -326,7 +326,6 @@ module ActiveRecord
         begin
           status = yield
         rescue ActiveRecord::Rollback
-          p "in rescue rollback "
           @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
           status = nil
         end
