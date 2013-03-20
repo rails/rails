@@ -163,7 +163,7 @@ module Sprockets
             source
           elsif source_ext.blank?
             "#{source}.#{ext}"
-          elsif exact_match_present?(source)
+          elsif File.exists?(source) || exact_match_present?(source)
             source
           else
             "#{source}.#{ext}"
