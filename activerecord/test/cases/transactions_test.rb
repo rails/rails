@@ -15,7 +15,7 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
 
-  def test
+  def test_save_returns_new_record
     @topic = SaveModel.new
     begin
       SaveModel.transaction do
@@ -28,22 +28,8 @@ class TransactionTest < ActiveRecord::TestCase
      # should return true
   end
 
-   def test2
-    @topic = SaveModel.new
-    begin
-      SaveModel.transaction do
-        @topic.save
-        @topic.save
-        raise "exception"
-      end
-    rescue ActiveRecord::StatementInvalid
-    end
-    p @topic.new_record?
-    assert @topic.new_record?, "New_record? should return true"
-     # should return true
-  end
 
-  def test_save_exclaim_returns_new_record
+  def test_save_bang_returns_new_record
     @topic = SaveModel.new
     begin
       SaveModel.transaction do
@@ -51,7 +37,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     rescue ActiveRecord::StatementInvalid
     end
-      assert @topic.new_record?
+      assert @topic.new_record?,  "New_record? should return true"
        # should return true
   end
 
