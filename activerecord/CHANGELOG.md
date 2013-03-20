@@ -624,7 +624,7 @@
 
     *John Wang*
 
-*   Collection associations `#empty?` always respects builded records.
+*   Collection associations `#empty?` always respects built records.
     Fixes #8879.
 
     Example:
@@ -1503,7 +1503,7 @@
 
 *   Move HABTM validity checks to `ActiveRecord::Reflection`. One side effect of
     this is to move when the exceptions are raised from the point of declaration
-    to when the association is built. This is consistant with other association
+    to when the association is built. This is consistent with other association
     validity checks.
 
     *Andrew White*

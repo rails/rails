@@ -464,7 +464,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert saved_post.reload.tags(true).include?(new_tag)
 
 
-    new_post = Post.new(:title => "Association replacmenet works!", :body => "You best believe it.")
+    new_post = Post.new(:title => "Association replacement works!", :body => "You best believe it.")
     saved_tag = tags(:general)
 
     new_post.tags << saved_tag
