@@ -427,6 +427,7 @@ module ActiveRecord
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
+      @destroyed_by_association = nil
       @new_record               = true
       @txn                      = nil
       @_start_transaction_state = {}

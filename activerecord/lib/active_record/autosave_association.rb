@@ -212,6 +212,7 @@ module ActiveRecord
     # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
     def reload(options = nil)
       @marked_for_destruction = false
+      @destroyed_by_association = nil
       super
     end
 
@@ -229,6 +230,19 @@ module ActiveRecord
     # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
     def marked_for_destruction?
       @marked_for_destruction
+    end
+
+    # Records the association that is being destroyed and destroying this
+    # record in the process.
+    def destroyed_by_association=(reflection)
+      @destroyed_by_association = reflection
+    end
+
+    # Returns the association for the parent being destroyed.
+    #
+    # Used to avoid updating the counter cache unnecessarily.
+    def destroyed_by_association
+      @destroyed_by_association
     end
 
     # Returns whether or not this record has been changed in any way (including whether
