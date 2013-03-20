@@ -405,8 +405,9 @@ module ActionDispatch
 
         if name && named_routes[name]
           raise ArgumentError, "Invalid route name, already in use: '#{name}' \n" \
-            "This conflict might arise if your routes contain `resources :#{name.pluralize}`. " \
-            "If so, you can restrict the routes created with `resources` as explained here: \n" \
+            "You may have defined two routes with the same name using the `:as` option, or "
+            "you may be overriding a route already defined by a resource with the same naming. " \
+            "For the latter, you can restrict the routes created with `resources` as explained here: \n" \
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
