@@ -28,8 +28,9 @@ module ActionDispatch
           rewritten_url = ""
 
           unless options[:only_path]
+            protocol = extract_protocol(options)
             unless options[:protocol] == false
-              rewritten_url << (options[:protocol] || "http")
+              rewritten_url << protocol
               rewritten_url << ":" unless rewritten_url.match(%r{:|//})
             end
             rewritten_url << "//" unless rewritten_url.match("//")
@@ -65,6 +66,16 @@ module ActionDispatch
           else
             ""
           end
+        end
+
+        # Extracts protocol http:// or https:// from options[:host]
+        # needs to be called whether the :protocol is being used or not
+        def extract_protocol(options)
+          if options[:host] && match = options[:host].match(/(^.*:\/\/)(.*)/)
+            options[:protocol] ||= match[1]
+            options[:host]     =   match[2]
+          end
+          options[:protocol] || "http"
         end
 
         def host_or_subdomain_and_domain(options)
