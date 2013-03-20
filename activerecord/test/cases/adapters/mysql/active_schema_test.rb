@@ -70,8 +70,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   def test_add_timestamps
     with_real_execute do
       begin
-        ActiveRecord::Base.connection.create_table :delete_me do |t|
-        end
+        ActiveRecord::Base.connection.create_table :delete_me
         ActiveRecord::Base.connection.add_timestamps :delete_me
         assert column_present?('delete_me', 'updated_at', 'datetime')
         assert column_present?('delete_me', 'created_at', 'datetime')
