@@ -858,7 +858,7 @@ module ActiveRecord
     end
 
     def current_version
-      migrated.sort.last || 0
+      migrated.max || 0
     end
 
     def current_migration
