@@ -277,6 +277,15 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_nothing_raised { javascript_include_tag('foo.min') }
   end
 
+  test "assets that exist on filesystem don't need to go through Sprockets" do
+    @config.assets.digest = false
+    @config.assets.debug = true
+
+    Rails.application.assets.expects(:resolve).never
+
+    asset_paths.asset_for(FIXTURES.join("sprockets/app/javascripts/foo.min.js").to_path, 'min')
+  end
+
   test "stylesheet path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.css}, asset_path(:application, :ext => "css")
 
