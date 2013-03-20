@@ -10,6 +10,7 @@ module Rails
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
 
       def handle_skip
+        @options = @options.merge(stylesheets: false) unless options[:assets]
         @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
       end
 
