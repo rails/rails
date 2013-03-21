@@ -13,7 +13,9 @@ module ActiveRecord
     # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
     # exception is raised.
     def assign_attributes(new_attributes)
-      return if new_attributes.blank?
+      if !new_attributes.respond_to?(:stringify_keys)
+        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
+      end
 
       attributes                  = new_attributes.stringify_keys
       multi_parameter_attributes  = []
