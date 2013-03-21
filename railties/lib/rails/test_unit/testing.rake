@@ -50,13 +50,15 @@ task :test do
   Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
 end
 
+RAILS_TESTS = %w(test:units test:functionals test:integration)
+
 namespace :test do
   task :prepare do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
   task :run do
-    errors = %w(test:units test:functionals test:integration).collect do |task|
+    errors = RAILS_TESTS.collect do |task|
       begin
         Rake::Task[task].invoke
         nil
