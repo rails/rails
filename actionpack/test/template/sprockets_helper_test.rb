@@ -283,7 +283,7 @@ class SprocketsHelperTest < ActionView::TestCase
 
     Rails.application.assets.expects(:resolve).never
 
-    asset_paths.asset_for(FIXTURES.join("sprockets/app/javascripts/foo.min.js").to_path, 'min')
+    asset_paths.asset_for(FIXTURES.join("sprockets/app/javascripts/foo.min.js"), 'min')
   end
 
   test "stylesheet path through asset_path" do
