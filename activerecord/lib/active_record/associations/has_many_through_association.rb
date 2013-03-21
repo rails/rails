@@ -29,7 +29,7 @@ module ActiveRecord
       def concat(*records)
         unless owner.new_record?
           records.flatten.each do |record|
-            raise_on_type_mismatch(record)
+            raise_on_type_mismatch!(record)
             record.save! if record.new_record?
           end
         end

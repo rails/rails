@@ -22,7 +22,7 @@ module ActiveRecord
           reflection.polymorphic_inverse_of(record.class)
         end
 
-        def raise_on_type_mismatch(record)
+        def raise_on_type_mismatch!(record)
           # A polymorphic association cannot have a type mismatch, by definition
         end
 
