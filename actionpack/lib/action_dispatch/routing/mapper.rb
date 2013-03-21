@@ -1358,6 +1358,8 @@ module ActionDispatch
         # match 'path' => 'controller#action'
         # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
+        # match 'path', 'otherpath', on: :member, via: :get, as: :name
+        # match 'path', 'otherpath', on: :member, via: :get, as: [:foo, :bar]
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
@@ -1416,6 +1418,9 @@ module ActionDispatch
 
           if !options.fetch(:as, true)
             options.delete(:as)
+          elsif options[:as].is_a?(Array)
+            multiple_as = options.delete(:as)
+            return multiple_as.map { |as| add_route(action, options.merge({ as: as })) }
           else
             options[:as] = name_for_action(options[:as], action)
           end

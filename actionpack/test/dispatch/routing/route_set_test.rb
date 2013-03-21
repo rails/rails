@@ -36,6 +36,21 @@ module ActionDispatch
         assert_equal '/bar', url_helpers.bar_path
       end
 
+      test "multiple url helpers are added when provided a set of names" do
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index'), as: :quux
+          get 'bar', to: SimpleApp.new('foo#index'), as: [:bar, :baz]
+        end
+
+        assert_equal '/foo', url_helpers.quux_path
+        assert_raises NoMethodError do
+          assert_equal '/foo', url_helpers.foo_path
+        end
+
+        assert_equal '/bar', url_helpers.bar_path
+        assert_equal '/bar', url_helpers.baz_path
+      end
+
       test "url helpers are updated when route is updated" do
         draw do
           get 'bar', to: SimpleApp.new('bar#index'), as: :bar
