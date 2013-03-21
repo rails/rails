@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       def replace(record, save = true)
-        raise_on_type_mismatch(record) if record
+        raise_on_type_mismatch!(record) if record
         load_target
 
         # If target and record are nil, or target is equal to record,

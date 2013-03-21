@@ -318,7 +318,7 @@ module ActiveRecord
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       def replace(other_array)
-        other_array.each { |val| raise_on_type_mismatch(val) }
+        other_array.each { |val| raise_on_type_mismatch!(val) }
         original_target = load_target.dup
 
         if owner.new_record?
@@ -465,7 +465,7 @@ module ActiveRecord
 
         def delete_or_destroy(records, method)
           records = records.flatten
-          records.each { |record| raise_on_type_mismatch(record) }
+          records.each { |record| raise_on_type_mismatch!(record) }
           existing_records = records.reject { |r| r.new_record? }
 
           if existing_records.empty?
@@ -506,7 +506,7 @@ module ActiveRecord
           result = true
 
           records.flatten.each do |record|
-            raise_on_type_mismatch(record)
+            raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
               result &&= insert_record(rec) unless owner.new_record?
             end
