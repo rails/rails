@@ -655,14 +655,6 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # When projects is already an association on Person you can use
-      # +accepts_nested_attributes_for+ to define the writer method for you:
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :projects
-      #     accepts_nested_attributes_for :projects
-      #   end
-      #
       # If you want to destroy any of the associated models through the
       # form, you have to enable it first using the <tt>:allow_destroy</tt>
       # option for +accepts_nested_attributes_for+:
@@ -1424,14 +1416,6 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
-      #
-      # When projects is already an association on Person you can use
-      # +accepts_nested_attributes_for+ to define the writer method for you:
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :projects
-      #     accepts_nested_attributes_for :projects
-      #   end
       #
       # If you want to destroy any of the associated models through the
       # form, you have to enable it first using the <tt>:allow_destroy</tt>
