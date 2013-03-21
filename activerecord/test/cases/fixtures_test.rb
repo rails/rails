@@ -576,6 +576,15 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
+  self.fixture_path = Pathname.new(FIXTURES_ROOT).join('all')
+  fixtures :all
+
+  def test_all_there
+    assert_equal %w(developers people tasks), fixture_table_names.sort
+  end
+end
+
 class FasterFixturesTest < ActiveRecord::TestCase
   fixtures :categories, :authors
 
