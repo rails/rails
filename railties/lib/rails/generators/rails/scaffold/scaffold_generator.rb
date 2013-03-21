@@ -9,6 +9,11 @@ module Rails
       class_option :stylesheets, :type => :boolean, :desc => "Generate Stylesheets"
       class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
 
+      def handle_skip
+        @options = @options.merge(:stylesheets => false) unless options[:assets]
+        @options = @options.merge(:stylesheet_engine => false) unless options[:stylesheets]
+      end
+
       hook_for :scaffold_controller, :required => true
 
       hook_for :assets do |assets|

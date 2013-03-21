@@ -1,6 +1,9 @@
 ## unreleased ##
 
-*   No changes.
+*   Don't generate a scaffold.css when --no-assets is specified
+    Backport #9837.
+
+    *Kevin Glowacz*
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
