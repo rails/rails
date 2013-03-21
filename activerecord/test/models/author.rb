@@ -127,6 +127,7 @@ class Author < ActiveRecord::Base
 
   belongs_to :author_address,       :dependent => :destroy
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
+  belongs_to :organization
 
   has_many :category_post_comments, :through => :categories, :source => :post_comments
 

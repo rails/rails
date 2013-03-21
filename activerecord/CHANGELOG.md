@@ -24,6 +24,18 @@
 
     *kennyj*
 
+*   Allow nested conditions to build arel tables
+
+    When passing a hash of conditions to .where, instantiate an arel table
+    if the keys represent a table associated to engine's table. Maintain
+    existing behavior if the keys are attributes of engine's table.
+    This allows queries like these:
+
+      Post.joins(:author => :organization).
+        where(:authors => { :organizations => { :name => 'Acme' } } )
+
+    *DanOlson*
+
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
 
