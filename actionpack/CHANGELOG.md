@@ -2,11 +2,15 @@
 
 *   Fixed assets loading performance in 3.2.13.
 
-    The PR #8756 uses Sprockets for resolving files that already exists on disk, for those files their extensions don't need to be rewritten. Fixes #9803.
+    #8756 uses Sprockets for resolving files that already exists on disk, for those files
+    their extensions don't need to be rewritten.
+
+    Fixes #9803.
 
     *Fred Wu*
 
 *   Fixed `ActionController#action_missing` not being called.
+
     Fixes #9799.
 
     *Janko Luin*
