@@ -90,7 +90,7 @@ protected
   end
 
   def table_indexes_without_name(table)
-    @connection.indexes('comments_with_index').delete(:name)
+    @connection.indexes(table).delete(:name)
   end
 
   def row_count(table)
