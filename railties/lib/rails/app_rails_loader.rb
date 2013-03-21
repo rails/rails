@@ -12,25 +12,35 @@ module Rails
       exe ||= find_executable_in_parent_path
       return unless exe
 
-      exec RUBY, exe, *ARGV if find_executable
-      Dir.chdir("..") do
-        # Recurse in a chdir block: if the search fails we want to be sure
-        # the application is generated in the original working directory.
-        exec_app_rails unless cwd == Dir.pwd
+      if File.read(exe) =~ /(APP|ENGINE)_PATH/
+        # This is a Rails-generated binstub, let's use it
+        exec RUBY, exe, *ARGV if find_executable
+        Dir.chdir("..") do
+          # Recurse in a chdir block: if the search fails we want to be sure
+          # the application is generated in the original working directory.
+          exec_app_rails unless cwd == Dir.pwd
+        end
+      else
+        # this is a Bundler binstub, so we load the app ourselves
+        Object.const_set(:APP_PATH, File.expand_path('config/application',  Dir.pwd))
+        require File.expand_path('../boot', APP_PATH)
+        puts "Your bin/rails file has been overwritten by Bundler."
+        puts "To update your bin/rails for Rails 4, please run: `bundle " \
+          "config --delete binstubs`, then `rm -rf bin`, then `rake " \
+          "rails:update:bin`, then add bin/ to your source control."
+        require 'rails/commands'
       end
     rescue SystemCallError
       # could not chdir, no problem just return
     end
 
     def self.find_executable
-      EXECUTABLES.find do |exe|
-        File.exists?(exe) && File.read(exe) =~ /(APP|ENGINE)_PATH/
-      end
+      EXECUTABLES.find { |exe| File.exists?(exe) }
     end
 
-    def self.find_executable_in_parent_path(path = Pathname.new(Dir.pwd))
+    def self.find_executable_in_parent_path(path = Pathname.new(Dir.pwd).parent)
       EXECUTABLES.find do |exe|
-        File.exists?(File.join(path, exe)) || !path.root? && find_executable_in_parent_path(path.parent)
+        File.exists?(exe) || !path.root? && find_executable_in_parent_path(path.parent)
       end
     end
   end
