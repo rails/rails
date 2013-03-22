@@ -661,6 +661,15 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.reload
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
+
+    assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
+      topic.update_attributes(id: 3, title: "Hm is it possible?")
+    end
+    assert_not_equal "Hm is it possible?", Topic.find(3).title
+
+    topic.update_attributes(id: 1234)
+    assert_nothing_raised { topic.reload }
+    assert_equal topic.title, Topic.find(1234).title
   end
 
   def test_update!
