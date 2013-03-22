@@ -126,12 +126,6 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output "> "
   end
 
-  def kill(pid)
-    Process.kill('TERM', pid)
-    Process.wait(pid)
-  rescue Errno::ESRCH
-  end
-
   def spawn_console
     pid = Process.spawn(
       "#{app_path}/bin/rails console --sandbox",
@@ -148,15 +142,13 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
-
-    kill pid
+    @master.puts "quit"
 
     pid = spawn_console
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
     write_prompt "Post.count", "=> 0"
-  ensure
-    kill pid if pid
+    @master.puts "quit"
   end
 end
