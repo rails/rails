@@ -127,7 +127,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def kill(pid)
-    Process.kill('QUIT', pid)
+    Process.kill('TERM', pid)
     Process.wait(pid)
   rescue Errno::ESRCH
   end
