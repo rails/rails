@@ -119,16 +119,19 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert output.include?(expected), "#{expected.inspect} expected, but got:\n\n#{output}"
   end
 
-  def write_prompt(command, expected_output = nil)
+  def write_prompt(command, expected_output = '> ')
     @master.puts command
     assert_output command
-    assert_output expected_output if expected_output
-    assert_output "> "
+    assert_output expected_output
   end
 
   def kill(pid)
-    Process.kill('QUIT', pid)
-    Process.wait(pid)
+    if RUBY_PLATFORM =~ /darwin/
+      write_prompt "quit", ""
+    else
+      Process.kill('QUIT', pid)
+      Process.wait(pid)
+    end
   rescue Errno::ESRCH
   end
 
