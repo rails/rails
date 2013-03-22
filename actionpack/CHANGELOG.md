@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fixed :if procs getting executed even after filter_chain is halted in 3.2.13
+
+    Fixes #9848
+
+    *Rajesh Shanmugam*
+
 *   Fixed assets loading performance in 3.2.13.
 
     #8756 uses Sprockets for resolving files that already exists on disk, for those files
