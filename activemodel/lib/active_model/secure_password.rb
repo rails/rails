@@ -46,9 +46,9 @@ module ActiveModel
         begin
           gem 'bcrypt-ruby', '~> 3.0.0'
           require 'bcrypt'
-        rescue LoadError => e
+        rescue LoadError
           $stderr.puts "You don't have bcrypt-ruby installed in your application. Please add it to your Gemfile and run bundle install"
-          raise e
+          raise
         end
 
         attr_reader :password
