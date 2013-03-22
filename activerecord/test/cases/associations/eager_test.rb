@@ -1174,6 +1174,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
   end
 
+  test "preloading a through association twice does not reset it" do
+    members = Member.includes(current_membership: :club).includes(:club).to_a
+    assert_no_queries {
+      assert_equal 3, members.map(&:current_membership).map(&:club).size
+    }
+  end
+
   test "works in combination with order(:symbol)" do
     author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
     assert_equal authors(:bob), author
