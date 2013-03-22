@@ -1024,7 +1024,7 @@ class BasicsTest < ActiveRecord::TestCase
     Joke.reset_sequence_name
   end
 
-  def test_dont_clear_inheritnce_column_when_setting_explicitly
+  def test_dont_clear_inheritance_column_when_setting_explicitly
     Joke.inheritance_column = "my_type"
     before_inherit = Joke.inheritance_column
 
