@@ -40,25 +40,15 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert @connection.extensions.include?('hstore'), "extension list should include hstore"
   end
 
-  def test_hstore_enabled
+  def test_disable_enable_hstore
     assert @connection.extension_enabled?('hstore')
-  end
-
-  def test_disable_hstore
-    if @connection.extension_enabled?('hstore')
-      @connection.disable_extension 'hstore'
-      assert_not @connection.extension_enabled?('hstore')
-    end
-  end
-
-  def test_enable_hstore
-    if @connection.extension_enabled?('hstore')
-      @connection.disable_extension 'hstore'
-    end
-
+    @connection.disable_extension 'hstore'
     assert_not @connection.extension_enabled?('hstore')
     @connection.enable_extension 'hstore'
     assert @connection.extension_enabled?('hstore')
+  ensure
+    # Restore column(s) dropped by `drop extension hstore cascade;`
+    load_schema
   end
 
   def test_column
