@@ -1253,6 +1253,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'api/v3/products#list', @response.body
   end
 
+  def test_controller_option_with_nesting_and_leading_slash
+    draw do
+      scope '/job', controller: 'job' do
+        scope ':id', action: 'manage_applicant' do
+          get "/active"
+        end
+      end
+    end
+
+    get '/job/5/active'
+    assert_equal 'job#manage_applicant', @response.body
+  end
+
   def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
     draw do
       resources :replies do
