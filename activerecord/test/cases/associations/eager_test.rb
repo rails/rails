@@ -1120,7 +1120,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading a through association twice does not reset it" do
-    members = Member.includes(current_membership: :club).includes(:club).to_a
+    members = Member.includes(:current_membership => :club).includes(:club).to_a
     assert_no_queries {
       assert_equal 3, members.map(&:current_membership).map(&:club).size
     }
