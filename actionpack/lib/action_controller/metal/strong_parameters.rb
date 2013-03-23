@@ -69,6 +69,8 @@ module ActionController
   #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
   #   in test and development environments, +false+ otherwise.
   #
+  # Examples:
+  #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => false
   #
