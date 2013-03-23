@@ -330,6 +330,13 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        def primary_key(name, type = :primary_key, options = {})
+          return super unless type == :uuid
+          options[:default] ||= 'uuid_generate_v4()'
+          options[:primary_key] = true
+          column name, type, options
+        end
+
         def column(name, type = nil, options = {})
           super
           column = self[name]
@@ -344,8 +351,8 @@ module ActiveRecord
 
         private
 
-        def create_column_definition(base, name, type)
-          ColumnDefinition.new base, name, type
+        def create_column_definition(name, type)
+          ColumnDefinition.new name, type
         end
       end
 
@@ -627,19 +634,6 @@ module ActiveRecord
         @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
 
-      def add_column_options!(sql, options)
-        if options[:array] || options[:column].try(:array)
-          sql << '[]'
-        end
-
-        column = options.fetch(:column) { return super }
-        if column.type == :uuid && options[:default] =~ /\(\)/
-          sql << " DEFAULT #{options[:default]}"
-        else
-          super
-        end
-      end
-
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
@@ -900,8 +894,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition
-          TableDefinition.new(self)
+        def create_table_definition(name, temporary, options)
+          TableDefinition.new native_database_types, name, temporary, options
         end
 
         def update_table_definition(table_name, base)

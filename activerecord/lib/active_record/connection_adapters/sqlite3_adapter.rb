@@ -458,7 +458,7 @@ module ActiveRecord
 
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
-          definition.columns.delete(definition[column_name])
+          definition.remove_column column_name
         end
       end
 

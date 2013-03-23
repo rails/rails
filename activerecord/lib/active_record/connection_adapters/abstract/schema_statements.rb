@@ -171,14 +171,14 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = create_table_definition
+        td = create_table_definition table_name, options[:temporary], options[:options]
 
         unless options[:id] == false
           pk = options.fetch(:primary_key) {
             Base.get_primary_key table_name.to_s.singularize
           }
 
-          td.primary_key pk
+          td.primary_key pk, options.fetch(:id, :primary_key), options
         end
 
         yield td if block_given?
@@ -187,11 +187,7 @@ module ActiveRecord
           drop_table(table_name, options)
         end
 
-        create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
-        create_sql << "#{quote_table_name(table_name)} ("
-        create_sql << td.to_sql
-        create_sql << ") #{options[:options]}"
-        execute create_sql
+        execute schema_creation.accept td
         td.indexes.each_pair { |c,o| add_index table_name, c, o }
       end
 
@@ -359,9 +355,9 @@ module ActiveRecord
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        add_column_options!(add_column_sql, options)
-        execute(add_column_sql)
+        at = create_alter_table table_name
+        at.add_column(column_name, type, options)
+        execute schema_creation.accept at
       end
 
       # Removes the given columns from the table definition.
@@ -829,8 +825,12 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition
-        TableDefinition.new(self)
+      def create_table_definition(name, temporary, options)
+        TableDefinition.new native_database_types, name, temporary, options
+      end
+
+      def create_alter_table(name)
+        AlterTable.new create_table_definition(name, false, {})
       end
 
       def update_table_definition(table_name, base)
