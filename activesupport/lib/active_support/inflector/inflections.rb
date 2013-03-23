@@ -95,7 +95,7 @@ module ActiveSupport
       #   camelize 'mcdonald'   #=> 'McDonald'
       def acronym(word)
         @acronyms[word.downcase] = word
-        @acronym_regex = /#{@acronyms.values.join("|")}/
+        @acronym_regex = /#{@acronyms.values.sort_by(&:length).reverse.join("|")}/
       end
 
       # Specifies a new pluralization rule and its replacement. The rule can

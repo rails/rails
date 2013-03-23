@@ -99,6 +99,7 @@ class InflectorTest < ActiveSupport::TestCase
   def test_acronyms
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")
+      inflect.acronym("HTM")
       inflect.acronym("HTML")
       inflect.acronym("HTTP")
       inflect.acronym("RESTful")
@@ -106,6 +107,8 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.acronym("PhD")
       inflect.acronym("RoR")
       inflect.acronym("SSL")
+      inflect.acronym("NS")
+      inflect.acronym("DNS")
     end
 
     #  camelize             underscore            humanize              titleize
@@ -122,6 +125,7 @@ class InflectorTest < ActiveSupport::TestCase
       ["PhDRequired",       "phd_required",       "PhD required",       "PhD Required"],
       ["IRoRU",             "i_ror_u",            "I RoR u",            "I RoR U"],
       ["RESTfulHTTPAPI",    "restful_http_api",   "RESTful HTTP API",   "RESTful HTTP API"],
+      ["DNSController",     "dns_controller",     "DNS controller",     "DNS Controller"],
 
       # misdirection
       ["Capistrano",        "capistrano",         "Capistrano",       "Capistrano"],
