@@ -82,7 +82,7 @@ The server can be run on a different port using the `-p` option. The default dev
 $ rails server -e production -p 4000
 ```
 
-The `-b` option binds Rails to the specified ip, by default it is 0.0.0.0. You can run a server as a daemon by passing a `-d` option.
+The `-b` option binds Rails to the specified IP, by default it is 0.0.0.0. You can run a server as a daemon by passing a `-d` option.
 
 ### `rails generate`
 

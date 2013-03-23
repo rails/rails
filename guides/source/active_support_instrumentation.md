@@ -428,7 +428,7 @@ end
 ```
 
 Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
-from block args like this:
+from block arguments like this:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
