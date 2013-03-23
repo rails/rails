@@ -280,7 +280,7 @@
 
     *John Wang*
 
-*   Postgresql timestamp with time zone (timestamptz) datatype now returns a
+*   PostgreSQL timestamp with time zone (timestamptz) datatype now returns a
     ActiveSupport::TimeWithZone instance instead of a string
 
     *Troy Kruthoff*
@@ -510,7 +510,7 @@
 
     *James Miller*
 
-*   Allow store accessors to be overrided like other attribute methods, e.g.:
+*   Allow store accessors to be overridden like other attribute methods, e.g.:
 
         class User < ActiveRecord::Base
           store :settings, accessors: [ :color, :homepage ], coder: JSON
@@ -533,7 +533,7 @@
     *Dylan Smith*
 
 *   Schema dumper supports dumping the enabled database extensions to `schema.rb`
-    (currently only supported by postgresql).
+    (currently only supported by PostgreSQL).
 
     *Justin George*
 
@@ -697,7 +697,7 @@
 
     *Yves Senn*
 
-*   Add ability for postgresql adapter to disable user triggers in `disable_referential_integrity`.
+*   Add ability for PostgreSQL adapter to disable user triggers in `disable_referential_integrity`.
     Fixes #5523.
 
     *Gary S. Weaver*
@@ -821,14 +821,14 @@
 
     *Carlos Antonio da Silva*
 
-*   Fix postgresql adapter to handle BC timestamps correctly
+*   Fix PostgreSQL adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(name: "something", occured_at: Date.new(0) - 5.years)
 
     *Bogdan Gusiev*
 
-*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
-    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
+*   When running migrations on PostgreSQL, the `:limit` option for `binary` and `text` columns is silently dropped.
+    Previously, these migrations caused sql exceptions, because PostgreSQL doesn't support limits on these types.
 
     *Victor Costan*
 
@@ -1460,7 +1460,7 @@
 
     *Egor Lynko*
 
-*   Added support for specifying the precision of a timestamp in the postgresql
+*   Added support for specifying the precision of a timestamp in the PostgreSQL
     adapter. So, instead of having to incorrectly specify the precision using the
     `:limit` option, you may use `:precision`, as intended. For example, in a migration:
 
@@ -1728,7 +1728,7 @@
 
 *   Added the schema cache dump feature.
 
-    `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
+    `Schema cache dump` feature was implemented. This feature can dump/load internal state of `SchemaCache` instance
     because we want to boot rails more quickly when we have many models.
 
     Usage notes:
