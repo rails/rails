@@ -35,6 +35,16 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     @connection.execute 'drop table if exists pg_uuids'
   end
 
+  def test_id_is_uuid
+    assert_equal :uuid, UUID.columns_hash['id'].type
+    assert UUID.primary_key
+  end
+
+  def test_id_has_a_default
+    u = UUID.create
+    assert_not_nil u.id
+  end
+
   def test_auto_create_uuid
     u = UUID.create
     u.reload

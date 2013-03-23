@@ -64,8 +64,9 @@ module ActiveRecord
 
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
-      def primary_key(name)
-        column(name, :primary_key, primary_key: true)
+      def primary_key(name, type = :primary_key, options = {})
+        options[:primary_key] = true
+        column(name, type, options)
       end
 
       # Returns a ColumnDefinition for the column with name +name+.

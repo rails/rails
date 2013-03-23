@@ -330,6 +330,13 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        def primary_key(name, type = :primary_key, options = {})
+          return super unless type == :uuid
+          options[:default] ||= 'uuid_generate_v4()'
+          options[:primary_key] = true
+          column name, type, options
+        end
+
         def column(name, type = nil, options = {})
           super
           column = self[name]

@@ -178,7 +178,7 @@ module ActiveRecord
             Base.get_primary_key table_name.to_s.singularize
           }
 
-          td.primary_key pk
+          td.primary_key pk, options.fetch(:id, :primary_key), options
         end
 
         yield td if block_given?
