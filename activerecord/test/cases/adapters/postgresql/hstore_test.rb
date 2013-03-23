@@ -189,6 +189,10 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_cycle('ca' => 'cà', 'ac' => 'àc')
   end
 
+  def test_multiline
+    assert_cycle("a\nb" => "c\nd")
+  end
+
   private
   def assert_cycle hash
     # test creation
