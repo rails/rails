@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add an `add_index` override in Postgresql adapter and MySQL adapter
+    to allow custom index type support. Fixes #6101.
+
+        add_index(:wikis, :body, :using => 'gin')
+
+    *Stefan Huber* and *Doabit*
+
 *   After extraction of mass-assignment attributes (which protects [id, type]
     by default) we can pass id to `update_attributes` and it will update
     another record because id will be used in where statement. We never have
