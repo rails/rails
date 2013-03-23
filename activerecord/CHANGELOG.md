@@ -510,7 +510,7 @@
 
     *James Miller*
 
-*   Allow store accessors to be overrided like other attribute methods, e.g.:
+*   Allow store accessors to be overridden like other attribute methods, e.g.:
 
         class User < ActiveRecord::Base
           store :settings, accessors: [ :color, :homepage ], coder: JSON
@@ -533,7 +533,7 @@
     *Dylan Smith*
 
 *   Schema dumper supports dumping the enabled database extensions to `schema.rb`
-    (currently only supported by postgresql).
+    (currently only supported by Postgresql).
 
     *Justin George*
 
@@ -1728,7 +1728,7 @@
 
 *   Added the schema cache dump feature.
 
-    `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
+    `Schema cache dump` feature was implemented. This feature can dump/load internal state of `SchemaCache` instance
     because we want to boot rails more quickly when we have many models.
 
     Usage notes:
