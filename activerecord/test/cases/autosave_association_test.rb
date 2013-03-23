@@ -341,6 +341,19 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal num_tagging + 1, Tagging.count
   end
 
+  def test_association_is_not_overwitten_on_autosave
+    firm_1 = Firm.create!(name: 'Apple')
+    firm_2 = Firm.create!(name: 'Microsoft')
+    client = Client.create!(firm: firm_1, name: 'Business')
+    assert_equal firm_1.id, client.client_of
+
+    client.client_of = firm_2.id
+    assert client.save
+
+    client.reload
+    assert_equal firm_2, client.firm
+  end
+
   def test_build_and_then_save_parent_should_not_reload_target
     client = Client.find(:first)
     apple = client.build_firm(:name => "Apple")
