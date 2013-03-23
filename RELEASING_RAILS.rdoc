@@ -13,7 +13,7 @@ Today is mostly coordination tasks.  Here are the things you must do today:
 
 Do not release with a Red CI.  You can find the CI status here:
 
-  http://travis-ci.org/#!/rails/rails
+  http://travis-ci.org/rails/rails
 
 === Is Sam Ruby happy?  If not, make him happy.
 
