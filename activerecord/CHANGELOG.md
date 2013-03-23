@@ -1,6 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
+
 *   After extraction of mass-assignment attributes (which protects [id, type]
-    by default) we can pass id to update_attributes and it will update
+    by default) we can pass id to `update_attributes` and it will update
     another record because id will be used in where statement. We never have
     to change id in where statement because we try to set/replace fields for
     already loaded record but we have to try to set new id for that record.
@@ -12,11 +13,11 @@
 
     *Ian Young*
 
-*   If inverse_of is true on an association, then when one calls +find()+ on
-    the association, ActiveRecord will first look through the in-memory objects
+*   If ``:inverse_of` is true on an association, then when one calls `find()` on
+    the association, Active Record will first look through the in-memory objects
     in the association for a particular id. Then, it will go to the DB if it
-    is not found. This is accomplished by calling +find_by_scan+ in
-    collection associations whenever +options[:inverse_of]+ is not nil.
+    is not found. This is accomplished by calling `find_by_scan` in
+    collection associations whenever `options[:inverse_of]` is not nil.
 
     Fixes #9470.
 
@@ -103,11 +104,11 @@
 
     *Yves Senn*
 
-*   Fix quoting for sqlite migrations using copy_table_contents() with binary
+*   Fix quoting for sqlite migrations using `copy_table_contents` with binary
     columns.
 
     These would fail with "SQLite3::SQLException: unrecognized token" because
-    the column was not being passed to quote() so the data was not quoted
+    the column was not being passed to `quote` so the data was not quoted
     correctly.
 
     *Matthew M. Boedicker*
