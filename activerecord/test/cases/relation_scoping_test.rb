@@ -634,7 +634,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal [DeveloperCalledJamis.find(developers(:poor_jamis).id)], DeveloperCalledJamis.poor
 
     assert DeveloperCalledJamis.unscoped.poor.include?(developers(:david).becomes(DeveloperCalledJamis))
+
+    assert_equal 11, DeveloperCalledJamis.unscoped.length
+    assert_equal 1,  DeveloperCalledJamis.poor.length
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
+    assert_equal 10, DeveloperCalledJamis.unscoped { DeveloperCalledJamis.poor }.length
   end
 
   def test_default_scope_select_ignored_by_aggregations
