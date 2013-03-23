@@ -142,6 +142,18 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '172800', 2.days.to_json
   end
 
+  def test_parsing_inspect
+    assert_equal 1.day, ActiveSupport::Duration.parse(1.day.inspect)
+    assert_equal 2.hours, ActiveSupport::Duration.parse(2.hours.inspect)
+    assert_equal -3.years, ActiveSupport::Duration.parse(-3.years.inspect)
+  end
+
+  def test_parsing_bad_values
+    assert_nil ActiveSupport::Duration.parse('a whole lotta nuthin')
+    assert_nil ActiveSupport::Duration.parse('1 number but no duration')
+    assert_nil ActiveSupport::Duration.parse('a week, a day, a month, but no duration')
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

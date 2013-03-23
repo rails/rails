@@ -9,6 +9,8 @@
 
     *Charles Jones*
 
+*   Add `Duration.parse` method to get a Duration from a string. *Justin Leishman*
+
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Improve singularizing a singular for multiple cases.
