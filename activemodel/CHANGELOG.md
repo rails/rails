@@ -91,7 +91,7 @@
 
     *Yves Senn*
 
-*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_pasword`.
+*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_password`.
 
     *Brian Cardarella + Jeremy Kemper + Trevor Turk*
 
