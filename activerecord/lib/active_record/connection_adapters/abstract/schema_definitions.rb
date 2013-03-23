@@ -15,13 +15,13 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after) #:nodoc:
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
       def string_to_binary(value)
         value
       end
 
       def primary_key?
-        type.to_sym == :primary_key
+        primary_key || type.to_sym == :primary_key
       end
     end
 
@@ -65,7 +65,7 @@ module ActiveRecord
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name)
-        column(name, :primary_key)
+        column(name, :primary_key, primary_key: true)
       end
 
       # Returns a ColumnDefinition for the column with name +name+.
@@ -268,13 +268,14 @@ module ActiveRecord
           native[type][:limit] if native[type].is_a?(Hash)
         end
 
-        column.limit     = limit
-        column.precision = options[:precision]
-        column.scale     = options[:scale]
-        column.default   = options[:default]
-        column.null      = options[:null]
-        column.first     = options[:first]
-        column.after     = options[:after]
+        column.limit       = limit
+        column.precision   = options[:precision]
+        column.scale       = options[:scale]
+        column.default     = options[:default]
+        column.null        = options[:null]
+        column.first       = options[:first]
+        column.after       = options[:after]
+        column.primary_key = type == :primary_key || options[:primary_key]
         column
       end
 
