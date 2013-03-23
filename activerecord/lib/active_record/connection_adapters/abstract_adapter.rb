@@ -18,6 +18,7 @@ module ActiveRecord
       autoload :ColumnDefinition
       autoload :TableDefinition
       autoload :Table
+      autoload :AlterTable
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
