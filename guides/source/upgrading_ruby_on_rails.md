@@ -78,7 +78,17 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 ### Action Pack
 
-* Rails 4.0 introduces a new `UpgradeSignatureToEncryptionCookieStore` cookie store. This is useful for upgrading apps using the old default `CookieStore` to the new default `EncryptedCookieStore`. To use this transitional cookie store, you'll want to leave your existing `secret_token` in place, add a new `secret_key_base`, and change your `session_store` like so:
+* Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
+
+```ruby
+  # config/initializers/secret_token.rb
+  Myapp::Application.config.secret_token = 'existing secret token'
+  Myapp::Application.config.secret_key_base = 'new secret key base'
+```
+
+Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
+
+* Rails 4.0 introduces a new `UpgradeSignatureToEncryptionCookieStore` cookie store. This is useful for upgrading apps using the old default `CookieStore` to the new default `EncryptedCookieStore` which leverages the new `ActiveSupport::KeyGenerator`. To use this transitional cookie store, you'll want to leave your existing `secret_token` in place, add a new `secret_key_base`, and change your `session_store` like so:
 
 ```ruby
   # config/initializers/session_store.rb
