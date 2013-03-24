@@ -66,7 +66,7 @@ Here's a sample YAML fixture file:
 
 ```yaml
 # lo & behold!  I am a YAML comment!
-jjjjkkkkkjjjjjjjjjkkkk:
+david:
  name: David Heinemeier Hansson
  birthday: 1979-10-15
  profession: Systems development
