@@ -38,7 +38,7 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   def test_framework_version
-    assert_property 'Active Support version', ActiveSupport.version
+    assert_property 'Active Support version', ActiveSupport.version.to_s
   end
 
   def test_frameworks_exist
