@@ -52,6 +52,9 @@ module ActiveModel
         end
 
         attr_reader :password
+        cattr_accessor :password_column_name
+
+        self.password_column_name = (options[:column_name] || "password_digest").to_s
 
         include InstanceMethodsOnActivation
 
@@ -59,12 +62,12 @@ module ActiveModel
           validates_confirmation_of :password
           validates_presence_of     :password, :on => :create
 
-          before_create { raise "Password digest missing on new record" if password_digest.blank? }
+          before_create { raise "Password digest missing on new record" if password_column.blank? }
         end
 
         if respond_to?(:attributes_protected_by_default)
           def self.attributes_protected_by_default #:nodoc:
-            super + ['password_digest']
+            super + [self.password_column_name]
           end
         end
       end
@@ -82,7 +85,7 @@ module ActiveModel
       #   user.authenticate('notright')      # => false
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest) == unencrypted_password && self
+        BCrypt::Password.new(self.password_column) == unencrypted_password && self
       end
 
       # Encrypts the password into the +password_digest+ attribute, only if the
@@ -101,7 +104,7 @@ module ActiveModel
         unless unencrypted_password.blank?
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine::DEFAULT_COST
-          self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
+          self.password_column = BCrypt::Password.create(unencrypted_password, cost: cost)
         end
       end
 
@@ -109,6 +112,14 @@ module ActiveModel
         unless unencrypted_password.blank?
           @password_confirmation = unencrypted_password
         end
+      end
+
+      def password_column
+        self.send(self.class.password_column_name)
+      end
+
+      def password_column=(attr)
+        self.send("#{self.class.password_column_name}=", attr)
       end
     end
   end
