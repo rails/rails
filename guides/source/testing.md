@@ -66,7 +66,7 @@ Here's a sample YAML fixture file:
 
 ```yaml
 # lo & behold!  I am a YAML comment!
-david:
+jjjjkkkkkjjjjjjjjjkkkk:
  name: David Heinemeier Hansson
  birthday: 1979-10-15
  profession: Systems development
@@ -129,12 +129,12 @@ When you use `rails generate scaffold`, for a resource among other things it cre
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/models/post_test.rb
+create  test/unit/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/models/post_test.rb` looks like this:
+The default test stub in `test/unit/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
@@ -227,7 +227,7 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
 ```bash
-$ ruby -Itest test/models/post_test.rb
+$ ruby -Itest test/unit/post_test.rb
 
 Loaded suite models/post_test
 Started
@@ -242,9 +242,9 @@ This will run all the test methods from the test case. Note that `test_helper.rb
 You can also run a particular test method from the test case by using the `-n` switch with the `test method name`.
 
 ```bash
-$ ruby -Itest test/models/post_test.rb -n test_the_truth
+$ ruby -Itest test/unit/post_test.rb -n test_the_truth
 
-Loaded suite models/post_test
+Loaded suite unit/post_test
 Started
 .
 Finished in 0.023513 seconds.
@@ -266,7 +266,7 @@ end
 Let us run this newly added test.
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
+$ ruby -Itest test/unit/post_test.rb -n test_should_not_save_post_without_title
 Loaded suite -e
 Started
 F
@@ -308,7 +308,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
+$ ruby -Itest test/unit/post_test.rb -n test_should_not_save_post_without_title
 Loaded suite unit/post_test
 Started
 .
@@ -334,7 +334,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_report_error
+$ ruby -Itest test/unit/post_test.rb -n test_should_report_error
 Loaded suite -e
 Started
 E
@@ -688,9 +688,9 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
     get "/login"
     assert_response :success
 
-    post_via_redirect "/login", username: users(:avs).username, password: users(:avs).password
+    post_via_redirect "/login", username: users(:david).username, password: users(:david).password
     assert_equal '/welcome', path
-    assert_equal 'Welcome avs!', flash[:notice]
+    assert_equal 'Welcome david!', flash[:notice]
 
     https!(false)
     get "/posts/all"
@@ -713,12 +713,12 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
   test "login and browse site" do
 
     # User avs logs in
-    avs = login(:avs)
+    avs = login(:david)
     # User guest logs in
     guest = login(:guest)
 
     # Both are now available in different sessions
-    assert_equal 'Welcome avs!', avs.flash[:notice]
+    assert_equal 'Welcome david!', avs.flash[:notice]
     assert_equal 'Welcome guest!', guest.flash[:notice]
 
     # User avs can browse site
