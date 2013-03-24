@@ -216,6 +216,26 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "can not be nil")
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages
   end
+  
+  test 'full_messages_for should contain all the messages for a given attribute' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages_for(:name)
+  end
+
+  test 'full_messages_for should not contain messages for another attributes' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:email, "can not be blank")
+    assert_equal ["name can not be blank"], person.errors.full_messages_for(:name)
+  end
+
+  test "full_messages_for should return an empty array in case if errors hash doesn't contain a given attribute" do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    assert_equal [], person.errors.full_messages_for(:email)
+  end
 
   test 'full_message should return the given message if attribute equals :base' do
     person = Person.new

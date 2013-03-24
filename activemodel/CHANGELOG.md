@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add ActiveModel::Errors#full_messages_for, a method that returns all the error
+    messages for a given attribute.
+
+    *Volodymyr Shatsky*
+
 *   Added a method so that validations can be easily cleared on a model.
     For example:
 
