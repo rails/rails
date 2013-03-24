@@ -22,9 +22,7 @@ module ActiveRecord
     end
 
     def test_where_with_association_hash
-      custom_join = "inner join authors on posts.author_id = authors.id " \
-                    "inner join organizations on authors.organization_id = organizations.name"
-      posts_count = Post.joins(custom_join).where(:authors => { :organizations => { :name => 'No Such Agency'} }).count
+      posts_count = Post.joins(:author => :organization).where(:authors => { :organizations => { :name => 'No Such Agency'} }).count
       assert_equal 5, posts_count
     end
 
