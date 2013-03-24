@@ -141,7 +141,7 @@ task :update_versions do
   require File.dirname(__FILE__) + "/version"
 
   File.open("RAILS_VERSION", "w") do |f|
-    f.write Rails::VERSION::STRING + "\n"
+    f.puts Rails.version
   end
 
   constants = {

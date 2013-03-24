@@ -82,10 +82,6 @@ module Rails
       groups
     end
 
-    def version
-      VERSION::STRING
-    end
-
     def public_path
       application && Pathname.new(application.paths["public"].first)
     end

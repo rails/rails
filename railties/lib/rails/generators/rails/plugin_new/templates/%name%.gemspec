@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 <% end -%>
 
-  <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", "~> <%= Rails::VERSION::STRING %>"
+  <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", "~> <%= Rails.version %>"
 <% unless options[:skip_active_record] -%>
 
   s.add_development_dependency "<%= gem_for_database %>"
