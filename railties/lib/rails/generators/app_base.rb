@@ -210,9 +210,11 @@ module Rails
       end
 
       def javascript_gemfile_entry
+        args = {'jquery' => ", github: 'rails/jquery-rails'"}
+
         unless options[:skip_javascript]
           <<-GEMFILE.strip_heredoc
-            gem '#{options[:javascript]}-rails'
+            gem '#{options[:javascript]}-rails'#{args[options[:javascript]]}
 
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
             gem 'turbolinks'
