@@ -29,7 +29,7 @@ module Rails
       def framework_version(framework)
         if Object.const_defined?(framework.classify)
           require "#{framework}/version"
-          "#{framework.classify}::VERSION::STRING".constantize
+          framework.classify.constantize.version.to_s
         end
       end
 
@@ -75,7 +75,7 @@ module Rails
 
     # The Rails version.
     property 'Rails version' do
-      Rails::VERSION::STRING
+      Rails.version.to_s
     end
 
     property 'JavaScript Runtime' do
