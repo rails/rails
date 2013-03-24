@@ -599,7 +599,7 @@ module ApplicationTests
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
-    test "config.action_controller.action_on_unpermitted_parameters is :log by defaul on test" do
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
       ENV["RAILS_ENV"] = "test"
 
       require "#{app_path}/config/environment"
