@@ -5,7 +5,7 @@ gemspec
 gem 'mocha', '~> 0.13.0', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails', '~> 2.2.0'
+gem 'jquery-rails', github: 'rails/jquery-rails'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0.beta1'
 
