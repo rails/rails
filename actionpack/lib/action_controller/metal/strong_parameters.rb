@@ -421,7 +421,7 @@ module ActionController
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
           else
-            # Declaration { user: :name } or { user: [:name, :age, { adress: ... }] }.
+            # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               if element.is_a?(Hash)
                 element = self.class.new(element) unless element.respond_to?(:permit)
