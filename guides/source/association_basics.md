@@ -572,7 +572,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssemblyPartJoinTable < ActiveRecord::Migration
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
   def change
     create_table :assemblies_parts, id: false do |t|
       t.integer :assembly_id
