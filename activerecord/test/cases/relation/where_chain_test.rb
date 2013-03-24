@@ -4,7 +4,7 @@ require 'models/comment'
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts
+    fixtures :posts, :comments
 
     def setup
       super

@@ -353,6 +353,16 @@
         # This will expand the order :name to "authors".name.
         Author.joins(:books).where('books.published = 1').order(:name)
 
+*   Fix bug with nested conditions passed to .where()
+
+    Recusion in PredicateBuilder.build_from_hash() so that passing a nested 
+    hash of conditions to .where will build a valid SQL query. Fixes #9511
+    This allows queries like these:
+
+    Post.joins(author: :organization).where(authors: { organizations: { name: 'Acme' } } )
+
+    Dan Olson
+
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 

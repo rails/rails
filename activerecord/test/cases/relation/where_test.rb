@@ -5,10 +5,12 @@ require 'models/treasure'
 require 'models/post'
 require 'models/comment'
 require 'models/edge'
+require 'models/organization'
+require 'models/categorization'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors
+    fixtures :posts, :edges, :authors, :organizations
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -84,6 +86,11 @@ module ActiveRecord
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.where(:id => { 'posts.author_id' => 10 }).first
       end
+    end
+
+    def test_where_with_joins_and_nested_association_hash
+      posts_count = Post.joins(author: :organization).where(authors: { organizations: { name: 'No Such Agency'} }).count
+      assert_equal 5, posts_count
     end
 
     def test_where_with_table_name
