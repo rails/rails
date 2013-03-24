@@ -32,7 +32,7 @@ module ActionDispatch
     def render_exception(env, exception)
       wrapper = ExceptionWrapper.new(env, exception)
       log_error(env, wrapper)
-
+      env["action_dispatch.exception"] = wrapper.exception
       if env['action_dispatch.show_detailed_exceptions']
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
           :request => Request.new(env),
