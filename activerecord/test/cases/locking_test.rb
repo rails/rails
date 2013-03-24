@@ -193,10 +193,18 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_lock_without_default_sets_version_to_zero
     t1 = LockWithoutDefault.new
     assert_equal 0, t1.lock_version
+
+    t1.save
+    t1 = LockWithoutDefault.find(t1.id)
+    assert_equal 0, t1.lock_version
   end
 
   def test_lock_with_custom_column_without_default_sets_version_to_zero
     t1 = LockWithCustomColumnWithoutDefault.new
+    assert_equal 0, t1.custom_lock_version
+
+    t1.save
+    t1 = LockWithCustomColumnWithoutDefault.find(t1.id)
     assert_equal 0, t1.custom_lock_version
   end
 

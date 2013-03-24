@@ -176,6 +176,7 @@ module ActiveRecord
       @columns_hash = self.class.column_types.dup
 
       init_internals
+      init_changed_attributes
       ensure_proper_type
       populate_with_current_scope_attributes
 
@@ -246,9 +247,7 @@ module ActiveRecord
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @changed_attributes = {}
-      self.class.column_defaults.each do |attr, orig_value|
-        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
-      end
+      init_changed_attributes
 
       @aggregation_cache = {}
       @association_cache = {}
@@ -433,6 +432,15 @@ module ActiveRecord
       @_start_transaction_state = {}
       @transaction_state        = nil
       @reflects_state           = [false]
+    end
+
+    def init_changed_attributes
+      # Intentionally avoid using #column_defaults since overriden defaults (as is done in
+      # optimistic locking) won't get written unless they get marked as changed
+      self.class.columns.each do |c|
+        attr, orig_value = c.name, c.default
+        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+      end
     end
   end
 end
