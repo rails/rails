@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `validates_size_of` / `validates_length_of` do not count records,
+    which are `marked_for_destruction?`.
+    Fixes #7247.
+
+    *Yves Senn*
+
 *   Add an `add_index` override in Postgresql adapter and MySQL adapter
     to allow custom index type support. Fixes #6101.
 
