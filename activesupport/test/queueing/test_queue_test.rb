@@ -10,6 +10,12 @@ class TestQueueTest < ActiveSupport::TestCase
     def run
       raise
     end
+    def to_serializable_hash
+      {}
+    end
+    def self.from_serializable_hash(hash)
+      ExceptionRaisingJob.new
+    end
   end
 
   def test_drain_raises_exceptions_from_running_jobs
@@ -18,14 +24,21 @@ class TestQueueTest < ActiveSupport::TestCase
   end
 
   def test_jobs
-    @queue.push 1
-    @queue.push 2
-    assert_equal [1,2], @queue.jobs
+    @queue.push Fixnum
+    @queue.push String
+    assert_equal [Fixnum,String], @queue.jobs
   end
 
   class EquivalentJob
-    def initialize
-      @initial_id = self.object_id
+    def initialize(id = nil)
+      @initial_id = id || self.object_id
+    end
+
+    def to_serializable_hash
+      {:initial_id => @initial_id}
+    end
+    def self.from_serializable_hash(hash)
+      EquivalentJob.new(hash[:initial_id])
     end
 
     def run
@@ -61,6 +74,13 @@ class TestQueueTest < ActiveSupport::TestCase
       @object = object
     end
 
+    def to_serializable_hash
+      {:object => @object}
+    end
+    def self.from_serializable_hash(hash)
+      ProcessingJob.new(hash[:object])
+    end
+
     def run
       self.class.processed << @object
     end
@@ -79,30 +99,45 @@ class TestQueueTest < ActiveSupport::TestCase
   end
 
   class ThreadTrackingJob
-    attr_reader :thread_id
-
-    def run
-      @thread_id = Thread.current.object_id
+    class << self
+      attr_accessor :thread_id
     end
 
-    def ran?
-      @thread_id
+    def to_serializable_hash
+      {}
+    end
+    def self.from_serializable_hash(hash)
+      ThreadTrackingJob.new
+    end
+
+    def run
+      self.class.thread_id = Thread.current.object_id
+    end
+
+    def self.ran?
+      thread_id
     end
   end
 
   def test_drain
     @queue.push ThreadTrackingJob.new
-    job = @queue.jobs.last
     @queue.drain
 
     assert @queue.empty?
-    assert job.ran?, "The job runs synchronously when the queue is drained"
-    assert_equal job.thread_id, Thread.current.object_id
+    assert ThreadTrackingJob.ran?, "The job runs synchronously when the queue is drained"
+    assert_equal ThreadTrackingJob.thread_id, Thread.current.object_id
   end
 
   class IdentifiableJob
     def initialize(id)
       @id = id
+    end
+
+    def to_serializable_hash
+      {:id => @id}
+    end
+    def self.from_serializable_hash(hash)
+      IdentifiableJob.new(hash[:id])
     end
 
     def ==(other)
@@ -137,10 +172,4 @@ class TestQueueTest < ActiveSupport::TestCase
     end
   end
 
-  def test_attempting_to_add_a_reference_to_itself
-    job = {reference: @queue}
-    assert_raises TypeError do
-      @queue.push job
-    end
-  end
 end
