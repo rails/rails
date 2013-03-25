@@ -45,7 +45,7 @@ module ApplicationTests
     end
 
     # Load paths
-    test "no config locales dir present should return empty load path" do
+    test "no config locales directory present should return empty load path" do
       FileUtils.rm_rf "#{app_path}/config/locales"
       load_app
       assert_equal [], Rails.application.config.i18n.load_path
