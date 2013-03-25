@@ -29,6 +29,7 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  scope :crazy_all, -> { where(body: 'go crazy').created }
 end
 
 class SubSpecialComment < SpecialComment
