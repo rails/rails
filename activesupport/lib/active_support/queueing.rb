@@ -17,9 +17,6 @@ module ActiveSupport
       if job_class.blank?
         raise TypeError, "Can't payloadize objects with anonymous classes, given: #{job.inspect}"
       end
-      unless [0,1].include?(job.class.instance_method(:initialize).arity)
-        raise "This payloadizer only supports jobs with initialize method arity: 0 or 1"
-      end
       {'class' => job_class, 'instance_values' => job.instance_values}
     end
 
@@ -29,15 +26,15 @@ module ActiveSupport
       end
       job_class = payload['class'].constantize
       instance_values = payload['instance_values']
-      if job_class.instance_method(:initialize).arity == 1
-        job = job_class.new(instance_values.values.first)
-      else #assumed to be zero
+      if job_class.instance_method(:initialize).arity == 0
         job = job_class.new
         instance_values.each do |k,v|
           job.instance_variable_set("@#{k}", v)
         end
+        job
+      else
+        job_class.new(instance_values.values.first)
       end
-      job
     end
 
     def self.unconstantize
