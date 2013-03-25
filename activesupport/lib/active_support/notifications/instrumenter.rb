@@ -2,7 +2,7 @@ require 'securerandom'
 
 module ActiveSupport
   module Notifications
-    # Instrumentors are stored in a thread local.
+    # Instrumenters are stored in a thread local.
     class Instrumenter
       attr_reader :id
 

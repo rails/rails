@@ -442,7 +442,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 end
 ```
 
-Most times you only care about the data itself. Here is a shortuct to just get the data.
+Most times you only care about the data itself. Here is a shortcut to just get the data.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
