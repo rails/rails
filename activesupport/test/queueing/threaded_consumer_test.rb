@@ -4,10 +4,17 @@ require "active_support/log_subscriber/test_helper"
 
 class TestThreadConsumer < ActiveSupport::TestCase
   class Job
+    class << self; attr_accessor :blocks; end
+    self.blocks = {}
+
     attr_reader :id
     def initialize(id = 1, &block)
       @id = id
-      @block = block
+      if block
+        Job.blocks[id] = block
+      else
+        @block = Job.blocks[id]
+      end
     end
 
     def run
@@ -68,7 +75,8 @@ class TestThreadConsumer < ActiveSupport::TestCase
     consume_queue @queue
 
     assert_equal 1, @logger.logged(:error).size
-    assert_match "Job Error: #{job.inspect}\nRuntimeError: Error!", @logger.logged(:error).last
+    assert_match "Job Error: #<TestThreadConsumer::Job", @logger.logged(:error).last
+    assert_match "RuntimeError: Error!", @logger.logged(:error).last
   end
 
   test "logger defaults to stderr" do

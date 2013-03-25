@@ -3,8 +3,12 @@ require 'active_support/queueing'
 
 class SynchronousQueueTest < ActiveSupport::TestCase
   class Job
-    attr_reader :ran
-    def run; @ran = true end
+    class << self
+      attr_accessor :ran
+    end
+    def run
+      self.class.ran = true
+    end
   end
 
   class ExceptionRaisingJob
@@ -18,7 +22,7 @@ class SynchronousQueueTest < ActiveSupport::TestCase
   def test_runs_jobs_immediately
     job = Job.new
     @queue.push job
-    assert job.ran
+    assert Job.ran
 
     assert_raises RuntimeError do
       @queue.push ExceptionRaisingJob.new
