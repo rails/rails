@@ -337,6 +337,27 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_persists_values
+        connection.create_table :testings do |t|
+          t.column :title, :string
+        end
+        person_klass = Class.new(ActiveRecord::Base)
+        person_klass.table_name = 'testings'
+        2.times do
+          person_klass.create!(title:'foo')
+        end
+
+        person_klass.connection.add_column 'testings', 'body', :text
+        person_klass.find_each do |person|
+          person.body = 'Ba Ba Black Sheep'
+          person.save!
+        end
+
+        person_klass.find_each do |person|
+          assert_equal 'Ba Ba Black Sheep', person.body
+        end
+      end
+
       private
       def testing_table_with_only_foo_attribute
         connection.create_table :testings, :id => false do |t|
