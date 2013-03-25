@@ -282,6 +282,13 @@ module ActiveRecord
         []
       end
 
+      # A list of index algorithms, to be filled by adapters that
+      # support them. MySQL and PostgreSQL has support for them right
+      # now.
+      def index_algorithms
+        {}
+      end
+
       # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current

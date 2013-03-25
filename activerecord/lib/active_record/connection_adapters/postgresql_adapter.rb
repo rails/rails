@@ -433,6 +433,10 @@ module ActiveRecord
         true
       end
 
+      def index_algorithms
+        { concurrently: 'CONCURRENTLY' }
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max)
           super
