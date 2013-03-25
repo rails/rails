@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
@@ -86,7 +87,8 @@ module ActionDispatch
     SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
-    TOKEN_KEY   = "action_dispatch.secret_token".freeze
+    SECRET_TOKEN = "action_dispatch.secret_token".freeze
+    SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -94,8 +96,70 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
+    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed
+    module ChainedCookieJars
+      # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
+      #
+      #   cookies.permanent[:prefers_open_id] = true
+      #   # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      #
+      # This jar is only meant for writing. You'll read permanent cookies through the regular accessor.
+      #
+      # This jar allows chaining with the signed jar as well, so you can set permanent, signed cookies. Examples:
+      #
+      #   cookies.permanent.signed[:remember_me] = current_user.id
+      #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      def permanent
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+      end
+
+      # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
+      # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
+      # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
+      # be raised.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      #
+      # Example:
+      #
+      #   cookies.signed[:discount] = 45
+      #   # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
+      #
+      #   cookies.signed[:discount] # => 45
+      def signed
+        @signed ||= begin
+          if @options[:upgrade_legacy_signed_cookie_jar]
+            UpgradeLegacySignedCookieJar.new(self, @key_generator, @options)
+          else
+            SignedCookieJar.new(self, @key_generator, @options)
+          end
+        end
+      end
+
+      # Only needed for supporting the +UpgradeSignatureToEncryptionCookieStore+, users and plugin authors should not use this
+      def signed_using_old_secret #:nodoc:
+        @signed_using_old_secret ||= SignedCookieJar.new(self, ActiveSupport::DummyKeyGenerator.new(@options[:secret_token]), @options)
+      end
+
+      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
+      # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
+      # will be raised.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      #
+      # Example:
+      #
+      #   cookies.encrypted[:discount] = 45
+      #   # => Set-Cookie: discount=ZS9ZZ1R4cG1pcUJ1bm80anhQang3dz09LS1mbDZDSU5scGdOT3ltQ2dTdlhSdWpRPT0%3D--ab54663c9f4e3bc340c790d6d2b71e92f5b60315; path=/
+      #
+      #   cookies.encrypted[:discount] # => 45
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
+      end
+    end
+
     class CookieJar #:nodoc:
-      include Enumerable
+      include Enumerable, ChainedCookieJars
 
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
@@ -115,7 +179,10 @@ module ActionDispatch
         { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
           encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
           encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
-          token_key: env[TOKEN_KEY] }
+          secret_token: env[SECRET_TOKEN],
+          secret_key_base: env[SECRET_KEY_BASE],
+          upgrade_legacy_signed_cookie_jar: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?
+        }
       end
 
       def self.build(request)
@@ -232,59 +299,6 @@ module ActionDispatch
         @cookies.each_key{ |k| delete(k, options) }
       end
 
-      # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
-      #
-      #   cookies.permanent[:prefers_open_id] = true
-      #   # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
-      #
-      # This jar is only meant for writing. You'll read permanent cookies through the regular accessor.
-      #
-      # This jar allows chaining with the signed jar as well, so you can set permanent, signed cookies. Examples:
-      #
-      #   cookies.permanent.signed[:remember_me] = current_user.id
-      #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
-      def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
-      end
-
-      # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
-      # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
-      # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
-      # be raised.
-      #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
-      #
-      # Example:
-      #
-      #   cookies.signed[:discount] = 45
-      #   # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
-      #
-      #   cookies.signed[:discount] # => 45
-      def signed
-        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
-      end
-
-      # Only needed for supporting the +UpgradeSignatureToEncryptionCookieStore+, users and plugin authors should not use this
-      def signed_using_old_secret #:nodoc:
-        @signed_using_old_secret ||= SignedCookieJar.new(self, ActiveSupport::DummyKeyGenerator.new(@options[:token_key]), @options)
-      end
-
-      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
-      # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
-      # will be raised.
-      #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
-      #
-      # Example:
-      #
-      #   cookies.encrypted[:discount] = 45
-      #   # => Set-Cookie: discount=ZS9ZZ1R4cG1pcUJ1bm80anhQang3dz09LS1mbDZDSU5scGdOT3ltQ2dTdlhSdWpRPT0%3D--ab54663c9f4e3bc340c790d6d2b71e92f5b60315; path=/
-      #
-      #   cookies.encrypted[:discount] # => 45
-      def encrypted
-        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
-      end
-
       def write(headers)
         @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
@@ -306,6 +320,8 @@ module ActionDispatch
     end
 
     class PermanentCookieJar #:nodoc:
+      include ChainedCookieJars
+
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @key_generator = key_generator
@@ -326,26 +342,11 @@ module ActionDispatch
         options[:expires] = 20.years.from_now
         @parent_jar[key] = options
       end
-
-      def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
-      end
-
-      def signed
-        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
-      end
-
-      def encrypted
-        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
-      end
-
-      def method_missing(method, *arguments, &block)
-        ActiveSupport::Deprecation.warn "#{method} is deprecated with no replacement. " +
-          "You probably want to try this method over the parent CookieJar."
-      end
     end
 
     class SignedCookieJar #:nodoc:
+      include ChainedCookieJars
+
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @options = options
@@ -372,26 +373,42 @@ module ActionDispatch
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
       end
+    end
 
-      def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+    # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
+    # config.secret_token and config.secret_key_base are both set. It reads
+    # legacy cookies signed with the old dummy key generator and re-saves
+    # them using the new key generator to provide a smooth upgrade path.
+    class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
+      def initialize(*args)
+        super
+        @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token])
       end
 
-      def signed
-        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+      def [](name)
+        if signed_message = @parent_jar[name]
+          verify_signed_message(signed_message) || verify_and_upgrade_legacy_signed_message(name, signed_message)
+        end
       end
 
-      def encrypted
-        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
+      def verify_signed_message(signed_message)
+        @verifier.verify(signed_message)
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil
       end
 
-      def method_missing(method, *arguments, &block)
-        ActiveSupport::Deprecation.warn "#{method} is deprecated with no replacement. " +
-          "You probably want to try this method over the parent CookieJar."
+      def verify_and_upgrade_legacy_signed_message(name, signed_message)
+        @legacy_verifier.verify(signed_message).tap do |value|
+          self[name] = value
+        end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil
       end
     end
 
     class EncryptedCookieJar #:nodoc:
+      include ChainedCookieJars
+
       def initialize(parent_jar, key_generator, options = {})
         if ActiveSupport::DummyKeyGenerator === key_generator
           raise "Encrypted Cookies must be used in conjunction with config.secret_key_base." +
@@ -424,23 +441,6 @@ module ActionDispatch
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
-      end
-
-      def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
-      end
-
-      def signed
-        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
-      end
-
-      def encrypted
-        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
-      end
-
-      def method_missing(method, *arguments, &block)
-        ActiveSupport::Deprecation.warn "#{method} is deprecated with no replacement. " +
-          "You probably want to try this method over the parent CookieJar."
       end
     end
 
