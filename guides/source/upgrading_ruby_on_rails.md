@@ -125,7 +125,10 @@ Please note that you should wait to set `secret_key_base` until you have 100% of
   get 'clashing/:id' => 'test#example', as: :example
 ```
 
-In the first case, you can simply avoid using the same name for multiple routes. In the second, you can use the `only` or `except` options provided by the `resources` method to restrict the routes created as detailed in the [Routing Guide](http://guides.rubyonrails.org/routing.html#restricting-the-routes-created).
+In the first case, you can simply avoid using the same name for multiple
+routes. In the second, you can use the `only` or `except` options provided by
+the `resources` method to restrict the routes created as detailed in the
+[Routing Guide](routing.html#restricting-the-routes-created).
 
 * Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 

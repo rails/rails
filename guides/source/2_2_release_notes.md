@@ -31,20 +31,20 @@ Documentation
 
 The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the [Ruby on Rails Guides](http://guides.rubyonrails.org/) project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
-* [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
-* [Rails Database Migrations](http://guides.rubyonrails.org/migrations.html)
-* [Active Record Associations](http://guides.rubyonrails.org/association_basics.html)
-* [Active Record Query Interface](http://guides.rubyonrails.org/active_record_querying.html)
-* [Layouts and Rendering in Rails](http://guides.rubyonrails.org/layouts_and_rendering.html)
-* [Action View Form Helpers](http://guides.rubyonrails.org/form_helpers.html)
-* [Rails Routing from the Outside In](http://guides.rubyonrails.org/routing.html)
-* [Action Controller Overview](http://guides.rubyonrails.org/action_controller_overview.html)
-* [Rails Caching](http://guides.rubyonrails.org/caching_with_rails.html)
-* [A Guide to Testing Rails Applications](http://guides.rubyonrails.org/testing.html)
-* [Securing Rails Applications](http://guides.rubyonrails.org/security.html)
-* [Debugging Rails Applications](http://guides.rubyonrails.org/debugging_rails_applications.html)
-* [Performance Testing Rails Applications](http://guides.rubyonrails.org/performance_testing.html)
-* [The Basics of Creating Rails Plugins](http://guides.rubyonrails.org/plugins.html)
+* [Getting Started with Rails](getting_started.html)
+* [Rails Database Migrations](migrations.html)
+* [Active Record Associations](association_basics.html)
+* [Active Record Query Interface](active_record_querying.html)
+* [Layouts and Rendering in Rails](layouts_and_rendering.html)
+* [Action View Form Helpers](form_helpers.html)
+* [Rails Routing from the Outside In](routing.html)
+* [Action Controller Overview](action_controller_overview.html)
+* [Rails Caching](caching_with_rails.html)
+* [A Guide to Testing Rails Applications](testing.html)
+* [Securing Rails Applications](security.html)
+* [Debugging Rails Applications](debugging_rails_applications.html)
+* [Performance Testing Rails Applications](performance_testing.html)
+* [The Basics of Creating Rails Plugins](plugins.html)
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
 
@@ -236,7 +236,7 @@ This will enable recognition of (among others) these routes:
 
 * Lead Contributor: [S. Brent Faulkner](http://www.unwwwired.net/)
 * More information:
-    * [Rails Routing from the Outside In](http://guides.rubyonrails.org/routing.html#nested-resources)
+    * [Rails Routing from the Outside In](routing.html#nested-resources)
     * [What's New in Edge Rails: Shallow Routes](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes)
 
 ### Method Arrays for Member or Collection Routes

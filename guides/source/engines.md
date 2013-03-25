@@ -676,7 +676,12 @@ There are now no strict dependencies on what the class is, only what the API for
 
 Within an engine, there may come a time where you wish to use things such as initializers, internationalization or other configuration options. The great news is that these things are entirely possible because a Rails engine shares much the same functionality as a Rails application. In fact, a Rails application's functionality is actually a superset of what is provided by engines!
 
-If you wish to use an initializer — code that should run before the engine is loaded — the place for it is the `config/initializers` folder. This directory's functionality is explained in the [Initializers section](http://guides.rubyonrails.org/configuring.html#initializers) of the Configuring guide, and works precisely the same way as the `config/initializers` directory inside an application. Same goes for if you want to use a standard initializer.
+If you wish to use an initializer — code that should run before the engine is
+loaded — the place for it is the `config/initializers` folder. This directory's
+functionality is explained in the
+[Initializers section](configuring.html#initializers) of the Configuring guide,
+and works precisely the same way as the `config/initializers` directory inside
+an application. Same goes for if you want to use a standard initializer.
 
 For locales, simply place the locale files in the `config/locales` directory, just like you would in an application.
 
@@ -918,7 +923,7 @@ initializer "blorgh.assets.precompile" do |app|
 end
 ```
 
-For more information, read the [Asset Pipeline guide](http://guides.rubyonrails.org/asset_pipeline.html)
+For more information, read the [Asset Pipeline guide](asset_pipeline.html)
 
 ### Other gem dependencies
 
