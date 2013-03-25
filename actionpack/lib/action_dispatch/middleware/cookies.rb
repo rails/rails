@@ -115,8 +115,7 @@ module ActionDispatch
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
-      # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
-      # be raised.
+      # cookie was tampered with by the user (or a 3rd party), nil will be returned.
       #
       # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
       #
@@ -142,8 +141,7 @@ module ActionDispatch
       end
 
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
-      # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
-      # will be raised.
+      # If the cookie was tampered with by the user (or a 3rd party), nil will be returned.
       #
       # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
       #
