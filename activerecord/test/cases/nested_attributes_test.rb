@@ -806,7 +806,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert_nothing_raised(NoMethodError) { @pirate.save! }
   end
 
-  def test_numeric_colum_changes_from_zero_to_no_empty_string
+  def test_numeric_column_changes_from_zero_to_no_empty_string
     Man.accepts_nested_attributes_for(:interests)
 
     repair_validations(Interest) do

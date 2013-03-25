@@ -225,6 +225,7 @@ class ErrorsTest < ActiveModel::TestCase
   test 'full_message should return the given message with the attribute name included' do
     person = Person.new
     assert_equal "name can not be blank", person.errors.full_message(:name, "can not be blank")
+    assert_equal "name_test can not be blank", person.errors.full_message(:name_test, "can not be blank")
   end
 
   test 'should return a JSON hash representation of the errors' do
