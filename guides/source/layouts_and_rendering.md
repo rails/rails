@@ -901,7 +901,12 @@ To render a partial as part of a view, you use the `render` method within the vi
 <%= render "menu" %>
 ```
 
-This will render a file named `_menu.html.erb` at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
+This will render a file resolved in the order below:
+
+1. `_menu.html.erb` located in the same directory
+2. `app/views/applicatino/_menu.html.erb`
+
+Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
 ```ruby
 <%= render "shared/menu" %>
@@ -914,17 +919,17 @@ That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
 
 ```erb
-<%= render "shared/ad_banner" %>
+<%= render "ad_banner" %>
 
 <h1>Products</h1>
 
 <p>Here are a few of our fine products:</p>
 ...
 
-<%= render "shared/footer" %>
+<%= render "footer" %>
 ```
 
-Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
+Here, the `app/views/application/_ad_banner.html.erb` and `app/views/application/_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
 TIP: For content that is shared among all pages in your application, you can use partials directly from layouts.
 
