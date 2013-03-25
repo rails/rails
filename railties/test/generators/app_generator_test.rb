@@ -276,7 +276,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require jquery}, contents
       assert_match %r{^//= require jquery_ujs}, contents
     end
-    assert_gem "jquery-rails"
+    assert_file "Gemfile", /^gem 'jquery-rails'/
   end
 
   def test_other_javascript_libraries
