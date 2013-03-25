@@ -1761,7 +1761,7 @@ cannot be automatically detected by Rails and corrected.
 
 Two very common sources of data that are not UTF-8:
 
-* Your text editor: Most text editors (such as Textmate), default to saving files as
+* Your text editor: Most text editors (such as TextMate), default to saving files as
   UTF-8. If your text editor does not, this can result in special characters that you
   enter in your templates (such as é) to appear as a diamond with a question mark inside
   in the browser. This also applies to your i18n translation files.
