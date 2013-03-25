@@ -2,6 +2,7 @@
 require "cases/helper"
 require 'models/owner'
 require 'models/pet'
+require 'models/person'
 
 class LengthValidationTest < ActiveRecord::TestCase
   fixtures :owners
@@ -44,4 +45,21 @@ class LengthValidationTest < ActiveRecord::TestCase
       assert o.valid?
     end
   end
+
+  def test_validates_size_of_reprects_records_marked_for_destruction
+    assert_nothing_raised { Owner.validates_size_of :pets, minimum: 1 }
+    owner = Owner.new
+    assert_not owner.save
+    assert owner.errors[:pets].any?
+    pet = owner.pets.build
+    assert owner.valid?
+    assert owner.save
+
+    pet_count = Pet.count
+    assert_not owner.update_attributes pets_attributes: [ {_destroy: 1, id: pet.id} ]
+    assert_not owner.valid?
+    assert owner.errors[:pets].any?
+    assert_equal pet_count, Pet.count
+  end
+
 end

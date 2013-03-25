@@ -1,3 +1,10 @@
+*   `validates_size_of` / `validates_length_of` do not count records,
+    which are `marked_for_destruction?`.
+
+    Fixes #7247.
+
+    *Yves Senn*
+
 *   Ensure `first!` and friends work on loaded associations.
 
     Fixes #18237.
