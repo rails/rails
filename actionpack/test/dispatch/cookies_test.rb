@@ -1,6 +1,7 @@
 require 'abstract_unit'
 # FIXME remove DummyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
+require 'active_support/message_verifier'
 
 class CookiesTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -64,6 +65,11 @@ class CookiesTest < ActionController::TestCase
 
     def set_signed_cookie
       cookies.signed[:user_id] = 45
+      head :ok
+    end
+
+    def get_signed_cookie
+      cookies.signed[:user_id]
       head :ok
     end
 
@@ -419,6 +425,55 @@ class CookiesTest < ActionController::TestCase
       @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("12345678901234567890123456789")
       get :set_signed_cookie
     }
+  end
+
+  def test_signed_uses_signed_cookie_jar_if_only_secret_token_is_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = nil
+    get :set_signed_cookie
+    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed
+  end
+
+  def test_signed_uses_signed_cookie_jar_if_only_secret_key_base_is_set
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :set_signed_cookie
+    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed
+  end
+
+  def test_signed_uses_upgrade_legacy_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :set_signed_cookie
+    assert_kind_of ActionDispatch::Cookies::UpgradeLegacySignedCookieJar, cookies.signed
+  end
+
+  def test_legacy_signed_cookie_is_read_and_transparently_upgraded_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(45)
+
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+    get :get_signed_cookie
+
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    verifier = ActiveSupport::MessageVerifier.new(secret)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
+  def test_legacy_signed_cookie_is_nil_if_tampered
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    @request.headers["Cookie"] = "user_id=45"
+    get :get_signed_cookie
+
+    assert_equal nil, @controller.send(:cookies).signed[:user_id]
+    assert_equal nil, @response.cookies["user_id"]
   end
 
   def test_cookie_with_all_domain_option
