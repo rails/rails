@@ -711,7 +711,14 @@ module ActiveRecord
 
           # populate composite types
           nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
-            vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+            if OID.registered_type? row['typname']
+              # this composite type is explicitly registered
+              vector = OID::NAMES[row['typname']]
+            else
+              # use the default for composite types
+              vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+            end
+
             OID::TYPE_MAP[row['oid'].to_i] = vector
           end
 
