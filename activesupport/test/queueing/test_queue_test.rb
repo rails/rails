@@ -79,25 +79,26 @@ class TestQueueTest < ActiveSupport::TestCase
   end
 
   class ThreadTrackingJob
-    attr_reader :thread_id
-
-    def run
-      @thread_id = Thread.current.object_id
+    class << self
+      attr_accessor :thread_id
     end
 
-    def ran?
-      @thread_id
+    def run
+      self.class.thread_id = Thread.current.object_id
+    end
+
+    def self.ran?
+      thread_id
     end
   end
 
   def test_drain
     @queue.push ThreadTrackingJob.new
-    job = @queue.jobs.last
     @queue.drain
 
     assert @queue.empty?
-    assert job.ran?, "The job runs synchronously when the queue is drained"
-    assert_equal job.thread_id, Thread.current.object_id
+    assert ThreadTrackingJob.ran?, "The job runs synchronously when the queue is drained"
+    assert_equal ThreadTrackingJob.thread_id, Thread.current.object_id
   end
 
   class IdentifiableJob
@@ -137,9 +138,11 @@ class TestQueueTest < ActiveSupport::TestCase
     end
   end
 
-  def test_attempting_to_add_a_reference_to_itself
-    job = {reference: @queue}
-    assert_raises TypeError do
+  def test_attempting_to_add_a_circular_reference
+    thing = {}
+    job = {reference: thing}
+    thing[:job] = job
+    assert_raises ActiveSupport::JSON::Encoding::CircularReferenceError do
       @queue.push job
     end
   end
