@@ -232,8 +232,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
-      assert_no_match(/coffee-rails/, content)
       assert_no_match(/uglifier/, content)
+      assert_match(/coffee-rails/, content)
     end
     assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.assets\.debug = true/, content)
@@ -292,6 +292,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-javascript"]
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_no_match %r{^//=\s+require\s}, contents
+    end
+    assert_file "Gemfile" do |content|
+      assert_match(/coffee-rails/, content)
     end
   end
 

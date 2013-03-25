@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow vanilla apps to render CoffeeScript templates in production
+
+    Vanilla apps already render CoffeeScript templates in development and test
+    environments.  With this change, the production behavior matches that of
+    the other environments.
+
+    Effectively, this meant moving coffee-rails (and the JavaScript runtime on
+    which it is dependent) from the :assets group to the top-level of the
+    generated Gemfile.
+
+    *Gabe Kopley*
+
 *   `Rails.version` now returns an instance of `Gem::Version`
 
     *Charlie Somerville*

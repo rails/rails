@@ -178,29 +178,25 @@ module Rails
         return if options[:skip_sprockets]
 
         gemfile = if options.dev? || options.edge?
-          <<-GEMFILE
+          <<-GEMFILE.gsub(/^ {12}/, '')
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
               gem 'sprockets-rails', github: 'rails/sprockets-rails'
               gem 'sass-rails',   github: 'rails/sass-rails'
-              gem 'coffee-rails', github: 'rails/coffee-rails'
-
-              # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-              #{javascript_runtime_gemfile_entry}
+              #{coffee_gemfile_entry if options[:skip_javascript]}
+              #{javascript_runtime_gemfile_entry(2) if options[:skip_javascript]}
               gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
         else
-          <<-GEMFILE
+          <<-GEMFILE.gsub(/^ {12}/, '')
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
               gem 'sass-rails',   '~> 4.0.0.beta1'
-              gem 'coffee-rails', '~> 4.0.0.beta1'
-
-              # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-              #{javascript_runtime_gemfile_entry}
+              #{coffee_gemfile_entry if options[:skip_javascript]}
+              #{javascript_runtime_gemfile_entry(2) if options[:skip_javascript]}
               gem 'uglifier', '>= 1.0.3'
             end
           GEMFILE
@@ -209,11 +205,23 @@ module Rails
         gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
+      def coffee_gemfile_entry
+        if options.dev? || options.edge?
+          "gem 'coffee-rails', github: 'rails/coffee-rails'"
+        else
+          "gem 'coffee-rails', '~> 4.0.0.beta1'"
+        end
+      end
+
       def javascript_gemfile_entry
         args = {'jquery' => ", github: 'rails/jquery-rails'"}
 
         unless options[:skip_javascript]
-          <<-GEMFILE.strip_heredoc
+          <<-GEMFILE.gsub(/^ {12}/, '').strip_heredoc
+            #{javascript_runtime_gemfile_entry}
+            # Use CoffeeScript for .js.coffee assets and views
+            #{coffee_gemfile_entry}
+
             gem '#{options[:javascript]}-rails'#{args[options[:javascript]]}
 
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
@@ -222,12 +230,16 @@ module Rails
         end
       end
 
-      def javascript_runtime_gemfile_entry
-        if defined?(JRUBY_VERSION)
-          "gem 'therubyrhino'\n"
+      def javascript_runtime_gemfile_entry(n_spaces=0)
+        runtime = if defined?(JRUBY_VERSION)
+          "gem 'therubyrhino'"
         else
-          "# gem 'therubyracer', platforms: :ruby\n"
+          "# gem 'therubyracer', platforms: :ruby"
         end
+        <<-GEMFILE.gsub(/^ {10}/, '')
+          # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+          #{" "*n_spaces}#{runtime}
+        GEMFILE
       end
 
       def bundle_command(command)
