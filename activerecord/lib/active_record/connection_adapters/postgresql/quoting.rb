@@ -103,7 +103,7 @@ module ActiveRecord
               PostgreSQLColumn.array_to_string(value, column, self)
             end
           when String
-            return super(value, column) unless 'bytea' == couln.sql_type
+            return super(value, column) unless 'bytea' == column.sql_type
             { :value => value, :format => 1 }
           when Hash
             case column.sql_type
