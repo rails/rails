@@ -5,7 +5,7 @@ module ActiveRecord
     # The goal of this module is to move Adapter specific column
     # definitions to the Adapter instead of having it in the schema
     # dumper itself. This code represents the normal case.
-    # We can then redefine how certain data types may be handled in the schema dumper on the 
+    # We can then redefine how certain data types may be handled in the schema dumper on the
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column, types)
