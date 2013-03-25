@@ -28,10 +28,14 @@ module ActiveRecord
               super
             end
           when Array
-            if column.array
-              "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
+            case sql_type
+            when 'point' then super(PostgreSQLColumn.point_to_string(value))
             else
-              super
+              if column.array
+                "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
+              else
+                super
+              end
             end
           when Hash
             case sql_type
@@ -79,9 +83,10 @@ module ActiveRecord
         def type_cast(value, column, array_member = false)
           return super(value, column) unless column
 
+          sql_type = type_to_sql(column.type, column.limit, column.precision, column.scale)
           case value
           when Range
-            return super(value, column) unless /range$/ =~ column.sql_type
+            return super(value, column) unless /range$/ =~ sql_type
             PostgreSQLColumn.range_to_string(value)
           when NilClass
             if column.array && array_member
@@ -92,19 +97,23 @@ module ActiveRecord
               super(value, column)
             end
           when Array
-            return super(value, column) unless column.array
-            PostgreSQLColumn.array_to_string(value, column, self)
+            case sql_type
+            when 'point' then PostgreSQLColumn.point_to_string(value)
+            else
+              return super(value, column) unless column.array
+              PostgreSQLColumn.array_to_string(value, column, self)
+            end
           when String
-            return super(value, column) unless 'bytea' == column.sql_type
+            return super(value, column) unless 'bytea' == sql_type
             { :value => value, :format => 1 }
           when Hash
-            case column.sql_type
+            case sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
             when 'json' then PostgreSQLColumn.json_to_string(value)
             else super(value, column)
             end
           when IPAddr
-            return super(value, column) unless ['inet','cidr'].include? column.sql_type
+            return super(value, column) unless ['inet','cidr'].include? sql_type
             PostgreSQLColumn.cidr_to_string(value)
           else
             super(value, column)
