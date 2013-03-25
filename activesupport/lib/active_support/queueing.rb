@@ -1,7 +1,54 @@
 require 'delegate'
 require 'thread'
+require 'active_support/hash_with_indifferent_access'
 
 module ActiveSupport
+
+  class JobPayloadizer
+
+    def self.payload_from_job(job)
+      if job.is_a?(Class)
+        return job.name
+      end
+      if job.nil?
+        return job
+      end
+      unless job.respond_to?(:to_serializable_hash)
+        raise TypeError, "Please implement to_serializable_hash on #{job.inspect}"
+      end
+      unless job.class.respond_to?(:from_serializable_hash)
+        raise TypeError, "Please implement #{job.class}.from_serializable_hash"
+      end
+      {'job_class' => job.class.name, 'object_hash' => job.to_serializable_hash}
+    end
+
+    def self.job_from_payload(payload)
+      if payload.nil?
+        return payload
+      end
+      unless payload.is_a?(Hash)
+        return payload.constantize
+      end
+      job_class = payload["job_class"].constantize
+      object_hash = HashWithIndifferentAccess.new(payload["object_hash"])
+      job_class.from_serializable_hash(object_hash)
+    end
+
+    def self.unconstantize
+      self.name.to_s
+    end
+
+  end
+
+  class MarshalEncoder
+    def self.encode(object)
+      Marshal.dump(object)
+    end
+    def self.decode(encoded_object)
+      Marshal.load(encoded_object)
+    end
+  end
+
   # A Queue that simply inherits from STDLIB's Queue. When this
   # queue is used, Rails automatically starts a job runner in a
   # background thread.
@@ -17,6 +64,15 @@ module ActiveSupport
       @consumer ||= ThreadedQueueConsumer.new(self, @consumer_options)
     end
 
+    def default_payloadizer
+      @payloadizer ||= JobPayloadizer
+    end
+
+    def encoder
+      # but perhaps ActiveSupport::JSON would be a better default
+      @encoder ||= MarshalEncoder
+    end
+
     # Drain the queue, running all jobs in a different thread. This method
     # may not be available on production queues.
     def drain
@@ -24,6 +80,25 @@ module ActiveSupport
       # jobs are caught in test mode.
       consumer.drain
     end
+
+    def pop
+      joberize(super)
+    end
+
+    def push(job)
+      #Jobs must define their own payloadizer, or implement to_serializable_hash / from_serializable_hash
+      payloadizer = job.respond_to?(:payloadizer) ? job.payloadizer : default_payloadizer
+      payload = payloadizer.payload_from_job(job)
+      super encoder.encode({'payloadizer' => payloadizer.unconstantize, 'payload' => payload})
+    end
+
+    protected
+
+    def joberize(payload)
+      job_data = encoder.decode(payload)
+      job_data["payloadizer"].constantize.job_from_payload(job_data["payload"])
+    end
+
   end
 
   class SynchronousQueue < Queue
@@ -45,14 +120,7 @@ module ActiveSupport
     # Get a list of the jobs off this queue. This method may not be
     # available on production queues.
     def jobs
-      @que.dup
-    end
-
-    # Marshal and unmarshal job before pushing it onto the queue.  This will
-    # raise an exception on any attempts in tests to push jobs that can't (or
-    # shouldn't) be marshalled.
-    def push(job)
-      super Marshal.load(Marshal.dump(job))
+      @que.dup.map{ |job_data| joberize(job_data) }
     end
   end
 
