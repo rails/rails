@@ -86,8 +86,8 @@ module ApplicationTests
     def test_precompile_does_not_hit_the_database
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
-      app_file "app/controllers/user_controller.rb", <<-eoruby
-        class UserController < ApplicationController; end
+      app_file "app/controllers/users_controller.rb", <<-eoruby
+        class UsersController < ApplicationController; end
       eoruby
       app_file "app/models/user.rb", <<-eoruby
         class User < ActiveRecord::Base; end
