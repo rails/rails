@@ -190,7 +190,7 @@ $ cd rails
 $ git checkout -b my_new_branch
 ```
 
-It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on Github. It won't be part of the Rails Git repository.
+It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
 ### Write Your Code
 
