@@ -927,19 +927,24 @@ require 'test_helper'
 class UserMailerTest < ActionMailer::TestCase
   tests UserMailer
   test "invite" do
-    @expected.from    = 'me@example.com'
-    @expected.to      = 'friend@example.com'
-    @expected.subject = "You have been invited by #{@expected.from}"
-    @expected.body    = read_fixture('invite')
-    @expected.date    = Time.now
+    # Send the email, then test that it got queued
+    email = UserMailer.create_invite('me@example.com',
+                                     'friend@example.com', Time.now).deliver
+    assert !ActionMailer::Base.deliveries.empty?
 
-    assert_equal @expected.encoded, UserMailer.create_invite('me@example.com', 'friend@example.com', @expected.date).encoded
+    # Test the body of the sent email contains what we expect it to
+    assert_equal ['me@example.com'], email.from
+    assert_equal ['friend@example.com'], email.to
+    assert_equal 'You have been invited by me@example.com', email.subject
+    assert_equal read_fixture('invite').join, email.body.to_s
   end
-
 end
 ```
 
-In this test, `@expected` is an instance of `TMail::Mail` that you can use in your tests. It is defined in `ActionMailer::TestCase`. The test above uses `@expected` to construct an email, which it then asserts with email created by the custom mailer. The `invite` fixture is the body of the email and is used as the sample content to assert against. The helper `read_fixture` is used to read in the content from this file.
+In the test we send the email and store the returned object in the `email`
+variable. We then ensure that it was sent (the first assert), then, in the
+second batch of assertions, we ensure that the email does indeed contain what we
+expect. The helper `read_fixture` is used to read in the content from this file.
 
 Here's the content of the `invite` fixture:
 
@@ -951,9 +956,17 @@ You have been invited.
 Cheers!
 ```
 
-This is the right time to understand a little more about writing tests for your mailers. The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (`ActionMailer::Base.deliveries`).
+This is the right time to understand a little more about writing tests for your
+mailers. The line `ActionMailer::Base.delivery_method = :test` in
+`config/environments/test.rb` sets the delivery method to test mode so that
+email will not actually be delivered (useful to avoid spamming your users while
+testing) but instead it will be appended to an array
+(`ActionMailer::Base.deliveries`).
 
-This way, emails are not actually sent, simply constructed. The precise content of the email can then be checked against what is expected, as in the example above.
+NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
+`ActionMailer::TestCase` tests. If you want to have a clean slate outside Action
+Mailer tests, you can reset it manually with:
+`ActionMailer::Base.deliveries.clear`
 
 ### Functional Testing
 
