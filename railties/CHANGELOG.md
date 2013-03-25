@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `app/views/application` to the default directory structure.
+
+    *Kentaro Kuribayashi*
+
 *   `Rails.version` now returns an instance of `Gem::Version`
 
     *Charlie Somerville*

@@ -61,6 +61,8 @@ module Rails
 
       keep_file  'app/controllers/concerns'
       keep_file  'app/models/concerns'
+
+      keep_file  'app/views/application'
     end
 
     def bin
