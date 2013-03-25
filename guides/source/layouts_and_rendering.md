@@ -904,7 +904,7 @@ To render a partial as part of a view, you use the `render` method within the vi
 This will render a file resolved in the order below:
 
 1. `_menu.html.erb` located in the same directory
-2. `app/views/applicatino/_menu.html.erb`
+2. `app/views/application/_menu.html.erb`
 
 Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
