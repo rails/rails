@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Do not reset `inheritance_column` when it's set explicitly.
+    Backport of #5327.
+
+    *kennyj + Fred Wu*
+
 *   Fix a problem wrong exception is occured
     when raising no translatable exception in PostgreSQL.
 

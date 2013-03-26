@@ -1540,6 +1540,16 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_dont_clear_inheritnce_column_when_setting_explicitly
+    Joke.inheritance_column = "my_type"
+    before_inherit = Joke.inheritance_column
+
+    Joke.reset_column_information
+    after_inherit = Joke.inheritance_column
+
+    assert_equal before_inherit, after_inherit unless before_inherit.blank? && after_inherit.blank?
+  end
+
   def test_set_table_name_symbol_converted_to_string
     Joke.table_name = :cold_jokes
     assert_equal 'cold_jokes', Joke.table_name
