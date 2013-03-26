@@ -21,30 +21,37 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:define_method, :index_name_exists?) do |*|
       false
     end
-    expected = "CREATE  INDEX `index_people_on_last_name` ON `people` (`last_name`)"
+    expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
     assert_equal expected, add_index(:people, :last_name, :length => nil)
 
-    expected = "CREATE  INDEX `index_people_on_last_name` ON `people` (`last_name`(10))"
+    expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`(10)) "
     assert_equal expected, add_index(:people, :last_name, :length => 10)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(15))"
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(15)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`)"
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15})
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(10))"
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(10)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15, :first_name => 10})
 
     %w(btree hash).each do |type|
-      expected = "CREATE  INDEX `index_people_on_last_name` USING #{type} ON `people` (`last_name`)"
+      expected = "CREATE  INDEX `index_people_on_last_name` USING #{type} ON `people` (`last_name`) "
       assert_equal expected, add_index(:people, :last_name, :using => type)
     end
 
-    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10))"
+    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) "
     assert_equal expected, add_index(:people, :last_name, :length => 10, :using => :btree)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15))"
+    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = COPY"
+    assert_equal expected, add_index(:people, :last_name, :length => 10, using: :btree, algorithm: :copy)
+
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, algorithm: :coyp)
+    end
+
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :using => :btree)
 
     ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:remove_method, :index_name_exists?)
