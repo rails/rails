@@ -1149,6 +1149,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'account#shorthand', @response.body
   end
 
+  def test_match_shorthand_with_multiple_paths_inside_namespace
+    draw do
+      namespace :proposals do
+        put 'activate', 'inactivate'
+      end
+    end
+
+    put '/proposals/activate'
+    assert_equal 'proposals#activate', @response.body
+
+    put '/proposals/inactivate'
+    assert_equal 'proposals#inactivate', @response.body
+  end
+
   def test_match_shorthand_inside_namespace_with_controller
     draw do
       namespace :api do
