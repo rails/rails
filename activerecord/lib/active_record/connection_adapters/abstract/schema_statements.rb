@@ -688,6 +688,9 @@ module ActiveRecord
         if options[:null] == false
           sql << " NOT NULL"
         end
+        if options[:auto_increment] == true
+          sql << " AUTO_INCREMENT"
+        end
       end
 
       # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.

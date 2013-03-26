@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `rename_column` preserves auto_increment in mysql migrations.
+    Fixes #3493.
+
+    *Vipul A M*
+
 *   PostgreSQL geometric type point is supported by ActiveRecord. Fixes #7324.
 
     *Martin Schuerrer*
@@ -36,7 +41,7 @@
 
     *Ian Young*
 
-*   If ``:inverse_of` is true on an association, then when one calls `find()` on
+*   If `:inverse_of` is true on an association, then when one calls `find()` on
     the association, Active Record will first look through the in-memory objects
     in the association for a particular id. Then, it will go to the DB if it
     is not found. This is accomplished by calling `find_by_scan` in
