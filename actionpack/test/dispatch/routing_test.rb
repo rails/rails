@@ -1112,6 +1112,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'projects#info', @response.body
   end
 
+  def test_match_with_many_paths_containing_a_slash
+    draw do
+      get 'get/first', 'get/second', 'get/third', :to => 'get#show'
+    end
+
+    get '/get/first'
+    assert_equal 'get#show', @response.body
+
+    get '/get/second'
+    assert_equal 'get#show', @response.body
+
+    get '/get/third'
+    assert_equal 'get#show', @response.body
+  end
+
   def test_match_shorthand_with_no_scope
     draw do
       get 'account/overview'
