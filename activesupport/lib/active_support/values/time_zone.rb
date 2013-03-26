@@ -151,7 +151,7 @@ module ActiveSupport
       "Taipei"                       => "Asia/Taipei",
       "Perth"                        => "Australia/Perth",
       "Irkutsk"                      => "Asia/Irkutsk",
-      "Ulaan Bataar"                 => "Asia/Ulaanbaatar",
+      "Ulaanbaatar"                  => "Asia/Ulaanbaatar",
       "Seoul"                        => "Asia/Seoul",
       "Osaka"                        => "Asia/Tokyo",
       "Sapporo"                      => "Asia/Tokyo",
