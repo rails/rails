@@ -63,8 +63,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?)
+      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
+        Column.new(field, default, type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception)

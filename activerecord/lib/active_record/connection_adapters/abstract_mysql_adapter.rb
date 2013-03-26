@@ -25,12 +25,12 @@ module ActiveRecord
       end
 
       class Column < ConnectionAdapters::Column # :nodoc:
-        attr_reader :collation, :strict
+        attr_reader :collation, :strict, :extra
 
-        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false)
+        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
           @strict    = strict
           @collation = collation
-
+          @extra     = extra
           super(name, default, sql_type, null)
         end
 
@@ -221,8 +221,8 @@ module ActiveRecord
       end
 
       # Overridden by the adapters to instantiate their specific Column type.
-      def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation)
+      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
+        Column.new(field, default, type, null, collation, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -452,7 +452,7 @@ module ActiveRecord
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation])
+            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation], field[:Extra])
           end
         end
       end
@@ -682,6 +682,7 @@ module ActiveRecord
         if column = columns(table_name).find { |c| c.name == column_name.to_s }
           options[:default] = column.default
           options[:null] = column.null
+          options[:auto_increment] = (column.extra == "auto_increment")
         else
           raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
         end
