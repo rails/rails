@@ -1,3 +1,8 @@
+*   Support nested query parameter in DATABASE_URL.
+    This feature is useful for JDBC adapter. Fixes #9896.
+
+    *kennyj*
+
 *   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
     *kennyj*
