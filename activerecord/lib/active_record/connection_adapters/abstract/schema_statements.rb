@@ -757,7 +757,13 @@ module ActiveRecord
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
             max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
-            algorithm = index_algorithms[options[:algorithm]]
+
+            if index_algorithms.key?(options[:algorithm])
+              algorithm = index_algorithms[options[:algorithm]]
+            elsif options[:algorithm].present?
+              raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
+            end
+
             using = "USING #{options[:using]}" if options[:using].present?
 
             if supports_partial_index?

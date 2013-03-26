@@ -47,6 +47,10 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = COPY"
     assert_equal expected, add_index(:people, :last_name, :length => 10, using: :btree, algorithm: :copy)
 
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, algorithm: :coyp)
+    end
+
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :using => :btree)
 

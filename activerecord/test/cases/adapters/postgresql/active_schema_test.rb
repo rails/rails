@@ -43,6 +43,9 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
       assert_equal expected, add_index(:people, :last_name, using: type, algorithm: :concurrently)
     end
 
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, algorithm: :copy)
+    end
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name"))
     assert_equal expected, add_index(:people, :last_name, :unique => true, :using => :gist)
 
