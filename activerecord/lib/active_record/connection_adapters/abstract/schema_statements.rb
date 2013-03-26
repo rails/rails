@@ -752,11 +752,19 @@ module ActiveRecord
           index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using)
+            options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm)
 
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
             max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
+
+            if index_algorithms.key?(options[:algorithm])
+              algorithm = index_algorithms[options[:algorithm]]
+            elsif options[:algorithm].present?
+              raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
+            end
+
+            using = "USING #{options[:using]}" if options[:using].present?
 
             if supports_partial_index?
               index_options = options[:where] ? " WHERE #{options[:where]}" : ""
@@ -772,6 +780,7 @@ module ActiveRecord
 
             index_type = options
             max_index_length = allowed_index_name_length
+            algorithm = using = nil
           end
 
           if index_name.length > max_index_length
@@ -782,7 +791,7 @@ module ActiveRecord
           end
           index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-          [index_name, index_type, index_columns, index_options]
+          [index_name, index_type, index_columns, index_options, algorithm, using]
         end
 
         def index_name_for_remove(table_name, options = {})

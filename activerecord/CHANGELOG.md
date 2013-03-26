@@ -3,6 +3,18 @@
 *   PostgreSQL geometric type point is supported by ActiveRecord. Fixes #7324.
 
     *Martin Schuerrer*
+ 
+*   Add suport for concurrent indexing in PostgreSQL adapter via the
+    `algorithm: :concurrently` option
+
+        add_index(:people, :last_name, algorithm: :concurrently)
+
+    Also adds support for MySQL index algorithms (`COPY`, `INPLACE`,
+    `DEFAULT`) via the `algorithm: :copy` option
+
+        add_index(:people, :last_name, algorithm: :copy) # or :inplace/:default
+
+    *Dan McClain*
 
 *   Add an `add_index` override in Postgresql adapter and MySQL adapter
     to allow custom index type support. Fixes #6101.

@@ -208,6 +208,10 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
+      def index_algorithms
+        { default: 'ALGORITHM = DEFAULT', copy: 'ALGORITHM = COPY', inplace: 'ALGORITHM = INPLACE' }
+      end
+
       # HELPER METHODS ===========================================
 
       # The two drivers have slightly different ways of yielding hashes of results, so
@@ -506,12 +510,8 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
-        if options.is_a?(Hash) && options[:using]
-          index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
-          execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} USING #{options[:using]} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
-        else
-          super
-        end
+        index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options} #{index_algorithm}"
       end
 
       # Maps logical Rails types to MySQL-specific data types.
