@@ -1110,6 +1110,26 @@ class FormOptionsHelperTest < ActionView::TestCase
                  "</select>",
                  html
   end
+  
+  def test_time_zone_select_with_priority_zones_as_regexp_using_grep_finds_no_zones
+    @firm = Firm.new("D")
+  
+    priority_zones = /A|D/
+    @fake_timezones.each_with_index do |tz, i|
+      priority_zones.stubs(:===).with(tz).raises(Exception)
+    end
+  
+    html = time_zone_select("firm", "time_zone", priority_zones)
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
+                 "</select>",
+                 html
+  end
 
   def test_time_zone_select_with_default_time_zone_and_nil_value
      @firm = Firm.new()
