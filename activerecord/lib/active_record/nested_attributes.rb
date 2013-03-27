@@ -424,7 +424,7 @@ module ActiveRecord
             end
           end
 
-          if !call_reject_if(association_name, attributes)
+          unless call_reject_if(association_name, attributes)
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else

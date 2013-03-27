@@ -826,7 +826,7 @@ module ActiveRecord
     private
 
     def symbol_unscoping(scope)
-      if !VALID_UNSCOPING_VALUES.include?(scope)
+      unless VALID_UNSCOPING_VALUES.include?(scope)
         raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
       end
 
