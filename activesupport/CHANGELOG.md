@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `#determine_constant_from_test_name` does not swallow NoMethodErrors.
+    Fixes #9933.
+
+    *Yves Senn*.
+
 *   `ActiveSupport::TimeWithZone` raises `NoMethodError` in proper context.
     Fixes #9772.
 
