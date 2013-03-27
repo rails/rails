@@ -6,6 +6,7 @@ module ActiveRecord
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration)
+        ActiveSupport::Deprecation.warn "This database tasks were deprecated, because this tasks should be served by the 3rd party adapter."
         @configuration = configuration
       end
 
