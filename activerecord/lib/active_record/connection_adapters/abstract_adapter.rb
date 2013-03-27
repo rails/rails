@@ -101,6 +101,10 @@ module ActiveRecord
         @visitor             = nil
       end
 
+      def valid_type?(type)
+        true
+      end
+
       class SchemaCreation
         def initialize(conn)
           @conn  = conn
