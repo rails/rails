@@ -145,6 +145,7 @@ module ActiveRecord
       'active_record/tasks/postgresql_database_tasks'
 
     autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
+    autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
   end
 
   autoload :TestCase

@@ -278,8 +278,6 @@ db_namespace = namespace :db do
       when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(current_config)
         File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
-      when 'sqlserver'
-        `smoscript -s #{current_config['host']} -d #{current_config['database']} -u #{current_config['username']} -p #{current_config['password']} -f #{filename} -A -U`
       else
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
       end
@@ -297,8 +295,6 @@ db_namespace = namespace :db do
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case current_config['adapter']
-      when 'sqlserver'
-        `sqlcmd -S #{current_config['host']} -d #{current_config['database']} -U #{current_config['username']} -P #{current_config['password']} -i #{filename}`
       when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(current_config)
         IO.read(filename).split(";\n\n").each do |ddl|
@@ -363,12 +359,6 @@ db_namespace = namespace :db do
     task :purge => [:environment, :load_config] do
       abcs = ActiveRecord::Base.configurations
       case abcs['test']['adapter']
-      when 'sqlserver'
-        test = abcs.deep_dup['test']
-        test_database = test['database']
-        test['database'] = 'master'
-        ActiveRecord::Base.establish_connection(test)
-        ActiveRecord::Base.connection.recreate_database!(test_database)
       when "oci", "oracle"
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
