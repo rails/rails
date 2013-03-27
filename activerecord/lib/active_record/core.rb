@@ -77,8 +77,17 @@ module ActiveRecord
       mattr_accessor :disable_implicit_join_references, instance_writer: false
       self.disable_implicit_join_references = false
 
-      class_attribute :connection_handler, instance_writer: false
-      self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+      class_attribute :default_connection_handler, instance_writer: false
+      
+      def self.connection_handler
+        Thread.current[:active_record_connection_handler] || self.default_connection_handler
+      end
+
+      def self.connection_handler=(handler)
+        Thread.current[:active_record_connection_handler] = handler
+      end
+
+      self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
     module ClassMethods
