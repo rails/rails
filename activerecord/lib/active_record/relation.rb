@@ -612,7 +612,7 @@ module ActiveRecord
           "\n" \
           "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n" \
           "\n" \
-          "If you don't rely on implicit join references you can disable the feature entirely" \
+          "If you don't rely on implicit join references you can disable the feature entirely " \
           "by setting `config.active_record.disable_implicit_join_references = true`."
         )
         true
