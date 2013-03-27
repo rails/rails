@@ -103,6 +103,18 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal connection, migration.connection
   end
 
+  def test_use_table_return_fake_ar_model
+    migration = Class.new(ActiveRecord::Migration).new
+    migration.create_table :users do |t|
+      t.string :name
+    end
+    expected = "SELECT name FROM \"users\"  WHERE \"users\".\"name\" = 'Bob'"
+    real = migration.use_table(:users).where(:name => "Bob").select(:name).to_sql
+    assert_equal expected, real
+  ensure
+    migration.drop_table :users
+  end
+
   def test_method_missing_delegates_to_connection
     migration = Class.new(ActiveRecord::Migration) {
       def connection

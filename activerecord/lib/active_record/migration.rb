@@ -608,6 +608,11 @@ module ActiveRecord
       @connection || ActiveRecord::Base.connection
     end
 
+    def use_table(table_name)
+      table_name = Migrator.proper_table_name(table_name)
+      Class.new(ActiveRecord::Base) { self.table_name = table_name }.all
+    end
+
     def method_missing(method, *arguments, &block)
       arg_list = arguments.map{ |a| a.inspect } * ', '
 
