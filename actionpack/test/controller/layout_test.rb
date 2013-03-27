@@ -94,6 +94,18 @@ class HasOwnLayoutController < LayoutTest
   layout 'item'
 end
 
+class HasNilLayoutSymbol < LayoutTest
+  layout :nilz
+
+  def nilz
+    nil
+  end
+end
+
+class HasNilLayoutProc < LayoutTest
+  layout proc { |c| nil }
+end
+
 class PrependsViewPathController < LayoutTest
   def hello
     prepend_view_path File.dirname(__FILE__) + '/../fixtures/layout_tests/alt/'
@@ -140,6 +152,18 @@ class LayoutSetInResponseTest < ActionController::TestCase
     @controller = HasOwnLayoutController.new
     get :hello
     assert_template :layout => "layouts/item"
+  end
+
+  def test_layout_symbol_set_in_controller_returning_nil_falls_back_to_default
+    @controller = HasNilLayoutSymbol.new
+    get :hello
+    assert_template layout: "layouts/layout_test"
+  end
+
+  def test_layout_proc_set_in_controller_returning_nil_falls_back_to_default
+    @controller = HasNilLayoutProc.new
+    get :hello
+    assert_template layout: "layouts/layout_test"
   end
 
   def test_layout_only_exception_when_included

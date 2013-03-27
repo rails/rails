@@ -79,6 +79,14 @@ module AbstractControllerTests
       end
     end
 
+    class WithProcReturningNil < Base
+      layout proc { |c| nil }
+
+      def index
+        render template: ActionView::Template::Text.new("Hello nil!")
+      end
+    end
+
     class WithZeroArityProc < Base
       layout proc { "overwrite" }
 
@@ -247,6 +255,12 @@ module AbstractControllerTests
         controller = WithProc.new
         controller.process(:index)
         assert_equal "Overwrite Hello proc!", controller.response_body
+      end
+
+      test "when layout is specified as a proc and the proc retuns nil, don't use a layout" do
+        controller = WithProcReturningNil.new
+        controller.process(:index)
+        assert_equal "Hello nil!", controller.response_body
       end
 
       test "when layout is specified as a proc without parameters it works just the same" do
