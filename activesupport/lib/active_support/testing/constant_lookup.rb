@@ -38,6 +38,8 @@ module ActiveSupport
             begin
               constant = names.join("::").constantize
               break(constant) if yield(constant)
+            rescue NoMethodError => e
+              raise e
             rescue NameError
               # Constant wasn't found, move on
             ensure
