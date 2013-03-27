@@ -603,7 +603,7 @@ module ActiveRecord
           "\n" \
           "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
           "\n" \
-          "Currently, Active Record recognises the table in the string, and knows to JOIN the " \
+          "Currently, Active Record recognizes the table in the string, and knows to JOIN the " \
           "comments table to the query, rather than loading comments in a separate query. " \
           "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
           "Since we don't want to write an SQL parser, we are removing this functionality. " \

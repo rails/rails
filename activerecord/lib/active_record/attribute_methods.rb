@@ -334,7 +334,7 @@ module ActiveRecord
     private
 
     # Returns a Hash of the Arel::Attributes and attribute values that have been
-    # type casted for use in an Arel insert/update method.
+    # typecasted for use in an Arel insert/update method.
     def arel_attributes_with_values(attribute_names)
       attrs = {}
       arel_table = self.class.arel_table
