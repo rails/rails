@@ -282,7 +282,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
     assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
     assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
-    end
   end
 
   def test_find_all_should_behave_like_select
