@@ -270,15 +270,6 @@ db_namespace = namespace :db do
   end
 
   namespace :structure do
-    def set_firebird_env(config)
-      ENV['ISC_USER']     = config['username'].to_s if config['username']
-      ENV['ISC_PASSWORD'] = config['password'].to_s if config['password']
-    end
-
-    def firebird_db_string(config)
-      FireRuby::Database.db_string_for(config.symbolize_keys)
-    end
-
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
@@ -289,10 +280,6 @@ db_namespace = namespace :db do
         File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when 'sqlserver'
         `smoscript -s #{current_config['host']} -d #{current_config['database']} -u #{current_config['username']} -p #{current_config['password']} -f #{filename} -A -U`
-      when "firebird"
-        set_firebird_env(current_config)
-        db_string = firebird_db_string(current_config)
-        sh "isql -a #{db_string} > #{filename}"
       else
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
       end
@@ -317,10 +304,6 @@ db_namespace = namespace :db do
         IO.read(filename).split(";\n\n").each do |ddl|
           ActiveRecord::Base.connection.execute(ddl)
         end
-      when 'firebird'
-        set_firebird_env(current_config)
-        db_string = firebird_db_string(current_config)
-        sh "isql -i #{filename} #{db_string}"
       else
         ActiveRecord::Tasks::DatabaseTasks.structure_load(current_config, filename)
       end
@@ -391,9 +374,6 @@ db_namespace = namespace :db do
         ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
           ActiveRecord::Base.connection.execute(ddl)
         end
-      when 'firebird'
-        ActiveRecord::Base.establish_connection(:test)
-        ActiveRecord::Base.connection.recreate_database!
       else
         ActiveRecord::Tasks::DatabaseTasks.purge abcs['test']
       end
