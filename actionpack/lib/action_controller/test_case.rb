@@ -110,7 +110,7 @@ module ActionController
 
           case expected_layout
           when String, Symbol
-            assert_includes @layouts.keys, expected_layout.to_s, msg
+            assert(@layouts.keys.include?(expected_layout.to_s), msg)
           when Regexp
             assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil, false
