@@ -102,7 +102,7 @@ module ActiveRecord
   #   table definition.
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
   # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
-  #   the table called +name+. It makes the table object availabe to a block that
+  #   the table called +name+. It makes the table object available to a block that
   #   can then add/remove columns, indexes or foreign keys to it.
   # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
   #   to +new_name+.

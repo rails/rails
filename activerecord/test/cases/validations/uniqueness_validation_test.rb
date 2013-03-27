@@ -54,7 +54,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert !t2.save, "Shouldn't save t2 as unique"
     assert_equal ["has already been taken"], t2.errors[:title]
 
-    t2.title = "Now Im really also unique"
+    t2.title = "Now I am really also unique"
     assert t2.save, "Should now save t2 as unique"
   end
 
