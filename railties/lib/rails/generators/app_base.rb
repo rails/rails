@@ -192,13 +192,6 @@ module Rails
           GEMFILE
         end
 
-        if options[:skip_javascript]
-          gemfile += <<-GEMFILE.gsub(/^ {12}/, '')
-            #{coffee_gemfile_entry}
-            #{javascript_runtime_gemfile_entry(2)}
-          GEMFILE
-        end
-
         gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
