@@ -179,26 +179,16 @@ module Rails
 
         gemfile = if options.dev? || options.edge?
           <<-GEMFILE.gsub(/^ {12}/, '')
-            # Gems used only for assets and not required
-            # in production environments by default.
-            group :assets do
-              gem 'sprockets-rails', github: 'rails/sprockets-rails'
-              gem 'sass-rails',   github: 'rails/sass-rails'
-              #{coffee_gemfile_entry if options[:skip_javascript]}
-              #{javascript_runtime_gemfile_entry(2) if options[:skip_javascript]}
-              gem 'uglifier', '>= 1.0.3'
-            end
+            # Gems used for assets
+            gem 'sprockets-rails', github: 'rails/sprockets-rails'
+            gem 'sass-rails',   github: 'rails/sass-rails'
+            gem 'uglifier', '>= 1.0.3'
           GEMFILE
         else
           <<-GEMFILE.gsub(/^ {12}/, '')
-            # Gems used only for assets and not required
-            # in production environments by default.
-            group :assets do
-              gem 'sass-rails',   '~> 4.0.0.beta1'
-              #{coffee_gemfile_entry if options[:skip_javascript]}
-              #{javascript_runtime_gemfile_entry(2) if options[:skip_javascript]}
-              gem 'uglifier', '>= 1.0.3'
-            end
+            # Gems used for assets
+            gem 'sass-rails',   '~> 4.0.0.beta1'
+            gem 'uglifier', '>= 1.0.3'
           GEMFILE
         end
 
