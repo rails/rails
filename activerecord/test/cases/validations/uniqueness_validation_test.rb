@@ -366,7 +366,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_array_column
-    return skip "Uniqueness on arrays has only been tested in PostgreSQL so far." if !current_adapter? :PostgreSQLAdapter
+    return skip "Uniqueness on arrays has only been tested in PostgreSQL so far." unless current_adapter? :PostgreSQLAdapter
 
     e1 = Employee.create("nicknames" => ["john", "johnny"], "commission_by_quarter" => [1000, 1200])
     assert e1.persisted?, "Saving e1"

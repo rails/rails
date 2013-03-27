@@ -32,7 +32,7 @@ module ActiveRecord
       end
 
       def set_state(state)
-        if !VALID_STATES.include?(state)
+        unless VALID_STATES.include?(state)
           raise ArgumentError, "Invalid transaction state: #{state}"
         end
         @state = state
