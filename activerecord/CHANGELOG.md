@@ -15,7 +15,7 @@
 
     *Martin Schuerrer*
 
-*   Add suport for concurrent indexing in PostgreSQL adapter via the
+*   Add support for concurrent indexing in PostgreSQL adapter via the
     `algorithm: :concurrently` option
 
         add_index(:people, :last_name, algorithm: :concurrently)
@@ -26,6 +26,14 @@
         add_index(:people, :last_name, algorithm: :copy) # or :inplace/:default
 
     *Dan McClain*
+
+*   Add support for fulltext and spatial indexes on MySQL tables with MyISAM database 
+    engine via the `type: 'FULLTEXT'` / `type: 'SPATIAL'` option
+
+        add_index(:people, :last_name, type: 'FULLTEXT')
+        add_index(:people, :last_name, type: 'SPATIAL')
+
+    *Ken Mazaika*
 
 *   Add an `add_index` override in Postgresql adapter and MySQL adapter
     to allow custom index type support. Fixes #6101.
