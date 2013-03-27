@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow ActiveRecord::Base.connection_handler to have thread affinity and be
+    settable, this effectively allows ActiveRecord to be used in a multi threaded
+    setup with multiple connections to multiple dbs.
+
+    *Sam Saffron*
+
 *   `rename_column` preserves auto_increment in mysql migrations.
     Fixes #3493.
 
@@ -8,7 +14,7 @@
 *   PostgreSQL geometric type point is supported by ActiveRecord. Fixes #7324.
 
     *Martin Schuerrer*
- 
+
 *   Add suport for concurrent indexing in PostgreSQL adapter via the
     `algorithm: :concurrently` option
 

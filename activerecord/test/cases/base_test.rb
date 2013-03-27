@@ -1578,4 +1578,61 @@ class BasicsTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
   end
+
+  test "connection_handler can be overriden" do
+    klass = Class.new(ActiveRecord::Base)
+    orig_handler = klass.connection_handler
+    new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    thread_connection_handler = nil
+
+    t = Thread.new do
+      klass.connection_handler = new_handler
+      thread_connection_handler = klass.connection_handler
+    end
+    t.join
+
+    assert_equal klass.connection_handler, orig_handler
+    assert_equal thread_connection_handler, new_handler
+  end
+
+  test "new threads get default the default connection handler" do
+    klass = Class.new(ActiveRecord::Base)
+    orig_handler = klass.connection_handler
+    handler = nil
+
+    t = Thread.new do
+      handler = klass.connection_handler
+    end
+    t.join
+
+    assert_equal handler, orig_handler
+    assert_equal klass.connection_handler, orig_handler
+    assert_equal klass.default_connection_handler, orig_handler
+  end
+
+  test "changing a connection handler in a main thread does not poison the other threads" do
+    klass = Class.new(ActiveRecord::Base)
+    orig_handler = klass.connection_handler
+    new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    after_handler = nil
+    is_set = false
+
+    t = Thread.new do
+      klass.connection_handler = new_handler
+      is_set = true
+      Thread.stop
+      after_handler = klass.connection_handler
+    end
+
+    while(!is_set)
+      Thread.pass
+    end
+
+    klass.connection_handler = orig_handler
+    t.wakeup
+    t.join
+
+    assert_equal after_handler, new_handler
+    assert_equal orig_handler, klass.connection_handler
+  end
 end
