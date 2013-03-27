@@ -146,6 +146,7 @@ module ActiveRecord
 
     autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
     autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
+    autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
   autoload :TestCase
