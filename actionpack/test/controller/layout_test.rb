@@ -103,7 +103,7 @@ class HasNilLayoutSymbol < LayoutTest
 end
 
 class HasNilLayoutProc < LayoutTest
-  layout proc { |c| nil }
+  layout proc { nil }
 end
 
 class PrependsViewPathController < LayoutTest
