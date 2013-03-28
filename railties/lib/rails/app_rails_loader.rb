@@ -20,7 +20,7 @@ module Rails
           # the application is generated in the original working directory.
           exec_app_rails unless cwd == Dir.pwd
         end
-      else
+      elsif exe.match(%r(bin/rails$))
         # this is a Bundler binstub, so we load the app ourselves
         Object.const_set(:APP_PATH, File.expand_path('config/application',  Dir.pwd))
         require File.expand_path('../boot', APP_PATH)
