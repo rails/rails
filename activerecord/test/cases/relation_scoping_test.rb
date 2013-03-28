@@ -293,7 +293,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
     assert_equal [magician], people(:michael).bad_references
   end
 
-  def test_should_default_scope_on_associations_is_overriden_by_association_conditions
+  def test_should_default_scope_on_associations_is_overridden_by_association_conditions
     reference = references(:michael_unicyclist).becomes(BadReference)
     assert_equal [reference], people(:michael).fixed_bad_references
   end
