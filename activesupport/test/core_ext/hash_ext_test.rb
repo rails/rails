@@ -1235,6 +1235,14 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal "bacon is the best", hash['blog']['name']
   end
 
+  def test_tag_with_content_and_name
+    xml = <<-XML
+      <blog name="bacon is the best">25</blog>
+    XML
+    hash = Hash.from_xml(xml)
+    assert_equal hash, {"blog" => {"name" => "bacon is the best", "__content__" => "25"}}
+  end
+
   def test_empty_cdata_from_xml
     xml = "<data><![CDATA[]]></data>"
 
