@@ -55,10 +55,10 @@ module ActiveRecord
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
         assert_equal 70000, default_before
 
-        rename_column "test_models", "salary", "anual_salary"
+        rename_column "test_models", "salary", "annual_salary"
 
-        assert TestModel.column_names.include?("anual_salary")
-        default_after = connection.columns("test_models").find { |c| c.name == "anual_salary" }.default
+        assert TestModel.column_names.include?("annual_salary")
+        default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
         assert_equal 70000, default_after
       end
 
