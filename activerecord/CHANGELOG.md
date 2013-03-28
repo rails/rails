@@ -1,3 +1,11 @@
+*   Fail early with "Primary key not included in the custom select clause"
+    in find_in_batches.
+
+    Before this patch find_in_batches raises this error only on second iteration.
+    So you will know about the problem only when you get the batch size threshold.
+
+    *Alexander Balashov*
+
 *   Ensure `second` through `fifth` methods act like the `first` finder.
 
     The famous ordinal Array instance methods defined in ActiveSupport
