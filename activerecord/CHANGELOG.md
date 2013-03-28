@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Removed warning when `auto_explain_threshold_in_seconds` is set and the
+    connection adapter doesn't support explain.
+    This is causing a regression since the Active Record Railtie is trying to
+    connect to the development database in the application boot.
+
+    *Rafael Mendonça França*
+
 *   Do not reset `inheritance_column` when it's set explicitly.
     Backport of #5327.
 
