@@ -296,6 +296,22 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "Reply", topic.type
   end
 
+  def test_update_after_create
+    klass = Class.new(Topic) do
+      def self.name; 'Topic'; end
+      after_create do
+        update_attribute("author_name", "David")
+      end
+    end
+    topic = klass.new
+    topic.title = "Another New Topic"
+    topic.save
+
+    topicReloaded = Topic.find(topic.id)
+    assert_equal("Another New Topic", topicReloaded.title)
+    assert_equal("David", topicReloaded.author_name)
+  end
+
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, 'topic.delete did not return self'
