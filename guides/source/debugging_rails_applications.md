@@ -23,7 +23,7 @@ One common task is to inspect the contents of a variable. In Rails, you can do t
 
 ### `debug`
 
-The `debug` helper will return a \<pre>-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
+The `debug` helper will return a \<pre> tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
 
 ```html+erb
 <%= debug @post %>
