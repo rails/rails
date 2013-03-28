@@ -1579,7 +1579,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
   end
 
-  test "connection_handler can be overriden" do
+  test "connection_handler can be overridden" do
     klass = Class.new(ActiveRecord::Base)
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
