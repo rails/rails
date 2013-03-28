@@ -7,7 +7,7 @@
 
         layout nil
 
-        layout proc { |c| nil }
+        layout proc { nil }
 
         layout :returns_nil
 
