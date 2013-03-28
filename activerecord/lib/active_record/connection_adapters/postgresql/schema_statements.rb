@@ -160,9 +160,9 @@ module ActiveRecord
             desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
             orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
             where = inddef.scan(/WHERE (.+)$/).flatten[0]
-            type = inddef.scan(/USING (.+?) /).flatten[0].to_sym
+            using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, type)
+            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
           end.compact
         end
 
