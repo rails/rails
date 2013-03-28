@@ -68,7 +68,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_in_batches_shouldnt_excute_query_unless_needed
+  def test_find_in_batches_shouldnt_execute_query_unless_needed
     post_count = Post.count
 
     assert_queries(2) do
