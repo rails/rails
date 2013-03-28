@@ -28,7 +28,7 @@ class BlankSlate
       end
     end
 
-    def find_hidden_method(name)      
+    def find_hidden_method(name)
       @hidden_methods ||= {}
       @hidden_methods[name] || superclass.find_hidden_method(name)
     end
