@@ -19,7 +19,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_not_return_query_chain_and_execcute_only_one_query
+  def test_each_should_not_return_query_chain_and_execute_only_one_query
     assert_queries(1) do
       result = Post.find_each(:batch_size => 100000){ }
       assert_nil result
