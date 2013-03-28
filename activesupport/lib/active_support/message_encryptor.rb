@@ -12,10 +12,11 @@ module ActiveSupport
   # This can be used in situations similar to the <tt>MessageVerifier</tt>, but
   # where you don't want users to be able to determine the value of the payload.
   #
-  #   key = OpenSSL::Digest::SHA256.new('password').digest        # => "\x89\xE0\x156\xAC..."
-  #   crypt = ActiveSupport::MessageEncryptor.new(key)            # => #<ActiveSupport::MessageEncryptor ...>
-  #   encrypted_data = crypt.encrypt_and_sign('my secret data')   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
-  #   crypt.decrypt_and_verify(encrypted_data)                    # => "my secret data"
+  #   salt  = SecureRandom.random_bytes(64) 
+  #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt) # => "\x89\xE0\x156\xAC..."
+  #   crypt = ActiveSupport::MessageEncryptor.new(key)                       # => #<ActiveSupport::MessageEncryptor ...>
+  #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
+  #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
   class MessageEncryptor
     module NullSerializer #:nodoc:
       def self.load(value)
