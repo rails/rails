@@ -1,3 +1,9 @@
+*   Ensure that scoped params at root are not incorrectly matched when combined with more routes, e.g:
+    `scope '/(:optional/):required` needs to be matched as '/(:optional/):required' and not
+    '(/:optional)/:required'. Fixes #8578.
+
+    *Jon Rowe*
+
 *   Fix formatting for `rake routes` when a section is shorter than a header.
 
     *Sıtkı Bağdat*

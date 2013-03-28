@@ -1411,6 +1411,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'descriptions#show', @response.body
   end
 
+  def test_optional_scoped_path_with_parameter
+    draw do
+      scope "/(:optional-):required" do
+        root :to => 'projects#index'
+      end
+    end
+
+    get '/required'
+    assert_equal 'projects#index', @response.body
+    get '/optional-required'
+    assert_equal 'projects#index', @response.body
+  end
+
   def test_nested_optional_scoped_path
     draw do
       namespace :admin do
