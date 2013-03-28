@@ -72,7 +72,7 @@ module AbstractControllerTests
     end
 
     class WithProc < Base
-      layout proc { |c| "overwrite" }
+      layout proc { "overwrite" }
 
       def index
         render :template => ActionView::Template::Text.new("Hello proc!")
@@ -80,7 +80,7 @@ module AbstractControllerTests
     end
 
     class WithProcReturningNil < Base
-      layout proc { |c| nil }
+      layout proc { nil }
 
       def index
         render template: ActionView::Template::Text.new("Hello nil!")
