@@ -78,7 +78,7 @@ module ActiveRecord
       self.disable_implicit_join_references = false
 
       class_attribute :default_connection_handler, instance_writer: false
-      
+
       def self.connection_handler
         Thread.current[:active_record_connection_handler] || self.default_connection_handler
       end
@@ -444,7 +444,7 @@ module ActiveRecord
     end
 
     def init_changed_attributes
-      # Intentionally avoid using #column_defaults since overriden defaults (as is done in
+      # Intentionally avoid using #column_defaults since overridden defaults (as is done in
       # optimistic locking) won't get written unless they get marked as changed
       self.class.columns.each do |c|
         attr, orig_value = c.name, c.default
