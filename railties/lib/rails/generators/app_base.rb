@@ -192,6 +192,13 @@ module Rails
           GEMFILE
         end
 
+        if options[:skip_javascript]
+          gemfile += <<-GEMFILE.gsub(/^ {12}/, '')
+            #{coffee_gemfile_entry}
+            #{javascript_runtime_gemfile_entry}
+          GEMFILE
+        end
+
         gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
@@ -220,7 +227,7 @@ module Rails
         end
       end
 
-      def javascript_runtime_gemfile_entry(n_spaces=0)
+      def javascript_runtime_gemfile_entry
         runtime = if defined?(JRUBY_VERSION)
           "gem 'therubyrhino'"
         else
@@ -228,7 +235,7 @@ module Rails
         end
         <<-GEMFILE.gsub(/^ {10}/, '')
           # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-          #{" "*n_spaces}#{runtime}
+          #{runtime}
         GEMFILE
       end
 
