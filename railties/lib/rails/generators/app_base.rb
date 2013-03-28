@@ -179,16 +179,22 @@ module Rails
 
         gemfile = if options.dev? || options.edge?
           <<-GEMFILE.gsub(/^ {12}/, '')
-            # Gems used for assets
+            # Use edge version of sprockets-rails
             gem 'sprockets-rails', github: 'rails/sprockets-rails'
+
+            # Use SCSS for stylesheets
             gem 'sass-rails',   github: 'rails/sass-rails'
-            gem 'uglifier', '>= 1.0.3'
+
+            # To use Uglifier as compressor for JavaScript assets
+            gem 'uglifier', '>= 1.3.0'
           GEMFILE
         else
           <<-GEMFILE.gsub(/^ {12}/, '')
-            # Gems used for assets
+            # Use SCSS for stylesheets
             gem 'sass-rails',   '~> 4.0.0.beta1'
-            gem 'uglifier', '>= 1.0.3'
+
+            # To use uglifier as compressor for JavaScript assets
+            gem 'uglifier', '>= 1.3.0'
           GEMFILE
         end
 
@@ -203,11 +209,19 @@ module Rails
       end
 
       def coffee_gemfile_entry
-        if options.dev? || options.edge?
-          "gem 'coffee-rails', github: 'rails/coffee-rails'"
+        gemfile = if options.dev? || options.edge?
+          <<-GEMFILE.gsub(/^ {12}/, '')
+            # Use CoffeeScript for .js.coffee assets and views
+            gem 'coffee-rails', github: 'rails/coffee-rails'
+          GEMFILE
         else
-          "gem 'coffee-rails', '~> 4.0.0.beta1'"
+          <<-GEMFILE.gsub(/^ {12}/, '')
+            # Use CoffeeScript for .js.coffee assets and views
+            gem 'coffee-rails', '~> 4.0.0.beta1'
+          GEMFILE
         end
+
+        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
       def javascript_gemfile_entry
@@ -215,9 +229,8 @@ module Rails
 
         unless options[:skip_javascript]
           <<-GEMFILE.gsub(/^ {12}/, '').strip_heredoc
-            #{javascript_runtime_gemfile_entry}
-            # Use CoffeeScript for .js.coffee assets and views
             #{coffee_gemfile_entry}
+            #{javascript_runtime_gemfile_entry}
 
             gem '#{options[:javascript]}-rails'#{args[options[:javascript]]}
 
