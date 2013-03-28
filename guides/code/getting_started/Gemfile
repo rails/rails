@@ -4,18 +4,17 @@ gem 'rails', '4.0.0'
 
 gem 'sqlite3'
 
-# Gems used only for assets and not required
-# in production environments by default.
-group :assets do
-  gem 'sprockets-rails'
-  gem 'sass-rails'
-  gem 'coffee-rails'
+# Use SCSS for stylesheets
+gem 'sass-rails'
 
-  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-  # gem 'therubyracer', platforms: :ruby
+# Use CoffeeScript for .js.coffee assets and views
+gem 'coffee-rails'
 
-  gem 'uglifier', '>= 1.0.3'
-end
+# See https://github.com/sstephenson/execjs#readme for more supported runtimes
+# gem 'therubyracer', platforms: :ruby
+
+# Use Uglifier as compressor for JavaScript assets
+gem 'uglifier', '>= 1.0.3'
 
 gem 'jquery-rails'
 
