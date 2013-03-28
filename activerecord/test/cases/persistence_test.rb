@@ -247,15 +247,15 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.title = "Another New Topic"
     topic.written_on = "2003-12-12 23:23:00"
     topic.save
-    topicReloaded = Topic.find(topic.id)
-    assert_equal("Another New Topic", topicReloaded.title)
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another New Topic", topic_reloaded.title)
 
-    topicReloaded.title = "Updated topic"
-    topicReloaded.save
+    topic_reloaded.title = "Updated topic"
+    topic_reloaded.save
 
-    topicReloadedAgain = Topic.find(topic.id)
+    topic_reloaded_again = Topic.find(topic.id)
 
-    assert_equal("Updated topic", topicReloadedAgain.title)
+    assert_equal("Updated topic", topic_reloaded_again.title)
   end
 
   def test_update_columns_not_equal_attributes
@@ -263,12 +263,12 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.title = "Still another topic"
     topic.save
 
-    topicReloaded = Topic.allocate
-    topicReloaded.init_with(
+    topic_reloaded = Topic.allocate
+    topic_reloaded.init_with(
       'attributes' => topic.attributes.merge('does_not_exist' => 'test')
     )
-    topicReloaded.title = 'A New Topic'
-    assert_nothing_raised { topicReloaded.save }
+    topic_reloaded.title = 'A New Topic'
+    assert_nothing_raised { topic_reloaded.save }
   end
 
   def test_update_for_record_with_only_primary_key
@@ -307,9 +307,9 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.title = "Another New Topic"
     topic.save
 
-    topicReloaded = Topic.find(topic.id)
-    assert_equal("Another New Topic", topicReloaded.title)
-    assert_equal("David", topicReloaded.author_name)
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another New Topic", topic_reloaded.title)
+    assert_equal("David", topic_reloaded.author_name)
   end
 
   def test_delete
