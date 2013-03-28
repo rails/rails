@@ -48,6 +48,14 @@ module ActiveRecord
         bad_yaml = '--- {'
         assert_equal bad_yaml, coder.load(bad_yaml)
       end
+
+      def test_load_doesnt_handle_undefined_class_or_module
+        coder = YAMLColumn.new
+        missing_class_yaml = '--- !ruby/object:DoesNotExistAndShouldntEver {}\n'
+        assert_raises(ArgumentError) do
+          coder.load(missing_class_yaml)
+        end
+      end
     end
   end
 end

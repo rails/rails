@@ -33,7 +33,8 @@ module ActiveRecord
           obj ||= object_class.new if object_class != Object
 
           obj
-        rescue ArgumentError, Psych::SyntaxError
+        rescue ArgumentError , Psych::SyntaxError => e
+          raise if e.to_s =~ /undefined class/
           yaml
         end
       end
