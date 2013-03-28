@@ -217,6 +217,17 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
+It is not customary in Rails to run the full test suite before pushing
+changes. The railties test suite in particular takes a long time, and even
+more if the source code is mounted in `/vagrant` as happens in the recommended
+workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
+
+As a compromise, test what your code obviously affects, and if the change is
+not in railties run the whole test suite of the affected component. If all is
+green that's enough to propose your contribution. We have [Travis CI](https
+://travis-ci.org/) as a safety net for catching unexpected breakages
+elsewhere.
+
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 
 ### Follow the Coding Conventions
