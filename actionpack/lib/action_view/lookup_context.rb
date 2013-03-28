@@ -147,8 +147,8 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options)
-        return @details, details_key if options.empty? # most common path.
-        user_details = @details.merge(options)
+        return @details, details_key if options && options.empty? # most common path.
+        user_details = options ? @details.merge(options) : @details
         [user_details, DetailsKey.get(user_details)]
       end
 

@@ -592,6 +592,11 @@ class AssertTemplateTest < ActionController::TestCase
     assert_template :layout => :standard
   end
 
+  def test_passes_detail_args_for_with_nil_options
+    view = ActionView::LookupContext.new('/')
+    assert_nothing_raised { view.send(:detail_args_for, nil) }
+  end
+
   def test_assert_template_reset_between_requests
     get :hello_world
     assert_template 'test/hello_world'
