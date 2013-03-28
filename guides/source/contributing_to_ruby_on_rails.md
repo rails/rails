@@ -53,6 +53,22 @@ The easiest and recommended way to get a development environment ready to hack i
 
 In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
 
+
+Running an Application Against Your Local Branch
+------------------------------------------------
+
+The `--dev` flag of `rails new` generates an application that uses your local
+branch:
+
+```bash
+$ cd rails
+$ bundle exec rails new ~/my-test-app --dev
+```
+
+The application generated in `~/my-test-app` runs against your local branch
+and in particular sees any modifications upon server reboot.
+
+
 Testing Active Record
 ---------------------
 
