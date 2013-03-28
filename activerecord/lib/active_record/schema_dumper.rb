@@ -187,6 +187,8 @@ HEADER
 
             statement_parts << ('using: ' + index.using.inspect) if index.using
 
+            statement_parts << ('type: ' + index.type.inspect) if index.type
+
             '  ' + statement_parts.join(', ')
           end
 

@@ -151,6 +151,9 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      INDEX_TYPES  = [:fulltext, :spatial]
+      INDEX_USINGS = [:btree, :hash]
+
       class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
         include Arel::Visitors::BindVisitor
       end
@@ -435,8 +438,11 @@ module ActiveRecord
             if current_index != row[:Key_name]
               next if row[:Key_name] == 'PRIMARY' # skip the primary key
               current_index = row[:Key_name]
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [])
-              indexes.last.using = row[:Index_type].downcase.to_sym
+
+              mysql_index_type = row[:Index_type].downcase.to_sym
+              index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
+              index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
+              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using)
             end
 
             indexes.last.columns << row[:Column_name]

@@ -225,6 +225,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.text\s+"medium_text",\s+limit: 16777215$}, output
       assert_match %r{t.text\s+"long_text",\s+limit: 2147483647$}, output
     end
+
+    def test_schema_dumps_index_type
+      output = standard_dump
+      assert_match %r{add_index "key_tests", \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
+      assert_match %r{add_index "key_tests", \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
+    end
   end
 
   def test_schema_dump_includes_decimal_options
