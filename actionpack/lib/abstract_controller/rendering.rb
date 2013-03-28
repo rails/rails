@@ -105,7 +105,7 @@ module AbstractController
     #
     # If a component extends the semantics of response_body
     # (as Action Controller extends it to be anything that
-    # responds to the method each), this method needs to
+    # responds to the method each), this method needs to be
     # overriden in order to still return a string.
     # :api: plugin
     def render_to_string(*args, &block)
