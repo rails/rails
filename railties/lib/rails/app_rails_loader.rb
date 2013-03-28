@@ -24,10 +24,10 @@ module Rails
         # this is a Bundler binstub, so we load the app ourselves
         Object.const_set(:APP_PATH, File.expand_path('config/application',  Dir.pwd))
         require File.expand_path('../boot', APP_PATH)
-        puts "Your bin/rails file has been overwritten by Bundler."
-        puts "To update your bin/rails for Rails 4, please run: `bundle " \
-          "config --delete binstubs`, then `rm -rf bin`, then `rake " \
-          "rails:update:bin`, then add bin/ to your source control."
+        puts "Rails 4 no longer supports Bundler's --binstub option. You " \
+          "will need to disable it and update your bin/rails file.\n" \
+          "Please run: `bundle config --delete bin && rm -rf bin`, then " \
+          "`rake rails:update:bin` and add the resulting bin/ to git."
         require 'rails/commands'
       end
     rescue SystemCallError
