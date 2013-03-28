@@ -225,7 +225,7 @@ module ActiveRecord
       Kernel.stubs(:system)
     end
 
-    def test_structure_dump
+    def test_structure_load
       filename = "awesome-file.sql"
       Kernel.expects(:system).with("psql -f #{filename} my-app-db")
 
