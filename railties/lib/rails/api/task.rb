@@ -71,7 +71,6 @@ module Rails
         options << '-e'  << 'UTF-8'
         options << '-f'  << 'sdoc'
         options << '-T'  << 'rails'
-        options << '-g' # link to GitHub, SDoc flag
 
         configure_rdoc_files
 
@@ -101,21 +100,47 @@ module Rails
         end
       end
 
-      def api_main
-        'railties/RDOC_MAIN.rdoc'
+      def setup_horo_variables
+        ENV['HORO_PROJECT_NAME']    = 'Ruby on Rails'
+        ENV['HORO_PROJECT_VERSION'] = rails_version
       end
 
-      def api_dir
-        'doc/rdoc'
+      def api_main
+        component_root_dir('railties') + '/RDOC_MAIN.rdoc'
+      end
+    end
+
+    class RepoTask < Task
+      def initialize(name)
+        super
+
+        options << '-g' # link to GitHub, SDoc flag
       end
 
       def component_root_dir(component)
         component
       end
 
-      def setup_horo_variables
-        ENV['HORO_PROJECT_NAME']    = 'Ruby on Rails'
-        ENV['HORO_PROJECT_VERSION'] = "master@#{`git rev-parse HEAD`[0, 7]}"
+      def api_dir
+        'doc/rdoc'
+      end
+
+      def rails_version
+        "master@#{`git rev-parse HEAD`[0, 7]}"
+      end
+    end
+
+    class AppTask < Task
+      def component_root_dir(gem_name)
+        $:.grep(%r{#{gem_name}[\w.-]*/lib\z}).first[0..-5]
+      end
+
+      def api_dir
+        'doc/api'
+      end
+
+      def rails_version
+        Rails::VERSION::STRING
       end
     end
   end

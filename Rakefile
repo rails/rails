@@ -47,7 +47,7 @@ task :install => :gem do
 end
 
 desc "Generate documentation for the Rails framework"
-Rails::API::Task.new('rdoc')
+Rails::API::RepoTask.new('rdoc')
 
 desc 'Bump all versions to match version.rb'
 task :update_versions do
