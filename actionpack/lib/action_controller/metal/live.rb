@@ -87,6 +87,11 @@ module ActionController
         super
       end
 
+      def to_a
+        ret = rack_response @status, @header.to_hash
+        [ret[0], ret[1], nil]
+      end
+
       private
 
       def build_buffer(response, body)
@@ -125,6 +130,20 @@ module ActionController
           @_response.commit!
         end
       }
+
+      raise NotImplementedError, "ActionController::Live requires rack hijack support" unless @_env["rack.hijack?"]
+      response.headers["rack.hijack"] = lambda do |io|
+        Thread.new {
+          begin
+            response.stream.each do |part|
+              io.write part
+            end
+          ensure
+            response.stream.close
+            io.close
+          end
+        }
+      end
 
       @_response.await_commit
     end
