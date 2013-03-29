@@ -1153,6 +1153,7 @@ First, take a look at +comment.rb+:
 
 <ruby>
 class Comment < ActiveRecord::Base
+  attr_accesssible :body, :commenter, :post
   belongs_to :post
 end
 </ruby>
@@ -1215,6 +1216,7 @@ makes each comment belong to a Post:
 
 <ruby>
 class Comment < ActiveRecord::Base
+  attr_accessible :body, :commenter, :post
   belongs_to :post
 end
 </ruby>
