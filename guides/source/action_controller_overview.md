@@ -138,7 +138,7 @@ Also, if you've turned on `config.wrap_parameters` in your initializer or callin
 And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
 
 ```ruby
-{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
+{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" } }
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
@@ -150,7 +150,7 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', foo: "bar"
+match '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -173,7 +173,7 @@ If you define `default_url_options` in `ApplicationController`, as in the exampl
 
 ### Strong Parameters
 
-With strong parameters Action Controller parameters are forbidden to
+With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
 whitelisted. This means you'll have to make a conscious choice about
 which attributes to allow for mass updating and thus prevent
@@ -273,7 +273,7 @@ to having a `name` (any permitted scalar values allowed, too).
 
 You want to also use the permitted attributes in the `new`
 action. This raises the problem that you can't use `require` on the
-root-key because normally it does not exist when calling `new`:
+root key because normally it does not exist when calling `new`:
 
 ```ruby
 # using `fetch` you can supply a default and use
@@ -291,7 +291,7 @@ params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy]
 ```
 
 Hashes with integer keys are treated differently and you can declare
-the attributes as if they were direct children. You get this kind of
+the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
 
@@ -311,7 +311,7 @@ in mind. It is not meant as a silver bullet to handle all your
 whitelisting problems. However you can easily mix the API with your
 own code to adapt to your situation.
 
-Imagine a situation where you want to whitelist an attribute
+Imagine a scenario where you want to whitelist an attribute
 containing a hash with any keys. Using strong parameters you can't
 allow a hash with any keys but you can use a simple assignment to get
 the job done:
