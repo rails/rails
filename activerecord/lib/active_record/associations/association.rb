@@ -235,6 +235,7 @@ module ActiveRecord
             skip_assign = [reflection.foreign_key, reflection.type].compact
             attributes = create_scope.except(*(record.changed - skip_assign))
             record.assign_attributes(attributes)
+            set_inverse_instance(record)
           end
         end
     end
