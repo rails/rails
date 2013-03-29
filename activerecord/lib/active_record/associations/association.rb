@@ -217,7 +217,8 @@ module ActiveRecord
           reflection.inverse_of
         end
 
-        # Is this association invertible? Can be redefined by subclasses.
+        # Returns true if inverse association on the given record needs to be set.
+        # This method is redefined by subclasses.
         def invertible_for?(record)
           inverse_reflection_for(record)
         end
