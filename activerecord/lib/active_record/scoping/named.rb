@@ -164,7 +164,8 @@ module ActiveRecord
 
               if scope
                 default_scoped = scope.default_scoped
-                scope = relation.merge(scope)
+                _relation = current_scope ?  current_scope.clone : relation
+                scope = _relation.merge(scope)
                 scope.default_scoped = default_scoped
               end
             else
