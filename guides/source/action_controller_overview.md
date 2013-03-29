@@ -39,7 +39,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above could work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
 
 ```ruby
 def new
@@ -113,21 +113,21 @@ To send a hash you include the key name inside the brackets:
 </form>
 ```
 
-When this form is submitted, the value of `params[:client]` will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
+When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash that lets you use symbols and strings interchangeably as keys.
+Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash but lets you use symbols and strings interchangeably as keys.
 
 ### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
 
-So for example, if you are sending this JSON parameter:
+So for example, if you are sending this JSON content:
 
 ```json
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot Street" }`.
+You'll get `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
 Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
@@ -143,7 +143,7 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
-NOTE: A support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
+NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
 
 ### Routing Parameters
 
