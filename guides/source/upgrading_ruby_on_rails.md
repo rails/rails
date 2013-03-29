@@ -31,6 +31,32 @@ If your application is currently on any version of Rails older than 3.2.x, you s
 
 The following changes are meant for upgrading your application to Rails 4.0.
 
+### Gemfile
+
+Rails 4.0 removed the *group :assets* from Gemfile (now you can use only :test, :development and/or :production groups). So change your Gemfile from:
+```ruby
+group :assets do
+  gem 'sass-rails',   '~> 4.0.0.beta1'
+  gem 'coffee-rails', '~> 4.0.0.beta1'
+
+  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+  # gem 'therubyracer', platforms: :ruby
+
+  gem 'uglifier', '>= 1.0.3'
+end
+```
+to:
+```ruby
+gem 'sass-rails',   '~> 4.0.0.beta1'
+gem 'coffee-rails', '~> 4.0.0.beta1'
+
+# See https://github.com/sstephenson/execjs#readme for more supported runtimes
+# gem 'therubyracer', platforms: :ruby
+
+gem 'uglifier', '>= 1.0.3'
+```
+**note:** don't removing the *group assets* from the Gemfile will cause your assets stop compiling
+
 ### vendor/plugins
 
 Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
