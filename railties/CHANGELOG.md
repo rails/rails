@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The application rake task `doc:rails` generates now an API like the
+    official one (except for the links to GitHub).
+
+    *Xavier Noria*
+
 *   Allow vanilla apps to render CoffeeScript templates in production
 
     Vanilla apps already render CoffeeScript templates in development and test
