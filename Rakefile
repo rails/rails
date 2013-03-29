@@ -1,9 +1,9 @@
-require 'rdoc/task'
 require 'sdoc'
 require 'net/http'
 
 $:.unshift File.expand_path('..', __FILE__)
 require "tasks/release"
+require 'railties/lib/rails/api/task'
 
 desc "Build gem files for all projects"
 task :build => "all:build"
@@ -47,88 +47,7 @@ task :install => :gem do
 end
 
 desc "Generate documentation for the Rails framework"
-RDoc::Task.new do |rdoc|
-  RDOC_MAIN = 'RDOC_MAIN.rdoc'
-
-  # This is a hack.
-  #
-  # Backslashes are needed to prevent RDoc from autolinking "Rails" to the
-  # documentation of the Rails module. On the other hand, as of this
-  # writing README.rdoc is displayed in the front page of the project in
-  # GitHub, where backslashes are shown and look weird.
-  #
-  # The temporary solution is to have a README.rdoc without backslashes for
-  # GitHub, and gsub it to generate the main page of the API.
-  #
-  # Also, relative links in GitHub have to point to blobs, whereas in the API
-  # they need to point to files.
-  #
-  # The idea for the future is to have totally different files, since the
-  # API is no longer a generic entry point to Rails and deserves a
-  # dedicated main page specifically thought as an API entry point.
-  rdoc.before_running_rdoc do
-    rdoc_main = File.read('README.rdoc')
-
-    # The ^(?=\S) assertion prevents code blocks from being processed,
-    # since no autolinking happens there and RDoc displays the backslash
-    # otherwise.
-    rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
-    rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
-
-    # Remove Travis and Gemnasium status images from API pages. Only the GitHub
-    # README page gets these images. Travis's HTTPS build image is used to
-    # avoid GitHub caching: http://about.travis-ci.org/docs/user/status-images
-    rdoc_main.gsub!(/^== Code Status(\n(?!==).*)*/, '')
-
-    File.open(RDOC_MAIN, 'w') do |f|
-      f.write(rdoc_main)
-    end
-
-    rdoc.rdoc_files.include(RDOC_MAIN)
-  end
-
-  rdoc.rdoc_dir = 'doc/rdoc'
-  rdoc.title    = "Ruby on Rails API"
-
-  rdoc.options << '-f' << 'sdoc'
-  rdoc.options << '-T' << 'rails'
-  rdoc.options << '-e' << 'UTF-8'
-  rdoc.options << '-g' # SDoc flag, link methods to GitHub
-  rdoc.options << '-m' << RDOC_MAIN
-
-  rdoc.rdoc_files.include('railties/CHANGELOG.md')
-  rdoc.rdoc_files.include('railties/MIT-LICENSE')
-  rdoc.rdoc_files.include('railties/README.rdoc')
-  rdoc.rdoc_files.include('railties/lib/**/*.rb')
-  rdoc.rdoc_files.exclude('railties/lib/rails/generators/**/templates/**/*.rb')
-
-  rdoc.rdoc_files.include('activerecord/README.rdoc')
-  rdoc.rdoc_files.include('activerecord/CHANGELOG.md')
-  rdoc.rdoc_files.include('activerecord/lib/active_record/**/*.rb')
-  rdoc.rdoc_files.exclude('activerecord/lib/active_record/vendor/*')
-
-  rdoc.rdoc_files.include('actionpack/README.rdoc')
-  rdoc.rdoc_files.include('actionpack/CHANGELOG.md')
-  rdoc.rdoc_files.include('actionpack/lib/abstract_controller/**/*.rb')
-  rdoc.rdoc_files.include('actionpack/lib/action_controller/**/*.rb')
-  rdoc.rdoc_files.include('actionpack/lib/action_dispatch/**/*.rb')
-  rdoc.rdoc_files.include('actionpack/lib/action_view/**/*.rb')
-  rdoc.rdoc_files.exclude('actionpack/lib/action_controller/vendor/*')
-
-  rdoc.rdoc_files.include('actionmailer/README.rdoc')
-  rdoc.rdoc_files.include('actionmailer/CHANGELOG.md')
-  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/**/*.rb')
-  rdoc.rdoc_files.exclude('actionmailer/lib/action_mailer/vendor/*')
-
-  rdoc.rdoc_files.include('activesupport/README.rdoc')
-  rdoc.rdoc_files.include('activesupport/CHANGELOG.md')
-  rdoc.rdoc_files.include('activesupport/lib/active_support/**/*.rb')
-  rdoc.rdoc_files.exclude('activesupport/lib/active_support/vendor/*')
-
-  rdoc.rdoc_files.include('activemodel/README.rdoc')
-  rdoc.rdoc_files.include('activemodel/CHANGELOG.md')
-  rdoc.rdoc_files.include('activemodel/lib/active_model/**/*.rb')
-end
+Rails::API::Task.new('rdoc')
 
 desc 'Bump all versions to match version.rb'
 task :update_versions do
