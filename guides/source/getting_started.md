@@ -1239,6 +1239,7 @@ First, take a look at `app/models/comment.rb`:
 
 ```ruby
 class Comment < ActiveRecord::Base
+  attr_accessible :body, :commenter, :post
   belongs_to :post
 end
 ```
@@ -1301,6 +1302,7 @@ makes each comment belong to a Post:
 
 ```ruby
 class Comment < ActiveRecord::Base
+  attr_accessible :body, :commenter, :post
   belongs_to :post
 end
 ```
