@@ -88,7 +88,7 @@ RDoc::Task.new do |rdoc|
   end
 
   rdoc.rdoc_dir = 'doc/rdoc'
-  rdoc.title    = "Ruby on Rails Documentation"
+  rdoc.title    = "Ruby on Rails API"
 
   rdoc.options << '-f' << 'sdoc'
   rdoc.options << '-T' << 'rails'
