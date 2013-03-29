@@ -102,7 +102,7 @@ module Rails
       end
 
       def api_main
-        'RDOC_MAIN.rdoc'
+        'railties/RDOC_MAIN.rdoc'
       end
 
       def api_dir
