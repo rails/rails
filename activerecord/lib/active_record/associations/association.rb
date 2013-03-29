@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      # This class of the target. belongs_to polymorphic overrides this to look at the
+      # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
