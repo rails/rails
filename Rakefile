@@ -130,12 +130,6 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_files.include('activemodel/lib/active_model/**/*.rb')
 end
 
-# Enhance rdoc task to copy referenced images also
-task :rdoc do
-  FileUtils.mkdir_p "doc/rdoc/files/examples/"
-  FileUtils.copy "activerecord/examples/associations.png", "doc/rdoc/files/examples/associations.png"
-end
-
 desc 'Bump all versions to match version.rb'
 task :update_versions do
   require File.dirname(__FILE__) + "/version"
