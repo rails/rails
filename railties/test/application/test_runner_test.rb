@@ -184,13 +184,6 @@ module ApplicationTests
       end
     end
 
-    def test_not_load_fixtures_when_running_single_test
-      create_model_with_fixture
-      create_fixture_test :models, 'user'
-      assert_match "0 users", run_test_command('test/models/user_test.rb')
-      assert_match "3 users", run_test_command('test/models/user_test.rb -f')
-    end
-
     def test_load_fixtures_when_running_test_suites
       create_model_with_fixture
       suites = [:models, :helpers, [:units, :unit], :controllers, :mailers,
