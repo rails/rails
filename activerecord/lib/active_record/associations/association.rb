@@ -92,7 +92,7 @@ module ActiveRecord
       # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
-      # scoped method is called. This is because at that point the call may be surrounded
+      # scope method is called. This is because at that point the call may be surrounded
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
       def association_scope
@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      # This class of the target. belongs_to polymorphic overrides this to look at the
+      # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
