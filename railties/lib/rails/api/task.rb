@@ -48,7 +48,7 @@ module Rails
             CHANGELOG.md
             lib/action_mailer/**/*.rb
           ),
-          :exclude => 'ib/action_mailer/vendor/*'
+          :exclude => 'lib/action_mailer/vendor/*'
         },
 
         'railties' => {
