@@ -286,9 +286,8 @@ module ActiveRecord
         []
       end
 
-      # A list of index algorithms, to be filled by adapters that
-      # support them. MySQL and PostgreSQL has support for them right
-      # now.
+      # A list of index algorithms, to be filled by adapters that support them.
+      # MySQL and PostgreSQL have support for them right now.
       def index_algorithms
         {}
       end
