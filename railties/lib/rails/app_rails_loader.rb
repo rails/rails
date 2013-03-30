@@ -24,7 +24,7 @@ module Rails
         # this is a Bundler binstub, so we load the app ourselves
         Object.const_set(:APP_PATH, File.expand_path('config/application',  Dir.pwd))
         require File.expand_path('../boot', APP_PATH)
-        puts "Rails 4 no longer supports Bundler's --binstub option. You " \
+        puts "Rails 4 no longer supports Bundler's --binstubs option. You " \
           "will need to disable it and update your bin/rails file.\n" \
           "Please run: `bundle config --delete bin && rm -rf bin`, then " \
           "`rake rails:update:bin` and add the resulting bin/ to git."
