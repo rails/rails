@@ -26,6 +26,11 @@ class UrlTestMailer < ActionMailer::Base
 end
 
 class ActionMailerUrlTest < ActionMailer::TestCase
+  def test_setup_sets_right_action_mailer_options
+    assert_equal :test, ActionMailer::Base.delivery_method
+    assert ActionMailer::Base.perform_deliveries
+    assert_equal [], ActionMailer::Base.deliveries
+  end
 
   def encode( text, charset="UTF-8" )
     quoted_printable( text, charset )
