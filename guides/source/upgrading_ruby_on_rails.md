@@ -33,29 +33,7 @@ The following changes are meant for upgrading your application to Rails 4.0.
 
 ### Gemfile
 
-Rails 4.0 removed the *group :assets* from Gemfile (now you can use only :test, :development and/or :production groups). So change your Gemfile from:
-```ruby
-group :assets do
-  gem 'sass-rails',   '~> 4.0.0.beta1'
-  gem 'coffee-rails', '~> 4.0.0.beta1'
-
-  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-  # gem 'therubyracer', platforms: :ruby
-
-  gem 'uglifier', '>= 1.0.3'
-end
-```
-to:
-```ruby
-gem 'sass-rails',   '~> 4.0.0.beta1'
-gem 'coffee-rails', '~> 4.0.0.beta1'
-
-# See https://github.com/sstephenson/execjs#readme for more supported runtimes
-# gem 'therubyracer', platforms: :ruby
-
-gem 'uglifier', '>= 1.0.3'
-```
-**note:** don't removing the *group assets* from the Gemfile will cause your assets stop compiling
+Rails 4.0 removed the `assets` group from Gemfile. You'd need to remove that line from your Gemfile when upgrading.
 
 ### vendor/plugins
 
