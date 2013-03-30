@@ -443,7 +443,7 @@ module ActiveRecord
       #
       #   add_index(:suppliers, :name)
       #
-      # generates
+      # generates:
       #
       #   CREATE INDEX suppliers_name_index ON suppliers(name)
       #
@@ -451,7 +451,7 @@ module ActiveRecord
       #
       #   add_index(:accounts, [:branch_id, :party_id], unique: true)
       #
-      # generates
+      # generates:
       #
       #   CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
       #
@@ -459,7 +459,7 @@ module ActiveRecord
       #
       #   add_index(:accounts, [:branch_id, :party_id], unique: true, name: 'by_branch_party')
       #
-      # generates
+      # generates:
       #
       #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
       #
@@ -467,13 +467,13 @@ module ActiveRecord
       #
       #   add_index(:accounts, :name, name: 'by_name', length: 10)
       #
-      # generates
+      # generates:
       #
       #   CREATE INDEX by_name ON accounts(name(10))
       #
       #   add_index(:accounts, [:name, :surname], name: 'by_name_surname', length: {name: 10, surname: 15})
       #
-      # generates
+      # generates:
       #
       #   CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
       #
@@ -483,7 +483,7 @@ module ActiveRecord
       #
       #   add_index(:accounts, [:branch_id, :party_id, :surname], order: {branch_id: :desc, party_id: :asc})
       #
-      # generates
+      # generates:
       #
       #   CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
@@ -493,7 +493,7 @@ module ActiveRecord
       #
       #   add_index(:accounts, [:branch_id, :party_id], unique: true, where: "active")
       #
-      # generates
+      # generates:
       #
       #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
       #
@@ -501,7 +501,7 @@ module ActiveRecord
       #
       #   add_index(:developers, :name, using: 'btree')
       #
-      # generates
+      # generates:
       #
       #   CREATE INDEX index_developers_on_name ON developers USING btree (name) -- PostgreSQL
       #   CREATE INDEX index_developers_on_name USING btree ON developers (name) -- MySQL
@@ -512,7 +512,7 @@ module ActiveRecord
       #
       #   add_index(:developers, :name, type: :fulltext)
       #
-      # generates
+      # generates:
       #
       #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
       #
