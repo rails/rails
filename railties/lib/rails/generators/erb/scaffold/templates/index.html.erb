@@ -3,7 +3,7 @@
 <table>
   <thead>
     <tr>
-<% attributes.each do |attribute| -%>
+<% attributes.reject(&:password_digest?).each do |attribute| -%>
       <th><%= attribute.human_name %></th>
 <% end -%>
       <th></th>
@@ -15,7 +15,7 @@
   <tbody>
     <%% @<%= plural_table_name %>.each do |<%= singular_table_name %>| %>
     <tr>
-<% attributes.each do |attribute| -%>
+<% attributes.reject(&:password_digest?).each do |attribute| -%>
       <td><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
 <% end -%>
       <td><%%= link_to 'Show', <%= singular_table_name %> %></td>

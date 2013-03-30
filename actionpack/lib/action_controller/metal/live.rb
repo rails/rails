@@ -98,6 +98,10 @@ module ActionController
       def merge_default_headers(original, default)
         Header.new self, super
       end
+
+      def handle_conditional_get!
+        super unless committed?
+      end
     end
 
     def process(name)

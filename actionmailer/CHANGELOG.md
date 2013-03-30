@@ -21,7 +21,7 @@
     *Olek Janiszewski*
 
 *   Eager loading made to use relation's `in_clause_length` instead of host's one.
-    Fix #8474
+    Fixes #8474.
 
     *Boris Staal*
 
@@ -29,7 +29,7 @@
     *Nate Berkopec*
 
 *   Do not render views when mail() isn't called.
-    Fix #7761
+    Fixes #7761.
 
     *Yves Senn*
 

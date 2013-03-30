@@ -119,7 +119,7 @@ class BaseMailer < ActionMailer::Base
   def without_mail_call
   end
 
-  def with_nil_as_return_value(hash = {})
+  def with_nil_as_return_value
     mail(:template_name => "welcome")
     nil
   end

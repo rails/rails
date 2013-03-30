@@ -573,6 +573,21 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   def test_generate_url_without_controller
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
+
+  def test_pass_headers
+    get "/success", {}, "Referer" => "http://www.example.com/foo", "Host" => "http://nohost.com"
+
+    assert_equal "http://nohost.com", @request.env["HTTP_HOST"]
+    assert_equal "http://www.example.com/foo", @request.env["HTTP_REFERER"]
+  end
+
+  def test_pass_env
+    get "/success", {}, "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com"
+
+    assert_equal "http://test.com", @request.env["HTTP_HOST"]
+    assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
+  end
+
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest

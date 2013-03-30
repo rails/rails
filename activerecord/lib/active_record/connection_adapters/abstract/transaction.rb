@@ -78,7 +78,7 @@ module ActiveRecord
         @joinable  = options.fetch(:joinable, true)
       end
 
-      # This state is necesarry so that we correctly handle stuff that might
+      # This state is necessary so that we correctly handle stuff that might
       # happen in a commit/rollback. But it's kinda distasteful. Maybe we can
       # find a better way to structure it in the future.
       def finishing?

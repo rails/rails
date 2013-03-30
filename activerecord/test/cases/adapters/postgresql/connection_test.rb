@@ -81,42 +81,6 @@ module ActiveRecord
       assert_equal 'SCHEMA', @connection.logged[0][1]
     end
 
-    def test_reconnection_after_simulated_disconnection_with_verify
-      assert @connection.active?
-      original_connection_pid = @connection.query('select pg_backend_pid()')
-
-      # Fail with bad connection on next query attempt.
-      raw_connection = @connection.raw_connection
-      raw_connection_class = class << raw_connection ; self ; end
-      raw_connection_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def query_fake(*args)
-          if !( @called ||= false )
-            self.stubs(:status).returns(PGconn::CONNECTION_BAD)
-            @called = true
-            raise PGError
-          else
-            self.unstub(:status)
-            query_unfake(*args)
-          end
-        end
-
-        alias query_unfake query
-        alias query        query_fake
-      CODE
-
-      begin
-        @connection.verify!
-        new_connection_pid = @connection.query('select pg_backend_pid()')
-      ensure
-        raw_connection_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          alias query query_unfake
-          undef query_fake
-        CODE
-      end
-
-      assert_not_equal original_connection_pid, new_connection_pid, "Should have a new underlying connection pid"
-    end
-
     # Must have with_manual_interventions set to true for this
     # test to run.
     # When prompted, restart the PostgreSQL server with the

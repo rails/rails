@@ -183,6 +183,7 @@ ActiveRecord::Schema.define do
 
   add_index :companies, [:firm_id, :type, :rating], :name => "company_index"
   add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
+  add_index :companies, :name, :name => 'company_name_index', :using => :btree
 
   create_table :vegetables, :force => true do |t|
     t.string :name
@@ -230,14 +231,16 @@ ActiveRecord::Schema.define do
     t.integer :access_level, :default => 1
   end
 
-  create_table :dog_lovers, :force => true do |t|
-    t.integer :trained_dogs_count, :default => 0
-    t.integer :bred_dogs_count, :default => 0
+  create_table :dog_lovers, force: true do |t|
+    t.integer :trained_dogs_count, default: 0
+    t.integer :bred_dogs_count, default: 0
+    t.integer :dogs_count, default: 0
   end
 
   create_table :dogs, :force => true do |t|
     t.integer :trainer_id
     t.integer :breeder_id
+    t.integer :dog_lover_id
   end
 
   create_table :edges, :force => true, :id => false do |t|
@@ -280,7 +283,7 @@ ActiveRecord::Schema.define do
 
   create_table :friendships, :force => true do |t|
     t.integer :friend_id
-    t.integer :person_id
+    t.integer :follower_id
   end
 
   create_table :goofy_string_id, :force => true, :id => false do |t|
@@ -494,6 +497,7 @@ ActiveRecord::Schema.define do
     t.integer    :lock_version, :null => false, :default => 0
     t.string     :comments
     t.integer    :followers_count, :default => 0
+    t.integer    :friends_too_count, :default => 0
     t.references :best_friend
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0

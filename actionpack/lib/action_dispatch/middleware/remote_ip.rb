@@ -101,7 +101,7 @@ module ActionDispatch
         (([0-9A-Fa-f]{1,4}:){0,4}:([0-9A-Fa-f]{1,4}:){1}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))     | # ip v6 with compatible to v4
         (::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d) |(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))                         | # ip v6 with compatible to v4
         ([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})                                                                                               | # ip v6 with compatible to v4
-        (::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})                                                                                                               | # ip v6 with double colon at the begining
+        (::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})                                                                                                               | # ip v6 with double colon at the beginning
         (([0-9A-Fa-f]{1,4}:){1,7}:)                                                                                                                                  # ip v6 without ending
         )$)
       }x

@@ -194,7 +194,7 @@ class PeopleController < ActionController::Base
 
   # This will pass with flying colors as long as there's a person key
   # in the parameters, otherwise it'll raise a
-  # ActionController::MissingParameter exception, which will get
+  # ActionController::ParameterMissing exception, which will get
   # caught by ActionController::Base and turned into that 400 Bad
   # Request reply.
   def update

@@ -305,8 +305,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_selected_field_with_include
-    assert_equal 6, Account.includes(:firm).count(:distinct => true)
-    assert_equal 4, Account.includes(:firm).select(:credit_limit).count(:distinct => true)
+    assert_equal 6, Account.includes(:firm).distinct.count
+    assert_equal 4, Account.includes(:firm).distinct.select(:credit_limit).count
   end
 
   def test_should_not_perform_joined_include_by_default
@@ -341,7 +341,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 5, Account.count(:firm_id)
   end
 
-  def test_count_with_uniq
+  def test_count_distinct_option_is_deprecated
+    assert_deprecated do
+      assert_equal 4, Account.select(:credit_limit).count(distinct: true)
+    end
+
+    assert_deprecated do
+      assert_equal 6, Account.select(:credit_limit).count(distinct: false)
+    end
+  end
+
+  def test_count_with_distinct
+    assert_equal 4, Account.select(:credit_limit).distinct.count
     assert_equal 4, Account.select(:credit_limit).uniq.count
   end
 
@@ -351,7 +362,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_field_in_joined_table
     assert_equal 5, Account.joins(:firm).count('companies.id')
-    assert_equal 4, Account.joins(:firm).count('companies.id', :distinct => true)
+    assert_equal 4, Account.joins(:firm).distinct.count('companies.id')
   end
 
   def test_should_count_field_in_joined_table_with_group_by
@@ -455,7 +466,7 @@ class CalculationsTest < ActiveRecord::TestCase
     approved_topics_count = Topic.group(:approved).count(:author_name)[true]
     assert_equal approved_topics_count, 3
     # Count the number of distinct authors for approved Topics
-    distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
+    distinct_authors_for_approved_count = Topic.group(:approved).distinct.count(:author_name)[true]
     assert_equal distinct_authors_for_approved_count, 2
   end
 

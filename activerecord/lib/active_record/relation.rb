@@ -10,7 +10,7 @@ module ActiveRecord
                             :extending]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
-                            :reverse_order, :uniq, :create_with]
+                            :reverse_order, :distinct, :create_with]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
@@ -506,6 +506,12 @@ module ActiveRecord
       includes_values & joins_values
     end
 
+    # +uniq+ and +uniq!+ are silently deprecated. +uniq_value+ delegates to +distinct_value+
+    # to maintain backwards compatibility. Use +distinct_value+ instead.
+    def uniq_value
+      distinct_value
+    end
+
     # Compares two relations for equality.
     def ==(other)
       case other
@@ -589,21 +595,25 @@ module ActiveRecord
 
       if (references_values - joined_tables).any?
         true
-      elsif (string_tables - joined_tables).any?
+      elsif !ActiveRecord::Base.disable_implicit_join_references &&
+            (string_tables - joined_tables).any?
         ActiveSupport::Deprecation.warn(
           "It looks like you are eager loading table(s) (one of: #{string_tables.join(', ')}) " \
           "that are referenced in a string SQL snippet. For example: \n" \
           "\n" \
           "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
           "\n" \
-          "Currently, Active Record recognises the table in the string, and knows to JOIN the " \
+          "Currently, Active Record recognizes the table in the string, and knows to JOIN the " \
           "comments table to the query, rather than loading comments in a separate query. " \
           "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
           "Since we don't want to write an SQL parser, we are removing this functionality. " \
           "From now on, you must explicitly tell Active Record when you are referencing a table " \
           "from a string:\n" \
           "\n" \
-          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n\n"
+          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n" \
+          "\n" \
+          "If you don't rely on implicit join references you can disable the feature entirely " \
+          "by setting `config.active_record.disable_implicit_join_references = true`."
         )
         true
       else

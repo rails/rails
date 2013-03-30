@@ -38,6 +38,15 @@ module ActiveRecord
         configure_connection
       end
 
+      MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
+      def initialize_schema_migrations_table
+        if @config[:encoding] == 'utf8mb4'
+          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_UTF8MB4)
+        else
+          ActiveRecord::SchemaMigration.create_table
+        end
+      end
+
       def supports_explain?
         true
       end
@@ -54,8 +63,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?)
+      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
+        Column.new(field, default, type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception)

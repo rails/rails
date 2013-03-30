@@ -2791,8 +2791,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_html_options_adds_options_to_form_tag
-    form_for(@post, html: { id: 'some_form', class: 'some_class' }) do |f| end
-    expected = whole_form("/posts/123", "some_form", "some_class", method: "patch")
+    form_for(@post, html: { id: 'some_form', class: 'some_class', multipart: true }) do |f| end
+    expected = whole_form("/posts/123", "some_form", "some_class", method: "patch", multipart: "multipart/form-data")
 
     assert_dom_equal expected, output_buffer
   end

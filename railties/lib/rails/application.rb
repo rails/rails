@@ -79,7 +79,7 @@ module Rails
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
-      @env_config       = nil
+      @app_env_config   = nil
       @ordered_railties = nil
       @railties         = nil
     end
@@ -134,7 +134,7 @@ module Rails
     #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
     #
     def env_config
-      @env_config ||= begin
+      @app_env_config ||= begin
         if config.secret_key_base.nil?
           ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base in config/initializers/secret_token.rb file. " +
             "This should be used instead of the old deprecated config.secret_token in order to use the new EncryptedCookieStore. " +
@@ -149,6 +149,7 @@ module Rails
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.secret_key_base" => config.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,

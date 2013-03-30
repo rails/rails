@@ -1,5 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add ActiveModel::Errors#full_messages_for, a method that returns all the error
+    messages for a given attribute.
+
+    *Volodymyr Shatsky*
+
+*   Added a method so that validations can be easily cleared on a model.
+    For example:
+
+      class Person
+        include ActiveModel::Validations
+
+        validates_uniqueness_of :first_name
+        validate :cannot_be_robot
+
+        def cannot_be_robot
+          errors.add(:base, 'A person cannot be a robot') if person_is_robot
+        end
+      end
+
+    Now, if someone runs `Person.clear_validators!`, then the following occurs:
+
+      Person.validators                  # => []
+      Person._validate_callbacks.empty?  # => true
+
+    *John Wang*
+
 *   `has_secure_password` does not fail the confirmation validation
     when assigning empty String to `password` and `password_confirmation`.
 
@@ -70,7 +96,7 @@
 
     *Yves Senn*
 
-*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_pasword`.
+*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_password`.
 
     *Brian Cardarella + Jeremy Kemper + Trevor Turk*
 
@@ -111,7 +137,7 @@
 
 *   Changed `ActiveModel::Serializers::Xml::Serializer#add_associations` to by default
     propagate `:skip_types, :dasherize, :camelize` keys to included associations.
-    It can be overriden on each association by explicitly specifying the option on one
+    It can be overridden on each association by explicitly specifying the option on one
     or more associations
 
     *Anthony Alberto*

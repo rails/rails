@@ -92,7 +92,7 @@ module ActionDispatch
         LAST_MODIFIED = "Last-Modified".freeze
         ETAG          = "ETag".freeze
         CACHE_CONTROL = "Cache-Control".freeze
-        SPESHUL_KEYS  = %w[extras no-cache max-age public must-revalidate]
+        SPECIAL_KEYS  = %w[extras no-cache max-age public must-revalidate]
 
         def cache_control_segments
           if cache_control = self[CACHE_CONTROL]
@@ -108,7 +108,7 @@ module ActionDispatch
           cache_control_segments.each do |segment|
             directive, argument = segment.split('=', 2)
 
-            if SPESHUL_KEYS.include? directive
+            if SPECIAL_KEYS.include? directive
               key = directive.tr('-', '_')
               cache_control[key.to_sym] = argument || true
             else

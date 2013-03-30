@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::TestCase
-  fixtures :customers, :companies, :comments
+  fixtures :customers, :companies, :comments, :binaries
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -72,6 +72,10 @@ class CopyTableTest < ActiveRecord::TestCase
     end
   end
 
+  def test_copy_table_with_binary_column
+    test_copy_table 'binaries', 'binaries2'
+  end
+
 protected
   def copy_table(from, to, options = {})
     @connection.copy_table(from, to, {:temporary => true}.merge(options))
@@ -86,7 +90,7 @@ protected
   end
 
   def table_indexes_without_name(table)
-    @connection.indexes('comments_with_index').delete(:name)
+    @connection.indexes(table).delete(:name)
   end
 
   def row_count(table)

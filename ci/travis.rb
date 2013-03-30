@@ -109,7 +109,7 @@ end
 # puts "  #{`uname -a`}"
 # puts "  #{`ruby -v`}"
 # puts "  #{`mysql --version`}"
-# # puts "  #{`pg_config --version`}"
+# puts "  #{`pg_config --version`}"
 # puts "  SQLite3: #{`sqlite3 -version`}"
 # `gem env`.each_line {|line| print "   #{line}"}
 # puts "   Bundled gems:"
@@ -117,7 +117,7 @@ end
 # puts "   Local gems:"
 # `gem list`.each_line {|line| print "     #{line}"}
 
-failures = results.select { |key, value| value == false }
+failures = results.select { |key, value| !value  }
 
 if failures.empty?
   puts

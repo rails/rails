@@ -68,6 +68,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_company_descends_from_active_record
+    assert !ActiveRecord::Base.descends_from_active_record?
     assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
     assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
     assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
@@ -169,6 +170,20 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_inheritance_new_with_subclass
     firm = Company.new(:type => 'Firm')
     assert_equal Firm, firm.class
+  end
+
+  def test_new_with_abstract_class
+    e = assert_raises(NotImplementedError) do
+      AbstractCompany.new
+    end
+    assert_equal("AbstractCompany is an abstract class and can not be instantiated.", e.message)
+  end
+
+  def test_new_with_ar_base
+    e = assert_raises(NotImplementedError) do
+      ActiveRecord::Base.new
+    end
+    assert_equal("ActiveRecord::Base is an abstract class and can not be instantiated.", e.message)
   end
 
   def test_new_with_invalid_type

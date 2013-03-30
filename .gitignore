@@ -6,7 +6,7 @@ debug.log
 /.bundle
 /.ruby-version
 /Gemfile.lock
-/pkg
+pkg
 /dist
 /doc/rdoc
 /*/doc
@@ -20,4 +20,3 @@ debug.log
 /railties/doc
 /railties/tmp
 /guides/output
-/RDOC_MAIN.rdoc

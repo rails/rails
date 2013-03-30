@@ -8,7 +8,10 @@ class Person < ActiveRecord::Base
   has_many :posts_with_no_comments, -> { includes(:comments).where('comments.id is null').references(:comments) },
                                     :through => :readers, :source => :post
 
-  has_many :followers, foreign_key: 'friend_id', class_name: 'Friendship'
+  has_many :friendships, foreign_key: 'friend_id'
+  # friends_too exists to test a bug, and probably shouldn't be used elsewhere
+  has_many :friends_too, foreign_key: 'friend_id', class_name: 'Friendship'
+  has_many :followers, through: :friendships
 
   has_many :references
   has_many :bad_references

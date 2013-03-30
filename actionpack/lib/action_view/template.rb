@@ -324,7 +324,8 @@ module ActionView
       end
 
       def locals_code #:nodoc:
-        @locals.map { |key| "#{key} = local_assigns[:#{key}];" }.join
+        # Double assign to suppress the dreaded 'assigned but unused variable' warning
+        @locals.map { |key| "#{key} = #{key} = local_assigns[:#{key}];" }.join
       end
 
       def method_name #:nodoc:

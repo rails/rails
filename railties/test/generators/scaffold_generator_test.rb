@@ -241,7 +241,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
   def test_scaffold_generator_no_assets
     run_generator [ "posts", "--no-assets" ]
-    assert_file "app/assets/stylesheets/scaffold.css"
+    assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
@@ -269,6 +269,47 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/t\.text :body/, up)
         assert_match(/t\.string :author/, up)
       end
+    end
+  end
+
+  def test_scaffold_generator_password_digest
+    run_generator ["user", "name", "password:digest"]
+
+    assert_file "app/models/user.rb", /has_secure_password/
+
+    assert_migration "db/migrate/create_users.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.string :password_digest/, up)
+      end
+    end
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_instance_method :user_params, content do |m|
+        assert_match(/permit\(:name, :password, :password_confirmation\)/, m)
+      end
+    end
+
+    assert_file "app/views/users/_form.html.erb" do |content|
+      assert_match(/<%= f\.password_field :password %>/, content)
+      assert_match(/<%= f\.password_field :password_confirmation %>/, content)
+    end
+
+    assert_file "app/views/users/index.html.erb" do |content|
+      assert_no_match(/password/, content)
+    end
+
+    assert_file "app/views/users/show.html.erb" do |content|
+      assert_no_match(/password/, content)
+    end
+
+    assert_file "test/controllers/users_controller_test.rb" do |content|
+      assert_match(/password: 'secret'/, content)
+      assert_match(/password_confirmation: 'secret'/, content)
+    end
+
+    assert_file "test/fixtures/users.yml" do |content|
+      assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
     end
   end
 end

@@ -330,6 +330,13 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        def primary_key(name, type = :primary_key, options = {})
+          return super unless type == :uuid
+          options[:default] ||= 'uuid_generate_v4()'
+          options[:primary_key] = true
+          column name, type, options
+        end
+
         def column(name, type = nil, options = {})
           super
           column = self[name]
@@ -338,13 +345,14 @@ module ActiveRecord
           self
         end
 
+        def xml(options = {})
+          column(args[0], :text, options)
+        end
+
         private
 
-        def new_column_definition(base, name, type)
-          definition = ColumnDefinition.new base, name, type
-          @columns << definition
-          @columns_hash[name] = definition
-          definition
+        def create_column_definition(name, type)
+          ColumnDefinition.new name, type
         end
       end
 
@@ -423,6 +431,10 @@ module ActiveRecord
 
       def supports_transaction_isolation?
         true
+      end
+
+      def index_algorithms
+        { concurrently: 'CONCURRENTLY' }
       end
 
       class StatementPool < ConnectionAdapters::StatementPool
@@ -518,8 +530,7 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.query 'SELECT 1'
-        true
+        @connection.connect_poll != PG::PGRES_POLLING_FAILED
       rescue PGError
         false
       end
@@ -594,13 +605,13 @@ module ActiveRecord
       end
 
       def enable_extension(name)
-        exec_query("CREATE EXTENSION IF NOT EXISTS #{name}").tap {
+        exec_query("CREATE EXTENSION IF NOT EXISTS \"#{name}\"").tap {
           reload_type_map
         }
       end
 
       def disable_extension(name)
-        exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
+        exec_query("DROP EXTENSION IF EXISTS \"#{name}\" CASCADE").tap {
           reload_type_map
         }
       end
@@ -625,13 +636,6 @@ module ActiveRecord
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
         @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
-      end
-
-      def add_column_options!(sql, options)
-        if options[:array] || options[:column].try(:array)
-          sql << '[]'
-        end
-        super
       end
 
       # Set the authorized user for this session
@@ -661,6 +665,10 @@ module ActiveRecord
 
       def use_insert_returning?
         @use_insert_returning
+      end
+
+      def valid_type?(type)
+        !native_database_types[type].nil?
       end
 
       protected
@@ -707,7 +715,14 @@ module ActiveRecord
 
           # populate composite types
           nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
-            vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+            if OID.registered_type? row['typname']
+              # this composite type is explicitly registered
+              vector = OID::NAMES[row['typname']]
+            else
+              # use the default for composite types
+              vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+            end
+
             OID::TYPE_MAP[row['oid'].to_i] = vector
           end
 
@@ -894,8 +909,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition
-          TableDefinition.new(self)
+        def create_table_definition(name, temporary, options)
+          TableDefinition.new native_database_types, name, temporary, options
         end
 
         def update_table_definition(table_name, base)

@@ -160,7 +160,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    # only "Kotori" is created. (This works on MySQL and PostgreSQL, but not on SQLite3.)
+    # only "Kotori" is created. This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also supports it.
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested

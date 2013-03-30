@@ -649,11 +649,12 @@ module ActiveRecord
       #   #      #<Pet name: "Fancy-Fancy">
       #   #    ]
       #
-      #   person.pets.select(:name).uniq
+      #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
-      def uniq
-        @association.uniq
+      def distinct
+        @association.distinct
       end
+      alias uniq distinct
 
       # Count all records using SQL.
       #

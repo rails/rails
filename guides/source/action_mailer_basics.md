@@ -564,31 +564,8 @@ config.action_mailer.smtp_settings = {
 Mailer Testing
 --------------
 
-By default Action Mailer does not send emails in the test environment. They are just added to the `ActionMailer::Base.deliveries` array.
-
-Testing mailers normally involves two things: One is that the mail was queued, and the other one that the email is correct. With that in mind, we could test our example mailer from above like so:
-
-```ruby
-class UserMailerTest < ActionMailer::TestCase
-  def test_welcome_email
-    user = users(:some_user_in_your_fixtures)
-
-    # Send the email, then test that it got queued
-    email = UserMailer.welcome_email(user).deliver
-    assert !ActionMailer::Base.deliveries.empty?
-
-    # Test the body of the sent email contains what we expect it to
-    assert_equal [user.email], email.to
-    assert_equal 'Welcome to My Awesome Site', email.subject
-    assert_match "<h1>Welcome to example.com, #{user.name}</h1>", email.body.to_s
-    assert_match 'you have joined to example.com community', email.body.to_s
-  end
-end
-```
-
-In the test we send the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
-
-NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in `ActionMailer::TestCase` tests. If you want to have a clean slate outside Action Mailer tests, you can reset it manually with: `ActionMailer::Base.deliveries.clear`
+You can find detailed instructions on how to test your mailers in our
+[testing guide](testing.html#testing-your-mailers).
 
 Intercepting Emails
 -------------------

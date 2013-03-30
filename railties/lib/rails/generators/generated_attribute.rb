@@ -130,6 +130,10 @@ module Rails
         @has_uniq_index
       end
 
+      def password_digest?
+        name == 'password' && type == :digest 
+      end
+
       def inject_options
         "".tap { |s| @attr_options.each { |k,v| s << ", #{k}: #{v.inspect}" } }
       end

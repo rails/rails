@@ -86,8 +86,8 @@ module ApplicationTests
     def test_precompile_does_not_hit_the_database
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
-      app_file "app/controllers/user_controller.rb", <<-eoruby
-        class UserController < ApplicationController; end
+      app_file "app/controllers/users_controller.rb", <<-eoruby
+        class UsersController < ApplicationController; end
       eoruby
       app_file "app/models/user.rb", <<-eoruby
         class User < ActiveRecord::Base; end
@@ -221,7 +221,7 @@ module ApplicationTests
       assert !defined?(Uglifier)
     end
 
-    test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do
+    test "precompile properly refers files referenced with asset_path and runs in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       # digest is default in false, we must enable it for test environment
       add_to_env_config "test", "config.assets.digest = true"

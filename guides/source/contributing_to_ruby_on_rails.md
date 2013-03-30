@@ -53,6 +53,22 @@ The easiest and recommended way to get a development environment ready to hack i
 
 In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
 
+
+Running an Application Against Your Local Branch
+------------------------------------------------
+
+The `--dev` flag of `rails new` generates an application that uses your local
+branch:
+
+```bash
+$ cd rails
+$ bundle exec rails new ~/my-test-app --dev
+```
+
+The application generated in `~/my-test-app` runs against your local branch
+and in particular sees any modifications upon server reboot.
+
+
 Testing Active Record
 ---------------------
 
@@ -200,6 +216,17 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Use Rails idioms and helpers.
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
+
+It is not customary in Rails to run the full test suite before pushing
+changes. The railties test suite in particular takes a long time, and even
+more if the source code is mounted in `/vagrant` as happens in the recommended
+workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
+
+As a compromise, test what your code obviously affects, and if the change is
+not in railties run the whole test suite of the affected component. If all is
+green that's enough to propose your contribution. We have [Travis CI](https
+://travis-ci.org/) as a safety net for catching unexpected breakages
+elsewhere.
 
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 

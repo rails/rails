@@ -13,8 +13,17 @@
 
 <% attributes.each do |attribute| -%>
   <div class="field">
+<% if attribute.password_digest? -%>
+    <%%= f.label :password %><br />
+    <%%= f.password_field :password %>
+  </div>
+  <div>
+    <%%= f.label :password_confirmation %><br />
+    <%%= f.password_field :password_confirmation %>
+<% else -%>
     <%%= f.label :<%= attribute.name %> %><br />
     <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
+<% end -%>
   </div>
 <% end -%>
   <div class="actions">

@@ -1,6 +1,42 @@
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
+      class SchemaCreation < AbstractAdapter::SchemaCreation
+        private
+
+        def visit_AddColumn(o)
+          sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
+          sql = "ADD COLUMN #{quote_column_name(o.name)} #{sql_type}"
+          add_column_options!(sql, column_options(o))
+        end
+
+        def visit_ColumnDefinition(o)
+          sql = super
+          if o.primary_key? && o.type == :uuid
+            sql << " PRIMARY KEY "
+            add_column_options!(sql, column_options(o))
+          end
+          sql
+        end
+
+        def add_column_options!(sql, options)
+          if options[:array] || options[:column].try(:array)
+            sql << '[]'
+          end
+
+          column = options.fetch(:column) { return super }
+          if column.type == :uuid && options[:default] =~ /\(\)/
+            sql << " DEFAULT #{options[:default]}"
+          else
+            super
+          end
+        end
+      end
+
+      def schema_creation
+        SchemaCreation.new self
+      end
+
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
@@ -124,8 +160,9 @@ module ActiveRecord
             desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
             orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
             where = inddef.scan(/WHERE (.+)$/).flatten[0]
+            using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where)
+            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
           end.compact
         end
 
@@ -337,10 +374,7 @@ module ActiveRecord
         # See TableDefinition#column for details of the options you can use.
         def add_column(table_name, column_name, type, options = {})
           clear_cache!
-          add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-          add_column_options!(add_column_sql, options)
-
-          execute add_column_sql
+          super
         end
 
         # Changes the column of a table.
@@ -373,6 +407,11 @@ module ActiveRecord
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
           rename_column_indexes(table_name, column_name, new_column_name)
+        end
+
+        def add_index(table_name, column_name, options = {}) #:nodoc:
+          index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
         end
 
         def remove_index!(table_name, index_name) #:nodoc:

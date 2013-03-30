@@ -1,12 +1,188 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow ActiveRecord::Base.connection_handler to have thread affinity and be
+    settable, this effectively allows ActiveRecord to be used in a multi threaded
+    setup with multiple connections to multiple dbs.
+
+    *Sam Saffron*
+
+*   `rename_column` preserves auto_increment in mysql migrations.
+    Fixes #3493.
+
+    *Vipul A M*
+
+*   PostgreSQL geometric type point is supported by ActiveRecord. Fixes #7324.
+
+    *Martin Schuerrer*
+
+*   Add support for concurrent indexing in PostgreSQL adapter via the
+    `algorithm: :concurrently` option
+
+        add_index(:people, :last_name, algorithm: :concurrently)
+
+    Also adds support for MySQL index algorithms (`COPY`, `INPLACE`,
+    `DEFAULT`) via the `algorithm: :copy` option
+
+        add_index(:people, :last_name, algorithm: :copy) # or :inplace/:default
+
+    *Dan McClain*
+
+*   Add support for fulltext and spatial indexes on MySQL tables with MyISAM database 
+    engine via the `type: 'FULLTEXT'` / `type: 'SPATIAL'` option
+
+        add_index(:people, :last_name, type: 'FULLTEXT')
+        add_index(:people, :last_name, type: 'SPATIAL')
+
+    *Ken Mazaika*
+
+*   Add an `add_index` override in Postgresql adapter and MySQL adapter
+    to allow custom index type support. Fixes #6101.
+
+        add_index(:wikis, :body, :using => 'gin')
+
+    *Stefan Huber* and *Doabit*
+
+*   After extraction of mass-assignment attributes (which protects [id, type]
+    by default) we can pass id to `update_attributes` and it will update
+    another record because id will be used in where statement. We never have
+    to change id in where statement because we try to set/replace fields for
+    already loaded record but we have to try to set new id for that record.
+
+    *Dmitry Vorotilin*
+
+*   Models with multiple counter cache associations now update correctly on destroy.
+    See #7706.
+
+    *Ian Young*
+
+*   If `:inverse_of` is true on an association, then when one calls `find()` on
+    the association, Active Record will first look through the in-memory objects
+    in the association for a particular id. Then, it will go to the DB if it
+    is not found. This is accomplished by calling `find_by_scan` in
+    collection associations whenever `options[:inverse_of]` is not nil.
+
+    Fixes #9470.
+
+    *John Wang*
+
+*   `rake db:create` does not change permissions of the MySQL root user.
+    Fixes #8079.
+
+    *Yves Senn*
+
+*   The length of the `version` column in the `schema_migrations` table
+    created by the `mysql2` adapter is 191 if the encoding is "utf8mb4".
+
+    The "utf8" encoding in MySQL has support for a maximum of 3 bytes per character,
+    and only contains characters from the BMP. The recently added
+    [utf8mb4](http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html)
+    encoding extends the support to four bytes. As of this writing, said encoding
+    is supported in the betas of the `mysql2` gem.
+
+    Setting the encoding to "utf8mb4" has
+    [a few implications](http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-upgrading.html).
+    This change addresses the max length for indexes, which is 191 instead of 255.
+
+    *Xavier Noria*
+
+*   Counter caches on associations will now stay valid when attributes are
+    updated (not just when records are created or destroyed), for example,
+    when calling `update_attributes`. The following code now works:
+
+        class Comment < ActiveRecord::Base
+          belongs_to :post, counter_cache: true
+        end
+
+        class Post < ActiveRecord::Base
+          has_many :comments
+        end
+
+        post = Post.create
+        comment = Comment.create
+
+        post.comments << comment
+        post.save.reload.comments_count # => 1
+        comment.update_attributes(post_id: nil)
+
+        post.save.reload.comments_count # => 0
+
+    Updating the id of a `belongs_to` object with the id of a new object will
+    also keep the count accurate.
+
+    *John Wang*
+
+*   Referencing join tables implicitly was deprecated. There is a
+    possibility that these deprecation warnings are shown even if you
+    don't make use of that feature. You can now disable the feature entirely.
+    Fixes #9712.
+
+    Example:
+
+        # in your configuration
+        config.active_record.disable_implicit_join_references = true
+
+        # or directly
+        ActiveRecord::Base.disable_implicit_join_references = true
+
+    *Yves Senn*
+
+*   The `:distinct` option for `Relation#count` is deprecated. You
+    should use `Relation#distinct` instead.
+
+    Example:
+
+        # Before
+        Post.select(:author_name).count(distinct: true)
+
+        # After
+        Post.select(:author_name).distinct.count
+
+    *Yves Senn*
+
+*   Rename `Relation#uniq` to `Relation#distinct`. `#uniq` is still
+    available as an alias but we encourage to use `#distinct` instead.
+    Also `Relation#uniq_value` is aliased to `Relation#distinct_value`,
+    this is a temporary solution and you should migrate to `distinct_value`.
+
+    *Yves Senn*
+
+*   Fix quoting for sqlite migrations using `copy_table_contents` with binary
+    columns.
+
+    These would fail with "SQLite3::SQLException: unrecognized token" because
+    the column was not being passed to `quote` so the data was not quoted
+    correctly.
+
+    *Matthew M. Boedicker*
+
+*   Promotes `change_column_null` to the migrations API. This macro sets/removes
+    `NOT NULL` constraints, and accepts an optional argument to replace existing
+    `NULL`s if needed. The adapters for SQLite, MySQL, PostgreSQL, and (at least)
+    Oracle, already implement this method.
+
+    *Xavier Noria*
+
+*   Uniqueness validation allows you to pass `:conditions` to limit
+    the constraint lookup.
+
+    Example:
+
+        validates_uniqueness_of :title, conditions: -> { where('approved = ?', true) }
+
+    *Mattias Pfeiffer + Yves Senn*
+
+*   `connection` is deprecated as an instance method.
+    This allows end-users to have a `connection` method on their models
+    without clashing with Active Record internals.
+
+    *Ben Moss*
+
 *   When copying migrations, preserve their magic comments and content encoding.
 
     *OZAWA Sakuro*
 
-*   Fix ActiveRecord `subclass_from_attrs` when `eager_load` is false.
-    It cannot find subclass because all classes are loaded automatically
-    when it needs.
+*   Fix `subclass_from_attrs` when `eager_load` is false. It cannot find
+    subclass because all classes are loaded automatically when it needs.
 
     *Dmitry Vorotilin*
 
@@ -95,7 +271,7 @@
 
     *Aaron Weiner*
 
-*   Warn when `rake db:structure:dump` with a mysl database and
+*   Warn when `rake db:structure:dump` with a MySQL database and
     `mysqldump` is not in the PATH or fails.
     Fixes #9518.
 
@@ -120,7 +296,7 @@
     *Yves Senn*
 
 *   Assigning "0.0" to a nullable numeric column does not make it dirty.
-    Fix #9034.
+    Fixes #9034.
 
     Example:
 
@@ -147,7 +323,7 @@
 
     *John Wang*
 
-*   Postgresql timestamp with time zone (timestamptz) datatype now returns a
+*   PostgreSQL timestamp with time zone (timestamptz) datatype now returns a
     ActiveSupport::TimeWithZone instance instead of a string
 
     *Troy Kruthoff*
@@ -377,7 +553,7 @@
 
     *James Miller*
 
-*   Allow store accessors to be overrided like other attribute methods, e.g.:
+*   Allow store accessors to be overridden like other attribute methods, e.g.:
 
         class User < ActiveRecord::Base
           store :settings, accessors: [ :color, :homepage ], coder: JSON
@@ -400,11 +576,11 @@
     *Dylan Smith*
 
 *   Schema dumper supports dumping the enabled database extensions to `schema.rb`
-    (currently only supported by postgresql).
+    (currently only supported by PostgreSQL).
 
     *Justin George*
 
-*   The database adpters now converts the options passed thought `DATABASE_URL`
+*   The database adapters now converts the options passed thought `DATABASE_URL`
     environment variable to the proper Ruby types before using. For example, SQLite requires
     that the timeout value is an integer, and PostgreSQL requires that the
     prepared_statements option is a boolean. These now work as expected:
@@ -503,7 +679,7 @@
 
     *John Wang*
 
-*   Collection associations `#empty?` always respects builded records.
+*   Collection associations `#empty?` always respects built records.
     Fixes #8879.
 
     Example:
@@ -555,17 +731,17 @@
     *Marc-André Lafortune*
 
 *   Serialized attributes can be serialized in integer columns.
-    Fix #8575.
+    Fixes #8575.
 
     *Rafael Mendonça França*
 
 *   Keep index names when using `alter_table` with sqlite3.
-    Fix #3489.
+    Fixes #3489.
 
     *Yves Senn*
 
-*   Add ability for postgresql adapter to disable user triggers in `disable_referential_integrity`.
-    Fix #5523.
+*   Add ability for PostgreSQL adapter to disable user triggers in `disable_referential_integrity`.
+    Fixes #5523.
 
     *Gary S. Weaver*
 
@@ -588,7 +764,7 @@
     *Matthew Robertson*
 
 *   Recognize migrations placed in directories containing numbers and 'rb'.
-    Fix #8492
+    Fixes #8492.
 
     *Yves Senn*
 
@@ -646,13 +822,13 @@
 
 *   Fix performance problem with `primary_key` method in PostgreSQL adapter when having many schemas.
     Uses `pg_constraint` table instead of `pg_depend` table which has many records in general.
-    Fix #8414
+    Fixes #8414.
 
     *kennyj*
 
 *   Do not instantiate intermediate Active Record objects when eager loading.
     These records caused `after_find` to run more than expected.
-    Fix #3313
+    Fixes #3313.
 
     *Yves Senn*
 
@@ -673,12 +849,13 @@
 
 *   Fix dirty attribute checks for `TimeZoneConversion` with nil and blank
     datetime attributes. Setting a nil datetime to a blank string should not
-    result in a change being flagged. Fix #8310
+    result in a change being flagged.
+    Fixes #8310.
 
     *Alisdair McDiarmid*
 
 *   Prevent mass assignment to the type column of polymorphic associations when using `build`
-    Fix #8265
+    Fixes #8265.
 
     *Yves Senn*
 
@@ -687,14 +864,14 @@
 
     *Carlos Antonio da Silva*
 
-*   Fix postgresql adapter to handle BC timestamps correctly
+*   Fix PostgreSQL adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(name: "something", occured_at: Date.new(0) - 5.years)
 
     *Bogdan Gusiev*
 
-*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
-    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
+*   When running migrations on PostgreSQL, the `:limit` option for `binary` and `text` columns is silently dropped.
+    Previously, these migrations caused sql exceptions, because PostgreSQL doesn't support limits on these types.
 
     *Victor Costan*
 
@@ -731,7 +908,7 @@
     *Bogdan Gusiev*
 
 *   `:counter_cache` option for `has_many` associations to support custom named counter caches.
-    Fix #7993
+    Fixes #7993.
 
     *Yves Senn*
 
@@ -755,7 +932,7 @@
     *Nikita Afanasenko*
 
 *   Use query cache/uncache when using `DATABASE_URL`.
-    Fix #6951.
+    Fixes #6951.
 
     *kennyj*
 
@@ -764,7 +941,7 @@
     *Henrik Nyh*
 
 *   The `create_table` method raises an `ArgumentError` when the primary key column is redefined.
-    Fix #6378
+    Fixes #6378.
 
     *Yves Senn*
 
@@ -874,7 +1051,7 @@
     *Alexey Muranov*
 
 *   The postgres adapter now supports tables with capital letters.
-    Fix #5920
+    Fixes #5920.
 
     *Yves Senn*
 
@@ -896,7 +1073,7 @@
     *Francesco Rodriguez*
 
 *   Fix `reset_counters` crashing on `has_many :through` associations.
-    Fix #7822.
+    Fixes #7822.
 
     *lulalala*
 
@@ -971,7 +1148,7 @@
     *Guillermo Iguaran*
 
 *   Fix the return of querying with an empty hash.
-    Fix #6971.
+    Fixes #6971.
 
         User.where(token: {})
 
@@ -987,7 +1164,7 @@
 
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
-    Fix #7661.
+    Fixes #7661.
 
     *Ernie Miller*
 
@@ -1326,7 +1503,7 @@
 
     *Egor Lynko*
 
-*   Added support for specifying the precision of a timestamp in the postgresql
+*   Added support for specifying the precision of a timestamp in the PostgreSQL
     adapter. So, instead of having to incorrectly specify the precision using the
     `:limit` option, you may use `:precision`, as intended. For example, in a migration:
 
@@ -1381,7 +1558,7 @@
 
 *   Move HABTM validity checks to `ActiveRecord::Reflection`. One side effect of
     this is to move when the exceptions are raised from the point of declaration
-    to when the association is built. This is consistant with other association
+    to when the association is built. This is consistent with other association
     validity checks.
 
     *Andrew White*
@@ -1594,7 +1771,7 @@
 
 *   Added the schema cache dump feature.
 
-    `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
+    `Schema cache dump` feature was implemented. This feature can dump/load internal state of `SchemaCache` instance
     because we want to boot rails more quickly when we have many models.
 
     Usage notes:

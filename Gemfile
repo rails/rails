@@ -5,9 +5,10 @@ gemspec
 gem 'mocha', '~> 0.13.0', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails', '~> 2.2.0'
+gem 'jquery-rails', github: 'rails/jquery-rails'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0.beta1'
+gem 'thor', github: 'wycats/thor'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
@@ -27,11 +28,16 @@ gem 'dalli', '>= 2.2.1'
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exists? local_gemfile
 
-platforms :mri do
-  group :test do
-    gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
-    gem 'debugger' if !ENV['TRAVIS']
+group :test do
+  platforms :mri_19 do
+    gem 'ruby-prof', '~> 0.11.2'
   end
+
+  platforms :mri_19, :mri_20 do
+    gem 'debugger'
+  end
+
+  gem 'benchmark-ips'
 end
 
 platforms :ruby do
@@ -76,5 +82,3 @@ end
 
 # A gem necessary for ActiveRecord tests with IBM DB
 gem 'ibm_db' if ENV['IBM_DB']
-
-gem 'benchmark-ips'

@@ -34,7 +34,7 @@ module ActiveRecord
           reload
         end
 
-        CollectionProxy.new(klass, self)
+        @proxy ||= CollectionProxy.new(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -79,7 +79,7 @@ module ActiveRecord
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          if options[:finder_sql]
+          if options[:finder_sql] || options[:inverse_of]
             find_by_scan(*args)
           else
             scope.find(*args)
@@ -174,13 +174,14 @@ module ActiveRecord
 
           reflection.klass.count_by_sql(custom_counter_sql)
         else
-          if association_scope.uniq_value
+          relation = scope
+          if association_scope.distinct_value
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            count_options[:distinct] = true
+            relation = relation.distinct
           end
 
-          value = scope.count(column_name, count_options)
+          value = relation.count(column_name)
 
           limit  = options[:limit]
           offset = options[:offset]
@@ -204,6 +205,15 @@ module ActiveRecord
         dependent = options[:dependent]
 
         if records.first == :all
+
+          if dependent && dependent == :destroy
+            message = 'In Rails 4.1 delete_all on associations would not fire callbacks. ' \
+                      'It means if the :dependent option is :destroy then the associated ' \
+                      'records would be deleted without loading and invoking callbacks.'
+
+            ActiveRecord::Base.logger ? ActiveRecord::Base.logger.warn(message) : $stderr.puts(message)
+          end
+
           if loaded? || dependent == :destroy
             delete_or_destroy(load_target, dependent)
           else
@@ -237,14 +247,14 @@ module ActiveRecord
       # +count_records+, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
-          if association_scope.uniq_value
+          if association_scope.distinct_value
             target.uniq.size
           else
             target.size
           end
         elsif !loaded? && !association_scope.group_values.empty?
           load_target.size
-        elsif !loaded? && !association_scope.uniq_value && target.is_a?(Array)
+        elsif !loaded? && !association_scope.distinct_value && target.is_a?(Array)
           unsaved_records = target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
@@ -297,17 +307,18 @@ module ActiveRecord
         end
       end
 
-      def uniq
+      def distinct
         seen = {}
         load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
+      alias uniq distinct
 
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       def replace(other_array)
-        other_array.each { |val| raise_on_type_mismatch(val) }
+        other_array.each { |val| raise_on_type_mismatch!(val) }
         original_target = load_target.dup
 
         if owner.new_record?
@@ -343,7 +354,7 @@ module ActiveRecord
         callback(:before_add, record)
         yield(record) if block_given?
 
-        if association_scope.uniq_value && index = @target.index(record)
+        if association_scope.distinct_value && index = @target.index(record)
           @target[index] = record
         else
           @target << record
@@ -454,7 +465,7 @@ module ActiveRecord
 
         def delete_or_destroy(records, method)
           records = records.flatten
-          records.each { |record| raise_on_type_mismatch(record) }
+          records.each { |record| raise_on_type_mismatch!(record) }
           existing_records = records.reject { |r| r.new_record? }
 
           if existing_records.empty?
@@ -495,9 +506,9 @@ module ActiveRecord
           result = true
 
           records.flatten.each do |record|
-            raise_on_type_mismatch(record)
-            add_to_target(record) do |r|
-              result &&= insert_record(record) unless owner.new_record?
+            raise_on_type_mismatch!(record)
+            add_to_target(record) do |rec|
+              result &&= insert_record(rec) unless owner.new_record?
             end
           end
 
@@ -556,7 +567,8 @@ module ActiveRecord
           end
         end
 
-        # If using a custom finder_sql, #find scans the entire collection.
+        # If using a custom finder_sql or if the :inverse_of option has been
+        # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
           ids           = args.flatten.compact.map{ |arg| arg.to_i }.uniq

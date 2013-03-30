@@ -1,10 +1,11 @@
 module ActiveSupport
-  module VERSION #:nodoc:
-    MAJOR = 4
-    MINOR = 0
-    TINY  = 0
-    PRE   = "beta1"
+  # Returns the version of the currently loaded ActiveSupport as a Gem::Version
+  def self.version
+    Gem::Version.new "4.0.0.beta1"
+  end
 
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+  module VERSION #:nodoc:
+    MAJOR, MINOR, TINY, PRE = ActiveSupport.version.segments
+    STRING = ActiveSupport.version.to_s
   end
 end

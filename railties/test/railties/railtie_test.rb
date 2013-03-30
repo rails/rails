@@ -32,7 +32,7 @@ module RailtiesTest
       end
     end
 
-    test "railtie_name can be set manualy" do
+    test "railtie_name can be set manually" do
       class Foo < Rails::Railtie
         railtie_name "bar"
       end

@@ -344,7 +344,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
-        instrument(:write, name, options) do |payload|
+        instrument(:write, name, options) do
           entry = Entry.new(value, options)
           write_entry(namespaced_key(name, options), entry, options)
         end
@@ -355,7 +355,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
-        instrument(:delete, name) do |payload|
+        instrument(:delete, name) do
           delete_entry(namespaced_key(name, options), options)
         end
       end
@@ -365,7 +365,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
-        instrument(:exist?, name) do |payload|
+        instrument(:exist?, name) do
           entry = read_entry(namespaced_key(name, options), options)
           entry && !entry.expired?
         end

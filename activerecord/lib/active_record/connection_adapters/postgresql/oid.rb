@@ -63,6 +63,16 @@ module ActiveRecord
           end
         end
 
+        class Point < Type
+          def type_cast(value)
+            if String === value
+              ConnectionAdapters::PostgreSQLColumn.string_to_point value
+            else
+              value
+            end
+          end
+        end
+
         class Array < Type
           attr_reader :subtype
           def initialize(subtype)
@@ -330,6 +340,7 @@ module ActiveRecord
         register_type 'time', OID::Time.new
 
         register_type 'path', OID::Identity.new
+        register_type 'point', OID::Point.new
         register_type 'polygon', OID::Identity.new
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new

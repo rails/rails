@@ -1,8 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
+*   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
+    its payload.
+
+    *stopdropandrew*
+
+*   `ActiveSupport::TimeWithZone` raises `NoMethodError` in proper context.
+    Fixes #9772.
+
+    *Yves Senn*
+
+*   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
 
     *Charles Jones*
+
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 

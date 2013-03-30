@@ -26,7 +26,7 @@ module ActiveRecord
             join_table[reflection.association_foreign_key] => record.id
           )
 
-          owner.connection.insert stmt
+          owner.class.connection.insert stmt
         end
 
         record
@@ -41,7 +41,7 @@ module ActiveRecord
         def delete_records(records, method)
           if sql = options[:delete_sql]
             records = load_target if records == :all
-            records.each { |record| owner.connection.delete(interpolate(sql, record)) }
+            records.each { |record| owner.class.connection.delete(interpolate(sql, record)) }
           else
             relation  = join_table
             condition = relation[reflection.foreign_key].eq(owner.id)
@@ -53,7 +53,7 @@ module ActiveRecord
               )
             end
 
-            owner.connection.delete(relation.where(condition).compile_delete)
+            owner.class.connection.delete(relation.where(condition).compile_delete)
           end
         end
 
