@@ -75,8 +75,13 @@ module ActiveRecord
       end
     end
 
-    # Abstract base class for AggregateReflection and AssociationReflection. Objects of
+    # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
+    #
+    #   MacroReflection
+    #     AggregateReflection
+    #     AssociationReflection
+    #       ThroughReflection
     class MacroReflection
       # Returns the name of the macro.
       #
