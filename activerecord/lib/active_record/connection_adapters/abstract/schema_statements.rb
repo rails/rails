@@ -499,7 +499,7 @@ module ActiveRecord
       #
       # ====== Creating an index with a specific method
       #
-      #  add_index(:developers, :name, :using => 'btree')
+      #  add_index(:developers, :name, using: 'btree')
       #
       # generates
       #
@@ -510,7 +510,7 @@ module ActiveRecord
       #
       # ====== Creating an index with a specific type
       #
-      #   add_index(:developers, :name, :type => :fulltext)
+      #   add_index(:developers, :name, type: :fulltext)
       #
       # generates
       #
