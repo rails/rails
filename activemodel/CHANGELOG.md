@@ -1,7 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add ActiveModel::Errors#full_messages_for, a method that returns all the error
-    messages for a given attribute.
+*   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
+    for a given attribute.
+
+        class Person
+          include ActiveModel::Validations
+
+          attr_reader :name, :email
+          validates_presence_of :name, :email
+        end
+
+        person = Person.new
+        person.valid?                           # => false
+        person.errors.full_messages_for(:name)  # => ["Name can't be blank"]
 
     *Volodymyr Shatsky*
 

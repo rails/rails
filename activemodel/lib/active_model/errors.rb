@@ -12,7 +12,6 @@ module ActiveModel
   # A minimal implementation could be:
   #
   #   class Person
-  #
   #     # Required dependency for ActiveModel::Errors
   #     extend ActiveModel::Naming
   #
@@ -40,7 +39,6 @@ module ActiveModel
   #     def Person.lookup_ancestors
   #       [self]
   #     end
-  #
   #   end
   #
   # The last three methods are required in your object for Errors to be
