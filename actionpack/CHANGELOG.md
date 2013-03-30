@@ -1,7 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Ensure consistent fallback to the default layout lookup for layouts set
-    using symbols or procs that return nil.
+    using symbols or procs that return `nil`.
 
     All of the following layouts will result in the default layout lookup:
 
@@ -10,13 +10,13 @@
         layout proc { nil }
 
         layout :returns_nil
-
         def returns_nil
           nil
         end
 
-    Previously symbols and procs which returned nil resulted in no layout which
-    differed from the `layout nil` behavior.
+    Previously symbols and procs which returned `nil` resulted in no layout which
+    differed from the `layout nil` behavior. To get the "no layout" behavior just
+    return `false` instead of `nil` for `layout`.
 
     *Chris Nicola*
 
