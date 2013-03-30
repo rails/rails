@@ -47,7 +47,7 @@ module ShowExceptions
     end
   end
 
-  class ShowExceptionsOverridenController < ShowExceptionsController
+  class ShowExceptionsOverriddenController < ShowExceptionsController
     private
 
     def show_detailed_exceptions?
@@ -55,15 +55,15 @@ module ShowExceptions
     end
   end
 
-  class ShowExceptionsOverridenTest < ActionDispatch::IntegrationTest
+  class ShowExceptionsOverriddenTest < ActionDispatch::IntegrationTest
     test 'show error page' do
-      @app = ShowExceptionsOverridenController.action(:boom)
+      @app = ShowExceptionsOverriddenController.action(:boom)
       get '/', {'detailed' => '0'}
       assert_equal "500 error fixture\n", body
     end
 
     test 'show diagnostics message' do
-      @app = ShowExceptionsOverridenController.action(:boom)
+      @app = ShowExceptionsOverriddenController.action(:boom)
       get '/', {'detailed' => '1'}
       assert_match(/boom/, body)
     end
@@ -71,7 +71,7 @@ module ShowExceptions
 
   class ShowExceptionsFormatsTest < ActionDispatch::IntegrationTest
     def test_render_json_exception
-      @app = ShowExceptionsOverridenController.action(:boom)
+      @app = ShowExceptionsOverriddenController.action(:boom)
       get "/", {}, 'HTTP_ACCEPT' => 'application/json'
       assert_response :internal_server_error
       assert_equal 'application/json', response.content_type.to_s
@@ -79,7 +79,7 @@ module ShowExceptions
     end
 
     def test_render_xml_exception
-      @app = ShowExceptionsOverridenController.action(:boom)
+      @app = ShowExceptionsOverriddenController.action(:boom)
       get "/", {}, 'HTTP_ACCEPT' => 'application/xml'
       assert_response :internal_server_error
       assert_equal 'application/xml', response.content_type.to_s
@@ -87,7 +87,7 @@ module ShowExceptions
     end
 
     def test_render_fallback_exception
-      @app = ShowExceptionsOverridenController.action(:boom)
+      @app = ShowExceptionsOverriddenController.action(:boom)
       get "/", {}, 'HTTP_ACCEPT' => 'text/csv'
       assert_response :internal_server_error
       assert_equal 'text/html', response.content_type.to_s
@@ -96,7 +96,7 @@ module ShowExceptions
 
   class ShowFailsafeExceptionsTest < ActionDispatch::IntegrationTest
     def test_render_failsafe_exception
-      @app = ShowExceptionsOverridenController.action(:boom)
+      @app = ShowExceptionsOverriddenController.action(:boom)
       @exceptions_app = @app.instance_variable_get(:@exceptions_app)
       @app.instance_variable_set(:@exceptions_app, nil)
       $stderr = StringIO.new
