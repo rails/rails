@@ -47,7 +47,16 @@ task default: :test
 
 desc 'Runs test:units, test:functionals, test:integration together'
 task :test do
-  Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
+  tasks      = Rake.application.top_level_tasks
+  test_files = tasks.grep(/^test\//)
+  if test_files.any?
+    Rails::TestTask.new('test:single') { |t|
+      t.test_files = test_files
+    }
+    Rake::Task['test:single'].invoke
+  else
+    Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
+  end
 end
 
 namespace :test do
