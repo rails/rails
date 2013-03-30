@@ -8,7 +8,6 @@ gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', github: 'rails/jquery-rails'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0.beta1'
-gem 'thor', github: 'wycats/thor'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
