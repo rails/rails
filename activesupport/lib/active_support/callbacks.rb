@@ -315,7 +315,7 @@ module ActiveSupport
         @config = {
           :terminator => "false",
           :scope => [ :kind ]
-        }.merge(config)
+        }.merge!(config)
       end
 
       def compile
