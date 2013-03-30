@@ -69,7 +69,9 @@
 
     *Prem Sichanugrist and Chris Toomey*
 
-*   Improve service pages with new layout (404, etc). *Stanislav Sobolev*
+*   Improve service pages with new layout (404, etc). 
+
+     *Stanislav Sobolev*
 
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
@@ -286,17 +288,25 @@
 
     *Derek Prior & Francesco Rodriguez*
 
-*   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
+*   Fixed support for `DATABASE_URL` environment variable for rake db tasks.
 
-*   rails dbconsole now can use SSL for MySQL. The database.yml options sslca, sslcert, sslcapath, sslcipher,
-    and sslkey now affect rails dbconsole. *Jim Kingdon and Lars Petrus*
+    *Grace Liu*
+
+*   `rails dbconsole` now can use SSL for MySQL. The `database.yml` options sslca, sslcert, sslcapath, sslcipher
+    and sslkey now affect `rails dbconsole`. 
+
+    *Jim Kingdon and Lars Petrus*
 
 *   Correctly handle SCRIPT_NAME when generating routes to engine in application
     that's mounted at a sub-uri. With this behavior, you *should not* use
-    default_url_options[:script_name] to set proper application's mount point by
-    yourself. *Piotr Sarnacki*
+    `default_url_options[:script_name]` to set proper application's mount point by
+    yourself.
 
-*   `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded *José Valim*
+     *Piotr Sarnacki*
+
+*   `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded .
+
+    *José Valim*
 
 *   The migration generator will now produce AddXXXToYYY/RemoveXXXFromYYY migrations with references statements, for instance
 
@@ -319,21 +329,35 @@
 
     *Aleksey Magusev*
 
-*   Set `config.active_record.migration_error` to `:page_load` for development *Richard Schneeman*
+*   Set `config.active_record.migration_error` to `:page_load` for development.
 
-*   Add runner to Rails::Railtie as a hook called just after runner starts. *José Valim & kennyj*
+     *Richard Schneeman*
 
-*   Add `/rails/info/routes` path, displays same information as `rake routes` *Richard Schneeman & Andrew White*
+*   Add runner to `Rails::Railtie` as a hook called just after runner starts.
 
-*   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
+     *José Valim & kennyj*
 
-*   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
+*   Add `/rails/info/routes` path, displays same information as `rake routes` .
 
-*   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
+     *Richard Schneeman & Andrew White*
 
-*   Remove Active Resource from Rails framework. *Prem Sichangrist*
+*   Improved `rake routes` output for redirects.
 
-*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. *Piotr Sarnacki*
+     *Łukasz Strzałkowski & Andrew White*
+
+*   Load all environments available in `config.paths["config/environments"]`.
+
+     *Piotr Sarnacki*
+
+*   Remove `Rack::SSL` in favour of `ActionDispatch::SSL`.
+
+     *Rafael Mendonça França*
+
+*   Remove Active Resource from Rails framework.
+
+     *Prem Sichangrist*
+
+*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. 
 
     Example:
 
@@ -345,12 +369,20 @@
           config.console = Pry
         end
 
-*   Add convenience `hide!` method to Rails generators to hide current generator
-    namespace from showing when running `rails generate`. *Carlos Antonio da Silva*
+    *Piotr Sarnacki*
 
-*   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+*   Add convenience `hide!` method to Rails generators to hide current generator
+    namespace from showing when running `rails generate`.
+
+     *Carlos Antonio da Silva*
+
+*   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. 
+
+    *Santiago Pastorino*
 
 *   Set config.action_mailer.async = true to turn on asynchronous
-    message delivery *Brian Cardarella*
+    message delivery.
+
+     *Brian Cardarella*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/railties/CHANGELOG.md) for previous changes.
