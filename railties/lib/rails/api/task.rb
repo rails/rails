@@ -64,15 +64,12 @@ module Rails
       def initialize(name)
         super
 
-        self.title    = 'Ruby on Rails API'
-        self.rdoc_dir = api_dir
-
-        options << '-m'  << api_main
-        options << '-e'  << 'UTF-8'
-
+        # Every time rake runs this task is instantiated as all the rest.
+        # Be lazy computing stuff to have as light impact as possible to
+        # the rest of tasks.
         before_running_rdoc do
-          configure_rdoc_files
           load_and_configure_sdoc
+          configure_rdoc_files
           setup_horo_variables
         end
       end
@@ -84,6 +81,13 @@ module Rails
 
       def load_and_configure_sdoc
         require 'sdoc'
+
+        self.title    = 'Ruby on Rails API'
+        self.rdoc_dir = api_dir
+
+        options << '-m'  << api_main
+        options << '-e'  << 'UTF-8'
+
         options << '-f'  << 'sdoc'
         options << '-T'  << 'rails'
       rescue LoadError
