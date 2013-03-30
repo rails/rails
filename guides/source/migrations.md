@@ -831,7 +831,7 @@ end
 ```
 
 ```ruby
-# app/model/product.rb
+# app/models/product.rb
 
 class Product < ActiveRecord::Base
   validates :flag, presence: true
@@ -856,7 +856,7 @@ end
 ```
 
 ```ruby
-# app/model/product.rb
+# app/models/product.rb
 
 class Product < ActiveRecord::Base
   validates :flag, :fuzz, presence: true

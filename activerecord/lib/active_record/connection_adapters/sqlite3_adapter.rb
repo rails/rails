@@ -6,9 +6,9 @@ gem 'sqlite3', '~> 1.3.6'
 require 'sqlite3'
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # sqlite3 adapter reuses sqlite_connection.
-    def sqlite3_connection(config) # :nodoc:
+    def sqlite3_connection(config)
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"

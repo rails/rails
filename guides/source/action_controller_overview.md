@@ -39,7 +39,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above could work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
 
 ```ruby
 def new
@@ -113,21 +113,21 @@ To send a hash you include the key name inside the brackets:
 </form>
 ```
 
-When this form is submitted, the value of `params[:client]` will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
+When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash that lets you use symbols and strings interchangeably as keys.
+Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash but lets you use symbols and strings interchangeably as keys.
 
 ### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
 
-So for example, if you are sending this JSON parameter:
+So for example, if you are sending this JSON content:
 
 ```json
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot Street" }`.
+You'll get `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
 Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
@@ -138,19 +138,19 @@ Also, if you've turned on `config.wrap_parameters` in your initializer or callin
 And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
 
 ```ruby
-{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
+{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" } }
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
-NOTE: A support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
+NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
 
 ### Routing Parameters
 
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', foo: "bar"
+match '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -173,7 +173,7 @@ If you define `default_url_options` in `ApplicationController`, as in the exampl
 
 ### Strong Parameters
 
-With strong parameters Action Controller parameters are forbidden to
+With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
 whitelisted. This means you'll have to make a conscious choice about
 which attributes to allow for mass updating and thus prevent
@@ -232,15 +232,15 @@ The permitted scalar types are `String`, `Symbol`, `NilClass`,
 `StringIO`, `IO`, `ActionDispatch::Http::UploadedFile` and
 `Rack::Test::UploadedFile`.
 
-To declare that the value in `params+ must be an array of permitted
+To declare that the value in `params` must be an array of permitted
 scalar values map the key to an empty array:
 
 ```ruby
 params.permit(:id => [])
 ```
 
-To whitelist an entire hash of parameters, the `permit!+ method can be
-used
+To whitelist an entire hash of parameters, the `permit!` method can be
+used:
 
 ```ruby
 params.require(:log_entry).permit!
@@ -273,7 +273,7 @@ to having a `name` (any permitted scalar values allowed, too).
 
 You want to also use the permitted attributes in the `new`
 action. This raises the problem that you can't use `require` on the
-root-key because normally it does not exist when calling `new`:
+root key because normally it does not exist when calling `new`:
 
 ```ruby
 # using `fetch` you can supply a default and use
@@ -281,7 +281,7 @@ root-key because normally it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-`accepts_nested_attributes_for` allows you update and destroy the
+`accepts_nested_attributes_for` allows you to update and destroy
 associated records. This is based on the `id` and `_destroy`
 parameters:
 
@@ -291,7 +291,7 @@ params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy]
 ```
 
 Hashes with integer keys are treated differently and you can declare
-the attributes as if they were direct children. You get this kind of
+the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
 
@@ -311,7 +311,7 @@ in mind. It is not meant as a silver bullet to handle all your
 whitelisting problems. However you can easily mix the API with your
 own code to adapt to your situation.
 
-Imagine a situation where you want to whitelist an attribute
+Imagine a scenario where you want to whitelist an attribute
 containing a hash with any keys. Using strong parameters you can't
 allow a hash with any keys but you can use a simple assignment to get
 the job done:

@@ -589,11 +589,11 @@ Creates an initializer in the `config/initializers` directory of the application
 initializer "begin.rb", "puts 'this is the beginning'"
 ```
 
-This method also takes a block:
+This method also takes a block, expected to return a string:
 
 ```ruby
 initializer "begin.rb" do
-  puts "Almost done!"
+  "puts 'this is the beginning'"
 end
 ```
 

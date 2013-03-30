@@ -6,7 +6,7 @@ module ActionDispatch
     # of its interface is available directly for convenience.
     #
     # Uploaded files are temporary files whose lifespan is one request. When
-    # the object is finalized Ruby unlinks the file, so there is not need to
+    # the object is finalized Ruby unlinks the file, so there is no need to
     # clean them with a separate maintenance task.
     class UploadedFile
       # The basename of the file in the client.

@@ -90,8 +90,9 @@ module ActiveRecord
     #     accepts_nested_attributes_for :posts
     #   end
     #
-    # You can now set or update attributes on an associated post model through
-    # the attribute hash.
+    # You can now set or update attributes on the associated posts through
+    # an attribute hash for a member: include the key +:posts_attributes+
+    # with an array of hashes of post attributes as a value.
     #
     # For each hash that does _not_ have an <tt>id</tt> key a new record will
     # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
@@ -114,10 +115,10 @@ module ActiveRecord
     # hashes if they fail to pass your criteria. For example, the previous
     # example could be rewritten as:
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
-    #    end
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
+    #   end
     #
     #   params = { member: {
     #     name: 'joe', posts_attributes: [
@@ -134,19 +135,19 @@ module ActiveRecord
     #
     # Alternatively, :reject_if also accepts a symbol for using methods:
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: :new_record?
-    #    end
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: :new_record?
+    #   end
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: :reject_posts
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: :reject_posts
     #
-    #      def reject_posts(attributed)
-    #        attributed['title'].blank?
-    #      end
-    #    end
+    #     def reject_posts(attributed)
+    #       attributed['title'].blank?
+    #     end
+    #   end
     #
     # If the hash contains an <tt>id</tt> key that matches an already
     # associated record, the matching record will be modified:
@@ -182,6 +183,29 @@ module ActiveRecord
     #   member.posts.length # => 2
     #   member.save
     #   member.reload.posts.length # => 1
+    #
+    # Nested attributes for an associated collection can also be passed in
+    # the form of a hash of hashes instead of an array of hashes:
+    #
+    #   Member.create(name:             'joe',
+    #                 posts_attributes: { first:  { title: 'Foo' },
+    #                                     second: { title: 'Bar' } })
+    #
+    # has the same effect as
+    #
+    #   Member.create(name:             'joe',
+    #                 posts_attributes: [ { title: 'Foo' },
+    #                                     { title: 'Bar' } ])
+    #
+    # The keys of the hash which is the value for +:posts_attributes+ are
+    # ignored in this case.
+    # However, it is not allowed to use +'id'+ or +:id+ for one of
+    # such keys, otherwise the hash will be wrapped in an array and
+    # interpreted as an attribute hash for a single post.
+    #
+    # Passing attributes for an associated collection in the form of a hash
+    # of hashes can be used with hashes generated from HTTP/HTML parameters,
+    # where there maybe no natural way to submit an array of hashes.
     #
     # === Saving
     #

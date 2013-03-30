@@ -135,7 +135,7 @@ module ActiveRecord
     #   # SELECT people.id, people.name FROM people
     #   # => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
     #
-    #   Person.uniq.pluck(:role)
+    #   Person.pluck('DISTINCT role')
     #   # SELECT DISTINCT role FROM people
     #   # => ['admin', 'member', 'guest']
     #

@@ -273,7 +273,7 @@ Action Mailer
   to: ["users@rails.com", "ddh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "..." # ommitted for beverity
+  mail: "..." # omitted for brevity
 }
 ```
 
@@ -299,7 +299,7 @@ Action Mailer
   to: ["users@rails.com", "ddh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "..." # ommitted for beverity
+  mail: "..." # omitted for brevity
 }
 ```
 
@@ -428,7 +428,7 @@ end
 ```
 
 Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
-from block args like this:
+from block arguments like this:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
@@ -442,7 +442,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 end
 ```
 
-Most times you only care about the data itself. Here is a shortuct to just get the data.
+Most times you only care about the data itself. Here is a shortcut to just get the data.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
@@ -465,7 +465,7 @@ Creating custom events
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
 all the heavy lifting for you. Simply call `instrument` with a `name`, `payload` and a block.
 The notification will be sent after the block returns. `ActiveSupport` will generate the start and end times
-as well as the unique ID. All data passed into the `insturment` call will make it into the payload.
+as well as the unique ID. All data passed into the `instrument` call will make it into the payload.
 
 Here's an example:
 

@@ -1344,7 +1344,7 @@ The second argument, `indent_string`, specifies which indent string to use. The 
 "foo".indent(2, "\t")    # => "\t\tfoo"
 ```
 
-While `indent_string` is tipically one space or tab, it may be any string.
+While `indent_string` is typically one space or tab, it may be any string.
 
 The third argument, `indent_empty_lines`, is a flag that says whether empty lines should be indented. Default is false.
 
@@ -2198,7 +2198,7 @@ This method accepts three options:
 * `:words_connector`: What is used to join the elements of arrays with 3 or more elements, except for the last two. Default is ", ".
 * `:last_word_connector`: What is used to join the last items of an array with 3 or more elements. Default is ", and ".
 
-The defaults for these options can be localised, their keys are:
+The defaults for these options can be localized, their keys are:
 
 | Option                 | I18n key                            |
 | ---------------------- | ----------------------------------- |

@@ -128,12 +128,12 @@ When you use `rails generate scaffold`, for a resource among other things it cre
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/models/post_test.rb
+create  test/unit/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/models/post_test.rb` looks like this:
+The default test stub in `test/unit/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
@@ -690,9 +690,9 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
     get "/login"
     assert_response :success
 
-    post_via_redirect "/login", username: users(:avs).username, password: users(:avs).password
+    post_via_redirect "/login", username: users(:david).username, password: users(:david).password
     assert_equal '/welcome', path
-    assert_equal 'Welcome avs!', flash[:notice]
+    assert_equal 'Welcome david!', flash[:notice]
 
     https!(false)
     get "/posts/all"
@@ -715,12 +715,12 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
   test "login and browse site" do
 
     # User avs logs in
-    avs = login(:avs)
+    avs = login(:david)
     # User guest logs in
     guest = login(:guest)
 
     # Both are now available in different sessions
-    assert_equal 'Welcome avs!', avs.flash[:notice]
+    assert_equal 'Welcome david!', avs.flash[:notice]
     assert_equal 'Welcome guest!', guest.flash[:notice]
 
     # User avs can browse site
@@ -997,5 +997,6 @@ The built-in `test/unit` based testing is not the only way to test Rails applica
 * [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
 * [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
 * [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
+* [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
 * [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
 * [RSpec](http://relishapp.com/rspec), a behavior-driven development framework

@@ -85,7 +85,7 @@
 
 *   Improve `String#squish` to handle Unicode whitespace. *Antoine Lyset*
 
-*   Standardise on `to_time` returning an instance of `Time` in the local system timezone
+*   Standardize on `to_time` returning an instance of `Time` in the local system timezone
     across `String`, `Time`, `Date`, `DateTime` and `ActiveSupport::TimeWithZone`.
 
     *Andrew White*
@@ -151,7 +151,7 @@
 
 *   Remove surrogate unicode character encoding from `ActiveSupport::JSON.encode`
     The encoding scheme was broken for unicode characters outside the basic multilingual plane;
-    since json is assumed to be UTF-8, and we already force the encoding to UTF-8,
+    since JSON is assumed to be UTF-8, and we already force the encoding to UTF-8,
     simply pass through the un-encoded characters.
 
     *Brett Carter*
@@ -370,7 +370,7 @@
 
 *   An optional block can be passed to `HashWithIndifferentAccess#update` and `#merge`.
     The block will be invoked for each duplicated key, and used to resolve the conflict,
-    thus replicating the behaviour of the corresponding methods on the `Hash` class.
+    thus replicating the behavior of the corresponding methods on the `Hash` class.
 
     *Leo Cassarani*
 

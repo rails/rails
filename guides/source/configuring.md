@@ -646,7 +646,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_support.initialize_time_zone` Sets the default time zone for the application based on the `config.time_zone` setting, which defaults to "UTC".
 
-* `active_support.initialize_beginning_of_week` Sets the default beginnig of week for the application based on `config.beginning_of_week` setting, which defaults to `:monday`.
+* `active_support.initialize_beginning_of_week` Sets the default beginning of week for the application based on `config.beginning_of_week` setting, which defaults to `:monday`.
 
 * `action_dispatch.configure` Configures the `ActionDispatch::Http::URL.tld_length` to be set to the value of `config.action_dispatch.tld_length`.
 
@@ -698,7 +698,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `engines_blank_point` Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
-* `add_generator_templates` Finds templates for generators at `lib/templates` for the application, railities and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
+* `add_generator_templates` Finds templates for generators at `lib/templates` for the application, railties and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
 
 * `ensure_autoload_once_paths_as_subset` Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 

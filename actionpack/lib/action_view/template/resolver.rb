@@ -255,7 +255,7 @@ module ActionView
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}")
   #
-  # This one allows you to keep files with different formats in seperated subdirectories,
+  # This one allows you to keep files with different formats in separate subdirectories,
   # eg. `users/new.html` will be loaded from `users/html/new.erb` or `users/new.html.erb`,
   # `users/new.js` from `users/js/new.erb` or `users/new.js.erb`, etc.
   #
