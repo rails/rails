@@ -7,13 +7,13 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     assert_nil a[:not_set]
 
-    a[:allow_concurreny] = true
+    a[:allow_concurrency] = true
     assert_equal 1, a.size
-    assert a[:allow_concurreny]
+    assert a[:allow_concurrency]
 
-    a[:allow_concurreny] = false
+    a[:allow_concurrency] = false
     assert_equal 1, a.size
-    assert !a[:allow_concurreny]
+    assert !a[:allow_concurrency]
 
     a["else_where"] = 56
     assert_equal 2, a.size
@@ -23,10 +23,10 @@ class OrderedOptionsTest < ActiveSupport::TestCase
   def test_looping
     a = ActiveSupport::OrderedOptions.new
 
-    a[:allow_concurreny] = true
+    a[:allow_concurrency] = true
     a["else_where"] = 56
 
-    test = [[:allow_concurreny, true], [:else_where, 56]]
+    test = [[:allow_concurrency, true], [:else_where, 56]]
 
     a.each_with_index do |(key, value), index|
       assert_equal test[index].first, key
@@ -39,13 +39,13 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     assert_nil a.not_set
 
-    a.allow_concurreny = true
+    a.allow_concurrency = true
     assert_equal 1, a.size
-    assert a.allow_concurreny
+    assert a.allow_concurrency
 
-    a.allow_concurreny = false
+    a.allow_concurrency = false
     assert_equal 1, a.size
-    assert !a.allow_concurreny
+    assert !a.allow_concurrency
 
     a.else_where = 56
     assert_equal 2, a.size
