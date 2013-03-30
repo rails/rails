@@ -69,12 +69,11 @@ module Rails
 
         options << '-m'  << api_main
         options << '-e'  << 'UTF-8'
-        options << '-f'  << 'sdoc'
-        options << '-T'  << 'rails'
 
         configure_rdoc_files
 
         before_running_rdoc do
+          load_and_configure_sdoc
           setup_horo_variables
         end
       end
@@ -82,6 +81,15 @@ module Rails
       # Hack, ignore the desc calls performed by the original initializer.
       def desc(description)
         # no-op
+      end
+
+      def load_and_configure_sdoc
+        require 'sdoc'
+        options << '-f'  << 'sdoc'
+        options << '-T'  << 'rails'
+      rescue LoadError
+        $stderr.puts %(Unable to load SDoc, please add\n\n    gem 'sdoc', require: false\n\nto the Gemfile.)
+        exit 1
       end
 
       def configure_rdoc_files
@@ -111,9 +119,8 @@ module Rails
     end
 
     class RepoTask < Task
-      def initialize(name)
+      def load_and_configure_sdoc
         super
-
         options << '-g' # link to GitHub, SDoc flag
       end
 

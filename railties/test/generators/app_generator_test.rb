@@ -303,6 +303,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /# gem 'debugger'/
   end
 
+  def test_inclusion_of_lazy_loaded_sdoc
+    run_generator
+    assert_file 'Gemfile', /gem 'sdoc', require: false/
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))

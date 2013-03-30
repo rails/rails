@@ -23,7 +23,7 @@ gem 'turbolinks'
 
 group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
-  gem 'sdoc'
+  gem 'sdoc', require: false
 end
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
