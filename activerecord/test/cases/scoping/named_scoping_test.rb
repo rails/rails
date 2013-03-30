@@ -6,7 +6,7 @@ require 'models/reply'
 require 'models/author'
 require 'models/developer'
 
-class NamedScopeTest < ActiveRecord::TestCase
+class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
