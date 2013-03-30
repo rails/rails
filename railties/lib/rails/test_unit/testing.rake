@@ -73,8 +73,7 @@ namespace :test do
 
   # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
   desc "Run tests quickly by merging all types and not resetting db"
-  Rake::TestTask.new(:all) do |t|
-    t.libs << "test"
+  Rails::TestTask.new(:all) do |t|
     t.pattern = "test/**/*_test.rb"
   end
 
@@ -83,7 +82,7 @@ namespace :test do
     task :db => %w[db:test:prepare test:all]
   end
 
-  Rake::TestTask.new(recent: "test:prepare") do |t|
+  Rails::TestTask.new(recent: "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
       recent_tests('app/models/**/*.rb', 'test/models', since) +
@@ -91,12 +90,11 @@ namespace :test do
       recent_tests('app/controllers/**/*.rb', 'test/controllers', since) +
       recent_tests('app/controllers/**/*.rb', 'test/functional', since)
 
-    t.libs << 'test'
     t.test_files = touched.uniq
   end
   Rake::Task['test:recent'].comment = "Test recent changes"
 
-  Rake::TestTask.new(uncommitted: "test:prepare") do |t|
+  Rails::TestTask.new(uncommitted: "test:prepare") do |t|
     def t.file_list
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.split.map { |path| path.chomp[7 .. -1] }
@@ -115,47 +113,36 @@ namespace :test do
                          controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
       (unit_tests + functional_tests).uniq.select { |file| File.exist?(file) }
     end
-
-    t.libs << 'test'
   end
   Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
 
-  Rake::TestTask.new(single: "test:prepare") do |t|
-    t.libs << "test"
-  end
+  Rails::TestTask.new(single: "test:prepare")
 
-  Rails::SubTestTask.new(models: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(models: "test:prepare") do |t|
     t.pattern = 'test/models/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(helpers: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(helpers: "test:prepare") do |t|
     t.pattern = 'test/helpers/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(units: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(units: "test:prepare") do |t|
     t.pattern = 'test/{models,helpers,unit}/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(controllers: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(controllers: "test:prepare") do |t|
     t.pattern = 'test/controllers/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(mailers: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(mailers: "test:prepare") do |t|
     t.pattern = 'test/mailers/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(functionals: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(functionals: "test:prepare") do |t|
     t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(integration: "test:prepare") do |t|
-    t.libs << "test"
+  Rails::TestTask.new(integration: "test:prepare") do |t|
     t.pattern = 'test/integration/**/*_test.rb'
   end
 end
