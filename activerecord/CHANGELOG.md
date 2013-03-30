@@ -1,41 +1,41 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Allow ActiveRecord::Base.connection_handler to have thread affinity and be
-    settable, this effectively allows ActiveRecord to be used in a multi threaded
+*   Allow `ActiveRecord::Base.connection_handler` to have thread affinity and be
+    settable, this effectively allows Active Record to be used in a multi threaded
     setup with multiple connections to multiple dbs.
 
     *Sam Saffron*
 
-*   `rename_column` preserves auto_increment in mysql migrations.
+*   `rename_column` preserves `auto_increment` in MySQL migrations.
     Fixes #3493.
 
     *Vipul A M*
 
-*   PostgreSQL geometric type point is supported by ActiveRecord. Fixes #7324.
+*   PostgreSQL geometric type point is now supported by Active Record. Fixes #7324.
 
     *Martin Schuerrer*
 
 *   Add support for concurrent indexing in PostgreSQL adapter via the
-    `algorithm: :concurrently` option
+    `algorithm: :concurrently` option.
 
         add_index(:people, :last_name, algorithm: :concurrently)
 
-    Also adds support for MySQL index algorithms (`COPY`, `INPLACE`,
-    `DEFAULT`) via the `algorithm: :copy` option
+    Also add support for MySQL index algorithms (`COPY`, `INPLACE`,
+    `DEFAULT`) via the `:algorithm` option.
 
         add_index(:people, :last_name, algorithm: :copy) # or :inplace/:default
 
     *Dan McClain*
 
-*   Add support for fulltext and spatial indexes on MySQL tables with MyISAM database 
-    engine via the `type: 'FULLTEXT'` / `type: 'SPATIAL'` option
+*   Add support for fulltext and spatial indexes on MySQL tables with MyISAM database
+    engine via the `type: 'FULLTEXT'` / `type: 'SPATIAL'` option.
 
         add_index(:people, :last_name, type: 'FULLTEXT')
         add_index(:people, :last_name, type: 'SPATIAL')
 
     *Ken Mazaika*
 
-*   Add an `add_index` override in Postgresql adapter and MySQL adapter
+*   Add an `add_index` override in PostgreSQL adapter and MySQL adapter
     to allow custom index type support. Fixes #6101.
 
         add_index(:wikis, :body, :using => 'gin')
