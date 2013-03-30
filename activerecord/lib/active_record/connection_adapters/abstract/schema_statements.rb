@@ -499,12 +499,12 @@ module ActiveRecord
       #
       # ====== Creating an index with a specific method
       #
-      #  add_index(:developers, :name, using: 'btree')
+      #   add_index(:developers, :name, using: 'btree')
       #
       # generates
       #
-      #  CREATE INDEX index_developers_on_name ON developers USING btree (name) -- PostgreSQL
-      #  CREATE INDEX index_developers_on_name USING btree ON developers (name) -- MySQL
+      #   CREATE INDEX index_developers_on_name ON developers USING btree (name) -- PostgreSQL
+      #   CREATE INDEX index_developers_on_name USING btree ON developers (name) -- MySQL
       #
       # Note: only supported by PostgreSQL and MySQL
       #
