@@ -70,9 +70,8 @@ module Rails
         options << '-m'  << api_main
         options << '-e'  << 'UTF-8'
 
-        configure_rdoc_files
-
         before_running_rdoc do
+          configure_rdoc_files
           load_and_configure_sdoc
           setup_horo_variables
         end
