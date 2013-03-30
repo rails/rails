@@ -1,28 +1,27 @@
 ## unreleased ##
 
-*   Fixed assets loading performance in 3.2.13.
+*   Fix assets loading performance in 3.2.13.
 
-    #8756 uses Sprockets for resolving files that already exists on disk, for those files
-    their extensions don't need to be rewritten.
+    Issue #8756 uses Sprockets for resolving files that already exist on disk,
+    for those files their extensions don't need to be rewritten.
 
     Fixes #9803.
 
     *Fred Wu*
 
-*   Fixed `ActionController#action_missing` not being called.
-
+*   Fix `ActionController#action_missing` not being called.
     Fixes #9799.
 
     *Janko Luin*
 
-*   `ActiveSupport::NumberHelper#number_to_human` returns the number unaltered when
+*   `ActionView::Helpers::NumberHelper#number_to_human` returns the number unaltered when
     the units hash does not contain the needed key, e.g. when the number provided is less
-    than the largest key proivided.
+    than the largest key provided.
 
     Examples:
 
-        number_to_human(123, :units => {}) # => 123
-        number_to_human(123, :units => {:thousand => 'k'}) # => 123
+        number_to_human(123, units: {})                # => 123
+        number_to_human(123, units: { thousand: 'k' }) # => 123
 
     Fixes #9269.
     Backport #9347.
