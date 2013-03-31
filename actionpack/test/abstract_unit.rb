@@ -332,7 +332,7 @@ end
 
 module ActionDispatch
   module RoutingVerbs
-    def get(uri_or_host, path = nil, port = nil)
+    def get(uri_or_host, path = nil)
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
