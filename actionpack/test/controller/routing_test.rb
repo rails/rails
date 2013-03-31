@@ -715,17 +715,13 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def setup_request_method_routes_for(method)
     rs.draw do
-      match '/match' => 'books#get', :via => :get
-      match '/match' => 'books#post', :via => :post
-      match '/match' => 'books#put', :via => :put
-      match '/match' => 'books#patch', :via => :patch
-      match '/match' => 'books#delete', :via => :delete
+      match '/match' => "books##{method}", :via => method.to_sym
     end
   end
 
   %w(GET PATCH POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
-      setup_request_method_routes_for(request_method)
+      setup_request_method_routes_for(request_method.downcase)
       params = rs.recognize_path("/match", :method => request_method)
       assert_equal request_method.downcase, params[:action]
     end
