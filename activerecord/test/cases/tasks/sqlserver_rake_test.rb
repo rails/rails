@@ -14,6 +14,13 @@ module ActiveRecord
       }
       ActiveRecord::Base.stubs(:connection).returns(@connection)
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
+
+      @tasks = Class.new(ActiveRecord::Tasks::SqlserverDatabaseTasks) do
+        def initialize(configuration)
+          ActiveSupport::Deprecation.silence { super }
+        end
+      end
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:class_for_adapter).returns(@tasks)
     end
   end
 
