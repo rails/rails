@@ -67,7 +67,7 @@ module ActionView
       # you don't specify an extension, <tt>.css</tt> will be appended automatically.
       # You can modify the link attributes by passing a hash as the last argument.
       # For historical reasons, the 'media' attribute will always be present and defaults
-      # to "screen", so you must explicitely set it to "all" for the stylesheet(s) to
+      # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
       #   stylesheet_link_tag "style"
