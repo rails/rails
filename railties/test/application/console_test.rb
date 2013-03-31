@@ -127,24 +127,23 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def spawn_console
-    pid = Process.spawn(
+    Process.spawn(
       "#{app_path}/bin/rails console --sandbox",
       in: @slave, out: @slave, err: @slave
     )
 
     assert_output "> ", 30
-    pid
   end
 
   def test_sandbox
-    pid = spawn_console
+    spawn_console
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
     @master.puts "quit"
 
-    pid = spawn_console
+    spawn_console
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
