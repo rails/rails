@@ -1095,18 +1095,37 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_as_regexp
     @firm = Firm.new("D")
 
-    priority_zones = /A|D/
     @fake_timezones.each_with_index do |tz, i|
-      priority_zones.stubs(:===).with(tz).returns(i.zero? || i == 3)
+      tz.stubs(:=~).returns(i.zero? || i == 3)
     end
 
-    html = time_zone_select("firm", "time_zone", priority_zones)
+    html = time_zone_select("firm", "time_zone", /A|D/)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"D\" selected=\"selected\">D</option>" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
+                 "<option value=\"E\">E</option>" +
+                 "</select>",
+                 html
+  end
+  
+  def test_time_zone_select_with_priority_zones_as_regexp_using_grep_finds_no_zones
+    @firm = Firm.new("D")
+  
+    priority_zones = /A|D/
+    @fake_timezones.each_with_index do |tz, i|
+      priority_zones.stubs(:===).with(tz).raises(Exception)
+    end
+  
+    html = time_zone_select("firm", "time_zone", priority_zones)
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html
