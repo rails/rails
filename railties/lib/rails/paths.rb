@@ -183,22 +183,20 @@ module Rails
       # Expands all paths against the root and return all unique values.
       def expanded
         raise "You need to set a path root" unless @root.path
-        result = []
 
-        each do |p|
+        result = @paths.map do |p|
           path = File.expand_path(p, @root.path)
 
           if @glob && File.directory?(path)
             Dir.chdir(path) do
-              result.concat(Dir.glob(@glob).map { |file| File.join path, file }.sort)
+              Dir.glob(@glob).map { |file| File.join path, file }
             end
           else
-            result << path
+            path
           end
         end
 
-        result.uniq!
-        result
+        result.flatten.uniq
       end
 
       # Returns all expanded paths but only if they exist in the filesystem.
