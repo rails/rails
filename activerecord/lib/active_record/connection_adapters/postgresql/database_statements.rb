@@ -4,43 +4,48 @@ module ActiveRecord
       module DatabaseStatements
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
-          ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+          ExplainPrettyPrinter.pp(exec_query(sql, 'EXPLAIN', binds))
         end
 
         class ExplainPrettyPrinter # :nodoc:
-          # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
-          # PostgreSQL shell:
-          #
-          #                                     QUERY PLAN
-          #   ------------------------------------------------------------------------------
-          #    Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
-          #      Join Filter: (posts.user_id = users.id)
-          #      ->  Index Scan using users_pkey on users  (cost=0.00..8.27 rows=1 width=4)
-          #            Index Cond: (id = 1)
-          #      ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
-          #            Filter: (posts.user_id = 1)
-          #   (6 rows)
-          #
-          def pp(result)
-            header = result.columns.first
-            lines  = result.rows.map(&:first)
 
-            # We add 2 because there's one char of padding at both sides, note
-            # the extra hyphens in the example above.
-            width = [header, *lines].map(&:length).max + 2
+          class << self
 
-            pp = []
+            # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
+            # PostgreSQL shell:
+            #
+            #                                     QUERY PLAN
+            #   ------------------------------------------------------------------------------
+            #    Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
+            #      Join Filter: (posts.user_id = users.id)
+            #      ->  Index Scan using users_pkey on users  (cost=0.00..8.27 rows=1 width=4)
+            #            Index Cond: (id = 1)
+            #      ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
+            #            Filter: (posts.user_id = 1)
+            #   (6 rows)
+            #
+            def pp(result)
+              header = result.columns.first
+              lines  = result.rows.map(&:first)
 
-            pp << header.center(width).rstrip
-            pp << '-' * width
+              # We add 2 because there's one char of padding at both sides, note
+              # the extra hyphens in the example above.
+              width = [header, *lines].map(&:length).max + 2
 
-            pp += lines.map {|line| " #{line}"}
+              pp = []
 
-            nrows = result.rows.length
-            rows_label = nrows == 1 ? 'row' : 'rows'
-            pp << "(#{nrows} #{rows_label})"
+              pp << header.center(width).rstrip
+              pp << '-' * width
 
-            pp.join("\n") + "\n"
+              pp += lines.map { |line| " #{line}" }
+
+              nrows = result.rows.length
+              rows_label = nrows == 1 ? 'row' : 'rows'
+              pp << "(#{nrows} #{rows_label})"
+
+              pp.join("\n") + "\n"
+            end
+
           end
         end
 
