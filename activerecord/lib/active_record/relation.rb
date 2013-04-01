@@ -10,7 +10,7 @@ module ActiveRecord
                             :extending]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
-                            :reverse_order, :distinct, :create_with]
+                            :reverse_order, :distinct, :create_with, :uniq]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
