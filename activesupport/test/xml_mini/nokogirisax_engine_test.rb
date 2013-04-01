@@ -157,6 +157,7 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
     </root>
     eoxml
     XmlMini.parse(io)
+    assert_equal_rexml(io)
   end
 
   def test_children_with_simple_cdata
