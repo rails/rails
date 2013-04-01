@@ -6,7 +6,7 @@ module ActionController
 
     # Before processing, set the request formats in current controller formats.
     def process_action(*) #:nodoc:
-      self.formats = request.formats.map { |x| x.ref }
+      self.formats = request.formats.map(&:ref)
       super
     end
 
@@ -21,9 +21,7 @@ module ActionController
     # Overwrite render_to_string because body can now be set to a rack body.
     def render_to_string(*)
       if self.response_body = super
-        string = ""
-        response_body.each { |r| string << r }
-        string
+        response_body.each_with_object("") { |r, string| string << r }
       end
     ensure
       self.response_body = nil
