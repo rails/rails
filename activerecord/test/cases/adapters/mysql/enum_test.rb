@@ -5,6 +5,6 @@ class MysqlEnumTest < ActiveRecord::TestCase
   end
 
   def test_enum_limit
-    assert_equal 5, EnumTest.columns.first.limit
+    assert_equal 6, EnumTest.columns.first.limit
   end
 end
