@@ -79,8 +79,20 @@ module ActiveRecord
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          if options[:finder_sql] || options[:inverse_of]
+          if options[:finder_sql]
             find_by_scan(*args)
+          elsif options[:inverse_of]
+            args = args.flatten
+            raise RecordNotFound, "Must specify an id to find" if args.blank?
+
+            result = find_by_scan(*args)
+
+            result_size = Array(result).size
+            if !result || result_size != args.size
+              scope.raise_record_not_found_exception!(args, result_size, args.size)
+            else
+              result
+            end
           else
             scope.find(*args)
           end
