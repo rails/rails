@@ -24,6 +24,12 @@ class REXMLEngineTest < ActiveSupport::TestCase
       morning
     </root>
     eoxml
-    XmlMini.parse(io)
+    assert_not_nil XmlMini.parse(io)
+    assert_equal_rexml(io)
+  end
+
+  def assert_equal_rexml(xml)
+    hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
+    assert_equal(hash, XmlMini.parse(xml))
   end
 end
