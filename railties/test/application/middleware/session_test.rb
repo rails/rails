@@ -157,10 +157,6 @@ module ApplicationTests
         end
       RUBY
 
-      add_to_config <<-RUBY
-        config.session_store :encrypted_cookie_store, key: '_myapp_session'
-      RUBY
-
       require "#{app_path}/config/environment"
 
       get '/foo/write_session'
@@ -178,7 +174,7 @@ module ApplicationTests
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body)['foo']
     end
 
-    test "session using upgrade signature to encryption cookie store works the same way as encrypted cookie store" do
+    test "session upgrading signature to encryption cookie store works the same way as encrypted cookie store" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
           get ':controller(/:action)'
@@ -208,7 +204,6 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'
       RUBY
 
       require "#{app_path}/config/environment"
@@ -228,7 +223,7 @@ module ApplicationTests
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body)['foo']
     end
 
-    test "session using upgrade signature to encryption cookie store upgrades session to encrypted mode" do
+    test "session upgrading signature to encryption cookie store upgrades session to encrypted mode" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
           get ':controller(/:action)'
@@ -264,7 +259,6 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'
       RUBY
 
       require "#{app_path}/config/environment"
@@ -286,6 +280,64 @@ module ApplicationTests
 
       get '/foo/read_raw_cookie'
       assert_equal 2, encryptor.decrypt_and_verify(last_response.body)['foo']
+    end
+
+    test "session upgrading legacy signed cookies to new signed cookies" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def write_raw_session
+            # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
+            cookies[:_myapp_session] = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJTE5NjVkOTU3MjBmZmZjMTIzOTQxYmRmYjdkMmU2ODcwBjsAVEkiCGZvbwY7AEZpBg==--315fb9931921a87ae7421aec96382f0294119749"
+            render nothing: true
+          end
+
+          def write_session
+            session[:foo] = session[:foo] + 1
+            render nothing: true
+          end
+
+          def read_session
+            render text: session[:foo]
+          end
+
+          def read_signed_cookie
+            render text: cookies.signed[:_myapp_session]['foo']
+          end
+
+          def read_raw_cookie
+            render text: cookies[:_myapp_session]
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        config.secret_key_base = nil
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get '/foo/write_raw_session'
+      get '/foo/read_session'
+      assert_equal '1', last_response.body
+
+      get '/foo/write_session'
+      get '/foo/read_session'
+      assert_equal '2', last_response.body
+
+      get '/foo/read_signed_cookie'
+      assert_equal '2', last_response.body
+
+      verifier = ActiveSupport::MessageVerifier.new(app.config.secret_token)
+
+      get '/foo/read_raw_cookie'
+      assert_equal 2, verifier.verify(last_response.body)['foo']
     end
   end
 end
