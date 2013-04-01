@@ -1,10 +1,10 @@
 module Rails
-  def self.version
-    Gem::Version.new "4.0.0.beta1"
-  end
+  module VERSION
+    MAJOR  = 4
+    MINOR  = 0
+    TINY   = 0
+    PRE    = "beta1"
 
-  module VERSION #:nodoc:
-    MAJOR, MINOR, TINY, PRE = Rails.version.segments
-    STRING = Rails.version.to_s
+    STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
 end
