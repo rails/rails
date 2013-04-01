@@ -176,6 +176,28 @@ module ActiveRecord
       false
     end
 
+    # This method is called whenever no records are found with either a single
+    # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
+    #
+    # The error message is different depending on whether a single id or
+    # multiple ids are provided. If multiple ids are provided, then the number
+    # of results obtained should be provided in the +result_size+ argument and
+    # the expected number of results should be provided in the +expected_size+
+    # argument.
+    def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
+      conditions = arel.where_sql
+      conditions = " [#{conditions}]" if conditions
+
+      if Array(ids).size == 1
+        error = "Couldn't find #{@klass.name} with #{primary_key}=#{ids}#{conditions}"
+      else
+        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
+        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
+      end
+
+      raise RecordNotFound, error
+    end
+
     protected
 
     def find_with_associations
@@ -259,11 +281,7 @@ module ActiveRecord
       relation.bind_values += [[column, id]]
       record = relation.take
 
-      unless record
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{primary_key}=#{id}#{conditions}"
-      end
+      raise_record_not_found_exception!(id, 0, 1) unless record
 
       record
     end
@@ -286,12 +304,7 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-
-        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
-        raise RecordNotFound, error
+        raise_record_not_found_exception!(ids, result.size, expected_size)
       end
     end
 
