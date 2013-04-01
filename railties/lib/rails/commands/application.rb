@@ -1,7 +1,7 @@
 require 'rails/version'
 
 if ['--version', '-v'].include?(ARGV.first)
-  puts "Rails #{Rails.version}"
+  puts "Rails #{Rails::VERSION::STRING}"
   exit(0)
 end
 

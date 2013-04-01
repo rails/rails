@@ -1,7 +1,7 @@
 require 'digest/md5'
 require 'securerandom'
 require 'active_support/core_ext/string/strip'
-require 'rails/version' unless defined?(Rails.version)
+require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
 require 'open-uri'
 require 'uri'
@@ -142,7 +142,7 @@ module Rails
         else
           <<-GEMFILE.strip_heredoc
             # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-            gem 'rails', '#{Rails.version}'
+            gem 'rails', '#{Rails::VERSION::STRING}'
           GEMFILE
         end
       end

@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 <% if options[:skip_gemspec] -%>
-<%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails.version %>"
+<%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
 <% else -%>
 # Declare your gem's dependencies in <%= name %>.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
