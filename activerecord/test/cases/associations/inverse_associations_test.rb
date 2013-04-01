@@ -305,7 +305,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
     man = Man.create!
-    interest = Interest.create!(man: man)
 
     invalid_id = 2394823094892348920348523452345
     assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
@@ -316,7 +315,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_raise_record_not_found_error_when_no_ids_are_passed
     man = Man.create!
-    interest = Interest.create!(man: man)
 
     assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
   end
