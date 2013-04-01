@@ -82,6 +82,8 @@ module ActiveRecord
 
         def extract_limit(sql_type)
           case sql_type
+          when /^enum\((.+)\)/i
+            $1.split(',').map{|enum| enum.strip.length - 2}.max
           when /blob|text/i
             case sql_type
             when /tiny/i
@@ -98,8 +100,6 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
-          when /^enum\((.+)\)/i
-            $1.split(',').map{|enum| enum.strip.length - 2}.max
           else
             super
           end
