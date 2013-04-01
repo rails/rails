@@ -24,11 +24,19 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
 At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself — and others — to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
+
+### Create a Self-Contained gist for Active Record Issues
+
+If you are filing a bug report for Active Record, please use
+[this template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb)
+if the bug is found in a published gem, and
+[this template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+if the bug happens in the master branch.
 
 ### Special Treatment for Security Issues
 
