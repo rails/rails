@@ -65,7 +65,7 @@
 
     *Prem Sichanugrist and Chris Toomey*
 
-*   Improve service pages with new layout (404, etc). 
+*   Improve service pages with new layout (404, etc).
 
      *Stanislav Sobolev*
 
@@ -289,7 +289,7 @@
     *Grace Liu*
 
 *   `rails dbconsole` now can use SSL for MySQL. The `database.yml` options sslca, sslcert, sslcapath, sslcipher
-    and sslkey now affect `rails dbconsole`. 
+    and sslkey now affect `rails dbconsole`.
 
     *Jim Kingdon and Lars Petrus*
 
@@ -353,7 +353,7 @@
 
      *Prem Sichangrist*
 
-*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block. 
+*   Allow to set class that will be used to run as a console, other than IRB, with `Rails.application.config.console=`. It's best to add it to `console` block.
 
     Example:
 
@@ -372,7 +372,7 @@
 
      *Carlos Antonio da Silva*
 
-*   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. 
+*   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies.
 
     *Santiago Pastorino*
 
