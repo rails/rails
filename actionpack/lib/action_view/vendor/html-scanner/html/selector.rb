@@ -281,12 +281,7 @@ module HTML
           matches = []
           while element = next_element(element)
             if subset = second.match(element, first)
-              if first && !subset.empty?
-                matches << subset.first
-                break
-              else
-                matches.concat subset
-              end
+              break if concatenate_subset_to_matches!(first, subset, matches)
             end
           end
           matches.empty? ? nil : matches
@@ -300,12 +295,7 @@ module HTML
           matches = []
           element.children.each do |child|
             if child.tag? && subset = second.match(child, first)
-              if first && !subset.empty?
-                matches << subset.first
-                break
-              else
-                matches.concat subset
-              end
+              break if concatenate_subset_to_matches!(first, subset, matches)
             end
           end
           matches.empty? ? nil : matches
@@ -321,12 +311,7 @@ module HTML
           while node = stack.pop
             next unless node.tag?
             if subset = second.match(node, first)
-              if first && !subset.empty?
-                matches << subset.first
-                break
-              else
-                matches.concat subset
-              end
+              break if concatenate_subset_to_matches!(first, subset, matches)
             elsif children = node.children
               stack.concat children.reverse
             end
@@ -342,7 +327,6 @@ module HTML
         end
       end
     end
-
 
     # :call-seq:
     #   match(element, first?) => array or nil
@@ -366,7 +350,7 @@ module HTML
       # Match element if no element name or element name same as element name
       if matched = (!@tag_name || @tag_name == element.name)
         # No match if one of the attribute matches failed
-        for attr in @attributes
+        @attributes.each do |attr|
           if element.attributes[attr[0]] !~ attr[1]
             matched = false
             break
@@ -376,7 +360,7 @@ module HTML
 
       # Pseudo class matches (nth-child, empty, etc).
       if matched
-        for pseudo in @pseudo
+        @pseudo.each do |pseudo|
           unless pseudo.call(element)
             matched = false
             break
@@ -386,11 +370,11 @@ module HTML
 
       # Negation. Same rules as above, but we fail if a match is made.
       if matched && @negation
-        for negation in @negation
+        @negation.each do |negation|
           if negation[:tag_name] == element.name
             matched = false
           else
-            for attr in negation[:attributes]
+            negation[:attributes].each do |attr|
               if element.attributes[attr[0]] =~ attr[1]
                 matched = false
                 break
@@ -398,7 +382,7 @@ module HTML
             end
           end
           if matched
-            for pseudo in negation[:pseudo]
+            negation[:pseudo].each do |pseudo|
               if pseudo.call(element)
                 matched = false
                 break
@@ -453,33 +437,14 @@ module HTML
     #     puts "Found text field with name #{match.attributes['name']}"
     #   end
     def select(root)
-      matches = []
-      stack = [root]
-      while node = stack.pop
-        if node.tag? && subset = match(node, false)
-          subset.each do |match|
-            matches << match unless matches.any? { |item| item.equal?(match) }
-          end
-        elsif children = node.children
-          stack.concat children.reverse
-        end
-      end
-      matches
+      select_helper(root)
     end
 
 
     # Similar to #select but returns the first matching element. Returns +nil+
     # if no element matches the selector.
     def select_first(root)
-      stack = [root]
-      while node = stack.pop
-        if node.tag? && subset = match(node, true)
-          return subset.first if !subset.empty?
-        elsif children = node.children
-          stack.concat children.reverse
-        end
-      end
-      nil
+      select_helper(root, true)
     end
 
 
@@ -809,6 +774,44 @@ module HTML
       second
     end
 
+    # A helper method that handles the work for selecting elements from html.
+    # By specifying the +return_first_match+ parameter, you can either return
+    # all matches that match +root+, or just the first one.
+    #
+    # If +return_first_match+ is true, then this method will only return the
+    # first match. Otherwise, it will return an array of all matches.
+    def select_helper(root, return_first_match = false)
+      matches = []
+      stack = [root]
+      while node = stack.pop
+        if node.tag? && subset = match(node, false)
+          return subset.first if !subset.empty? && return_first_match
+          subset.each do |match|
+            matches << match unless matches.any? { |item| item.equal?(match) }
+          end
+        elsif children = node.children
+          stack.concat children.reverse
+        end
+      end
+
+      return_first_match ? nil : matches
+    end
+
+    # This method adds the subset to the array of matches.
+    #
+    # The method returns true if one should break out of the loop in which the
+    # method has been called, and false otherwise.
+    #
+    # Used as a helper method for initialization in the Selector class.
+    def concatenate_subset_to_matches!(first, subset, matches)
+      if first && !subset.empty?
+        matches << subset.first
+        true
+      else
+        matches.concat subset
+        false
+      end
+    end
   end
 
 
