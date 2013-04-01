@@ -303,6 +303,24 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
   end
 
+  def test_raise_record_not_found_error_when_invalid_ids_are_passed
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    invalid_id = 2394823094892348920348523452345
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
+
+    invalid_ids = [8432342, 2390102913, 2453245234523452]
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_ids) }
+  end
+
+  def test_raise_record_not_found_error_when_no_ids_are_passed
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
   end
