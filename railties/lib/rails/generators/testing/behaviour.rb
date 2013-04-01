@@ -8,7 +8,6 @@ require 'rails/generators'
 module Rails
   module Generators
     module Testing
-
       module Behaviour
         extend ActiveSupport::Concern
 
@@ -21,6 +20,29 @@ module Rails
           self.default_arguments = []
         end
 
+        module ClassMethods
+          # Sets which generator should be tested:
+          #
+          #   tests AppGenerator
+          def tests(klass)
+            self.generator_class = klass
+          end
+
+          # Sets default arguments on generator invocation. This can be overwritten when
+          # invoking it.
+          #
+          #   arguments %w(app_name --skip-active-record)
+          def arguments(array)
+            self.default_arguments = array
+          end
+
+          # Sets the destination of generator files:
+          #
+          #   destination File.expand_path("../tmp", File.dirname(__FILE__))
+          def destination(path)
+            self.destination_root = path
+          end
+        end
 
         # Runs the generator configured for this class. The first argument is an array like
         # command line arguments:
@@ -55,53 +77,27 @@ module Rails
           Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(':'))
         end
 
-      protected
+        protected
 
-        def destination_root_is_set? # :nodoc:
-          raise "You need to configure your Rails::Generators::TestCase destination root." unless destination_root
-        end
-
-        def ensure_current_path # :nodoc:
-          cd current_path
-        end
-
-        def prepare_destination # :nodoc:
-          rm_rf(destination_root)
-          mkdir_p(destination_root)
-        end
-
-        def migration_file_name(relative) # :nodoc:
-          absolute = File.expand_path(relative, destination_root)
-          dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
-          Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
-        end
-
-
-        module ClassMethods
-          # Sets which generator should be tested:
-          #
-          #   tests AppGenerator
-          def tests(klass)
-            self.generator_class = klass
+          def destination_root_is_set? # :nodoc:
+            raise "You need to configure your Rails::Generators::TestCase destination root." unless destination_root
           end
 
-          # Sets default arguments on generator invocation. This can be overwritten when
-          # invoking it.
-          #
-          #   arguments %w(app_name --skip-active-record)
-          def arguments(array)
-            self.default_arguments = array
+          def ensure_current_path # :nodoc:
+            cd current_path
           end
 
-          # Sets the destination of generator files:
-          #
-          #   destination File.expand_path("../tmp", File.dirname(__FILE__))
-          def destination(path)
-            self.destination_root = path
+          def prepare_destination # :nodoc:
+            rm_rf(destination_root)
+            mkdir_p(destination_root)
           end
-        end
+
+          def migration_file_name(relative) # :nodoc:
+            absolute = File.expand_path(relative, destination_root)
+            dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
+            Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
+          end
       end
-
     end
   end
 end

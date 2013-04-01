@@ -1,9 +1,7 @@
 module Rails
   module Generators
     module Testing
-
       module Assertions
-
         # Asserts a given file exists. You need to supply an absolute path or a path relative
         # to the configured destination:
         #
@@ -118,7 +116,6 @@ module Rails
           assert_equal(value, create_generated_attribute(attribute_type).default)
         end
       end
-
     end
   end
 end
