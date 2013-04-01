@@ -30,6 +30,19 @@ At the minimum, your issue report needs a title and descriptive text. But that's
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
+### Create a gist for Active Record Issues
+
+If you are filing an Active Record bug then in order to make it easier to
+verify those bugs please use one of the templates mentioned below while
+creating the gist.
+
+* If you are using published versions of gems then please create a gist
+[like this](https://gist.github.com/neerajdotname/5187092).
+
+* If you are using master version of Rails then create a gist [like
+this](https://gist.github.com/neerajdotname/5187194). Note that in this
+case both `Gemfile` and test file are needed.
+
 ### Special Treatment for Security Issues
 
 WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
