@@ -17,10 +17,6 @@
 
     *Gabe Kopley*
 
-*   `Rails.version` now returns an instance of `Gem::Version`
-
-    *Charlie Somerville*
-
 *   Don't generate a scaffold.css when --no-assets is specified
 
     *Kevin Glowacz*
