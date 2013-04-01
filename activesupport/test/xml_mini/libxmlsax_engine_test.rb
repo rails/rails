@@ -131,19 +131,6 @@ class LibXMLSAXEngineTest < ActiveSupport::TestCase
     eoxml
   end
 
-  def test_parse_from_io
-    io = StringIO.new(<<-eoxml)
-    <root>
-      good
-      <products>
-        hello everyone
-      </products>
-      morning
-    </root>
-    eoxml
-    XmlMini.parse(io)
-  end
-
   def test_children_with_simple_cdata
     assert_equal_rexml(<<-eoxml)
     <root>
