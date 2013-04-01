@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Automatically configure cookie-based sessions to be encrypted if
+    `secret_key_base` is set, falling back to signed if only `secret_token`
+    is set. Automatically upgrade existing signed cookie-based sessions from
+    Rails 3.x to be encrypted if both `secret_key_base` and `secret_token`
+    are set, or signed with the new key generator if only `secret_token` is
+    set. This leaves only the `config.session_store :cookie_store` option and
+    removes the two new options introduced in 4.0.0.beta1:
+    `encrypted_cookie_store` and `upgrade_signature_to_encryption_cookie_store`.
+
+    *Trevor Turk*
+
 *   Ensure consistent fallback to the default layout lookup for layouts set
     using symbols or procs that return `nil`.
 
