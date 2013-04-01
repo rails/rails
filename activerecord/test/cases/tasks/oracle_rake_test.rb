@@ -17,7 +17,7 @@ module ActiveRecord
           ActiveSupport::Deprecation.silence { super }
         end
       end
-      ActiveRecord::Tasks::DatabaseTasks.stubs(:class_for_adapter).returns(@tasks)
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:class_for_adapter).returns(@tasks) unless defined? ActiveRecord::ConnectionAdapters::OracleAdapter
     end
   end
 
