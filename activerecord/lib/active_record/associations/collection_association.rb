@@ -83,7 +83,7 @@ module ActiveRecord
             find_by_scan(*args)
           elsif options[:inverse_of]
             args = args.flatten
-            raise RecordNotFound, "Must specify an id to find" if args.blank?
+            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args.blank?
 
             result = find_by_scan(*args)
 
