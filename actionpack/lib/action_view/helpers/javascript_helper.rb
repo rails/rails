@@ -81,7 +81,7 @@ module ActionView
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
       def button_to_function(name, function=nil, html_options={})
-        message = "button_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
+        message = "button_to_function is deprecated and will be removed from Rails 4.1. We recommend to use Unobtrusive JavaScript instead. " +
           "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
         ActiveSupport::Deprecation.warn message
 
@@ -103,7 +103,7 @@ module ActionView
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
       def link_to_function(name, function, html_options={})
-        message = "link_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
+        message = "link_to_function is deprecated and will be removed from Rails 4.1. We recommend to use Unobtrusive JavaScript instead. " +
           "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
         ActiveSupport::Deprecation.warn message
 
