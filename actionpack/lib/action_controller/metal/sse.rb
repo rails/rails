@@ -14,7 +14,7 @@ module ActionController
   # class MySSE < ActionController::Base
   #   include ActionController::Live
   #   include ActionController::ServerSentEvents
-  #   include ActionController::ServerSentEvents::ClassMethods
+  #   extend ActionController::ServerSentEvents::ClassMethods
   # end
   # 
   # in this way, an action named sse_source will be created automaticlly and you 
