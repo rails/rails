@@ -20,10 +20,19 @@ module ActionController
       end
 
       def send_an_sse
-        ActionController::ServerSentEvents.start_server
-        ActionController::ServerSentEvents.subscribe(response)
-        response.stream.write "hello"
-        ActionController::ServerSentEvents.send_sse_hash({:data => "Hi my name is John"})
+        start_serve do |client|
+          client.send_sse_hash :data => "david"
+        end
+      end
+    end
+
+    class TestController2 < ActionController::Base
+      include ActionController::Live
+      include ActionController::ServerSentEvents
+      extend ActionController::ServerSentEvents::ClassMethods
+
+      def self.controller_path
+        'test'
       end
     end
 
@@ -77,96 +86,96 @@ module ActionController
       assert_equal data, payload[:data]
     end
 
-    def test_sse_server_only_sends_data_when_there_is_a_subscriber
+    def test_send_sse_will_push_data_to_queue
+      client = ActionController::ServerSentEvents::SseClient.new
+      client.instance_variable_set "@stopped", false
+      client.send_sse_hash :data => "hello david", :id => "1234567"
+      queue = client.instance_variable_get "@sse_queue"
+
+      item = queue.pop true
+      assert_equal "hello david", item[:data]
+      assert_equal "1234567", item[:id]
+
+      client.send_sse ActionController::ServerSentEvents::ServerSentEvent.new("This is David")
+      item = queue.pop true
+      assert_equal "This is David", item[:data]
+    end
+
+
+    def test_sse_client_will_send_data_to_response_stream
       response = TestResponse.new
+      client = ActionController::ServerSentEvents::SseClient.new
+      client.subscribe response
 
-      sse_data = "I bet this is awesome, dude"
-      sse_server = ActionController::ServerSentEvents::SseServer.new
-      sse_server.subscribe(response)
-      sse_server.unsubscribe
-      sse_server.send_sse_hash({:data => sse_data})
+      t = Thread.new do
+        client.start_serve
+      end
 
-      assert !sse_server.empty_queue?, "There exists data in the queue, so it shouldn't be empty"
-      sse_server.start
-
-      new_response = TestResponse.new
-      assert !sse_server.empty_queue?, "There is no subscriber, so queue shouldn't be empty"
-      sse_server.subscribe(new_response)
-
-      sleep(0.1)
-      assert sse_server.empty_queue?, "The server should have sent the sse to the response"
-      new_response.stream.close
-      result = new_response.body
-      assert_match /^data: #{sse_data}$/, result
-    end
-
-    def test_stop_server_sets_continue_sending_variable_to_false
-      sse_server = ActionController::ServerSentEvents::SseServer.new
-      sse_server.start
-
-      assert sse_server.empty_queue?, "Sse server should be initialized with an empty queue"
-      assert sse_server.continue_sending, "Sse server should still be sending data"
-      sse_server.stop
-      assert !sse_server.continue_sending, "Stopping the sse server should stop data from getting sent"
-    end
-
-    def test_send_sses_via_the_server_sent_event_object
-      data = "I only have 21 dollars in my pocket"
-      name = "sse group"
-      retry_time = "2"
-
-      sse_server = ActionController::ServerSentEvents::SseServer.new
-      sse_object = ActionController::ServerSentEvents::ServerSentEvent.new(data, {:name => name, :retry => retry_time})
-
-      assert sse_server.empty_queue?, "Sse server should be initialized with an empty queue"
-      assert !sse_server.continue_sending, "Sse server should not be sending when initialized"
-
-      sse_server.send_sse(sse_object)
-      assert !sse_server.empty_queue?, "Sse server should have a non-empty queue after an sse is sent"
-
-      sse_server.start
-      response = TestResponse.new
-      sse_server.subscribe(response)
-      sleep(0.1)
-      response.stream.close
-      result = response.body
-
-      assert_match /^data: #{data}$/, result
-      assert_match /^name: #{name}$/, result
-      assert_match /^retry: #{retry_time}$/, result
-    end
-
-    def test_start_on_initialize_works_correctly
-      sse_server = ActionController::ServerSentEvents::SseServer.new(:start_on_initialize => true)
-      assert sse_server.continue_sending, "Sse server should be started when start_on_initialize is set"
-      sse_server.send_sse_hash(:data => "So much data!")
-      assert !sse_server.empty_queue?, "Sse queue should not be empty when sse hash is sent"
-    end
-
-    def test_streaming_sses_in_response_stream
-      response = TestResponse.new
-
-      sse_data = "I'm sending an sse!"
-      ActionController::ServerSentEvents.subscribe(response)
-      ActionController::ServerSentEvents.send_sse_hash({:data => sse_data})
-      sleep(0.1)  # Sleep so that the read queue has enough time to see the data
+      sleep(0.2)
+      client.send_sse_hash :data => "david", :id => "123456"
+      sleep(0.2)
+      t.exit
 
       response.stream.close
       result = response.body
-      assert_match /^id: \w+$/, result
-      assert_match /^data: #{sse_data}$/, result
+      assert_match /^id: 123456$/, result
+      assert_match /^data: david$/, result
     end
 
-    def test_streaming_sses_through_controller_method
+    def test_sse_client_will_stop_serve_when_response_stream_closed
+      response = TestResponse.new
+      client = ActionController::ServerSentEvents::SseClient.new
+      client.subscribe response
+      io_err = false
+
+      t = Thread.new do
+        begin
+          client.start_serve
+        rescue IOError
+          io_err = true
+        end
+      end
+
+      sleep(0.2)
+      client.send_sse_hash :data => "david"
+      assert t.alive?
+
+      response.stream.close
+      client.send_sse_hash :data => "david2" # This will cause an exception
+      sleep(0.2)
+      assert !t.alive?
+      assert io_err
+    end
+
+    def test_client_level_sse
       @controller = TestController.new
       get :send_an_sse
 
       sleep(0.1)  # Sleep so that the read queue has enough time to see the data
       response.stream.close
       result = response.body
-      assert_match /^data: Hi my name is John$/, result
+      assert_match /^data: david$/, result
       assert_match /^id: \w+$/, result
-      assert_match /^hello$/, result
+    end
+
+    def test_controller_level_sse
+      @controller = TestController2.new
+
+      Thread.new{
+        begin
+          get :sse_source
+        rescue => e
+          puts e
+        end
+      }
+
+      sleep(0.3) # the controller level sse is volatile, so we wait client 
+      TestController2.send_sse_hash :data => "david"
+      sleep(0.3) # wait process
+      response.stream.close
+      result = response.body
+      assert_match /^data: david$/, result
+      assert_match /^id: \w+$/, result
     end
   end
 end
