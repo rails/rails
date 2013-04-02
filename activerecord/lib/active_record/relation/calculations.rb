@@ -82,7 +82,7 @@ module ActiveRecord
     #       puts values["Drake"]
     #       # => 43
     #
-    #       drake  = Family.find_by_last_name('Drake')
+    #       drake  = Family.find_by(last_name: 'Drake')
     #       values = Person.group(:family).maximum(:age) # Person belongs_to :family
     #       puts values[drake]
     #       # => 43

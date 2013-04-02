@@ -62,14 +62,14 @@ module ActiveRecord
   # Note that the model is _not_ yet removed from the database:
   #
   #   id = post.author.id
-  #   Author.find_by_id(id).nil? # => false
+  #   Author.find_by(id: id).nil? # => false
   #
   #   post.save
   #   post.reload.author # => nil
   #
   # Now it _is_ removed from the database:
   #
-  #   Author.find_by_id(id).nil? # => true
+  #   Author.find_by(id: id).nil? # => true
   #
   # === One-to-many Example
   #
@@ -113,14 +113,14 @@ module ActiveRecord
   # Note that the model is _not_ yet removed from the database:
   #
   #   id = post.comments.last.id
-  #   Comment.find_by_id(id).nil? # => false
+  #   Comment.find_by(id: id).nil? # => false
   #
   #   post.save
   #   post.reload.comments.length # => 1
   #
   # Now it _is_ removed from the database:
   #
-  #   Comment.find_by_id(id).nil? # => true
+  #   Comment.find_by(id: id).nil? # => true
 
   module AutosaveAssociation
     extend ActiveSupport::Concern
