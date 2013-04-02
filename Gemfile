@@ -14,7 +14,7 @@ gem 'coffee-rails', '~> 4.0.0.beta1'
 gem 'uglifier', require: false
 
 group :doc do
-  gem 'sdoc',  github: 'voloko/sdoc'
+  gem 'sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb'
