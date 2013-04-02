@@ -1115,7 +1115,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
   
     priority_zones = /A|D/
-    @fake_timezones.each_with_index do |tz, i|
+    @fake_timezones.each do |tz|
       priority_zones.stubs(:===).with(tz).raises(Exception)
     end
   
