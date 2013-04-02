@@ -848,10 +848,8 @@ module ActiveRecord
 
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        association = @association
-
-        @association.scope.extending! do
-          define_method(:proxy_association) { association }
+        @association.scope.tap do |scope|
+          scope.proxy_association = @association
         end
       end
 
