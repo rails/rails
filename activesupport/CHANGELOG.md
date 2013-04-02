@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change date order (month, day, year) in locale/en.yml for en-US users.
+    Fixes #9884.
+
+    *kennyj*
+
 *   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
     its payload.
 
