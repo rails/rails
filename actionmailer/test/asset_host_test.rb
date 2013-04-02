@@ -12,15 +12,15 @@ end
 class AssetHostTest < ActiveSupport::TestCase
   def setup
     set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
     AssetHostMailer.configure do |c|
       c.asset_host = "http://www.example.com"
     end
   end
 
-  def teardown
-    restore_delivery_method
+  def test_setup_sets_right_action_mailer_options
+    assert_equal :test, ActionMailer::Base.delivery_method
+    assert ActionMailer::Base.perform_deliveries
+    assert_equal [], ActionMailer::Base.deliveries
   end
 
   def test_asset_host_as_string
