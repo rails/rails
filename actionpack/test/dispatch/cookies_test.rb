@@ -349,10 +349,15 @@ class CookiesTest < ActionController::TestCase
     assert response.headers["Set-Cookie"] =~ /user_name=david/
   end
 
-  def test_permanent_cookie
+  def test_set_permanent_cookie
     get :set_permanent_cookie
     assert_match(/Jamie/, @response.headers["Set-Cookie"])
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
+  end
+
+  def test_read_permanent_cookie
+    get :set_permanent_cookie
+    assert_equal 'Jamie', @controller.send(:cookies).permanent[:user_name]
   end
 
   def test_signed_cookie

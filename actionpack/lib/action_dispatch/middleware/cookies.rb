@@ -358,7 +358,7 @@ module ActionDispatch
       end
 
       def [](key)
-        @parent_jar[name.to_s]
+        @parent_jar[key.to_s]
       end
 
       def []=(key, options)
