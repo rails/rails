@@ -954,6 +954,37 @@ module ActiveRecord
         raise NoMethodError, "prepend on association is not defined. Please use << or append"
       end
 
+      # Adds one or more +records+ to the collection, like the +push+, +append+
+      # and +<<+ methods, but makes sure that none of the records are already
+      # included in the association.
+      #
+      # If any of the records provided are already included in the association,
+      # the method returns false and does not modify the association.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 0
+      #   fancy = Pet.new(name: 'Fancy-Fancy')
+      #   person.pets.push_if_absent(fancy)
+      #   person.pets.push_if_absent(fancy, Pet.new(name: 'Choo-Choo'))
+      #   person.pets.size # => 2
+      #
+      #   person.pets
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      def push_if_absent(*records)
+        if !records.any? { |r| proxy_association.include?(r) }
+          proxy_association.concat(records)
+          self
+        else
+          false
+        end
+      end
+
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
       # of an array with the deleted objects, so methods can be chained. See
       # +delete_all+ for more information.

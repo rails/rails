@@ -516,6 +516,46 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
   end
 
+  def test_push_if_absent_works_like_push_if_records_are_absent_from_association
+    count = posts(:thinking).tags.count
+    doomed = Tag.create!(:name => 'doomed')
+    doomed2 = Tag.create!(:name => 'doomed2')
+    quaked = Tag.create!(:name => 'quaked')
+
+    assert posts(:thinking).tags.push_if_absent(doomed, doomed2, quaked)
+    assert_equal count+3, posts(:thinking).tags.count
+  end
+
+  def test_push_if_absent_fails_when_records_are_in_the_association
+    count = posts(:thinking).tags.count
+    tiger = Tag.create!(:name => 'Tiger Woods')
+
+    assert posts(:thinking).tags.push_if_absent(tiger)
+    assert_equal count+1, posts(:thinking).tags.count
+
+    assert !posts(:thinking).tags.push_if_absent(tiger)
+    assert_equal count+1, posts(:thinking).tags.count
+
+    rory = Tag.create!(:name => 'Rory McIlroy')
+    assert !posts(:thinking).tags.push_if_absent(tiger, rory)
+    assert_equal count+1, posts(:thinking).tags.count
+
+    assert posts(:thinking).tags.push_if_absent(rory)
+    assert_equal count+2, posts(:thinking).tags.count
+  end
+
+  def test_push_if_absent_fails_when_id_already_exists_in_association
+    count = books(:awdr).references.count
+    reference = Book.create!(:name => "Freakonomics")
+
+    assert books(:awdr).references.push_if_absent(reference)
+    assert_equal count+1, books(:awdr).references.count
+
+    reference_clone = Book.find(reference.id)
+    assert !books(:awdr).references.push_if_absent(reference_clone)
+    assert_equal count+1, books(:awdr).references.count
+  end
+
   def test_has_many_through_collection_size_doesnt_load_target_if_not_loaded
     author = authors(:david)
     assert_equal 10, author.comments.size
