@@ -461,7 +461,7 @@ NOTE: Other engines, such as Devise, handle this a little differently by making 
 The engine contains migrations for the `blorgh_posts` and `blorgh_comments` table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
 ```bash
-$ rake blorgh:install:migrations
+$ rake blorgh_engine:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use `railties:install:migrations` instead:
