@@ -156,7 +156,7 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
       morning
     </root>
     eoxml
-    XmlMini.parse(io)
+    assert_equal_rexml(io)
   end
 
   def test_children_with_simple_cdata
@@ -207,10 +207,11 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
   end
 
   private
-  def assert_equal_rexml(xml)
-    hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
-    assert_equal(hash, XmlMini.parse(xml))
-  end
+    def assert_equal_rexml(xml)
+      parsed_xml = XmlMini.parse(xml)
+      hash = XmlMini.with_backend('REXML') { parsed_xml }
+      assert_equal(hash, parsed_xml)
+    end
 end
 
 end
