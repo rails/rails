@@ -29,7 +29,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate
@@ -345,7 +345,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate
