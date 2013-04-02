@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Extract and deprecate Firebird / Sqlserver / Oracle database tasks, because
+    These tasks should be supported by 3rd-party adapter.
+
+    *kennyj*
+
 *   Allow `ActiveRecord::Base.connection_handler` to have thread affinity and be
     settable, this effectively allows Active Record to be used in a multi threaded
     setup with multiple connections to multiple dbs.
