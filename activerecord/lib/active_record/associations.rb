@@ -988,7 +988,7 @@ module ActiveRecord
     # associated objects themselves. So with +has_and_belongs_to_many+ and +has_many+
     # <tt>:through</tt>, the join records will be deleted, but the associated records won't.
     #
-    # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by_name('food'))</tt>
+    # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by(name: 'food'))</tt>
     # you would want the 'food' tag to be unlinked from the post, rather than for the tag itself
     # to be removed from the database.
     #

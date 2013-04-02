@@ -316,7 +316,7 @@ module ActionController
   #       assert_response :found
   #
   #       # Assert that the controller really put the book in the database.
-  #       assert_not_nil Book.find_by_title("Love Hina")
+  #       assert_not_nil Book.find_by(title: "Love Hina")
   #     end
   #   end
   #

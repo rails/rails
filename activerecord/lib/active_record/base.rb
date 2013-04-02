@@ -160,10 +160,10 @@ module ActiveRecord #:nodoc:
   #
   # == Dynamic attribute-based finders
   #
-  # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects
+  # Dynamic attribute-based finders are a mildly deprecated way of getting (and/or creating) objects
   # by simple queries without turning to SQL. They work by appending the name of an attribute
   # to <tt>find_by_</tt> like <tt>Person.find_by_user_name</tt>.
-  # Instead of writing <tt>Person.where(user_name: user_name).first</tt>, you just do
+  # Instead of writing <tt>Person.find_by(user_name: user_name)</tt>, you can use
   # <tt>Person.find_by_user_name(user_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
@@ -172,7 +172,7 @@ module ActiveRecord #:nodoc:
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
   #
-  #  Person.where(user_name: user_name, password: password).first
+  #  Person.find_by(user_name: user_name, password: password)
   #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
   #
   # It's even possible to call these dynamic finder methods on relations and named scopes.
