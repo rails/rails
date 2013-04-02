@@ -108,7 +108,7 @@ module ActiveRecord
         parent ||= join_parts.last
         case associations
         when Symbol, String
-          reflection = parent.reflections[associations.to_s.intern] or
+          reflection = parent.reflections[associations.intern] or
           raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
