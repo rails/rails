@@ -31,7 +31,7 @@ module ActionDispatch
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
   #   # The cookie is signed by your app's <tt>config.secret_key_base</tt> value.
-  #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
+  #   # It can be read using the signed method <tt>cookies.signed[:name]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets a "permanent" cookie (which expires in 20 years from now).
@@ -53,13 +53,13 @@ module ActionDispatch
   #
   # Please note that if you specify a :domain when setting a cookie, you must also specify the domain when deleting the cookie:
   #
-  #  cookies[:key] = {
+  #  cookies[:name] = {
   #    value: 'a yummy cookie',
   #    expires: 1.year.from_now,
   #    domain: 'domain.com'
   #  }
   #
-  #  cookies.delete(:key, domain: 'domain.com')
+  #  cookies.delete(:name, domain: 'domain.com')
   #
   # The option symbols for setting cookies are:
   #
@@ -70,7 +70,7 @@ module ActionDispatch
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
   #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
-  #   <tt>:all</tt> again when deleting keys.
+  #   <tt>:all</tt> again when deleting cookies.
   #
   #     domain: nil  # Does not sets cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
@@ -280,7 +280,7 @@ module ActionDispatch
 
       # Sets the cookie named +name+. The second argument may be the very cookie
       # value, or a hash of options as documented above.
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
           value = options[:value]
@@ -291,10 +291,10 @@ module ActionDispatch
 
         handle_options(options)
 
-        if @cookies[key.to_s] != value or options[:expires]
-          @cookies[key.to_s] = value
-          @set_cookies[key.to_s] = options
-          @delete_cookies.delete(key.to_s)
+        if @cookies[name.to_s] != value or options[:expires]
+          @cookies[name.to_s] = value
+          @set_cookies[name.to_s] = options
+          @delete_cookies.delete(name.to_s)
         end
 
         value
@@ -303,24 +303,24 @@ module ActionDispatch
       # Removes the cookie on the client machine by setting the value to an empty string
       # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
-      def delete(key, options = {})
-        return unless @cookies.has_key? key.to_s
+      def delete(name, options = {})
+        return unless @cookies.has_key? name.to_s
 
         options.symbolize_keys!
         handle_options(options)
 
-        value = @cookies.delete(key.to_s)
-        @delete_cookies[key.to_s] = options
+        value = @cookies.delete(name.to_s)
+        @delete_cookies[name.to_s] = options
         value
       end
 
       # Whether the given cookie is to be deleted by this CookieJar.
       # Like <tt>[]=</tt>, you can pass in an options hash to test if a
       # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
-      def deleted?(key, options = {})
+      def deleted?(name, options = {})
         options.symbolize_keys!
         handle_options(options)
-        @delete_cookies[key.to_s] == options
+        @delete_cookies[name.to_s] == options
       end
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
@@ -342,7 +342,6 @@ module ActionDispatch
       self.always_write_cookie = false
 
       private
-
         def write_cookie?(cookie)
           @secure || !cookie[:secure] || always_write_cookie
         end
@@ -357,11 +356,11 @@ module ActionDispatch
         @options = options
       end
 
-      def [](key)
-        @parent_jar[key.to_s]
+      def [](name)
+        @parent_jar[name.to_s]
       end
 
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -369,7 +368,7 @@ module ActionDispatch
         end
 
         options[:expires] = 20.years.from_now
-        @parent_jar[key] = options
+        @parent_jar[name] = options
       end
     end
 
@@ -389,7 +388,7 @@ module ActionDispatch
         end
       end
 
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
           options[:value] = @verifier.generate(options[:value])
@@ -398,11 +397,10 @@ module ActionDispatch
         end
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
-        @parent_jar[key] = options
+        @parent_jar[name] = options
       end
 
       private
-
         def verify(signed_message)
           @verifier.verify(signed_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature
@@ -440,13 +438,13 @@ module ActionDispatch
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
       end
 
-      def [](key)
-        if encrypted_message = @parent_jar[key]
+      def [](name)
+        if encrypted_message = @parent_jar[name]
           decrypt_and_verify(encrypted_message)
         end
       end
 
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -455,11 +453,10 @@ module ActionDispatch
         options[:value] = @encryptor.encrypt_and_sign(options[:value])
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
-        @parent_jar[key] = options
+        @parent_jar[name] = options
       end
 
       private
-
         def decrypt_and_verify(encrypted_message)
           @encryptor.decrypt_and_verify(encrypted_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
