@@ -194,6 +194,10 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'Account') }
   end
 
+  def test_new_with_complex_inheritance
+    assert_nothing_raised { Client.new(type: 'VerySpecialClient') }
+  end
+
   def test_new_with_autoload_paths
     path = File.expand_path('../../models/autoloadable', __FILE__)
     ActiveSupport::Dependencies.autoload_paths << path
