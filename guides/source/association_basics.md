@@ -1648,9 +1648,10 @@ The `select` method lets you override the SQL `SELECT` clause that is used to re
 
 WARNING: If you specify your own `select`, be sure to include the primary key and foreign key columns of the associated model. If you do not, Rails will throw an error.
 
-##### `uniq`
+##### `distinct`
 
-Use the `uniq` method to keep the collection free of duplicates. This is mostly useful together with the `:through` option.
+Use the `distinct` method to keep the collection free of duplicates. This is
+mostly useful together with the `:through` option.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -1666,14 +1667,15 @@ person.posts.inspect # => [#<Post id: 5, name: "a1">, #<Post id: 5, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, post_id: 5>, #<Reading id: 13, person_id: 5, post_id: 5>]
 ```
 
-In the above case there are two readings and `person.posts` brings out both of them even though these records are pointing to the same post.
+In the above case there are two readings and `person.posts` brings out both of 
+them even though these records are pointing to the same post.
 
-Now let's set `uniq`:
+Now let's set `distinct`:
 
 ```ruby
 class Person
   has_many :readings
-  has_many :posts, -> { uniq }, through: :readings
+  has_many :posts, -> { distinct }, through: :readings
 end
 
 person = Person.create(name: 'Honda')
@@ -1684,7 +1686,29 @@ person.posts.inspect # => [#<Post id: 7, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>]
 ```
 
-In the above case there are still two readings. However `person.posts` shows only one post because the collection loads only unique records.
+In the above case there are still two readings. However `person.posts` shows 
+only one post because the collection loads only unique records.
+
+If you want to make sure that, upon insertion, all of the records in the 
+persisted association are distinct (so that you can be sure that when you 
+inspect the association that you will never find duplicate records), you should 
+add a unique index on the table itself. For example, if you have a table named 
+``person_posts`` and you want to make sure all the posts are unique, you could 
+add the following in a migration:
+
+```ruby
+add_index :person_posts, :post, :unique => true
+```
+
+Note that checking for uniqueness using something like ``include?`` is subject 
+to race conditions. Do not attempt to use ``include?`` to enforce distinctness 
+in an association. For instance, using the post example from above, the 
+following code would be racy because multiple users could be attempting this 
+at the same time:
+
+```ruby
+person.posts << post unless person.posts.include?(post)
+```
 
 #### When are Objects Saved?
 
