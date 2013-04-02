@@ -7,7 +7,7 @@ rescue LoadError, NameError
   $stderr.puts "Skipping KeyGenerator test: broken OpenSSL install"
 else
 
-# FIXME remove DummyKeyGenerator and this require in 4.1
+# FIXME remove LegacyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
@@ -418,29 +418,29 @@ class CookiesTest < ActionController::TestCase
 
   def test_raises_argument_error_if_missing_secret
     assert_raise(ArgumentError, nil.inspect) {
-      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new(nil)
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new(nil)
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, ''.inspect) {
-      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("")
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("")
       get :set_signed_cookie
     }
   end
 
   def test_raises_argument_error_if_secret_is_probably_insecure
     assert_raise(ArgumentError, "password".inspect) {
-      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("password")
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("password")
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, "secret".inspect) {
-      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("secret")
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("secret")
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, "12345678901234567890123456789".inspect) {
-      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("12345678901234567890123456789")
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("12345678901234567890123456789")
       get :set_signed_cookie
     }
   end

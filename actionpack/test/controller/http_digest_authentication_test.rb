@@ -1,5 +1,5 @@
 require 'abstract_unit'
-# FIXME remove DummyKeyGenerator and this require in 4.1
+# FIXME remove LegacyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 
 class HttpDigestAuthenticationTest < ActionController::TestCase
@@ -43,7 +43,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
     @secret = "4fb45da9e4ab4ddeb7580d6a35503d99"
-    @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new(@secret)
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new(@secret)
   end
 
   teardown do
