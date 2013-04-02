@@ -342,7 +342,6 @@ module ActionDispatch
       self.always_write_cookie = false
 
       private
-
         def write_cookie?(cookie)
           @secure || !cookie[:secure] || always_write_cookie
         end
@@ -402,7 +401,6 @@ module ActionDispatch
       end
 
       private
-
         def verify(signed_message)
           @verifier.verify(signed_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature
@@ -459,7 +457,6 @@ module ActionDispatch
       end
 
       private
-
         def decrypt_and_verify(encrypted_message)
           @encryptor.decrypt_and_verify(encrypted_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
