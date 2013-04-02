@@ -1,12 +1,12 @@
 require 'abstract_unit'
 require 'stringio'
-# FIXME remove DummyKeyGenerator and this require in 4.1
+# FIXME remove LegacyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 
 class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
-  Generator = ActiveSupport::DummyKeyGenerator.new(SessionSecret)
+  Generator = ActiveSupport::LegacyKeyGenerator.new(SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'SHA1')
   SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
