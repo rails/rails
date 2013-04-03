@@ -1,5 +1,25 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `belongs_to :touch` behavior now touches old association when
+    transitioning to new association.
+
+        class Passenger < ActiveRecord::Base
+          belongs_to :car, touch: true
+        end
+
+        car_1 = Car.create
+        car_2 = Car.create
+
+        passenger = Passenger.create car: car_1
+
+        passenger.car = car_2
+        passenger.save
+
+    Previously only car_2 would be touched. Now both car_1 and car_2
+    will be touched.
+
+    *Adam Gamble*
+
 *   Extract and deprecate Firebird / Sqlserver / Oracle database tasks, because
     These tasks should be supported by 3rd-party adapter.
 
@@ -598,28 +618,6 @@
     *Aaron Stone + Rafael Mendonça França*
 
 *   `Relation#merge` now only overwrites where values on the LHS of the
-=======
-*   Belongs_to :touch behavior now touches old association when
-    transitioning to new association
-
-        class Passenger < ActiveRecord::Base
-           belongs_to :car, touch: true
-        end
-
-        car_1 = Car.create
-        car_2 = Car.create
-
-        passenger = Passenger.create :car => car_1
-
-        passenger.car = car_2
-        passenger.save
-
-    Previously only car_2 would be touched. Now both car_1 and car_2
-    will be touched.
-
-    *Adam Gamble*
-
-*   Relation#merge now only overwrites where values on the LHS of the
     merge. Consider:
 
         left  = Person.where(age: [13, 14, 15])
