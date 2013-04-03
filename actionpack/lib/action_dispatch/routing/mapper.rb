@@ -589,8 +589,7 @@ module ActionDispatch
         private
           def map_method(method, args, &block)
             options = args.extract_options!
-            options[:via]    = method
-            options[:path] ||= args.first if args.first.is_a?(String)
+            options[:via] = method
             match(*args, options, &block)
             self
           end
@@ -1370,18 +1369,23 @@ module ActionDispatch
             paths = [path] + rest
           end
 
-          path_without_format = path.to_s.sub(/\(\.:format\)$/, '')
-          if using_match_shorthand?(path_without_format, options)
-            options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
-          end
-
           options[:anchor] = true unless options.key?(:anchor)
 
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
-          paths.each { |_path| decomposed_match(_path, options.dup) }
+          paths.each do |_path|
+            route_options = options.dup
+            route_options[:path] ||= _path if _path.is_a?(String)
+
+            path_without_format = _path.to_s.sub(/\(\.:format\)$/, '')
+            if using_match_shorthand?(path_without_format, route_options)
+              route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+            end
+
+            decomposed_match(_path, route_options)
+          end
           self
         end
 

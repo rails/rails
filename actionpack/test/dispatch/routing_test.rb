@@ -1134,6 +1134,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'projects#info', @response.body
   end
 
+  def test_match_with_many_paths_containing_a_slash
+    draw do
+      get 'get/first', 'get/second', 'get/third', :to => 'get#show'
+    end
+
+    get '/get/first'
+    assert_equal 'get#show', @response.body
+
+    get '/get/second'
+    assert_equal 'get#show', @response.body
+
+    get '/get/third'
+    assert_equal 'get#show', @response.body
+  end
+
   def test_match_shorthand_with_no_scope
     draw do
       get 'account/overview'
@@ -1154,6 +1169,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/account/shorthand', account_shorthand_path
     get '/account/shorthand'
     assert_equal 'account#shorthand', @response.body
+  end
+
+  def test_match_shorthand_with_multiple_paths_inside_namespace
+    draw do
+      namespace :proposals do
+        put 'activate', 'inactivate'
+      end
+    end
+
+    put '/proposals/activate'
+    assert_equal 'proposals#activate', @response.body
+
+    put '/proposals/inactivate'
+    assert_equal 'proposals#inactivate', @response.body
   end
 
   def test_match_shorthand_inside_namespace_with_controller
