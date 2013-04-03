@@ -1,4 +1,5 @@
 require 'securerandom'
+require 'thread_safe'
 
 module ActionController
 
@@ -47,17 +48,15 @@ module ActionController
     SSE_FIELDS = OPTIONAL_SSE_FIELDS + REQUIRED_SSE_FIELDS
 
     module ClassMethods
-      @@sse_clients = {}
-
       def self.extended(base)
         base.class_exec do
           # the entry point for a Controller level SSE source
           def sse_source
             start_serve self.class.client_list
           end
-        end
 
-        @@sse_clients[base] = []
+          @sse_clients = ThreadSafe::Array.new
+        end
       end
 
       def send_sse(sse)
@@ -79,7 +78,7 @@ module ActionController
       end
 
       def client_list
-        @@sse_clients[self]
+        @sse_clients
       end
     end
 
