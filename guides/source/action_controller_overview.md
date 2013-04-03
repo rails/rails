@@ -27,6 +27,16 @@ A controller can thus be thought of as a middle man between models and views. It
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
+Controller Naming Convention
+----------------------------
+
+The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`).  For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
+
+Following this convention will allow you to use default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your applciation.  See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+
+NOTE:  Controller naming convention differs from the naming convention of Models, which prefer a singular naming convention.
+
+
 Methods and Actions
 -------------------
 
@@ -788,7 +798,7 @@ Rails comes with two built-in HTTP authentication mechanisms:
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, `http_basic_authenticate_with`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 ```
@@ -800,7 +810,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, `authenticate_or_request_with_http_digest`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   USERS = { "lifo" => "world" }
 
   before_action :authenticate
