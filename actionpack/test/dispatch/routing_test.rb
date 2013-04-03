@@ -1102,6 +1102,28 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'projects#index', @response.body
   end
 
+  def test_scope_with_format_option
+    draw do
+      get "direct/index", as: :no_format_direct, format: false
+
+      scope format: false do
+        get "scoped/index", as: :no_format_scoped
+      end
+    end
+
+    assert_equal "/direct/index", no_format_direct_path
+    assert_equal "/direct/index?format=html", no_format_direct_path(format: "html")
+
+    assert_equal "/scoped/index", no_format_scoped_path
+    assert_equal "/scoped/index?format=html", no_format_scoped_path(format: "html")
+
+    get '/scoped/index'
+    assert_equal "scoped#index", @response.body
+
+    get '/scoped/index.html'
+    assert_equal "Not Found", @response.body
+  end
+
   def test_index
     draw do
       get '/info' => 'projects#info', :as => 'info'
