@@ -268,7 +268,7 @@ config.middleware.delete "Rack::MethodOverride"
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
-* +config.active_record.cache_timestamp_format+ controls the format of the timestamp value in the cache key. Default is +:number+.
+* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:number`.
 
 The MySQL adapter adds one additional configuration option:
 
