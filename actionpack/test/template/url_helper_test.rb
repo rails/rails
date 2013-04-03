@@ -538,6 +538,16 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert mail_to("david@loudthinking.com").html_safe?
   end
 
+  def test_mail_to_with_block
+    assert_dom_equal %{<a href="mailto:me@example.com"><span>Email me</span></a>},
+      mail_to('me@example.com') { content_tag(:span, 'Email me') }
+  end
+
+  def test_link_tag_with_block_and_options
+    assert_dom_equal %{<a class="special" href="mailto:me@example.com?cc=ccaddress%40example.com"><span>Email me</span></a>},
+      mail_to('me@example.com', cc: "ccaddress@example.com", class: "special") { content_tag(:span, 'Email me') }
+  end
+
   def protect_against_forgery?
     self.request_forgery
   end
