@@ -92,7 +92,7 @@ module ActiveRecord
       #   # => ActiveModel::MissingAttributeError: missing attribute: person_id
       #
       # *Second:* You can pass a block so it can be used just like Array#select.
-      # This build an array of objects from the database for the scope,
+      # This builds an array of objects from the database for the scope,
       # converting them into an array and iterating through them using
       # Array#select.
       #
@@ -303,7 +303,7 @@ module ActiveRecord
         @association.concat(*records)
       end
 
-      # Replace this collection with +other_array+. This will perform a diff
+      # Replaces this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       #
       #   class Person < ActiveRecord::Base
@@ -649,11 +649,12 @@ module ActiveRecord
       #   #      #<Pet name: "Fancy-Fancy">
       #   #    ]
       #
-      #   person.pets.select(:name).uniq
+      #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
-      def uniq
-        @association.uniq
+      def distinct
+        @association.distinct
       end
+      alias uniq distinct
 
       # Count all records using SQL.
       #

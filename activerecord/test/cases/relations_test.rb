@@ -492,6 +492,7 @@ class RelationTest < ActiveRecord::TestCase
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
     assert_no_queries do
+      assert_equal expected_taggings, author.taggings.distinct.sort_by { |t| t.id }
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
     end
 
@@ -789,11 +790,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_count_with_distinct
     posts = Post.all
 
-    assert_equal 3, posts.count(:comments_count, :distinct => true)
-    assert_equal 11, posts.count(:comments_count, :distinct => false)
+    assert_equal 3, posts.distinct(true).count(:comments_count)
+    assert_equal 11, posts.distinct(false).count(:comments_count)
 
-    assert_equal 3, posts.select(:comments_count).count(:distinct => true)
-    assert_equal 11, posts.select(:comments_count).count(:distinct => false)
+    assert_equal 3, posts.distinct(true).select(:comments_count).count
+    assert_equal 11, posts.distinct(false).select(:comments_count).count
   end
 
   def test_count_explicit_columns
@@ -1223,6 +1224,16 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_turn_off_eager_loading_with_conditions_on_joins
+    original_value = ActiveRecord::Base.disable_implicit_join_references
+    ActiveRecord::Base.disable_implicit_join_references = true
+
+    scope = Topic.where(author_email_address: 'my.example@gmail.com').includes(:replies)
+    assert_not scope.eager_loading?
+  ensure
+    ActiveRecord::Base.disable_implicit_join_references = original_value
+  end
+
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
@@ -1269,7 +1280,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome),  comments(:greetings).post
   end
 
-  def test_uniq
+  def test_distinct
     tag1 = Tag.create(:name => 'Foo')
     tag2 = Tag.create(:name => 'Foo')
 
@@ -1277,11 +1288,14 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal ['Foo', 'Foo'], query.map(&:name)
     assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.distinct.map(&:name)
       assert_equal ['Foo'], query.uniq.map(&:name)
     end
     assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.distinct(true).map(&:name)
       assert_equal ['Foo'], query.uniq(true).map(&:name)
     end
+    assert_equal ['Foo', 'Foo'], query.distinct(true).distinct(false).map(&:name)
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
   end
 

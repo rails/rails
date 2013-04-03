@@ -293,7 +293,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
     assert_equal [magician], people(:michael).bad_references
   end
 
-  def test_should_default_scope_on_associations_is_overriden_by_association_conditions
+  def test_should_default_scope_on_associations_is_overridden_by_association_conditions
     reference = references(:michael_unicyclist).becomes(BadReference)
     assert_equal [reference], people(:michael).fixed_bad_references
   end
@@ -390,20 +390,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_with_inheritance
     wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
-    assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal "Jamis", wheres['name']
+    assert_equal 50000,   wheres['salary']
   end
 
   def test_default_scope_with_module_includes
     wheres = ModuleIncludedPoorDeveloperCalledJamis.all.where_values_hash
-    assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal "Jamis", wheres['name']
+    assert_equal 50000,   wheres['salary']
   end
 
   def test_default_scope_with_multiple_calls
     wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
-    assert_equal "Jamis", wheres[:name]
-    assert_equal 50000,   wheres[:salary]
+    assert_equal "Jamis", wheres['name']
+    assert_equal 50000,   wheres['salary']
   end
 
   def test_scope_overwrites_default
@@ -563,7 +563,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
       Developer.select("id").unscope("select")
     end
 
-    assert_raises(ArgumentError) do 
+    assert_raises(ArgumentError) do
       Developer.select("id").unscope(5)
     end
   end
@@ -634,7 +634,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal [DeveloperCalledJamis.find(developers(:poor_jamis).id)], DeveloperCalledJamis.poor
 
     assert DeveloperCalledJamis.unscoped.poor.include?(developers(:david).becomes(DeveloperCalledJamis))
+
+    assert_equal 11, DeveloperCalledJamis.unscoped.length
+    assert_equal 1,  DeveloperCalledJamis.poor.length
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
+    assert_equal 10, DeveloperCalledJamis.unscoped { DeveloperCalledJamis.poor }.length
   end
 
   def test_default_scope_select_ignored_by_aggregations

@@ -93,7 +93,7 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail, the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
 
-* Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behavior. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
+* Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behaviour. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
 
 ```ruby
 # Disable root element in JSON by default.
@@ -104,7 +104,17 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 ### Action Pack
 
-* Rails 4.0 introduces a new `UpgradeSignatureToEncryptionCookieStore` cookie store. This is useful for upgrading apps using the old default `CookieStore` to the new default `EncryptedCookieStore`. To use this transitional cookie store, you'll want to leave your existing `secret_token` in place, add a new `secret_key_base`, and change your `session_store` like so:
+* Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
+
+```ruby
+  # config/initializers/secret_token.rb
+  Myapp::Application.config.secret_token = 'existing secret token'
+  Myapp::Application.config.secret_key_base = 'new secret key base'
+```
+
+Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
+
+* Rails 4.0 introduces a new `UpgradeSignatureToEncryptionCookieStore` cookie store. This is useful for upgrading apps using the old default `CookieStore` to the new default `EncryptedCookieStore` which leverages the new `ActiveSupport::KeyGenerator`. To use this transitional cookie store, you'll want to leave your existing `secret_token` in place, add a new `secret_key_base`, and change your `session_store` like so:
 
 ```ruby
   # config/initializers/session_store.rb
@@ -128,6 +138,23 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 deprecates the `dom_id` and `dom_class` methods. You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
+
+* Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
+
+```ruby
+  get 'one' => 'test#example', as: :example
+  get 'two' => 'test#example', as: :example
+```
+
+```ruby
+  resources :examples
+  get 'clashing/:id' => 'test#example', as: :example
+```
+
+In the first case, you can simply avoid using the same name for multiple
+routes. In the second, you can use the `only` or `except` options provided by
+the `resources` method to restrict the routes created as detailed in the
+[Routing Guide](routing.html#restricting-the-routes-created).
 
 * Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
@@ -310,7 +337,7 @@ config.assets.debug = true
 Again, most of the changes below are for the asset pipeline. You can read more about these in the [Asset Pipeline](asset_pipeline.html) guide.
 
 ```ruby
-# Compress JavaScript and CSS
+# Compress JavaScripts and CSS
 config.assets.compress = true
 
 # Don't fallback to assets pipeline if a precompiled asset is missed

@@ -34,6 +34,14 @@ module ActiveSupport
         assert called
       end
 
+      def test_instrument_yields_the_payload_for_further_modification
+        assert_equal 2, instrumenter.instrument("awesome") { |p| p[:result] = 1 + 1 }
+        assert_equal 1, notifier.finishes.size
+        name, _, payload = notifier.finishes.first
+        assert_equal "awesome", name
+        assert_equal Hash[:result => 2], payload
+      end
+
       def test_start
         instrumenter.start("foo", payload)
         assert_equal [["foo", instrumenter.id, payload]], notifier.starts

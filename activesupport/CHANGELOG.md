@@ -1,8 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
+*   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
+    its payload.
+
+    *stopdropandrew*
+
+*   `ActiveSupport::TimeWithZone` raises `NoMethodError` in proper context.
+    Fixes #9772.
+
+    *Yves Senn*
+
+*   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
 
     *Charles Jones*
+
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
@@ -74,7 +85,7 @@
 
 *   Improve `String#squish` to handle Unicode whitespace. *Antoine Lyset*
 
-*   Standardize on `to_time` returning an instance of `Time` in the local system timezone
+*   Standardise on `to_time` returning an instance of `Time` in the local system timezone
     across `String`, `Time`, `Date`, `DateTime` and `ActiveSupport::TimeWithZone`.
 
     *Andrew White*
@@ -140,7 +151,7 @@
 
 *   Remove surrogate unicode character encoding from `ActiveSupport::JSON.encode`
     The encoding scheme was broken for unicode characters outside the basic multilingual plane;
-    since JSON is assumed to be UTF-8, and we already force the encoding to UTF-8,
+    since json is assumed to be UTF-8, and we already force the encoding to UTF-8,
     simply pass through the un-encoded characters.
 
     *Brett Carter*
@@ -359,7 +370,7 @@
 
 *   An optional block can be passed to `HashWithIndifferentAccess#update` and `#merge`.
     The block will be invoked for each duplicated key, and used to resolve the conflict,
-    thus replicating the behavior of the corresponding methods on the `Hash` class.
+    thus replicating the behaviour of the corresponding methods on the `Hash` class.
 
     *Leo Cassarani*
 

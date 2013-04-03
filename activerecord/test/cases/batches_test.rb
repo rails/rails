@@ -11,7 +11,7 @@ class EachTest < ActiveRecord::TestCase
     Post.count('id') # preheat arel's table cache
   end
 
-  def test_each_should_excecute_one_query_per_batch
+  def test_each_should_execute_one_query_per_batch
     assert_queries(Post.count + 1) do
       Post.find_each(:batch_size => 1) do |post|
         assert_kind_of Post, post
@@ -19,7 +19,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_not_return_query_chain_and_execcute_only_one_query
+  def test_each_should_not_return_query_chain_and_execute_only_one_query
     assert_queries(1) do
       result = Post.find_each(:batch_size => 100000){ }
       assert_nil result
@@ -68,7 +68,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_in_batches_shouldnt_excute_query_unless_needed
+  def test_find_in_batches_shouldnt_execute_query_unless_needed
     post_count = Post.count
 
     assert_queries(2) do

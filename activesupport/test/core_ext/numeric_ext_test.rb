@@ -153,22 +153,16 @@ end
 
 class NumericExtSizeTest < ActiveSupport::TestCase
   def test_unit_in_terms_of_another
-    relationships = {
-        1024.bytes     =>   1.kilobyte,
-        1024.kilobytes =>   1.megabyte,
-      3584.0.kilobytes => 3.5.megabytes,
-      3584.0.megabytes => 3.5.gigabytes,
-      1.kilobyte ** 4  =>   1.terabyte,
-      1024.kilobytes + 2.megabytes =>   3.megabytes,
-                   2.gigabytes / 4 => 512.megabytes,
-      256.megabytes * 20 + 5.gigabytes => 10.gigabytes,
-      1.kilobyte ** 5 => 1.petabyte,
-      1.kilobyte ** 6 => 1.exabyte
-    }
-
-    relationships.each do |left, right|
-      assert_equal right, left
-    end
+    assert_equal 1024.bytes, 1.kilobyte
+    assert_equal 1024.kilobytes, 1.megabyte
+    assert_equal 3584.0.kilobytes, 3.5.megabytes
+    assert_equal 3584.0.megabytes, 3.5.gigabytes
+    assert_equal 1.kilobyte ** 4, 1.terabyte
+    assert_equal 1024.kilobytes + 2.megabytes, 3.megabytes
+    assert_equal 2.gigabytes / 4, 512.megabytes
+    assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
+    assert_equal 1.kilobyte ** 5, 1.petabyte
+    assert_equal 1.kilobyte ** 6, 1.exabyte
   end
 
   def test_units_as_bytes_independently

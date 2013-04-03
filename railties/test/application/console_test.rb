@@ -106,13 +106,13 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def assert_output(expected, timeout = 5)
+  def assert_output(expected, timeout = 1)
     timeout = Time.now + timeout
 
     output = ""
     until output.include?(expected) || Time.now > timeout
       if IO.select([@master], [], [], 0.1)
-        output << @master.readpartial(100)
+        output << @master.read(1)
       end
     end
 
@@ -124,12 +124,6 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output command
     assert_output expected_output if expected_output
     assert_output "> "
-  end
-
-  def kill(pid)
-    Process.kill('QUIT', pid)
-    Process.wait(pid)
-  rescue Errno::ESRCH
   end
 
   def spawn_console
@@ -148,15 +142,13 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
-
-    kill pid
+    @master.puts "quit"
 
     pid = spawn_console
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
     write_prompt "Post.count", "=> 0"
-  ensure
-    kill pid if pid
+    @master.puts "quit"
   end
 end

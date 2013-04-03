@@ -44,6 +44,14 @@ module ActiveRecord
           c = Column.new(nil, 1, 'float')
           assert_equal "'Infinity'", @conn.quote(infinity, c)
         end
+
+        def test_quote_cast_numeric
+          fixnum = 666
+          c = Column.new(nil, nil, 'string')
+          assert_equal "'666'", @conn.quote(fixnum, c)
+          c = Column.new(nil, nil, 'text')
+          assert_equal "'666'", @conn.quote(fixnum, c)
+        end
       end
     end
   end

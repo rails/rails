@@ -34,7 +34,6 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
-      #
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
@@ -353,7 +352,7 @@ module ActiveRecord
       spawn.unscope!(*args)
     end
 
-    def unscope!(*args)
+    def unscope!(*args) # :nodoc:
       args.flatten!
 
       args.each do |scope|
@@ -710,20 +709,22 @@ module ActiveRecord
     #   User.select(:name)
     #   # => Might return two records with the same name
     #
-    #   User.select(:name).uniq
-    #   # => Returns 1 record per unique name
+    #   User.select(:name).distinct
+    #   # => Returns 1 record per distinct name
     #
-    #   User.select(:name).uniq.uniq(false)
+    #   User.select(:name).distinct.distinct(false)
     #   # => You can also remove the uniqueness
-    def uniq(value = true)
-      spawn.uniq!(value)
+    def distinct(value = true)
+      spawn.distinct!(value)
     end
+    alias uniq distinct
 
-    # Like #uniq, but modifies relation in place.
-    def uniq!(value = true) # :nodoc:
-      self.uniq_value = value
+    # Like #distinct, but modifies relation in place.
+    def distinct!(value = true) # :nodoc:
+      self.distinct_value = value
       self
     end
+    alias uniq! distinct!
 
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.
@@ -814,7 +815,7 @@ module ActiveRecord
 
       build_select(arel, select_values.uniq)
 
-      arel.distinct(uniq_value)
+      arel.distinct(distinct_value)
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 

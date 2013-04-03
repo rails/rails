@@ -163,6 +163,7 @@ module Rails
         def attributes_names
           @attributes_names ||= attributes.each_with_object([]) do |a, names|
             names << a.column_name
+            names << 'password_confirmation' if a.password_digest?
             names << "#{a.name}_type" if a.polymorphic?
           end
         end

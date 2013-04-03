@@ -167,7 +167,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(:name => "John")
-    interest = man.interests.create :topic => 'gardning'
+    interest = man.interests.create :topic => 'gardening'
     man = Man.find man.id
     man.interests_attributes = [{:id => interest.id, :topic => 'gardening'}]
     assert_equal man.interests.first.topic, man.interests[0].topic
@@ -806,7 +806,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert_nothing_raised(NoMethodError) { @pirate.save! }
   end
 
-  def test_numeric_colum_changes_from_zero_to_no_empty_string
+  def test_numeric_column_changes_from_zero_to_no_empty_string
     Man.accepts_nested_attributes_for(:interests)
 
     repair_validations(Interest) do

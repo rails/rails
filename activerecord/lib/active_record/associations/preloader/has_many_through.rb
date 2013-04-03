@@ -6,7 +6,7 @@ module ActiveRecord
 
         def associated_records_by_owner
           super.each do |owner, records|
-            records.uniq! if reflection_scope.uniq_value
+            records.uniq! if reflection_scope.distinct_value
           end
         end
       end

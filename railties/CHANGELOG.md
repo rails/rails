@@ -1,21 +1,91 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The application rake task `doc:rails` generates now an API like the
+    official one (except for the links to GitHub).
+
+    *Xavier Noria*
+
+*   Allow vanilla apps to render CoffeeScript templates in production
+
+    Vanilla apps already render CoffeeScript templates in development and test
+    environments.  With this change, the production behavior matches that of
+    the other environments.
+
+    Effectively, this meant moving coffee-rails (and the JavaScript runtime on
+    which it is dependent) from the :assets group to the top-level of the
+    generated Gemfile.
+
+    *Gabe Kopley*
+
+*   `Rails.version` now returns an instance of `Gem::Version`
+
+    *Charlie Somerville*
+
+*   Don't generate a scaffold.css when --no-assets is specified
+
+    *Kevin Glowacz*
+
+*   Add support for generate scaffold password:digest
+
+    * adds password_digest attribute to the migration
+    * adds has_secure_password to the model
+    * adds password and password_confirmation password_fields to _form.html
+    * omits password from index.html and show.html
+    * adds password and password_confirmation to the controller
+    * adds unencrypted password and password_confirmation to the controller test
+    * adds encrypted password_digest to the fixture
+
+    *Sam Ruby*
+
+*   Rails now generates a `test/test_helper.rb` file with `fixtures :all` commented out by default,
+    since we don't want to force loading all fixtures for user when a single test is run. However,
+    fixtures are still going to be loaded automatically for test suites.
+
+    To force all fixtures to be create in your database, use `rails test -f` to run your test.
+
+    *Prem Sichanugrist*
+
+*   Add `rails test` command for running tests
+
+    To run all tests:
+
+        $ rails test
+
+    To run a test suite
+
+        $ rails test [models,helpers,units,controllers,mailers,...]
+
+    To run a selected test file(s):
+
+        $ rails test test/unit/foo_test.rb [test/unit/bar_test.rb ...]
+
+    To run a single test from a test file
+
+        $ rails test test/unit/foo_test.rb -n test_the_truth
+
+    For more information, see `rails test --help`.
+
+    This command will eventually replace `rake test:*` and `rake test` tasks.
+
+    *Prem Sichanugrist and Chris Toomey*
+
+*   Improve service pages with new layout (404, etc). *Stanislav Sobolev*
+
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
-*   Change Service pages(404, etc). *Stanislav Sobolev*
 
 *   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
     and calculates number of functions.
 
     *Hendy Tanata*
 
-*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed. Consider
-    using application template instead. See this guide for more detail:
+*   Ability to use a custom builder by passing `--builder` (or `-b`) has been removed.
+    Consider using application template instead. See this guide for more detail:
     http://guides.rubyonrails.org/rails_application_templates.html
 
     *Prem Sichanugrist*
 
-*   fix rake db:* tasks to work with DATABASE_URL and without config/database.yml
+*   Fix `rake db:*` tasks to work with `DATABASE_URL` and without `config/database.yml`.
 
     *Terence Lee*
 
@@ -39,13 +109,13 @@
     *Amparo Luna*
 
 *   Fixes database.yml when creating a new rails application with '.'
-    Fix #8304
+    Fixes #8304.
 
     *Jeremy W. Rowe*
 
 *   Restore Rails::Engine::Railties#engines with deprecation to ensure
     compatibility with gems such as Thinking Sphinx
-    Fix #8551
+    Fixes #8551.
 
     *Tim Raymond*
 
@@ -119,7 +189,7 @@
 
 *   Environment name can be a start substring of the default environment names
     (production, development, test). For example: tes, pro, prod, dev, devel.
-    Fix #8628.
+    Fixes #8628.
 
     *Mykola Kyryk*
 
@@ -129,7 +199,7 @@
 
 *   Quote column names in generates fixture files. This prevents
     conflicts with reserved YAML keywords such as 'yes' and 'no'
-    Fix #8612.
+    Fixes #8612.
 
     *Yves Senn*
 
@@ -162,19 +232,19 @@
 *   Add `db` to list of folders included by `rake notes` and `rake notes:custom`. *Antonio Cangiano*
 
 *   Engines with a dummy app include the rake tasks of dependencies in the app namespace.
-    Fix #8229
+    Fixes #8229.
 
     *Yves Senn*
 
 *   Add `sqlserver.yml` template file to satisfy `-d sqlserver` being passed to `rails new`.
-    Fix #6882
+    Fixes #6882.
 
     *Robert Nesius*
 
 *   Rake test:uncommitted finds git directory in ancestors *Nicolas Despres*
 
 *   Add dummy app Rake tasks when `--skip-test-unit` and `--dummy-path` is passed to the plugin generator.
-    Fix #8121
+    Fixes #8121.
 
     *Yves Senn*
 

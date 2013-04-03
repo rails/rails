@@ -439,7 +439,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_assign_ids_for_through_a_belongs_to
-    post = Post.new(:title => "Assigning IDs works!", :body => "You heared it here first, folks!")
+    post = Post.new(:title => "Assigning IDs works!", :body => "You heard it here first, folks!")
     post.person_ids = [people(:david).id, people(:michael).id]
     post.save
     post.reload
@@ -1335,7 +1335,7 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
     assert !@pirate.valid?
   end
 
-  test "should not automatically asd validate associations without :validate => true" do
+  test "should not automatically add validate associations without :validate => true" do
     assert @pirate.valid?
     @pirate.non_validated_ship.name = ''
     assert @pirate.valid?

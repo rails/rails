@@ -5,8 +5,8 @@ This guide will teach you what you need to know about avoiding that expensive ro
 
 After reading this guide, you will know:
 
-* Page, action, and fragment caching.
-* Sweepers.
+* Page and action caching (moved to separate gems as of Rails 4).
+* Fragment caching.
 * Alternative cache stores.
 * Conditional GET support.
 

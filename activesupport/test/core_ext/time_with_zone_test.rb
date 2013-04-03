@@ -779,6 +779,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", (twz - 1.year).inspect
   end
 
+  def test_no_method_error_has_proper_context
+    e = assert_raises(NoMethodError) {
+      @twz.this_method_does_not_exist
+    }
+    assert_equal "undefined method `this_method_does_not_exist' for Fri, 31 Dec 1999 19:00:00 EST -05:00:Time", e.message
+    assert_no_match "rescue", e.backtrace.first
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

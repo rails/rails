@@ -1,4 +1,5 @@
 require 'rdoc/task'
+require 'rails/api/task'
 
 # Monkey-patch to remove redoc'ing and clobber descriptions to cut down on rake -T noise
 class RDocTaskWithoutDescriptions < RDoc::Task
@@ -52,52 +53,7 @@ namespace :doc do
   Rake::Task['doc:app'].comment = "Generate docs for the app -- also available doc:rails, doc:guides (options: TEMPLATE=/rdoc-template.rb, TITLE=\"Custom Title\")"
 
   # desc 'Generate documentation for the Rails framework.'
-  RDocTaskWithoutDescriptions.new("rails") { |rdoc|
-    rdoc.rdoc_dir = 'doc/api'
-    rdoc.template = "#{ENV['template']}.rb" if ENV['template']
-    rdoc.title    = "Rails Framework Documentation"
-    rdoc.options << '--line-numbers'
-
-    gem_path('rails') do |rails|
-      rdoc.options << '-m' << "#{rails}/README.rdoc"
-    end
-
-    gem_path('actionmailer') do |actionmailer|
-      %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/action_mailer/base.rb).each do |file|
-        rdoc.rdoc_files.include("#{actionmailer}/#{file}")
-      end
-    end
-
-    gem_path('actionpack') do |actionpack|
-      %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{actionpack}/#{file}")
-      end
-    end
-
-    gem_path('activemodel') do |activemodel|
-      %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/active_model/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{activemodel}/#{file}")
-      end
-    end
-
-    gem_path('activerecord') do |activerecord|
-      %w(README.rdoc CHANGELOG.md lib/active_record/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{activerecord}/#{file}")
-      end
-    end
-
-    gem_path('activesupport') do |activesupport|
-      %w(README.rdoc CHANGELOG.md lib/active_support/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{activesupport}/#{file}")
-      end
-    end
-
-    gem_path('railties') do |railties|
-      %w(README.rdoc CHANGELOG.md lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
-        rdoc.rdoc_files.include("#{railties}/#{file}")
-      end
-    end
-  }
+  Rails::API::AppTask.new('rails')
 
   # desc "Generate Rails Guides"
   task :guides do

@@ -908,12 +908,13 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal set.routes.first, set.named_routes[:hello]
   end
 
-  def test_earlier_named_routes_take_precedence
-    set.draw do
-      get '/hello/world' => 'a#b', :as => 'hello'
-      get '/hello'       => 'a#b', :as => 'hello'
+  def test_duplicate_named_route_raises_rather_than_pick_precedence
+    assert_raise ArgumentError do
+      set.draw do
+        get '/hello/world' => 'a#b', :as => 'hello'
+        get '/hello'       => 'a#b', :as => 'hello'
+      end
     end
-    assert_equal set.routes.first, set.named_routes[:hello]
   end
 
   def setup_named_route_test

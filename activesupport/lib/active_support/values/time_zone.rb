@@ -62,6 +62,7 @@ module ActiveSupport
       "Newfoundland"                 => "America/St_Johns",
       "Brasilia"                     => "America/Sao_Paulo",
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
+      "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
@@ -150,7 +151,7 @@ module ActiveSupport
       "Taipei"                       => "Asia/Taipei",
       "Perth"                        => "Australia/Perth",
       "Irkutsk"                      => "Asia/Irkutsk",
-      "Ulaan Bataar"                 => "Asia/Ulaanbaatar",
+      "Ulaanbaatar"                  => "Asia/Ulaanbaatar",
       "Seoul"                        => "Asia/Seoul",
       "Osaka"                        => "Asia/Tokyo",
       "Sapporo"                      => "Asia/Tokyo",
@@ -238,7 +239,7 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      return true if name =~ re || MAPPING[name] =~ re
+      re === name || re === MAPPING[name]
     end
 
     # Returns a textual representation of this time zone.

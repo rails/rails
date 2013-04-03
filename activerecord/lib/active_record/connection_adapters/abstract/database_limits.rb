@@ -21,7 +21,7 @@ module ActiveRecord
       # limit is enforced by rails and Is less than or equal to
       # <tt>index_name_length</tt>. The gap between
       # <tt>index_name_length</tt> is to allow internal rails
-      # opreations to use prefixes in temporary opreations.
+      # operations to use prefixes in temporary operations.
       def allowed_index_name_length
         index_name_length
       end

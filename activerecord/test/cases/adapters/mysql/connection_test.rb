@@ -17,7 +17,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_connect_with_url
-    run_without_connection do |orig|
+    run_without_connection do
       ar_config = ARTest.connection_config['arunit']
 
       skip "This test doesn't work with custom socket location" if ar_config['socket']

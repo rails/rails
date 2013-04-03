@@ -241,6 +241,7 @@ module ActiveRecord
     #   others.destroy_all                |   X   |    X     |    X
     #   others.find(*args)                |   X   |    X     |    X
     #   others.exists?                    |   X   |    X     |    X
+    #   others.distinct                   |   X   |    X     |    X
     #   others.uniq                       |   X   |    X     |    X
     #   others.reset                      |   X   |    X     |    X
     #
@@ -965,7 +966,7 @@ module ActiveRecord
     # For +has_and_belongs_to_many+, <tt>delete</tt> and <tt>destroy</tt> are the same: they
     # cause the records in the join table to be removed.
     #
-    # For +has_many+, <tt>destroy</tt> and <tt>destory_all</tt> will always call the <tt>destroy</tt> method of the
+    # For +has_many+, <tt>destroy</tt> and <tt>destroy_all</tt> will always call the <tt>destroy</tt> method of the
     # record(s) being removed so that callbacks are run. However <tt>delete</tt> and <tt>delete_all</tt> will either
     # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
     # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
@@ -1024,7 +1025,7 @@ module ActiveRecord
       # [collection<<(object, ...)]
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       #   Note that this operation instantly fires update sql without waiting for the save or update call on the
-      #   parent object.
+      #   parent object, unless the parent object is a new record.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
       #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
@@ -1407,6 +1408,8 @@ module ActiveRecord
       # to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes",
       # but it in fact generates a join table name of "paper_boxes_papers". Be aware of this caveat, and use the
       # custom <tt>:join_table</tt> option if you need to.
+      # If your tables share a common prefix, it will only appear once at the beginning. For example,
+      # the tables "catalog_categories" and "catalog_products" generate a join table name of "catalog_categories_products".
       #
       # The join table should not have a primary key or a model associated with it. You must manually generate the
       # join table with a migration such as this:
@@ -1433,7 +1436,7 @@ module ActiveRecord
       #   Adds one or more objects to the collection by creating associations in the join table
       #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
       #   Note that this operation instantly fires update sql without waiting for the save or update call on the
-      #   parent object.
+      #   parent object, unless the parent object is a new record.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by removing their associations from the join table.
       #   This does not destroy the objects.
