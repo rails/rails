@@ -1,6 +1,6 @@
 require "rails"
 
-if defined?(Rake) && Rake.application.top_level_tasks.grep(/^(default|test(:|$))/).any?
+if defined?(Rake) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?
   ENV['RAILS_ENV'] ||= 'test'
 end
 
