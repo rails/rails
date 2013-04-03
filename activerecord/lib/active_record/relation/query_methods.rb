@@ -34,7 +34,6 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
-      #
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
@@ -353,7 +352,7 @@ module ActiveRecord
       spawn.unscope!(*args)
     end
 
-    def unscope!(*args)
+    def unscope!(*args) # :nodoc:
       args.flatten!
 
       args.each do |scope|
