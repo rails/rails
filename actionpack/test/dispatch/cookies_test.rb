@@ -7,7 +7,6 @@ rescue LoadError, NameError
   $stderr.puts "Skipping KeyGenerator test: broken OpenSSL install"
 else
 
-# FIXME remove LegacyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
