@@ -1,4 +1,5 @@
 require 'bigdecimal'
+require 'bigdecimal/util'
 require 'yaml'
 
 class BigDecimal
