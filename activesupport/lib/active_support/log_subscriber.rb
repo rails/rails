@@ -53,10 +53,9 @@ module ActiveSupport
 
     class << self
       def logger
-        if defined?(Rails) && Rails.respond_to?(:logger)
-          @logger ||= Rails.logger
+        @logger ||= if defined?(Rails) && Rails.respond_to?(:logger)
+          Rails.logger
         end
-        @logger
       end
 
       attr_writer :logger
