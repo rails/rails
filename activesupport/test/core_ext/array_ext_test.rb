@@ -30,6 +30,19 @@ class ArrayExtAccessTests < ActiveSupport::TestCase
   end
 end
 
+class ArrayExtToFormattedS < ActiveSupport::TestCase
+  def test_to_formatted_default
+    collection = [
+      Class.new { def id() 1 end; def to_s() 'First Object' end }.new,
+      Class.new { def id() 2 end; def to_s() 'Second Object' end }.new,
+      Class.new { def id() 3 end; def to_s() 'Third Object' end }.new,
+   ]
+
+    assert_equal 'First ObjectSecond ObjectThird Object', collection.to_formatted_s
+    assert_equal "1,2,3", collection.to_formatted_s(:db)
+  end
+end
+
 class ArrayExtToParamTests < ActiveSupport::TestCase
   class ToParam < String
     def to_param
