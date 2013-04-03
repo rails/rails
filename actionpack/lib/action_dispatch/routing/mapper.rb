@@ -58,8 +58,8 @@ module ActionDispatch
           @set, @scope, @path, @options = set, scope, path, options
           @requirements, @conditions, @defaults = {}, {}, {}
 
-          normalize_path!
           normalize_options!
+          normalize_path!
           normalize_requirements!
           normalize_conditions!
           normalize_defaults!
