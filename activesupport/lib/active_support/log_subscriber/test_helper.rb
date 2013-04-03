@@ -78,11 +78,11 @@ module ActiveSupport
         end
 
         ActiveSupport::Logger::Severity.constants.each do |severity|
-          class_eval <<-EOT, __FILE__, __LINE__ + 1
-            def #{severity.downcase}?
-              #{severity} >= @level
+          class_exec do
+            define_method("#{severity.downcase}?") do
+              self.class.const_get(severity) >= @level
             end
-          EOT
+          end
         end
       end
 
