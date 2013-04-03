@@ -17,14 +17,14 @@ module ActiveRecord
           if method == :includes
             merged_relation = merged_relation.includes(value)
           else
-            merged_relation.send(:"#{method}_values=", value)
+            merge_relation_method(merged_relation, method, value)
           end
         end
       end
 
       (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order]).each do |method|
         value = r.send(:"#{method}_values")
-        merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
+        merge_relation_method(merged_relation, method, value) if value.present?
       end
 
       merged_relation.joins_values += r.joins_values
@@ -144,5 +144,10 @@ module ActiveRecord
       relation
     end
 
+    private
+
+      def merge_relation_method(relation, method, value)
+        relation.send(:"#{method}_values=", relation.send(:"#{method}_values") + value)
+      end
   end
 end

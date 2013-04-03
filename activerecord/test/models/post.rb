@@ -76,6 +76,9 @@ class Post < ActiveRecord::Base
     end
   end
 
+  scope :with_comments, preload(:comments)
+  scope :with_tags, preload(:taggings)
+
   has_many :interpolated_taggings, :class_name => 'Tagging', :as => :taggable, :conditions => proc { "1 = #{1}" }
   has_many :interpolated_tags, :through => :taggings
   has_many :interpolated_tags_2, :through => :interpolated_taggings, :source => :tag

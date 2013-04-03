@@ -39,6 +39,11 @@
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
 
+*   Chaining multiple preloaded scopes will correctly preload all the scopes
+    at the same time.
+
+    *Chris Geihsler*
+
 *   Reverted 921a296a3390192a71abeec6d9a035cc6d1865c8, 'Quote numeric values
     compared to string columns.' This caused several regressions.
 
