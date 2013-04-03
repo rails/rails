@@ -24,7 +24,7 @@ class EnumerableTests < ActiveSupport::TestCase
   def test_group_by
     names = %w(marcel sam david jeremy)
     klass = Struct.new(:name)
-    objects = (1..50).inject([]) do |people,|
+    objects = (1..50).inject([]) do |people|
       p = klass.new
       p.name = names.sort_by { rand }.first
       people << p
