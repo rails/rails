@@ -117,6 +117,8 @@ to Active Record instances:
   a model.
 * `type` - Specifies that the model uses [Single Table
   Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html)
+* `(association_name)_type` - Stores the type for
+  [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
   associations. For example, a `comments_count` column in a `Post` class that
   has many instances of `Comment` will cache the number of existent comments
