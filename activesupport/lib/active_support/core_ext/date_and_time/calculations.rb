@@ -93,7 +93,7 @@ module DateAndTime
 
     # Returns a new date/time at the end of the quarter.
     # Example: 31st March, 30th June, 30th September.
-    # DateTIme objects will have a time set to 23:59:59.
+    # DateTime objects will have a time set to 23:59:59.
     def end_of_quarter
       last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
       beginning_of_month.change(:month => last_quarter_month).end_of_month
