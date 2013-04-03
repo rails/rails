@@ -166,12 +166,7 @@ db_namespace = namespace :db do
   end
 
   # desc "Raises an error if there are pending migrations"
-  task :abort_if_pending_migrations => [:environment, :load_config] do
-    env = Rails.env
-    ActiveRecord::SchemaMigration.class_eval do
-      establish_connection 'development'
-    end
-
+  task :abort_if_pending_migrations =>  'db:test:load_schema' do
     pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Migrator.migrations_paths).pending_migrations
 
     if pending_migrations.any?
@@ -180,9 +175,6 @@ db_namespace = namespace :db do
         puts '  %4d %s' % [pending_migration.version, pending_migration.name]
       end
       abort %{Run `rake db:migrate` to update your database then try again.}
-    end
-    ActiveRecord::SchemaMigration.class_eval do
-      establish_connection env
     end
   end
 
@@ -355,7 +347,7 @@ db_namespace = namespace :db do
     end
 
     # desc 'Check for pending migrations and load the test schema'
-    task :prepare => 'db:abort_if_pending_migrations' do
+    task :prepare do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
       end
@@ -391,5 +383,5 @@ namespace :railties do
   end
 end
 
-task 'test:prepare' => 'db:test:prepare'
+task 'test:prepare' => ['db:test:prepare', 'db:abort_if_pending_migrations']
 
