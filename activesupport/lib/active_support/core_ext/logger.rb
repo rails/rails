@@ -7,14 +7,14 @@ ActiveSupport::Deprecation.warn 'this file is deprecated and will be removed'
 # Adds the 'around_level' method to Logger.
 class Logger #:nodoc:
   def self.define_around_helper(level)
-    module_eval <<-end_eval, __FILE__, __LINE__ + 1
-      def around_#{level}(before_message, after_message)  # def around_debug(before_message, after_message, &block)
-        self.#{level}(before_message)                     #   self.debug(before_message)
-        return_value = yield(self)                        #   return_value = yield(self)
-        self.#{level}(after_message)                      #   self.debug(after_message)
-        return_value                                      #   return_value
-      end                                                 # end
-    end_eval
+    module_exec do
+      define_method("around_#{level}") do |before_message, after_message|  # def around_debug(before_message, after_message, &block)
+        public_send(level, before_message)                                 #   self.debug(before_message)
+        return_value = yield(self)                                         #   return_value = yield(self)
+        public_send(level, after_message)                                  #   self.debug(after_message)
+        return_value                                                       #   return_value
+      end                                                                  # end
+    end
   end
   [:debug, :info, :error, :fatal].each {|level| define_around_helper(level) }
 end
