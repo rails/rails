@@ -176,6 +176,32 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal time, owner.updated_at
   end
 
+  def test_changing_parent_of_a_record_touches_both_new_and_old_parent_record
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, touch: true
+    end
+
+    toy1 = klass.find(1)
+    old_pet = toy1.pet
+
+    toy2 = klass.find(2)
+    new_pet = toy2.pet
+    time = 3.days.ago
+
+    old_pet.update_columns(updated_at: time)
+    new_pet.update_columns(updated_at: time)
+
+    toy1.pet = new_pet
+    toy1.save!
+
+    old_pet.reload
+    new_pet.reload
+
+    assert_not_equal time, new_pet.updated_at
+    assert_not_equal time, old_pet.updated_at
+  end
+
   def test_timestamp_attributes_for_create
     toy = Toy.first
     assert_equal toy.send(:timestamp_attributes_for_create), [:created_at, :created_on]

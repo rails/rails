@@ -68,6 +68,16 @@ module ActiveRecord::Associations::Builder
         def belongs_to_touch_after_save_or_destroy_for_#{name}
           record = #{name}
 
+          foreign_key_field   = #{reflection.foreign_key}
+          if changed_attributes.key?(foreign_key_field)
+            reflection_klass  = #{reflection.klass}
+            old_foreign_id    = changed_attributes[foreign_key_field]
+            old_record        = reflection_klass.where(foreign_key_field.to_sym => old_foreign_id).first
+            if old_record
+              old_record.touch #{options[:touch].inspect if options[:touch] != true}
+            end
+          end
+
           unless record.nil? || record.new_record?
             record.touch #{options[:touch].inspect if options[:touch] != true}
           end
