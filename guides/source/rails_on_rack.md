@@ -28,7 +28,10 @@ Rails on Rack
 
 ### Rails Application's Rack Object
 
-`ApplicationName::Application` is the primary Rack application object of a Rails application. Any Rack compliant web server should be using `ApplicationName::Application` object to serve a Rails application.
+`ApplicationName::Application` is the primary Rack application object of a Rails
+application. Any Rack compliant web server should be using
+`ApplicationName::Application` object to serve a Rails
+application. `Rails.application` refers to the same application object.
 
 ### `rails server`
 
@@ -79,11 +82,11 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 
 ```ruby
 # Rails.root/config.ru
-require "config/environment"
+require ::File.expand_path('../config/environment',  __FILE__)
 
 use Rack::Debugger
 use Rack::ContentLength
-run ApplicationName::Application
+run Rails.application
 ```
 
 And start the server:
@@ -324,7 +327,7 @@ config.middleware.clear
 ```ruby
 # config.ru
 use MyOwnStackFromScratch
-run ApplicationName::Application
+run Rails.application
 ```
 
 Resources
