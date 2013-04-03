@@ -12,13 +12,13 @@ require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/minivan'
+require 'models/owner'
 require 'models/person'
 require 'models/pet'
 require 'models/toy'
 require 'rexml/document'
 
 class PersistencesTest < ActiveRecord::TestCase
-
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
