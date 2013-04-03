@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Move rails.png into a data-uri. One less file to get generated into a new
+    application. This is also consistent with the removal of index.html.
+
+    *Steve Klabnik*
+
 *   The application rake task `doc:rails` generates now an API like the
     official one (except for the links to GitHub).
 
