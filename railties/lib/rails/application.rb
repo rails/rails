@@ -1,6 +1,6 @@
 require 'fileutils'
 require 'active_support/core_ext/object/blank'
-# FIXME remove DummyKeyGenerator and this require in 4.1
+# FIXME remove LegacyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 require 'rails/engine'
 
@@ -112,7 +112,7 @@ module Rails
           key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
-          ActiveSupport::DummyKeyGenerator.new(config.secret_token)
+          ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
       end
     end

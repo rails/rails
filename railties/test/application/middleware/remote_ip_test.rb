@@ -1,5 +1,5 @@
 require 'isolation/abstract_unit'
-# FIXME remove DummyKeyGenerator and this require in 4.1
+# FIXME remove LegacyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 
 module ApplicationTests
@@ -10,7 +10,7 @@ module ApplicationTests
       remote_ip = nil
       env = Rack::MockRequest.env_for("/").merge(env).merge!(
         'action_dispatch.show_exceptions' => false,
-        'action_dispatch.key_generator'   => ActiveSupport::DummyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
+        'action_dispatch.key_generator'   => ActiveSupport::LegacyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
       )
 
       endpoint = Proc.new do |e|
