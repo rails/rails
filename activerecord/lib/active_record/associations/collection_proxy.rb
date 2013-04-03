@@ -228,6 +228,7 @@ module ActiveRecord
       def build(attributes = {}, &block)
         @association.build(attributes, &block)
       end
+      alias_method :new, :build
 
       # Returns a new object of the collection type that has been instantiated with
       # attributes, linked to this object and that has already been saved (if it
@@ -831,8 +832,6 @@ module ActiveRecord
       def include?(record)
         @association.include?(record)
       end
-
-      alias_method :new, :build
 
       def proxy_association
         @association
