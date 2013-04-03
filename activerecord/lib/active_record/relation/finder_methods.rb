@@ -130,8 +130,8 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Returns +true+ if a record exists in the table that matches the +id+ or
-    # conditions given, or +false+ otherwise. The argument can take six forms:
+    # Returns truthy if a record exists in the table that matches the +id+ or
+    # conditions given, or falsy otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
