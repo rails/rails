@@ -129,6 +129,10 @@ module ActiveRecord
         end
       end
 
+      def dirty?
+        !!@oid_type.try(:dirty?)
+      end
+
       def type_cast(value)
         return if value.nil?
         return super if encoded?

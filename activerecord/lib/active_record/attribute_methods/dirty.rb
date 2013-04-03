@@ -12,6 +12,9 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
+        class_attribute :dirty_attribute_names, instance_accessor: false
+        self.dirty_attribute_names = Set.new
+
         class_attribute :partial_writes, instance_writer: false
         self.partial_writes = true
 
@@ -81,7 +84,7 @@ module ActiveRecord
       # Serialized attributes should always be written in case they've been
       # changed in place.
       def keys_for_partial_write
-        changed | (attributes.keys & self.class.serialized_attributes.keys)
+        changed | (attributes.keys & self.class.serialized_attributes.keys) | (attributes.keys & self.class.dirty_attribute_names.to_a)
       end
 
       def _field_changed?(attr, old, value)

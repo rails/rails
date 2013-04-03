@@ -40,6 +40,19 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert @connection.extensions.include?('hstore'), "extension list should include hstore"
   end
 
+  def test_updating_key
+    x = Hstore.create! :tags => { "key1" => "old value 1", "key2" => "old value 2" }
+    x.reload
+    assert_equal "old value 1", x.tags["key1"]
+
+    # Nothing gets saved/updated here.
+    x.tags["key1"] = "new"
+    x.save!
+
+    assert_equal "new", x.reload.tags["key1"]
+    assert_equal "old value 2",   x.reload.tags["key2"]
+  end
+
   def test_disable_enable_hstore
     assert @connection.extension_enabled?('hstore')
     @connection.disable_extension 'hstore'
