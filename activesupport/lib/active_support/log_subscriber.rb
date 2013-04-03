@@ -1,5 +1,6 @@
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume
@@ -118,7 +119,7 @@ module ActiveSupport
 
   protected
 
-    delegate :info, :debug, :warn, :error, :fatal, :unknown, to: :logger
+    delegate :info, :debug, :warn, :error, :fatal, :unknown, to: :logger, allow_nil: true
 
     # Set color by using a string or one of the defined constants. If a third
     # option is set to +true+, it also adds bold to the string. This is based
