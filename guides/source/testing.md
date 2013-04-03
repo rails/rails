@@ -754,7 +754,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Rake Tasks for Running your Tests
+Commands to Run your Tests
 ---------------------------------
 
 You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
