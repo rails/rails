@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class DateField < DatetimeField #:nodoc:
+    module Tags # :nodoc:
+      class DateField < DatetimeField # :nodoc:
         private
 
           def format_date(value)

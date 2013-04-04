@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class NumberField < TextField #:nodoc:
+    module Tags # :nodoc:
+      class NumberField < TextField # :nodoc:
         def render
           options = @options.stringify_keys
 

@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class Base #:nodoc:
+    module Tags # :nodoc:
+      class Base # :nodoc:
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
         include FormOptionsHelper
 

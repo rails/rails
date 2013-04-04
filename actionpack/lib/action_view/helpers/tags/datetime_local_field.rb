@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class DatetimeLocalField < DatetimeField #:nodoc:
+    module Tags # :nodoc:
+      class DatetimeLocalField < DatetimeField # :nodoc:
         class << self
           def field_type
             @field_type ||= "datetime-local"

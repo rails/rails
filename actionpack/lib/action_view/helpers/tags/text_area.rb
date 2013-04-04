@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class TextArea < Base #:nodoc:
+    module Tags # :nodoc:
+      class TextArea < Base # :nodoc:
         def render
           options = @options.stringify_keys
           add_default_name_and_id(options)

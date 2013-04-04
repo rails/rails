@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class Label < Base #:nodoc:
+    module Tags # :nodoc:
+      class Label < Base # :nodoc:
         def initialize(object_name, method_name, template_object, content_or_options = nil, options = nil)
           options ||= {}
 

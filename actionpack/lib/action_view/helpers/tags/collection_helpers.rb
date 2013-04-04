@@ -1,8 +1,8 @@
 module ActionView
   module Helpers
-    module Tags
-      module CollectionHelpers
-        class Builder
+    module Tags # :nodoc:
+      module CollectionHelpers # :nodoc:
+        class Builder # :nodoc:
           attr_reader :object, :text, :value
 
           def initialize(template_object, object_name, method_name, object,

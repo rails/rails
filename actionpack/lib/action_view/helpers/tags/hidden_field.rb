@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class HiddenField < TextField #:nodoc:
+    module Tags # :nodoc:
+      class HiddenField < TextField # :nodoc:
       end
     end
   end
