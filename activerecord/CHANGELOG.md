@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `has_many` using `:through` now obeys the order clause mentioned in
+    through association. Fixes #10016.
+
+    *Neeraj Singh*
+
 *   `belongs_to :touch` behavior now touches old association when
     transitioning to new association.
 

@@ -583,7 +583,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
-    assert_equal 1, owners(:blackbeard).toys.count
+    assert_equal 2, owners(:blackbeard).toys.count
   end
 
   def test_find_on_has_many_association_collection_with_include_and_conditions
@@ -880,6 +880,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_with_polymorphic_source
     post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
     assert_equal [tags(:general)], post.reload.tags
+  end
+
+  def test_has_many_through_obeys_order_on_through_association
+    owner = owners(:blackbeard)
+    assert owner.toys.to_sql.include?("pets.name desc")
+    assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
   end
 
   test "has many through associations on new records use null relations" do
