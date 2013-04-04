@@ -44,7 +44,7 @@ module ActiveRecord
         def resolve_hash_connection(spec) # :nodoc:
           spec = spec.symbolize_keys
 
-          raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
+          raise(AdapterNotSpecified, "database configuration '#{spec[:database]}' does not specify adapter") unless spec.key?(:adapter)
 
           begin
             require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
