@@ -131,7 +131,6 @@ module ActiveSupport
       end
 
       def matches?(_kind, _filter)
-        _filter = _method_name_for_object_filter(_kind, _filter) if @_is_object_filter
         @kind == _kind && @filter == _filter
       end
 
@@ -235,14 +234,6 @@ module ActiveSupport
         @compiled_options = conditions.flatten.join(" && ")
       end
 
-      def _method_name_for_object_filter(kind, filter)
-        class_name = filter.kind_of?(Class) ? filter.to_s : filter.class.to_s
-        class_name.gsub!(/<|>|#/, '')
-        class_name.gsub!(/\/|:/, "_")
-
-        "_callback_#{kind}_#{class_name}"
-      end
-
       # Filters support:
       #
       #   Arrays::  Used in conditions. This is used to specify
@@ -264,8 +255,6 @@ module ActiveSupport
       #     a method is created that calls the before_foo method
       #     on the object.
       def _compile_filter(filter)
-        @_is_object_filter = false
-
         case filter
         when Array
           filter.map {|f| _compile_filter(f)}
@@ -280,8 +269,7 @@ module ActiveSupport
 
           method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
-          method_name = _method_name_for_object_filter(kind, filter)
-          @_is_object_filter = true
+          method_name = "_callback_#{@kind}_#{next_id}"
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)

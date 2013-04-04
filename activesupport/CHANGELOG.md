@@ -14,9 +14,6 @@
 
     *Charles Jones*
 
-*   Fix skipping of filters defined by objects in `ActiveSupport::Callbacks::Callback`.
-
-    *Ben McRedmond*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
