@@ -1,4 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Add plural and singular form for length validator's default messages
+
+    *Abd ar-Rahman Hamid*
 
 *   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
     for a given attribute.
