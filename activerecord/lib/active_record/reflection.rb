@@ -436,6 +436,17 @@ module ActiveRecord
       # The chain is built by recursively calling #chain on the source reflection and the through
       # reflection. The base case for the recursion is a normal association, which just returns
       # [self] as its #chain.
+      #
+      #   class Post < ActiveRecord::Base
+      #     has_many :taggings
+      #     has_many :tags, through: :taggings
+      #   end
+      #
+      #   tags_reflection = Post.reflect_on_association(:tags)
+      #   tags_reflection.chain
+      #   #=> [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @active_record=Post>,
+      #        <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @active_record=Post>]
+      #
       def chain
         @chain ||= begin
           chain = source_reflection.chain + through_reflection.chain
@@ -506,9 +517,16 @@ module ActiveRecord
         source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
-      # Gets an array of possible <tt>:through</tt> source reflection names:
+      # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
       #
-      #   [:singularized, :pluralized]
+      #   class Post < ActiveRecord::Base
+      #     has_many :taggings
+      #     has_many :tags, through: :taggings
+      #   end
+      #
+      #   tags_reflection = Post.reflect_on_association(:tags)
+      #   tags_reflection.source_reflection_names
+      #   #=> [:tag, :tags]
       #
       def source_reflection_names
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
