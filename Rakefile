@@ -85,12 +85,3 @@ task :rdoc do
   FileUtils.mkdir_p "doc/rdoc/files/examples/"
   FileUtils.copy "activerecord/examples/associations.png", "doc/rdoc/files/examples/associations.png"
 end
-
-desc "Publish API docs for Rails as a whole and for each component"
-task :pdoc => :rdoc do
-  require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/api", "doc/rdoc").upload
-  PROJECTS.each do |project|
-    system %(cd #{project} && #{env} #{$0} pdoc)
-  end
-end
