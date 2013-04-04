@@ -57,7 +57,8 @@ module Rails
             CHANGELOG.md
             MIT-LICENSE
             lib/**/*.rb
-          )
+          ),
+          :exclude => 'lib/rails/generators/rails/**/templates/**/*.rb'
         }
       }
 
