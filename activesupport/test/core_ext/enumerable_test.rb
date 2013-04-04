@@ -25,9 +25,7 @@ class EnumerableTests < ActiveSupport::TestCase
     names = %w(marcel sam david jeremy)
     klass = Struct.new(:name)
     objects = (1..50).map do
-      p = klass.new
-      p.name = names.sort_by { rand }.first
-      p
+      klass.new names.sample
     end
 
     enum = GenericEnumerable.new(objects)
