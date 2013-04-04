@@ -114,9 +114,10 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match('dev', options[:environment])
   end
 
-  private
-
   attr_reader :output
+  private :output
+
+  private
 
   def start(argv = [])
     rails_console = Rails::Console.new(app, parse_arguments(argv))
