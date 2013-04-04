@@ -1,7 +1,9 @@
 Layouts and Rendering in Rails
 ==============================
 
-This guide covers the basic layout features of Action Controller and Action View. After reading this guide, you will know:
+This guide covers the basic layout features of Action Controller and Action View. 
+
+After reading this guide, you will know:
 
 * How to use the various rendering methods built into Rails.
 * How to create layouts with multiple content sections.
