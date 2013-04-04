@@ -192,6 +192,12 @@ class TimestampTest < ActiveRecord::TestCase
     old_pet.update_columns(updated_at: time)
     new_pet.update_columns(updated_at: time)
 
+    old_pet.reload
+    new_pet.reload
+
+    assert_equal time, new_pet.updated_at
+    assert_equal time, old_pet.updated_at
+
     toy1.pet = new_pet
     toy1.save!
 
