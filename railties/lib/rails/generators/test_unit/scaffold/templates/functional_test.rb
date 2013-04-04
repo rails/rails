@@ -23,6 +23,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
+    assert_match <%= "/#{human_name} was successfully created./" %>, flash[:notice]
   end
 
   test "should show <%= singular_table_name %>" do
@@ -38,6 +39,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   test "should update <%= singular_table_name %>" do
     patch :update, id: <%= "@#{singular_table_name}" %>, <%= "#{singular_table_name}: { #{attributes_hash} }" %>
     assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
+    assert_match <%= "/#{human_name} was successfully updated./" %>, flash[:notice]
   end
 
   test "should destroy <%= singular_table_name %>" do
@@ -46,6 +48,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to <%= index_helper %>_path
+    assert_match <%= "/#{human_name} was successfully destroyed./" %>, flash[:notice]
   end
 end
 <% end -%>
