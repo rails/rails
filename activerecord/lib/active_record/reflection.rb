@@ -401,6 +401,16 @@ module ActiveRecord
       #     has_many :tags, through: :taggings
       #   end
       #
+      #   class Tagging < ActiveRecord::Base
+      #     belongs_to :post
+      #     belongs_to :tag
+      #   end
+      #
+      #   tags_reflection = Post.reflect_on_association(:tags)
+      #
+      #   taggings_reflection = tags_reflection.source_reflection
+      #   #=> <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
+      #
       def source_reflection
         @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
       end

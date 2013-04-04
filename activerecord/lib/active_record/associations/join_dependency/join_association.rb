@@ -59,7 +59,7 @@ module ActiveRecord
           end
         end
 
-        def join_to(relation)
+        def join_to(manager)
           tables        = @tables.dup
           foreign_table = parent_table
           foreign_klass = parent.active_record
@@ -75,7 +75,7 @@ module ActiveRecord
               foreign_key = reflection.foreign_key
             when :has_and_belongs_to_many
               # Join the join table first...
-              relation.from(join(
+              manager.from(join(
                 table,
                 table[reflection.foreign_key].
                   eq(foreign_table[reflection.active_record_primary_key])
@@ -109,13 +109,13 @@ module ActiveRecord
               constraint = constraint.and(item.arel.constraints) unless item.arel.constraints.empty?
             end
 
-            relation.from(join(table, constraint))
+            manager.from(join(table, constraint))
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table, foreign_klass = table, reflection.klass
           end
 
-          relation
+          manager
         end
 
         def build_constraint(reflection, table, key, foreign_table, foreign_key)
