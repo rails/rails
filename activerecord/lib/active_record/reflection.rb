@@ -409,7 +409,7 @@ module ActiveRecord
       #   tags_reflection = Post.reflect_on_association(:tags)
       #
       #   taggings_reflection = tags_reflection.source_reflection
-      #   #=> <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
+      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
         @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
@@ -444,8 +444,8 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.chain
-      #   #=> [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @active_record=Post>,
-      #        <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @active_record=Post>]
+      #   # => [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @active_record=Post>,
+      #         <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @active_record=Post>]
       #
       def chain
         @chain ||= begin
@@ -526,7 +526,7 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.source_reflection_names
-      #   #=> [:tag, :tags]
+      #   # => [:tag, :tags]
       #
       def source_reflection_names
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
