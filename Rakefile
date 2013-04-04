@@ -1,4 +1,18 @@
 require 'rake'
+
+if RAKEVERSION != '0.8.0'
+  puts <<USAGE
+In order to execute tasks please install Ruby 1.8.7 and rake 0.8.0. Then:
+
+    rake _0.8.0_ task_name
+
+Reason is the Jamis template used for the API needs RDoc 1.x. Recent rake libs
+do not provide rake/rdoctask, and RDoc provides 1.x no alternative task. This
+is easy to setup with a Ruby version manager.
+USAGE
+  exit 1
+end
+
 require 'rake/rdoctask'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
@@ -16,11 +30,10 @@ task :default => :test
   desc "Run #{task_name} task for all projects"
   task task_name do
     PROJECTS.each do |project|
-      system %(cd #{project} && #{env} #{$0} #{task_name})
+      system %(cd #{project} && #{env} rake _0.8.0_ #{task_name})
     end
   end
 end
-
 
 desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new do |rdoc|
