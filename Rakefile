@@ -7,7 +7,7 @@ In order to execute tasks please install Ruby 1.8.7 and rake 0.8.0. Then:
     rake _0.8.0_ task_name
 
 Reason is the Jamis template used for the API needs RDoc 1.x. Recent rake libs
-do not provide rake/rdoctask, and RDoc provides 1.x no alternative task. This
+do not provide rake/rdoctask, and RDoc 1.x provides no alternative task. This
 is easy to setup with a Ruby version manager.
 USAGE
   exit 1
