@@ -1,5 +1,5 @@
 require 'rake'
-require 'rdoc/task'
+require 'rake/rdoctask'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
@@ -23,7 +23,7 @@ end
 
 
 desc "Generate documentation for the Rails framework"
-RDoc::Task.new do |rdoc|
+Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.title    = "Ruby on Rails Documentation"
   rdoc.main     = "railties/README"
