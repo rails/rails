@@ -543,9 +543,15 @@ class UrlHelperTest < ActiveSupport::TestCase
       mail_to('me@example.com') { content_tag(:span, 'Email me') }
   end
 
-  def test_link_tag_with_block_and_options
+  def test_mail_to_with_block_and_options
     assert_dom_equal %{<a class="special" href="mailto:me@example.com?cc=ccaddress%40example.com"><span>Email me</span></a>},
       mail_to('me@example.com', cc: "ccaddress@example.com", class: "special") { content_tag(:span, 'Email me') }
+  end
+
+  def test_mail_to_does_not_modify_html_options_hash
+    options = { class: 'special' }
+    mail_to 'me@example.com', 'ME!', options
+    assert_equal({ class: 'special' }, options)
   end
 
   def protect_against_forgery?
