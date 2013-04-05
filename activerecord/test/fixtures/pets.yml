@@ -12,3 +12,8 @@ mochi:
   pet_id: 3
   name: mochi
   owner_id: 2
+
+bulbul:
+  pet_id: 4
+  name: bulbul
+  owner_id: 1

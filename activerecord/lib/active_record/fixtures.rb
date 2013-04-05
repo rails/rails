@@ -708,11 +708,18 @@ module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
 
-    included do
-      setup :setup_fixtures
-      teardown :teardown_fixtures
+    def before_setup
+      setup_fixtures
+      super
+    end
 
-      class_attribute :fixture_path
+    def after_teardown
+      super
+      teardown_fixtures
+    end
+
+    included do
+      class_attribute :fixture_path, :instance_writer => false
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_fixtures
@@ -765,8 +772,7 @@ module ActiveRecord
       def try_to_load_dependency(file_name)
         require_dependency file_name
       rescue LoadError => e
-        # Let's hope the developer has included it himself
-
+        # Let's hope the developer has included it
         # Let's warn in case this is a subdependency, otherwise
         # subdependency error messages are totally cryptic
         if ActiveRecord::Base.logger

@@ -302,7 +302,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_foreign_keys
     pets = Pet.all.merge!(:includes => :owner).to_a
-    assert_equal 3, pets.length
+    assert_equal 4, pets.length
   end
 
   def test_eager_association_loading_with_belongs_to

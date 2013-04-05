@@ -235,6 +235,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
+  def test_parent_instance_should_be_shared_within_create_block_of_new_child
+    man = Man.first
+    interest = man.interests.build do |i|
+      assert i.man.equal?(man), "Man of child should be the same instance as a parent"
+    end
+    assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
+  def test_parent_instance_should_be_shared_within_build_block_of_new_child
+    man = Man.first
+    interest = man.interests.build do |i|
+      assert i.man.equal?(man), "Man of child should be the same instance as a parent"
+    end
+    assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
   def test_parent_instance_should_be_shared_with_poked_in_child
     m = men(:gordon)
     i = Interest.create(:topic => 'Industrial Revolution Re-enactment')

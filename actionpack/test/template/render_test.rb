@@ -61,7 +61,7 @@ module RenderTestCases
 
   def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
     @view.lookup_context.formats = [:html]
-    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priorty")
+    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priority")
   end
 
   def test_render_template_with_a_missing_partial_of_another_format

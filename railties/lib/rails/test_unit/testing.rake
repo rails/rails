@@ -78,6 +78,8 @@ namespace :test do
   end
 
   Rails::TestTask.new(recent: "test:prepare") do |t|
+    warn "DEPRECATION WARNING: `rake test:recent` is deprecated"
+
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
       recent_tests('app/models/**/*.rb', 'test/models', since) +
@@ -90,6 +92,8 @@ namespace :test do
   Rake::Task['test:recent'].comment = "Test recent changes"
 
   Rails::TestTask.new(uncommitted: "test:prepare") do |t|
+    warn "DEPRECATION WARNING: `rake test:uncommitted` is deprecated"
+
     def t.file_list
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.split.map { |path| path.chomp[7 .. -1] }

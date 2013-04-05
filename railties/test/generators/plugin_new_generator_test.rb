@@ -124,7 +124,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip_active_record"]
     assert_no_file "test/dummy/config/database.yml"
     assert_file "test/test_helper.rb" do |contents|
-      assert_no_match /ActiveRecord/, contents
+      assert_no_match(/ActiveRecord/, contents)
     end
   end
 

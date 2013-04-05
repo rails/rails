@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix explicit names on multiple file fields. If a file field tag has
+    the multiple option, it is turned into an array field (appending `[]`),
+    but if an explicit name is passed to `file_field` the `[]` is not
+    appended.
+    Fixes #9830.
+
+    *Ryan McGeary*
+
+*   Add block support for the `mail_to` helper, similar to the `link_to` helper.
+
+    *Sam Pohlenz*
+
 *   Automatically configure cookie-based sessions to be encrypted if
     `secret_key_base` is set, falling back to signed if only `secret_token`
     is set. Automatically upgrade existing signed cookie-based sessions from
