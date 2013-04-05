@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add block support for the `mail_to` helper, similar to the `link_to` helper.
+
+    *Sam Pohlenz*
+
 *   Automatically configure cookie-based sessions to be encrypted if
     `secret_key_base` is set, falling back to signed if only `secret_token`
     is set. Automatically upgrade existing signed cookie-based sessions from
