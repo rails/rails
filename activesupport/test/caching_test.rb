@@ -343,6 +343,17 @@ module CacheStoreBehavior
     assert_nil @cache.read('foo')
   end
 
+  def test_expired_entry_without_race_condition_ttl
+    time = Time.now
+    Time.stubs(:now).returns(time)
+    @cache.write('foo', 'bar', :expires_in => 60)
+
+    ActiveSupport::Cache::Entry.any_instance.stubs(:expired?).returns(true)
+
+    @cache.expects(:delete_entry)
+    @cache.fetch('foo', :expires_in => 60) { 'baz'}
+  end
+
   def test_race_condition_protection
     time = Time.now
     @cache.write('foo', 'bar', :expires_in => 60)
