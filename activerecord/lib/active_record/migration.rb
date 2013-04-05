@@ -466,7 +466,7 @@ module ActiveRecord
       @connection.respond_to?(:reverting) && @connection.reverting
     end
 
-    class ReversibleBlockHelper < Struct.new(:reverting)
+    class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
       def up
         yield unless reverting
       end
