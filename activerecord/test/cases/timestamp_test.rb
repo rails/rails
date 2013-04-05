@@ -187,16 +187,10 @@ class TimestampTest < ActiveRecord::TestCase
 
     toy2 = klass.find(2)
     new_pet = toy2.pet
-    time = 3.days.ago
+    time = 3.days.ago.at_beginning_of_hour
 
     old_pet.update_columns(updated_at: time)
     new_pet.update_columns(updated_at: time)
-
-    old_pet.reload
-    new_pet.reload
-
-    assert_equal time, new_pet.updated_at
-    assert_equal time, old_pet.updated_at
 
     toy1.pet = new_pet
     toy1.save!
@@ -206,6 +200,26 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal time, new_pet.updated_at
     assert_not_equal time, old_pet.updated_at
+  end
+
+  def test_clearing_association_touches_the_old_record
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, touch: true
+    end
+
+    toy = klass.find(1)
+    pet = toy.pet
+    time = 3.days.ago.at_beginning_of_hour
+
+    pet.update_columns(updated_at: time)
+
+    toy.pet = nil
+    toy.save!
+
+    pet.reload
+
+    assert_not_equal time, pet.updated_at
   end
 
   def test_timestamp_attributes_for_create
