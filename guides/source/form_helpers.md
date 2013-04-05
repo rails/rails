@@ -836,17 +836,14 @@ Active Record provides model level support  via the `accepts_nested_attributes_f
 class Person < ActiveRecord::Base
   has_many :addresses
   accepts_nested_attributes_for :addresses
-
-  attr_accessible :name, :addresses_attributes
 end
 
 class Address < ActiveRecord::Base
   belongs_to :person
-  attr_accessible :kind, :street
 end
 ```
 
-This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses. When using `attr_accessible` or `attr_protected` you must mark `addresses_attributes` as accessible as well as the other attributes of `Person` and `Address` that should be mass assigned.
+This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses.
 
 ### Building the Form
 
