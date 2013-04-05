@@ -58,16 +58,6 @@ module ApplicationTests
       assert_match "syntax error", error_stream.read
     end
 
-    def test_invoke_rake_db_test_load
-      app_file "lib/tasks/test.rake", <<-RUBY
-        task 'db:test:load' do
-          puts "Hello World"
-        end
-      RUBY
-      create_test_file
-      assert_match "Hello World", run_test_command
-    end
-
     def test_run_models
       create_test_file :models, 'foo'
       create_test_file :models, 'bar'
