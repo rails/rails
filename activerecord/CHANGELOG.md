@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Default values for PostgreSQL bigint types now get parsed and dumped to the
+    schema correctly.
+
+    *Erik Peterson*
+
 *   Fix associations with `:inverse_of` option when building association
     with a block. Inside the block the parent object was different then
     after the block.
