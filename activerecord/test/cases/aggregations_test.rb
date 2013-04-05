@@ -141,7 +141,6 @@ class AggregationsTest < ActiveRecord::TestCase
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
-  class Name; end
   class DifferentName; end
 
   class Person < ActiveRecord::Base
