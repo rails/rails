@@ -1,9 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix explicit names on multiple file fields. If a file field tag is passed
+*   Fix explicit names on multiple file fields. If a file field tag has
     the multiple option, it is turned into an array field (appending `[]`),
-    but if the file field is passed an explicit name as an option, leave the
-    name alone (do not append `[]`).  Fixes #9830
+    but if an explicit name is passed to `file_field` the `[]` is not
+    appended.
+    Fixes #9830.
 
     *Ryan McGeary*
 
