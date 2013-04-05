@@ -71,8 +71,9 @@ module ActiveRecord::Associations::Builder
           foreign_key_field   = #{reflection.foreign_key.inspect}
           if changed_attributes.key?(foreign_key_field)
             reflection_klass  = #{reflection.klass}
+            primary_key_field = reflection_klass.primary_key
             old_foreign_id    = changed_attributes[foreign_key_field]
-            old_record        = reflection_klass.where(foreign_key_field => old_foreign_id).first
+            old_record        = reflection_klass.where(primary_key_field => old_foreign_id).first
             if old_record
               old_record.touch #{options[:touch].inspect if options[:touch] != true}
             end
