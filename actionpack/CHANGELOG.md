@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix explicit names on multiple file fields. If a file field tag is passed
+    the multiple option, it is turned into an array field (appending `[]`),
+    but if the file field is passed an explicit name as an option, leave the
+    name alone (do not append `[]`).  Fixes #9830
+
+    *Ryan McGeary*
+
 *   Add block support for the `mail_to` helper, similar to the `link_to` helper.
 
     *Sam Pohlenz*
