@@ -35,8 +35,8 @@ module ActiveRecord
   autoload :Base
   autoload :Callbacks
   autoload :Core
-  autoload :CounterCache
   autoload :ConnectionHandling
+  autoload :CounterCache
   autoload :DynamicMatchers
   autoload :Explain
   autoload :Inheritance
@@ -69,8 +69,8 @@ module ActiveRecord
 
     autoload :Aggregations
     autoload :Associations
-    autoload :AttributeMethods
     autoload :AttributeAssignment
+    autoload :AttributeMethods
     autoload :AutosaveAssociation
 
     autoload :Relation
