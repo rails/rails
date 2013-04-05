@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Default values for PostgreSQL bigint types now get parsed and dumped to the
+    schema correctly.
+    Backport #10098.
+
+    *Erik Peterson*
+
 *   Removed warning when `auto_explain_threshold_in_seconds` is set and the
     connection adapter doesn't support explain.
     This is causing a regression since the Active Record Railtie is trying to
