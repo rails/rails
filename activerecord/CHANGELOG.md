@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Default values for PostgreSQL bigint types now get parsed and dumped to the
+    schema correctly.
+
+    *Erik Peterson*
+
 *   `has_many` using `:through` now obeys the order clause mentioned in
     through association. Fixes #10016.
 
