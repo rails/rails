@@ -10,6 +10,9 @@ module ActionDispatch
   module Routing
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
+      SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
+                       :controller, :path_names, :constraints, :defaults,
+                       :shallow, :blocks, :options]
 
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
@@ -697,18 +700,20 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
-          scope_options.each do |option|
-            if value = options.delete(option)
+          SCOPE_OPTIONS.each do |option|
+            if option == :blocks
+              value = block
+            elsif option == :options
+              value = options
+            else
+              value = options.delete(option)
+            end
+
+            if value
               recover[option] = @scope[option]
               @scope[option]  = send("merge_#{option}_scope", @scope[option], value)
             end
           end
-
-          recover[:blocks] = @scope[:blocks]
-          @scope[:blocks]  = merge_blocks_scope(@scope[:blocks], block)
-
-          recover[:options] = @scope[:options]
-          @scope[:options]  = merge_options_scope(@scope[:options], options)
 
           yield
           self
@@ -840,10 +845,6 @@ module ActionDispatch
         end
 
         private
-          def scope_options #:nodoc:
-            @scope_options ||= private_methods.grep(/^merge_(.+)_scope$/) { $1.to_sym }
-          end
-
           def merge_path_scope(parent, child) #:nodoc:
             Mapper.normalize_path("#{parent}/#{child}")
           end
