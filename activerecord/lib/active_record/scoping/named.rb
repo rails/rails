@@ -160,13 +160,8 @@ module ActiveRecord
 
           singleton_class.send(:define_method, name) do |*args|
             if body.respond_to?(:call)
-              scope = extension ? body.call(*args).extending(extension) : body.call(*args)
-
-              if scope
-                default_scoped = scope.default_scoped
-                scope = relation.merge(scope)
-                scope.default_scoped = default_scoped
-              end
+              scope = all.scoping { body.call(*args) }
+              scope = scope.extending(extension) if extension
             else
               scope = body
             end

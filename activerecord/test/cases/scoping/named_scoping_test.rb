@@ -461,7 +461,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_subclass_merges_scopes_properly
-    assert_equal 1, SpecialComment.crazy_all.count
+    assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
   end
 
 end

@@ -9,11 +9,11 @@ module ActiveRecord
 
     module ClassMethods
       def current_scope #:nodoc:
-        Thread.current["#{self}_current_scope"]
+        Thread.current["#{base_class}_current_scope"]
       end
 
       def current_scope=(scope) #:nodoc:
-        Thread.current["#{self}_current_scope"] = scope
+        Thread.current["#{base_class}_current_scope"] = scope
       end
     end
 
