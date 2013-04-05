@@ -245,7 +245,6 @@ class AssociationProxyTest < ActiveRecord::TestCase
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
-  class Person < ActiveRecord::Base; end
   class DifferentPerson < ActiveRecord::Base; end
 
   class PeopleList < ActiveRecord::Base

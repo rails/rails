@@ -69,7 +69,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_attributes
-    assert ! Topic.find(1).approved?
+    assert !Topic.find(1).approved?
     assert Topic.find(2).approved?
   end
 
