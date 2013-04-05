@@ -29,12 +29,6 @@ module ApplicationTests
       assert_match "Current Environment: test", run_test_command('test/unit/env_test.rb')
     end
 
-    def test_run_shortcut
-      create_test_file :models, 'foo'
-      output = Dir.chdir(app_path) { `bundle exec rails t test/models/foo_test.rb` }
-      assert_match "1 tests, 1 assertions, 0 failures", output
-    end
-
     def test_run_single_file
       create_test_file :models, 'foo'
       create_test_file :models, 'bar'

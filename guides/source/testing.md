@@ -222,10 +222,10 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 
 ### Running Tests
 
-Running a test is as simple as invoking the file containing the test cases through `rails test` command.
+Running a test is as simple as invoking the file containing the test cases through `rake test` command.
 
 ```bash
-$ rails test test/models/post_test.rb
+$ rake test test/models/post_test.rb
 .
 
 Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
@@ -236,7 +236,7 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 You can also run a particular test method from the test case by running the test and using `-n` switch with the `test method name`.
 
 ```bash
-$ rails test test/models/post_test.rb -n test_the_truth
+$ rake test test/models/post_test.rb TESTOPTS='-n test_the_truth'
 .
 
 Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
@@ -260,7 +260,7 @@ end
 Let us run this newly added test.
 
 ```bash
-$ rails test test/models/post_test.rb -n test_should_not_save_post_without_title
+$ rake test test/models/post_test.rb TESTOPTS='-n test_should_not_save_post_without_title'
 F
 
 Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
@@ -300,7 +300,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ rails test test/models/post_test.rb -n test_should_not_save_post_without_title
+$ rake test test/models/post_test.rb TESTOPTS='-n test_should_not_save_post_without_title'
 .
 
 Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
@@ -325,7 +325,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ rails test test/models/post_test.rb -n test_should_report_error
+$ rake test test/models/post_test.rb TESTOPTS='-n test_should_report_error'
 E
 
 Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
@@ -761,14 +761,14 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 
 | Tasks                    | Description |
 | ------------------------ | ----------- |
-| `rails test`             | Runs all unit, functional and integration tests. You can also simply run `rails test` as Rails will run all the tests by default|
-| `rails test controllers` | Runs all the controller tests from `test/controllers`|
-| `rails test functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
-| `rails test helpers`     | Runs all the helper tests from `test/helpers`|
-| `rails test integration` | Runs all the integration tests from `test/integration`|
-| `rails test mailers`     | Runs all the mailer tests from `test/mailers`|
-| `rails test models`      | Runs all the model tests from `test/models`|
-| `rails test units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake test` as Rails will run all the tests by default|
+| `rake test:controllers` | Runs all the controller tests from `test/controllers`|
+| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
+| `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
+| `rake test:integration` | Runs all the integration tests from `test/integration`|
+| `rake test:mailers`     | Runs all the mailer tests from `test/mailers`|
+| `rake test:models`      | Runs all the model tests from `test/models`|
+| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 
 There're also some test commands which you can initiate by running rake tasks:
 

@@ -80,15 +80,6 @@ when 'server'
     server.start
   end
 
-when 'test'
-  $LOAD_PATH.unshift("./test")
-  require 'rails/commands/test_runner'
-  options = Rails::TestRunner.parse_arguments(ARGV)
-  ENV['RAILS_ENV'] ||= options[:environment] || 'test'
-
-  require APP_PATH
-  Rails::TestRunner.start(ARGV, options)
-
 when 'dbconsole'
   require 'rails/commands/dbconsole'
   Rails::DBConsole.start
