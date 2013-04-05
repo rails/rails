@@ -155,7 +155,28 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command('test/unit/chu_2_koi_test.rb TESTOPTS="-n test_rikka"').tap do |output|
+      run_test_command('test/unit/chu_2_koi_test.rb test_rikka').tap do |output|
+        assert_match "Rikka", output
+        assert_no_match "Sanae", output
+      end
+    end
+
+    def test_run_matched_test
+      app_file 'test/unit/chu_2_koi_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class Chu2KoiTest < ActiveSupport::TestCase
+          def test_rikka
+            puts 'Rikka'
+          end
+
+          def test_sanae
+            puts 'Sanae'
+          end
+        end
+      RUBY
+
+      run_test_command('test/unit/chu_2_koi_test.rb /rikka/').tap do |output|
         assert_match "Rikka", output
         assert_no_match "Sanae", output
       end
