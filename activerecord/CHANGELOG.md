@@ -1,5 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix associations with `:inverse_of` option when building association
+    with a block. Inside the block the parent object was different then
+    after the block.
+
+    Example:
+
+        parent.association.build do |child|
+          child.parent.equal?(parent) # false
+        end
+
+        # vs
+
+        child = parent.association.build
+        child.parent.equal?(parent) # true
+
+    *Michal Cichra*
+
 *   `has_many` using `:through` now obeys the order clause mentioned in
     through association. Fixes #10016.
 
@@ -417,23 +434,6 @@
 
         # This will expand the order :name to "authors".name.
         Author.joins(:books).where('books.published = 1').order(:name)
-
-*   Fix associations with `:inverse_of` option when building association
-    with a block. Inside the block the parent object was different then
-    after the block.
-
-    Example:
-
-        parent.association.build do |child|
-          child.parent.equal?(parent) # false
-        end
-
-        # vs
-
-        child = parent.association.build
-        child.parent.equal?(parent) # true
-
-    *Michal Cichra*
 
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
