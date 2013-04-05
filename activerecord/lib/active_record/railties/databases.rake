@@ -166,7 +166,7 @@ db_namespace = namespace :db do
   end
 
   # desc "Raises an error if there are pending migrations"
-  task :abort_if_pending_migrations => [:environment, :load_config] do
+  task :abort_if_pending_migrations => :environment do
     pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Migrator.migrations_paths).pending_migrations
 
     if pending_migrations.any?
@@ -347,7 +347,7 @@ db_namespace = namespace :db do
     end
 
     # desc 'Check for pending migrations and load the test schema'
-    task :prepare => 'db:abort_if_pending_migrations' do
+    task :prepare do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
       end
@@ -383,5 +383,5 @@ namespace :railties do
   end
 end
 
-task 'test:prepare' => 'db:test:prepare'
+task 'test:prepare' => ['db:test:prepare', 'db:test:load_schema', 'db:abort_if_pending_migrations']
 
