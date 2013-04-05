@@ -66,19 +66,19 @@ module ActiveRecord::Associations::Builder
     def add_touch_callbacks(reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def belongs_to_touch_after_save_or_destroy_for_#{name}
-          record = #{name}
+          foreign_key_field = #{reflection.foreign_key.inspect}
+          old_foreign_id    = attribute_was(foreign_key_field)
 
-          foreign_key_field   = #{reflection.foreign_key.inspect}
-          if changed_attributes.key?(foreign_key_field)
-            reflection_klass  = #{reflection.klass}
-            primary_key_field = reflection_klass.primary_key
-            old_foreign_id    = changed_attributes[foreign_key_field]
-            old_record        = reflection_klass.where(primary_key_field => old_foreign_id).first
+          if old_foreign_id
+            reflection_klass = #{reflection.klass}
+            old_record       = reflection_klass.find_by(reflection_klass.primary_key => old_foreign_id)
+
             if old_record
               old_record.touch #{options[:touch].inspect if options[:touch] != true}
             end
           end
 
+          record = #{name}
           unless record.nil? || record.new_record?
             record.touch #{options[:touch].inspect if options[:touch] != true}
           end
