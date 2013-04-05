@@ -1,28 +1,20 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    def self.build_from_hash(klass, attributes, default_table)
-      queries = []
+    def self.build_from_hash(klass, attributes, default_table, queries = nil)
+      queries ||= []
 
       attributes.each do |column, value|
-        table = default_table
+        table  = default_table
+        engine = default_table.engine
 
         if value.is_a?(Hash)
-          if value.empty?
-            queries << '1=0'
-          else
-            table       = Arel::Table.new(column, default_table.engine)
-            association = klass.reflect_on_association(column.to_sym)
-
-            value.each do |k, v|
-              queries.concat expand(association && association.klass, table, k, v)
-            end
-          end
+          manage_hash_value(klass, column, value, queries, engine)
         else
           column = column.to_s
 
           if column.include?('.')
             table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, default_table.engine)
+            table = Arel::Table.new(table_name, engine)
           end
 
           queries.concat expand(klass, table, column, value)
@@ -101,6 +93,27 @@ module ActiveRecord
         else
           attribute.eq(value)
         end
+      end
+
+      def self.manage_hash_value(klass, column, value, queries, engine)
+        return (queries << '1=0') if value.empty?
+
+        table = Arel::Table.new(column, engine)
+        if is_model_attribute?(klass, column)
+          association = klass.reflect_on_association(column.to_sym)
+          value.each do |k, v|
+            queries.concat expand(association && association.klass, table, k, v)
+          end
+          queries
+        elsif association = klass.reflect_on_association(column.to_sym)
+          build_from_hash(association.klass, value, table, queries)
+        else
+          build_from_hash(klass, value, table, queries)
+        end
+      end
+
+      def self.is_model_attribute?(klass, column)
+        klass.column_names.include?(column.to_s)
       end
   end
 end
