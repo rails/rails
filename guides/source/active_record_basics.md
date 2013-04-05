@@ -319,7 +319,7 @@ A quick example to illustrate:
 
 ```ruby
 class User < ActiveRecord::Base
-  validates_presence_of :name
+  validates :name, presence: true
 end
 
 User.create  # => false
