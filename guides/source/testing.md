@@ -236,7 +236,7 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 You can also run a particular test method from the test case by running the test and using `-n` switch with the `test method name`.
 
 ```bash
-$ rake test test/models/post_test.rb TESTOPTS='-n test_the_truth'
+$ ruby -Itest test/models/post_test.rb -n test_the_truth
 .
 
 Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
@@ -260,7 +260,7 @@ end
 Let us run this newly added test.
 
 ```bash
-$ rake test test/models/post_test.rb TESTOPTS='-n test_should_not_save_post_without_title'
+$ ruby -Itest test/models/post_test.rb -n test_should_not_save_post_without_title
 F
 
 Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
@@ -300,7 +300,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ rake test test/models/post_test.rb TESTOPTS='-n test_should_not_save_post_without_title'
+$ ruby -Itest test/models/post_test.rb -n test_should_not_save_post_without_title
 .
 
 Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
@@ -325,7 +325,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ rake test test/models/post_test.rb TESTOPTS='-n test_should_report_error'
+$ ruby -Itest test/models/post_test.rb -n test_should_report_error
 E
 
 Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
