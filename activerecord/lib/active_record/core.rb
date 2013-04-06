@@ -344,6 +344,10 @@ module ActiveRecord
       self.class.connection
     end
 
+    def connection_handler
+      self.class.connection_handler
+    end
+
     # Returns the contents of the record as a nicely formatted string.
     def inspect
       inspection = if @attributes
