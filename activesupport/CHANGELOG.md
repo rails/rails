@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `Class#class_attribute` accepts an `instance_predicate` option which
+    defaults to `true`. If set to `false` the predicate method will not
+    be defined.
+
+    *Agis Anastasopoulos*
+
 *   `fast_xs` support has been removed.  Use 'String#encode(xml: :attr)`.
 
 *   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
