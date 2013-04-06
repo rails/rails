@@ -1039,6 +1039,8 @@ For convenience `class_attribute` also defines an instance predicate which is th
 
 When `:instance_reader` is `false`, the instance predicate returns a `NoMethodError` just like the reader method.
 
+If you do not want the instance predicate,  pass `instance_predicate: false` and it will not be defined.
+
 NOTE: Defined in `active_support/core_ext/class/attribute.rb`
 
 #### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
