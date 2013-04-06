@@ -7,8 +7,8 @@ require "<%= name %>/version"
 Gem::Specification.new do |s|
   s.name        = "<%= name %>"
   s.version     = <%= camelized %>::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
+  s.authors     = ["<%= author %>"]
+  s.email       = ["<%= email %>"]
   s.homepage    = "TODO"
   s.summary     = "TODO: Summary of <%= camelized %>."
   s.description = "TODO: Description of <%= camelized %>."
