@@ -58,7 +58,7 @@ module ActionView
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
-          }.merge(options)
+          }.merge!(options)
           content_tag(:script, "", tag_options)
         }.join("\n").html_safe
       end
@@ -98,7 +98,7 @@ module ActionView
             "rel" => "stylesheet",
             "media" => "screen",
             "href" => path_to_stylesheet(source, path_options)
-          }.merge(options)
+          }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
       end
@@ -166,7 +166,7 @@ module ActionView
           :rel  => 'shortcut icon',
           :type => 'image/vnd.microsoft.icon',
           :href => path_to_image(source)
-        }.merge(options.symbolize_keys))
+        }.merge!(options.symbolize_keys))
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
