@@ -126,8 +126,8 @@ module ActionView
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
       # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The
-      # <tt>:separator</tt> enable to choose the delimation. The resulting string will be stripped in any case. If the +phrase+
+      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
+      # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
       # isn't found, nil is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
@@ -145,7 +145,7 @@ module ActionView
       #   excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
       #   # => <chop> is also an example
       #
-      #   excerpt('This is a very beautiful morning', 'very', separator:  ' ', radius: 1)
+      #   excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
       #   # => ...a very beautiful...
       def excerpt(text, phrase, options = {})
         return unless text && phrase
