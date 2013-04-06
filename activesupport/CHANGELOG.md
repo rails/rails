@@ -6,7 +6,7 @@
 
     *Agis Anastasopoulos*
 
-*   `fast_xs` support has been removed.  Use 'String#encode(xml: :attr)`.
+*   `fast_xs` support has been removed.  Use `String#encode(xml: :attr)`.
 
 *   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
     its payload.
