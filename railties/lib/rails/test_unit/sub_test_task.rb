@@ -8,11 +8,21 @@ module Rails
       end
 
       def files
-        @tasks.find_all { |t| File.file?(t) && !File.directory?(t) }
+        @tasks.map { |task|
+          [task, translate(task)].find { |file| test_file?(file) }
+        }.compact
+      end
+
+      def translate(file)
+        if file =~ /^app\/(.*)$/
+          "test/#{$1.sub(/\.rb$/, '')}_test.rb"
+        else
+          "test/#{file}_test.rb"
+        end
       end
 
       def tasks
-        @tasks - files - opt_names
+        @tasks - test_file_tasks - opt_names
       end
 
       def opts
@@ -24,8 +34,18 @@ module Rails
 
       private
 
+      def test_file_tasks
+        @tasks.find_all { |task|
+          [task, translate(task)].any? { |file| test_file?(file) }
+        }
+      end
+
+      def test_file?(file)
+        file =~ /^test/ && File.file?(file) && !File.directory?(file)
+      end
+
       def opt_names
-        (@tasks - files).reject { |t| task_defined? t }
+        (@tasks - test_file_tasks).reject { |t| task_defined? t }
       end
 
       def task_defined?(task)

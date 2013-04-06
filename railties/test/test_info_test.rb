@@ -24,6 +24,30 @@ module Rails
       assert_equal ['test'], info.tasks
     end
 
+    def test_with_model_shorthand
+      info = new_test_info ['test', 'models/foo', '/foo/']
+
+      def info.test_file?(file)
+        file == "test/models/foo_test.rb" || super
+      end
+
+      assert_equal ['test/models/foo_test.rb'], info.files
+      assert_equal '-n /foo/', info.opts
+      assert_equal ['test'], info.tasks
+    end
+
+    def test_with_model_path
+      info = new_test_info ['test', 'app/models/foo.rb', '/foo/']
+
+      def info.test_file?(file)
+        file == "test/models/foo_test.rb" || super
+      end
+
+      assert_equal ['test/models/foo_test.rb'], info.files
+      assert_equal '-n /foo/', info.opts
+      assert_equal ['test'], info.tasks
+    end
+
     def new_test_info(tasks)
       Class.new(TestTask::TestInfo) {
         def task_defined?(task)
