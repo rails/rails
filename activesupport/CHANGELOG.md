@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `fast_xs` support has been removed.  Use 'String#encode(xml: :attr)`.
+
 *   `ActiveSupport::Notifications::Instrumenter#instrument` should yield
     its payload.
 
