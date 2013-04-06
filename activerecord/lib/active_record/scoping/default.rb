@@ -5,8 +5,17 @@ module ActiveRecord
 
       included do
         # Stores the default scope for the class.
-        class_attribute :default_scopes, instance_writer: false
+        class_attribute :default_scopes, instance_writer: false, instance_predicate: false
+
         self.default_scopes = []
+
+        def self.default_scopes?
+          ActiveSupport::Deprecation.warn(
+            "#default_scopes? is deprecated. Do something like #default_scopes.empty? instead."
+          )
+
+          !!self.default_scopes
+        end
       end
 
       module ClassMethods
