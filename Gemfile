@@ -11,7 +11,7 @@ gem 'coffee-rails', '~> 4.0.0.beta1'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem 'uglifier', require: false
+gem 'uglifier', '~> 1.3', require: false
 
 group :doc do
   gem 'sdoc'
