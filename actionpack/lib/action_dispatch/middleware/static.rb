@@ -55,6 +55,9 @@ module ActionDispatch
       case env['REQUEST_METHOD']
       when 'GET', 'HEAD'
         path = env['PATH_INFO'].chomp('/')
+        if Rails.application.config.relative_url_root && path.rindex(Rails.application.config.relative_url_root) == 0 then
+          path = path[Rails.application.config.relative_url_root.length .. -1]
+        end
         if match = @file_handler.match?(path)
           env["PATH_INFO"] = match
           return @file_handler.call(env)
