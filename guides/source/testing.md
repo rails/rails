@@ -128,12 +128,12 @@ When you use `rails generate scaffold`, for a resource among other things it cre
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/unit/post_test.rb
+create  test/models/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/unit/post_test.rb` looks like this:
+The default test stub in `test/models/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
