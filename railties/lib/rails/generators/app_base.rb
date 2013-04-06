@@ -186,7 +186,7 @@ module Rails
             gem 'sass-rails',   github: 'rails/sass-rails'
 
             # To use Uglifier as compressor for JavaScript assets
-            gem 'uglifier', '>= 1.3.0'
+            gem 'uglifier', '~> 1.3'
           GEMFILE
         else
           <<-GEMFILE.gsub(/^ {12}/, '')
@@ -194,7 +194,7 @@ module Rails
             gem 'sass-rails',   '~> 4.0.0.beta1'
 
             # To use Uglifier as compressor for JavaScript assets
-            gem 'uglifier', '>= 1.3.0'
+            gem 'uglifier', '~> 1.3'
           GEMFILE
         end
 
