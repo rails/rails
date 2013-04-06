@@ -13,7 +13,7 @@ After reading this guide, you will know:
 Usage
 -----
 
-To apply a template, you need to provide the Rails generator with the location of the template you wish to apply, using -m option. This can either be path to a file or a URL.
+To apply a template, you need to provide the Rails generator with the location of the template you wish to apply using the -m option. This can either be a path to a file or a URL.
 
 ```bash
 $ rails new blog -m ~/template.rb
@@ -30,7 +30,7 @@ $ rake rails:template LOCATION=http://example.com/template.rb
 Template API
 ------------
 
-Rails templates API is very self explanatory and easy to understand. Here's an example of a typical Rails template:
+The Rails templates API is easy to understand. Here's an example of a typical Rails template:
 
 ```ruby
 # template.rb
@@ -43,7 +43,7 @@ git add: "."
 git commit: %Q{ -m 'Initial commit' }
 ```
 
-The following sections outlines the primary methods provided by the API:
+The following sections outline the primary methods provided by the API:
 
 ### gem(*args)
 
@@ -66,7 +66,7 @@ bundle install
 
 Wraps gem entries inside a group.
 
-For example, if you want to load `rspec-rails` only in `development` and `test` group:
+For example, if you want to load `rspec-rails` only in the `development` and `test` groups:
 
 ```ruby
 gem_group :development, :test do
@@ -100,7 +100,7 @@ A block can be used in place of the `data` argument.
 
 Adds an initializer to the generated application’s `config/initializers` directory.
 
-Lets say you like using `Object#not_nil?` and `Object#not_blank?`:
+Let's say you like using `Object#not_nil?` and `Object#not_blank?`:
 
 ```ruby
 initializer 'bloatlol.rb', <<-CODE
@@ -116,9 +116,9 @@ initializer 'bloatlol.rb', <<-CODE
 CODE
 ```
 
-Similarly `lib()` creates a file in the `lib/` directory and `vendor()` creates a file in the `vendor/` directory.
+Similarly, `lib()` creates a file in the `lib/` directory and `vendor()` creates a file in the `vendor/` directory.
 
-There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/file needed:
+There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/files needed:
 
 ```ruby
 file 'app/components/foo.rb', <<-CODE
@@ -127,7 +127,7 @@ file 'app/components/foo.rb', <<-CODE
 CODE
 ```
 
-That’ll create `app/components` directory and put `foo.rb` in there.
+That’ll create the `app/components` directory and put `foo.rb` in there.
 
 ### rakefile(filename, data = nil, &block)
 
@@ -179,7 +179,7 @@ rake "db:migrate", env: 'production'
 
 ### route(routing_code)
 
-Adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `README.rdoc`. Now to make `PeopleController#index` as the default page for the application:
+Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.rdoc`. Now, to make `PeopleController#index` the default page for the application:
 
 ```ruby
 route "root to: 'person#index'"
@@ -197,7 +197,7 @@ end
 
 ### ask(question)
 
-`ask()` gives you a chance to get some feedback from the user and use it in your templates. Lets say you want your user to name the new shiny library you’re adding:
+`ask()` gives you a chance to get some feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you’re adding:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library ?")
@@ -211,7 +211,7 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user’s answer. Lets say you want to freeze rails only if the user want to:
+These methods let you ask questions from templates and decide the flow based on the user’s answer. Let's say you want to freeze rails only if the user wants to:
 
 ```ruby
 rake("rails:freeze:gems") if yes?("Freeze rails gems?")
