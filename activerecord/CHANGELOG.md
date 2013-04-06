@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `#default_scopes?` is deprecated. Instead, do something like
+    `Post.default_scopes.empty?`.
+
+    *Agis Anastasopoulos*
+
 *   Default values for PostgreSQL bigint types now get parsed and dumped to the
     schema correctly.
 

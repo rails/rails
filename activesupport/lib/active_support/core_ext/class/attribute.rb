@@ -44,7 +44,8 @@ class Class
   #   Base.setting               # => []
   #   Subclass.setting           # => [:foo]
   #
-  # For convenience, a query method is defined as well:
+  # For convenience, an instance predicate method is defined as well.
+  # To skip it, pass <tt>instance_predicate: false</tt>.
   #
   #   Subclass.setting?       # => false
   #
@@ -72,10 +73,11 @@ class Class
     # double assignment is used to avoid "assigned but unused variable" warning
     instance_reader = instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
+    instance_predicate = options.fetch(:instance_predicate, true)
 
     attrs.each do |name|
       define_singleton_method(name) { nil }
-      define_singleton_method("#{name}?") { !!public_send(name) }
+      define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
       ivar = "@#{name}"
 
@@ -109,7 +111,7 @@ class Class
             self.class.public_send name
           end
         end
-        define_method("#{name}?") { !!public_send(name) }
+        define_method("#{name}?") { !!public_send(name) } if instance_predicate
       end
 
       attr_writer name if instance_writer
