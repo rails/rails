@@ -82,7 +82,6 @@ namespace :test do
 
   # Display deprecation message
   task :deprecated do
-    task_name = ARGV.first
     ActiveSupport::Deprecation.warn "`rake #{ARGV.first}` is deprecated with no replacement."
   end
 
