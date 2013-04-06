@@ -195,6 +195,13 @@ module ApplicationTests
       end
     end
 
+    def test_run_with_model
+      create_model_with_fixture
+      create_fixture_test 'models', 'user'
+      assert_match "3 users", run_task(["test models/user"])
+      assert_match "3 users", run_task(["test app/models/user.rb"])
+    end
+
     def test_run_different_environment_using_env_var
       app_file 'test/unit/env_test.rb', <<-RUBY
         require 'test_helper'
