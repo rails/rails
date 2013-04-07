@@ -1152,12 +1152,65 @@ module ActionView
         end
     end
 
+    # A +FormBuilder+ object is associated with a particular model object and
+    # allows you to generate fields associated with the model object. The
+    # +FormBuilder+ object is yielded when using +form_for+ or +fields_for+.
+    # For example:
+    #
+    #   <%= form_for @person do |person_form| %>
+    #     Name: <%= person_form.text_field :name %>
+    #     Admin: <%= person_form.check_box :admin %>
+    #   <% end %>
+    #
+    # In the above block, the a +FormBuilder+ object is yielded as the
+    # +person_form+ variable. This allows you to generate the +text_field+
+    # and +check_box+ fields by specifying their eponymous methods, which
+    # modify the underlying template and associates the +@person+ model object
+    # with the form.
+    #
+    # The +FormBuilder+ object can be thought of as serving as a proxy for the
+    # methods in the +FormHelper+ module. This class, however, allows you to
+    # call methods with the model object you are building the form for.
+    #
+    # You can create your own custom FormBuilder templates by subclasses this
+    # class. For example:
+    #
+    #   class MyFormBuilder < ActionView::Helpers::FormBuilder
+    #     def div_radio_button(method, tag_value, options = {})
+    #       @template.content_tag(:div,
+    #         @template.radio_button(
+    #           @object_name, method, tag_value, objectify_options(options)
+    #         )
+    #       )
+    #     end
+    #
+    # The above code creates a new method +div_radio_button+ which wraps a div
+    # around the a new radio button. Note that when options are passed in, you
+    # must called +objectify_options+ in order for the model object to get
+    # correctly passed to the method. If +objectify_options+ is not called,
+    # then the newly created helper will not be linked back to the model.
+    #
+    # The +div_radio_button+ code from above can now be used as follows:
+    #
+    #   <%= form_for @person, :builder => MyFormBuilder do |f| %>
+    #     I am a child: <%= f.div_radio_button(:admin, "child") %>
+    #     I am an adult: <%= f.div_radio_button(:admin, "adult") %>
+    #   <% end -%>
+    #
+    # The standard set of helper methods for form building are located in the
+    # +field_helpers+ class attribute.
     class FormBuilder
       include ModelNaming
 
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model, :model_name_from_record_or_class]
+      self.field_helpers = [:fields_for, :label, :text_field, :password_field,
+                            :hidden_field, :file_field, :text_area, :check_box,
+                            :radio_button, :color_field, :search_field,
+                            :telephone_field, :phone_field, :date_field,
+                            :time_field, :datetime_field, :datetime_local_field,
+                            :month_field, :week_field, :url_field, :email_field,
+                            :number_field, :range_field]
 
       attr_accessor :object_name, :object, :options
 
@@ -1239,7 +1292,7 @@ module ActionView
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #
-      #     <%= f.submit %>
+      #     <%= person_form.submit %>
       #   <% end %>
       #
       # In this case, the checkbox field will be represented by an HTML +input+
