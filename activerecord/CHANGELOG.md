@@ -1,7 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `#default_scopes?` is deprecated. Instead, do something like
-    `Post.default_scopes.empty?`.
+*   `default_scopes?` is deprecated. Check for `default_scopes.empty?` instead.
 
     *Agis Anastasopoulos*
 
@@ -1856,13 +1855,13 @@
 
         add_index(:accounts, :code, where: 'active')
 
-        Generates
+    generates
 
         CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
 
     *Marcelo Silveira*
 
-*   Implemented ActiveRecord::Relation#none method.
+*   Implemented `ActiveRecord::Relation#none` method.
 
     The `none` method returns a chainable relation with zero records
     (an instance of the NullRelation class).
