@@ -54,7 +54,7 @@ class CopyTableTest < ActiveRecord::TestCase
   end
 
   def test_copy_table_with_id_col_that_is_not_primary_key
-    test_copy_table('goofy_string_id', 'goofy_string_id2') do |from, to, options|
+    test_copy_table('goofy_string_id', 'goofy_string_id2') do
       original_id = @connection.columns('goofy_string_id').detect{|col| col.name == 'id' }
       copied_id = @connection.columns('goofy_string_id2').detect{|col| col.name == 'id' }
       assert_equal original_id.type, copied_id.type
@@ -65,7 +65,7 @@ class CopyTableTest < ActiveRecord::TestCase
   end
 
   def test_copy_table_with_unconventional_primary_key
-    test_copy_table('owners', 'owners_unconventional') do |from, to, options|
+    test_copy_table('owners', 'owners_unconventional') do
       original_pk = @connection.primary_key('owners')
       copied_pk = @connection.primary_key('owners_unconventional')
       assert_equal original_pk, copied_pk

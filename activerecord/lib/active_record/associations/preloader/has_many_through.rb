@@ -5,7 +5,7 @@ module ActiveRecord
         include ThroughAssociation
 
         def associated_records_by_owner
-          super.each do |owner, records|
+          super.each_value do |records|
             records.uniq! if reflection_scope.distinct_value
           end
         end
