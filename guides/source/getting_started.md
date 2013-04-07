@@ -1043,7 +1043,7 @@ REST convention, so to create a new `Post` object it will look for a
 route named `posts_path`, and to update a `Post` object it will look for
 a route named `post_path` and pass the current object. Similarly, rails
 knows that it should create new objects via POST and update them via
-PUT.
+PATCH.
 
 If you run `rake routes` from the console you'll see that we already
 have a `posts_path` route, which was created automatically by Rails when we
@@ -1054,13 +1054,13 @@ received an error before. With your server running you can view your routes by v
 ```bash
 $ rake routes
 
-    posts GET  /posts(.:format)            posts#index
-posts_new GET  /posts/new(.:format)        posts#new
-          POST /posts(.:format)            posts#create
-          GET  /posts/:id(.:format)        posts#show
-          GET  /posts/:id/edit(.:format)   posts#edit
-          PUT  /posts/:id(.:format)        posts#update
-     root      /                           welcome#index
+    posts GET   /posts(.:format)            posts#index
+posts_new GET   /posts/new(.:format)        posts#new
+          POST  /posts(.:format)            posts#create
+          GET   /posts/:id(.:format)        posts#show
+          GET   /posts/:id/edit(.:format)   posts#edit
+          PATCH /posts/:id(.:format)        posts#update
+     root       /                           welcome#index
 ```
 
 To fix this, open `config/routes.rb` and modify the `get "posts/:id"`
@@ -1197,6 +1197,7 @@ $ rake routes
  new_post GET    /posts/new(.:format)      posts#new
 edit_post GET    /posts/:id/edit(.:format) posts#edit
      post GET    /posts/:id(.:format)      posts#show
+          PATCH  /posts/:id(.:format)      posts#update
           PUT    /posts/:id(.:format)      posts#update
           DELETE /posts/:id(.:format)      posts#destroy
      root        /                         welcome#index
