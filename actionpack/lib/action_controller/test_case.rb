@@ -18,7 +18,7 @@ module ActionController
       @_layouts = Hash.new(0)
       @_files = Hash.new(0)
 
-      ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
+      ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
         path = payload[:layout]
         if path
           @_layouts[path] += 1
@@ -28,7 +28,7 @@ module ActionController
         end
       end
 
-      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
+      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
@@ -41,7 +41,7 @@ module ActionController
         @_templates[path] += 1
       end
 
-      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
+      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
         next if payload[:virtual_path] # files don't have virtual path
 
         path = payload[:identifier]
