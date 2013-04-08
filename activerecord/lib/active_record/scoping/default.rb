@@ -10,11 +10,7 @@ module ActiveRecord
         self.default_scopes = []
 
         def self.default_scopes?
-          ActiveSupport::Deprecation.warn(
-            "#default_scopes? is deprecated. Do something like #default_scopes.empty? instead."
-          )
-
-          !!self.default_scopes
+          !self.default_scopes.empty?
         end
       end
 

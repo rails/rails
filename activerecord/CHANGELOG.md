@@ -1,6 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `default_scopes?` is deprecated. Check for `default_scopes.empty?` instead.
+*   `default_scopes?` now correctly returns `true` if there are default scopes
+    defined and `false` otherwise.
 
     *Agis Anastasopoulos*
 
