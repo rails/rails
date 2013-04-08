@@ -81,7 +81,7 @@ module ActionDispatch
         # Load routes.rb if it hasn't been loaded.
 
         generated_path, extra_keys = @routes.generate_extras(options, defaults)
-        found_extras = options.reject {|k, v| ! extra_keys.include? k}
+        found_extras = options.reject { |k, _| ! extra_keys.include? k }
 
         msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)
@@ -120,7 +120,7 @@ module ActionDispatch
           options[:controller] = "/#{controller}"
         end
 
-        generate_options = options.dup.delete_if{ |k,v| defaults.key?(k) }
+        generate_options = options.dup.delete_if{ |k, _| defaults.key?(k) }
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 

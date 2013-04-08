@@ -223,8 +223,8 @@ module Mime
         Mime.instance_eval { remove_const(symbol) }
 
         SET.delete_if { |v| v.eql?(mime) }
-        LOOKUP.delete_if { |k,v| v.eql?(mime) }
-        EXTENSION_LOOKUP.delete_if { |k,v| v.eql?(mime) }
+        LOOKUP.delete_if { |_,v| v.eql?(mime) }
+        EXTENSION_LOOKUP.delete_if { |_,v| v.eql?(mime) }
       end
     end
 
