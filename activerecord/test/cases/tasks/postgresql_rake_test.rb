@@ -71,6 +71,36 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
+
+    def test_create_schema_when_search_path_is_defined
+      @configuration['schema_search_path'] = "example-schema"
+      @connection.expects(:create_database)
+      @connection.expects(:create_schema).with("example-schema")
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
+
+    def test_create_schemas_when_search_path_contians_many
+      @configuration['schema_search_path'] = "first, second,third "
+      @connection.expects(:create_database)
+      @connection.expects(:create_schema).with("first")
+      @connection.expects(:create_schema).with("second")
+      @connection.expects(:create_schema).with("third")
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
+
+    def test_create_when_schema_exists_outputs_info_to_stderr
+      @configuration['schema_search_path'] = "my-schema"
+      $stderr.expects(:puts).with("schema 'my-schema' already exists").once
+
+      ActiveRecord::Base.connection.stubs(:create_database).raises(
+                                                                   ActiveRecord::StatementInvalid.new('schema "my-schema" already exists')
+                                                                  )
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
+
   end
 
   class PostgreSQLDBDropTest < ActiveRecord::TestCase
