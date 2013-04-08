@@ -616,6 +616,30 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_delete_merge
+    hash_1 = { :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } }
+    hash_2 = { :a => 1, :b => "b", :c => { :c3 => { :d1 => "d1", :d2 => "d2" } } }
+    expected_1 = {:a=>"a", :c=>{:c1=>"c1", :c2=>"c2"}}
+    expected_2 = {:a=>1, :c=>{:c3=>{:d1=>"d1", :d2=>"d2"}}}
+    assert_equal expected_1, hash_1.delete_merge(hash_2)
+    assert_equal expected_2, hash_2.delete_merge(hash_1)
+
+    hash_1.delete_merge!(hash_2)
+    assert_equal expected_1, hash_1
+  end
+
+  def test_delete_merge_on_indifferent_access
+    hash_1 = HashWithIndifferentAccess.new({ :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } })
+    hash_2 = HashWithIndifferentAccess.new({ :a => 1, :b => "b", :c => { :c3 => { :d1 => "d1", :d2 => "d2" } } })
+    expected_1 = {"a"=>"a", "c"=>{"c1"=>"c1", "c2"=>"c2"}}
+    expected_2 = {"a"=>1, "c"=>{"c3"=>{"d1"=>"d1", "d2"=>"d2"}}}
+    assert_equal expected_1, hash_1.delete_merge(hash_2)
+    assert_equal expected_2, hash_2.delete_merge(hash_1)
+
+    hash_1.delete_merge!(hash_2)
+    assert_equal expected_1, hash_1
+  end
+
   def test_store_on_indifferent_access
     hash = HashWithIndifferentAccess.new
     hash.store(:test1, 1)
