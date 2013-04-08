@@ -9,11 +9,11 @@ module ActiveRecord
 
     module ClassMethods
       def current_scope #:nodoc:
-        ScopeRegistry.current.value_for(:current_scope, base_class.to_s)
+        ScopeRegistry.value_for(:current_scope, base_class.to_s)
       end
 
       def current_scope=(scope) #:nodoc:
-        ScopeRegistry.current.set_value_for(:current_scope, base_class.to_s, scope)
+        ScopeRegistry.set_value_for(:current_scope, base_class.to_s, scope)
       end
     end
 
@@ -41,15 +41,22 @@ module ActiveRecord
     #
     #   registry.value_for(:current_scope, "Board")
     #
-    # You will obtain whatever was defined in +some_new_scope+.
+    # You will obtain whatever was defined in +some_new_scope+. The +value_for+
+    # and +set_value_for+ methods are delegated to the current +ScopeRegistry+
+    # object, so the above example code can also be called as:
+    #
+    #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,
+    #       "Board", some_new_scope)
     class ScopeRegistry # :nodoc:
-      def self.current
-        Thread.current["scope_registry"] ||= new
+      class << self
+        delegate :value_for, :set_value_for, to: :current
+
+        def current
+          Thread.current["scope_registry"] ||= new
+        end
       end
 
       VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope]
-
-      attr_accessor :registry
 
       def initialize
         @registry = Hash.new { |hash, key| hash[key] = {} }
