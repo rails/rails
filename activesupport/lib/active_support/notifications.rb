@@ -177,7 +177,33 @@ module ActiveSupport
       end
 
       def instrumenter
-        Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
+        InstrumentationRegistry.instrumenter_for(notifier)
+      end
+    end
+
+    # This class is a registry which holds all of the +Instrumenter+ objects
+    # in a particular thread local. To access the +Instrumenter+ object for a
+    # particular +notifier+, you can call the following method:
+    #
+    #   InstrumentationRegistry.instrumenter_for(notifier)
+    #
+    # The instrumenters for multiple notifiers are held in a single instance of
+    # this class.
+    class InstrumentationRegistry # :nodoc:
+      class << self
+        delegate :instrumenter_for, to: :current
+
+        def current
+          Thread.current[:instrumentation_registry] ||= new
+        end
+      end
+
+      def initialize
+        @registry = {}
+      end
+
+      def instrumenter_for(notifier)
+        @registry[notifier] ||= Instrumenter.new(notifier)
       end
     end
 
