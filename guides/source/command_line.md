@@ -300,6 +300,17 @@ irb(main):001:0>
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 
+### `rails test`
+
+INFO: A good description of unit testing in Rails is given in
+[A Guide to Testing Rails Applications](testing.html)
+
+Rails comes with a test suite called `Test::Unit`. Rails owes its stability to
+the use of tests. The `rails test` command helps in running the different tests
+you will hopefully write. The
+[commands section in the testing guide](testing.html#commands-to-run-your-tests)
+describes `rails test` in depth.
+
 ### `rails runner`
 
 `runner` runs Ruby code in the context of Rails non-interactively. For instance:
@@ -460,9 +471,9 @@ rspec/model/user_spec.rb:
 
 ### `test`
 
-INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
-
-Rails comes with a test suite called `Test::Unit`. Rails owes its stability to the use of tests. The tasks available in the `test:` namespace helps in running the different tests you will hopefully write.
+See the
+[commands section in the testing guide](testing.html#commands-to-run-your-tests)
+for a summary of available tasks.
 
 ### `tmp`
 

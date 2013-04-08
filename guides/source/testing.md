@@ -754,7 +754,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Rake Tasks for Running your Tests
+Commands to Run your Tests
 ---------------------------------
 
 You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
@@ -994,9 +994,18 @@ Other Testing Approaches
 
 The built-in `test/unit` based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:
 
-* [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
-* [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
-* [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
-* [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
-* [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
-* [RSpec](http://relishapp.com/rspec), a behavior-driven development framework
+* [NullDB](http://avdi.org/projects/nulldb/), a way to speed up
+  testing by avoiding database use.
+* [Factory Girl](https://github.com/thoughtbot/factory_girl), a
+  replacement for fixtures.
+* [Machinist](https://github.com/notahat/machinist), another
+  replacement for fixtures.
+* [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails),
+  use the MiniTest::Spec DSL within your rails tests.
+* [Shoulda](https://github.com/thoughtbot/shoulda), an extension to
+  `test/unit` and `rspec` with additional helpers, macros, and
+  assertions.
+* [RSpec](http://relishapp.com/rspec), a behavior-driven development
+  framework
+* [Mocha](https://github.com/freerange/mocha), a mocking and stubbing
+  library for Ruby
