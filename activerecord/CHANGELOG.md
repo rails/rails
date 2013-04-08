@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `rake db:create` creates a schema when `schema_search_path` is specified in
+    database.yml.
+    Fixes #3624.
+
+    *Yves Senn*
+
 *   `default_scopes?` is deprecated. Check for `default_scopes.empty?` instead.
 
     *Agis Anastasopoulos*
