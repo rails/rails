@@ -1,5 +1,6 @@
 require 'active_support/values/time_zone'
 require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary
@@ -292,13 +293,7 @@ module ActiveSupport
       end
     end
 
-    %w(year mon month day mday wday yday hour min sec to_date).each do |method_name|
-      class_eval <<-EOV, __FILE__, __LINE__ + 1
-        def #{method_name}    # def month
-          time.#{method_name} #   time.month
-        end                   # end
-      EOV
-    end
+    delegate :year, :mon, :month, :day, :mday, :wday, :yday, :hour, :min, :sec, :to_date, to: :time
 
     def usec
       time.respond_to?(:usec) ? time.usec : 0

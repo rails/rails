@@ -328,12 +328,12 @@ module ActiveSupport
 
         # Lazy load the Unicode database so it's only loaded when it's actually used
         ATTRIBUTES.each do |attr_name|
-          class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-            def #{attr_name}     # def codepoints
-              load               #   load
-              @#{attr_name}      #   @codepoints
-            end                  # end
-          EOS
+          class_exec do
+            define_method(attr_name) do               # def codepoints
+              load                                    #   load
+              instance_variable_get("@#{attr_name}")  #   @codepoints
+            end                                       # end
+          end
         end
 
         # Loads the Unicode database and returns all the internal objects of

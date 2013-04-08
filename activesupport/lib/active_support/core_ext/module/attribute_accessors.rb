@@ -5,20 +5,21 @@ class Module
     options = syms.extract_options!
     syms.each do |sym|
       raise NameError.new('invalid attribute name') unless sym =~ /^[_A-Za-z]\w*$/
-      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        @@#{sym} = nil unless defined? @@#{sym}
+      cvar = "@@#{sym}"
+      module_exec do
+        class_variable_set(cvar, nil) unless class_variable_defined?(cvar)
 
-        def self.#{sym}
-          @@#{sym}
+        define_singleton_method(sym) do
+          class_variable_get(cvar)
         end
-      EOS
+      end
 
       unless options[:instance_reader] == false || options[:instance_accessor] == false
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-          def #{sym}
-            @@#{sym}
+        module_exec do
+          define_method(sym) do
+            self.class.class_variable_get(cvar)
           end
-        EOS
+        end
       end
     end
   end
@@ -27,18 +28,19 @@ class Module
     options = syms.extract_options!
     syms.each do |sym|
       raise NameError.new('invalid attribute name') unless sym =~ /^[_A-Za-z]\w*$/
-      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}=(obj)
-          @@#{sym} = obj
+      cvar = "@@#{sym}"
+      module_exec do
+        define_singleton_method("#{sym}=") do |obj|
+          class_variable_set(cvar, obj)
         end
-      EOS
+      end
 
       unless options[:instance_writer] == false || options[:instance_accessor] == false
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-          def #{sym}=(obj)
-            @@#{sym} = obj
+        module_exec do
+          define_method("#{sym}=") do |obj|
+            self.class.class_variable_set(cvar, obj)
           end
-        EOS
+        end
       end
     end
   end

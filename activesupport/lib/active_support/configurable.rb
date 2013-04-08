@@ -1,6 +1,7 @@
 require 'active_support/concern'
 require 'active_support/ordered_options'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport
   # Configurable provides a <tt>config</tt> method to store and retrieve
@@ -16,9 +17,9 @@ module ActiveSupport
       # Compiles reader methods so we don't have to go through method_missing.
       def self.compile_methods!(keys)
         keys.reject { |m| method_defined?(m) }.each do |key|
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{key}; _get(#{key.inspect}); end
-          RUBY
+          class_exec do
+            define_method(key) { _get(key) }
+          end
         end
       end
     end
@@ -109,15 +110,13 @@ module ActiveSupport
         names.each do |name|
           raise NameError.new('invalid config attribute name') unless name =~ /^[_A-Za-z]\w*$/
 
-          reader, reader_line = "def #{name}; config.#{name}; end", __LINE__
-          writer, writer_line = "def #{name}=(value); config.#{name} = value; end", __LINE__
-
-          singleton_class.class_eval reader, __FILE__, reader_line
-          singleton_class.class_eval writer, __FILE__, writer_line
+          singleton_class.class_exec do
+            delegate name, "#{name}=", to: :config
+          end
 
           unless options[:instance_accessor] == false
-            class_eval reader, __FILE__, reader_line unless options[:instance_reader] == false
-            class_eval writer, __FILE__, writer_line unless options[:instance_writer] == false
+            delegate name, to: :config unless options[:instance_reader] == false
+            delegate "#{name}=", to: :config unless options[:instance_writer] == false
           end
           send("#{name}=", yield) if block_given?
         end
@@ -144,4 +143,3 @@ module ActiveSupport
     end
   end
 end
-
