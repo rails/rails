@@ -665,7 +665,7 @@ module ActionDispatch
         end
 
         req = @request_class.new(env)
-        @router.recognize(req) do |route, matches, params|
+        @router.recognize(req) do |route, _matches, params|
           params.merge!(extras)
           params.each do |key, value|
             if value.is_a?(String)
