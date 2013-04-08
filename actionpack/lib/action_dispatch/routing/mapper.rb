@@ -489,7 +489,7 @@ module ActionDispatch
             end
 
             options = app
-            app, path = options.find { |k, v| k.respond_to?(:call) }
+            app, path = options.find { |k, _| k.respond_to?(:call) }
             options.delete(app) if app
           end
 
@@ -1361,7 +1361,7 @@ module ActionDispatch
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
-            path, to = options.find { |name, value| name.is_a?(String) }
+            path, to = options.find { |name, _value| name.is_a?(String) }
             options[:to] = to
             options.delete(path)
             paths = [path]
