@@ -5,10 +5,10 @@ module ActiveRecord
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
-      attr_reader :join_parts, :reflections, :alias_tracker, :active_record
+      attr_reader :join_parts, :reflections, :alias_tracker, :base_klass
 
       def initialize(base, associations, joins)
-        @active_record = base
+        @base_klass    = base
         @table_joins   = joins
         @join_parts    = [JoinBase.new(base)]
         @associations  = {}
@@ -54,7 +54,7 @@ module ActiveRecord
           parent
         }.uniq
 
-        remove_duplicate_results!(active_record, records, @associations)
+        remove_duplicate_results!(base_klass, records, @associations)
         records
       end
 
@@ -109,7 +109,7 @@ module ActiveRecord
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.intern] or
-          raise ConfigurationError, "Association named '#{ associations }' was not found on #{ parent.active_record.name }; perhaps you misspelled it?"
+          raise ConfigurationError, "Association named '#{ associations }' was not found on #{ parent.base_klass.name }; perhaps you misspelled it?"
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
             join_association = build_join_association(reflection, parent)
