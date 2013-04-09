@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow `limit` scope to take Float::INFINITY.
+
+    *Naoyoshi Aikawa*
+
 *   `default_scopes?` is deprecated. Check for `default_scopes.empty?` instead.
 
     *Agis Anastasopoulos*
