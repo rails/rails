@@ -50,6 +50,7 @@ module ActiveRecord
   autoload :Querying
   autoload :ReadonlyAttributes
   autoload :Reflection
+  autoload :RuntimeRegistry
   autoload :Sanitization
   autoload :Schema
   autoload :SchemaDumper
