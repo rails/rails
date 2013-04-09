@@ -1,7 +1,7 @@
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
-      # A JoinPart represents a part of a JoinDependency. It is an abstract class, inherited
+      # A JoinPart represents a part of a JoinDependency. It is inherited
       # by JoinBase and JoinAssociation. A JoinBase represents the Active Record which
       # everything else is being joined onto. A JoinAssociation represents an association which
       # is joining to the base. A JoinAssociation may result in more than one actual join
