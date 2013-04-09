@@ -120,11 +120,11 @@ module ActiveRecord
         end
 
         def ignore_default_scope? # :nodoc:
-          ScopeRegistry.current.value_for(:ignore_default_scope, self)
+          ScopeRegistry.value_for(:ignore_default_scope, self)
         end
 
         def ignore_default_scope=(ignore) # :nodoc:
-          ScopeRegistry.current.set_value_for(:ignore_default_scope, self, ignore)
+          ScopeRegistry.set_value_for(:ignore_default_scope, self, ignore)
         end
 
         # The ignore_default_scope flag is used to prevent an infinite recursion
