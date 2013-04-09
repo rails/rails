@@ -137,9 +137,11 @@ module ActiveRecord
       first || create!(attributes, &block)
     end
 
-    def first_or_initialize(attributes = nil, &block) # :nodoc:
+    def first_or_new(attributes = nil, &block) # :nodoc:
       first || new(attributes, &block)
     end
+
+    alias :first_or_initialize :first_or_new
 
     # Finds the first record with the given attributes, or creates a record with the attributes
     # if one is not found.
