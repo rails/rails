@@ -920,6 +920,18 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_firm_safe_assign
+    firm = Company.new
+
+    assert_raise(ActiveRecord::UnknownAttributeError) do
+      firm.attributes = { "rating=\n" => 5 }
+    end
+    assert_equal 1, firm.rating
+
+    firm.attributes = { "rating(1)\n" => 5 }
+    assert_equal 1, firm.rating
+  end
+
   def test_customized_primary_key_remains_protected
     subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
     assert_nil subscriber.id
