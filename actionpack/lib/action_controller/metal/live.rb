@@ -134,8 +134,8 @@ module ActionController
           begin
             @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
             @_response.stream.call_on_error
-          rescue => exceptionception
-            log_error(exceptionception)
+          rescue => exception
+            log_error(exception)
           ensure
             log_error(e)
             @_response.stream.close
