@@ -1,10 +1,8 @@
 <%
-  traces = [
-    ["Application Trace", @application_trace],
-    ["Framework Trace", @framework_trace],
-    ["Full Trace", @full_trace]
-  ]
-  names = traces.collect {|name, trace| name}
+   traces = { "Application Trace" => @application_trace,
+              "Framework Trace"   => @framework_trace,
+              "Full Trace"        => @full_trace }
+   names = traces.keys
 %>
 
 <p><code>Rails.root: <%= defined?(Rails) && Rails.respond_to?(:root) ? Rails.root : "unset" %></code></p>
