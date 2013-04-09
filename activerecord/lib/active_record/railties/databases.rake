@@ -373,7 +373,7 @@ namespace :railties do
         puts "NOTE: Migration #{migration.basename} from #{name} has been skipped. Migration with the same name already exists."
       end
 
-      on_copy = Proc.new do |name, migration, old_path|
+      on_copy = Proc.new do |name, migration|
         puts "Copied migration #{migration.basename} from #{name}"
       end
 

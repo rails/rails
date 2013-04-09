@@ -34,6 +34,7 @@ module ActionController
   module Live
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       def initialize(response)
+        @error_callback = nil
         super(response, SizedQueue.new(10))
       end
 
