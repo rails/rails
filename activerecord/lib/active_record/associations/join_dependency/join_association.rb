@@ -62,7 +62,7 @@ module ActiveRecord
         def join_to(manager)
           tables        = @tables.dup
           foreign_table = parent_table
-          foreign_klass = parent.active_record
+          foreign_klass = parent.base_klass
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
