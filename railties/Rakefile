@@ -12,8 +12,9 @@ task :test => 'test:isolated'
 
 namespace :test do
   task :isolated do
-    dir = ENV["TEST_DIR"] || "**"
-    Dir["test/#{dir}/*_test.rb"].each do |file|
+    dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
+    test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
+    Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
       dash_i = [
         'test',
