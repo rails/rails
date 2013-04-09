@@ -68,7 +68,6 @@
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
-      work_in_progress: true
       description: This guide describes how to use Action Mailer to send and receive emails.
     -
       name: Testing Rails Applications
