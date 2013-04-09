@@ -250,8 +250,11 @@ module ActionView
       #   simple_format("Look ma! A class!", class: 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       #
-      #   simple_format("<span>I'm allowed!</span> It's true.", {}, sanitize: false)
-      #   # => "<p><span>I'm allowed!</span> It's true.</p>"
+      #   simple_format("<blink>Unblinkable.</blink>")
+      #   # => "<p>Unblinkable.</p>"
+      #
+      #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false)
+      #   # => "<p><blink>Blinkable!</span> It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
