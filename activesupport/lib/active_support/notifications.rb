@@ -1,5 +1,6 @@
 require 'active_support/notifications/instrumenter'
 require 'active_support/notifications/fanout'
+require 'active_support/per_thread_registry'
 
 module ActiveSupport
   # = Notifications
@@ -190,12 +191,10 @@ module ActiveSupport
     # The instrumenters for multiple notifiers are held in a single instance of
     # this class.
     class InstrumentationRegistry # :nodoc:
-      class << self
-        delegate :instrumenter_for, to: :current
+      extend ActiveSupport::PerThreadRegistry
 
-        def current
-          Thread.current[:instrumentation_registry] ||= new
-        end
+      class << self
+        delegate :instrumenter_for, to: :instance
       end
 
       def initialize
