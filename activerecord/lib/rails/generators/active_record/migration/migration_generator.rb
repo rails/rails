@@ -43,7 +43,7 @@ module ActiveRecord
         if attribute.foreign_key?
           attribute.name
         else
-          attribute.name.singularize.foreign_key
+          ActiveRecord::Base.column_name_for(attribute.name).foreign_key
         end.to_sym
       end
 

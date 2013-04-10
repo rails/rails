@@ -387,7 +387,7 @@ module ActiveRecord
 
     def self.default_fixture_model_name(fixture_set_name) # :nodoc:
       ActiveRecord::Base.pluralize_table_names ?
-        fixture_set_name.singularize.camelize :
+        fixture_set_name.singularize(ActiveRecord::Base.locale).camelize :
         fixture_set_name.camelize
     end
 
@@ -788,7 +788,7 @@ module ActiveRecord
         end
 
         fixture_set_names.each do |file_name|
-          file_name = file_name.singularize if ActiveRecord::Base.pluralize_table_names
+          file_name = file_name.singularize(ActiveRecord::Base.locale) if ActiveRecord::Base.pluralize_table_names
           try_to_load_dependency(file_name)
         end
       end

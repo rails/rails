@@ -34,6 +34,13 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Indicates what locale to use for pluralizing and singularizing table
+      # and collection names
+      class_attribute :locale, instance_writer: false
+      self.locale = :en
+
+      ##
+      # :singleton-method:
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
@@ -41,6 +48,14 @@ module ActiveRecord
       self.pluralize_table_names = true
 
       self.inheritance_column = 'type'
+
+      def self.table_name_for(name)
+        pluralize_table_names ? name.to_s.pluralize(locale) : name.to_s
+      end
+
+      def self.column_name_for(name)
+        name.to_s.singularize(locale)
+      end
     end
 
     module ClassMethods
@@ -321,7 +336,7 @@ module ActiveRecord
       # Guesses the table name, but does not decorate it with prefix and suffix information.
       def undecorated_table_name(class_name = base_class.name)
         table_name = class_name.to_s.demodulize.underscore
-        pluralize_table_names ? table_name.pluralize : table_name
+        pluralize_table_names ? table_name.pluralize(ActiveRecord::Base.locale) : table_name
       end
 
       # Computes and returns a table name according to default conventions.
@@ -331,7 +346,7 @@ module ActiveRecord
           # Nested classes are prefixed with singular parent table name.
           if parent < Base && !parent.abstract_class?
             contained = parent.table_name
-            contained = contained.singularize if parent.pluralize_table_names
+            contained = contained.singularize(ActiveRecord::Base.locale) if parent.pluralize_table_names
             contained += '_'
           end
           "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{table_name_suffix}"

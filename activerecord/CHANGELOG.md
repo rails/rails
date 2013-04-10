@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add a separate ActiveRecord::Base.locale to decouple AR name pluralization
+    from the default locale.
+
+    *Sam Ruby*
+
 *   `default_scopes?` is deprecated. Check for `default_scopes.empty?` instead.
 
     *Agis Anastasopoulos*
