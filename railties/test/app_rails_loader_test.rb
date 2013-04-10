@@ -17,14 +17,14 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
     test "is not in a rails application if #{exe} exists but doesn't contain APP_PATH" do
       File.stubs(:exists?).with(exe).returns(true)
       File.stubs(:read).with(exe).returns("railties #{exe}")
-      assert !Rails::AppRailsLoader.find_executable
+      assert !Rails::AppRailsLoader.exec_app_rails
     end
 
     test "is in a rails application if parent directory has #{exe} containing APP_PATH" do
       File.stubs(:exists?).with("/foo/bar/#{exe}").returns(false)
       File.stubs(:exists?).with("/foo/#{exe}").returns(true)
       File.stubs(:read).with("/foo/#{exe}").returns('APP_PATH')
-      assert Rails::AppRailsLoader.find_executable_in_parent_path(Pathname.new("/foo/bar"))
+      assert_equal Rails::AppRailsLoader.find_executable_in_parent_path(Pathname.new("/foo/bar")), "/foo/#{exe}"
     end
 
     test "is not in a rails application if at the root directory and doesn't have #{exe}" do
@@ -36,7 +36,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
       File.stubs(:exists?).with("/foo/bar/#{exe}").returns(false)
       File.stubs(:exists?).with("/foo/#{exe}").returns(true)
       File.stubs(:read).with("/foo/#{exe}").returns('ENGINE_PATH')
-      assert Rails::AppRailsLoader.find_executable_in_parent_path(Pathname.new("/foo/bar"))
+      assert Rails::AppRailsLoader.find_executable_in_parent_path(Pathname.new("/foo/bar")), "/foo/#{exe}"
     end
 
     test "is in a rails engine if #{exe} exists containing ENGINE_PATH" do
