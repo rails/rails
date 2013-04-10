@@ -115,7 +115,11 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
+        options[:skip_active_record] ? "" : 
+          <<-GEMFILE.gsub(/^ {12}/, '').strip
+            # Use #{options[:database]} as the database for ActiveRecord
+            gem '#{gem_for_database}'
+          GEMFILE
       end
 
       def include_all_railties?
@@ -185,7 +189,7 @@ module Rails
             # Use SCSS for stylesheets
             gem 'sass-rails',   github: 'rails/sass-rails'
 
-            # To use Uglifier as compressor for JavaScript assets
+            # Use Uglifier as compressor for JavaScript assets
             gem 'uglifier', '~> 1.3'
           GEMFILE
         else
@@ -193,7 +197,7 @@ module Rails
             # Use SCSS for stylesheets
             gem 'sass-rails',   '~> 4.0.0.beta1'
 
-            # To use Uglifier as compressor for JavaScript assets
+            # Use Uglifier as compressor for JavaScript assets
             gem 'uglifier', '~> 1.3'
           GEMFILE
         end
@@ -229,7 +233,7 @@ module Rails
           <<-GEMFILE.gsub(/^ {12}/, '').strip_heredoc
             #{coffee_gemfile_entry}
             #{javascript_runtime_gemfile_entry}
-
+            # Use #{options[:javascript]} as the JavaScript library
             gem '#{options[:javascript]}-rails'
 
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
