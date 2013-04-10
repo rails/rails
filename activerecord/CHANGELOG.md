@@ -1,5 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added Statement Cache to allow the caching of a single statement. The cache works by
+    duping the relation returned from yielding a statement which allows skipping the AST
+    building phase.
+
+    Example:
+
+      cache = ActiveRecord::StatementCache.new do
+        Book.where(:name => "my book").limit(100)
+      end
+
+      books = cache.execute
+
+    The solution attempts to get closer to the speed of `find_by_sql` but still maintaining
+    the expressiveness of the Active Record queries.
+
+    *Olli Rissanen*
+
 *   Preserve context while merging relations with join information.
 
         class Comment < ActiveRecord::Base

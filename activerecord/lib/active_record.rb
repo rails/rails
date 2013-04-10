@@ -57,6 +57,7 @@ module ActiveRecord
   autoload :SchemaMigration
   autoload :Scoping
   autoload :Serialization
+  autoload :StatementCache
   autoload :Store
   autoload :Timestamp
   autoload :Transactions
