@@ -382,10 +382,10 @@ class InflectorTest < ActiveSupport::TestCase
   end
   
   def test_inflector_with_default_locale
-    old_locale = I18n.locale
+    old_default_locale = I18n.default_locale
 
     begin
-      I18n.locale = :de
+      I18n.default_locale = :de
 
       ActiveSupport::Inflector.inflections(:de) do |inflect|
         inflect.irregular 'region', 'regionen'
@@ -394,7 +394,7 @@ class InflectorTest < ActiveSupport::TestCase
       assert_equal('regionen', 'region'.pluralize)
       assert_equal('region', 'regionen'.singularize)
     ensure
-      I18n.locale = old_locale
+      I18n.default_locale = old_default_locale
     end
   end
 
