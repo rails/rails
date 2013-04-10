@@ -577,6 +577,17 @@ ActiveModel::MissingAttributeError: missing attribute: <attribute>
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
 
+If you would like to select fields on joined tables just use this syntax:
+```ruby
+User.joins(:posts).select(:name, posts: [:id, :title, :body])
+```
+
+The SQL for that query would be:
+
+```sql
+SELECT name, posts.id, posts.title, posts.body FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+```
+
 If you would like to only grab a single record per unique value in a certain field, you can use `distinct`:
 
 ```ruby

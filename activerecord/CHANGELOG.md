@@ -1,3 +1,15 @@
+*   `select` query method can now select fields on joined tables using Hash syntax.
+
+    In this Hash, each key is a table name whose value is an Array. The array is a
+    list of fields.
+
+    Example:
+
+        User.joins(:posts).select(:name, posts: [:id, :title, :body])
+        #   => SELECT name, posts.id, posts.title, posts.body FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
 *   Don't allow `quote_value` to be called without a column.
 
     Some adapters require column information to do their job properly.
