@@ -1,5 +1,37 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Preserve context while merging relations with join information.
+
+        class Comment < ActiveRecord::Base
+          belongs_to :post
+        end
+
+        class Author < ActiveRecord::Base
+          has_many :posts
+        end
+
+        class Post < ActiveRecord::Base
+          belongs_to :author
+          has_many :comments
+        end
+
+    `Comment.joins(:post).merge(Post.joins(:author).merge(Author.where(:name => "Joe Blogs"))).all`
+    would fail with
+    `ActiveRecord::ConfigurationError: Association named 'author' was not found on Comment`.
+
+    It is failing because `all` is being called on relation which looks like this after all
+    the merging: `{:joins=>[:post, :author], :where=>[#<Arel::Nodes::Equality: ....}`. In this
+    relation all the context that `Post` was joined with `Author` is lost and hence the error
+    that `author` was not found on `Comment`.
+
+    Ths solution is to build JoinAssociation when two relations with join information are being
+    merged. And later while building the arel use the  previously built `JoinAssociation` record
+    in `JoinDependency#graft` to build the right from clause.
+
+    Fixes #3002.
+
+    *Jared Armstrong and Neeraj Singh*
+
 *   `default_scopes?` is deprecated. Check for `default_scopes.empty?` instead.
 
     *Agis Anastasopoulos*

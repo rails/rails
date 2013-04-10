@@ -1,10 +1,12 @@
 require "cases/helper"
 require 'models/post'
 require 'models/comment'
+require 'models/author'
+require 'models/rating'
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments
+    fixtures :posts, :comments, :authors
 
     class FakeKlass < Struct.new(:table_name, :name)
     end
@@ -176,6 +178,13 @@ module ActiveRecord
       relation.merge!(where: ['foo = ?', 'bar'])
       assert_equal ['foo = bar'], relation.where_values
     end
+
+    def test_relation_merging_with_merged_joins
+      special_comments_with_ratings = SpecialComment.joins(:ratings)
+      posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
+      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).to_a.length
+    end
+
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
