@@ -175,7 +175,7 @@ module ActiveRecord
 
         unless options[:id] == false
           pk = options.fetch(:primary_key) {
-            Base.get_primary_key table_name.to_s.singularize
+            Base.get_primary_key ActiveRecord::Base.column_name_for(table_name)
           }
 
           td.primary_key pk, options.fetch(:id, :primary_key), options
@@ -235,7 +235,7 @@ module ActiveRecord
         column_options = options.delete(:column_options) || {}
         column_options.reverse_merge!(null: false)
 
-        t1_column, t2_column = [table_1, table_2].map{ |t| t.to_s.singularize.foreign_key }
+        t1_column, t2_column = [table_1, table_2].map{ |t| ActiveRecord::Base.column_name_for(t).foreign_key }
 
         create_table(join_table_name, options.merge!(id: false)) do |td|
           td.integer t1_column, column_options

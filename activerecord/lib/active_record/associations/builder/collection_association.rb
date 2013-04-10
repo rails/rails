@@ -70,7 +70,7 @@ module ActiveRecord::Associations::Builder
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_ids
+        def #{ActiveRecord::Base.column_name_for(name)}_ids
           association(:#{name}).ids_reader
         end
       CODE
@@ -80,7 +80,7 @@ module ActiveRecord::Associations::Builder
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_ids=(ids)
+        def #{ActiveRecord::Base.column_name_for(name)}_ids=(ids)
           association(:#{name}).ids_writer(ids)
         end
       CODE

@@ -108,8 +108,7 @@ module ActiveRecord
         @scope         = scope
         @options       = options
         @active_record = active_record
-        @plural_name   = active_record.pluralize_table_names ?
-                            name.to_s.pluralize : name.to_s
+        @plural_name   = ActiveRecord::Base.table_name_for(name)
       end
 
       # Returns the class for the macro.
@@ -227,7 +226,7 @@ module ActiveRecord
 
       def counter_cache_column
         if options[:counter_cache] == true
-          "#{active_record.name.demodulize.underscore.pluralize}_count"
+          "#{active_record.name.demodulize.underscore.pluralize(ActiveRecord::Base.locale)}_count"
         elsif options[:counter_cache]
           options[:counter_cache].to_s
         end
@@ -364,7 +363,7 @@ module ActiveRecord
       private
         def derive_class_name
           class_name = name.to_s.camelize
-          class_name = class_name.singularize if collection?
+          class_name = ActiveRecord::Base.column_name_for(class_name) if collection?
           class_name
         end
 
@@ -529,7 +528,7 @@ module ActiveRecord
       #   # => [:tag, :tags]
       #
       def source_reflection_names
-        @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
+        @source_reflection_names ||= (options[:source] ? [options[:source]] : [ActiveRecord::Base.column_name_for(name), name]).collect { |n| n.to_sym }
       end
 
       def source_options
