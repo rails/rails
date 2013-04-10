@@ -312,6 +312,10 @@ module Mime
       true
     end
 
+    def ref
+      nil
+    end
+
     def respond_to_missing?(method, include_private = false)
       method.to_s.ends_with? '?'
     end

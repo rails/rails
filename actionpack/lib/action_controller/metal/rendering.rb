@@ -6,7 +6,7 @@ module ActionController
 
     # Before processing, set the request formats in current controller formats.
     def process_action(*) #:nodoc:
-      self.formats = request.formats.select { |x| !x.nil? }.map(&:ref)
+      self.formats = request.formats.map(&:ref).compact
       super
     end
 
