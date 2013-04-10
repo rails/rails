@@ -6,15 +6,15 @@ module Rails
     EXECUTABLES = ['bin/rails', 'script/rails']
 
     def self.exec_app_rails
-      cwd = Dir.pwd
-      pathname = Pathname.new(Dir.pwd)
+      original_cwd = Dir.pwd
 
       until exe = find_executable
-        # Return to working directory if root is hit without finding executable
-        Dir.chdir(cwd) and return if pathname.root?
-        # Otherwise keep moving upwards in search of executable
-        Dir.chdir("..")
-        pathname = pathname.parent
+        # If we exhaust the search there is no executable, this could be a
+        # call to generate a new application, so restore the original cwd.
+        Dir.chdir(original_cwd) and return if Pathname.new(Dir.pwd).root?
+
+        # Otherwise keep moving upwards in search of a executable.
+        Dir.chdir('..')
       end
 
       contents = File.read(exe)
@@ -58,6 +58,5 @@ generate it and add it to source control:
     def self.find_executable
       EXECUTABLES.find { |exe| File.exists?(exe) }
     end
-
   end
 end
