@@ -109,7 +109,6 @@ class BasicCallbacksTest < ActiveSupport::TestCase
     @index    = GrandParent.new("index").dispatch
     @update   = GrandParent.new("update").dispatch
     @delete   = GrandParent.new("delete").dispatch
-    @unknown  = GrandParent.new("unknown").dispatch
   end
 
   def test_basic_conditional_callback1
@@ -130,7 +129,6 @@ class InheritedCallbacksTest < ActiveSupport::TestCase
     @index    = Parent.new("index").dispatch
     @update   = Parent.new("update").dispatch
     @delete   = Parent.new("delete").dispatch
-    @unknown  = Parent.new("unknown").dispatch
   end
 
   def test_inherited_excluded
