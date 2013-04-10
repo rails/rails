@@ -123,6 +123,21 @@ module ActiveRecord
           manager
         end
 
+        #  Builds equality condition.
+        #
+        #  Example:
+        #
+        #  class Physician < ActiveRecord::Base
+        #    has_many :appointments
+        #  end
+        #
+        #  If I execute `Physician.joins(:appointments).to_a` then
+        #    reflection    #=> #<ActiveRecord::Reflection::AssociationReflection @macro=:has_many ...>
+        #    table         #=> #<Arel::Table @name="appointments" ...>
+        #    key           #=>  physician_id
+        #    foreign_table #=> #<Arel::Table @name="physicians" ...>
+        #    foreign_key   #=> id
+        #
         def build_constraint(reflection, table, key, foreign_table, foreign_key)
           constraint = table[key].eq(foreign_table[foreign_key])
 

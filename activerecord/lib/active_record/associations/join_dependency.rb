@@ -7,6 +7,27 @@ module ActiveRecord
 
       attr_reader :join_parts, :reflections, :alias_tracker, :base_klass
 
+      # base is the base class on which operation is taking place.
+      # associations is the list of associations which are joined using hash, symbol or array.
+      # joins is the list of all string join commnads and arel nodes.
+      #
+      #  Example :
+      #
+      #  class Physician < ActiveRecord::Base
+      #    has_many :appointments
+      #    has_many :patients, through: :appointments
+      #  end
+      #
+      #  If I execute `@physician.patients.to_a` then
+      #    base #=> Physician
+      #    associations #=> []
+      #    joins #=>  [#<Arel::Nodes::InnerJoin: ...]
+      #
+      #  However if I execute `Physician.joins(:appointments).to_a` then
+      #    base #=> Physician
+      #    associations #=> [:appointments]
+      #    joins #=>  []
+      #
       def initialize(base, associations, joins)
         @base_klass    = base
         @table_joins   = joins
@@ -58,6 +79,8 @@ module ActiveRecord
         records
       end
 
+      protected
+
       def remove_duplicate_results!(base, records, associations)
         case associations
         when Symbol, String
@@ -87,8 +110,6 @@ module ActiveRecord
           end
         end
       end
-
-      protected
 
       def cache_joined_association(association)
         associations = []
