@@ -1,5 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added Statement Cache to allow the caching of a single statement. The cache works by
+    duping the relation returned from yielding a statement which allows skipping the AST
+    building phase.
+
+    Example:
+
+      cache = ActiveRecord::StatementCache.new do
+        Book.where(:name => "my book").limit(100)
+      end
+
+      books = cache.execute
+
+    The solution attempts to get closer to the speed of `find_by_sql` but still maintaining
+    the expressiveness of the AR queries.
+
+    *Olli Rissanen*
+
 *   Fixing issue #8345. Now throwing an error when one attempts to touch a
     new object that has not yet been persisted. For instance:
 
