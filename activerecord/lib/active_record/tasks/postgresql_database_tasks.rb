@@ -15,11 +15,16 @@ module ActiveRecord
       def create(master_established = false)
         establish_master_connection unless master_established
         connection.create_database configuration['database'],
-          configuration.merge('encoding' => encoding)
+         configuration.merge('encoding' => encoding)
         establish_connection configuration
+        if configuration['schema_search_path'].present?
+          connection.create_schema configuration['schema_search_path']
+        end
       rescue ActiveRecord::StatementInvalid => error
         if /database .* already exists/ === error.message
           raise DatabaseAlreadyExists
+        elsif /schema "([^"]+)" already exists/ === error.message
+          $stderr.puts "schema '#{$1}' already exists"
         else
           raise
         end
