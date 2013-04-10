@@ -142,6 +142,36 @@ class FilterTest < ActionController::TestCase
       end
   end
 
+  class FilterChainHaltProcController < ActionController::Base
+    before_filter :render_something
+    after_filter :after_filter_with_proc, :if => Proc.new{|c| @state = "after_filter_proc" }, :only => :test_after_filter_proc
+    around_filter :around_filter_with_proc, :if => Proc.new{|c| @state = "around_filter_proc"}, :only => :test_around_filter_proc
+    attr_reader :variable
+
+    def test_after_filter_proc
+      @state = "in_method1"
+    end
+
+    def test_around_filter_proc
+      @state = "in_method2"
+    end
+
+    private
+
+    def render_something
+      @state = "render_something"
+      render :json => { :a => :b}
+    end
+
+    def after_filter_with_proc
+      @state = "after_filter"
+    end
+
+    def around_filter_with_proc
+      @state = "around_filter"
+    end
+  end
+
   class ConditionalFilterController < ActionController::Base
     def show
       render :inline => "ran action"
@@ -707,6 +737,16 @@ class FilterTest < ActionController::TestCase
     assert_response :redirect
     assert_equal "http://test.host/filter_test/before_filter_redirection/target_of_redirection", redirect_to_url
     assert_equal %w( before_filter_redirects ), assigns["ran_filter"]
+  end
+
+  def test_after_filter_proc_not_getting_executed_when_filter_chain_breaks
+    test_process(FilterChainHaltProcController, 'test_after_filter_proc')
+    assert_equal "render_something", assigns["state"]
+  end
+
+  def test_around_filter_proc_not_getting_executed_when_filter_chain_breaks
+    test_process(FilterChainHaltProcController, 'test_around_filter_proc')
+    assert_equal "render_something", assigns["state"]
   end
 
   def test_before_filter_rendering_breaks_filtering_chain_for_preprend_after_filter
