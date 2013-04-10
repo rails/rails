@@ -8,7 +8,7 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, "#{Rails.application.config.paths['db/migrate'].first.to_s}/#{file_name}.rb"
       end
 
       protected
