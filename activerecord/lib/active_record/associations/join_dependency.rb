@@ -58,6 +58,8 @@ module ActiveRecord
         records
       end
 
+      protected
+
       def remove_duplicate_results!(base, records, associations)
         case associations
         when Symbol, String
@@ -87,8 +89,6 @@ module ActiveRecord
           end
         end
       end
-
-      protected
 
       def cache_joined_association(association)
         associations = []
