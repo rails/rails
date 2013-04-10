@@ -41,19 +41,26 @@ class Hash
   # Return a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+.
   #
-  #   hash = { 'name' => 'Rob', 'age' => '28' }
+  #   hash = { 'name' => 'Rob', 'age' => '28', 'area_of_interests' => {'soccer' => 'fc basel' }}
   #
   #   hash.symbolize_keys
-  #   #=> { name: "Rob", age: "28" }
-  def symbolize_keys
-    transform_keys{ |key| key.to_sym rescue key }
+  #   #=> { name: "Rob", age: "28", area_of_interests: {'soccer' => 'fc basel' } }
+  #
+  #   hash.symbolize_keys(true)
+  #   #=> { name: "Rob", age: "28", area_of_interests: {soccer: 'fc basel' } }
+  def symbolize_keys(recursive = false)
+    result = transform_keys{ |key| key.to_sym rescue key }
+    result = Hash[result.collect{ |k, v| [k, v.is_a?(Hash) ? v.symbolize_keys(true) : v] }] if recursive
+    result
   end
   alias_method :to_options,  :symbolize_keys
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+. Same as +symbolize_keys+, but modifies +self+.
-  def symbolize_keys!
+  def symbolize_keys!(recursive = false)
     transform_keys!{ |key| key.to_sym rescue key }
+    each{ |k,v| v.symbolize_keys!(true) if v.is_a?(Hash) } if recursive
+    self
   end
   alias_method :to_options!, :symbolize_keys!
 
