@@ -28,7 +28,7 @@ class String
   #   'apple'.pluralize(2)         # => "apples"
   #   'ley'.pluralize(:es)         # => "leyes"
   #   'ley'.pluralize(1, :es)      # => "ley"
-  def pluralize(count = nil, locale = I18n.locale)
+  def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
     if count == 1
       self
@@ -51,7 +51,7 @@ class String
   #   'the blue mailmen'.singularize # => "the blue mailman"
   #   'CamelOctopi'.singularize      # => "CamelOctopus"
   #   'leyes'.singularize(:es)       # => "ley"
-  def singularize(locale = I18n.locale)
+  def singularize(locale = :en)
     ActiveSupport::Inflector.singularize(self, locale)
   end
 
