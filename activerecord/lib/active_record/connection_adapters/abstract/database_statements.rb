@@ -325,6 +325,8 @@ module ActiveRecord
           limit
         elsif limit.to_s =~ /,/
           Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
+        elsif limit == Float::INFINITY
+          nil
         else
           Integer(limit)
         end
