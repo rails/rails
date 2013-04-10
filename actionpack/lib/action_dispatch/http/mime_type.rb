@@ -306,10 +306,14 @@ module Mime
       method.to_s.ends_with? '?'
     end
   end
-  
+
   class NullType
     def nil?
       true
+    end
+
+    def respond_to_missing?(method, include_private = false)
+      method.to_s.ends_with? '?'
     end
 
     private
