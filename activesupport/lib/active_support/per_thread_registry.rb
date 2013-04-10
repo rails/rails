@@ -35,7 +35,7 @@ module ActiveSupport
     protected
 
       def method_missing(*args, &block)
-        instance.send(*args, &block)
+        instance.public_send(*args, &block)
       end
   end
 end
