@@ -380,6 +380,23 @@ class InflectorTest < ActiveSupport::TestCase
     assert !ActiveSupport::Inflector.inflections.plurals.empty?
     assert !ActiveSupport::Inflector.inflections.singulars.empty?
   end
+  
+  def test_inflector_with_default_locale
+    old_locale = I18n.locale
+
+    begin
+      I18n.locale = :de
+
+      ActiveSupport::Inflector.inflections(:de) do |inflect|
+        inflect.irregular 'region', 'regionen'
+      end
+
+      assert_equal('regionen', 'region'.pluralize)
+      assert_equal('region', 'regionen'.singularize)
+    ensure
+      I18n.locale = old_locale
+    end
+  end
 
   def test_clear_all
     with_dup do
