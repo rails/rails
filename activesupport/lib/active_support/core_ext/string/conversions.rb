@@ -46,12 +46,18 @@ class String
   end
 
   # Converts a string to a DateTime value.
+  # The +form+ can be either :utc or :local (default :local).
   #
-  #   "1-1-2012".to_datetime            #=> Sun, 01 Jan 2012 00:00:00 +0000
-  #   "01/01/2012 23:59:59".to_datetime #=> Sun, 01 Jan 2012 23:59:59 +0000
-  #   "2012-12-13 12:50".to_datetime    #=> Thu, 13 Dec 2012 12:50:00 +0000
+  # If +form+ is :local, then the time is in the system timezone.
+  # If the date part is missing then the current date is used and if
+  # the time part is missing then it is assumed to be 00:00:00.
+  #
+  #   "1-1-2012".to_datetime                  #=> Sun, 01 Jan 2012 00:00:00 +0100
+  #   "01/01/2012 23:59:59".to_datetime       #=> Sun, 01 Jan 2012 23:59:59 +0100
+  #   "2012-12-13 12:50".to_datetime          #=> Thu, 13 Dec 2012 12:50:00 +0100
+  #   "2012-12-13 12:50".to_datetime(:utc)    #=> Thu, 13 Dec 2012 11:50:00 UTC
   #   "12/13/2012".to_datetime          #=> ArgumentError: invalid date
-  def to_datetime
-    ::DateTime.parse(self, false) unless blank?
+  def to_datetime(form = :local)
+    to_time(form).to_datetime unless blank?
   end
 end
