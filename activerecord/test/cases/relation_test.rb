@@ -182,7 +182,7 @@ module ActiveRecord
     def test_relation_merging_with_merged_joins
       special_comments_with_ratings = SpecialComment.joins(:ratings)
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
-      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).to_a.length
+      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
 
   end
