@@ -138,6 +138,12 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
+Passing a `String` to `match` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
+
+```ruby
+get 'profile', to: :show
+```
+
 This resourceful route:
 
 ```ruby
