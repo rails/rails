@@ -1,3 +1,4 @@
+require 'tmpdir'
 require 'pathname'
 require 'abstract_unit'
 require 'rails/app_rails_loader'
@@ -10,6 +11,10 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
 
   def expects_exec(exe)
     Rails::AppRailsLoader.expects(:exec).with(Rails::AppRailsLoader::RUBY, exe)
+  end
+
+  def realpath(filename)
+    Pathname.new(filename).realpath
   end
 
   setup do
@@ -50,7 +55,13 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
 
         expects_exec exe
         Rails::AppRailsLoader.exec_app_rails
-        assert_equal File.join(@tmp, 'foo'), Dir.pwd
+
+        # Compare the realpath in case either of them has symlinks.
+        #
+        # This happens in particular in Mac OS X, where @tmp starts
+        # with "/var", and Dir.pwd with "/private/var", due to a
+        # default system symlink var -> private/var.
+        assert_equal realpath("#@tmp/foo"), realpath(Dir.pwd)
       end
     end
   end
