@@ -547,35 +547,7 @@ This directive is available if the core module that provides this feature was co
 
 If you're compiling nginx with Phusion Passenger you'll need to pass that option when prompted.
 
-Apache is also able to serve the [gzipped](http://en.wikipedia.org/wiki/Gzip) version of your assets; however, it requires a bit more work:
-
-```apache
-<LocationMatch "^/assets/.*$">
-  Header unset ETag
-  FileETag None
-
-  # RFC says only cache for 1 year
-  ExpiresActive On
-  ExpiresDefault "access plus 1 year"
-
-  RewriteEngine	On
-  RewriteCond %{HTTP:Accept-Encoding} gzip
-  RewriteCond %{HTTP_USER_AGENT} !Konqueror
-  RewriteCond %{REQUEST_FILENAME}.gz -f
-  RewriteRule ^(.+).(css|js)$ $1.$2.gz [QSA,L]
-</LocationMatch>
-
-<FilesMatch \.css\.gz>
-  ForceType text/css
-</FilesMatch>
-
-<FilesMatch \.js\.gz>
-  ForceType application/javascript
-</FilesMatch>
-AddEncoding gzip .gz
-```
-
-NOTE: You will need to make sure `mod_headers`, `mod_mime` and `mod_rewrite` are loaded; otherwise, the above configuration will fail.
+A robust configuration for Apache is possible but tricky; please Google around. (Or help update this Guide if you have a good example configuration for Apache.)
 
 ### Local Precompilation
 
