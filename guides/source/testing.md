@@ -128,12 +128,12 @@ When you use `rails generate scaffold`, for a resource among other things it cre
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/unit/post_test.rb
+create  test/models/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/unit/post_test.rb` looks like this:
+The default test stub in `test/models/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
@@ -714,17 +714,17 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 
   test "login and browse site" do
 
-    # User avs logs in
-    avs = login(:david)
+    # User david logs in
+    david = login(:david)
     # User guest logs in
     guest = login(:guest)
 
     # Both are now available in different sessions
-    assert_equal 'Welcome david!', avs.flash[:notice]
+    assert_equal 'Welcome david!', david.flash[:notice]
     assert_equal 'Welcome guest!', guest.flash[:notice]
 
-    # User avs can browse site
-    avs.browses_site
+    # User david can browse site
+    david.browses_site
     # User guest can browse site as well
     guest.browses_site
 

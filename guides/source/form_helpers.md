@@ -221,7 +221,7 @@ Upon form submission the value entered by the user will be stored in `params[:pe
 
 WARNING: You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 
-Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations and Callbacks](./active_record_validations_callbacks.html#displaying-validation-errors-in-the-view) guide.
+Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations](./active_record_validations.html#displaying-validation-errors-in-views) guide.
 
 ### Binding a Form to an Object
 
@@ -836,17 +836,14 @@ Active Record provides model level support  via the `accepts_nested_attributes_f
 class Person < ActiveRecord::Base
   has_many :addresses
   accepts_nested_attributes_for :addresses
-
-  attr_accessible :name, :addresses_attributes
 end
 
 class Address < ActiveRecord::Base
   belongs_to :person
-  attr_accessible :kind, :street
 end
 ```
 
-This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses. When using `attr_accessible` or `attr_protected` you must mark `addresses_attributes` as accessible as well as the other attributes of `Person` and `Address` that should be mass assigned.
+This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses.
 
 ### Building the Form
 

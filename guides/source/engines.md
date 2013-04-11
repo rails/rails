@@ -461,7 +461,7 @@ NOTE: Other engines, such as Devise, handle this a little differently by making 
 The engine contains migrations for the `blorgh_posts` and `blorgh_comments` table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
 ```bash
-$ rake blorgh:install:migrations
+$ rake blorgh_engine:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use `railties:install:migrations` instead:
@@ -612,50 +612,50 @@ This section covers how to make the `User` class configurable, followed by gener
 
 #### Setting configuration settings in the application
 
-The next step is to make the class that represents a `User` in the application customizable for the engine. This is because, as explained before, that class may not always be `User`. To make this customizable, the engine will have a configuration setting called `user_class` that will be used to specify what the class representing users is inside the application.
+The next step is to make the class that represents a `User` in the application customizable for the engine. This is because, as explained before, that class may not always be `User`. To make this customizable, the engine will have a configuration setting called `author_class` that will be used to specify what the class representing users is inside the application.
 
 To define this configuration setting, you should use a `mattr_accessor` inside the `Blorgh` module for the engine, located at `lib/blorgh.rb` inside the engine. Inside this module, put this line:
 
 ```ruby
-mattr_accessor :user_class
+mattr_accessor :author_class
 ```
 
-This method works like its brothers `attr_accessor` and `cattr_accessor`, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using `Blorgh.user_class`.
+This method works like its brothers `attr_accessor` and `cattr_accessor`, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using `Blorgh.author_class`.
 
 The next step is switching the `Blorgh::Post` model over to this new setting. For the `belongs_to` association inside this model (`app/models/blorgh/post.rb`), it will now become this:
 
 ```ruby
-belongs_to :author, class_name: Blorgh.user_class
+belongs_to :author, class_name: Blorgh.author_class
 ```
 
 The `set_author` method also located in this class should also use this class:
 
 ```ruby
-self.author = Blorgh.user_class.constantize.find_or_create_by(name: author_name)
+self.author = Blorgh.author_class.constantize.find_or_create_by(name: author_name)
 ```
 
-To save having to call `constantize` on the `user_class` result all the time, you could instead just override the `user_class` getter method inside the `Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the saved value before returning the result:
+To save having to call `constantize` on the `author_class` result all the time, you could instead just override the `author_class` getter method inside the `Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the saved value before returning the result:
 
 ```ruby
-def self.user_class
-  @@user_class.constantize
+def self.author_class
+  @@author_class.constantize
 end
 ```
 
 This would then turn the above code for `set_author` into this:
 
 ```ruby
-self.author = Blorgh.user_class.find_or_create_by(name: author_name)
+self.author = Blorgh.author_class.find_or_create_by(name: author_name)
 ```
 
-Resulting in something a little shorter, and more implicit in its behavior. The `user_class` method should always return a `Class` object.
+Resulting in something a little shorter, and more implicit in its behavior. The `author_class` method should always return a `Class` object.
 
-Since we changed the `user_class` method to no longer return a
+Since we changed the `author_class` method to no longer return a
 `String` but a `Class` we must also modify our `belongs_to` definition
 in the `Blorgh::Post` model:
 
 ```ruby
-belongs_to :author, class_name: Blorgh.user_class.to_s
+belongs_to :author, class_name: Blorgh.author_class.to_s
 ```
 
 To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
@@ -663,7 +663,7 @@ To set this configuration setting within the application, an initializer should 
 Create a new initializer at `config/initializers/blorgh.rb` inside the application where the `blorgh` engine is installed and put this content in it:
 
 ```ruby
-Blorgh.user_class = "User"
+Blorgh.author_class = "User"
 ```
 
 WARNING: It's very important here to use the `String` version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a `String` should be used and then converted to a class using `constantize` in the engine later on.

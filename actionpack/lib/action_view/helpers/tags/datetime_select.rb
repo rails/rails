@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class DatetimeSelect < DateSelect #:nodoc:
+    module Tags # :nodoc:
+      class DatetimeSelect < DateSelect # :nodoc:
       end
     end
   end

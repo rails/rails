@@ -113,7 +113,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to protect attributes from mass assignment when non-permitted attributes are passed.
 
-*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with AP out of box.
+*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with ActionPack out of box.
 
 ### Deprecations
 

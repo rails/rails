@@ -17,10 +17,7 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-Action Mailer allows you to send emails from your application using a mailer
-model and views. So, in Rails, emails are used by creating mailers that inherit
-from `ActionMailer::Base` and live in `app/mailers`. Those mailers have
-associated views that appear alongside controller views in `app/views`.
+Action Mailer allows you to send emails from your application using mailer classes and views. Mailers work very similarly to controllers. They inherit from `ActionMailer::Base` and live in `app/mailers`, and they have associated views that appear in `app/views`.
 
 Sending Emails
 --------------
@@ -87,11 +84,8 @@ Here is a quick explanation of the items presented in the preceding method. For
 a full list of all available options, please have a look further down at the
 Complete List of Action Mailer user-settable attributes section.
 
-* `default Hash` - This is a hash of default values for any email you send, in
-  this case we are setting the `:from` header to a value for all messages in
-  this class, this can be overridden on a per email basis
-* `mail` - The actual email message, we are passing the `:to` and `:subject`
-  headers in.
+* `default Hash` - This is a hash of default values for any email you send from this mailer. In this case we are setting the `:from` header to a value for all messages in this class. This can be overridden on a per-email basis.
+* `mail` - The actual email message, we are passing the `:to` and `:subject` headers in.
 
 Just like controllers, any instance variables we define in the method become
 available for use in the views.
@@ -149,7 +143,7 @@ controller tell the Mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
 
-First off, we need to create a simple `User` scaffold:
+First, let's create a simple `User` scaffold:
 
 ```bash
 $ rails generate scaffold user name email login
@@ -241,8 +235,9 @@ encoded and not try to Base64 encode it.
 
 #### Making Inline Attachments
 
-* Firstly, to tell Mail to turn an attachment into an inline attachment, you
-  just call `#inline` on the attachments method within your Mailer:
+Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in pre 3.0 versions, much simpler and trivial as they should be.
+
+* First, to tell Mail to turn an attachment into an inline attachment, you just call `#inline` on the attachments method within your Mailer:
 
     ```ruby
     def welcome
@@ -296,7 +291,7 @@ The same format can be used to set carbon copy (Cc:) and blind carbon copy
 
 Sometimes you wish to show the name of the person instead of just their email
 address when they receive the email. The trick to doing that is to format the
-email address in the format `"Name <email>"`.
+email address in the format `"Full Name <email>"`.
 
 ```ruby
 def welcome_email(user)
@@ -366,7 +361,7 @@ needs to be the same as your mailer, such as `user_mailer.html.erb` and
 `user_mailer.text.erb` to be automatically recognized by your mailer as a
 layout.
 
-In order to use a different file just use:
+In order to use a different file, call `layout` in your mailer:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -677,7 +672,7 @@ config.action_mailer.smtp_settings = {
 Mailer Testing
 --------------
 
-You can find detailed instructions on how to test your mailers in our
+You can find detailed instructions on how to test your mailers in the
 [testing guide](testing.html#testing-your-mailers).
 
 Intercepting Emails

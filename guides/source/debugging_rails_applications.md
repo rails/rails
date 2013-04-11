@@ -665,11 +665,8 @@ References
 
 * [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
 * [debugger Homepage](https://github.com/cldwalker/debugger)
-* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/article/debug-rails-app-ruby-debug/)
-* [ruby-debug Basics screencast](http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/)
+* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/debug-rails-app-ruby-debug/)
 * [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
 * [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)
 * [Ryan Bates' logger screencast](http://railscasts.com/episodes/56-the-logger)
 * [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)
-* [ruby-debug cheat sheet](http://cheat.errtheblog.com/s/rdebug/)
-* [Ruby on Rails Wiki: How to Configure Logging](http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging)

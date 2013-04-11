@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class UrlField < TextField #:nodoc:
+    module Tags # :nodoc:
+      class UrlField < TextField # :nodoc:
       end
     end
   end

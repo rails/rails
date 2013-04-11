@@ -11,6 +11,12 @@ module ActiveRecord
       end
 
       module ClassMethods
+        ##
+        # :method: serialized_attributes
+        #
+        # Returns a hash of all the attributes that have been specified for
+        # serialization as keys and their class restriction as values.
+
         # If you have an attribute that needs to be saved to the database as an
         # object, and retrieved as the same object, then specify the name of that
         # attribute using this method and it will be handled automatically. The
@@ -44,6 +50,7 @@ module ActiveRecord
         end
       end
 
+      # *DEPRECATED*: Use ActiveRecord::AttributeMethods::Serialization::ClassMethods#serialized_attributes class level method instead.
       def serialized_attributes
         message = "Instance level serialized_attributes method is deprecated, please use class level method."
         ActiveSupport::Deprecation.warn message

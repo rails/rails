@@ -445,12 +445,12 @@ NOTE. When using specific annotations and custom annotations, the annotation nam
 By default, `rake notes` will look in the `app`, `config`, `lib`, `bin` and `test` directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
 
 ```bash
-$ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'
+$ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
 $ rake notes
 (in /home/foobar/commandsapp)
 app/models/user.rb:
   * [ 35] [FIXME] User should have a subscription at this point
-rspec/model/user_spec.rb:
+spec/models/user_spec.rb:
   * [122] [TODO] Verify the user that has a subscription works
 ```
 

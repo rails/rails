@@ -28,6 +28,8 @@ module ActionView
       # Formats a +number+ into a US phone number (e.g., (555)
       # 123-9876). You can customize the format in the +options+ hash.
       #
+      # ==== Options
+      #
       # * <tt>:area_code</tt> - Adds parentheses around the area code.
       # * <tt>:delimiter</tt> - Specifies the delimiter to use
       #   (defaults to "-").
@@ -37,6 +39,8 @@ module ActionView
       #   number.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_to_phone(5551234)                                           # => 555-1234
       #   number_to_phone("5551234")                                         # => 555-1234
@@ -61,6 +65,8 @@ module ActionView
       # Formats a +number+ into a currency string (e.g., $13.65). You
       # can customize the format in the +options+ hash.
       #
+      # ==== Options
+      #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the level of precision (defaults
@@ -81,6 +87,8 @@ module ActionView
       #   absolute value of the number.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_to_currency(1234567890.50)                    # => $1,234,567,890.50
       #   number_to_currency(1234567890.506)                   # => $1,234,567,890.51
@@ -108,6 +116,7 @@ module ActionView
       # Formats a +number+ as a percentage string (e.g., 65%). You can
       # customize the format in the +options+ hash.
       #
+      # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
@@ -127,6 +136,8 @@ module ActionView
       #   string The number field is <tt>%n</tt> (defaults to "%n%").
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_to_percentage(100)                                        # => 100.000%
       #   number_to_percentage("98")                                       # => 98.000%
@@ -151,6 +162,8 @@ module ActionView
       # (e.g., 12,324). You can customize the format in the +options+
       # hash.
       #
+      # ==== Options
+      #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
       # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
@@ -159,6 +172,8 @@ module ActionView
       #   fractional and integer digits (defaults to ".").
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_with_delimiter(12345678)                        # => 12,345,678
       #   number_with_delimiter("123456")                        # => 123,456
@@ -185,6 +200,8 @@ module ActionView
       # +:significant+ is +false+, and 5 if +:significant+ is +true+).
       # You can customize the format in the +options+ hash.
       #
+      # ==== Options
+      #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
@@ -201,6 +218,8 @@ module ActionView
       #   +false+).
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_with_precision(111.2345)                                         # => 111.235
       #   number_with_precision(111.2345, precision: 2)                           # => 111.23
@@ -233,6 +252,8 @@ module ActionView
       # See <tt>number_to_human</tt> if you want to pretty-print a
       # generic number.
       #
+      # ==== Options
+      #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
@@ -251,6 +272,8 @@ module ActionView
       #   prefix (defaults to :binary)
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_to_human_size(123)                                          # => 123 Bytes
       #   number_to_human_size(1234)                                         # => 1.21 KB
@@ -323,6 +346,8 @@ module ActionView
       #   * %n - The number
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      #
+      # ==== Examples
       #
       #   number_to_human(123)                                          # => "123"
       #   number_to_human(1234)                                         # => "1.23 Thousand"

@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      module Checkable
+    module Tags # :nodoc:
+      module Checkable # :nodoc:
         def input_checked?(object, options)
           if options.has_key?("checked")
             checked = options.delete "checked"

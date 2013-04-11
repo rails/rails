@@ -27,6 +27,16 @@ A controller can thus be thought of as a middle man between models and views. It
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
+Controller Naming Convention
+----------------------------
+
+The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
+
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+
+NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+
+
 Methods and Actions
 -------------------
 
@@ -561,7 +571,7 @@ Note that while for session values you set the key to `nil`, to delete a cookie 
 Rendering xml and json data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffolding then it would look something like this:
+ActionController makes it extremely easy to render `xml` or `json` data. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -576,7 +586,7 @@ class UsersController < ApplicationController
 end
 ```
 
-Notice that in the above case code is `render xml: @users` and not `render xml: @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
+You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
 Filters
 -------
@@ -598,15 +608,6 @@ class ApplicationController < ActionController::Base
       flash[:error] = "You must be logged in to access this section"
       redirect_to new_login_url # halts request cycle
     end
-  end
-
-  # The logged_in? method simply returns true if the user is logged
-  # in and false otherwise. It does this by "booleanizing" the
-  # current_user method we created previously using a double ! operator.
-  # Note that this is not common in Ruby and is discouraged unless you
-  # really mean to convert something into true or false.
-  def logged_in?
-    !!current_user
   end
 end
 ```
@@ -788,7 +789,7 @@ Rails comes with two built-in HTTP authentication mechanisms:
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, `http_basic_authenticate_with`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 ```
@@ -800,7 +801,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, `authenticate_or_request_with_http_digest`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   USERS = { "lifo" => "world" }
 
   before_action :authenticate

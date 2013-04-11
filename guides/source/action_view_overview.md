@@ -172,7 +172,7 @@ That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 
 #### Using Partials to simplify Views
 
-One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
+One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
 
 ```html+erb
 <%= render "shared/ad_banner" %>
@@ -269,12 +269,7 @@ Rails will render the `_product_ruler` partial (with no data passed to it) betwe
 
 ### Layouts
 
-TODO...
-
-Using Templates, Partials and Layouts "The Rails Way"
---------------------------------------------------------
-
-TODO...
+Layouts can be used to render a common view template around the results of Rails controller actions. Typically, every Rails has a couple of overall layouts that most pages are rendered within. For example, a site might have a layout for a logged in user, and a layout for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us." You would expect each layout to have a different look and feel. You can read more details about Layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 Partial Layouts
 ---------------

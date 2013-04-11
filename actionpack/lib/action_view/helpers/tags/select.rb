@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class Select < Base #:nodoc:
+    module Tags # :nodoc:
+      class Select < Base # :nodoc:
         def initialize(object_name, method_name, template_object, choices, options, html_options)
           @choices = choices
           @choices = @choices.to_a if @choices.is_a?(Range)
@@ -31,7 +31,6 @@ module ActionView
         #
         #   [nil, []]
         #   { nil => [] }
-        #
         def grouped_choices?
           !@choices.empty? && @choices.first.respond_to?(:last) && Array === @choices.first.last
         end
