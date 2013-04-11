@@ -4,7 +4,7 @@ module ActiveRecord
   # Initializing the cache is done by passing the statement in the initialization block:
   #
   # cache = ActiveRecord::StatementCache.new do
-  #   Book.where(:name => "my book").limit(100)
+  #   Book.where(name: "my book").limit(100)
   # end
   #
   # The cached statement is executed by using the +execute+ method:

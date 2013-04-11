@@ -1,13 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Added Statement Cache to allow the caching of a single statement. The cache works by
-    duping the relation returned from yielding a statement which allows skipping the AST
-    building phase.
+    duping the relation returned from yielding a statement, which allows skipping the AST
+    building phase for following executes. The cache returns results in array format.
 
     Example:
 
       cache = ActiveRecord::StatementCache.new do
-        Book.where(:name => "my book").limit(100)
+        Book.where(name: "my book").limit(100)
       end
 
       books = cache.execute
