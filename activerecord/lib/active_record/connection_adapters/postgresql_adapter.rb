@@ -142,7 +142,7 @@ module ActiveRecord
             when NilClass
               nil
             # Numeric types
-            when /\A\(?(-?\d+(\.\d*)?\)?)\z/
+            when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
               $1
             # Character types
             when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
