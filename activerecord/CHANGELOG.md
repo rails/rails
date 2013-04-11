@@ -1,3 +1,10 @@
+*   fixes bug introduced by #3329.  Now, when autosaving associations,
+    deletions happen before inserts and saves.  This prevents a 'duplicate
+    unique value' database error that would occur if a record being created had
+    the same value on a unique indexed field as that of a record being destroyed.
+
+    *Johnny Holton*
+
 *   Handle aliased attributes in ActiveRecord::Relation.
 
     When using symbol keys, ActiveRecord will now translate aliased attribute names to the actual column name used in the database:
