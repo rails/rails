@@ -332,10 +332,13 @@ module ActiveRecord
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           begin
-            records_to_destroy = []
+
+            records_to_destroy = autosave ? records.select{|record| record.marked_for_destruction? } : []
+            records_to_destroy.each{ |record| association.proxy.destroy(record) }
+
+            records -= records_to_destroy
 
             records.each do |record|
-              next if record.destroyed?
 
               saved = true
 
@@ -354,9 +357,6 @@ module ActiveRecord
               raise ActiveRecord::Rollback unless saved
             end
 
-            records_to_destroy.each do |record|
-              association.proxy.destroy(record)
-            end
           rescue
             records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
             raise
