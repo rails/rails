@@ -1,4 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Element of the collection for `options_from_collection_for_select` helper can
+    optionally contain html attributes as the last element of the array as
+    `options_for_select` helper.
+
+    *Vasiliy Ermolovich*
 
 *   Fix explicit names on multiple file fields. If a file field tag has
     the multiple option, it is turned into an array field (appending `[]`),
