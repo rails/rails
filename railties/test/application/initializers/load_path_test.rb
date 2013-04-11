@@ -72,6 +72,7 @@ module ApplicationTests
     end
 
     test "load environment with global" do
+      $initialize_test_set_from_env = nil
       app_file "config/environments/development.rb", <<-RUBY
         $initialize_test_set_from_env = 'success'
         AppTemplate::Application.configure do
