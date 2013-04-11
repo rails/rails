@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   fixes bug introduced by #3329.  Now, when autosaving associations,
+    deletions happen before inserts and saves.  This prevents a 'duplicate
+    unique value' database error that would occur if a record being created had
+    the same value on a unique indexed field as that of a record being destroyed.
+
+    *Johnny Holton*
+
 *   Run `rake migrate:down` & `rake migrate:up` in transaction if database supports.
 
     *Alexander Bondarev*
