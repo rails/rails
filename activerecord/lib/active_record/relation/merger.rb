@@ -78,7 +78,7 @@ module ActiveRecord
         return if values[:joins].blank?
 
         if other.klass == relation.klass
-          relation.joins! *values[:joins]
+          relation.joins!(*values[:joins])
         else
           joins_dependency, rest = values[:joins].partition do |join|
             case join
@@ -89,7 +89,7 @@ module ActiveRecord
             end
           end
 
-          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass, 
+          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
                                                                            joins_dependency,
                                                                            [])
           relation.joins! rest
