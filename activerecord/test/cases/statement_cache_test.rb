@@ -23,7 +23,7 @@ module ActiveRecord
 
     def test_statement_cache_with_nil_statement_raises_error
       assert_raise(ArgumentError) do
-        cache = ActiveRecord::StatementCache.new do
+        ActiveRecord::StatementCache.new do
           nil
         end
       end
@@ -36,7 +36,7 @@ module ActiveRecord
 
       salty = Liquid.create(name: 'salty')
       molecule = salty.molecules.create(name: 'dioxane')
-      electron = molecule.electrons.create(name: 'lepton')
+      molecule.electrons.create(name: 'lepton')
 
       liquids = cache.execute
       assert_equal "salty", liquids[0].name
@@ -47,13 +47,13 @@ module ActiveRecord
         Book.where(name: "my book")
       end
 
-      for i in 0..2 do
+      3.times do
         Book.create(name: "my book")
       end
 
       first_books = cache.execute
 
-      for i in 0..2 do
+      3.times do
         Book.create(name: "my book")
       end
 
