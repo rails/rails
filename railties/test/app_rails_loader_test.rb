@@ -42,7 +42,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
         assert !Rails::AppRailsLoader.exec_app_rails
       end
 
-      test "is in a rails application if parent directory has #{exe} containing #{keyword} and chdirs to the root directory" do
+      test "is in a Rails application if parent directory has #{exe} containing #{keyword} and chdirs to the root directory" do
         write "foo/bar/#{exe}"
         write "foo/#{exe}", keyword
 
