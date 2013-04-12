@@ -64,7 +64,7 @@
     *Brad Dunbar*
 
 *   Include I18n locale fallbacks in view lookup.
-    Fixes GH#3512.
+    Fixes #3512.
 
     *Juan Barreneche*
 
