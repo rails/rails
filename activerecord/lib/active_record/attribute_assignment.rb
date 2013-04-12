@@ -13,6 +13,10 @@ module ActiveRecord
       ActiveRecord::MultiparameterAssignmentErrors
     end
 
+    def unknown_attribute_error_class
+      ActiveRecord::UnknownAttributeError
+    end
+
     class MultiparameterAttribute < ActiveModel::AttributeAssignment::MultiparameterAttribute #:nodoc:
       attr_reader :column
 

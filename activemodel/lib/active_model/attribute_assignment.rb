@@ -26,6 +26,10 @@ module ActiveModel
     end
   end
 
+  # Raised when unknown attributes are supplied via mass assignment.
+  class UnknownAttributeError < NoMethodError
+  end
+
   module AttributeAssignment
     extend ActiveSupport::Concern
     include ActiveModel::ForbiddenAttributesProtection
@@ -72,7 +76,7 @@ module ActiveModel
       if respond_to?("#{k}=")
         raise
       else
-        raise UnknownAttributeError.new(self, k)
+        raise unknown_attribute_error_class.new(self, k)
       end
     end
 
@@ -99,6 +103,10 @@ module ActiveModel
 
     def multiparameter_assignment_errors_class
       ActiveModel::MultiparameterAssignmentErrors
+    end
+
+    def unknown_attribute_error_class
+      ActiveModel::UnknownAttributeError
     end
 
     def execute_callstack_for_multiparameter_attributes(callstack)
