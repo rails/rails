@@ -74,6 +74,10 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
+	def test_locking_enabled
+	  assert_equal true, Person.locking_enabled?
+	end
+
   # See Lighthouse ticket #1966
   def test_lock_destroy
     p1 = Person.find(1)
