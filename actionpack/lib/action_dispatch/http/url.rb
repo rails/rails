@@ -100,7 +100,7 @@ module ActionDispatch
           tld_length = options[:tld_length] || @@tld_length
 
           host = ""
-          unless options[:subdomain] == false
+          unless options[:subdomain] == false || options[:subdomain] == ''
             host << (options[:subdomain] || extract_subdomain(options[:host], tld_length)).to_param
             host << "."
           end
