@@ -302,19 +302,17 @@ task default: :test
       end
 
       def author
-        if @author.nil?
-          git_user_name = `git config user.name`.chomp
-          @author = git_user_name.empty? ? "TODO: Write your name" : git_user_name
+        @author ||= begin
+          git_user_name = `git config user.name`.chomp rescue ''
+          git_user_name.blank? ? "TODO: Write your name" : git_user_name
         end
-        @author
       end
 
       def email
-        if @email.nil?
-          git_user_email = `git config user.email`.chomp
-          @email = git_user_email.empty? ? "TODO: Write your email address" : git_user_email
+        @email ||= begin
+          git_user_email = `git config user.email`.chomp rescue ''
+          git_user_email.blank? ? "TODO: Write your email address" : git_user_email
         end
-        @email
       end
 
       def valid_const?
