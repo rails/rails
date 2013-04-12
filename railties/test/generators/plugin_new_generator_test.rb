@@ -338,6 +338,28 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm gemfile_path
   end
 
+  def test_git_name_and_email_in_gemspec_file
+    name = (%x{git config user.name}).chomp
+    name = "TODO: Write your name" if $?.exitstatus != 0 || name.empty?
+    email = %x(git config user.email).chomp
+    email = "TODO: Write your email address" if $?.exitstatus != 0 || email.empty?
+    run_generator [destination_root]
+    assert_file "bukkits.gemspec" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match(/#{Regexp.escape(email)}/, contents)
+    end
+  end
+
+  def test_git_name_in_licence_file
+    name = (%x{git config user.name}).chomp
+    name = "TODO: Write your name" if $?.exitstatus != 0 || name.empty?
+    run_generator [destination_root]
+    assert_file "MIT-LICENSE" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+    end
+  end
+
+
 
 protected
   def action(*args, &block)
