@@ -79,6 +79,23 @@ module ApplicationTests
       assert_match "Hello world", output
     end
 
+    def test_should_not_eager_load_model_path_for_rake
+      add_to_config <<-RUBY
+        config.eager_load = true
+
+        rake_tasks do
+          task do_nothing: :environment do
+          end
+        end
+      RUBY
+
+      app_file "app/models/hello.rb", <<-RUBY
+      raise 'should not be pre-required for rake even `eager_load=true`'
+      RUBY
+
+      Dir.chdir(app_path){ `rake do_nothing` }
+    end
+
     def test_code_statistics_sanity
       assert_match "Code LOC: 5     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path){ `rake stats` }
