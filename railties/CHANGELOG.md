@@ -58,7 +58,7 @@
 
 *   Improve service pages with new layout (404, etc).
 
-     *Stanislav Sobolev*
+    *Stanislav Sobolev*
 
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
