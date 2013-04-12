@@ -323,10 +323,10 @@ module ActiveRecord
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s =~ /,/
-          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
         elsif limit == Float::INFINITY
           nil
+        elsif limit.to_s =~ /,/
+          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
         else
           Integer(limit)
         end
