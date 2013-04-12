@@ -6,11 +6,11 @@
 
     Example:
 
-      cache = ActiveRecord::StatementCache.new do
-        Book.where(name: "my book").limit(100)
-      end
+        cache = ActiveRecord::StatementCache.new do
+          Book.where(name: "my book").limit(100)
+        end
 
-      books = cache.execute
+        books = cache.execute
 
     The solution attempts to get closer to the speed of `find_by_sql` but still maintaining
     the expressiveness of the Active Record queries.
@@ -44,7 +44,6 @@
     Ths solution is to build JoinAssociation when two relations with join information are being
     merged. And later while building the arel use the  previously built `JoinAssociation` record
     in `JoinDependency#graft` to build the right from clause.
-
     Fixes #3002.
 
     *Jared Armstrong and Neeraj Singh*
@@ -76,7 +75,8 @@
     *Michal Cichra*
 
 *   `has_many` using `:through` now obeys the order clause mentioned in
-    through association. Fixes #10016.
+    through association.
+    Fixes #10016.
 
     *Neeraj Singh*
 
@@ -141,7 +141,8 @@
     *Ken Mazaika*
 
 *   Add an `add_index` override in PostgreSQL adapter and MySQL adapter
-    to allow custom index type support. Fixes #6101.
+    to allow custom index type support.
+    Fixes #6101.
 
         add_index(:wikis, :body, :using => 'gin')
 
@@ -165,7 +166,6 @@
     in the association for a particular id. Then, it will go to the DB if it
     is not found. This is accomplished by calling `find_by_scan` in
     collection associations whenever `options[:inverse_of]` is not nil.
-
     Fixes #9470.
 
     *John Wang*
@@ -1275,7 +1275,7 @@
 
 *   Explain only normal CRUD sql (select / update / insert / delete).
     Fix problem that explains unexplainable sql.
-    Closes #7544 #6458.
+    Fixes #7544 #6458.
 
     *kennyj*
 
