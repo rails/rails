@@ -2,6 +2,8 @@ module Rails
   module Generators
     module Testing
       module Assertions
+        METHOD_DECLARATION_REGEXP = /(\s+)def #{method}(\(.+\))?(.*?)\n\1end/m
+
         # Asserts a given file exists. You need to supply an absolute path or a path relative
         # to the configured destination:
         #
@@ -96,7 +98,7 @@ module Rails
         #     end
         #   end
         def assert_instance_method(method, content)
-          assert content =~ /(\s+)def #{method}(\(.+\))?(.*?)\n\1end/m, "Expected to have method #{method}"
+          assert content =~ METHOD_DECLARATION_REGEXP, "Expected to have method #{method}"
           yield $3.strip if block_given?
         end
         alias :assert_method :assert_instance_method
