@@ -24,8 +24,8 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
     end
 
     person = Person.new(name: 'bob', age: '18')
-    person.name # => 'bob'
-    person.age # => '18'
+    person.name   # => 'bob'
+    person.age    # => '18'
     person.valid? # => true
 
 It includes model name introspections, conversions, translations and
@@ -82,12 +82,12 @@ behavior out of the box:
     end
 
     person = Person.new
-    person.name # => nil
-    person.changed? # => false
+    person.name             # => nil
+    person.changed?         # => false
     person.name = 'bob'
-    person.changed? # => true
-    person.changed # => ['name']
-    person.changes # => { 'name' => [nil, 'bob'] }
+    person.changed?         # => true
+    person.changed          # => ['name']
+    person.changes          # => { 'name' => [nil, 'bob'] }
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
