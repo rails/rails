@@ -5,6 +5,10 @@ module ActiveRecord
       @association = association
     end
 
+    def proxy_association
+      @association
+    end
+
     private
 
     def exec_queries
