@@ -11,7 +11,7 @@ module ActiveRecord
   #
   #   cache.execute
   #
-  # The relation returned by +yield+ is cached, and for each +execute+ call the cached relation gets duped.
+  # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
   # Database is queried when +to_a+ is called on the relation.
   class StatementCache
     def initialize
