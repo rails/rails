@@ -28,8 +28,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     attributes = { "last_read(1i)" => "", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # note that extra #to_date call allows test to pass for Oracle, which
-    # treats dates/times the same
     assert_nil topic.last_read
   end
 
@@ -37,8 +35,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "", "last_read(3i)" => "24" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # note that extra #to_date call allows test to pass for Oracle, which
-    # treats dates/times the same
     assert_nil topic.last_read
   end
 
@@ -46,8 +42,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # note that extra #to_date call allows test to pass for Oracle, which
-    # treats dates/times the same
     assert_nil topic.last_read
   end
 
@@ -55,8 +49,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     attributes = { "last_read(1i)" => "", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # note that extra #to_date call allows test to pass for Oracle, which
-    # treats dates/times the same
     assert_nil topic.last_read
   end
 
@@ -64,8 +56,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # note that extra #to_date call allows test to pass for Oracle, which
-    # treats dates/times the same
     assert_nil topic.last_read
   end
 
@@ -73,8 +63,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     attributes = { "last_read(1i)" => "", "last_read(2i)" => "", "last_read(3i)" => "24" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # note that extra #to_date call allows test to pass for Oracle, which
-    # treats dates/times the same
     assert_nil topic.last_read
   end
 
