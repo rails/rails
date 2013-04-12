@@ -47,7 +47,7 @@ module ActionView
       NAME_BLOCK    = lambda {|cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK)}
       KEY_BLOCK     = lambda {|cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK)}
 
-      # usually a majority of template look ups return nothing, use this canonical preallocated array to safe memory
+      # usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
       NO_TEMPLATES = [].freeze
 
       def initialize
