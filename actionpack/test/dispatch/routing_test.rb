@@ -3322,6 +3322,10 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
       end
 
       get '/' => ok, :as => :alternate_root, :constraints => { :port => 8080 }
+
+      get '/search' => ok, :constraints => { :subdomain => false }
+
+      get '/logs' => ok, :constraints => { :subdomain => true }
     end
   end
 
@@ -3347,6 +3351,22 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
 
     get 'http://www.example.com:8080/'
     assert_response :success
+  end
+
+  test "false constraint expressions check for absence of values" do
+    get 'http://example.com/search'
+    assert_response :success
+
+    get 'http://api.example.com/search'
+    assert_response :not_found
+  end
+
+  test "true constraint expressions check for presence of values" do
+    get 'http://api.example.com/logs'
+    assert_response :success
+
+    get 'http://example.com/logs'
+    assert_response :not_found
   end
 end
 
