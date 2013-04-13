@@ -1,4 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Added a migration generator to create indexes. To invoke, use the generator from the
+    command line:
+
+        rails g migration IndexAuthorNameAndTitleOnBooks author title
+
+    That will create a migration that adds an index named `index_author_name_and_title`
+    on the `books` table, using the `author` and `title` columns:
+
+        add_index :books, [:author, :title], name: 'index_author_name_and_title'
+
+    *Sammy Larbi*
 
 *   Added Statement Cache to allow the caching of a single statement. The cache works by
     duping the relation returned from yielding a statement, which allows skipping the AST

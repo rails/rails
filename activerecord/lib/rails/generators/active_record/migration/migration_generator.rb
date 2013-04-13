@@ -12,7 +12,7 @@ module ActiveRecord
       end
 
       protected
-      attr_reader :migration_action, :join_tables
+      attr_reader :migration_action, :join_tables, :index_name
 
       def set_local_assigns!
         @migration_template = "migration.rb"
@@ -30,6 +30,11 @@ module ActiveRecord
         when /^create_(.+)/
           @table_name = $1.pluralize
           @migration_template = "create_table_migration.rb"
+        when /^index_(.*)_on_(.*)/
+          @migration_action = 'index'
+          @index_name = $1
+          @table_name = $2
+          @migration_template = "add_index_migration.rb"
         end
       end
 
