@@ -34,7 +34,7 @@ module ActiveSupport
   module PerThreadRegistry
     protected
 
-      def method_missing(name, *args, &block)
+      def method_missing(name, *args, &block) # :nodoc:
         # Caches the method definition as a singleton method of the receiver.
         singleton_class.class_eval do
           define_method(name) do |*a, &b|
