@@ -1,7 +1,7 @@
 require 'active_support/per_thread_registry'
 
 module ActiveRecord
-  # This is a registry class for storing local variables in active record. The
+  # This is a registry class for storing local variables in Active Record. The
   # class allows you to access variables that are local to the current thread.
   # These thread local variables are stored as attributes in the
   # +RuntimeRegistry+ class.
