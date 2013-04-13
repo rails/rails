@@ -36,7 +36,7 @@ module ActiveRecord
     # to get the current_scope for the +Board+ model, then you would use the
     # following code:
     #
-    #   registry = ActiveRecord::Scoping::ScopeRegistry.instance
+    #   registry = ActiveRecord::Scoping::ScopeRegistry
     #   registry.set_value_for(:current_scope, "Board", some_new_scope)
     #
     # Now when you run:
@@ -51,10 +51,6 @@ module ActiveRecord
     #       "Board", some_new_scope)
     class ScopeRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
-
-      class << self
-        delegate :value_for, :set_value_for, to: :instance
-      end
 
       VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope]
 

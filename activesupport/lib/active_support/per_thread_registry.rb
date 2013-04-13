@@ -1,7 +1,11 @@
 module ActiveSupport
   # This module is used to encapsulate access to thread local variables.
   #
-  # Given
+  # Instead of polluting the thread locals namespace:
+  #
+  #   Thread.current[:connection_handler]
+  #
+  # you define a class that extends this module:
   #
   #   module ActiveRecord
   #     class RuntimeRegistry
@@ -11,34 +15,40 @@ module ActiveSupport
   #     end
   #   end
   #
-  # <tt>ActiveRecord::RuntimeRegistry</tt> gets an +instance+ class method
-  # that returns an instance of the class unique to the current thread. Thus,
-  # instead of polluting +Thread.current+
+  # and invoke the declared instance accessors as class methods. So
   #
-  #   Thread.current[:connection_handler]
+  #   ActiveRecord::RuntimeRegistry.connection_handler = connection_handler
   #
-  # you write
-  #
-  #   ActiveRecord::RuntimeRegistry.instance.connection_handler
-  #
-  # A +method_missing+ handler that proxies to the thread local instance is
-  # installed in the extended class so the call above can be shortened to
+  # sets a connection handler local to the current thread, and
   #
   #   ActiveRecord::RuntimeRegistry.connection_handler
   #
-  # The instance is stored as a thread local keyed by the name of the class,
-  # that is the string "ActiveRecord::RuntimeRegistry" in the example above.
+  # returns a connection handler local to the current thread.
+  #
+  # This feature is accomplished by instantiating the class and storing the
+  # instance as a thread local keyed by the class name. In the example above
+  # a key "ActiveRecord::RuntimeRegistry" is stored in <tt>Thread.current</tt>.
+  # The class methods proxy to said thread local instance.
   #
   # If the class has an initializer, it must accept no arguments.
   module PerThreadRegistry
-    def instance
-      Thread.current[self.name] ||= new
-    end
-
     protected
 
-      def method_missing(*args, &block)
-        instance.public_send(*args, &block)
+      def method_missing(name, *args, &block)
+        # Caches the method definition as a singleton method of the receiver.
+        singleton_class.class_eval do
+          define_method(name) do |*a, &b|
+            per_thread_registry_instance.public_send(name, *a, &b)
+          end
+        end
+
+        send(name, *args, &block)
+      end
+
+    private
+
+      def per_thread_registry_instance
+        Thread.current[name] ||= new
       end
   end
 end

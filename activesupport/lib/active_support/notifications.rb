@@ -193,10 +193,6 @@ module ActiveSupport
     class InstrumentationRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
 
-      class << self
-        delegate :instrumenter_for, to: :instance
-      end
-
       def initialize
         @registry = {}
       end
