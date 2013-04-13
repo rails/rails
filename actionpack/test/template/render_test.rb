@@ -355,7 +355,7 @@ module RenderTestCases
     assert_equal "Hello, World!", @view.render(:inline => "Hello, World!", :type => :bar)
   end
 
-  CustomHandler = lambda do |template|
+  CustomHandler = ->(template) do
     "@output_buffer = ''\n" +
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end

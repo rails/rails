@@ -102,7 +102,7 @@ module ActionDispatch
       def test_raising_helpful_error_on_invalid_arguments
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        app = lambda { |env| [200, {}, [""]] }
+        app = ->(env) { [200, {}, [""]] }
         assert_raises ArgumentError do
           mapper.mount app
         end

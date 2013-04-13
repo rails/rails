@@ -16,7 +16,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       Task.find 1
       Task.find 1
       assert_equal 1, ActiveRecord::Base.connection.query_cache.length
@@ -31,7 +31,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_exceptional_middleware_leaves_enabled_cache_alone
     ActiveRecord::Base.connection.enable_query_cache!
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
@@ -42,7 +42,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_exceptional_middleware_assigns_original_connection_id_on_error
     connection_id = ActiveRecord::Base.connection_id
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       ActiveRecord::Base.connection_id = self.object_id
       raise "lol borked"
     }
@@ -53,7 +53,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_middleware_delegates
     called = false
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       called = true
       [200, {}, nil]
     }
@@ -62,7 +62,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_middleware_caches
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       Task.find 1
       Task.find 1
       assert_equal 1, ActiveRecord::Base.connection.query_cache.length
@@ -74,7 +74,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_cache_enabled_during_call
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
       [200, {}, nil]
     }
@@ -88,7 +88,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       end
     end
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       [200, {}, streaming.new]
     }
     body = mw.call({}).last
@@ -98,7 +98,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_off_after_close
-    mw = ActiveRecord::QueryCache.new lambda { |env| [200, {}, nil] }
+    mw = ActiveRecord::QueryCache.new ->(env) { [200, {}, nil] }
     body = mw.call({}).last
 
     assert ActiveRecord::Base.connection.query_cache_enabled, 'cache enabled'
@@ -107,7 +107,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_clear_after_close
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = ActiveRecord::QueryCache.new ->(env) {
       Post.first
       [200, {}, nil]
     }

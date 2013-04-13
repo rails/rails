@@ -3,7 +3,7 @@ require 'controller/fake_controllers'
 require 'action_view/vendor/html-scanner'
 
 class SessionTest < ActiveSupport::TestCase
-  StubApp = lambda { |env|
+  StubApp = ->(env) {
     [200, {"Content-Type" => "text/html", "Content-Length" => "13"}, ["Hello, World!"]]
   }
 

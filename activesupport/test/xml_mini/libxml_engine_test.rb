@@ -14,7 +14,7 @@ class LibxmlEngineTest < ActiveSupport::TestCase
     @default_backend = XmlMini.backend
     XmlMini.backend = 'LibXML'
 
-    LibXML::XML::Error.set_handler(&lambda { |error| }) #silence libxml, exceptions will do
+    LibXML::XML::Error.set_handler(&->(error) { }) #silence libxml, exceptions will do
   end
 
   def teardown

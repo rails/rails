@@ -16,11 +16,11 @@ class RoutingAssertionsTest < ActionController::TestCase
         resources :articles, :controller => 'secure_articles'
       end
 
-      scope 'block', :constraints => lambda { |r| r.ssl? } do
+      scope 'block', constraints: ->(r) { r.ssl? } do
         resources :articles, :controller => 'block_articles'
       end
 
-      scope 'query', :constraints => lambda { |r| r.params[:use_query] == 'true' } do
+      scope 'query', constraints: ->(r) { r.params[:use_query] == 'true' } do
         resources :articles, :controller => 'query_articles'
       end
     end

@@ -57,7 +57,7 @@ class ReloaderTest < ActiveSupport::TestCase
     i, j = 0, 0, 0, 0
     Reloader.to_prepare { |*args| i += 1 }
     Reloader.to_cleanup { |*args| j += 1 }
-    app = Reloader.new(lambda { |env| [200, {}, []] }, lambda { i < 3 })
+    app = Reloader.new(->(env) { [200, {}, []] }, -> { i < 3 })
     5.times do
       resp = app.call({})
       resp[2].close

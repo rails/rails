@@ -700,7 +700,7 @@ class RequestTest < ActiveSupport::TestCase
       assert_equal after_filter, parameter_filter.filter(before_filter)
 
       filter_words << 'blah'
-      filter_words << lambda { |key, value|
+      filter_words << ->(key, value) {
         value.reverse! if key =~ /bargain/
       }
 

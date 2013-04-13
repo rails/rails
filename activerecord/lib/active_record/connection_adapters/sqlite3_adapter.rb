@@ -512,7 +512,7 @@ module ActiveRecord
 
         def alter_table(table_name, options = {}) #:nodoc:
           altered_table_name = "a#{table_name}"
-          caller = lambda {|definition| yield definition if block_given?}
+          caller = ->(definition) { yield definition if block_given?}
 
           transaction do
             move_table(table_name, altered_table_name,

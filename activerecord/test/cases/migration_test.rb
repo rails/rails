@@ -180,7 +180,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert !Person.column_methods_hash.include?(:last_name)
     assert !Reminder.table_exists?
 
-    name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
+    name_filter = ->(migration) { migration.name == "ValidPeopleHaveLastNames" }
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
 
     Person.reset_column_information

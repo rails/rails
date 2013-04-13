@@ -5,7 +5,7 @@ class Customer < ActiveRecord::Base
   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| balance.to_money }
   composed_of :gps_location, :allow_nil => true
   composed_of :non_blank_gps_location, :class_name => "GpsLocation", :allow_nil => true, :mapping => %w(gps_location gps_location),
-              :converter => lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps)}
+              converter: ->(gps) { self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps)}
   composed_of :fullname, :mapping => %w(name to_s), :constructor => Proc.new { |name| Fullname.parse(name) }, :converter => :parse
 end
 

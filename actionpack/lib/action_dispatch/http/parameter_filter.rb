@@ -19,7 +19,7 @@ module ActionDispatch
 
       class CompiledFilter # :nodoc:
         def self.compile(filters)
-          return lambda { |params| params.dup } if filters.empty?
+          return ->(params) { params.dup } if filters.empty?
 
           strings, regexps, blocks = [], [], []
 

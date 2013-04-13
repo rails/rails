@@ -321,7 +321,7 @@ class LengthValidationTest < ActiveModel::TestCase
 
   def test_validates_length_of_with_block
     Topic.validates_length_of :content, minimum: 5, too_short: "Your essay must be at least %{count} words.",
-                                        tokenizer: lambda {|str| str.scan(/\w+/) }
+                                        tokenizer: ->(str) { str.scan(/\w+/) }
     t = Topic.new(content: "this content should be long enough")
     assert t.valid?
 

@@ -469,7 +469,7 @@ module ActionDispatch
       private :build_conditions
 
       class Generator #:nodoc:
-        PARAMETERIZE = lambda do |name, value|
+        PARAMETERIZE = ->(name, value) do
           if name == :controller
             value
           elsif value.is_a?(Array)

@@ -93,7 +93,7 @@ module ActionView
           defaults     = Array(defaults)
           while key = defaults.shift
             if key.is_a?(Symbol)
-              new_defaults << lambda { |_, options| translate key, options.merge(:default => defaults) }
+              new_defaults << ->(_, options) { translate key, options.merge(default: defaults) }
               break
             else
               new_defaults << key

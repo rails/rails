@@ -142,7 +142,7 @@ module StaticTests
 end
 
 class StaticTest < ActiveSupport::TestCase
-  DummyApp = lambda { |env|
+  DummyApp = ->(env) {
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
   App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")

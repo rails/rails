@@ -124,7 +124,7 @@ end
 
 class LazyLambdaDeveloperCalledDavid < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope lambda { where(:name => 'David') }
+  default_scope -> { where(:name => 'David') }
 end
 
 class LazyBlockDeveloperCalledDavid < ActiveRecord::Base
@@ -218,7 +218,7 @@ class EagerDeveloperWithLambdaDefaultScope < ActiveRecord::Base
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
-  default_scope lambda { includes(:projects) }
+  default_scope -> { includes(:projects) }
 end
 
 class EagerDeveloperWithBlockDefaultScope < ActiveRecord::Base

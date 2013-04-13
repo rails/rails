@@ -109,7 +109,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_format_of_with_lambda
-    Topic.validates_format_of :content, :with => lambda{ |topic| topic.title == "digit" ? /\A\d+\Z/ : /\A\S+\Z/ }
+    Topic.validates_format_of :content, with: ->(topic) { topic.title == "digit" ? /\A\d+\Z/ : /\A\S+\Z/ }
 
     t = Topic.new
     t.title = "digit"
@@ -121,7 +121,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_format_of_without_lambda
-    Topic.validates_format_of :content, :without => lambda{ |topic| topic.title == "characters" ? /\A\d+\Z/ : /\A\S+\Z/ }
+    Topic.validates_format_of :content, without: ->(topic) { topic.title == "characters" ? /\A\d+\Z/ : /\A\S+\Z/ }
 
     t = Topic.new
     t.title = "characters"

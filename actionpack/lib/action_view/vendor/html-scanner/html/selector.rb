@@ -267,7 +267,7 @@ module HTML
       # match element immediately following this one.
       elsif statement.sub!(/^\s*\+\s*/, "")
         second = next_selector(statement, values)
-        @depends = lambda do |element, first|
+        @depends = ->(element, first) do
           if element = next_element(element)
             second.match(element, first)
           end
@@ -277,7 +277,7 @@ module HTML
       # match all elements following this one.
       elsif statement.sub!(/^\s*~\s*/, "")
         second = next_selector(statement, values)
-        @depends = lambda do |element, first|
+        @depends = ->(element, first) do
           matches = []
           while element = next_element(element)
             if subset = second.match(element, first)
@@ -296,7 +296,7 @@ module HTML
       # match a child element of this one.
       elsif statement.sub!(/^\s*>\s*/, "")
         second = next_selector(statement, values)
-        @depends = lambda do |element, first|
+        @depends = ->(element, first) do
           matches = []
           element.children.each do |child|
             if child.tag? && subset = second.match(child, first)
@@ -315,7 +315,7 @@ module HTML
       # will match all descendant elements of this one. Note,
       elsif statement =~ /^\s+\S+/ && statement != selector
         second = next_selector(statement, values)
-        @depends = lambda do |element, first|
+        @depends = ->(element, first) do
           matches = []
           stack = element.children.reverse
           while node = stack.pop
@@ -576,7 +576,7 @@ module HTML
 
         # Root element only.
         next if statement.sub!(/^:root/) do
-          pseudo << lambda do |element|
+          pseudo << ->(element) do
             element.parent.nil? || !element.parent.tag?
           end
           @source << ":root"
@@ -629,7 +629,7 @@ module HTML
         # Empty: no child elements or meaningful content (whitespaces
         # are ignored).
         next if statement.sub!(/^:empty/) do
-          pseudo << lambda do |element|
+          pseudo << ->(element) do
             empty = true
             for child in element.children
               if child.tag? || !child.content.strip.empty?
@@ -653,7 +653,7 @@ module HTML
           end
           @source << ":content('#{content}')"
           content = Regexp.new("^#{Regexp.escape(content.to_s)}$") unless content.is_a?(Regexp)
-          pseudo << lambda do |element|
+          pseudo << ->(element) do
             text = ""
             for child in element.children
               unless child.tag?
@@ -723,12 +723,12 @@ module HTML
     # * +reverse+ -- True to count in reverse order (last-).
     def nth_child(a, b, of_type, reverse)
       # a = 0 means select at index b, if b = 0 nothing selected
-      return lambda { |element| false } if a == 0 && b == 0
+      return ->(element) { false } if a == 0 && b == 0
       # a < 0 and b < 0 will never match against an index
-      return lambda { |element| false } if a < 0 && b < 0
+      return ->(element) { false } if a < 0 && b < 0
       b = a + b + 1 if b < 0   # b < 0 just picks last element from each group
       b -= 1 unless b == 0  # b == 0 is same as b == 1, otherwise zero based
-      lambda do |element|
+      ->(element) do
         # Element must be inside parent element.
         return false unless element.parent && element.parent.tag?
         index = 0
@@ -772,7 +772,7 @@ module HTML
     # Creates a only child lambda. Pass +of-type+ to only look at
     # elements of its type.
     def only_child(of_type)
-      lambda do |element|
+      ->(element) do
         # Element must be inside parent element.
         return false unless element.parent && element.parent.tag?
         name = of_type ? element.name : nil

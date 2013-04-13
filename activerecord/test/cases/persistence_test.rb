@@ -32,7 +32,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
     def test_update_all_doesnt_ignore_order
       assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
-      test_update_with_order_succeeds = lambda do |order|
+      test_update_with_order_succeeds = ->(order) do
         begin
           Author.order(order).update_all('id = id + 1')
         rescue ActiveRecord::ActiveRecordError

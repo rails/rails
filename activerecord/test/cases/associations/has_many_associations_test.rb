@@ -1332,10 +1332,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_modifying_a_through_a_has_many_should_raise
     [
-      lambda { authors(:mary).comment_ids = [comments(:greetings).id, comments(:more_greetings).id] },
-      lambda { authors(:mary).comments = [comments(:greetings), comments(:more_greetings)] },
-      lambda { authors(:mary).comments << Comment.create!(:body => "Yay", :post_id => 424242) },
-      lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
+      -> { authors(:mary).comment_ids = [comments(:greetings).id, comments(:more_greetings).id] },
+      -> { authors(:mary).comments = [comments(:greetings), comments(:more_greetings)] },
+      -> { authors(:mary).comments << Comment.create!(:body => "Yay", :post_id => 424242) },
+      -> { authors(:mary).comments.delete(authors(:mary).comments.first) },
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 

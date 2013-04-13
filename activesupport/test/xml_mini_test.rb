@@ -64,12 +64,12 @@ module XmlMiniTest
     end
 
     test "#to_tag accepts a callable object and passes options with the builder" do
-      @xml.to_tag(:some_tag, lambda {|o| o[:builder].br }, @options)
+      @xml.to_tag(:some_tag, ->(o) { o[:builder].br }, @options)
       assert_xml "<br/>"
     end
 
     test "#to_tag accepts a callable object and passes options and tag name" do
-      @xml.to_tag(:tag, lambda {|o, t| o[:builder].b(t) }, @options)
+      @xml.to_tag(:tag, ->(o, t) { o[:builder].b(t) }, @options)
       assert_xml "<b>tag</b>"
     end
 

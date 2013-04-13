@@ -14,7 +14,7 @@ class Post < ActiveRecord::Base
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
-  scope :limit_by, lambda {|l| limit(l) }
+  scope :limit_by, ->(l) { limit(l) }
 
   belongs_to :author
 
@@ -125,10 +125,10 @@ class Post < ActiveRecord::Base
   has_many :secure_people, :through => :secure_readers
   has_many :single_people, :through => :readers
   has_many :people_with_callbacks, :source=>:person, :through => :readers,
-              :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },
-              :after_add     => lambda {|owner, reader| log(:added,   :after,  reader.first_name) },
-              :before_remove => lambda {|owner, reader| log(:removed, :before, reader.first_name) },
-              :after_remove  => lambda {|owner, reader| log(:removed, :after,  reader.first_name) }
+              before_add:    ->(owner, reader) { log(:added,   :before, reader.first_name) },
+              after_add:     ->(owner, reader) { log(:added,   :after,  reader.first_name) },
+              before_remove: ->(owner, reader) { log(:removed, :before, reader.first_name) },
+              after_remove:  ->(owner, reader) { log(:removed, :after,  reader.first_name) }
   has_many :skimmers, -> { where :skimmer => true }, :class_name => 'Reader'
   has_many :impatient_people, :through => :skimmers, :source => :person
 

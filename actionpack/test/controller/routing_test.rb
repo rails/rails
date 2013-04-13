@@ -85,7 +85,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_symbols_with_dashes
     rs.draw do
-      get '/:artist/:song-omg', :to => lambda { |env|
+      get '/:artist/:song-omg', to: ->(env) {
         resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
@@ -97,7 +97,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_id_with_dash
     rs.draw do
-      get '/journey/:id', :to => lambda { |env|
+      get '/journey/:id', to: ->(env) {
         resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
@@ -109,7 +109,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_dash_with_custom_regexp
     rs.draw do
-      get '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
+      get '/:artist/:song-omg', constraints: { song: /\d+/ }, to: ->(env) {
         resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
@@ -122,7 +122,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_pre_dash
     rs.draw do
-      get '/:artist/omg-:song', :to => lambda { |env|
+      get '/:artist/omg-:song', to: ->(env) {
         resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
@@ -134,7 +134,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_pre_dash_with_custom_regexp
     rs.draw do
-      get '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
+      get '/:artist/omg-:song', constraints: { song: /\d+/ }, to: ->(env) {
         resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
@@ -147,7 +147,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_star_paths_are_greedy
     rs.draw do
-      get "/*path", :to => lambda { |env|
+      get "/*path", to: ->(env) {
         x = env["action_dispatch.request.path_parameters"][:path]
         [200, {}, [x]]
       }, :format => false
@@ -159,7 +159,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_star_paths_are_greedy_but_not_too_much
     rs.draw do
-      get "/*path", :to => lambda { |env|
+      get "/*path", to: ->(env) {
         x = JSON.dump env["action_dispatch.request.path_parameters"]
         [200, {}, [x]]
       }
@@ -172,7 +172,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_optional_star_paths_are_greedy
     rs.draw do
-      get "/(*filters)", :to => lambda { |env|
+      get "/(*filters)", to: ->(env) {
         x = env["action_dispatch.request.path_parameters"][:filters]
         [200, {}, [x]]
       }, :format => false
@@ -184,7 +184,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_optional_star_paths_are_greedy_but_not_too_much
     rs.draw do
-      get "/(*filters)", :to => lambda { |env|
+      get "/(*filters)", to: ->(env) {
         x = JSON.dump env["action_dispatch.request.path_parameters"]
         [200, {}, [x]]
       }
@@ -198,11 +198,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_regexp_precidence
     rs.draw do
-      get '/whois/:domain', :constraints => {
-        :domain => /\w+\.[\w\.]+/ },
-        :to     => lambda { |env| [200, {}, %w{regexp}] }
+      get '/whois/:domain', constraints: {
+        domain: /\w+\.[\w\.]+/ },
+        to:     ->(env) { [200, {}, %w{regexp}] }
 
-      get '/whois/:id', :to => lambda { |env| [200, {}, %w{id}] }
+      get '/whois/:id', to: ->(env) { [200, {}, %w{id}] }
     end
 
     assert_equal 'regexp', get(URI('http://example.org/whois/example.org'))
@@ -217,10 +217,10 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     }
 
     rs.draw do
-      get '/', :constraints => subdomain.new,
-                 :to          => lambda { |env| [200, {}, %w{default}] }
-      get '/', :constraints => { :subdomain => 'clients' },
-                 :to          => lambda { |env| [200, {}, %w{clients}] }
+      get '/', constraints: subdomain.new,
+               to:          ->(env) { [200, {}, %w{default}] }
+      get '/', constraints: { subdomain: 'clients' },
+               to:          ->(env) { [200, {}, %w{clients}] }
     end
 
     assert_equal 'default', get(URI('http://www.example.org/'))
@@ -229,13 +229,13 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_lambda_constraints
     rs.draw do
-      get '/', :constraints => lambda { |req|
+      get '/', constraints: ->(req) {
         req.subdomain.present? and req.subdomain != "clients" },
-                 :to          => lambda { |env| [200, {}, %w{default}] }
+               to:          ->(env) { [200, {}, %w{default}] }
 
-      get '/', :constraints => lambda { |req|
+      get '/', constraints: ->(req) {
         req.subdomain.present? && req.subdomain == "clients" },
-                 :to          => lambda { |env| [200, {}, %w{clients}] }
+               to:          ->(env) { [200, {}, %w{clients}] }
     end
 
     assert_equal 'default', get(URI('http://www.example.org/'))
@@ -244,8 +244,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_empty_string_match
     rs.draw do
-      get '/:username', :constraints => { :username => /[^\/]+/ },
-                       :to => lambda { |e| [200, {}, ['foo']] }
+      get '/:username', constraints: { username: /[^\/]+/ },
+                        to:          ->(e) { [200, {}, ['foo']] }
     end
     assert_equal 'Not Found', get(URI('http://example.org/'))
     assert_equal 'foo', get(URI('http://example.org/hello'))
@@ -254,8 +254,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_non_greedy_glob_regexp
     params = nil
     rs.draw do
-      get '/posts/:id(/*filters)', :constraints => { :filters => /.+?/ },
-        :to => lambda { |e|
+      get '/posts/:id(/*filters)', constraints: { :filters => /.+?/ },
+        to: ->(e) {
         params = e["action_dispatch.request.path_parameters"]
         [200, {}, ['foo']]
       }
@@ -272,7 +272,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_specific_controller_action_failure
     rs.draw do
-      mount lambda {} => "/foo"
+      mount -> {} => "/foo"
     end
 
     assert_raises(ActionController::UrlGenerationError) do
@@ -1452,7 +1452,7 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_route_with_subdomain_and_constraints_must_receive_params
     name_param = nil
     set.draw do
-      get 'page/:name' => 'pages#show', :constraints => lambda {|request|
+      get 'page/:name' => 'pages#show', constraints: ->(request) {
         name_param = request.params[:name]
         return true
       }
@@ -1735,7 +1735,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
 
   Model = Struct.new(:to_param)
 
-  Mapping = lambda {
+  Mapping = -> {
     namespace :admin do
       resources :users, :posts
     end

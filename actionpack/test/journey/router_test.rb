@@ -212,7 +212,7 @@ module ActionDispatch
       def test_clear_trailing_slash_from_script_name_on_root_unanchored_routes
         strexp = Router::Strexp.new("/", {}, ['/', '.', '?'], false)
         path   = Path::Pattern.new strexp
-        app    = lambda { |env| [200, {}, ['success!']] }
+        app    = ->(env) { [200, {}, ['success!']] }
         @router.routes.add_route(app, path, {}, {}, {})
 
         env  = rack_env('SCRIPT_NAME' => '', 'PATH_INFO' => '/weblog')
@@ -340,7 +340,7 @@ module ActionDispatch
           nil,
           Hash[params],
           {},
-          lambda { |k,v| parameterized << [k,v]; v })
+          ->(k,v) { parameterized << [k,v]; v })
 
         assert_equal params.map(&:to_s).sort, parameterized.map(&:to_s).sort
       end

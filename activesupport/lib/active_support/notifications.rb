@@ -119,7 +119,7 @@ module ActiveSupport
   # You can subscribe to some event temporarily while some block runs. For
   # example, in
   #
-  #   callback = lambda {|*args| ... }
+  #   callback = ->(*args) { ... }
   #   ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
   #     ...
   #   end

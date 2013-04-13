@@ -54,7 +54,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of_with_lambda
-    Topic.validates_exclusion_of :title, :in => lambda{ |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
+    Topic.validates_exclusion_of :title, in: ->(topic) { topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
 
     t = Topic.new
     t.title = "elephant"
