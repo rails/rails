@@ -114,7 +114,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_proc
-    Topic.send(:define_method, :min_approved, lambda { 5 })
+    Topic.send(:define_method, :min_approved, -> { 5 })
     Topic.validates_numericality_of :approved, :greater_than_or_equal_to => Proc.new {|topic| topic.min_approved }
 
     invalid!([3, 4])
@@ -123,7 +123,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_symbol
-    Topic.send(:define_method, :max_approved, lambda { 5 })
+    Topic.send(:define_method, :max_approved, -> { 5 })
     Topic.validates_numericality_of :approved, :less_than_or_equal_to => :max_approved
 
     invalid!([6])

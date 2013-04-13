@@ -21,8 +21,8 @@ end
 ActiveSupport::Deprecation.debug = true
 
 # Bogus template processors
-ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
-ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
+ActionView::Template.register_template_handler :haml, ->(template) { "Look its HAML!".inspect }
+ActionView::Template.register_template_handler :bak, ->(template) { "Lame backup".inspect }
 
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH

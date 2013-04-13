@@ -47,12 +47,12 @@ class I18nValidationTest < ActiveModel::TestCase
   # are used to generate tests to keep things DRY
   #
   COMMON_CASES = [
-  # [ case,                                validation_options,            generate_message_options]
-    [ "given no options",                  {},                            {}],
-    [ "given custom message",              {:message => "custom"},        {:message => "custom"}],
-    [ "given if condition",                {:if     => lambda { true }},  {}],
-    [ "given unless condition",            {:unless => lambda { false }}, {}],
-    [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
+  # [ case,                                validation_options,      generate_message_options]
+    [ "given no options",                  {},                      {}],
+    [ "given custom message",              {message: "custom"},     {message: "custom"}],
+    [ "given if condition",                {if:      -> { true }},  {}],
+    [ "given unless condition",            {unless:  -> { false }}, {}],
+    [ "given option that is not reserved", {format:  "jpg"},        {format: "jpg" }]
   ]
 
   # validates_confirmation_of w/ mocha

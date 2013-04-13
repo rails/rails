@@ -16,7 +16,7 @@ module ActionDispatch
     #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
     #
-    #   env["action_dispatch.parameter_filter"] = lambda do |k,v|
+    #   env["action_dispatch.parameter_filter"] = ->(k,v) do
     #     v.reverse! if k =~ /secret/i
     #   end
     #   => reverses the value to all keys matching /secret/i

@@ -20,7 +20,7 @@ class RequestIdTest < ActiveSupport::TestCase
   private
 
   def stub_request(env = {})
-    ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
+    ActionDispatch::RequestId.new(->(environment) { [ 200, environment, [] ] }).call(env)
     ActionDispatch::Request.new(env)
   end
 end

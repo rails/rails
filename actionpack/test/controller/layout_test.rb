@@ -7,7 +7,7 @@ require 'active_support/core_ext/array/extract_options'
 old_load_paths = ActionController::Base.view_paths
 
 ActionView::Template::register_template_handler :mab,
-  lambda { |template| template.source.inspect }
+  ->(template) { template.source.inspect }
 
 ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/layout_tests/' ]
 

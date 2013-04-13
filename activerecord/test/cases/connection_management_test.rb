@@ -102,7 +102,7 @@ module ActiveRecord
 
       test "proxy is polite to it's body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
-        app = lambda { |_| [200, {}, body] }
+        app = ->(_) { [200, {}, body] }
         response_body = ConnectionManagement.new(app).call(@env)[2]
         assert response_body.respond_to?(:to_path)
         assert_equal response_body.to_path, "/path"

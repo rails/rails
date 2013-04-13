@@ -110,7 +110,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_using_limitable_reflections_helper
-    using_limitable_reflections = lambda { |reflections| Tagging.all.send :using_limitable_reflections?, reflections }
+    using_limitable_reflections = ->(reflections) { Tagging.all.send :using_limitable_reflections?, reflections }
     belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq

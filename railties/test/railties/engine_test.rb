@@ -465,7 +465,7 @@ YAML
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello World']] }
+            endpoint ->(env) { [200, {'Content-Type' => 'text/html'}, ['Hello World']] }
             config.middleware.use ::RailtiesTest::EngineTest::Upcaser
           end
         end
@@ -521,7 +521,7 @@ YAML
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          get "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
+          get "/foo" => ->(env) { [200, {'Content-Type' => 'text/html'}, ['foo']] }
         end
       RUBY
 
@@ -568,7 +568,7 @@ YAML
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['hello']] }
+            endpoint ->(env) { [200, {'Content-Type' => 'text/html'}, ['hello']] }
           end
         end
       RUBY
@@ -847,7 +847,7 @@ YAML
       # file has changed
       add_to_config <<-RUBY
         routes do
-          mount lambda{|env| [200, {}, ["foo"]]} => "/foo"
+          mount ->(env) { [200, {}, ["foo"]]} => "/foo"
           mount Bukkits::Engine => "/bukkits"
         end
       RUBY
@@ -856,7 +856,7 @@ YAML
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          mount lambda{|env| [200, {}, ["bar"]]} => "/bar"
+          mount ->(env) { [200, {}, ["bar"]]} => "/bar"
         end
       RUBY
 

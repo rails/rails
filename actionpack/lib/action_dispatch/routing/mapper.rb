@@ -357,7 +357,7 @@ module ActionDispatch
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id', to: lambda {|hash| [200, {}, ["Coming soon"]] }
+        #   match 'photos/:id', to: ->(hash) { [200, {}, ["Coming soon"]] }
         #   match 'photos/:id', to: PhotoRackApp
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id', to: PhotosController.action(:show)
@@ -402,7 +402,7 @@ module ActionDispatch
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', to: 'controller#action'
-        #      match 'path', to: lambda { |env| [200, {}, ["Success!"]] }
+        #      match 'path', to: ->(env) { [200, {}, ["Success!"]] }
         #      match 'path', to: RackApp
         #
         # [:on]
@@ -810,7 +810,7 @@ module ActionDispatch
         #
         # Requests to routes can be constrained based on specific criteria:
         #
-        #    constraints(lambda { |req| req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
+        #    constraints(->(req) { req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
         #      resources :iphones
         #    end
         #
@@ -1715,7 +1715,7 @@ module ActionDispatch
         # callable, they're accessible from the Mapper that's passed to
         # <tt>call</tt>.
         def concern(name, callable = nil, &block)
-          callable ||= lambda { |mapper, options| mapper.instance_exec(options, &block) }
+          callable ||= ->(mapper, options) { mapper.instance_exec(options, &block) }
           @concerns[name] = callable
         end
 

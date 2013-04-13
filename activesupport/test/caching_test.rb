@@ -148,7 +148,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
 
   def test_proc_namespace
     test_val = "tester"
-    proc = lambda{test_val}
+    proc = -> {test_val}
     cache = ActiveSupport::Cache.lookup_store(:memory_store, :namespace => proc)
     cache.write("foo", "bar")
     assert_equal "bar", cache.read("foo")
@@ -553,7 +553,7 @@ module LocalCacheBehavior
   end
 
   def test_middleware
-    app = lambda { |env|
+    app = ->(env) {
       result = @cache.write('foo', 'bar')
       assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
       assert result

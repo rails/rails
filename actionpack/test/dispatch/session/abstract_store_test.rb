@@ -49,7 +49,7 @@ module ActionDispatch
       private
       def app(&block)
         @env = nil
-        lambda { |env| @env = env }
+        ->(env) { @env = env }
       end
     end
   end

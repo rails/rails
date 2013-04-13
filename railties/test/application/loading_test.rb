@@ -76,8 +76,8 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        get '/load',   to: lambda { |env| [200, {}, Post.all] }
-        get '/unload', to: lambda { |env| [200, {}, []] }
+        get '/load',   to: ->(env) { [200, {}, Post.all] }
+        get '/unload', to: ->(env) { [200, {}, []] }
       end
     RUBY
 
@@ -106,7 +106,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
+        get '/c', to: ->(env) { [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
     RUBY
 
@@ -145,7 +145,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
+        get '/c', to: ->(env) { [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
     RUBY
 
@@ -181,7 +181,7 @@ class LoadingTest < ActiveSupport::TestCase
     app_file 'config/routes.rb', <<-RUBY
       $counter = 0
       AppTemplate::Application.routes.draw do
-        get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+        get '/c', to: ->(env) { User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
 
@@ -212,8 +212,8 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       AppTemplate::Application.routes.draw do
-        get '/title', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
-        get '/body',  to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
+        get '/title', to: ->(env) { [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
+        get '/body',  to: ->(env) { [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
       end
     RUBY
 

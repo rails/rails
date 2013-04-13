@@ -53,7 +53,7 @@ module ApplicationTests
     test "does not include url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
+          get "/foo", to: ->(env) { [200, {}, []] }, :as => :foo
         end
       RUBY
 

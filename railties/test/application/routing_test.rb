@@ -112,7 +112,7 @@ module ApplicationTests
     test "mount rack app" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, at: "/blog"
+          mount ->(env) { [200, {}, [env["PATH_INFO"]]] }, at: "/blog"
           # The line below is required because mount sometimes
           # fails when a resource route is added.
           resource :user
@@ -195,7 +195,7 @@ module ApplicationTests
 
       add_to_config <<-R
         routes.append do
-          get '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+          get '/win' => ->(e) { [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
         end
       R
 
@@ -257,7 +257,7 @@ module ApplicationTests
 
       # Create the rack app just inside after initialize callback
       ActiveSupport.on_load(:after_initialize) do
-        ::InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
+        ::InitializeRackApp = ->(env) { [200, {}, ["InitializeRackApp"]] }
       end
 
       app_file 'config/routes.rb', <<-RUBY

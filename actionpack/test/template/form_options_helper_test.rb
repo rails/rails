@@ -54,7 +54,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_proc_for_selected
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", lambda{|p| p.author_name == 'Babe' })
+      options_from_collection_for_select(dummy_posts, "author_name", "title", ->(p) { p.author_name == 'Babe' })
     )
   end
 
@@ -82,21 +82,21 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda {|p| %w(Babe Cabe).include?(p.author_name)})
+      options_from_collection_for_select(dummy_posts, "author_name", "title", disabled: ->(p) { %w(Babe Cabe).include?(p.author_name)})
     )
   end
 
   def test_collection_options_with_proc_for_value_method
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, lambda { |p| p.author_name }, "title")
+      options_from_collection_for_select(dummy_posts, ->(p) { p.author_name }, "title")
     )
   end
 
   def test_collection_options_with_proc_for_text_method
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", lambda { |p| p.title })
+      options_from_collection_for_select(dummy_posts, "author_name", ->(p) { p.title })
     )
   end
 
@@ -915,7 +915,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option></select>",
-      collection_select("post", "author_name", dummy_posts, lambda { |p| p.author_name }, "title")
+      collection_select("post", "author_name", dummy_posts, ->(p) { p.author_name }, "title")
     )
   end
 
@@ -924,7 +924,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", lambda { |p| p.title })
+      collection_select("post", "author_name", dummy_posts, "author_name", ->(p) { p.title })
     )
   end
 

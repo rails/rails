@@ -313,7 +313,7 @@ module ActionDispatch
       end
 
       def count_description(min, max, count) #:nodoc:
-        pluralize = lambda {|word, quantity| word << (quantity == 1 ? '' : 's')}
+        pluralize = ->(word, quantity) { word << (quantity == 1 ? '' : 's')}
 
         if min && max && (max != min)
           "between #{min} and #{max} elements"
@@ -372,7 +372,7 @@ module ActionDispatch
             raise ArgumentError, "Argument is optional, and may be node or array of nodes"
         end
 
-        fix_content = lambda do |node|
+        fix_content = ->(node) do
           # Gets around a bug in the Rails 1.1 HTML parser.
           node.content.gsub(/<!\[CDATA\[(.*)(\]\]>)?/m) { Rack::Utils.escapeHTML($1) }
         end

@@ -9,7 +9,7 @@ module ActionDispatch
   # the response body. This is important for streaming responses such as the
   # following:
   #
-  #     self.response_body = lambda { |response, output|
+  #     self.response_body = ->(response, output) {
   #       # code here which refers to application models
   #     }
   #

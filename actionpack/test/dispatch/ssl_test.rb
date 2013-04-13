@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 class SSLTest < ActionDispatch::IntegrationTest
   def default_app
-    lambda { |env|
+    ->(env) {
       headers = {'Content-Type' => "text/html"}
       headers['Set-Cookie'] = "id=1; path=/\ntoken=abc; path=/; secure; HttpOnly"
       [200, headers, ["OK"]]
@@ -78,7 +78,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_flag_cookies_as_secure_at_end_of_line
-    self.app = ActionDispatch::SSL.new(lambda { |env|
+    self.app = ActionDispatch::SSL.new(->(env) {
       headers = {
         'Content-Type' => "text/html",
         'Set-Cookie' => "problem=def; path=/; HttpOnly; secure"
@@ -92,7 +92,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_flag_cookies_as_secure_with_more_spaces_before
-    self.app = ActionDispatch::SSL.new(lambda { |env|
+    self.app = ActionDispatch::SSL.new(->(env) {
       headers = {
         'Content-Type' => "text/html",
         'Set-Cookie' => "problem=def; path=/; HttpOnly;  secure"
@@ -106,7 +106,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_flag_cookies_as_secure_with_more_spaces_after
-    self.app = ActionDispatch::SSL.new(lambda { |env|
+    self.app = ActionDispatch::SSL.new(->(env) {
       headers = {
         'Content-Type' => "text/html",
         'Set-Cookie' => "problem=def; path=/; secure;  HttpOnly"
@@ -120,7 +120,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_no_cookies
-    self.app = ActionDispatch::SSL.new(lambda { |env|
+    self.app = ActionDispatch::SSL.new(->(env) {
       [200, {'Content-Type' => "text/html"}, ["OK"]]
     })
     get "https://example.org/"

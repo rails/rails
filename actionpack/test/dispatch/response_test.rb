@@ -222,7 +222,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "response cache control from railsish app" do
-    @app = lambda { |env|
+    @app = ->(env) {
       ActionDispatch::Response.new.tap { |resp|
         resp.cache_control[:public] = true
         resp.etag = '123'
@@ -241,7 +241,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "response cache control from rackish app" do
-    @app = lambda { |env|
+    @app = ->(env) {
       [200,
         {'ETag' => '"202cb962ac59075b964b07152d234b70"',
           'Cache-Control' => 'public'}, ['Hello']]
@@ -258,7 +258,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "response charset and content type from railsish app" do
-    @app = lambda { |env|
+    @app = ->(env) {
       ActionDispatch::Response.new.tap { |resp|
         resp.charset = 'utf-16'
         resp.content_type = Mime::XML
@@ -276,7 +276,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "response charset and content type from rackish app" do
-    @app = lambda { |env|
+    @app = ->(env) {
       [200,
         {'Content-Type' => 'application/xml; charset=utf-16'},
         ['Hello']]

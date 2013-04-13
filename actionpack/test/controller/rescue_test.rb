@@ -160,9 +160,9 @@ class ExceptionInheritanceRescueController < ActionController::Base
   class GrandchildException < ChildException
   end
 
-  rescue_from ChildException,      :with => lambda { head :ok }
-  rescue_from ParentException,     :with => lambda { head :created }
-  rescue_from GrandchildException, :with => lambda { head :no_content }
+  rescue_from ChildException,      with: -> { head :ok }
+  rescue_from ParentException,     with: -> { head :created }
+  rescue_from GrandchildException, with: -> { head :no_content }
 
   def raise_parent_exception
     raise ParentException
@@ -196,7 +196,7 @@ class ControllerInheritanceRescueController < ExceptionInheritanceRescueControll
   class SecondExceptionInChildController < StandardError
   end
 
-  rescue_from FirstExceptionInChildController, 'SecondExceptionInChildController', :with => lambda { head :gone }
+  rescue_from FirstExceptionInChildController, 'SecondExceptionInChildController', with: -> { head :gone }
 
   def raise_first_exception_in_child_controller
     raise FirstExceptionInChildController

@@ -80,7 +80,7 @@ module ActionView
     #
     # When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
     #
-    #   collection_select(:post, :category_id, Category.all, :id, :name, {disabled: lambda{|category| category.archived? }})
+    #   collection_select(:post, :category_id, Category.all, :id, :name, {disabled: ->(category) { category.archived? }})
     #
     # If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
     #   <select name="post[category_id]">
@@ -561,7 +561,7 @@ module ActionView
         zone_options = "".html_safe
 
         zones = model.all
-        convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
+        convert_zones = ->(list) { list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
