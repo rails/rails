@@ -21,9 +21,9 @@ In case you can't use the Rails development box, see section above, these are th
 
 Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
-* [Try Git course](http://try.github.com/) is an interactive course that will teach you the basics.
+* [Try Git course](http://try.github.io/) is an interactive course that will teach you the basics.
 * The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git
-* [Everyday Git](http://schacon.github.com/git/everyday.html) will teach you just enough about Git to get by.
+* [Everyday Git](http://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
 * The [PeepCode screencast](https://peepcode.com/products/git) on Git ($9) is easier to follow.
 * [GitHub](http://help.github.com) offers links to a variety of Git resources.
 * [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
