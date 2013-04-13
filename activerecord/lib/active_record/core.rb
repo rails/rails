@@ -80,11 +80,11 @@ module ActiveRecord
       class_attribute :default_connection_handler, instance_writer: false
 
       def self.connection_handler
-        ActiveRecord::RuntimeRegistry.instance.connection_handler || self.default_connection_handler
+        ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        ActiveRecord::RuntimeRegistry.instance.connection_handler = handler
+        ActiveRecord::RuntimeRegistry.connection_handler = handler
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new

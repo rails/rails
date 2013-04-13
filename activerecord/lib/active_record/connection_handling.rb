@@ -54,11 +54,11 @@ module ActiveRecord
     end
 
     def connection_id
-      ActiveRecord::RuntimeRegistry.instance.connection_id
+      ActiveRecord::RuntimeRegistry.connection_id
     end
 
     def connection_id=(connection_id)
-      ActiveRecord::RuntimeRegistry.instance.connection_id = connection_id
+      ActiveRecord::RuntimeRegistry.connection_id = connection_id
     end
 
     # Returns the configuration of the associated connection as a hash:
