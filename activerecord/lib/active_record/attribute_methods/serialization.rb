@@ -93,10 +93,10 @@ module ActiveRecord
 
       # This is only added to the model when serialize is called, which
       # ensures we do not make things slower when serialization is not used.
-      module Behavior #:nodoc:
+      module Behavior # :nodoc:
         extend ActiveSupport::Concern
 
-        module ClassMethods
+        module ClassMethods # :nodoc:
           def initialize_attributes(attributes, options = {})
             serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
             super(attributes, options)
