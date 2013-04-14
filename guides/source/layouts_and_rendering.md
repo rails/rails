@@ -1,7 +1,7 @@
 Layouts and Rendering in Rails
 ==============================
 
-This guide covers the basic layout features of Action Controller and Action View. 
+This guide covers the basic layout features of Action Controller and Action View.
 
 After reading this guide, you will know:
 
@@ -342,6 +342,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 205              | :reset_content                   |
 |                     | 206              | :partial_content                 |
 |                     | 207              | :multi_status                    |
+|                     | 208              | :already_reported                |
 |                     | 226              | :im_used                         |
 | **Redirection**     | 300              | :multiple_choices                |
 |                     | 301              | :moved_permanently               |
@@ -351,6 +352,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 305              | :use_proxy                       |
 |                     | 306              | :reserved                        |
 |                     | 307              | :temporary_redirect              |
+|                     | 308              | :permanent_redirect              |
 | **Client Error**    | 400              | :bad_request                     |
 |                     | 401              | :unauthorized                    |
 |                     | 402              | :payment_required                |
@@ -369,11 +371,13 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 415              | :unsupported_media_type          |
 |                     | 416              | :requested_range_not_satisfiable |
 |                     | 417              | :expectation_failed              |
-|                     | 418              | :i'm_a_teapot                    |
 |                     | 422              | :unprocessable_entity            |
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
 |                     | 426              | :upgrade_required                |
+|                     | 423              | :precondition_required           |
+|                     | 424              | :too_many_requests               |
+|                     | 426              | :request_header_fields_too_large |
 | **Server Error**    | 500              | :internal_server_error           |
 |                     | 501              | :not_implemented                 |
 |                     | 502              | :bad_gateway                     |
@@ -382,7 +386,9 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 505              | :http_version_not_supported      |
 |                     | 506              | :variant_also_negotiates         |
 |                     | 507              | :insufficient_storage            |
+|                     | 508              | :loop_detected                   |
 |                     | 510              | :not_extended                    |
+|                     | 511              | :network_authentication_required |
 
 #### Finding Layouts
 
