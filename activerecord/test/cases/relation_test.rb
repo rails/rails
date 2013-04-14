@@ -185,6 +185,11 @@ module ActiveRecord
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
 
+    def test_respond_to_for_non_selected_element
+      post = Post.select("'title' as post_title").first
+      assert !post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+    end
+
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
