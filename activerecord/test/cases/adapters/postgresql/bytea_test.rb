@@ -69,7 +69,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     assert_equal(data, record.payload)
   end
 
-  def test_write_file
+  def test_write_binary
     data = File.read(File.join(File.dirname(__FILE__), '..', '..', '..', 'assets', 'example.log'))
     assert(data.size > 1)
     record = ByteaDataType.create(payload: data)
