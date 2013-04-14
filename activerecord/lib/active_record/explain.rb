@@ -4,12 +4,12 @@ module ActiveRecord
   module Explain
     # Relation#explain needs to be able to collect the queries.
     def collecting_queries_for_explain # :nodoc:
-      original = ActiveRecord::RuntimeRegistry.save(:available_queries_for_explain)
+      ActiveRecord::RuntimeRegistry.save_available_queries
       yield
       return ActiveRecord::RuntimeRegistry.available_queries_for_explain
     ensure
       # Note that the return value above does not depend on this assignment.
-      ActiveRecord::RuntimeRegistry.restore(:available_queries_for_explain)
+      ActiveRecord::RuntimeRegistry.restore_available_queries
     end
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.

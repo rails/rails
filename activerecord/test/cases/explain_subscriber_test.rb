@@ -46,11 +46,11 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def with_queries(queries)
-      ActiveRecord::RuntimeRegistry.save(:available_queries_for_explain)
+      ActiveRecord::RuntimeRegistry.save_available_queries
       ActiveRecord::RuntimeRegistry.available_queries_for_explain = queries
       yield queries
     ensure
-      ActiveRecord::RuntimeRegistry.restore(:available_queries_for_explain)
+      ActiveRecord::RuntimeRegistry.restore_available_queries
     end
   end
 end

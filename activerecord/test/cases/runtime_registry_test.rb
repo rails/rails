@@ -2,7 +2,7 @@ require 'cases/helper'
 
 class RuntimeRegistryTest < ActiveRecord::TestCase
   def setup
-    @instance = ActiveRecord::RuntimeRegistry.instance
+    @instance = ActiveRecord::RuntimeRegistry
   end
 
   def teardown
@@ -14,7 +14,7 @@ class RuntimeRegistryTest < ActiveRecord::TestCase
     local_runtime_registry = Thread.current["ActiveRecord::RuntimeRegistry"]
 
     assert_not_nil local_runtime_registry
-    assert_equal @instance, local_runtime_registry
+    assert local_runtime_registry.kind_of?(ActiveRecord::RuntimeRegistry)
   end
 
   def test_runtime_registry_variable_handling
@@ -66,10 +66,10 @@ class RuntimeRegistryTest < ActiveRecord::TestCase
 
   def test_available_queries_for_explain_is_an_array_after_save_and_restore
     assert @instance.available_queries_for_explain.kind_of?(Array)
-    @instance.save(:available_queries_for_explain)
+    @instance.save(:available_queries_for_explain, [])
 
     assert @instance.available_queries_for_explain.kind_of?(Array)
-    @instance.restore(:available_queries_for_explain)
+    @instance.restore(:available_queries_for_explain, [])
 
     assert @instance.available_queries_for_explain.kind_of?(Array)
   end
