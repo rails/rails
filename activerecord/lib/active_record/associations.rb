@@ -1073,6 +1073,9 @@ module ActiveRecord
       #   with +attributes+, linked to this object through a foreign key, and that has already
       #   been saved (if it passed the validation). *Note*: This only works if the base model
       #   already exists in the DB, not if it is a new (unsaved) record!
+      # [collection.create!(attributes = {})]
+      #   Does the same as <tt>collection.create</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   if the record is invalid.
       #
       # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
@@ -1094,6 +1097,7 @@ module ActiveRecord
       # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
+      # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       #
       # === Options
