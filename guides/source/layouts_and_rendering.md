@@ -709,7 +709,7 @@ There are three tag options available for the `auto_discovery_link_tag`:
 
 * `:rel` specifies the `rel` value in the link. The default value is "alternate".
 * `:type` specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
-* `:title` specifies the title of the link. The default value is the uppercased `:type` value, for example, "ATOM" or "RSS".
+* `:title` specifies the title of the link. The default value is the uppercase `:type` value, for example, "ATOM" or "RSS".
 
 #### Linking to JavaScript Files with the `javascript_include_tag`
 
