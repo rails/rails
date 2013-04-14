@@ -15,7 +15,7 @@ database compatibility and query generation.
 
 ## Status
 
-For the moment, Arel uses ActiveRecord's connection adapters to connect to the various engines, connection pooling, perform quoting, and do type conversion.
+For the moment, Arel uses Active Record's connection adapters to connect to the various engines, connection pooling, perform quoting, and do type conversion.
 
 ## A Gentle Introduction
 

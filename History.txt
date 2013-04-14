@@ -184,7 +184,7 @@
 
   * Introduced "SQL compilers" for query generation.
   * Added support for Oracle (Raimonds Simanovskis) and IBM/DB (Praveen Devarao).
-  * Improvements to give better support to ActiveRecord.
+  * Improvements to give better support to Active Record.
 
 == 0.2.1 / 2010-02-05
 
@@ -195,7 +195,7 @@
 == 0.2.0 / 2010-01-31
 
   * Ruby 1.9 compatibility
-  * Many improvements to support the Arel integration into ActiveRecord (see `git log v0.1.0..v0.2.0`)
+  * Many improvements to support the Arel integration into Active Record (see `git log v0.1.0..v0.2.0`)
   * Thanks to Emilio Tagua and Pratik Naik for many significant contributions!
 
 == 0.1.0 / 2009-08-06
