@@ -22,7 +22,7 @@ module Arel
     def update values
       if $VERBOSE
         warn <<-eowarn
-update (#{caller.first}) is deprecated and will be removed in ARel 4.0.0. Please
+update (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
 switch to `compile_update`
         eowarn
       end
@@ -45,7 +45,7 @@ switch to `compile_update`
     def insert values
       if $VERBOSE
         warn <<-eowarn
-insert (#{caller.first}) is deprecated and will be removed in ARel 4.0.0. Please
+insert (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
 switch to `compile_insert`
         eowarn
       end
@@ -62,7 +62,7 @@ switch to `compile_insert`
     def delete
       if $VERBOSE
         warn <<-eowarn
-delete (#{caller.first}) is deprecated and will be removed in ARel 4.0.0. Please
+delete (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
 switch to `compile_delete`
         eowarn
       end

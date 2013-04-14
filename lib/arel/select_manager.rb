@@ -170,7 +170,7 @@ module Arel
     end
 
     def wheres
-      warn "#{caller[0]}: SelectManager#wheres is deprecated and will be removed in ARel 4.0.0 with no replacement"
+      warn "#{caller[0]}: SelectManager#wheres is deprecated and will be removed in Arel 4.0.0 with no replacement"
       Compatibility::Wheres.new @engine.connection, @ctx.wheres
     end
 
@@ -276,7 +276,7 @@ module Arel
     def insert values
       if $VERBOSE
         warn <<-eowarn
-insert (#{caller.first}) is deprecated and will be removed in ARel 4.0.0. Please
+insert (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
 switch to `compile_insert`
         eowarn
       end

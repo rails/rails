@@ -254,7 +254,7 @@ module Arel
       end
 
       def to_dot
-        "digraph \"ARel\" {\nnode [width=0.375,height=0.25,shape=record];\n" +
+        "digraph \"Arel\" {\nnode [width=0.375,height=0.25,shape=record];\n" +
           @nodes.map { |node|
             label = "<f0>#{node.name}"
 

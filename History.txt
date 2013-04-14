@@ -144,7 +144,7 @@
 
 * Deprecations
 
-  * Support for Subclasses of core classes will be removed in ARel version
+  * Support for Subclasses of core classes will be removed in Arel version
     2.2.0
 
 == 2.0.4

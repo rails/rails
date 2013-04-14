@@ -1,4 +1,4 @@
-# ARel [![Build Status](https://secure.travis-ci.org/rails/arel.png)](http://travis-ci.org/rails/arel) [![Dependency Status](https://gemnasium.com/rails/arel.png)](https://gemnasium.com/rails/arel)
+# Arel [![Build Status](https://secure.travis-ci.org/rails/arel.png)](http://travis-ci.org/rails/arel) [![Dependency Status](https://gemnasium.com/rails/arel.png)](https://gemnasium.com/rails/arel)
 
 * http://github.com/rails/arel
 
@@ -19,7 +19,7 @@ For the moment, Arel uses Active Record's connection adapters to connect to the 
 
 ## A Gentle Introduction
 
-Generating a query with ARel is simple. For example, in order to produce
+Generating a query with Arel is simple. For example, in order to produce
 
     SELECT * FROM users
 

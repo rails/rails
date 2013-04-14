@@ -32,7 +32,7 @@ module Arel
     def primary_key
       if $VERBOSE
         warn <<-eowarn
-primary_key (#{caller.first}) is deprecated and will be removed in ARel 4.0.0
+primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
         eowarn
       end
       @primary_key ||= begin
