@@ -75,7 +75,7 @@ The query string strategy has several disadvantages:
 2. **The file name can change between nodes in multi-server environments.**<br />
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
 3. **Too much cache invalidation**<br />
-    When static assets are deployed with each new release of code, the mtime of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
+    When static assets are deployed with each new release of code, the mtime(time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring that filenames are consistent based on their content.
 
