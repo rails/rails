@@ -115,8 +115,10 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : 
+        options[:skip_active_record] ? "" :
           <<-GEMFILE.gsub(/^ {12}/, '').strip
+            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
+
             # Use #{options[:database]} as the database for ActiveRecord
             gem '#{gem_for_database}'
           GEMFILE
@@ -135,13 +137,11 @@ module Rails
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'arel',      github: 'rails/arel'
-            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     github: 'rails/rails'
             gem 'arel',      github: 'rails/arel'
-            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
