@@ -707,7 +707,7 @@ config.assets.cache_store = :memory_store
 The options accepted by the assets cache store are the same as the application's cache store.
 
 ```ruby
-config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+config.assets.cache_store = :memory_store, { size: 32.megabytes }
 ```
 
 Adding Assets to Your Gems
