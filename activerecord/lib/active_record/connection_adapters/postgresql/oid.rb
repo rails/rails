@@ -20,6 +20,7 @@ module ActiveRecord
 
         class Bytea < Type
           def type_cast(value)
+            return if value.nil?
             PGconn.unescape_bytea value
           end
         end
