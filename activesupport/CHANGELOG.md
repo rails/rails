@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   An `ActiveSupport::Subscriber` class has been extracted from
+    `ActiveSupport::LogSubscriber`, allowing you to use the event attachment
+    API for other kinds of subscribers.
+
+    *Daniel Schierbeck*
+
 *   `Class#class_attribute` accepts an `instance_predicate` option which
     defaults to `true`. If set to `false` the predicate method will not
     be defined.
