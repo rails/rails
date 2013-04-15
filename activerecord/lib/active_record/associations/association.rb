@@ -92,7 +92,7 @@ module ActiveRecord
       # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
-      # scoped method is called. This is because at that point the call may be surrounded
+      # scope method is called. This is because at that point the call may be surrounded
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
       def association_scope
@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      # This class of the target. belongs_to polymorphic overrides this to look at the
+      # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
@@ -146,7 +146,7 @@ module ActiveRecord
 
       def interpolate(sql, record = nil)
         if sql.respond_to?(:to_proc)
-          owner.send(:instance_exec, record, &sql)
+          owner.instance_exec(record, &sql)
         else
           sql
         end
@@ -203,7 +203,7 @@ module ActiveRecord
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
         # a sanity check when you are about to assign an associated record.
-        def raise_on_type_mismatch(record)
+        def raise_on_type_mismatch!(record)
           unless record.is_a?(reflection.klass) || record.is_a?(reflection.class_name.constantize)
             message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
             raise ActiveRecord::AssociationTypeMismatch, message
@@ -217,7 +217,8 @@ module ActiveRecord
           reflection.inverse_of
         end
 
-        # Is this association invertible? Can be redefined by subclasses.
+        # Returns true if inverse association on the given record needs to be set.
+        # This method is redefined by subclasses.
         def invertible_for?(record)
           inverse_reflection_for(record)
         end
@@ -232,8 +233,10 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
+            skip_assign = [reflection.foreign_key, reflection.type].compact
+            attributes = create_scope.except(*(record.changed - skip_assign))
             record.assign_attributes(attributes)
+            set_inverse_instance(record)
           end
         end
     end

@@ -8,27 +8,32 @@ module ActiveRecord
       # Returns this record's primary key value wrapped in an Array if one is
       # available.
       def to_key
+        sync_with_transaction_state
         key = self.id
         [key] if key
       end
 
       # Returns the primary key value.
       def id
+        sync_with_transaction_state
         read_attribute(self.class.primary_key)
       end
 
       # Sets the primary key value.
       def id=(value)
+        sync_with_transaction_state
         write_attribute(self.class.primary_key, value) if self.class.primary_key
       end
 
       # Queries the primary key value.
       def id?
+        sync_with_transaction_state
         query_attribute(self.class.primary_key)
       end
 
       # Returns the primary key value before type cast.
       def id_before_type_cast
+        sync_with_transaction_state
         read_attribute_before_type_cast(self.class.primary_key)
       end
 
@@ -76,7 +81,7 @@ module ActiveRecord
         end
 
         def get_primary_key(base_name) #:nodoc:
-          return 'id' unless base_name && !base_name.blank?
+          return 'id' if base_name.blank?
 
           case primary_key_prefix_type
           when :table_name
@@ -85,7 +90,7 @@ module ActiveRecord
             base_name.foreign_key
           else
             if ActiveRecord::Base != self && table_exists?
-              connection.schema_cache.primary_keys[table_name]
+              connection.schema_cache.primary_keys(table_name)
             else
               'id'
             end

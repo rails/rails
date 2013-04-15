@@ -32,7 +32,7 @@ end
 class Hash
   # Returns a deep copy of hash.
   #
-  #   hash = { a: { b: 'b' } }
+  #   hash = { a: { b: 'b' } }
   #   dup  = hash.deep_dup
   #   dup[:a][:c] = 'c'
   #

@@ -5,6 +5,37 @@ module ActiveRecord
 
       def initialize(connection)
         @connection = connection
+        @state = TransactionState.new
+      end
+
+      def state
+        @state
+      end
+    end
+
+    class TransactionState
+      attr_accessor :parent
+
+      VALID_STATES = Set.new([:committed, :rolledback, nil])
+
+      def initialize(state = nil)
+        @state = state
+        @parent = nil
+      end
+
+      def committed?
+        @state == :committed
+      end
+
+      def rolledback?
+        @state == :rolledback
+      end
+
+      def set_state(state)
+        if !VALID_STATES.include?(state)
+          raise ArgumentError, "Invalid transaction state: #{state}"
+        end
+        @state = state
       end
     end
 
@@ -47,7 +78,7 @@ module ActiveRecord
         @joinable  = options.fetch(:joinable, true)
       end
 
-      # This state is necesarry so that we correctly handle stuff that might
+      # This state is necessary so that we correctly handle stuff that might
       # happen in a commit/rollback. But it's kinda distasteful. Maybe we can
       # find a better way to structure it in the future.
       def finishing?
@@ -87,10 +118,15 @@ module ActiveRecord
       end
 
       def add_record(record)
-        records << record
+        if record.has_transactional_callbacks?
+          records << record
+        else
+          record.set_transaction_state(@state)
+        end
       end
 
       def rollback_records
+        @state.set_state(:rolledback)
         records.uniq.each do |record|
           begin
             record.rolledback!(parent.closed?)
@@ -101,6 +137,7 @@ module ActiveRecord
       end
 
       def commit_records
+        @state.set_state(:committed)
         records.uniq.each do |record|
           begin
             record.committed!
@@ -157,8 +194,9 @@ module ActiveRecord
       end
 
       def perform_commit
+        @state.set_state(:committed)
+        @state.parent = parent.state
         connection.release_savepoint
-        records.each { |r| parent.add_record(r) }
       end
     end
   end

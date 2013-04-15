@@ -4,16 +4,18 @@ gem 'mysql2', '~> 0.3.10'
 require 'mysql2'
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
+      config = config.symbolize_keys
+
       config[:username] = 'root' if config[:username].nil?
 
       if Mysql2::Client.const_defined? :FOUND_ROWS
         config[:flags] = Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config.symbolize_keys)
+      client = Mysql2::Client.new(config)
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
     end
@@ -36,6 +38,15 @@ module ActiveRecord
         configure_connection
       end
 
+      MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
+      def initialize_schema_migrations_table
+        if @config[:encoding] == 'utf8mb4'
+          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_UTF8MB4)
+        else
+          ActiveRecord::SchemaMigration.create_table
+        end
+      end
+
       def supports_explain?
         true
       end
@@ -52,8 +63,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?)
+      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
+        Column.new(field, default, type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception)
@@ -251,27 +262,7 @@ module ActiveRecord
 
       def configure_connection
         @connection.query_options.merge!(:as => :array)
-
-        # By default, MySQL 'where id is null' selects the last inserted id.
-        # Turn this off. http://dev.rubyonrails.org/ticket/6778
-        variable_assignments = ['SQL_AUTO_IS_NULL=0']
-
-        # Make MySQL reject illegal values rather than truncating or
-        # blanking them. See
-        # http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html#sqlmode_strict_all_tables
-        variable_assignments << "SQL_MODE='STRICT_ALL_TABLES'" if strict_mode?
-
-        encoding = @config[:encoding]
-
-        # make sure we set the encoding
-        variable_assignments << "NAMES '#{encoding}'" if encoding
-
-        # increase timeout so mysql server doesn't disconnect us
-        wait_timeout = @config[:wait_timeout]
-        wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
-        variable_assignments << "@@wait_timeout = #{wait_timeout}"
-
-        execute("SET #{variable_assignments.join(', ')}", :skip_logging)
+        super
       end
 
       def version

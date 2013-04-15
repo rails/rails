@@ -65,8 +65,8 @@ module ActionView
       #
       # produces:
       #
-      #   <tr id="person_123" class="person">...</tr>
-      #   <tr id="person_124" class="person">...</tr>
+      #    <tr id="person_123" class="person">...</tr>
+      #    <tr id="person_124" class="person">...</tr>
       #
       # content_tag_for also accepts a hash of options, which will be converted to
       # additional HTML attributes. If you specify a <tt>:class</tt> value, it will be combined
@@ -92,10 +92,14 @@ module ActionView
         # for each record.
         def content_tag_for_single_record(tag_name, record, prefix, options, &block)
           options = options ? options.dup : {}
-          options[:class] = "#{dom_class(record, prefix)} #{options[:class]}".rstrip
+          options[:class] = [ dom_class(record, prefix), options[:class] ].compact
           options[:id]    = dom_id(record, prefix)
 
-          content_tag(tag_name, capture(record, &block), options)
+          if block_given?
+            content_tag(tag_name, capture(record, &block), options)
+          else
+            content_tag(tag_name, "", options)
+          end
         end
     end
   end

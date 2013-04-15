@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids
+  %w(postgresql_ranges postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids postgresql_ltrees
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
@@ -32,6 +32,7 @@ ActiveRecord::Schema.define do
     char3 text default 'a text field',
     positive_integer integer default 1,
     negative_integer integer default -1,
+    bigint_default bigint default 0::bigint,
     decimal_number decimal(3,2) default 2.78,
     multiline_default text DEFAULT '--- []
 
@@ -73,6 +74,18 @@ _SQL
   );
 _SQL
 
+  execute <<_SQL if supports_ranges?
+  CREATE TABLE postgresql_ranges (
+    id SERIAL PRIMARY KEY,
+    date_range daterange,
+    num_range numrange,
+    ts_range tsrange,
+    tstz_range tstzrange,
+    int4_range int4range,
+    int8_range int8range
+  );
+_SQL
+
   execute <<_SQL
   CREATE TABLE postgresql_tsvectors (
     id SERIAL PRIMARY KEY,
@@ -85,6 +98,15 @@ _SQL
   CREATE TABLE postgresql_hstores (
     id SERIAL PRIMARY KEY,
     hash_store hstore default ''::hstore
+  );
+_SQL
+  end
+
+  if 't' == select_value("select 'ltree'=ANY(select typname from pg_type)")
+  execute <<_SQL
+  CREATE TABLE postgresql_ltrees (
+    id SERIAL PRIMARY KEY,
+    path ltree
   );
 _SQL
   end
@@ -124,9 +146,9 @@ _SQL
   execute <<_SQL
   CREATE TABLE postgresql_network_addresses (
     id SERIAL PRIMARY KEY,
-    cidr_address CIDR,
-    inet_address INET,
-    mac_address MACADDR
+    cidr_address CIDR default '192.168.1.0/24',
+    inet_address INET default '192.168.1.1',
+    mac_address MACADDR default 'ff:ff:ff:ff:ff:ff'
   );
 _SQL
 
@@ -152,7 +174,7 @@ _SQL
   );
 _SQL
 
-begin
+  begin
     execute <<_SQL
     CREATE TABLE postgresql_partitioned_table_parent (
       id SERIAL PRIMARY KEY,
@@ -174,14 +196,14 @@ begin
       BEFORE INSERT ON postgresql_partitioned_table_parent
       FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
 _SQL
-rescue ActiveRecord::StatementInvalid => e
-  if e.message =~ /language "plpgsql" does not exist/
-    execute "CREATE LANGUAGE 'plpgsql';"
-    retry
-  else
-    raise e
+  rescue ActiveRecord::StatementInvalid => e
+    if e.message =~ /language "plpgsql" does not exist/
+      execute "CREATE LANGUAGE 'plpgsql';"
+      retry
+    else
+      raise e
+    end
   end
-end
 
   begin
     execute <<_SQL
@@ -190,7 +212,13 @@ end
     data xml
     );
 _SQL
-rescue #This version of PostgreSQL either has no XML support or is was not compiled with XML support: skipping table
+  rescue #This version of PostgreSQL either has no XML support or is was not compiled with XML support: skipping table
+  end
+
+  # This table is to verify if the :limit option is being ignored for text and binary columns
+  create_table :limitless_fields, force: true do |t|
+    t.binary :binary, limit: 100_000
+    t.text :text, limit: 100_000
   end
 end
 

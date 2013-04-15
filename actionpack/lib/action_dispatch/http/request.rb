@@ -1,12 +1,16 @@
-require 'tempfile'
 require 'stringio'
-require 'strscan'
 
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
 require 'action_controller/metal/exceptions'
+require 'rack/request'
+require 'action_dispatch/http/cache'
+require 'action_dispatch/http/mime_negotiation'
+require 'action_dispatch/http/parameters'
+require 'action_dispatch/http/filter_parameters'
+require 'action_dispatch/http/upload'
+require 'action_dispatch/http/url'
+require 'active_support/core_ext/array/conversions'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -152,14 +156,29 @@ module ActionDispatch
       @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
     end
 
+    # Returns the +String+ full path including params of the last URL requested.
+    #
+    #    # get "/articles"
+    #    request.fullpath # => "/articles"
+    #
+    #    # get "/articles?page=2"
+    #    request.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
 
+    # Returns the original request URL as a +String+.
+    #
+    #    # get "/articles?page=2"
+    #    request.original_url # => "http://www.example.com/articles?page=2"
     def original_url
       base_url + original_fullpath
     end
 
+    # The +String+ MIME type of the request.
+    #
+    #    # get "/articles"
+    #    request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type.to_s
     end
@@ -205,8 +224,9 @@ module ActionDispatch
     # work with raw requests directly.
     def raw_post
       unless @env.include? 'RAW_POST_DATA'
-        @env['RAW_POST_DATA'] = body.read(@env['CONTENT_LENGTH'].to_i)
-        body.rewind if body.respond_to?(:rewind)
+        raw_post_body = body
+        @env['RAW_POST_DATA'] = raw_post_body.read(@env['CONTENT_LENGTH'].to_i)
+        raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
       @env['RAW_POST_DATA']
     end
@@ -251,7 +271,7 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      @env["action_dispatch.request.query_parameters"] ||= (normalize_encode_params(super) || {})
     rescue TypeError => e
       raise ActionController::BadRequest.new(:query, e)
     end
@@ -259,7 +279,7 @@ module ActionDispatch
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      @env["action_dispatch.request.request_parameters"] ||= (normalize_encode_params(super) || {})
     rescue TypeError => e
       raise ActionController::BadRequest.new(:request, e)
     end
@@ -279,15 +299,14 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    protected
-
     # Remove nils from the params hash
     def deep_munge(hash)
-      hash.each_value do |v|
+      hash.each do |k, v|
         case v
         when Array
           v.grep(Hash) { |x| deep_munge(x) }
           v.compact!
+          hash[k] = nil if v.empty?
         when Hash
           deep_munge(v)
         end
@@ -295,6 +314,8 @@ module ActionDispatch
 
       hash
     end
+
+    protected
 
     def parse_query(qs)
       deep_munge(super)

@@ -81,8 +81,8 @@ module ApplicationTests
       add_to_config "config.action_dispatch.rack_cache = true"
 
       get "/expires/expires_header"
-      assert_equal "miss, store",        last_response.headers["X-Rack-Cache"]
-      assert_equal "max-age=10, public", last_response.headers["Cache-Control"]
+      assert_equal "miss, ignore, store", last_response.headers["X-Rack-Cache"]
+      assert_equal "max-age=10, public",  last_response.headers["Cache-Control"]
 
       body = last_response.body
 
@@ -115,8 +115,8 @@ module ApplicationTests
       add_to_config "config.action_dispatch.rack_cache = true"
 
       get "/expires/expires_etag"
-      assert_equal "miss, store", last_response.headers["X-Rack-Cache"]
-      assert_equal "public",      last_response.headers["Cache-Control"]
+      assert_equal "miss, ignore, store", last_response.headers["X-Rack-Cache"]
+      assert_equal "public",              last_response.headers["Cache-Control"]
 
       body = last_response.body
       etag = last_response.headers["ETag"]
@@ -149,8 +149,8 @@ module ApplicationTests
       add_to_config "config.action_dispatch.rack_cache = true"
 
       get "/expires/expires_last_modified"
-      assert_equal "miss, store", last_response.headers["X-Rack-Cache"]
-      assert_equal "public",      last_response.headers["Cache-Control"]
+      assert_equal "miss, ignore, store", last_response.headers["X-Rack-Cache"]
+      assert_equal "public",              last_response.headers["Cache-Control"]
 
       body = last_response.body
       last = last_response.headers["Last-Modified"]

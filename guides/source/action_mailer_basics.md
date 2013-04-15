@@ -3,9 +3,13 @@ Action Mailer Basics
 
 This guide should provide you with all you need to get started in sending and receiving emails from and to your application, and many internals of Action Mailer. It also covers how to test your mailers.
 
---------------------------------------------------------------------------------
+After reading this guide, you will know:
 
-WARNING. This guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
+* How to send and receive email within a Rails application.
+* How to generate and edit an Action Mailer class and mailer view.
+* How to configure Action Mailer for your environment.
+* How to test your Action Mailer classes.
+--------------------------------------------------------------------------------
 
 Introduction
 ------------
@@ -105,14 +109,14 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 #### Wire It Up So That the System Sends the Email When a User Signs Up
 
-There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, in Rails 3, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
+There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
 
 First off, we need to create a simple `User` scaffold:
 
 ```bash
-$ rails generate scaffold user name:string email:string login:string
+$ rails generate scaffold user name email login
 $ rake db:migrate
 ```
 
@@ -144,10 +148,6 @@ end
 This provides a much simpler implementation that does not require the registering of observers and the like.
 
 The method `welcome_email` returns a `Mail::Message` object which can then just be told `deliver` to send itself out.
-
-NOTE: In previous versions of Rails, you would call `deliver_welcome_email` or `create_welcome_email`. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
-
-WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
 
 ### Auto encoding header values
 
@@ -293,7 +293,7 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-In this case it will look for templates at `app/views/notifications` with name `another`.
+In this case it will look for templates at `app/views/notifications` with name `another`.  You can also specify an array of paths for `template_path`, and they will be searched in order.
 
 If you want more flexibility you can also pass a block and render specific templates or even render inline or text without using a template file:
 
@@ -377,23 +377,7 @@ If you use this setting, you should pass the `only_path: false` option when usin
 
 Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have `welcome_email.text.erb` and `welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
 
-The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method. If you want to explicitly alter the order, you can either change the `:parts_order` or explicitly render the parts in a different order:
-
-```ruby
-class UserMailer < ActionMailer::Base
-  def welcome_email(user)
-    @user = user
-    @url  = user_url(@user)
-    mail(to: user.email,
-         subject: 'Welcome to My Awesome Site') do |format|
-      format.html
-      format.text
-    end
-  end
-end
-```
-
-Will put the HTML part first, and the plain text part second.
+The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method.
 
 ### Sending Emails with Attachments
 
@@ -413,17 +397,30 @@ end
 
 The above will send a multipart email with an attachment, properly nested with the top level being `multipart/mixed` and the first part being a `multipart/alternative` containing the plain text and HTML email messages.
 
-#### Sending Emails with Dynamic Delivery Options
+### Sending Emails with Dynamic Delivery Options
 
 If you wish to override the default delivery options (e.g. SMTP credentials) while delivering emails, you can do this using `delivery_method_options` in the mailer action.
 
 ```ruby
 class UserMailer < ActionMailer::Base
-  def welcome_email(user,company)
+  def welcome_email(user, company)
     @user = user
     @url  = user_url(@user)
     delivery_options = { user_name: company.smtp_user, password: company.smtp_password, address: company.smtp_host }
     mail(to: user.email, subject: "Please see the Terms and Conditions attached", delivery_method_options: delivery_options)
+  end
+end
+```
+
+### Sending Emails without Template Rendering
+
+There may be cases in which you want to skip the template rendering step and supply the email body as a string. You can achieve this using the `:body` option.
+In such cases don't forget to add the `:content_type` option. Rails will default to `text/plain` otherwise.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  def welcome_email(user, email_body)
+    mail(to: user.email, body: email_body, content_type: "text/html", subject: "Already rendered!")
   end
 end
 ```
@@ -435,7 +432,7 @@ Receiving and parsing emails with Action Mailer can be a rather complex endeavor
 
 * Implement a `receive` method in your mailer.
 
-* Configure your email server to forward emails from the address(es) you would like your app to receive to `/path/to/app/script/rails runner 'UserMailer.receive(STDIN.read)'`.
+* Configure your email server to forward emails from the address(es) you would like your app to receive to `/path/to/app/bin/rails runner 'UserMailer.receive(STDIN.read)'`.
 
 Once a method called `receive` is defined in any mailer, Action Mailer will parse the raw incoming email into an email object, decode it, instantiate a new mailer, and pass the email object to the mailer `receive` instance method. Here's an example:
 
@@ -460,6 +457,57 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
+Action Mailer Callbacks
+---------------------------
+
+Action Mailer allows for you to specify a `before_action`, `after_action` and `around_action`.
+
+* Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
+
+* You could use a `before_action` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
+
+* You could use an `after_action` to do similar setup as a `before_action` but using instance variables set in your mailer action.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  after_action :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
+
+  def feedback_message(business, user)
+    @business = business
+    @user = user
+    mail
+  end
+
+  def campaign_message(business, user)
+    @business = business
+    @user = user
+  end
+
+  private
+
+  def set_delivery_options
+    # You have access to the mail instance and @business and @user instance variables here
+    if @business && @business.has_smtp_settings?
+      mail.delivery_method.settings.merge!(@business.smtp_settings)
+    end
+  end
+
+  def prevent_delivery_to_guests
+    if @user && @user.guest?
+      mail.perform_deliveries = false
+    end
+  end
+
+  def set_business_headers
+    if @business
+      headers["X-SMTPAPI-CATEGORY"] = @business.code
+    end
+  end
+end
+```
+
+* Mailer Filters abort further processing if body is set to a non-nil value.
+
 Using Action Mailer Helpers
 ---------------------------
 
@@ -472,7 +520,6 @@ The following configuration options are best made in one of the environment file
 
 | Configuration | Description |
 |---------------|-------------|
-|`template_root`|Determines the base from which template references will be made.|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
 |`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port`  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|
@@ -481,7 +528,6 @@ The following configuration options are best made in one of the environment file
 |`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
-|`async`|Setting this flag will turn on asynchronous message sending, message rendering and delivery will be pushed to `Rails.queue` for processing.|
 
 ### Example Action Mailer Configuration
 
@@ -518,49 +564,25 @@ config.action_mailer.smtp_settings = {
 Mailer Testing
 --------------
 
-By default Action Mailer does not send emails in the test environment. They are just added to the `ActionMailer::Base.deliveries` array.
+You can find detailed instructions on how to test your mailers in our
+[testing guide](testing.html#testing-your-mailers).
 
-Testing mailers normally involves two things: One is that the mail was queued, and the other one that the email is correct. With that in mind, we could test our example mailer from above like so:
+Intercepting Emails
+-------------------
+There are situations where you need to edit an email before it's delivered. Fortunately Action Mailer provides hooks to intercept every email. You can register an interceptor to make modifications to mail messages right before they are handed to the delivery agents.
 
 ```ruby
-class UserMailerTest < ActionMailer::TestCase
-  def test_welcome_email
-    user = users(:some_user_in_your_fixtures)
-
-    # Send the email, then test that it got queued
-    email = UserMailer.welcome_email(user).deliver
-    assert !ActionMailer::Base.deliveries.empty?
-
-    # Test the body of the sent email contains what we expect it to
-    assert_equal [user.email], email.to
-    assert_equal 'Welcome to My Awesome Site', email.subject
-    assert_match "<h1>Welcome to example.com, #{user.name}</h1>", email.body.to_s
-    assert_match 'you have joined to example.com community', email.body.to_s
+class SandboxEmailInterceptor
+  def self.delivering_email(message)
+    message.to = ['sandbox@example.com']
   end
 end
 ```
 
-In the test we send the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
-
-Asynchronous
-------------
-
-Rails provides a Synchronous Queue by default. If you want to use an Asynchronous one you will need to configure an async Queue provider like Resque. Queue providers are supposed to have a Railtie where they configure it's own async queue.
-
-### Custom Queues
-
-If you need a different queue than `Rails.queue` for your mailer you can use `ActionMailer::Base.queue=`:
+Before the interceptor can do its job you need to register it with the Action Mailer framework. You can do this in an initializer file `config/initializers/sandbox_email_interceptor.rb`
 
 ```ruby
-class WelcomeMailer < ActionMailer::Base
-  self.queue = MyQueue.new
-end
+ActionMailer::Base.register_interceptor(SandboxEmailInterceptor) if Rails.env.staging?
 ```
 
-or adding to your `config/environments/$RAILS_ENV.rb`:
-
-```ruby
-config.action_mailer.queue = MyQueue.new
-```
-
-Your custom queue should expect a job that responds to `#run`.
+NOTE: The example above uses a custom environment called "staging" for a production like server but for testing purposes. You can read [Creating Rails environments](./configuring.html#creating-rails-environments) for more information about custom Rails environments.

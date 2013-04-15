@@ -29,8 +29,7 @@ class Array
   #
   #   [*object]
   #
-  # which for +nil+ returns <tt>[nil]</tt> (Ruby 1.8.7) or <tt>[]</tt> (Ruby
-  # 1.9), and calls to <tt>Array(object)</tt> otherwise.
+  # which for +nil+ returns <tt>[]</tt>, and calls to <tt>Array(object)</tt> otherwise.
   #
   # Thus, in this case the behavior may be different for +nil+, and the differences with
   # <tt>Kernel#Array</tt> explained above apply to the rest of <tt>object</tt>s.

@@ -40,13 +40,17 @@ module ActionController
 
       def thread_locals
         tc.assert_equal 'aaron', Thread.current[:setting]
-        tc.refute_equal Thread.current.object_id, Thread.current[:originating_thread]
+        tc.assert_not_equal Thread.current.object_id, Thread.current[:originating_thread]
 
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|
           response.stream.write word
         end
         response.stream.close
+      end
+
+      def with_stale
+        render :text => 'stale' if stale?(:etag => "123")
       end
     end
 
@@ -116,6 +120,17 @@ module ActionController
       get :render_text
       assert_equal 'zomg', response.body
       assert response.stream.closed?, 'stream should be closed'
+    end
+
+    def test_stale_without_etag
+      get :with_stale
+      assert_equal 200, @response.status.to_i
+    end
+
+    def test_stale_with_etag
+      @request.if_none_match = Digest::MD5.hexdigest("123")
+      get :with_stale
+      assert_equal 304, @response.status.to_i
     end
   end
 end

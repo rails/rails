@@ -1,4 +1,5 @@
 require 'delegate'
+require 'active_support/core_ext/string/strip'
 
 module ActionDispatch
   module Routing
@@ -34,6 +35,23 @@ module ActionDispatch
         super.to_s
       end
 
+      def regexp
+        __getobj__.path.to_regexp
+      end
+
+      def json_regexp
+        str = regexp.inspect.
+              sub('\\A' , '^').
+              sub('\\Z' , '$').
+              sub('\\z' , '$').
+              sub(/^\// , '').
+              sub(/\/[a-z]*$/ , '').
+              gsub(/\(\?#.+\)/ , '').
+              gsub(/\(\?-\w+:/ , '(').
+              gsub(/\s/ , '')
+        Regexp.new(str).source
+      end
+
       def reqs
         @reqs ||= begin
           reqs = endpoint
@@ -51,7 +69,7 @@ module ActionDispatch
       end
 
       def internal?
-        path =~ %r{/rails/info.*|^#{Rails.application.config.assets.prefix}}
+        controller =~ %r{\Arails/(info|welcome)} || path =~ %r{\A#{Rails.application.config.assets.prefix}}
       end
 
       def engine?
@@ -61,32 +79,58 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rake routes`.  People should not use this class.
+    # executes `rake routes` or looks at the RoutingError page.
+    # People should not use this class.
     class RoutesInspector # :nodoc:
-      def initialize
-        @engines = Hash.new
+      def initialize(routes)
+        @engines = {}
+        @routes = routes
       end
 
-      def format(all_routes, filter = nil)
-        if filter
-          all_routes = all_routes.select{ |route| route.defaults[:controller] == filter }
+      def format(formatter, filter = nil)
+        routes_to_display = filter_routes(filter)
+
+        routes = collect_routes(routes_to_display)
+
+        if routes.none?
+          formatter.no_routes
+          return formatter.result
         end
 
-        routes = collect_routes(all_routes)
+        formatter.header routes
+        formatter.section routes
 
-        formatted_routes(routes) +
-          formatted_routes_for_engines
+        @engines.each do |name, engine_routes|
+          formatter.section_title "Routes for #{name}"
+          formatter.section engine_routes
+        end
+
+        formatter.result
+      end
+
+      private
+
+      def filter_routes(filter)
+        if filter
+          @routes.select { |route| route.defaults[:controller] == filter }
+        else
+          @routes
+        end
       end
 
       def collect_routes(routes)
-        routes = routes.collect do |route|
+        routes.collect do |route|
           RouteWrapper.new(route)
         end.reject do |route|
           route.internal?
         end.collect do |route|
           collect_engine_routes(route)
 
-          {:name => route.name, :verb => route.verb, :path => route.path, :reqs => route.reqs }
+          { name:   route.name,
+            verb:   route.verb,
+            path:   route.path,
+            reqs:   route.reqs,
+            regexp: route.json_regexp }
         end
       end
 
@@ -100,21 +144,96 @@ module ActionDispatch
           @engines[name] = collect_routes(routes.routes)
         end
       end
+    end
 
-      def formatted_routes_for_engines
-        @engines.map do |name, routes|
-          ["\nRoutes for #{name}:"] + formatted_routes(routes)
-        end.flatten
+    class ConsoleFormatter
+      def initialize
+        @buffer = []
       end
 
-      def formatted_routes(routes)
-        name_width = routes.map{ |r| r[:name].length }.max
-        verb_width = routes.map{ |r| r[:verb].length }.max
-        path_width = routes.map{ |r| r[:path].length }.max
+      def result
+        @buffer.join("\n")
+      end
 
-        routes.map do |r|
-          "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+      def section_title(title)
+        @buffer << "\n#{title}:"
+      end
+
+      def section(routes)
+        @buffer << draw_section(routes)
+      end
+
+      def header(routes)
+        @buffer << draw_header(routes)
+      end
+
+      def no_routes
+        @buffer << <<-MESSAGE.strip_heredoc
+          You don't have any routes defined!
+
+          Please add some routes in config/routes.rb.
+
+          For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
+          MESSAGE
+      end
+
+      private
+        def draw_section(routes)
+          name_width, verb_width, path_width = widths(routes)
+
+          routes.map do |r|
+            "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+          end
         end
+
+        def draw_header(routes)
+          name_width, verb_width, path_width = widths(routes)
+
+          "#{"Prefix".rjust(name_width)} #{"Verb".ljust(verb_width)} #{"URI Pattern".ljust(path_width)} Controller#Action"
+        end
+
+        def widths(routes)
+          [routes.map { |r| r[:name].length }.max,
+           routes.map { |r| r[:verb].length }.max,
+           routes.map { |r| r[:path].length }.max]
+        end
+    end
+
+    class HtmlTableFormatter
+      def initialize(view)
+        @view = view
+        @buffer = []
+      end
+
+      def section_title(title)
+        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+      end
+
+      def section(routes)
+        @buffer << @view.render(partial: "routes/route", collection: routes)
+      end
+
+      # the header is part of the HTML page, so we don't construct it here.
+      def header(routes)
+      end
+
+      def no_routes
+        @buffer << <<-MESSAGE.strip_heredoc
+          <p>You don't have any routes defined!</p>
+          <ul>
+            <li>Please add some routes in <tt>config/routes.rb</tt>.</li>
+            <li>
+              For more information about routes, please see the Rails guide
+              <a href="http://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.
+            </li>
+          </ul>
+          MESSAGE
+      end
+
+      def result
+        @view.raw @view.render(layout: "routes/table") {
+          @view.raw @buffer.join("\n")
+        }
       end
     end
   end

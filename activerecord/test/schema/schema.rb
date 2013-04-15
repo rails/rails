@@ -115,6 +115,7 @@ ActiveRecord::Schema.define do
     t.integer :engines_count
     t.integer :wheels_count
     t.column :lock_version, :integer, :null => false, :default => 0
+    t.timestamps
   end
 
   create_table :categories, :force => true do |t|
@@ -182,6 +183,7 @@ ActiveRecord::Schema.define do
 
   add_index :companies, [:firm_id, :type, :rating], :name => "company_index"
   add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
+  add_index :companies, :name, :name => 'company_name_index', :using => :btree
 
   create_table :vegetables, :force => true do |t|
     t.string :name
@@ -218,6 +220,8 @@ ActiveRecord::Schema.define do
     t.integer  :salary, :default => 70000
     t.datetime :created_at
     t.datetime :updated_at
+    t.datetime :created_on
+    t.datetime :updated_on
   end
 
   create_table :developers_projects, :force => true, :id => false do |t|
@@ -227,14 +231,16 @@ ActiveRecord::Schema.define do
     t.integer :access_level, :default => 1
   end
 
-  create_table :dog_lovers, :force => true do |t|
-    t.integer :trained_dogs_count, :default => 0
-    t.integer :bred_dogs_count, :default => 0
+  create_table :dog_lovers, force: true do |t|
+    t.integer :trained_dogs_count, default: 0
+    t.integer :bred_dogs_count, default: 0
+    t.integer :dogs_count, default: 0
   end
 
   create_table :dogs, :force => true do |t|
     t.integer :trainer_id
     t.integer :breeder_id
+    t.integer :dog_lover_id
   end
 
   create_table :edges, :force => true, :id => false do |t|
@@ -277,7 +283,7 @@ ActiveRecord::Schema.define do
 
   create_table :friendships, :force => true do |t|
     t.integer :friend_id
-    t.integer :person_id
+    t.integer :follower_id
   end
 
   create_table :goofy_string_id, :force => true, :id => false do |t|
@@ -491,8 +497,10 @@ ActiveRecord::Schema.define do
     t.integer    :lock_version, :null => false, :default => 0
     t.string     :comments
     t.integer    :followers_count, :default => 0
+    t.integer    :friends_too_count, :default => 0
     t.references :best_friend
     t.references :best_friend_of
+    t.integer    :insures, null: false, default: 0
     t.timestamps
   end
 
@@ -565,6 +573,7 @@ ActiveRecord::Schema.define do
     t.integer :post_id, :null => false
     t.integer :person_id, :null => false
     t.boolean :skimmer, :default => false
+    t.integer :first_post_id
   end
 
   create_table :references, :force => true do |t|
@@ -682,6 +691,7 @@ ActiveRecord::Schema.define do
   create_table :traffic_lights, :force => true do |t|
     t.string   :location
     t.string   :state
+    t.text     :long_state, :null => false
     t.datetime :created_at
     t.datetime :updated_at
   end
@@ -770,6 +780,7 @@ ActiveRecord::Schema.define do
   end
   create_table :weirds, :force => true do |t|
     t.string 'a$b'
+    t.string 'from'
   end
 
   except 'SQLite' do

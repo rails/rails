@@ -1,6 +1,7 @@
 require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/hash/keys'
 
 module ActionController
   module TemplateAssertions
@@ -15,6 +16,7 @@ module ActionController
       @_partials = Hash.new(0)
       @_templates = Hash.new(0)
       @_layouts = Hash.new(0)
+      @_files = Hash.new(0)
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
@@ -37,6 +39,16 @@ module ActionController
         end
 
         @_templates[path] += 1
+      end
+
+      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
+        next if payload[:virtual_path] # files don't have virtual path
+
+        path = payload[:identifier]
+        if path
+          @_files[path] += 1
+          @_files[path.split("/").last] += 1
+        end
       end
     end
 
@@ -81,8 +93,7 @@ module ActionController
     #   # assert that the "_customer" partial was rendered with a specific object
     #   assert_template partial: '_customer', locals: { customer: @customer }
     def assert_template(options = {}, message = nil)
-      # Force body to be read in case the
-      # template is being streamed
+      # Force body to be read in case the template is being streamed.
       response.body
 
       case options
@@ -94,7 +105,7 @@ module ActionController
         matches_template =
           case options
           when String
-            rendered.any? do |t, num|
+            !options.empty? && rendered.any? do |t, num|
               options_splited = options.split(File::SEPARATOR)
               t_splited = t.split(File::SEPARATOR)
               t_splited.last(options_splited.size) == options_splited
@@ -106,6 +117,8 @@ module ActionController
           end
         assert matches_template, msg
       when Hash
+        options.assert_valid_keys(:layout, :partial, :locals, :count, :file)
+
         if options.key?(:layout)
           expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
@@ -121,10 +134,18 @@ module ActionController
           end
         end
 
+        if options[:file]
+          assert_includes @_files.keys, options[:file]
+        end
+
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
             if defined?(@_rendered_views)
-              view = expected_partial.to_s.sub(/^_/,'')
+              view = expected_partial.to_s.sub(/^_/, '').sub(/\/_(?=[^\/]+\z)/, '/')
+
+              partial_was_not_rendered_msg = "expected %s to be rendered but it was not." % view
+              assert_includes @_rendered_views.rendered_views, view, partial_was_not_rendered_msg
+
               msg = 'expecting %s to be rendered with %s but was with %s' % [expected_partial,
                                                                              expected_locals,
                                                                              @_rendered_views.locals_for(view)]
@@ -234,18 +255,39 @@ module ActionController
     end
   end
 
+  # Methods #destroy and #load! are overridden to avoid calling methods on the
+  # @store object, which does not exist for the TestSession class.
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
 
     def initialize(session = {})
       super(nil, nil)
-      replace(session.stringify_keys)
+      @id = SecureRandom.hex(16)
+      @data = stringify_keys(session)
       @loaded = true
     end
 
     def exists?
       true
     end
+
+    def keys
+      @data.keys
+    end
+
+    def values
+      @data.values
+    end
+
+    def destroy
+      clear
+    end
+
+    private
+
+      def load!
+        @id
+      end
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to
@@ -274,7 +316,7 @@ module ActionController
   #       assert_response :found
   #
   #       # Assert that the controller really put the book in the database.
-  #       assert_not_nil Book.find_by_title("Love Hina")
+  #       assert_not_nil Book.find_by(title: "Love Hina")
   #     end
   #   end
   #
@@ -358,13 +400,6 @@ module ActionController
   #
   #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
-
-    # Use AC::TestCase for the base class when describing a controller
-    register_spec_type(self) do |desc|
-      Class === desc && desc < ActionController::Metal
-    end
-    register_spec_type(/Controller( ?Test)?\z/i, self)
-
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
@@ -416,37 +451,55 @@ module ActionController
 
       end
 
-      # Executes a request simulating GET HTTP method and set/volley the response
+      # Simulate a GET request with the given parameters.
+      #
+      # - +action+: The controller action to call.
+      # - +parameters+: The HTTP parameters that you want to pass. This may
+      #   be +nil+, a Hash, or a String that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
+      # - +session+: A Hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A Hash of parameters to store in the flash. This may be +nil+.
+      #
+      # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
+      # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
+      # Note that the request method is not verified. The different methods are
+      # available to make the tests more expressive.
       def get(action, *args)
         process(action, "GET", *args)
       end
 
-      # Executes a request simulating POST HTTP method and set/volley the response
+      # Simulate a POST request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def post(action, *args)
         process(action, "POST", *args)
       end
 
-      # Executes a request simulating PATCH HTTP method and set/volley the response
+      # Simulate a PATCH request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def patch(action, *args)
         process(action, "PATCH", *args)
       end
 
-      # Executes a request simulating PUT HTTP method and set/volley the response
+      # Simulate a PUT request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def put(action, *args)
         process(action, "PUT", *args)
       end
 
-      # Executes a request simulating DELETE HTTP method and set/volley the response
+      # Simulate a DELETE request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def delete(action, *args)
         process(action, "DELETE", *args)
       end
 
-      # Executes a request simulating HEAD HTTP method and set/volley the response
+      # Simulate a HEAD request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def head(action, *args)
         process(action, "HEAD", *args)
       end
 
-      # Executes a request simulating OPTIONS HTTP method and set/volley the response
+      # Simulate a OPTIONS request with the given parameters and set/volley the response.
+      # See +#get+ for more details.
       def options(action, *args)
         process(action, "OPTIONS", *args)
       end
@@ -509,7 +562,7 @@ module ActionController
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session.update(session) if session
-        @request.session["flash"] = @request.flash.update(flash || {})
+        @request.flash.update(flash || {})
 
         @controller.request  = @request
         @controller.response = @response
@@ -526,6 +579,7 @@ module ActionController
         @response.prepare!
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
+        @request.session['flash'] = @request.flash.to_session_value
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
       end

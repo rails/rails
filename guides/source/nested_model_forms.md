@@ -3,9 +3,9 @@ Rails nested model forms
 
 Creating a form for a model _and_ its associations can become quite tedious. Therefore Rails provides helpers to assist in dealing with the complexities of generating these forms _and_ the required CRUD operations to create, update, and destroy associations.
 
-In this guide you will:
+After reading this guide, you will know:
 
-* do stuff
+* do stuff.
 
 --------------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ end
 
 ### Custom model
 
-As you might have inflected from this explanation, you _don’t_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behaviour:
+As you might have inflected from this explanation, you _don’t_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behavior:
 
 #### Single associated object
 
@@ -98,7 +98,7 @@ A nested model form will _only_ be built if the associated object(s) exist. This
 Consider the following typical RESTful controller which will prepare a new Person instance and its `address` and `projects` associations before rendering the `new` template:
 
 ```ruby
-class PeopleController < ActionController:Base
+class PeopleController < ApplicationController
   def new
     @person = Person.new
     @person.built_address

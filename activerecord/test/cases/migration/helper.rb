@@ -2,12 +2,10 @@ require "cases/helper"
 
 module ActiveRecord
   class Migration
-    class << self
-      attr_accessor :message_count
-    end
+    class << self; attr_accessor :message_count; end
+    self.message_count = 0
 
     def puts(text="")
-      ActiveRecord::Migration.message_count ||= 0
       ActiveRecord::Migration.message_count += 1
     end
 

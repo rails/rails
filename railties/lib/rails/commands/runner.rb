@@ -1,7 +1,7 @@
 require 'optparse'
 require 'rbconfig'
 
-options = { environment: (ENV['RAILS_ENV'] || "development").dup }
+options = { environment: (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup }
 code_or_file = nil
 
 if ARGV.first.nil?
@@ -24,7 +24,7 @@ ARGV.clone.options do |opts|
 
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
-    opts.separator "You can also use runner as a shebang line for your scripts like this:"
+    opts.separator "You can also use runner as a shebang line for your executables:"
     opts.separator "-------------------------------------------------------------"
     opts.separator "#!/usr/bin/env #{File.expand_path($0)} runner"
     opts.separator ""
@@ -41,7 +41,7 @@ ENV["RAILS_ENV"] = options[:environment]
 
 require APP_PATH
 Rails.application.require_environment!
- Rails.application.load_runner
+Rails.application.load_runner
 
 if code_or_file.nil?
   $stderr.puts "Run '#{$0} -h' for help."

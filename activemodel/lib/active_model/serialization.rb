@@ -90,7 +90,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.age  = 22
     #   person.serializable_hash                # => {"name"=>"bob", "age"=>22}
-    #   person.serializable_hash(only: :name)   # => {"name"=>"bob"}
+    #   person.serializable_hash(only: :name)   # => {"name"=>"bob"}
     #   person.serializable_hash(except: :name) # => {"age"=>22}
     #   person.serializable_hash(methods: :capitalized_name)
     #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}

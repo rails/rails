@@ -19,6 +19,9 @@ require 'models/line_item'
 require 'models/car'
 require 'models/bulb'
 require 'models/engine'
+require 'models/categorization'
+require 'models/minivan'
+require 'models/speedometer'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
@@ -108,7 +111,8 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings, :cars, :essays
+           :people, :posts, :readers, :taggings, :cars, :essays,
+           :categorizations
 
   def setup
     Client.destroyed_client_ids.clear
@@ -142,6 +146,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create(nil)
     assert_equal 'defaulty', bulb.name
+  end
+
+  def test_building_the_associated_object_with_implicit_sti_base_class
+    firm = DependentFirm.new
+    company = firm.companies.build
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_associated_object_with_explicit_sti_base_class
+    firm = DependentFirm.new
+    company = firm.companies.build(:type => "Company")
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_associated_object_with_sti_subclass
+    firm = DependentFirm.new
+    company = firm.companies.build(:type => "Client")
+    assert_kind_of Client, company, "Expected #{company.class} to be a Client"
+  end
+
+  def test_building_the_associated_object_with_an_invalid_type
+    firm = DependentFirm.new
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Invalid") }
+  end
+
+  def test_building_the_associated_object_with_an_unrelated_type
+    firm = DependentFirm.new
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Account") }
   end
 
   def test_association_keys_bypass_attribute_protection
@@ -262,24 +294,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
-  def test_counting_should_not_fire_sql_if_parent_is_unsaved
-    assert_no_queries do
-      assert_equal 0, Person.new.readers.count
-    end
-  end
-
   def test_finding
     assert_equal 2, Firm.all.merge!(:order => "id").first.clients.length
   end
 
   def test_finding_array_compatibility
     assert_equal 2, Firm.order(:id).find{|f| f.id > 0}.clients.length
-  end
-
-  def test_find_with_blank_conditions
-    [[], {}, nil, ""].each do |blank|
-      assert_equal 2, Firm.all.merge!(:order => "id").first.clients.where(blank).to_a.size
-    end
   end
 
   def test_find_many_with_merged_options
@@ -609,6 +629,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, company.clients_of_firm.size
   end
 
+  def test_collection_not_empty_after_building
+    company = companies(:first_firm)
+    assert_predicate company.contracts, :empty?
+    company.contracts.build
+    assert_not_predicate company.contracts, :empty?
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
@@ -752,6 +779,45 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_difference "post.reload.taggings_with_destroy_count", -1 do
       post.taggings_with_destroy.delete(post.taggings_with_destroy.first)
     end
+  end
+
+  def test_custom_named_counter_cache
+    topic = topics(:first)
+
+    assert_difference "topic.reload.replies_count", -1 do
+      topic.approved_replies.clear
+    end
+  end
+
+  def test_calling_update_attributes_on_id_changes_the_counter_cache
+    topic = Topic.order("id ASC").first
+    original_count = topic.replies.to_a.size
+    assert_equal original_count, topic.replies_count
+
+    first_reply = topic.replies.first
+    first_reply.update_attributes(:parent_id => nil)
+    assert_equal original_count - 1, topic.reload.replies_count
+
+    first_reply.update_attributes(:parent_id => topic.id)
+    assert_equal original_count, topic.reload.replies_count
+  end
+
+  def test_calling_update_attributes_changing_ids_doesnt_change_counter_cache
+    topic1 = Topic.find(1)
+    topic2 = Topic.find(3)
+    original_count1 = topic1.replies.to_a.size
+    original_count2 = topic2.replies.to_a.size
+
+    reply1 = topic1.replies.first
+    reply2 = topic2.replies.first
+
+    reply1.update_attributes(:parent_id => topic2.id)
+    assert_equal original_count1 - 1, topic1.reload.replies_count
+    assert_equal original_count2 + 1, topic2.reload.replies_count
+
+    reply2.update_attributes(:parent_id => topic1.id)
+    assert_equal original_count1, topic1.reload.replies_count
+    assert_equal original_count2, topic2.reload.replies_count
   end
 
   def test_deleting_a_collection
@@ -1146,6 +1212,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_included_in_collection
     assert companies(:first_firm).clients.include?(Client.find(2))
+  end
+
+  def test_included_in_collection_for_new_records
+    client = Client.create(:name => 'Persisted')
+    assert_nil client.client_of
+    assert !Firm.new.clients_of_firm.include?(client),
+           'includes a client that does not belong to any firm'
   end
 
   def test_adding_array_and_collection
@@ -1570,6 +1643,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [tagging], post.taggings
   end
 
+  def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
+    welcome = posts(:welcome)
+    tagging = welcome.taggings.build(:taggable_id => 99, :taggable_type => 'ShouldNotChange')
+
+    assert_equal welcome.id, tagging.taggable_id
+    assert_equal 'Post', tagging.taggable_type
+  end
+
   def test_dont_call_save_callbacks_twice_on_has_many
     firm = companies(:first_firm)
     contract = firm.contracts.create!
@@ -1647,5 +1728,64 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test ":counter_sql is deprecated" do
     klass = Class.new(ActiveRecord::Base)
     assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
+  end
+
+  test "sum calculation with block for array compatibility is deprecated" do
+    assert_deprecated do
+      posts(:welcome).comments.sum { |c| c.id }
+    end
+  end
+
+  test "has many associations on new records use null relations" do
+    post = Post.new
+
+    assert_no_queries do
+      assert_equal [], post.comments
+      assert_equal [], post.comments.where(body: 'omg')
+      assert_equal [], post.comments.pluck(:body)
+      assert_equal 0,  post.comments.sum(:id)
+      assert_equal 0,  post.comments.count
+    end
+  end
+
+  test "collection proxy respects default scope" do
+    author = authors(:mary)
+    assert !author.first_posts.exists?
+  end
+
+  test "association with extend option" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend.author
+    assert_equal "hello", post.comments_with_extend.greeting
+  end
+
+  test "association with extend option with multiple extensions" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend_2.author
+    assert_equal "hello", post.comments_with_extend_2.greeting
+  end
+
+  test "delete record with complex joins" do
+    david = authors(:david)
+
+    post = david.posts.first
+    post.type = 'PostWithSpecialCategorization'
+    post.save
+
+    categorization = post.categorizations.first
+    categorization.special = true
+    categorization.save
+
+    assert_not_equal [], david.posts_with_special_categorizations
+    david.posts_with_special_categorizations = []
+    assert_equal [], david.posts_with_special_categorizations
+  end
+
+  test "does not duplicate associations when used with natural primary keys" do
+    speedometer = Speedometer.create!(id: '4')
+    speedometer.minivans.create!(minivan_id: 'a-van-red' ,name: 'a van', color: 'red')
+
+    assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
+    assert_equal 1, speedometer.reload.minivans.to_a.size
   end
 end

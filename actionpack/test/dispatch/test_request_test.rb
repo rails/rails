@@ -18,7 +18,7 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "0.0.0.0", env.delete("REMOTE_ADDR")
     assert_equal "Rails Testing", env.delete("HTTP_USER_AGENT")
 
-    assert_equal [1, 1], env.delete("rack.version")
+    assert_equal [1, 2], env.delete("rack.version")
     assert_equal "", env.delete("rack.input").string
     assert_kind_of StringIO, env.delete("rack.errors")
     assert_equal true, env.delete("rack.multithread")
@@ -40,10 +40,10 @@ class TestRequestTest < ActiveSupport::TestCase
     req.cookie_jar["login"] = "XJ-122"
     assert_cookies({"user_name" => "david", "login" => "XJ-122"}, req.cookie_jar)
 
-		assert_nothing_raised do
+    assert_nothing_raised do
       req.cookie_jar["login"] = nil
       assert_cookies({"user_name" => "david", "login" => nil}, req.cookie_jar)
-		end
+    end
 
     req.cookie_jar.delete(:login)
     assert_cookies({"user_name" => "david"}, req.cookie_jar)

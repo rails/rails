@@ -6,7 +6,7 @@ module ActiveSupport
   # signed to prevent tampering.
   #
   # This is useful for cases like remember-me tokens and auto-unsubscribe links
-  # where the session store isn't suitable or available.
+  # where the session store isn't suitable or available.
   #
   # Remember Me:
   #   cookies[:remember_me] = @verifier.generate([@user.id, 2.weeks.from_now])
@@ -19,10 +19,10 @@ module ActiveSupport
   #   end
   #
   # By default it uses Marshal to serialize the message. If you want to use
-  # another serialization method, you can set the serializer attribute to
-  # something that responds to dump and load, e.g.:
+  # another serialization method, you can set the serializer in the options
+  # hash upon initialization:
   #
-  #   @verifier.serializer = YAML
+  #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
   class MessageVerifier
     class InvalidSignature < StandardError; end
 

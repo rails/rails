@@ -6,7 +6,8 @@ module ActionDispatch
     def initialize(root, cache_control)
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
-      @file_server   = ::Rack::File.new(@root, cache_control)
+      headers = cache_control && { 'Cache-Control' => cache_control }
+      @file_server   = ::Rack::File.new(@root, headers)
     end
 
     def match?(path)

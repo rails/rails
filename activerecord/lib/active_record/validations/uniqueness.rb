@@ -1,10 +1,12 @@
-require 'active_support/core_ext/array/prepend_and_append'
-
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
       def initialize(options)
-        super(options.reverse_merge(:case_sensitive => true))
+        if options[:conditions] && !options[:conditions].respond_to?(:call)
+          raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
+                               "Pass a callable instead: `conditions: -> { where(approved: true) }`"
+        end
+        super({ case_sensitive: true }.merge!(options))
       end
 
       # Unfortunately, we have to tie Uniqueness validators to a class.
@@ -15,35 +17,19 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
-
-        coder = record.class.serialized_attributes[attribute.to_s]
-
-        if value && coder
-          value = coder.dump value
-        end
+        value = deserialize_attribute(record, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.send(:id))) if record.persisted?
-
-        Array(options[:scope]).each do |scope_item|
-          reflection = record.class.reflect_on_association(scope_item)
-          if reflection
-            scope_value = record.send(reflection.foreign_key)
-            scope_item = reflection.foreign_key
-          else
-            scope_value = record.read_attribute(scope_item)
-          end
-          relation = relation.and(table[scope_item].eq(scope_value))
-        end
-
+        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
+        relation = scope_relation(record, table, relation)
         relation = finder_class.unscoped.where(relation)
-
-        if options[:conditions]
-          relation = relation.merge(options[:conditions])
-        end
+        relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
-          record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope, :conditions).merge(:value => value))
+          error_options = options.except(:case_sensitive, :scope, :conditions)
+          error_options[:value] = value
+
+          record.errors.add(attribute, :taken, error_options)
         end
       end
 
@@ -58,7 +44,7 @@ module ActiveRecord
         class_hierarchy = [record.class]
 
         while class_hierarchy.first != @klass
-          class_hierarchy.prepend(class_hierarchy.first.superclass)
+          class_hierarchy.unshift(class_hierarchy.first.superclass)
         end
 
         class_hierarchy.detect { |klass| !klass.abstract_class? }
@@ -71,17 +57,36 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute.to_s]
-        value = column.limit ? value.to_s[0, column.limit] : value.to_s if !value.nil? && column.text?
+        value  = klass.connection.type_cast(value, column)
+        value  = value.to_s[0, column.limit] if value && column.limit && column.text?
 
         if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-          relation = klass.connection.case_insensitive_comparison(table, attribute, column, value)
+          klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
-          value    = klass.connection.case_sensitive_modifier(value) unless value.nil?
-          relation = table[attribute].eq(value)
+          value = klass.connection.case_sensitive_modifier(value) unless value.nil?
+          table[attribute].eq(value)
+        end
+      end
+
+      def scope_relation(record, table, relation)
+        Array(options[:scope]).each do |scope_item|
+          if reflection = record.class.reflect_on_association(scope_item)
+            scope_value = record.send(reflection.foreign_key)
+            scope_item  = reflection.foreign_key
+          else
+            scope_value = record.read_attribute(scope_item)
+          end
+          relation = relation.and(table[scope_item].eq(scope_value))
         end
 
         relation
+      end
+
+      def deserialize_attribute(record, attribute, value)
+        coder = record.class.serialized_attributes[attribute.to_s]
+        value = coder.dump value if value && coder
+        value
       end
     end
 
@@ -115,7 +120,7 @@ module ActiveRecord
       # of the title attribute:
       #
       #   class Article < ActiveRecord::Base
-      #     validates_uniqueness_of :title, conditions: where('status != ?', 'archived')
+      #     validates_uniqueness_of :title, conditions: -> { where.not(status: 'archived') }
       #   end
       #
       # When the record is created, a check is performed to make sure that no
@@ -131,7 +136,7 @@ module ActiveRecord
       #   the uniqueness constraint.
       # * <tt>:conditions</tt> - Specify the conditions to be included as a
       #   <tt>WHERE</tt> SQL fragment to limit the uniqueness constraint lookup
-      #   (e.g. <tt>conditions: where('status = ?', 'active')</tt>).
+      #   (e.g. <tt>conditions: -> { where(status: 'active') }</tt>).
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
       #   non-text columns (+true+ by default).
       # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the

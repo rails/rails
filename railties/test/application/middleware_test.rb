@@ -45,8 +45,7 @@ module ApplicationTests
         "ActionDispatch::ParamsParser",
         "Rack::Head",
         "Rack::ConditionalGet",
-        "Rack::ETag",
-        "ActionDispatch::BestStandardsSupport"
+        "Rack::ETag"
       ], middleware
     end
 
@@ -93,6 +92,12 @@ module ApplicationTests
 
     test "removes lock if cache classes is set" do
       add_to_config "config.cache_classes = true"
+      boot!
+      assert !middleware.include?("Rack::Lock")
+    end
+
+    test "removes lock if allow concurrency is set" do
+      add_to_config "config.allow_concurrency = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end

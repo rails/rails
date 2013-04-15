@@ -112,6 +112,14 @@ class ArrayExtToSTests < ActiveSupport::TestCase
 end
 
 class ArrayExtGroupingTests < ActiveSupport::TestCase
+  def setup
+    Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
+  end
+
+  def teardown
+    Fixnum.send :public, :/
+  end
+
   def test_in_groups_of_with_perfect_fit
     groups = []
     ('a'..'i').to_a.in_groups_of(3) do |group|

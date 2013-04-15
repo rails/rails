@@ -1,5 +1,8 @@
 module ActiveRecord
   module Tasks # :nodoc:
+    class DatabaseAlreadyExists < StandardError; end # :nodoc:
+    class DatabaseNotSupported < StandardError; end # :nodoc:
+
     module DatabaseTasks # :nodoc:
       extend self
 
@@ -12,9 +15,13 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/, ActiveRecord::Tasks::MySQLDatabaseTasks)
-      register_task(/postgresql/, ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
-      register_task(/sqlite/, ActiveRecord::Tasks::SQLiteDatabaseTasks)
+      register_task(/mysql/,        ActiveRecord::Tasks::MySQLDatabaseTasks)
+      register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
+      register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
+
+      register_task(/firebird/,     ActiveRecord::Tasks::FirebirdDatabaseTasks)
+      register_task(/sqlserver/,    ActiveRecord::Tasks::SqlserverDatabaseTasks)
+      register_task(/(oci|oracle)/, ActiveRecord::Tasks::OracleDatabaseTasks)
 
       def current_config(options = {})
         options.reverse_merge! :env => Rails.env
@@ -32,6 +39,8 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).create
+      rescue DatabaseAlreadyExists
+        $stderr.puts "#{configuration['database']} already exists"
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
@@ -117,6 +126,9 @@ module ActiveRecord
 
       def class_for_adapter(adapter)
         key = @tasks.keys.detect { |pattern| adapter[pattern] }
+        unless key
+          raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
+        end
         @tasks[key]
       end
 

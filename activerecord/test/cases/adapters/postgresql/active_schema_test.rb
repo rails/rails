@@ -16,6 +16,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
   def test_create_database_with_encoding
     assert_equal %(CREATE DATABASE "matt" ENCODING = 'utf8'), create_database(:matt)
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'latin1'), create_database(:aimonetti, :encoding => :latin1)
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'latin1'), create_database(:aimonetti, 'encoding' => :latin1)
   end
 
   def test_create_database_with_collation_and_ctype
@@ -28,8 +29,28 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
       false
     end
 
-    expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" ("last_name") WHERE state = 'active')
+    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people"  ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'")
+
+    expected = %(CREATE  INDEX CONCURRENTLY "index_people_on_last_name" ON "people"  ("last_name"))
+    assert_equal expected, add_index(:people, :last_name, algorithm: :concurrently)
+
+    %w(gin gist hash btree).each do |type|
+      expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
+      assert_equal expected, add_index(:people, :last_name, using: type)
+
+      expected = %(CREATE  INDEX CONCURRENTLY "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
+      assert_equal expected, add_index(:people, :last_name, using: type, algorithm: :concurrently)
+    end
+
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, algorithm: :copy)
+    end
+    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name"))
+    assert_equal expected, add_index(:people, :last_name, :unique => true, :using => :gist)
+
+    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name") WHERE state = 'active')
+    assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :using => :gist)
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:remove_method, :index_name_exists?)
   end

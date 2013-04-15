@@ -1,15 +1,17 @@
 Contributing to Ruby on Rails
 =============================
 
-This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails. After reading it, you should be familiar with:
+This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails.
 
-* Using GitHub to report issues
-* Cloning master and running the test suite
-* Helping to resolve existing issues
-* Contributing to the Ruby on Rails documentation
-* Contributing to the Ruby on Rails code
+After reading this guide, you will know:
 
-Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation -- all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+* How to use GitHub to report issues.
+* How to clone master and run the test suite.
+* How to help resolve existing issues.
+* How to contribute to the Ruby on Rails documentation.
+* How to contribute to the Ruby on Rails code.
+
+Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation — all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 --------------------------------------------------------------------------------
 
@@ -22,11 +24,19 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself -- and others -- to replicate the bug and figure out a fix.
+At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself — and others — to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
+
+### Create a Self-Contained gist for Active Record Issues
+
+If you are filing a bug report for Active Record, please use
+[this template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb)
+if the bug is found in a published gem, and
+[this template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+if the bug happens in the master branch.
 
 ### Special Treatment for Security Issues
 
@@ -50,6 +60,22 @@ The easiest and recommended way to get a development environment ready to hack i
 ### The Hard Way
 
 In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
+
+
+Running an Application Against Your Local Branch
+------------------------------------------------
+
+The `--dev` flag of `rails new` generates an application that uses your local
+branch:
+
+```bash
+$ cd rails
+$ bundle exec rails new ~/my-test-app --dev
+```
+
+The application generated in `~/my-test-app` runs against your local branch
+and in particular sees any modifications upon server reboot.
+
 
 Testing Active Record
 ---------------------
@@ -83,13 +109,13 @@ You can also run any single test separately:
 $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
-You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
+You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
 
 ### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
-As of this writing (December, 2010) they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
+As of this writing (December, 2010) they are especially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
 ```bash
 $ RUBYOPT=-W0 bundle exec rake test
@@ -146,7 +172,7 @@ After applying their branch, test it out! Here are some things to think about:
 Once you're happy that the pull request contains a good change, comment on the GitHub issue indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
 
 <blockquote>
-I like the way you've restructured that code in generate_finder_sql -- much nicer. The tests look good too.
+I like the way you've restructured that code in generate_finder_sql — much nicer. The tests look good too.
 </blockquote>
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
@@ -188,7 +214,7 @@ $ cd rails
 $ git checkout -b my_new_branch
 ```
 
-It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on Github. It won't be part of the Rails Git repository.
+It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
 ### Write Your Code
 
@@ -199,11 +225,22 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
+It is not customary in Rails to run the full test suite before pushing
+changes. The railties test suite in particular takes a long time, and even
+more if the source code is mounted in `/vagrant` as happens in the recommended
+workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
+
+As a compromise, test what your code obviously affects, and if the change is
+not in railties run the whole test suite of the affected component. If all is
+green that's enough to propose your contribution. We have [Travis CI](https
+://travis-ci.org/) as a safety net for catching unexpected breakages
+elsewhere.
+
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 
 ### Follow the Coding Conventions
 
-Rails follows a simple set of coding style conventions.
+Rails follows a simple set of coding style conventions:
 
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.
@@ -212,16 +249,18 @@ Rails follows a simple set of coding style conventions.
 * Prefer `&&`/`||` over `and`/`or`.
 * Prefer class << self over self.method for class methods.
 * Use `MyClass.my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
-* Use a = b and not a=b.
+* Use `a = b` and not `a=b`.
+* Use assert_not methods instead of refute.
+* Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
-The above are guidelines -- please use your best judgment in using them.
+The above are guidelines — please use your best judgment in using them.
 
 ### Updating the CHANGELOG
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
 
-You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, commiting a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
+You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, committing a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
 
 A CHANGELOG entry should summarize what was changed and should end with author's name. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
 
@@ -245,8 +284,6 @@ Your name can be added directly after the last word if you don't provide any cod
 ### Sanity Check
 
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
-
-You might want also to check out the [RailsBridge BugMash](http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash) as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
 
 ### Commit Your Changes
 
@@ -375,6 +412,44 @@ Now you need to get other people to look at your patch, just as you've looked at
 ### Iterate as Necessary
 
 It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
+
+#### Squashing commits
+
+One of the things that we may ask you to do is "squash your commits," which
+will combine all of your commits into a single commit. We prefer pull requests
+that are a single commit. This makes it easier to backport changes to stable
+branches, squashing makes it easier to revert bad commits, and the git history
+can be a bit easier to follow. Rails is a large project, and a bunch of
+extraneous commits can add a lot of noise.
+
+In order to do this, you'll need to have a git remote that points at the main
+Rails repository. This is useful anyway, but just in case you don't have it set
+up, make sure that you do this first:
+
+```bash
+$ git remote add upstream https://github.com/rails/rails.git
+```
+
+You can call this remote whatever you'd like, but if you don't use `upstream`,
+then change the name to your own in the instructions below.
+
+Given that your remote branch is called `my_pull_request`, then you can do the
+following:
+
+```bash
+$ git fetch upstream
+$ git checkout my_pull_request
+$ git rebase upstream/master
+$ git rebase -i
+
+< Choose 'squash' for all of your commits except the first one. >
+< Edit the commit message to make sense, and describe all your changes. >
+
+$ git push origin my_pull_request -f
+```
+
+You should be able to refresh the pull request on GitHub and see that it has
+been updated.
 
 ### Backporting
 

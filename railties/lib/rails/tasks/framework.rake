@@ -1,6 +1,6 @@
 namespace :rails do
-  desc "Update configs and some other initially generated files (or use just update:configs, update:scripts, or update:application_controller)"
-  task update: [ "update:configs", "update:scripts", "update:application_controller" ]
+  desc "Update configs and some other initially generated files (or use just update:configs, update:bin, or update:application_controller)"
+  task update: [ "update:configs", "update:bin", "update:application_controller" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task :template do
@@ -58,9 +58,9 @@ namespace :rails do
       invoke_from_app_generator :create_config_files
     end
 
-    # desc "Adds new scripts to the application script/ directory"
-    task :scripts do
-      invoke_from_app_generator :create_script_files
+    # desc "Adds new executables to the application bin/ directory"
+    task :bin do
+      invoke_from_app_generator :create_bin_files
     end
 
     # desc "Rename application.rb to application_controller.rb"

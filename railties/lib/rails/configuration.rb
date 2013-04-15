@@ -27,11 +27,11 @@ module Rails
     #
     # Middlewares can also be completely swapped out and replaced with others:
     #
-    #     config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
+    #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
     #
     # And finally they can also be removed from the stack completely:
     #
-    #     config.middleware.delete ActionDispatch::BestStandardsSupport
+    #     config.middleware.delete ActionDispatch::Flash
     #
     class MiddlewareStackProxy
       def initialize

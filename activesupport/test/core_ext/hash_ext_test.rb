@@ -8,7 +8,7 @@ require 'active_support/core_ext/object/deep_dup'
 require 'active_support/inflections'
 
 class HashExtTest < ActiveSupport::TestCase
-  class IndifferentHash < HashWithIndifferentAccess
+  class IndifferentHash < ActiveSupport::HashWithIndifferentAccess
   end
 
   class SubclassingArray < Array
@@ -656,7 +656,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_diff
-    assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    assert_deprecated do
+      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    end
   end
 
   def test_slice
@@ -1013,12 +1015,10 @@ class HashToXmlTest < ActiveSupport::TestCase
         <replies-close-in type="integer">2592000000</replies-close-in>
         <written-on type="date">2003-07-16</written-on>
         <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
-        <content type="yaml">--- \n1: should be an integer\n:message: Have a nice day\narray: \n- should-have-dashes: true\n  should_have_underscores: true\n</content>
         <author-email-address>david@loudthinking.com</author-email-address>
         <parent-id></parent-id>
         <ad-revenue type="decimal">1.5</ad-revenue>
         <optimum-viewing-angle type="float">135</optimum-viewing-angle>
-        <resident type="symbol">yes</resident>
       </topic>
     EOT
 
@@ -1031,12 +1031,10 @@ class HashToXmlTest < ActiveSupport::TestCase
       :replies_close_in => 2592000000,
       :written_on => Date.new(2003, 7, 16),
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
-      :content => { :message => "Have a nice day", 1 => "should be an integer", "array" => [{ "should-have-dashes" => true, "should_have_underscores" => true }] },
       :author_email_address => "david@loudthinking.com",
       :parent_id => nil,
       :ad_revenue => BigDecimal("1.50"),
       :optimum_viewing_angle => 135.0,
-      :resident => :yes
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["topic"]
@@ -1050,7 +1048,6 @@ class HashToXmlTest < ActiveSupport::TestCase
         <approved type="boolean"></approved>
         <written-on type="date"></written-on>
         <viewed-at type="datetime"></viewed-at>
-        <content type="yaml"></content>
         <parent-id></parent-id>
       </topic>
     EOT
@@ -1061,7 +1058,6 @@ class HashToXmlTest < ActiveSupport::TestCase
       :approved   => nil,
       :written_on => nil,
       :viewed_at  => nil,
-      :content    => nil,
       :parent_id  => nil
     }.stringify_keys
 
@@ -1288,6 +1284,28 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
 
+  def test_from_xml_raises_on_disallowed_type_attributes
+    assert_raise ActiveSupport::XMLConverter::DisallowedType do
+      Hash.from_xml '<product><name type="foo">value</name></product>', %w(foo)
+    end
+  end
+
+  def test_from_xml_disallows_symbol_and_yaml_types_by_default
+    assert_raise ActiveSupport::XMLConverter::DisallowedType do
+      Hash.from_xml '<product><name type="symbol">value</name></product>'
+    end
+
+    assert_raise ActiveSupport::XMLConverter::DisallowedType do
+      Hash.from_xml '<product><name type="yaml">value</name></product>'
+    end
+  end
+
+  def test_from_trusted_xml_allows_symbol_and_yaml_types
+    expected = { 'product' => { 'name' => :value }}
+    assert_equal expected, Hash.from_trusted_xml('<product><name type="symbol">value</name></product>')
+    assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
+  end
+
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]
@@ -1328,7 +1346,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_empty_string_works_for_typecast_xml_value
     assert_nothing_raised do
-      Hash.__send__(:typecast_xml_value, "")
+      ActiveSupport::XMLConverter.new("").to_h
     end
   end
 

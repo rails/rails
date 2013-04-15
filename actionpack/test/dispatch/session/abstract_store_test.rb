@@ -42,7 +42,7 @@ module ActionDispatch
         as.call(@env)
         session1 = Request::Session.find @env
 
-        refute_equal session, session1
+        assert_not_equal session, session1
         assert_equal session.to_hash, session1.to_hash
       end
 

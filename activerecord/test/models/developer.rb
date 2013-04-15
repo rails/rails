@@ -57,6 +57,16 @@ class Developer < ActiveRecord::Base
   def log=(message)
     audit_logs.build :message => message
   end
+
+  after_find :track_instance_count
+  cattr_accessor :instance_count
+
+  def track_instance_count
+    self.class.instance_count ||= 0
+    self.class.instance_count += 1
+  end
+  private :track_instance_count
+
 end
 
 class AuditLog < ActiveRecord::Base
@@ -89,6 +99,15 @@ class DeveloperWithIncludes < ActiveRecord::Base
   self.table_name = 'developers'
   has_many :audit_logs, :foreign_key => :developer_id
   default_scope { includes(:audit_logs) }
+end
+
+class DeveloperFilteredOnJoins < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
+
+  def self.default_scope
+    joins(:projects).where(:projects => { :name => 'Active Controller' })
+  end
 end
 
 class DeveloperOrderedBySalary < ActiveRecord::Base
@@ -223,4 +242,9 @@ class ThreadsafeDeveloper < ActiveRecord::Base
     sleep 0.05 if Thread.current[:long_default_scope]
     limit(1)
   end
+end
+
+class CachedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.cache_timestamp_format = :number
 end

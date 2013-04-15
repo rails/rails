@@ -1,5 +1,3 @@
-require 'active_support/core_ext/hash/indifferent_access'
-
 module ActiveRecord
   module FinderMethods
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
@@ -39,7 +37,7 @@ module ActiveRecord
     end
 
     # Finds the first record matching the specified conditions. There
-    # is no implied ording so if order matters, you should specify it
+    # is no implied ordering so if order matters, you should specify it
     # yourself.
     #
     # If no record is found, returns <tt>nil</tt>.
@@ -60,7 +58,7 @@ module ActiveRecord
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.
     #
-    #   Person.take # returns an object fetched by SELECT * FROM people
+    #   Person.take # returns an object fetched by SELECT * FROM people LIMIT 1
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
     #   Person.where(["name LIKE '%?'", name]).take
     def take(limit = nil)
@@ -78,7 +76,7 @@ module ActiveRecord
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).first
-    #   Person.where(["user_name = :u", { :u => user_name }]).first
+    #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
@@ -132,8 +130,8 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Returns +true+ if a record exists in the table that matches the +id+ or
-    # conditions given, or +false+ otherwise. The argument can take six forms:
+    # Returns truthy if a record exists in the table that matches the +id+ or
+    # conditions given, or falsy otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
@@ -176,6 +174,28 @@ module ActiveRecord
       connection.select_value(relation, "#{name} Exists", relation.bind_values)
     rescue ThrowResult
       false
+    end
+
+    # This method is called whenever no records are found with either a single
+    # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
+    #
+    # The error message is different depending on whether a single id or
+    # multiple ids are provided. If multiple ids are provided, then the number
+    # of results obtained should be provided in the +result_size+ argument and
+    # the expected number of results should be provided in the +expected_size+
+    # argument.
+    def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
+      conditions = arel.where_sql
+      conditions = " [#{conditions}]" if conditions
+
+      if Array(ids).size == 1
+        error = "Couldn't find #{@klass.name} with #{primary_key}=#{ids}#{conditions}"
+      else
+        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
+        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
+      end
+
+      raise RecordNotFound, error
     end
 
     protected
@@ -225,17 +245,17 @@ module ActiveRecord
 
     def construct_limited_ids_condition(relation)
       orders = relation.order_values.map { |val| val.presence }.compact
-      values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
+      values = @klass.connection.distinct("#{quoted_table_name}.#{primary_key}", orders)
 
-      relation = relation.dup
+      relation = relation.dup.select(values)
 
-      ids_array = relation.select(values).collect {|row| row[primary_key]}
+      id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
+      ids_array = id_rows.map {|row| row[primary_key]}
+
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
 
     def find_with_ids(*ids)
-      return to_a.find { |*block_args| yield(*block_args) } if block_given?
-
       expects_array = ids.first.kind_of?(Array)
       return ids.first if expects_array && ids.first.empty?
 
@@ -261,11 +281,7 @@ module ActiveRecord
       relation.bind_values += [[column, id]]
       record = relation.take
 
-      unless record
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{primary_key}=#{id}#{conditions}"
-      end
+      raise_record_not_found_exception!(id, 0, 1) unless record
 
       record
     end
@@ -288,12 +304,7 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-
-        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
-        raise RecordNotFound, error
+        raise_record_not_found_exception!(ids, result.size, expected_size)
       end
     end
 

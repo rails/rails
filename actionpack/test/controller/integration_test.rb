@@ -466,6 +466,58 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
 
+  def test_port_via_host!
+    with_test_route_set do
+      host! 'www.example.com:8080'
+      get '/get'
+      assert_equal 8080, request.port
+    end
+  end
+
+  def test_port_via_process
+    with_test_route_set do
+      get 'http://www.example.com:8080/get'
+      assert_equal 8080, request.port
+    end
+  end
+
+  def test_https_and_port_via_host_and_https!
+    with_test_route_set do
+      host! 'www.example.com'
+      https! true
+
+      get '/get'
+      assert_equal 443, request.port
+      assert_equal true, request.ssl?
+
+      host! 'www.example.com:443'
+      https! true
+
+      get '/get'
+      assert_equal 443, request.port
+      assert_equal true, request.ssl?
+
+      host! 'www.example.com:8443'
+      https! true
+
+      get '/get'
+      assert_equal 8443, request.port
+      assert_equal true, request.ssl?
+    end
+  end
+
+  def test_https_and_port_via_process
+    with_test_route_set do
+      get 'https://www.example.com/get'
+      assert_equal 443, request.port
+      assert_equal true, request.ssl?
+
+      get 'https://www.example.com:8443/get'
+      assert_equal 8443, request.port
+      assert_equal true, request.ssl?
+    end
+  end
+
   private
     def with_test_route_set
       with_routing do |set|
@@ -521,6 +573,21 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   def test_generate_url_without_controller
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
+
+  def test_pass_headers
+    get "/success", {}, "Referer" => "http://www.example.com/foo", "Host" => "http://nohost.com"
+
+    assert_equal "http://nohost.com", @request.env["HTTP_HOST"]
+    assert_equal "http://www.example.com/foo", @request.env["HTTP_REFERER"]
+  end
+
+  def test_pass_env
+    get "/success", {}, "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com"
+
+    assert_equal "http://test.com", @request.env["HTTP_HOST"]
+    assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
+  end
+
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
@@ -699,13 +766,17 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "http://bar.com/foo", foos_url
   end
 
-  test "test can override default url options" do
+  def test_can_override_default_url_options
+    original_host = default_url_options.dup
+
     default_url_options[:host] = "foobar.com"
     assert_equal "http://foobar.com/foo", foos_url
 
     get "/bar"
     assert_response :success
     assert_equal "http://foobar.com/foo", foos_url
+  ensure
+    ActionDispatch::Integration::Session.default_url_options = self.default_url_options = original_host
   end
 
   test "current request path parameters are recalled" do

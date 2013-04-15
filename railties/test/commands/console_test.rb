@@ -1,12 +1,12 @@
 require 'abstract_unit'
+require 'env_helpers'
 require 'rails/commands/console'
 
 class Rails::ConsoleTest < ActiveSupport::TestCase
+  include EnvHelpers
+
   class FakeConsole
     def self.start; end
-  end
-
-  def setup
   end
 
   def test_sandbox_option
@@ -58,10 +58,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_console_defaults_to_IRB
-    config = mock("config", console: nil)
-    app = mock("app", config: config)
-    app.expects(:load_console).returns(nil)
-
+    app = build_app(console: nil)
     assert_equal IRB, Rails::Console.new(app).console
   end
 
@@ -78,7 +75,14 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
       assert_match(/\sspecial-production\s/, output)
     end
   end
-  
+
+  def test_default_environment_with_rack_env
+    with_rack_env 'production' do
+      start
+      assert_match(/\sproduction\s/, output)
+    end
+  end
+
   def test_e_option
     start ['-e', 'special-production']
     assert_match(/\sspecial-production\s/, output)
@@ -104,34 +108,35 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/\sdevelopment\s/, output)
   end
 
-  private
+  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
+    Rails::Console.stubs(:available_environments).returns(['dev'])
+    options = Rails::Console.parse_arguments(['dev'])
+    assert_match('dev', options[:environment])
+  end
 
   attr_reader :output
+  private :output
+
+  private
 
   def start(argv = [])
     rails_console = Rails::Console.new(app, parse_arguments(argv))
-    @output = output = capture(:stdout) { rails_console.start }
+    @output = capture(:stdout) { rails_console.start }
   end
 
   def app
-    @app ||= begin
-      config = mock("config", console: FakeConsole)
-      app = mock("app", config: config)
-      app.stubs(:sandbox=).returns(nil)
-      app.expects(:load_console)
-      app
-    end
+    @app ||= build_app(console: FakeConsole)
+  end
+
+  def build_app(config)
+    config = mock("config", config)
+    app = mock("app", config: config)
+    app.stubs(:sandbox=).returns(nil)
+    app.expects(:load_console)
+    app
   end
 
   def parse_arguments(args)
     Rails::Console.parse_arguments(args)
-  end
-
-  def with_rails_env(env)
-    original_rails_env = ENV['RAILS_ENV']
-    ENV['RAILS_ENV'] = env
-    yield
-  ensure
-    ENV['RAILS_ENV'] = original_rails_env
   end
 end

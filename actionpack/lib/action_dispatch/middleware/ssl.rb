@@ -45,7 +45,7 @@ module ActionDispatch
       # http://tools.ietf.org/html/draft-hodges-strict-transport-sec-02
       def hsts_headers
         if @hsts
-          value = "max-age=#{@hsts[:expires]}"
+          value = "max-age=#{@hsts[:expires].to_i}"
           value += "; includeSubDomains" if @hsts[:subdomains]
           { 'Strict-Transport-Security' => value }
         else

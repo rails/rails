@@ -28,10 +28,13 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      def initialize(association) #:nodoc:
+      delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
+
+      def initialize(klass, association) #:nodoc:
         @association = association
-        super association.klass, association.klass.arel_table
-        merge! association.scope
+        super klass, klass.arel_table
+        self.default_scoped = true
+        merge! association.scope(nullify: false)
       end
 
       def target
@@ -80,9 +83,9 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
       #
-      # Be careful because this also means you’re initializing a model
-      # object with only the fields that you’ve selected. If you attempt
-      # to access a field that is not in the initialized record you’ll
+      # Be careful because this also means you're initializing a model
+      # object with only the fields that you've selected. If you attempt
+      # to access a field that is not in the initialized record you'll
       # receive:
       #
       #   person.pets.select(:name).first.person_id
@@ -99,7 +102,7 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
+      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
       #   # => [
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
@@ -225,6 +228,7 @@ module ActiveRecord
       def build(attributes = {}, &block)
         @association.build(attributes, &block)
       end
+      alias_method :new, :build
 
       # Returns a new object of the collection type that has been instantiated with
       # attributes, linked to this object and that has already been saved (if it
@@ -646,11 +650,12 @@ module ActiveRecord
       #   #      #<Pet name: "Fancy-Fancy">
       #   #    ]
       #
-      #   person.pets.select(:name).uniq
+      #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
-      def uniq
-        @association.uniq
+      def distinct
+        @association.distinct
       end
+      alias uniq distinct
 
       # Count all records using SQL.
       #
@@ -670,7 +675,11 @@ module ActiveRecord
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
-      # it executes a <tt>SELECT COUNT(*)</tt> query.
+      # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
+      #
+      # If the collection has been already loaded +size+ and +length+ are
+      # equivalent. If not and you are going to need the records anyway
+      # +length+ will take one less query. Otherwise +size+ is more efficient.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -695,7 +704,8 @@ module ActiveRecord
 
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
-      # equivalent.
+      # equivalent. If not and you are going to need the records anyway this
+      # method will take one less query. Otherwise +size+ is more efficient.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -716,7 +726,12 @@ module ActiveRecord
         @association.length
       end
 
-      # Returns +true+ if the collection is empty.
+      # Returns +true+ if the collection is empty. If the collection has been
+      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
+      # it is equivalent to <tt>collection.exists?</tt>. If the collection has
+      # not already been loaded and you are going to fetch the records anyway it
+      # is better to check <tt>collection.length.zero?</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -746,7 +761,7 @@ module ActiveRecord
       #   person.pets.count # => 0
       #   person.pets.any?  # => true
       #
-      # You can also pass a block to define criteria. The behaviour
+      # You can also pass a block to define criteria. The behavior
       # is the same, it returns true if the collection based on the
       # criteria is not empty.
       #
@@ -781,7 +796,7 @@ module ActiveRecord
       #   person.pets.many? #=> true
       #
       # You can also pass a block to define criteria. The
-      # behaviour is the same, it returns true if the collection
+      # behavior is the same, it returns true if the collection
       # based on the criteria has more than one record.
       #
       #   person.pets
@@ -812,13 +827,11 @@ module ActiveRecord
       #
       #   person.pets # => [#<Pet id: 20, name: "Snoop">]
       #
-      #   person.pets.include?(Pet.find(20)) # => true
+      #   person.pets.include?(Pet.find(20)) # => true
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         @association.include?(record)
       end
-
-      alias_method :new, :build
 
       def proxy_association
         @association
@@ -834,10 +847,8 @@ module ActiveRecord
 
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        association = @association
-
-        @association.scope.extending! do
-          define_method(:proxy_association) { association }
+        @association.scope.tap do |scope|
+          scope.proxy_association = @association
         end
       end
 
@@ -911,7 +922,7 @@ module ActiveRecord
       alias_method :to_a, :to_ary
 
       # Adds one or more +records+ to the collection by setting their foreign keys
-      # to the association‘s primary key. Returns +self+, so several appends may be
+      # to the association's primary key. Returns +self+, so several appends may be
       # chained together.
       #
       #   class Person < ActiveRecord::Base
@@ -934,6 +945,11 @@ module ActiveRecord
         proxy_association.concat(records) && self
       end
       alias_method :push, :<<
+      alias_method :append, :<<
+
+      def prepend(*args)
+        raise NoMethodError, "prepend on association is not defined. Please use << or append"
+      end
 
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
       # of an array with the deleted objects, so methods can be chained. See
@@ -959,7 +975,7 @@ module ActiveRecord
       #   person.pets.reload # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       #
-      #   person.pets(true)  # fetches pets from the database
+      #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload

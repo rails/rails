@@ -172,7 +172,7 @@ module Rails
         end
     end
 
-    delegate :railtie_name, to: "self.class"
+    delegate :railtie_name, to: :class
 
     def config
       @config ||= Railtie::Configuration.new

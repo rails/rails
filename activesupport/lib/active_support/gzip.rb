@@ -25,9 +25,9 @@ module ActiveSupport
     end
 
     # Compresses a string using gzip.
-    def self.compress(source)
+    def self.compress(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY)
       output = Stream.new
-      gz = Zlib::GzipWriter.new(output)
+      gz = Zlib::GzipWriter.new(output, level, strategy)
       gz.write(source)
       gz.close
       output.string

@@ -2,8 +2,8 @@ require 'abstract_unit'
 require 'stringio'
 
 class ActionController::TestSessionTest < ActiveSupport::TestCase
-  def test_ctor_allows_setting
-    session = ActionController::TestSession.new({:one => 'one', :two => 'two'})
+  def test_initialize_with_values
+    session = ActionController::TestSession.new(one: 'one', two: 'two')
     assert_equal('one', session[:one])
     assert_equal('two', session[:two])
   end
@@ -23,15 +23,21 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
   end
 
   def test_calling_update_with_params_passes_to_attributes
-    session = ActionController::TestSession.new()
+    session = ActionController::TestSession.new
     session.update('key' => 'value')
     assert_equal('value', session[:key])
   end
 
-  def test_clear_emptys_session
-    session = ActionController::TestSession.new({:one => 'one', :two => 'two'})
+  def test_clear_empties_session
+    session = ActionController::TestSession.new(one: 'one', two: 'two')
     session.clear
     assert_nil(session[:one])
     assert_nil(session[:two])
+  end
+
+  def test_keys_and_values
+    session = ActionController::TestSession.new(one: '1', two: '2')
+    assert_equal %w(one two), session.keys
+    assert_equal %w(1 2), session.values
   end
 end

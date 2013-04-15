@@ -84,15 +84,15 @@ module ActiveSupport
   # resulting in the following output within the logs including a hash with the payload:
   #
   #   notification: process_action.action_controller 2012-04-13 01:08:35 +0300 2012-04-13 01:08:35 +0300 af358ed7fab884532ec7 {
-  #      :controller=>"Devise::SessionsController",
-  #      :action=>"new",
-  #      :params=>{"action"=>"new", "controller"=>"devise/sessions"},
-  #      :format=>:html,
-  #      :method=>"GET",
-  #      :path=>"/login/sign_in",
-  #      :status=>200,
-  #      :view_runtime=>279.3080806732178,
-  #      :db_runtime=>40.053
+  #      controller: "Devise::SessionsController",
+  #      action: "new",
+  #      params: {"action"=>"new", "controller"=>"devise/sessions"},
+  #      format: :html,
+  #      method: "GET",
+  #      path: "/login/sign_in",
+  #      status: 200,
+  #      view_runtime: 279.3080806732178,
+  #      db_runtime: 40.053
   #    }
   #
   # You can also subscribe to all events whose name matches a certain regexp:

@@ -45,6 +45,18 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     ENV['RAILS_ENV'] = "test"
   end
 
+  def test_rails_env_is_development_when_argument_is_dev
+    Rails::DBConsole.stubs(:available_environments).returns(['development', 'test'])
+    options = Rails::DBConsole.new.send(:parse_arguments, ['dev'])
+    assert_match('development', options[:environment])
+  end
+
+  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
+    Rails::DBConsole.stubs(:available_environments).returns(['dev'])
+    options = Rails::DBConsole.new.send(:parse_arguments, ['dev'])
+    assert_match('dev', options[:environment])
+  end
+
   def test_mysql
     dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], 'db')
     start(adapter: 'mysql', database: 'db')
@@ -116,6 +128,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert !aborted
   end
 
+  def test_sqlite3_db_without_defined_rails_root
+    Rails.stubs(:respond_to?)
+    Rails.expects(:respond_to?).with(:root).once.returns(false)
+    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('../config/db.sqlite3').to_s)
+    start(adapter: 'sqlite3', database: 'config/db.sqlite3')
+    assert !aborted
+  end
+
   def test_oracle
     dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user@db')
     start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')
@@ -152,8 +172,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_match(/Usage:.*dbconsole/, stdout)
   end
 
-  private
   attr_reader :aborted, :output
+  private :aborted, :output
+
+  private
 
   def dbconsole
     @dbconsole ||= Rails::DBConsole.new(nil)

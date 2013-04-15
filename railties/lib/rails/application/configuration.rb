@@ -1,19 +1,18 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
-require 'active_support/queueing'
 require 'rails/engine/configuration'
 
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :asset_host, :assets, :autoflush_log,
+      attr_accessor :allow_concurrency, :asset_host, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_token,
+                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :queue, :queue_consumer, :beginning_of_week
+                    :beginning_of_week, :filter_redirect
 
       attr_writer :log_level
       attr_reader :encoding
@@ -21,8 +20,10 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
+        @allow_concurrency             = nil
         @consider_all_requests_local   = false
         @filter_parameters             = []
+        @filter_redirect               = []
         @helpers_paths                 = []
         @serve_static_assets           = true
         @static_cache_control          = nil
@@ -43,17 +44,17 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @queue                         = ActiveSupport::SynchronousQueue.new
-        @queue_consumer                = nil
         @eager_load                    = nil
+        @secret_token                  = nil
+        @secret_key_base               = nil
 
         @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled                  = false
+        @assets.enabled                  = true
         @assets.paths                    = []
         @assets.precompile               = [ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
                                              /(?:\/|\\|\A)application\.(css|js)$/ ]
         @assets.prefix                   = "/assets"
-        @assets.version                  = ''
+        @assets.version                  = '1.0'
         @assets.debug                    = false
         @assets.compile                  = true
         @assets.digest                   = false
@@ -97,12 +98,21 @@ module Rails
         self
       end
 
-      # Loads and returns the contents of the #database_configuration_file. The
-      # contents of the file are processed via ERB before being sent through
-      # YAML::load.
+      # Loads and returns the configuration of the database.
       def database_configuration
-        require 'erb'
-        YAML.load ERB.new(IO.read(paths["config/database"].first)).result
+        yaml = paths["config/database"].first
+        if File.exists?(yaml)
+          require "erb"
+          YAML.load ERB.new(IO.read(yaml)).result
+        elsif ENV['DATABASE_URL']
+          nil
+        else
+          raise "Could not load database configuration. No such file - #{yaml}"
+        end
+      rescue Psych::SyntaxError => e
+        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
+              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+              "Error: #{e.message}"
       end
 
       def log_level

@@ -13,12 +13,13 @@ module ActionView
         "'"     => "\\'"
       }
 
-      JS_ESCAPE_MAP["\342\200\250".force_encoding('UTF-8').encode!] = '&#x2028;'
-      JS_ESCAPE_MAP["\342\200\251".force_encoding('UTF-8').encode!] = '&#x2029;'
+      JS_ESCAPE_MAP["\342\200\250".force_encoding(Encoding::UTF_8).encode!] = '&#x2028;'
+      JS_ESCAPE_MAP["\342\200\251".force_encoding(Encoding::UTF_8).encode!] = '&#x2029;'
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
-      # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
+      # Also available through the alias j(). This is particularly helpful in JavaScript
+      # responses, like:
       #
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
@@ -43,12 +44,14 @@ module ActionView
       #   </script>
       #
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
-      # tag. Example:
+      # tag.
+      #
       #   javascript_tag "alert('All is good')", defer: 'defer'
       #   # => <script defer="defer">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
+      #
       #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
@@ -78,7 +81,7 @@ module ActionView
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
       def button_to_function(name, function=nil, html_options={})
-        message = "button_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
+        message = "button_to_function is deprecated and will be removed from Rails 4.1. We recommend using Unobtrusive JavaScript instead. " +
           "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
         ActiveSupport::Deprecation.warn message
 
@@ -100,7 +103,7 @@ module ActionView
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
       def link_to_function(name, function, html_options={})
-        message = "link_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
+        message = "link_to_function is deprecated and will be removed from Rails 4.1. We recommend using Unobtrusive JavaScript instead. " +
           "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
         ActiveSupport::Deprecation.warn message
 

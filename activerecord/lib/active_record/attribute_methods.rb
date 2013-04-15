@@ -21,7 +21,7 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
-        # Use a mutex; we don't want two thread simaltaneously trying to define
+        # Use a mutex; we don't want two thread simultaneously trying to define
         # attribute methods.
         @attribute_methods_mutex.synchronize do
           return if attribute_methods_generated?
@@ -334,7 +334,7 @@ module ActiveRecord
     private
 
     # Returns a Hash of the Arel::Attributes and attribute values that have been
-    # type casted for use in an Arel insert/update method.
+    # typecasted for use in an Arel insert/update method.
     def arel_attributes_with_values(attribute_names)
       attrs = {}
       arel_table = self.class.arel_table
@@ -348,7 +348,7 @@ module ActiveRecord
     # Filters the primary keys and readonly attributes from the attribute names.
     def attributes_for_update(attribute_names)
       attribute_names.select do |name|
-        column_for_attribute(name) && !pk_attribute?(name) && !readonly_attribute?(name)
+        column_for_attribute(name) && !readonly_attribute?(name)
       end
     end
 
@@ -369,14 +369,10 @@ module ActiveRecord
     end
 
     def typecasted_attribute_value(name)
-      if self.class.serialized_attributes.include?(name)
-        @attributes[name].serialized_value
-      else
-        # FIXME: we need @attributes to be used consistently.
-        # If the values stored in @attributes were already typecasted, this code
-        # could be simplified
-        read_attribute(name)
-      end
+      # FIXME: we need @attributes to be used consistently.
+      # If the values stored in @attributes were already typecasted, this code
+      # could be simplified
+      read_attribute(name)
     end
   end
 end

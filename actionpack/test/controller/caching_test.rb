@@ -164,6 +164,9 @@ class FunctionalCachingController < CachingController
       format.xml
     end
   end
+
+  def fragment_cached_without_digest
+  end
 end
 
 class FunctionalFragmentCachingTest < ActionController::TestCase
@@ -198,6 +201,15 @@ CACHED
 
     assert_match("Old fragment caching in a partial",
       @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial", "html")}"))
+  end
+
+  def test_skipping_fragment_cache_digesting
+    get :fragment_cached_without_digest, :format => "html"
+    assert_response :success
+    expected_body = "<body>\n<p>ERB</p>\n</body>\n"
+
+    assert_equal expected_body, @response.body
+    assert_equal "<p>ERB</p>", @store.read("views/nodigest")
   end
 
   def test_render_inline_before_fragment_caching
@@ -281,6 +293,24 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     assert_nothing_raised do
       cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
     end
+  end
+end
+
+class ViewCacheDependencyTest < ActionController::TestCase
+  class NoDependenciesController < ActionController::Base
+  end
+
+  class HasDependenciesController < ActionController::Base
+    view_cache_dependency { "trombone" }
+    view_cache_dependency { "flute" }
+  end
+
+  def test_view_cache_dependencies_are_empty_by_default
+    assert NoDependenciesController.new.view_cache_dependencies.empty?
+  end
+
+  def test_view_cache_dependencies_are_listed_in_declaration_order
+    assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
   end
 end
 

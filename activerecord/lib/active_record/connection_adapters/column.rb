@@ -74,12 +74,13 @@ module ActiveRecord
       def type_cast_for_write(value)
         return value unless number?
 
-        if value == false
+        case value
+        when FalseClass
           0
-        elsif value == true
+        when TrueClass
           1
-        elsif value.is_a?(String) && value.blank?
-          nil
+        when String
+          value.presence
         else
           value
         end
@@ -160,7 +161,7 @@ module ActiveRecord
 
         def value_to_date(value)
           if value.is_a?(String)
-            return nil if value.blank?
+            return nil if value.empty?
             fast_string_to_date(value) || fallback_string_to_date(value)
           elsif value.respond_to?(:to_date)
             value.to_date
@@ -171,14 +172,14 @@ module ActiveRecord
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          return nil if string.blank?
+          return nil if string.empty?
 
           fast_string_to_time(string) || fallback_string_to_time(string)
         end
 
         def string_to_dummy_time(string)
           return string unless string.is_a?(String)
-          return nil if string.blank?
+          return nil if string.empty?
 
           dummy_time_string = "2000-01-01 #{string}"
 
@@ -191,7 +192,7 @@ module ActiveRecord
 
         # convert something to a boolean
         def value_to_boolean(value)
-          if value.is_a?(String) && value.blank?
+          if value.is_a?(String) && value.empty?
             nil
           else
             TRUE_VALUES.include?(value)
@@ -205,7 +206,7 @@ module ActiveRecord
           when TrueClass, FalseClass
             value ? 1 : 0
           else
-            value.to_i
+            value.to_i rescue nil
           end
         end
 
@@ -240,7 +241,7 @@ module ActiveRecord
             # Treat 0000-00-00 00:00:00 as nil.
             return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
 
-            Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
 
           def fast_string_to_date(string)

@@ -201,10 +201,10 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
-  
+
     def test_primaery_key_method_with_ansi_quotes
       con = ActiveRecord::Base.connection
       con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
@@ -212,7 +212,7 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     ensure
       con.reconnect!
     end
-  
+
   end
 end
 

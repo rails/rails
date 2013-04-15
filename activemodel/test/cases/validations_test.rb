@@ -26,11 +26,11 @@ class ValidationsTest < ActiveModel::TestCase
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
-    assert r.invalid?, "A reply without content shouldn't be saveable"
+    assert r.invalid?, "A reply without content shouldn't be savable"
     assert r.after_validation_performed, "after_validation callback should be called"
 
     r.content = "Messa content!"
-    assert r.valid?, "A reply with content should be saveable"
+    assert r.valid?, "A reply with content should be savable"
     assert r.after_validation_performed, "after_validation callback should be called"
   end
 
@@ -213,7 +213,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 'is too short (minimum is 2 characters)', t.errors[key][0]
   end
 
-  def test_validaton_with_if_and_on
+  def test_validation_with_if_and_on
     Topic.validates_presence_of :title, :if => Proc.new{|x| x.author_name = "bad"; true }, :on => :update
 
     t = Topic.new(:title => "")
@@ -361,7 +361,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_dup_validity_is_independent
     Topic.validates_presence_of :title
-    topic = Topic.new("title" => "Litterature")
+    topic = Topic.new("title" => "Literature")
     topic.valid?
 
     duped = topic.dup

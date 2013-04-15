@@ -6,34 +6,71 @@ module ActionView
     module Handlers
       class Erubis < ::Erubis::Eruby
         def add_preamble(src)
+          @newline_pending = 0
           src << "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
         end
 
         def add_text(src, text)
           return if text.empty?
-          src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
+
+          if text == "\n"
+            @newline_pending += 1
+          else
+            src << "@output_buffer.safe_append='"
+            src << "\n" * @newline_pending if @newline_pending > 0
+            src << escape_text(text)
+            src << "';"
+
+            @newline_pending = 0
+          end
+        end
+
+        # Erubis toggles <%= and <%== behavior when escaping is enabled.
+        # We override to always treat <%== as escaped.
+        def add_expr(src, code, indicator)
+          case indicator
+          when '=='
+            add_expr_escaped(src, code)
+          else
+            super
+          end
         end
 
         BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
         def add_expr_literal(src, code)
+          flush_newline_if_pending(src)
           if code =~ BLOCK_EXPR
             src << '@output_buffer.append= ' << code
           else
-            src << '@output_buffer.append= (' << code << ');'
+            src << '@output_buffer.append=(' << code << ');'
           end
         end
 
         def add_expr_escaped(src, code)
+          flush_newline_if_pending(src)
           if code =~ BLOCK_EXPR
             src << "@output_buffer.safe_append= " << code
           else
-            src << "@output_buffer.safe_concat((" << code << ").to_s);"
+            src << "@output_buffer.safe_append=(" << code << ");"
           end
         end
 
+        def add_stmt(src, code)
+          flush_newline_if_pending(src)
+          super
+        end
+
         def add_postamble(src)
+          flush_newline_if_pending(src)
           src << '@output_buffer.to_s'
+        end
+
+        def flush_newline_if_pending(src)
+          if @newline_pending > 0
+            src << "@output_buffer.safe_append='#{"\n" * @newline_pending}';"
+            @newline_pending = 0
+          end
         end
       end
 
@@ -46,6 +83,10 @@ module ActionView
         # Default implementation used.
         class_attribute :erb_implementation
         self.erb_implementation = Erubis
+
+        # Do not escape templates of these mime types.
+        class_attribute :escape_whitelist
+        self.escape_whitelist = ["text/plain"]
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
@@ -66,7 +107,7 @@ module ActionView
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
           # expression
-          template_source = template.source.dup.force_encoding("BINARY")
+          template_source = template.source.dup.force_encoding(Encoding::ASCII_8BIT)
 
           erb = template_source.gsub(ENCODING_TAG, '')
           encoding = $2
@@ -78,6 +119,7 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
+            :escape => (self.class.escape_whitelist.include? template.type),
             :trim => (self.class.erb_trim_mode == "-")
           ).src
         end

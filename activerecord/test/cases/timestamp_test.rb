@@ -113,6 +113,18 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
 
+  def test_saving_a_new_record_belonging_to_invalid_parent_with_touch_should_not_raise_exception
+    klass = Class.new(Owner) do
+      def self.name; 'Owner'; end
+      validate { errors.add(:base, :invalid) }
+    end
+
+    pet = Pet.new(owner: klass.new)
+    pet.save!
+
+    assert pet.owner.new_record?
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
     klass = Class.new(ActiveRecord::Base) do
       def self.name; 'Pet'; end
@@ -162,6 +174,52 @@ class TimestampTest < ActiveRecord::TestCase
     owner.reload
 
     assert_not_equal time, owner.updated_at
+  end
+
+  def test_changing_parent_of_a_record_touches_both_new_and_old_parent_record
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, touch: true
+    end
+
+    toy1 = klass.find(1)
+    old_pet = toy1.pet
+
+    toy2 = klass.find(2)
+    new_pet = toy2.pet
+    time = 3.days.ago.at_beginning_of_hour
+
+    old_pet.update_columns(updated_at: time)
+    new_pet.update_columns(updated_at: time)
+
+    toy1.pet = new_pet
+    toy1.save!
+
+    old_pet.reload
+    new_pet.reload
+
+    assert_not_equal time, new_pet.updated_at
+    assert_not_equal time, old_pet.updated_at
+  end
+
+  def test_clearing_association_touches_the_old_record
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, touch: true
+    end
+
+    toy = klass.find(1)
+    pet = toy.pet
+    time = 3.days.ago.at_beginning_of_hour
+
+    pet.update_columns(updated_at: time)
+
+    toy.pet = nil
+    toy.save!
+
+    pet.reload
+
+    assert_not_equal time, pet.updated_at
   end
 
   def test_timestamp_attributes_for_create

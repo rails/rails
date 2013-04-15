@@ -63,11 +63,6 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 
-  # dump structure of table with reserved word name
-  def test_structure_dump
-    assert_nothing_raised { @connection.structure_dump  }
-  end
-
   # introspect table with reserved word name
   def test_introspect
     assert_nothing_raised { @connection.columns(:group) }

@@ -29,7 +29,7 @@ class String
   #   "foo\n\t\tbar".indent(2) # => "\t\tfoo\n\t\t\t\tbar"
   #   "foo".indent(2, "\t")    # => "\t\tfoo"
   #
-  # While +indent_string+ is tipically one space or tab, it may be any string.
+  # While +indent_string+ is typically one space or tab, it may be any string.
   #
   # The third argument, +indent_empty_lines+, is a flag that says whether
   # empty lines should be indented. Default is false.

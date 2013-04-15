@@ -24,6 +24,7 @@ module ActiveRecord
 
     def dump(stream)
       header(stream)
+      extensions(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -66,6 +67,18 @@ HEADER
         stream.puts "end"
       end
 
+      def extensions(stream)
+        return unless @connection.supports_extensions?
+        extensions = @connection.extensions
+        if extensions.any?
+          stream.puts "  # These are extensions that must be enabled in order to support this database"
+          extensions.each do |extension|
+            stream.puts "  enable_extension #{extension.inspect}"
+          end
+          stream.puts
+        end
+      end
+
       def tables(stream)
         @connection.tables.sort.each do |tbl|
           next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
@@ -105,7 +118,7 @@ HEADER
 
           # then dump all non-primary key columns
           column_specs = columns.map do |column|
-            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
+            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
             @connection.column_spec(column, @types)
           end.compact
@@ -171,6 +184,10 @@ HEADER
             statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
 
             statement_parts << ('where: ' + index.where.inspect) if index.where
+
+            statement_parts << ('using: ' + index.using.inspect) if index.using
+
+            statement_parts << ('type: ' + index.type.inspect) if index.type
 
             '  ' + statement_parts.join(', ')
           end

@@ -1,7 +1,16 @@
 require 'cases/helper'
 require 'models/developer'
+require 'models/topic'
 
 class TimestampTest < ActiveRecord::TestCase
+  fixtures :topics
+
+  def test_group_by_date
+    keys = Topic.group("date_trunc('month', created_at)").count.keys
+    assert_operator keys.length, :>, 0
+    keys.each { |k| assert_kind_of Time, k }
+  end
+
   def test_load_infinity_and_beyond
     unless current_adapter?(:PostgreSQLAdapter)
       return skip("only tested on postgresql")
@@ -73,6 +82,15 @@ class TimestampTest < ActiveRecord::TestCase
     end
     assert_equal '4', pg_datetime_precision('foos', 'created_at')
     assert_equal '4', pg_datetime_precision('foos', 'updated_at')
+  end
+
+  def test_bc_timestamp
+    unless current_adapter?(:PostgreSQLAdapter)
+      return skip("only tested on postgresql")
+    end
+    date = Date.new(0) - 1.second
+    Developer.create!(:name => "aaron", :updated_at => date)
+    assert_equal date, Developer.find_by_name("aaron").updated_at
   end
 
   private

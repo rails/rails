@@ -1,7 +1,6 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class SQLiteDatabaseTasks # :nodoc:
-
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration, root = Rails.root)
@@ -9,10 +8,7 @@ module ActiveRecord
       end
 
       def create
-        if File.exist?(configuration['database'])
-          $stderr.puts "#{configuration['database']} already exists"
-          return
-        end
+        raise DatabaseAlreadyExists if File.exist?(configuration['database'])
 
         establish_connection configuration
         connection

@@ -50,7 +50,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     end
   end
 
-  test "vaidation with class that adds errors" do
+  test "validation with class that adds errors" do
     Topic.validates_with(ValidatorThatAddsErrors)
     topic = Topic.new
     assert topic.invalid?, "A class that adds errors causes the record to be invalid"
@@ -151,7 +151,7 @@ class ValidatesWithTest < ActiveModel::TestCase
   end
 
   test "each validator expects attributes to be given" do
-    assert_raise RuntimeError do
+    assert_raise ArgumentError do
       Topic.validates_with(ValidatorPerEachAttribute)
     end
   end

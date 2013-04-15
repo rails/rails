@@ -12,7 +12,6 @@ module ActiveModel
   # A minimal implementation could be:
   #
   #   class Person
-  #
   #     # Required dependency for ActiveModel::Errors
   #     extend ActiveModel::Naming
   #
@@ -40,7 +39,6 @@ module ActiveModel
   #     def Person.lookup_ancestors
   #       [self]
   #     end
-  #
   #   end
   #
   # The last three methods are required in your object for Errors to be
@@ -122,7 +120,7 @@ module ActiveModel
     # Delete messages for +key+. Returns the deleted messages.
     #
     #   person.errors.get(:name)    # => ["can not be nil"]
-    #   person.errors.delete(:name) # => ["can not be nil"]
+    #   person.errors.delete(:name) # => ["can not be nil"]
     #   person.errors.get(:name)    # => nil
     def delete(key)
       messages.delete(key)
@@ -213,7 +211,7 @@ module ActiveModel
     # Returns +true+ if no errors are found, +false+ otherwise.
     # If the error message is a string it can be empty.
     #
-    #   person.errors.full_messages # => ["name can not be nil"]
+    #   person.errors.full_messages # => ["name can not be nil"]
     #   person.errors.empty?        # => false
     def empty?
       all? { |k, v| v && v.empty? && !v.is_a?(String) }
@@ -246,7 +244,7 @@ module ActiveModel
       to_hash(options && options[:full_messages])
     end
 
-    # Returns a Hash of attributes with their error messages. If +full_messages+
+    # Returns a Hash of attributes with their error messages. If +full_messages+
     # is +true+, it will contain full messages (see +full_message+).
     #
     #   person.to_hash       # => {:name=>["can not be nil"]}
@@ -308,7 +306,7 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
-      [attributes].flatten.each do |attribute|
+      Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
         add(attribute, :empty, options) if value.nil? || is_empty
@@ -322,7 +320,7 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
-      [attributes].flatten.each do |attribute|
+      Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         add(attribute, :blank, options) if value.blank?
       end
@@ -350,6 +348,20 @@ module ActiveModel
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
       map { |attribute, message| full_message(attribute, message) }
+    end
+
+    # Returns all the full error messages for a given attribute in an array.
+    #
+    #   class Person
+    #     validates_presence_of :name, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create()
+    #   person.errors.full_messages_for(:name)
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
+    def full_messages_for(attribute)
+      (get(attribute) || []).map { |message| full_message(attribute, message) }
     end
 
     # Returns a full message for a given attribute.

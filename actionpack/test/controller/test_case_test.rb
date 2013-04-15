@@ -57,6 +57,10 @@ class TestCaseTest < ActionController::TestCase
       render :text => request.protocol
     end
 
+    def test_headers
+      render text: request.headers.env.to_json
+    end
+
     def test_html_output
       render :text => <<HTML
 <html>
@@ -626,6 +630,24 @@ XML
     assert_equal 2004, page[:year]
   end
 
+  test "set additional HTTP headers" do
+    @request.headers['Referer'] = "http://nohost.com/home"
+    @request.headers['Content-Type'] = "application/rss+xml"
+    get :test_headers
+    parsed_env = JSON.parse(@response.body)
+    assert_equal "http://nohost.com/home", parsed_env["HTTP_REFERER"]
+    assert_equal "application/rss+xml", parsed_env["CONTENT_TYPE"]
+  end
+
+  test "set additional env variables" do
+    @request.headers['HTTP_REFERER'] = "http://example.com/about"
+    @request.headers['CONTENT_TYPE'] = "application/json"
+    get :test_headers
+    parsed_env = JSON.parse(@response.body)
+    assert_equal "http://example.com/about", parsed_env["HTTP_REFERER"]
+    assert_equal "application/json", parsed_env["CONTENT_TYPE"]
+  end
+
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
     assert_kind_of String, @request.path_parameters['id']
@@ -692,7 +714,7 @@ XML
     assert_equal "bar", @request.params[:foo]
     @request.recycle!
     post :no_op
-    assert_blank @request.params[:foo]
+    assert @request.params[:foo].blank?
   end
 
   def test_symbolized_path_params_reset_after_request
@@ -818,6 +840,18 @@ XML
     assert_equal '159528', @response.body
   end
 
+  def test_fixture_file_upload_relative_to_fixture_path
+    TestCaseTest.stubs(:fixture_path).returns(FILES_DIR)
+    uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
+    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+  end
+
+  def test_fixture_file_upload_ignores_nil_fixture_path
+    TestCaseTest.stubs(:fixture_path).returns(nil)
+    uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
+    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+  end
+
   def test_action_dispatch_uploaded_file_upload
     filename = 'mona_lisa.jpg'
     path = "#{FILES_DIR}/#{filename}"
@@ -917,5 +951,36 @@ class AnonymousControllerTest < ActionController::TestCase
   def test_controller_name
     get :index
     assert_equal 'anonymous', @response.body
+  end
+end
+
+class RoutingDefaultsTest < ActionController::TestCase
+  def setup
+    @controller = Class.new(ActionController::Base) do
+      def post
+        render :text => request.fullpath
+      end
+
+      def project
+        render :text => request.fullpath
+      end
+    end.new
+
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        get '/posts/:id', :to => 'anonymous#post', :bucket_type => 'post'
+        get '/projects/:id', :to => 'anonymous#project', :defaults => { :bucket_type => 'project' }
+      end
+    end
+  end
+
+  def test_route_option_can_be_passed_via_process
+    get :post, :id => 1, :bucket_type => 'post'
+    assert_equal '/posts/1', @response.body
+  end
+
+  def test_route_default_is_not_required_for_building_request_uri
+    get :project, :id => 2
+    assert_equal '/projects/2', @response.body
   end
 end

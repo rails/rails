@@ -12,6 +12,8 @@ require 'models/contact'
 require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
+  include InTimeZone
+
   fixtures :topics, :developers, :companies, :computers
 
   def setup
@@ -67,7 +69,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_attributes
-    assert ! Topic.find(1).approved?
+    assert !Topic.find(1).approved?
     assert Topic.find(2).approved?
   end
 
@@ -157,8 +159,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_attributes_before_type_cast
-    category = Category.new({:name=>"Test categoty", :type => nil})
-    category_attrs = {"name"=>"Test categoty", "id" => nil, "type" => nil, "categorizations_count" => nil}
+    category = Category.new({:name=>"Test category", :type => nil})
+    category_attrs = {"name"=>"Test category", "id" => nil, "type" => nil, "categorizations_count" => nil}
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
@@ -311,26 +313,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_read_write_boolean_attribute
     topic = Topic.new
-    # puts ""
-    # puts "New Topic"
-    # puts topic.inspect
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
-    # puts ""
   end
 
   def test_overridden_write_attribute
@@ -793,25 +786,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   private
 
   def cached_columns
-    Topic.columns.find_all { |column|
-      !Topic.serialized_attributes.include? column.name
-    }.map(&:name)
+    Topic.columns.map(&:name) - Topic.serialized_attributes.keys
   end
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
-  end
-
-  def in_time_zone(zone)
-    old_zone  = Time.zone
-    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
-
-    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-    yield
-  ensure
-    Time.zone = old_zone
-    ActiveRecord::Base.time_zone_aware_attributes = old_tz
   end
 
   def privatize(method_signature)

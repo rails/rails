@@ -170,7 +170,7 @@ module ActionView
       # You can also use custom data attributes using the <tt>:data</tt> option:
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
-      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?"">Visit Other Site</a>
+      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         options ||= {}
@@ -241,13 +241,13 @@ module ActionView
       #   #      </div>
       #   #    </form>"
       #
-      #   <%= button_to "New", action: "new", form_class: "new-thing" %>
+      #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
       #
-      #   <%= button_to "Create", action: "create", remote: true, form: { "data-type" => "json" } %>
+      #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <div>
       #   #        <input value="Create" type="submit" />
@@ -415,49 +415,44 @@ module ActionView
       # also used as the name of the link unless +name+ is specified. Additional
       # HTML attributes for the link can be passed in +html_options+.
       #
-      # +mail_to+ has several methods for hindering email harvesters and customizing
-      # the email itself by passing special keys to +html_options+.
+      # +mail_to+ has several methods for customizing the email itself by
+      # passing special keys to +html_options+.
       #
       # ==== Options
-      # * <tt>:encode</tt> - This key will accept the strings "javascript" or "hex".
-      #   Passing "javascript" will dynamically create and encode the mailto link then
-      #   eval it into the DOM of the page. This method will not show the link on
-      #   the page if the user has JavaScript disabled. Passing "hex" will hex
-      #   encode the +email_address+ before outputting the mailto link.
-      # * <tt>:replace_at</tt> - When the link +name+ isn't provided, the
-      #   +email_address+ is used for the link label. You can use this option to
-      #   obfuscate the +email_address+ by substituting the @ sign with the string
-      #   given as the value.
-      # * <tt>:replace_dot</tt> - When the link +name+ isn't provided, the
-      #   +email_address+ is used for the link label. You can use this option to
-      #   obfuscate the +email_address+ by substituting the . in the email with the
-      #   string given as the value.
       # * <tt>:subject</tt> - Preset the subject line of the email.
       # * <tt>:body</tt> - Preset the body of the email.
       # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
       #
+      # ==== Obfuscation
+      # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
+      # in order to hinder email harvesters.  To take advantage of these options,
+      # install the +actionview-encoded_mail_to+ gem.
+      #
       # ==== Examples
       #   mail_to "me@domain.com"
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
-      #   mail_to "me@domain.com", "My email", encode: "javascript"
-      #   # => <script>eval(decodeURIComponent('%64%6f%63...%27%29%3b'))</script>
-      #
-      #   mail_to "me@domain.com", "My email", encode: "hex"
-      #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
-      #
-      #   mail_to "me@domain.com", nil, replace_at: "_at_", replace_dot: "_dot_", class: "email"
-      #   # => <a href="mailto:me@domain.com" class="email">me_at_domain_dot_com</a>
+      #   mail_to "me@domain.com", "My email"
+      #   # => <a href="mailto:me@domain.com">My email</a>
       #
       #   mail_to "me@domain.com", "My email", cc: "ccaddress@domain.com",
       #            subject: "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
-      def mail_to(email_address, name = nil, html_options = {})
+      #
+      # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
+      #
+      #   <%= mail_to "me@domain.com" do %>
+      #     <strong>Email me:</strong> <span>me@domain.com</span>
+      #   <% end %>
+      #   # => <a href="mailto:me@domain.com">
+      #          <strong>Email me:</strong> <span>me@domain.com</span>
+      #        </a>
+      def mail_to(email_address, name = nil, html_options = {}, &block)
         email_address = ERB::Util.html_escape(email_address)
 
-        html_options = html_options.stringify_keys
-        encode = html_options.delete("encode").to_s
+        html_options, name = name, nil if block_given?
+        html_options = (html_options || {}).stringify_keys
 
         extras = %w{ cc bcc body subject }.map { |item|
           option = html_options.delete(item) || next
@@ -465,40 +460,15 @@ module ActionView
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
-        email_address_obfuscated = email_address.to_str
-        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
-        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
-        case encode
-        when "javascript"
-          string = ''
-          html   = content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))
-          html   = escape_javascript(html.to_str)
-          "document.write('#{html}');".each_byte do |c|
-            string << sprintf("%%%x", c)
-          end
-          "<script>eval(decodeURIComponent('#{string}'))</script>".html_safe
-        when "hex"
-          email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
-            sprintf("&#%d;", c)
-          }.join
+        html_options["href"] = "mailto:#{email_address}#{extras}".html_safe
 
-          string = 'mailto:'.unpack('C*').map { |c|
-            sprintf("&#%d;", c)
-          }.join + email_address.unpack('C*').map { |c|
-            char = c.chr
-            char =~ /\w/ ? sprintf("%%%x", c) : char
-          }.join
-
-          content_tag "a", name || email_address_encoded.html_safe, html_options.merge("href" => "#{string}#{extras}".html_safe)
-        else
-          content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
-        end
+        content_tag(:a, name || email_address.html_safe, html_options, &block)
       end
 
       # True if the current request URI was generated by the given +options+.
       #
       # ==== Examples
-      # Let's say we're in the <tt>/shop/checkout?order=desc</tt> action.
+      # Let's say we're in the <tt>http://www.example.com/shop/checkout?order=desc</tt> action.
       #
       #   current_page?(action: 'process')
       #   # => false
@@ -515,7 +485,13 @@ module ActionView
       #   current_page?(controller: 'library', action: 'checkout')
       #   # => false
       #
-      # Let's say we're in the <tt>/shop/checkout?order=desc&page=1</tt> action.
+      #   current_page?('http://www.example.com/shop/checkout')
+      #   # => true
+      #
+      #   current_page?('/shop/checkout')
+      #   # => true
+      #
+      # Let's say we're in the <tt>http://www.example.com/shop/checkout?order=desc&page=1</tt> action.
       #
       #   current_page?(action: 'process')
       #   # => false
@@ -538,7 +514,7 @@ module ActionView
       #   current_page?(controller: 'library', action: 'checkout')
       #   # => false
       #
-      # Let's say we're in the <tt>/products</tt> action with method POST in case of invalid product.
+      # Let's say we're in the <tt>http://www.example.com/products</tt> action with method POST in case of invalid product.
       #
       #   current_page?(controller: 'product', action: 'index')
       #   # => false
@@ -550,7 +526,7 @@ module ActionView
                 "in a #request method"
         end
 
-        return false unless request.get?
+        return false unless request.get? || request.head?
 
         url_string = url_for(options)
 

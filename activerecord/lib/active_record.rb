@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2012 David Heinemeier Hansson
+# Copyright (c) 2004-2013 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -35,8 +35,8 @@ module ActiveRecord
   autoload :Base
   autoload :Callbacks
   autoload :Core
-  autoload :CounterCache
   autoload :ConnectionHandling
+  autoload :CounterCache
   autoload :DynamicMatchers
   autoload :Explain
   autoload :Inheritance
@@ -45,7 +45,6 @@ module ActiveRecord
   autoload :Migrator, 'active_record/migration'
   autoload :ModelSchema
   autoload :NestedAttributes
-  autoload :Observer
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
@@ -70,8 +69,8 @@ module ActiveRecord
 
     autoload :Aggregations
     autoload :Associations
-    autoload :AttributeMethods
     autoload :AttributeAssignment
+    autoload :AttributeMethods
     autoload :AutosaveAssociation
 
     autoload :Relation
@@ -144,6 +143,10 @@ module ActiveRecord
     autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
     autoload :PostgreSQLDatabaseTasks,
       'active_record/tasks/postgresql_database_tasks'
+
+    autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
+    autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
+    autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
   autoload :TestCase

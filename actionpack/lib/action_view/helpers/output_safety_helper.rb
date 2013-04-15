@@ -11,7 +11,8 @@ module ActionView #:nodoc:
       #
       # For example:
       #
-      # <%=raw @user.name %>
+      #  raw @user.name
+      #  # => 'Jimmy <alert>Tables</alert>'
       def raw(stringish)
         stringish.to_s.html_safe
       end

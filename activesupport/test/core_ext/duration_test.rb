@@ -21,7 +21,7 @@ class DurationTest < ActiveSupport::TestCase
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
     assert !(ActiveSupport::Duration === 'foo')
-    assert !(ActiveSupport::Duration === ActiveSupport::BasicObject.new)
+    assert !(ActiveSupport::Duration === ActiveSupport::ProxyObject.new)
   end
 
   def test_equals
@@ -50,14 +50,12 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_argument_error
-    begin
-      1.second.ago('')
-      flunk("no exception was raised")
-    rescue ArgumentError => e
-      assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
-    rescue Exception => e
-      flunk("ArgumentError should be raised, but we got #{e.class} instead")
-    end
+    1.second.ago('')
+    flunk("no exception was raised")
+  rescue ArgumentError => e
+    assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
+  rescue Exception => e
+    flunk("ArgumentError should be raised, but we got #{e.class} instead")
   end
 
   def test_fractional_weeks
@@ -131,7 +129,7 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
   end
-  
+
   def test_delegation_with_block_works
     counter = 0
     assert_nothing_raised do

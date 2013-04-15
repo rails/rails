@@ -1,8 +1,10 @@
 require 'isolation/abstract_unit'
+require 'env_helpers'
 
 module ApplicationTests
   class RunnerTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include EnvHelpers
 
     def setup
       build_app
@@ -35,27 +37,27 @@ module ApplicationTests
     end
 
     def test_should_run_file
-      app_file "script/count_users.rb", <<-SCRIPT
+      app_file "bin/count_users.rb", <<-SCRIPT
       puts User.count
       SCRIPT
 
-      assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "script/count_users.rb"` }
+      assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "bin/count_users.rb"` }
     end
 
     def test_should_set_dollar_0_to_file
-      app_file "script/dollar0.rb", <<-SCRIPT
+      app_file "bin/dollar0.rb", <<-SCRIPT
       puts $0
       SCRIPT
 
-      assert_match "script/dollar0.rb", Dir.chdir(app_path) { `bundle exec rails runner "script/dollar0.rb"` }
+      assert_match "bin/dollar0.rb", Dir.chdir(app_path) { `bundle exec rails runner "bin/dollar0.rb"` }
     end
 
     def test_should_set_dollar_program_name_to_file
-      app_file "script/program_name.rb", <<-SCRIPT
+      app_file "bin/program_name.rb", <<-SCRIPT
       puts $PROGRAM_NAME
       SCRIPT
 
-      assert_match "script/program_name.rb", Dir.chdir(app_path) { `bundle exec rails runner "script/program_name.rb"` }
+      assert_match "bin/program_name.rb", Dir.chdir(app_path) { `bundle exec rails runner "bin/program_name.rb"` }
     end
 
     def test_with_hook
@@ -66,6 +68,22 @@ module ApplicationTests
       RUBY
 
       assert_match "true", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.application.config.ran"` }
+    end
+
+    def test_default_environment
+      assert_match "development", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+    end
+
+    def test_environment_with_rails_env
+      with_rails_env "production" do
+        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+      end
+    end
+
+    def test_environment_with_rack_env
+      with_rack_env "production" do
+        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+      end
     end
   end
 end

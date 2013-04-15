@@ -19,16 +19,13 @@ module Rails
       argument :app_path, type: :string
 
       def self.add_shared_options_for(name)
-        class_option :builder,            type: :string, aliases: '-b',
-                                          desc: "Path to a #{name} builder (can be a filesystem path or URL)"
-
         class_option :template,           type: :string, aliases: '-m',
-                                          desc: "Path to an #{name} template (can be a filesystem path or URL)"
+                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
-        class_option :skip_bundle,        type: :boolean, default: false,
+        class_option :skip_bundle,        type: :boolean, aliases: '-B', default: false,
                                           desc: "Don't run bundle install"
 
         class_option :skip_git,           type: :boolean, aliases: '-G', default: false,
@@ -52,9 +49,6 @@ module Rails
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
 
-        class_option :skip_index_html,    type: :boolean, aliases: '-I', default: false,
-                                          desc: 'Skip public/index.html and app/assets/images/rails.png files'
-
         class_option :dev,                type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -63,6 +57,12 @@ module Rails
 
         class_option :skip_test_unit,     type: :boolean, aliases: '-T', default: false,
                                           desc: 'Skip Test::Unit files'
+
+        class_option :rc,                 type: :string, default: false,
+                                          desc: "Path to file containing extra configuration options for rails command"
+
+        class_option :no_rc,              type: :boolean, default: false,
+                                          desc: 'Skip loading of extra configuration options from .railsrc file'
 
         class_option :help,               type: :boolean, aliases: '-h', group: :rails,
                                           desc: 'Show this help message and quit'
@@ -78,17 +78,6 @@ module Rails
 
       def builder
         @builder ||= begin
-          if path = options[:builder]
-            if URI(path).is_a?(URI::HTTP)
-              contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-            else
-              contents = open(File.expand_path(path, @original_wd)) {|io| io.read }
-            end
-
-            prok = eval("proc { #{contents} }", TOPLEVEL_BINDING, path, 1)
-            instance_eval(&prok)
-          end
-
           builder_class = get_builder_class
           builder_class.send(:include, ActionMethods)
           builder_class.new(self)
@@ -141,14 +130,12 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     github: 'rails/rails'
-            gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
@@ -191,32 +178,46 @@ module Rails
         return if options[:skip_sprockets]
 
         gemfile = if options.dev? || options.edge?
-          <<-GEMFILE
-            # Gems used only for assets and not required
-            # in production environments by default.
-            group :assets do
-              gem 'sprockets-rails', github: 'rails/sprockets-rails'
-              gem 'sass-rails',   github: 'rails/sass-rails'
-              gem 'coffee-rails', github: 'rails/coffee-rails'
+          <<-GEMFILE.gsub(/^ {12}/, '')
+            # Use edge version of sprockets-rails
+            gem 'sprockets-rails', github: 'rails/sprockets-rails'
 
-              # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-              #{javascript_runtime_gemfile_entry}
-              gem 'uglifier', '>= 1.0.3'
-            end
+            # Use SCSS for stylesheets
+            gem 'sass-rails',   github: 'rails/sass-rails'
+
+            # To use Uglifier as compressor for JavaScript assets
+            gem 'uglifier', '~> 1.3'
           GEMFILE
         else
-          <<-GEMFILE
-            # Gems used only for assets and not required
-            # in production environments by default.
-            group :assets do
-              gem 'sprockets-rails', '~> 2.0.0.rc1'
-              gem 'sass-rails',   '~> 4.0.0.beta'
-              gem 'coffee-rails', '~> 4.0.0.beta'
+          <<-GEMFILE.gsub(/^ {12}/, '')
+            # Use SCSS for stylesheets
+            gem 'sass-rails',   '~> 4.0.0.beta1'
 
-              # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-              #{javascript_runtime_gemfile_entry}
-              gem 'uglifier', '>= 1.0.3'
-            end
+            # To use Uglifier as compressor for JavaScript assets
+            gem 'uglifier', '~> 1.3'
+          GEMFILE
+        end
+
+        if options[:skip_javascript]
+          gemfile += <<-GEMFILE.gsub(/^ {12}/, '')
+            #{coffee_gemfile_entry}
+            #{javascript_runtime_gemfile_entry}
+          GEMFILE
+        end
+
+        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
+      end
+
+      def coffee_gemfile_entry
+        gemfile = if options.dev? || options.edge?
+          <<-GEMFILE.gsub(/^ {12}/, '')
+            # Use CoffeeScript for .js.coffee assets and views
+            gem 'coffee-rails', github: 'rails/coffee-rails'
+          GEMFILE
+        else
+          <<-GEMFILE.gsub(/^ {12}/, '')
+            # Use CoffeeScript for .js.coffee assets and views
+            gem 'coffee-rails', '~> 4.0.0.beta1'
           GEMFILE
         end
 
@@ -225,7 +226,10 @@ module Rails
 
       def javascript_gemfile_entry
         unless options[:skip_javascript]
-          <<-GEMFILE.strip_heredoc
+          <<-GEMFILE.gsub(/^ {12}/, '').strip_heredoc
+            #{coffee_gemfile_entry}
+            #{javascript_runtime_gemfile_entry}
+
             gem '#{options[:javascript]}-rails'
 
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
@@ -235,11 +239,15 @@ module Rails
       end
 
       def javascript_runtime_gemfile_entry
-        if defined?(JRUBY_VERSION)
-          "gem 'therubyrhino'\n"
+        runtime = if defined?(JRUBY_VERSION)
+          "gem 'therubyrhino'"
         else
-          "# gem 'therubyracer', platforms: :ruby\n"
+          "# gem 'therubyracer', platforms: :ruby"
         end
+        <<-GEMFILE.gsub(/^ {10}/, '')
+          # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+          #{runtime}
+        GEMFILE
       end
 
       def bundle_command(command)

@@ -3,18 +3,39 @@ require 'arel/visitors/bind_visitor'
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
-      class Column < ConnectionAdapters::Column # :nodoc:
-        attr_reader :collation, :strict
+      class SchemaCreation < AbstractAdapter::SchemaCreation
+        private
 
-        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false)
+        def visit_AddColumn(o)
+          add_column_position!(super, o)
+        end
+
+        def add_column_position!(sql, column)
+          if column.first
+            sql << " FIRST"
+          elsif column.after
+            sql << " AFTER #{quote_column_name(column.after)}"
+          end
+          sql
+        end
+      end
+
+      def schema_creation
+        SchemaCreation.new self
+      end
+
+      class Column < ConnectionAdapters::Column # :nodoc:
+        attr_reader :collation, :strict, :extra
+
+        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
           @strict    = strict
           @collation = collation
-
+          @extra     = extra
           super(name, default, sql_type, null)
         end
 
         def extract_default(default)
-          if sql_type =~ /blob/i || type == :text
+          if blob_or_text_column?
             if default.blank?
               null || strict ? nil : ''
             else
@@ -28,8 +49,12 @@ module ActiveRecord
         end
 
         def has_default?
-          return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
+          return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
           super
+        end
+
+        def blob_or_text_column?
+          sql_type =~ /blob/i || type == :text
         end
 
         # Must return the relevant concrete adapter
@@ -57,6 +82,8 @@ module ActiveRecord
 
         def extract_limit(sql_type)
           case sql_type
+          when /^enum\((.+)\)/i
+            $1.split(',').map{|enum| enum.strip.length - 2}.max
           when /blob|text/i
             case sql_type
             when /tiny/i
@@ -73,8 +100,6 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
-          when /^enum\((.+)\)/i
-            $1.split(',').map{|enum| enum.strip.length - 2}.max
           else
             super
           end
@@ -126,6 +151,9 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      INDEX_TYPES  = [:fulltext, :spatial]
+      INDEX_USINGS = [:btree, :hash]
+
       class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
         include Arel::Visitors::BindVisitor
       end
@@ -136,10 +164,10 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
 
-        if config.fetch(:prepared_statements) { true }
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::MySQL.new self
         else
-          @visitor = BindSubstitution.new self
+          @visitor = unprepared_visitor
         end
       end
 
@@ -183,6 +211,10 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
+      def index_algorithms
+        { default: 'ALGORITHM = DEFAULT', copy: 'ALGORITHM = COPY', inplace: 'ALGORITHM = INPLACE' }
+      end
+
       # HELPER METHODS ===========================================
 
       # The two drivers have slightly different ways of yielding hashes of results, so
@@ -192,8 +224,8 @@ module ActiveRecord
       end
 
       # Overridden by the adapters to instantiate their specific Column type.
-      def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation)
+      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
+        Column.new(field, default, type, null, collation, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -328,20 +360,6 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def structure_dump #:nodoc:
-        if supports_views?
-          sql = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'"
-        else
-          sql = "SHOW TABLES"
-        end
-
-        select_all(sql, 'SCHEMA').map { |table|
-          table.delete('Table_type')
-          sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
-        }.join
-      end
-
       # Drops the database specified on the +name+ attribute
       # and creates it again using the provided +options+.
       def recreate_database(name, options = {})
@@ -420,7 +438,11 @@ module ActiveRecord
             if current_index != row[:Key_name]
               next if row[:Key_name] == 'PRIMARY' # skip the primary key
               current_index = row[:Key_name]
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [])
+
+              mysql_index_type = row[:Index_type].downcase.to_sym
+              index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
+              index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
+              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using)
             end
 
             indexes.last.columns << row[:Column_name]
@@ -436,7 +458,7 @@ module ActiveRecord
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation])
+            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation], field[:Extra])
           end
         end
       end
@@ -466,10 +488,7 @@ module ActiveRecord
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
-      end
-
-      def add_column(table_name, column_name, type, options = {})
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{add_column_sql(table_name, column_name, type, options)}")
+        rename_table_indexes(table_name, new_name)
       end
 
       def change_column_default(table_name, column_name, default)
@@ -493,6 +512,12 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+        rename_column_indexes(table_name, column_name, new_column_name)
+      end
+
+      def add_index(table_name, column_name, options = {}) #:nodoc:
+        index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options} #{index_algorithm}"
       end
 
       # Maps logical Rails types to MySQL-specific data types.
@@ -577,7 +602,11 @@ module ActiveRecord
       end
 
       def strict_mode?
-        @config.fetch(:strict, true)
+        self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
+      end
+
+      def valid_type?(type)
+        !native_database_types[type].nil?
       end
 
       protected
@@ -659,6 +688,7 @@ module ActiveRecord
         if column = columns(table_name).find { |c| c.name == column_name.to_s }
           options[:default] = column.default
           options[:null] = column.null
+          options[:auto_increment] = (column.extra == "auto_increment")
         else
           raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
         end
@@ -669,10 +699,13 @@ module ActiveRecord
         rename_column_sql
       end
 
-      def remove_column_sql(table_name, *column_names)
-        columns_for_remove(table_name, *column_names).map {|column_name| "DROP #{column_name}" }
+      def remove_column_sql(table_name, column_name, type = nil, options = {})
+        "DROP #{quote_column_name(column_name)}"
       end
-      alias :remove_columns_sql :remove_column
+
+      def remove_columns_sql(table_name, *column_names)
+        column_names.map {|column_name| remove_column_sql(table_name, column_name) }
+      end
 
       def add_index_sql(table_name, column_name, options = {})
         index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
@@ -703,6 +736,44 @@ module ActiveRecord
           raise "No such column: #{table_name}.#{column_name}"
         end
         column
+      end
+
+      def configure_connection
+        variables = @config[:variables] || {}
+
+        # By default, MySQL 'where id is null' selects the last inserted id.
+        # Turn this off. http://dev.rubyonrails.org/ticket/6778
+        variables[:sql_auto_is_null] = 0
+
+        # Increase timeout so the server doesn't disconnect us.
+        wait_timeout = @config[:wait_timeout]
+        wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
+        variables[:wait_timeout] = self.class.type_cast_config_to_integer(wait_timeout)
+
+        # Make MySQL reject illegal values rather than truncating or blanking them, see
+        # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
+        # If the user has provided another value for sql_mode, don't replace it.
+        if strict_mode? && !variables.has_key?(:sql_mode)
+          variables[:sql_mode] = 'STRICT_ALL_TABLES'
+        end
+
+        # NAMES does not have an equals sign, see
+        # http://dev.mysql.com/doc/refman/5.0/en/set-statement.html#id944430
+        # (trailing comma because variable_assignments will always have content)
+        encoding = "NAMES #{@config[:encoding]}, " if @config[:encoding]
+
+        # Gather up all of the SET variables...
+        variable_assignments = variables.map do |k, v|
+          if v == ':default' || v == :default
+            "@@SESSION.#{k.to_s} = DEFAULT" # Sets the value to the global or compile default
+          elsif !v.nil?
+            "@@SESSION.#{k.to_s} = #{quote(v)}"
+          end
+          # or else nil; compact to clear nils out
+        end.compact.join(', ')
+
+        # ...and send them all in one query
+        execute("SET #{encoding} #{variable_assignments}", :skip_logging)
       end
     end
   end

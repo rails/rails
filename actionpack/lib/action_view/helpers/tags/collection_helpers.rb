@@ -44,7 +44,8 @@ module ActionView
           html_options = @html_options.dup
 
           [:checked, :selected, :disabled].each do |option|
-            next unless current_value = @options[option]
+            current_value = @options[option]
+            next if current_value.nil?
 
             accept = if current_value.respond_to?(:call)
               current_value.call(item)

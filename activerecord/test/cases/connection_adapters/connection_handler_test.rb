@@ -4,11 +4,11 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
-        @klass    = Class.new(Base)
-        @subklass = Class.new(@klass)
+        @klass    = Class.new(Base)   { def self.name; 'klass';    end }
+        @subklass = Class.new(@klass) { def self.name; 'subklass'; end }
 
         @handler = ConnectionHandler.new
-        @handler.establish_connection @klass, Base.connection_pool.spec
+        @pool    = @handler.establish_connection(@klass, Base.connection_pool.spec)
       end
 
       def test_retrieve_connection
@@ -36,13 +36,17 @@ module ActiveRecord
       end
 
       def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
-        @handler.establish_connection 'north america', Base.connection_pool.spec
-        assert_same @handler.retrieve_connection_pool(@klass),
-          @handler.retrieve_connection_pool(@subklass)
+        sub_pool = @handler.establish_connection(@subklass, Base.connection_pool.spec)
+        assert_same sub_pool, @handler.retrieve_connection_pool(@subklass)
 
         @handler.remove_connection @subklass
-        assert_same @handler.retrieve_connection_pool(@klass),
-          @handler.retrieve_connection_pool(@subklass)
+        assert_same @pool, @handler.retrieve_connection_pool(@subklass)
+      end
+
+      def test_connection_pools
+        assert_deprecated do
+          assert_equal({ Base.connection_pool.spec => @pool }, @handler.connection_pools)
+        end
       end
     end
   end

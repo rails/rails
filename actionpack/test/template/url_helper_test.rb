@@ -51,7 +51,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
-  # TODO: missing test cases
   def test_button_to_with_straight_url
     assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com")
   end
@@ -437,6 +436,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     ActionDispatch::Request.new(env)
   end
 
+  def test_current_page_with_http_head_method
+    @request = request_for_url("/", :method => :head)
+    assert current_page?(url_hash)
+    assert current_page?("http://www.example.com/")
+  end
+
   def test_current_page_with_simple_url
     @request = request_for_url("/")
     assert current_page?(url_hash)
@@ -517,16 +522,6 @@ class UrlHelperTest < ActiveSupport::TestCase
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", class: "admin")
   end
 
-  def test_mail_to_with_javascript
-    snippet = mail_to("me@domain.com", "My email", encode: "javascript")
-    assert_dom_equal "<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
-  end
-
-  def test_mail_to_with_javascript_unicode
-    snippet = mail_to("unicode@example.com", "únicode", encode: "javascript")
-    assert_dom_equal "<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%75%6e%69%63%6f%64%65%40%65%78%61%6d%70%6c%65%2e%63%6f%6d%5c%22%3e%c3%ba%6e%69%63%6f%64%65%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
-  end
-
   def test_mail_with_options
     assert_dom_equal(
       %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email">My email</a>},
@@ -539,54 +534,24 @@ class UrlHelperTest < ActiveSupport::TestCase
       mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
   end
 
-  def test_mail_to_with_hex
-    assert_dom_equal(
-      %{<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>},
-      mail_to("me@domain.com", "My email", encode: "hex")
-    )
-
-    assert_dom_equal(
-      %{<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">&#109;&#101;&#64;&#100;&#111;&#109;&#97;&#105;&#110;&#46;&#99;&#111;&#109;</a>},
-      mail_to("me@domain.com", nil, encode: "hex")
-    )
-  end
-
-  def test_mail_to_with_replace_options
-    assert_dom_equal(
-      %{<a href="mailto:wolfgang@stufenlos.net">wolfgang(at)stufenlos(dot)net</a>},
-      mail_to("wolfgang@stufenlos.net", nil, replace_at: "(at)", replace_dot: "(dot)")
-    )
-
-    assert_dom_equal(
-      %{<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">&#109;&#101;&#40;&#97;&#116;&#41;&#100;&#111;&#109;&#97;&#105;&#110;&#46;&#99;&#111;&#109;</a>},
-      mail_to("me@domain.com", nil, encode: "hex", replace_at: "(at)")
-    )
-
-    assert_dom_equal(
-      %{<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>},
-      mail_to("me@domain.com", "My email", encode: "hex", replace_at: "(at)")
-    )
-
-    assert_dom_equal(
-      %{<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">&#109;&#101;&#40;&#97;&#116;&#41;&#100;&#111;&#109;&#97;&#105;&#110;&#40;&#100;&#111;&#116;&#41;&#99;&#111;&#109;</a>},
-      mail_to("me@domain.com", nil, encode: "hex", replace_at: "(at)", replace_dot: "(dot)")
-    )
-
-    assert_dom_equal(
-      %{<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>},
-      mail_to("me@domain.com", "My email", encode: "javascript", replace_at: "(at)", replace_dot: "(dot)")
-    )
-
-    assert_dom_equal(
-      %{<script>eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%6d%65%28%61%74%29%64%6f%6d%61%69%6e%28%64%6f%74%29%63%6f%6d%3c%5c%2f%61%3e%27%29%3b'))</script>},
-      mail_to("me@domain.com", nil, encode: "javascript", replace_at: "(at)", replace_dot: "(dot)")
-    )
-  end
-
   def test_mail_to_returns_html_safe_string
     assert mail_to("david@loudthinking.com").html_safe?
-    assert mail_to("me@domain.com", "My email", encode: "javascript").html_safe?
-    assert mail_to("me@domain.com", "My email", encode: "hex").html_safe?
+  end
+
+  def test_mail_to_with_block
+    assert_dom_equal %{<a href="mailto:me@example.com"><span>Email me</span></a>},
+      mail_to('me@example.com') { content_tag(:span, 'Email me') }
+  end
+
+  def test_mail_to_with_block_and_options
+    assert_dom_equal %{<a class="special" href="mailto:me@example.com?cc=ccaddress%40example.com"><span>Email me</span></a>},
+      mail_to('me@example.com', cc: "ccaddress@example.com", class: "special") { content_tag(:span, 'Email me') }
+  end
+
+  def test_mail_to_does_not_modify_html_options_hash
+    options = { class: 'special' }
+    mail_to 'me@example.com', 'ME!', options
+    assert_equal({ class: 'special' }, options)
   end
 
   def protect_against_forgery?
@@ -647,7 +612,7 @@ class UrlHelperControllerTest < ActionController::TestCase
       render inline: "<%= url_for controller: 'url_helper_controller_test/url_helper', action: 'show_url_for' %>"
     end
 
-    def show_overriden_url_for
+    def show_overridden_url_for
       render inline: "<%= url_for params.merge(controller: 'url_helper_controller_test/url_helper', action: 'show_url_for') %>"
     end
 
@@ -684,8 +649,8 @@ class UrlHelperControllerTest < ActionController::TestCase
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 
-  def test_overriden_url_for_shows_only_path
-    get :show_overriden_url_for
+  def test_overridden_url_for_shows_only_path
+    get :show_overridden_url_for
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 
@@ -735,7 +700,7 @@ class UrlHelperControllerTest < ActionController::TestCase
     assert_equal 'ok', @response.body
   end
 
-  def test_url_helper_can_be_overriden
+  def test_url_helper_can_be_overridden
     get :override_url_helper
     assert_equal '/url_helper_controller_test/url_helper/override_url_helper/override', @response.body
   end

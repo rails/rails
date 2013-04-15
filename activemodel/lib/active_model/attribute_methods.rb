@@ -1,3 +1,4 @@
+require 'thread_safe'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -8,7 +9,7 @@ module ActiveModel
   #
   #   user = User.first
   #   user.pets.select(:id).first.user_id
-  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
   # == Active \Model Attribute Methods
@@ -202,7 +203,7 @@ module ActiveModel
       #   person.name            # => "Bob"
       #   person.nickname        # => "Bob"
       #   person.name_short?     # => true
-      #   person.nickname_short? # => true
+      #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
         attribute_method_matchers.each do |matcher|
@@ -337,17 +338,17 @@ module ActiveModel
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
         def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= {}
+          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(:initial_capacity => 4)
         end
 
         def attribute_method_matcher(method_name) #:nodoc:
-          attribute_method_matchers_cache.fetch(method_name) do |name|
+          attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
             matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
             match = nil
-            matchers.detect { |method| match = method.match(name) }
-            attribute_method_matchers_cache[name] = match
+            matchers.detect { |method| match = method.match(method_name) }
+            match
           end
         end
 
@@ -435,7 +436,7 @@ module ActiveModel
     # attribute_missing is like method_missing, but for attributes. When method_missing is
     # called we check to see if there is a matching attribute method. If so, we call
     # attribute_missing to dispatch the attribute. This method can be overloaded to
-    # customise the behaviour.
+    # customize the behavior.
     def attribute_missing(match, *args, &block)
       __send__(match.target, match.attr_name, *args, &block)
     end

@@ -1,6 +1,42 @@
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
+      class SchemaCreation < AbstractAdapter::SchemaCreation
+        private
+
+        def visit_AddColumn(o)
+          sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
+          sql = "ADD COLUMN #{quote_column_name(o.name)} #{sql_type}"
+          add_column_options!(sql, column_options(o))
+        end
+
+        def visit_ColumnDefinition(o)
+          sql = super
+          if o.primary_key? && o.type == :uuid
+            sql << " PRIMARY KEY "
+            add_column_options!(sql, column_options(o))
+          end
+          sql
+        end
+
+        def add_column_options!(sql, options)
+          if options[:array] || options[:column].try(:array)
+            sql << '[]'
+          end
+
+          column = options.fetch(:column) { return super }
+          if column.type == :uuid && options[:default] =~ /\(\)/
+            sql << " DEFAULT #{options[:default]}"
+          else
+            super
+          end
+        end
+      end
+
+      def schema_creation
+        SchemaCreation.new self
+      end
+
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
@@ -18,9 +54,9 @@ module ActiveRecord
         #   create_database config[:database], config
         #   create_database 'foo_development', encoding: 'unicode'
         def create_database(name, options = {})
-          options = options.reverse_merge(:encoding => "utf8")
+          options = { encoding: 'utf8' }.merge!(options.symbolize_keys)
 
-          option_string = options.symbolize_keys.sum do |key, value|
+          option_string = options.sum do |key, value|
             case key
             when :owner
               " OWNER = \"#{value}\""
@@ -120,12 +156,15 @@ module ActiveRecord
 
             column_names = columns.values_at(*indkey).compact
 
-            # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
-            desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
-            orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-            where = inddef.scan(/WHERE (.+)$/).flatten[0]
+            unless column_names.empty?
+              # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
+              desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
+              orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
+              where = inddef.scan(/WHERE (.+)$/).flatten[0]
+              using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where)
+              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+            end
           end.compact
         end
 
@@ -267,7 +306,6 @@ module ActiveRecord
             FROM pg_class      seq,
                  pg_attribute  attr,
                  pg_depend     dep,
-                 pg_namespace  name,
                  pg_constraint cons
             WHERE seq.oid           = dep.objid
               AND seq.relkind       = 'S'
@@ -306,12 +344,11 @@ module ActiveRecord
         # Returns just a table's primary key
         def primary_key(table)
           row = exec_query(<<-end_sql, 'SCHEMA').rows.first
-            SELECT DISTINCT(attr.attname)
+            SELECT attr.attname
             FROM pg_attribute attr
-            INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
             INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
             WHERE cons.contype = 'p'
-              AND dep.refobjid = '#{quote_table_name(table)}'::regclass
+              AND cons.conrelid = '#{quote_table_name(table)}'::regclass
           end_sql
 
           row && row.first
@@ -323,24 +360,23 @@ module ActiveRecord
         #
         # Example:
         #   rename_table('octopuses', 'octopi')
-        def rename_table(name, new_name)
+        def rename_table(table_name, new_name)
           clear_cache!
-          execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq == "#{name}_#{pk}_seq"
+          if seq == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
           end
+
+          rename_table_indexes(table_name, new_name)
         end
 
         # Adds a new column to the named table.
         # See TableDefinition#column for details of the options you can use.
         def add_column(table_name, column_name, type, options = {})
           clear_cache!
-          add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-          add_column_options!(add_column_sql, options)
-
-          execute add_column_sql
+          super
         end
 
         # Changes the column of a table.
@@ -372,6 +408,12 @@ module ActiveRecord
         def rename_column(table_name, column_name, new_column_name)
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+          rename_column_indexes(table_name, column_name, new_column_name)
+        end
+
+        def add_index(table_name, column_name, options = {}) #:nodoc:
+          index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
         end
 
         def remove_index!(table_name, index_name) #:nodoc:
@@ -395,6 +437,13 @@ module ActiveRecord
             case limit
             when nil, 0..0x3fffffff; super(type)
             else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+            end
+          when 'text'
+            # PostgreSQL doesn't support limits on text columns.
+            # The hard limit is 1Gb, according to section 8.3 in the manual.
+            case limit
+            when nil, 0..0x3fffffff; super(type)
+            else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
             end
           when 'integer'
             return 'integer' unless limit
@@ -422,20 +471,17 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         #
-        #   distinct("posts.id", "posts.created_at desc")
+        #   distinct("posts.id", ["posts.created_at desc"])
+        #   # => "DISTINCT posts.id, posts.created_at AS alias_0"
         def distinct(columns, orders) #:nodoc:
-          return "DISTINCT #{columns}" if orders.empty?
+          order_columns = orders.map{ |s|
+              # Convert Arel node to string
+              s = s.to_sql unless s.is_a?(String)
+              # Remove any ASC/DESC modifiers
+              s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
+            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-          # Construct a clean list of column names from the ORDER BY clause, removing
-          # any ASC/DESC modifiers
-          order_columns = orders.collect do |s|
-            s = s.to_sql unless s.is_a?(String)
-            s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
-          end
-          order_columns.delete_if { |c| c.blank? }
-          order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
-
-          "DISTINCT #{columns}, #{order_columns * ', '}"
+          [super].concat(order_columns).join(', ')
         end
       end
     end

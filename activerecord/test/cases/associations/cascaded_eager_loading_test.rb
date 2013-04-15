@@ -55,7 +55,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert_equal 4, categories.count
       assert_equal 4, categories.to_a.count
-      assert_equal 3, categories.count(:distinct => true)
+      assert_equal 3, categories.distinct.count
       assert_equal 3, categories.to_a.uniq.size # Must uniq since instantiating with inner joins will get dupes
     end
   end

@@ -1,13 +1,11 @@
-module ActiveSupport
-  # A class with no predefined methods that behaves similarly to Builder's
-  # BlankSlate. Used for proxy classes.
-  class BasicObject < ::BasicObject
-    undef_method :==
-    undef_method :equal?
+require 'active_support/deprecation'
+require 'active_support/proxy_object'
 
-    # Let ActiveSupport::BasicObject at least raise exceptions.
-    def raise(*args)
-      ::Object.send(:raise, *args)
+module ActiveSupport
+  class BasicObject < ProxyObject # :nodoc:
+    def self.inherited(*)
+      ::ActiveSupport::Deprecation.warn 'ActiveSupport::BasicObject is deprecated! Use ActiveSupport::ProxyObject instead.'
+      super
     end
   end
 end

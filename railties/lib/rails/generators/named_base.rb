@@ -40,7 +40,7 @@ module Rails
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content = content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
+          content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)
@@ -160,6 +160,14 @@ module Rails
           end
         end
 
+        def attributes_names
+          @attributes_names ||= attributes.each_with_object([]) do |a, names|
+            names << a.column_name
+            names << 'password_confirmation' if a.password_digest?
+            names << "#{a.name}_type" if a.polymorphic?
+          end
+        end
+
         def pluralize_table_names?
           !defined?(ActiveRecord::Base) || ActiveRecord::Base.pluralize_table_names
         end
@@ -169,10 +177,10 @@ module Rails
         #
         # ==== Examples
         #
-        #   check_class_collision suffix: "Observer"
+        #   check_class_collision suffix: "Decorator"
         #
         # If the generator is invoked with class name Admin, it will check for
-        # the presence of "AdminObserver".
+        # the presence of "AdminDecorator".
         #
         def self.check_class_collision(options={})
           define_method :check_class_collision do

@@ -68,7 +68,7 @@ module ActiveSupport
     end
 
     # Executes the given block and updates the latest watched files and
-    # timestamp.
+    # timestamp.
     def execute
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)

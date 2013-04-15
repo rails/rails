@@ -5,7 +5,6 @@ module Rails
                                    fixture_replacement: nil
 
       c.integration_tool :test_unit
-      c.performance_tool :test_unit
     end
 
     rake_tasks do

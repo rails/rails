@@ -81,42 +81,6 @@ module ActiveRecord
       assert_equal 'SCHEMA', @connection.logged[0][1]
     end
 
-    def test_reconnection_after_simulated_disconnection_with_verify
-      assert @connection.active?
-      original_connection_pid = @connection.query('select pg_backend_pid()')
-
-      # Fail with bad connection on next query attempt.
-      raw_connection = @connection.raw_connection
-      raw_connection_class = class << raw_connection ; self ; end
-      raw_connection_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def query_fake(*args)
-          if !( @called ||= false )
-            self.stubs(:status).returns(PGconn::CONNECTION_BAD)
-            @called = true
-            raise PGError
-          else
-            self.unstub(:status)
-            query_unfake(*args)
-          end
-        end
-
-        alias query_unfake query
-        alias query        query_fake
-      CODE
-
-      begin
-        @connection.verify!
-        new_connection_pid = @connection.query('select pg_backend_pid()')
-      ensure
-        raw_connection_class.class_eval <<-CODE
-          alias query query_unfake
-          undef query_fake
-        CODE
-      end
-
-      assert_not_equal original_connection_pid, new_connection_pid, "Should have a new underlying connection pid"
-    end
-
     # Must have with_manual_interventions set to true for this
     # test to run.
     # When prompted, restart the PostgreSQL server with the
@@ -151,6 +115,47 @@ module ActiveRecord
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each do |c|
         c.verify!
+      end
+    end
+
+    def test_set_session_variable_true
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => true}}))
+        set_true = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
+        assert_equal set_true.rows, [["on"]]
+      end
+    end
+
+    def test_set_session_variable_false
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => false}}))
+        set_false = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
+        assert_equal set_false.rows, [["off"]]
+      end
+    end
+
+    def test_set_session_variable_nil
+      run_without_connection do |orig_connection|
+        # This should be a no-op that does not raise an error
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => nil}}))
+      end
+    end
+
+    def test_set_session_variable_default
+      run_without_connection do |orig_connection|
+        # This should execute a query that does not raise an error
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => :default}}))
+      end
+    end
+
+    private
+
+    def run_without_connection
+      original_connection = ActiveRecord::Base.remove_connection
+      begin
+        yield original_connection
+      ensure
+        ActiveRecord::Base.establish_connection(original_connection)
       end
     end
 

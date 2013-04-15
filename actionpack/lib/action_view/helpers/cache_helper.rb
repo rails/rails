@@ -52,6 +52,13 @@ module ActionView
       # Additionally, the digestor will automatically look through your template file for
       # explicit and implicit dependencies, and include those as part of the digest.
       #
+      # The digestor can be bypassed by passing skip_digest: true as an option to the cache call:
+      #
+      #   <% cache project, skip_digest: true do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      #
       # ==== Implicit dependencies
       #
       # Most template dependencies can be derived from calls to render in the template itself.
@@ -105,7 +112,7 @@ module ActionView
       # Now all you'll have to do is change that timestamp when the helper method changes.
       def cache(name = {}, options = nil, &block)
         if controller.perform_caching
-          safe_concat(fragment_for(fragment_name_with_digest(name), options, &block))
+          safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
           yield
         end
@@ -113,18 +120,60 @@ module ActionView
         nil
       end
 
+      # Cache fragments of a view if +condition+ is true
+      #
+      #   <%= cache_if admin?, project do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      def cache_if(condition, name = {}, options = nil, &block)
+        if condition
+          cache(name, options, &block)
+        else
+          yield
+        end
+
+        nil
+      end
+
+      # Cache fragments of a view unless +condition+ is true
+      #
+      #   <%= cache_unless admin?, project do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      def cache_unless(condition, name = {}, options = nil, &block)
+        cache_if !condition, name, options, &block
+      end
+
+      # This helper returns the name of a cache key for a given fragment cache
+      # call. By supplying skip_digest: true to cache, the digestion of cache
+      # fragments can be manually bypassed. This is useful when cache fragments
+      # cannot be manually expired unless you know the exact key which is the
+      # case when using memcached.
+      def cache_fragment_name(name = {}, options = nil)
+        skip_digest = options && options[:skip_digest]
+
+        if skip_digest
+          name
+        else
+          fragment_name_with_digest(name)
+        end
+      end
+
+    private
+
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
           [
             *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
-            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
+            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context, dependencies: view_cache_dependencies)
           ]
         else
           name
         end
       end
 
-    private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
         if fragment = controller.read_fragment(name, options)

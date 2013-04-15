@@ -193,10 +193,18 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_lock_without_default_sets_version_to_zero
     t1 = LockWithoutDefault.new
     assert_equal 0, t1.lock_version
+
+    t1.save
+    t1 = LockWithoutDefault.find(t1.id)
+    assert_equal 0, t1.lock_version
   end
 
   def test_lock_with_custom_column_without_default_sets_version_to_zero
     t1 = LockWithCustomColumnWithoutDefault.new
+    assert_equal 0, t1.custom_lock_version
+
+    t1.save
+    t1 = LockWithCustomColumnWithoutDefault.find(t1.id)
     assert_equal 0, t1.custom_lock_version
   end
 
@@ -207,7 +215,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     s.reload
     assert_equal "unchangeable name", s.name
 
-    s.update_attributes(:name => "changed name")
+    s.update(name: "changed name")
     s.reload
     assert_equal "unchangeable name", s.name
   end
@@ -341,9 +349,6 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-
-# TODO: The Sybase, and OpenBase adapters currently have no support for pessimistic locking
-
 unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false

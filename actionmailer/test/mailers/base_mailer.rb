@@ -118,4 +118,13 @@ class BaseMailer < ActionMailer::Base
 
   def without_mail_call
   end
+
+  def with_nil_as_return_value
+    mail(:template_name => "welcome")
+    nil
+  end
+
+  def with_subject_interpolations
+    mail(subject: default_i18n_subject(rapper_or_impersonator: 'Slim Shady'), body: '')
+  end
 end

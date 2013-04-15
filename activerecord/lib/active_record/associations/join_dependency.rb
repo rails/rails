@@ -68,7 +68,7 @@ module ActiveRecord
             remove_duplicate_results!(base, records, association)
           end
         when Hash
-          associations.keys.each do |name|
+          associations.each_key do |name|
             reflection = base.reflections[name]
             remove_uniq_by_reflection(reflection, records)
 
@@ -108,8 +108,8 @@ module ActiveRecord
         parent ||= join_parts.last
         case associations
         when Symbol, String
-          reflection = parent.reflections[associations.to_s.intern] or
-          raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
+          reflection = parent.reflections[associations.intern] or
+          raise ConfigurationError, "Association named '#{ associations }' was not found on #{ parent.active_record.name }; perhaps you misspelled it?"
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
             join_association = build_join_association(reflection, parent)

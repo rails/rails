@@ -5,6 +5,8 @@ module ActionView #:nodoc:
 
     attr_reader :paths
 
+    delegate :[], :include?, :pop, :size, :each, to: :paths
+
     def initialize(paths = [])
       @paths = typecast paths
     end
@@ -14,28 +16,8 @@ module ActionView #:nodoc:
       self
     end
 
-    def [](i)
-      paths[i]
-    end
-
     def to_ary
       paths.dup
-    end
-
-    def include?(item)
-      paths.include? item
-    end
-
-    def pop
-      paths.pop
-    end
-
-    def size
-      paths.size
-    end
-
-    def each(&block)
-      paths.each(&block)
     end
 
     def compact

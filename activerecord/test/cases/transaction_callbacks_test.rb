@@ -5,8 +5,28 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :topics
 
+  class ReplyWithCallbacks < ActiveRecord::Base
+    self.table_name = :topics
+
+    belongs_to :topic, foreign_key: "parent_id"
+
+    validates_presence_of :content
+
+    after_commit :do_after_commit, on: :create
+
+    def history
+      @history ||= []
+    end
+
+    def do_after_commit
+      history << :commit_on_create
+    end
+  end
+
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
+
+    has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
     after_commit{|record| record.send(:do_after_commit, nil)}
     after_commit(:on => :create){|record| record.send(:do_after_commit, :create)}
@@ -93,6 +113,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:commit_on_create], @new_record.history
   end
 
+  def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record_if_create_succeeds_creating_through_association
+    topic = TopicWithCallbacks.create!(:title => "New topic", :written_on => Date.today)
+    reply = topic.replies.create
+
+    assert_equal [], reply.history
+  end
+
   def test_call_after_rollback_after_transaction_rollsback
     @first.after_commit_block{|r| r.history << :after_commit}
     @first.after_rollback_block{|r| r.history << :after_rollback}
@@ -155,9 +182,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_rollback_when_commit_fails
-    @first.connection.class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
+    @first.class.connection.class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
     begin
-      @first.connection.class.class_eval do
+      @first.class.connection.class.class_eval do
         def commit_db_transaction; raise "boom!"; end
       end
 
@@ -167,8 +194,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       assert !@first.save rescue nil
       assert_equal [:after_rollback], @first.history
     ensure
-      @first.connection.class.send(:remove_method, :commit_db_transaction)
-      @first.connection.class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
+      @first.class.connection.class.send(:remove_method, :commit_db_transaction)
+      @first.class.connection.class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
     end
   end
 
@@ -244,89 +271,16 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal :rollback, @first.last_after_transaction_error
     assert_equal [:after_rollback], @second.history
   end
-end
 
-
-class TransactionObserverCallbacksTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
-  fixtures :topics
-
-  class TopicWithObserverAttached < ActiveRecord::Base
-    self.table_name = :topics
-    def history
-      @history ||= []
-    end
+  def test_after_rollback_callbacks_should_validate_on_condition
+    assert_raise(ArgumentError) { Topic.send(:after_rollback, :on => :save) }
   end
 
-  class TopicWithObserverAttachedObserver < ActiveRecord::Observer
-    def after_commit(record)
-      record.history.push "after_commit"
-    end
-
-    def after_rollback(record)
-      record.history.push "after_rollback"
-    end
-  end
-
-  def test_after_commit_called
-    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithObserverAttached.new
-    topic.save!
-
-    assert_equal %w{ after_commit }, topic.history
-  end
-
-  def test_after_rollback_called
-    assert TopicWithObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithObserverAttached.new
-
-    Topic.transaction do
-      topic.save!
-      raise ActiveRecord::Rollback
-    end
-
-    assert topic.id.nil?
-    assert !topic.persisted?
-    assert_equal %w{ after_rollback }, topic.history
-  end
-
-  class TopicWithManualRollbackObserverAttached < ActiveRecord::Base
-    self.table_name = :topics
-    def history
-      @history ||= []
-    end
-  end
-
-  class TopicWithManualRollbackObserverAttachedObserver < ActiveRecord::Observer
-    def after_save(record)
-      record.history.push "after_save"
-      raise ActiveRecord::Rollback
-    end
-  end
-
-  def test_after_save_called_with_manual_rollback
-    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithManualRollbackObserverAttached.new
-    
-    assert !topic.save
-    assert_equal nil, topic.id
-    assert !topic.persisted?
-    assert_equal %w{ after_save }, topic.history
-  end
-  def test_after_save_called_with_manual_rollback_bang
-    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
-
-    topic = TopicWithManualRollbackObserverAttached.new
-    
-    topic.save!
-    assert_equal nil, topic.id
-    assert !topic.persisted?
-    assert_equal %w{ after_save }, topic.history
+  def test_after_commit_callbacks_should_validate_on_condition
+    assert_raise(ArgumentError) { Topic.send(:after_commit, :on => :save) }
   end
 end
+
 
 class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -356,5 +310,40 @@ class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
     topic.save
     assert_equal true, topic.cached
     assert_equal true, topic.record_updated
+  end
+end
+
+class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  class TopicWithCallbacksOnMultipleActions < ActiveRecord::Base
+    self.table_name = :topics
+
+    after_commit(on: [:create, :destroy]) { |record| record.history << :create_and_destroy }
+    after_commit(on: [:create, :update]) { |record| record.history << :create_and_update }
+    after_commit(on: [:update, :destroy]) { |record| record.history << :update_and_destroy }
+
+    def clear_history
+      @history = []
+    end
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def test_after_commit_on_multiple_actions
+    topic = TopicWithCallbacksOnMultipleActions.new
+    topic.save
+    assert_equal [:create_and_update, :create_and_destroy], topic.history
+
+    topic.clear_history
+    topic.approved = true
+    topic.save
+    assert_equal [:update_and_destroy, :create_and_update], topic.history
+
+    topic.clear_history
+    topic.destroy
+    assert_equal [:update_and_destroy, :create_and_destroy], topic.history
   end
 end

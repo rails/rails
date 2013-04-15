@@ -49,7 +49,7 @@ module ActiveRecord
       Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
-    runner do |app|
+    runner do
       require "active_record/base"
     end
 
@@ -64,7 +64,7 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
-    initializer "active_record.migration_error" do |app|
+    initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after "::ActionDispatch::Callbacks",
           "ActiveRecord::Migration::CheckPending"
@@ -92,6 +92,56 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
+        begin
+          old_behavior, ActiveSupport::Deprecation.behavior = ActiveSupport::Deprecation.behavior, :stderr
+          whitelist_attributes = app.config.active_record.delete(:whitelist_attributes)
+
+          if respond_to?(:mass_assignment_sanitizer=)
+            mass_assignment_sanitizer = nil
+          else
+            mass_assignment_sanitizer = app.config.active_record.delete(:mass_assignment_sanitizer)
+          end
+
+          unless whitelist_attributes.nil? && mass_assignment_sanitizer.nil?
+            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
+              Model based mass assignment security has been extracted
+              out of Rails into a gem. Please use the new recommended protection model for
+              params or add `protected_attributes` to your Gemfile to use the old one.
+
+              To disable this message remove the `whitelist_attributes` option from your
+              `config/application.rb` file and any `mass_assignment_sanitizer` options
+              from your `config/environments/*.rb` files.
+
+              See http://guides.rubyonrails.org/security.html#mass-assignment for more information.
+            EOF
+          end
+
+          unless app.config.active_record.delete(:auto_explain_threshold_in_seconds).nil?
+            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
+              The Active Record auto explain feature has been removed.
+
+              To disable this message remove the `active_record.auto_explain_threshold_in_seconds`
+              option from the `config/environments/*.rb` config file.
+
+              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
+            EOF
+          end
+
+          unless app.config.active_record.delete(:observers).nil?
+            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
+              Active Record Observers has been extracted out of Rails into a gem.
+              Please use callbacks or add `rails-observers` to your Gemfile to use observers.
+
+              To disable this message remove the `observers` option from your
+              `config/application.rb` or from your initializers.
+
+              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
+            EOF
+          end
+        ensure
+          ActiveSupport::Deprecation.behavior = old_behavior
+        end
+
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end
@@ -102,15 +152,13 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-        unless ENV['DATABASE_URL']
-          self.configurations = app.config.database_configuration
-        end
+        self.configurations = app.config.database_configuration || {}
         establish_connection
       end
     end
 
     # Expose database runtime to controller for logging.
-    initializer "active_record.log_runtime" do |app|
+    initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
@@ -122,8 +170,10 @@ module ActiveRecord
 
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
-          ActiveRecord::Base.clear_reloadable_connections!
-          ActiveRecord::Base.clear_cache!
+          if ActiveRecord::Base.connected?
+            ActiveRecord::Base.clear_reloadable_connections!
+            ActiveRecord::Base.clear_cache!
+          end
         end
       end
     end
@@ -131,16 +181,6 @@ module ActiveRecord
     initializer "active_record.add_watchable_files" do |app|
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
-    end
-
-    config.after_initialize do |app|
-      ActiveSupport.on_load(:active_record) do
-        instantiate_observers
-
-        ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Base.instantiate_observers
-        end
-      end
     end
   end
 end

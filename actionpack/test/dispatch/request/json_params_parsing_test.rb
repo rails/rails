@@ -30,6 +30,21 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "nils are stripped from collections" do
+    assert_parses(
+      {"person" => nil},
+      "{\"person\":[null]}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+    assert_parses(
+      {"person" => ['foo']},
+      "{\"person\":[\"foo\",null]}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+    assert_parses(
+      {"person" => nil},
+      "{\"person\":[null, null]}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
   test "logs error if parsing unsuccessful" do
     with_test_routing do
       output = StringIO.new
@@ -104,6 +119,13 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses(
       {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
       "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/jsonrequest' }
+    )
+  end
+
+  test "parses json with non-object JSON content" do
+    assert_parses(
+      {"user" => {"_json" => "string content" }, "_json" => "string content" },
+      "\"string content\"", { 'CONTENT_TYPE' => 'application/json' }
     )
   end
 

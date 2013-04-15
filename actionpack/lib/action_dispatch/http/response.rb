@@ -1,4 +1,3 @@
-require 'digest/md5'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'monitor'
 
@@ -61,6 +60,7 @@ module ActionDispatch # :nodoc:
     cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
+    include ActionDispatch::Http::FilterRedirect
     include ActionDispatch::Http::Cache::Response
     include MonitorMixin
 
@@ -136,6 +136,7 @@ module ActionDispatch # :nodoc:
       @committed
     end
 
+    # Sets the HTTP status code.
     def status=(status)
       @status = Rack::Utils.status_code(status)
     end
@@ -144,23 +145,31 @@ module ActionDispatch # :nodoc:
       @content_type = content_type.to_s
     end
 
-    # The response code of the request
+    # The response code of the request.
     def response_code
       @status
     end
 
-    # Returns a String to ensure compatibility with Net::HTTPResponse
+    # Returns a string to ensure compatibility with <tt>Net::HTTPResponse</tt>.
     def code
       @status.to_s
     end
 
+    # Returns the corresponding message for the current HTTP status code:
+    #
+    #   response.status = 200
+    #   response.message # => "OK"
+    #
+    #   response.status = 404
+    #   response.message # => "Not Found"
+    #
     def message
       Rack::Utils::HTTP_STATUS_CODES[@status]
     end
     alias_method :status_message, :message
 
     def respond_to?(method)
-      if method.to_sym == :to_path
+      if method.to_s == 'to_path'
         stream.respond_to?(:to_path)
       else
         super
@@ -171,6 +180,8 @@ module ActionDispatch # :nodoc:
       stream.to_path
     end
 
+    # Returns the content of the response as a string. This contains the contents
+    # of any calls to <tt>render</tt>.
     def body
       strings = []
       each { |part| strings << part.to_s }
@@ -179,6 +190,7 @@ module ActionDispatch # :nodoc:
 
     EMPTY = " "
 
+    # Allows you to manually set or override the response body.
     def body=(body)
       @blank = true if body == EMPTY
 
@@ -259,12 +271,16 @@ module ActionDispatch # :nodoc:
       return if headers[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset
+      @charset      ||= self.class.default_charset unless @charset == false
 
       type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" unless @sending_file
+      type << "; charset=#{@charset}" if append_charset?
 
       headers[CONTENT_TYPE] = type
+    end
+
+    def append_charset?
+      !@sending_file && @charset != false
     end
 
     def rack_response(status, header)

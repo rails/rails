@@ -1,0 +1,31 @@
+== Setup
+
+If you don't have the environment set make sure to read
+
+    http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#testing-active-record
+
+== Running the Tests
+
+You can run a particular test file from the command line, e.g.
+
+  $ ruby -Itest test/cases/base_test.rb
+
+To run a specific test:
+
+  $ ruby -Itest test/cases/base_test.rb -n test_something_works
+
+You can run with a database other than the default you set in test/config.yml, using the ARCONN
+environment variable:
+
+  $ ARCONN=postgresql ruby -Itest test/cases/base_test.rb
+
+You can run all the tests for a given database via rake:
+
+  $ rake test_mysql
+
+The 'rake test' task will run all the tests for mysql, mysql2, sqlite3 and postgresql.
+
+== Custom Config file
+
+By default, the config file is expected to be at the path test/config.yml. You can specify a
+custom location with the ARCONFIG environment variable.

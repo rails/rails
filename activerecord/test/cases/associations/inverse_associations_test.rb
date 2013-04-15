@@ -235,6 +235,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
+  def test_parent_instance_should_be_shared_within_create_block_of_new_child
+    man = Man.first
+    interest = man.interests.build do |i|
+      assert i.man.equal?(man), "Man of child should be the same instance as a parent"
+    end
+    assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
+  def test_parent_instance_should_be_shared_within_build_block_of_new_child
+    man = Man.first
+    interest = man.interests.build do |i|
+      assert i.man.equal?(man), "Man of child should be the same instance as a parent"
+    end
+    assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
   def test_parent_instance_should_be_shared_with_poked_in_child
     m = men(:gordon)
     i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
@@ -276,6 +292,47 @@ class InverseHasManyTests < ActiveRecord::TestCase
     interests = man.interests.last(2)
     assert interests[0].man.equal? man
     assert interests[1].man.equal? man
+  end
+
+  def test_parent_instance_should_find_child_instance_using_child_instance_id
+    man = Man.create!
+    interest = Interest.create!
+    man.interests = [interest]
+
+    assert interest.equal?(man.interests.first), "The inverse association should use the interest already created and held in memory"
+    assert interest.equal?(man.interests.find(interest.id)), "The inverse association should use the interest already created and held in memory"
+    assert man.equal?(man.interests.first.man), "Two inversion should lead back to the same object that was originally held"
+    assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
+  end
+
+  def test_parent_instance_should_find_child_instance_using_child_instance_id_when_created
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
+    assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
+
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    man.name = "Ben Bitdiddle"
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
+    man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
+  end
+
+  def test_raise_record_not_found_error_when_invalid_ids_are_passed
+    man = Man.create!
+
+    invalid_id = 2394823094892348920348523452345
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
+
+    invalid_ids = [8432342, 2390102913, 2453245234523452]
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_ids) }
+  end
+
+  def test_raise_record_not_found_error_when_no_ids_are_passed
+    man = Man.create!
+
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error

@@ -3,6 +3,11 @@ API Documentation Guidelines
 
 This guide documents the Ruby on Rails API documentation guidelines.
 
+After reading this guide, you will know:
+
+* How to write effective prose for documentation purposes.
+* Style guidelines for documenting different kinds of Ruby code.
+
 --------------------------------------------------------------------------------
 
 RDoc
@@ -20,7 +25,8 @@ Write in present tense: "Returns a hash that...", rather than "Returned a hash t
 Start comments in upper case. Follow regular punctuation rules:
 
 ```ruby
-# Declares an attribute reader backed by an internally-named instance variable.
+# Declares an attribute reader backed by an internally-named 
+# instance variable.
 def attr_internal_reader(*attrs)
   ...
 end
@@ -51,8 +57,8 @@ Use two spaces to indent chunks of code--that is, for markup purposes, two space
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 
 ```ruby
-# Converts a collection of elements into a formatted string by calling
-# `to_s` on all elements and joining them.
+# Converts a collection of elements into a formatted string by 
+# calling +to_s+ on all elements and joining them.
 #
 #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
 ```
@@ -142,14 +148,16 @@ WARNING: Using a pair of `+...+` for fixed-width font only works with **words**;
 When "true" and "false" are English words rather than Ruby keywords use a regular font:
 
 ```ruby
-# Runs all the validations within the specified context. Returns true if no errors are found,
-# false otherwise.
+# Runs all the validations within the specified context.
+# Returns true if no errors are found, false otherwise.
 #
-# If the argument is false (default is +nil+), the context is set to <tt>:create</tt> if
-# <tt>new_record?</tt> is true, and to <tt>:update</tt> if it is not.
+# If the argument is false (default is +nil+), the context is
+# set to <tt>:create</tt> if <tt>new_record?</tt> is true,
+# and to <tt>:update</tt> if it is not.
 #
-# Validations with no <tt>:on</tt> option will run no matter the context. Validations with
-# some <tt>:on</tt> option will only run in the specified context.
+# Validations with no <tt>:on</tt> option will run no
+# matter the context. Validations with # some <tt>:on</tt>
+# option will only run in the specified context.
 def valid?(context = nil)
   ...
 end
@@ -161,7 +169,7 @@ Description Lists
 In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):
 
 ```ruby
-# * <tt>:allow_nil</tt> - Skip validation if attribute is `nil`.
+# * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
 ```
 
 The description starts in upper case and ends with a full stop—it's standard English.

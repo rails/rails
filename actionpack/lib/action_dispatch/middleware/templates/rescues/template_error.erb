@@ -1,17 +1,43 @@
-<h1>
-  <%=h @exception.original_exception.class.to_s %> in
-  <%=h @request.parameters["controller"].capitalize if @request.parameters["controller"]%>#<%=h @request.parameters["action"] %>
-</h1>
+<% @source_extract = @exception.source_extract(0, :html) %>
+<header>
+  <h1>
+    <%= @exception.original_exception.class.to_s %> in
+    <%= @request.parameters["controller"].capitalize if @request.parameters["controller"]%>#<%= @request.parameters["action"] %>
+  </h1>
+</header>
 
-<p>
-  Showing <i><%=h @exception.file_name %></i> where line <b>#<%=h @exception.line_number %></b> raised:
-  <pre><code><%=h @exception.message %></code></pre>
-</p>
+<div id="container">
+  <p>
+    Showing <i><%= @exception.file_name %></i> where line <b>#<%= @exception.line_number %></b> raised:
+  </p>
+  <pre><code><%= @exception.message %></code></pre>
 
-<p>Extracted source (around line <b>#<%=h @exception.line_number %></b>):
-<pre><code><%=h @exception.source_extract %></code></pre></p>
+  <div class="source">
+    <div class="info">
+      <p>Extracted source (around line <strong>#<%= @exception.line_number %></strong>):</p>
+    </div>
+    <div class="data">
+    <table cellpadding="0" cellspacing="0" class="lines">
+      <tr>
+        <td>
+          <pre class="line_numbers">
+            <% @source_extract.keys.each do |line_number| %>
+<span><%= line_number -%></span>
+            <% end %>
+          </pre>
+        </td>
+<td width="100%">
+<pre>
+<% @source_extract.each do |line, source| -%><div class="line<%= " active" if line == @exception.line_number -%>"><%= source -%></div><% end -%>
+</pre>
+</td>
+    </tr>
+  </table>
+</div>
+</div>
 
-<p><%=h @exception.sub_template_message %></p>
+  <p><%= @exception.sub_template_message %></p>
 
-<%= render template: "rescues/_trace" %>
-<%= render template: "rescues/_request_and_response" %>
+  <%= render template: "rescues/_trace" %>
+  <%= render template: "rescues/_request_and_response" %>
+</div>

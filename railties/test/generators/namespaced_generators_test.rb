@@ -1,18 +1,19 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/controller/controller_generator'
 require 'rails/generators/rails/model/model_generator'
-require 'rails/generators/rails/observer/observer_generator'
 require 'rails/generators/mailer/mailer_generator'
 require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+
   def setup
+    super
     Rails::Generators.namespace = TestApp
   end
 end
 
 class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(Account foo bar)
   tests Rails::Generators::ControllerGenerator
 
@@ -81,7 +82,6 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 end
 
 class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
   tests Rails::Generators::ModelGenerator
 
@@ -141,29 +141,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
   end
 end
 
-class NamespacedObserverGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
-  arguments %w(account)
-  tests Rails::Generators::ObserverGenerator
-
-  def test_invokes_default_orm
-    run_generator
-    assert_file "app/models/test_app/account_observer.rb", /module TestApp/, /  class AccountObserver < ActiveRecord::Observer/
-  end
-
-  def test_invokes_default_orm_with_class_path
-    run_generator ["admin/account"]
-    assert_file "app/models/test_app/admin/account_observer.rb", /module TestApp/, /  class Admin::AccountObserver < ActiveRecord::Observer/
-  end
-
-  def test_invokes_default_test_framework
-    run_generator
-    assert_file "test/models/test_app/account_observer_test.rb", /module TestApp/, /  class AccountObserverTest < ActiveSupport::TestCase/
-  end
-end
-
 class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(notifier foo bar)
   tests Rails::Generators::MailerGenerator
 
@@ -244,13 +222,9 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/test_app/product_lines/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/test_app/product_lines/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/test_app/product_lines.html.erb"
 
     # Helpers
@@ -316,13 +290,9 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/test_app/admin/roles/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/test_app/admin/roles/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/admin/roles.html.erb"
 
     # Helpers
@@ -389,13 +359,9 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/test_app/admin/user/special/roles/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/test_app/admin/user/special/roles/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/admin/user/special/roles.html.erb"
 
     # Helpers

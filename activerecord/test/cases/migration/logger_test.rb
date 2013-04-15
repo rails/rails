@@ -7,6 +7,7 @@ module ActiveRecord
       self.use_transactional_fixtures = false
 
       Migration = Struct.new(:name, :version) do
+        def disable_ddl_transaction; false end
         def migrate direction
           # do nothing
         end
@@ -34,4 +35,3 @@ module ActiveRecord
     end
   end
 end
-

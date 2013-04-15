@@ -80,17 +80,6 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Callbacks.html]
 
 
-* Observers that react to changes in a model.
-
-   class CommentObserver < ActiveRecord::Observer
-     def after_create(comment) # is called just after Comment#save
-       CommentMailer.new_comment_email('david@loudthinking.com', comment).deliver
-     end
-   end
-
-  {Learn more}[link:classes/ActiveRecord/Observer.html]
-
-
 * Inheritance hierarchies.
 
    class Company < ActiveRecord::Base; end
@@ -141,7 +130,7 @@ A short rundown of some of the major features:
   SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
 
-* Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
+* Logging support for Log4r[http://log4r.rubyforge.org] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
 
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
     ActiveRecord::Base.logger = Log4r::Logger.new('Application Log')
@@ -201,7 +190,7 @@ The latest version of Active Record can be installed with RubyGems:
 
   % [sudo] gem install activerecord
 
-Source code can be downloaded as part of the Rails project on GitHub
+Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/master/activerecord
 
@@ -215,7 +204,7 @@ Active Record is released under the MIT license:
 
 == Support
 
-API documentation is at
+API documentation is at:
 
 * http://api.rubyonrails.org
 

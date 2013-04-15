@@ -125,7 +125,8 @@ module ActiveRecord
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
       # http://dev.mysql.com/doc/refman/5.0/en/savepoint.html
-      # Savepoints are supported by MySQL and PostgreSQL, but not SQLite3.
+      # Savepoints are supported by MySQL and PostgreSQL. SQLite3 version >= '3.6.8'
+      # supports savepoints.
       #
       # It is safe to call this method if a database transaction is already open,
       # i.e. if #transaction is called within another #transaction block. In case
@@ -287,7 +288,7 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        columns = Hash[columns(table_name).map { |c| [c.name, c] }]
+        columns = schema_cache.columns_hash(table_name)
 
         key_list   = []
         value_list = fixture.map do |name, value|

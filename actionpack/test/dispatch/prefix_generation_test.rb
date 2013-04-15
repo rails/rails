@@ -241,6 +241,11 @@ module TestGenerationPrefix
       assert_equal "/something/", app_object.root_path
     end
 
+    test "[OBJECT] generating application's route includes default_url_options[:trailing_slash]" do
+      RailsApplication.routes.default_url_options[:trailing_slash] = true
+      assert_equal "/awesome/blog/posts", engine_object.posts_path
+    end
+
     test "[OBJECT] generating engine's route with url_for" do
       path = engine_object.url_for(:controller => "inside_engine_generating",
                                    :action => "show",

@@ -29,9 +29,9 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_encrypting_twice_yields_differing_cipher_text
-    first_messqage = @encryptor.encrypt_and_sign(@data).split("--").first
+    first_message = @encryptor.encrypt_and_sign(@data).split("--").first
     second_message = @encryptor.encrypt_and_sign(@data).split("--").first
-    assert_not_equal first_messqage, second_message
+    assert_not_equal first_message, second_message
   end
 
   def test_messing_with_either_encrypted_values_causes_failure
@@ -56,7 +56,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_alternative_serialization_method
-    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), :serializer => JSONSerializer.new)
+    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), SecureRandom.hex(64), :serializer => JSONSerializer.new)
     message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
     assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end

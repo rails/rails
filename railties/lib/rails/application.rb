@@ -1,5 +1,6 @@
 require 'fileutils'
-require 'active_support/queueing'
+require 'active_support/core_ext/object/blank'
+require 'active_support/key_generator'
 require 'rails/engine'
 
 module Rails
@@ -45,15 +46,16 @@ module Rails
   #   6)  Run config.before_initialize callbacks
   #   7)  Run Railtie#initializer defined by railties, engines and application.
   #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
-  #   9)  Custom Railtie#initializers added by railties, engines and applications are executed
-  #   10) Build the middleware stack and run to_prepare callbacks
-  #   11) Run config.before_eager_load and eager_load! if eager_load is true
-  #   12) Run config.after_initialize callbacks
+  #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
+  #   9)  Build the middleware stack and run to_prepare callbacks
+  #   10) Run config.before_eager_load and eager_load! if eager_load is true
+  #   11) Run config.after_initialize callbacks
   #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
+    autoload :Railties,       'rails/engine/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
@@ -66,10 +68,9 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox, :queue_consumer
+    attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
-    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -78,10 +79,9 @@ module Rails
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
-      @env_config       = nil
+      @app_env_config   = nil
       @ordered_railties = nil
       @railties         = nil
-      @queue            = nil
     end
 
     # Returns true if the application is initialized.
@@ -106,32 +106,61 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @key_generator ||= ActiveSupport::KeyGenerator.new(config.secret_token, iterations: 1000)
+      @caching_key_generator ||= begin
+        if config.secret_key_base
+          key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
+          ActiveSupport::CachingKeyGenerator.new(key_generator)
+        else
+          ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
+        end
+      end
     end
 
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     # Currently stores:
     #
-    #   * "action_dispatch.parameter_filter"         => config.filter_parameters,
-    #   * "action_dispatch.secret_token"             => config.secret_token,
-    #   * "action_dispatch.show_exceptions"          => config.action_dispatch.show_exceptions,
-    #   * "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-    #   * "action_dispatch.logger"                   => Rails.logger,
-    #   * "action_dispatch.backtrace_cleaner"        => Rails.backtrace_cleaner
-    #
-    # These parameters will be used by middlewares and engines to configure themselves
+    #   * "action_dispatch.parameter_filter"             => config.filter_parameters
+    #   * "action_dispatch.redirect_filter"              => config.filter_redirect
+    #   * "action_dispatch.secret_token"                 => config.secret_token
+    #   * "action_dispatch.secret_key_base"              => config.secret_key_base
+    #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
+    #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
+    #   * "action_dispatch.logger"                       => Rails.logger
+    #   * "action_dispatch.backtrace_cleaner"            => Rails.backtrace_cleaner
+    #   * "action_dispatch.key_generator"                => key_generator
+    #   * "action_dispatch.http_auth_salt"               => config.action_dispatch.http_auth_salt
+    #   * "action_dispatch.signed_cookie_salt"           => config.action_dispatch.signed_cookie_salt
+    #   * "action_dispatch.encrypted_cookie_salt"        => config.action_dispatch.encrypted_cookie_salt
+    #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
     #
     def env_config
-      @env_config ||= super.merge({
-        "action_dispatch.parameter_filter" => config.filter_parameters,
-        "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
-        "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-        "action_dispatch.logger" => Rails.logger,
-        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
-        "action_dispatch.key_generator" => key_generator
-      })
+      @app_env_config ||= begin
+        if config.secret_key_base.blank?
+          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
+            "Read the upgrade documentation to learn more about this new config option."
+
+          if config.secret_token.blank?
+            raise "You must set config.secret_key_base in your app's config."
+          end
+        end
+
+        super.merge({
+          "action_dispatch.parameter_filter" => config.filter_parameters,
+          "action_dispatch.redirect_filter" => config.filter_redirect,
+          "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.secret_key_base" => config.secret_key_base,
+          "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+          "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+          "action_dispatch.logger" => Rails.logger,
+          "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
+          "action_dispatch.key_generator" => key_generator,
+          "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
+          "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
+          "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
+          "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
+        })
+      end
     end
 
     ## Rails internal API
@@ -197,21 +226,12 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
-    def queue #:nodoc:
-      @queue ||= config.queue || ActiveSupport::Queue.new
-    end
-
     def to_app #:nodoc:
       self
     end
 
     def helpers_paths #:nodoc:
       config.helpers_paths
-    end
-
-    def railties #:nodoc:
-      @railties ||= Rails::Railtie.subclasses.map(&:instance) +
-        Rails::Engine.subclasses.map(&:instance)
     end
 
   protected
@@ -286,22 +306,8 @@ module Rails
     def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         app = self
-        if rack_cache = config.action_dispatch.rack_cache
-          begin
-            require 'rack/cache'
-          rescue LoadError => error
-            error.message << ' Be sure to add rack-cache to your Gemfile'
-            raise
-          end
 
-          if rack_cache == true
-            rack_cache = {
-              metastore: "rails:/",
-              entitystore: "rails:/",
-              verbose: false
-            }
-          end
-
+        if rack_cache = load_rack_cache
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
         end
@@ -318,12 +324,14 @@ module Rails
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
-        middleware.use ::Rack::Lock unless config.cache_classes
+        middleware.use ::Rack::Lock unless allow_concurrency?
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::RequestId
-        middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
+
+        # Must come after Rack::MethodOverride to properly log overridden methods
+        middleware.use ::Rails::Rack::Logger, config.log_tags
+        middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
         middleware.use ::ActionDispatch::DebugExceptions, app
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
@@ -346,11 +354,41 @@ module Rails
         middleware.use ::Rack::Head
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
-
-        if config.action_dispatch.best_standards_support
-          middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
-        end
       end
+    end
+
+    def allow_concurrency?
+      if config.allow_concurrency.nil?
+        config.cache_classes
+      else
+        config.allow_concurrency
+      end
+    end
+
+    def load_rack_cache
+      rack_cache = config.action_dispatch.rack_cache
+      return unless rack_cache
+
+      begin
+        require 'rack/cache'
+      rescue LoadError => error
+        error.message << ' Be sure to add rack-cache to your Gemfile'
+        raise
+      end
+
+      if rack_cache == true
+        {
+          metastore: "rails:/",
+          entitystore: "rails:/",
+          verbose: false
+        }
+      else
+        rack_cache
+      end
+    end
+
+    def show_exceptions_app
+      config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
     end
 
     def build_original_fullpath(env) #:nodoc:

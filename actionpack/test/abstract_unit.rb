@@ -15,7 +15,7 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
@@ -25,7 +25,6 @@ require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
 require 'action_controller/caching'
-require 'action_controller/caching/sweeping'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
@@ -38,6 +37,8 @@ module Rails
 end
 
 ActiveSupport::Dependencies.hook!
+
+Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
@@ -331,7 +332,7 @@ end
 
 module ActionDispatch
   module RoutingVerbs
-    def get(uri_or_host, path = nil, port = nil)
+    def get(uri_or_host, path = nil)
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 

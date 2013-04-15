@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of]
+      super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of, :counter_cache]
     end
 
     def valid_dependent_options

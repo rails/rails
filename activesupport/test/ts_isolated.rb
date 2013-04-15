@@ -1,4 +1,4 @@
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'active_support/test_case'
 require 'rbconfig'
 require 'active_support/core_ext/kernel/reporting'

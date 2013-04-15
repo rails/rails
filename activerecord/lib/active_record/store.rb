@@ -42,21 +42,19 @@ module ActiveRecord
   #
   # All stored values are automatically available through accessors on the Active Record
   # object, but sometimes you want to specialize this behavior. This can be done by overwriting
-  # the default accessors (using the same name as the attribute) and calling
-  # <tt>read_store_attribute(store_attribute_name, attr_name)</tt> and
-  # <tt>write_store_attribute(store_attribute_name, attr_name, value)</tt> to actually
-  # change things.
+  # the default accessors (using the same name as the attribute) and calling <tt>super</tt>
+  # to actually change things.
   #
   #   class Song < ActiveRecord::Base
   #     # Uses a stored integer to hold the volume adjustment of the song
   #     store :settings, accessors: [:volume_adjustment]
   #
   #     def volume_adjustment=(decibels)
-  #       write_store_attribute(:settings, :volume_adjustment, decibels.to_i)
+  #       super(decibels.to_i)
   #     end
   #
   #     def volume_adjustment
-  #       read_store_attribute(:settings, :volume_adjustment).to_i
+  #       super.to_i
   #     end
   #   end
   module Store
@@ -75,18 +73,29 @@ module ActiveRecord
 
       def store_accessor(store_attribute, *keys)
         keys = keys.flatten
-        keys.each do |key|
-          define_method("#{key}=") do |value|
-            write_store_attribute(store_attribute, key, value)
-          end
 
-          define_method(key) do
-            read_store_attribute(store_attribute, key)
+        _store_accessors_module.module_eval do
+          keys.each do |key|
+            define_method("#{key}=") do |value|
+              write_store_attribute(store_attribute, key, value)
+            end
+
+            define_method(key) do
+              read_store_attribute(store_attribute, key)
+            end
           end
         end
 
         self.stored_attributes[store_attribute] ||= []
         self.stored_attributes[store_attribute] |= keys
+      end
+
+      def _store_accessors_module
+        @_store_accessors_module ||= begin
+          mod = Module.new
+          include mod
+          mod
+        end
       end
     end
 
@@ -107,7 +116,7 @@ module ActiveRecord
     private
       def initialize_store_attribute(store_attribute)
         attribute = send(store_attribute)
-        unless attribute.is_a?(HashWithIndifferentAccess)
+        unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
           attribute = IndifferentCoder.as_indifferent_hash(attribute)
           send :"#{store_attribute}=", attribute
         end
@@ -134,12 +143,12 @@ module ActiveRecord
 
       def self.as_indifferent_hash(obj)
         case obj
-        when HashWithIndifferentAccess
+        when ActiveSupport::HashWithIndifferentAccess
           obj
         when Hash
           obj.with_indifferent_access
         else
-          HashWithIndifferentAccess.new
+          ActiveSupport::HashWithIndifferentAccess.new
         end
       end
     end

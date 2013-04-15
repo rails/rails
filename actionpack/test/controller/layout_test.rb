@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'rbconfig'
+require 'active_support/core_ext/array/extract_options'
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.
@@ -80,7 +81,7 @@ end
 
 class StreamingLayoutController < LayoutTest
   def render(*args)
-    options = args.extract_options! || {}
+    options = args.extract_options!
     super(*args, options.merge(:stream => true))
   end
 end
@@ -91,6 +92,18 @@ end
 
 class HasOwnLayoutController < LayoutTest
   layout 'item'
+end
+
+class HasNilLayoutSymbol < LayoutTest
+  layout :nilz
+
+  def nilz
+    nil
+  end
+end
+
+class HasNilLayoutProc < LayoutTest
+  layout proc { nil }
 end
 
 class PrependsViewPathController < LayoutTest
@@ -139,6 +152,18 @@ class LayoutSetInResponseTest < ActionController::TestCase
     @controller = HasOwnLayoutController.new
     get :hello
     assert_template :layout => "layouts/item"
+  end
+
+  def test_layout_symbol_set_in_controller_returning_nil_falls_back_to_default
+    @controller = HasNilLayoutSymbol.new
+    get :hello
+    assert_template layout: "layouts/layout_test"
+  end
+
+  def test_layout_proc_set_in_controller_returning_nil_falls_back_to_default
+    @controller = HasNilLayoutProc.new
+    get :hello
+    assert_template layout: "layouts/layout_test"
   end
 
   def test_layout_only_exception_when_included

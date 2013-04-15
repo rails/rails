@@ -3,7 +3,7 @@ require 'action_view/vendor/html-scanner'
 
 module ActionView
   # = Action View Sanitize Helpers
-  module Helpers #:nodoc:
+  module Helpers
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper

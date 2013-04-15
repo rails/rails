@@ -1,3 +1,6 @@
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/hash/slice'
+
 module ActionDispatch
   module Http
     module URL
@@ -8,14 +11,16 @@ module ActionDispatch
 
       class << self
         def extract_domain(host, tld_length = @@tld_length)
-          return nil unless named_host?(host)
-          host.split('.').last(1 + tld_length).join('.')
+          host.split('.').last(1 + tld_length).join('.') if named_host?(host)
         end
 
         def extract_subdomains(host, tld_length = @@tld_length)
-          return [] unless named_host?(host)
-          parts = host.split('.')
-          parts[0..-(tld_length+2)]
+          if named_host?(host)
+            parts = host.split('.')
+            parts[0..-(tld_length + 2)]
+          else
+            []
+          end
         end
 
         def extract_subdomain(host, tld_length = @@tld_length)
@@ -23,16 +28,22 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          path = ""
-          path << options.delete(:script_name).to_s.chomp("/")
+          path  = options.delete(:script_name).to_s.chomp("/")
           path << options.delete(:path).to_s
 
-          params = options[:params] || {}
-          params.reject! {|k,v| v.to_param.nil? }
+          params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
+          params.reject! { |_,v| v.to_param.nil? }
 
           result = build_host_url(options)
-
-          result << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+          if options[:trailing_slash]
+            if path.include?('?')
+              result << path.sub(/\?/, '/\&')
+            else
+              result << path.sub(/[^\/]\z|\A\z/, '\&/')
+            end
+          else
+            result << path
+          end
           result << "?#{params.to_query}" unless params.empty?
           result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result
@@ -48,8 +59,9 @@ module ActionDispatch
           result = ""
 
           unless options[:only_path]
+            protocol = extract_protocol(options)
             unless options[:protocol] == false
-              result << (options[:protocol] || "http")
+              result << protocol
               result << ":" unless result.match(%r{:|//})
             end
             result << "//" unless result.match("//")
@@ -70,6 +82,16 @@ module ActionDispatch
           else
             ""
           end
+        end
+
+        # Extracts protocol http:// or https:// from options[:host]
+        # needs to be called whether the :protocol is being used or not
+        def extract_protocol(options)
+          if options[:host] && match = options[:host].match(/(^.*:\/\/)(.*)/)
+            options[:protocol] ||= match[1]
+            options[:host]     =   match[2]
+          end
+          options[:protocol] || "http"
         end
 
         def host_or_subdomain_and_domain(options)

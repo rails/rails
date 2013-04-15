@@ -1,13 +1,15 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
-      attr_accessor :last_request_parameters
+      attr_accessor :last_request_parameters, :last_parameters
     end
 
     def parse
       self.class.last_request_parameters = request.request_parameters
+      self.class.last_parameters = request.parameters
       head :ok
     end
 
@@ -28,6 +30,23 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses bracketed parameters" do
     assert_equal({ 'foo' => { 'baz' => 'bar'}}, parse_multipart('bracketed_param'))
+  end
+
+  test "parse single utf8 parameter" do
+    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => 'Iñtërnâtiônàlizætiøn_value'}, 
+                 parse_multipart('single_utf8_param'), "request.request_parameters")
+    assert_equal(
+      'Iñtërnâtiônàlizætiøn_value',
+      TestController.last_parameters['Iñtërnâtiônàlizætiøn_name'], "request.parameters")
+  end
+
+  test "parse bracketed utf8 parameter" do
+    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => { 
+      'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'} }, 
+      parse_multipart('bracketed_utf8_param'), "request.request_parameters")
+    assert_equal(
+      {'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'},
+      TestController.last_parameters['Iñtërnâtiônàlizætiøn_name'], "request.parameters")
   end
 
   test "parses text file" do
@@ -120,6 +139,18 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     with_test_routing do
       post '/read', :uploaded_data => fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain")
       assert_equal "File: Hello", response.body
+    end
+  end
+
+  # This can happen in Internet Explorer when redirecting after multipart form submit.
+  test "does not raise EOFError on GET request with multipart content-type" do
+    with_routing do |set|
+      set.draw do
+        get ':action', to: 'multipart_params_parsing_test/test'
+      end
+      headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x" }
+      get "/parse", {}, headers
+      assert_response :ok
     end
   end
 

@@ -1,12 +1,13 @@
 A Guide to Testing Rails Applications
 =====================================
 
-This guide covers built-in mechanisms offered by Rails to test your
-application. By referring to this guide, you will be able to:
+This guide covers built-in mechanisms in Rails for testing your application.
 
-* Understand Rails testing terminology
-* Write unit, functional, and integration tests for your application
-* Identify other popular testing approaches and plugins
+After reading this guide, you will know:
+
+* Rails testing terminology.
+* How to write unit, functional, and integration tests for your application.
+* Other popular testing approaches and plugins.
 
 --------------------------------------------------------------------------------
 
@@ -36,11 +37,11 @@ Rails creates a `test` folder for you as soon as you create a Rails project usin
 
 ```bash
 $ ls -F test
-
-fixtures/  functional/  integration/  performance/  test_helper.rb  unit/
+controllers/    helpers/        mailers/        test_helper.rb
+fixtures/       integration/    models/
 ```
 
-The `unit` directory is meant to hold tests for your models, the `functional` directory is meant to hold tests for your controllers, the `integration` directory is meant to hold tests that involve any number of controllers interacting, and the `performance` directory is meant for performance tests.
+The `models` directory is meant to hold tests for your models, the `controllers` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting.
 
 Fixtures are a way of organizing test data; they reside in the `fixtures` folder.
 
@@ -75,7 +76,7 @@ steve:
  profession: guy with keyboard
 ```
 
-Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column.
+Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column. Keys which resemble YAML keywords such as 'yes' and 'no' are quoted so that the YAML Parser correctly interprets them.
 
 #### ERB'in It Up
 
@@ -97,9 +98,9 @@ Rails by default automatically loads all fixtures from the `test/fixtures` folde
 * Load the fixture data into the table
 * Dump the fixture data into a variable in case you want to access it directly
 
-#### Fixtures are ActiveRecord objects
+#### Fixtures are Active Record objects
 
-Fixtures are instances of ActiveRecord. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
+Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david
@@ -127,21 +128,20 @@ When you use `rails generate scaffold`, for a resource among other things it cre
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/models/post_test.rb
+create  test/unit/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/models/post_test.rb` looks like this:
+The default test stub in `test/unit/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
-  # Replace this with your real tests.
-  test "the truth" do
-    assert true
-  end
+  # test "the truth" do
+  #   assert true
+  # end
 end
 ```
 
@@ -222,33 +222,29 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 
 ### Running Tests
 
-Running a test is as simple as invoking the file containing the test cases through Ruby:
+Running a test is as simple as invoking the file containing the test cases through `rake test` command.
 
 ```bash
-$ ruby -Itest test/models/post_test.rb
-
-Loaded suite models/post_test
-Started
+$ rake test test/models/post_test.rb
 .
-Finished in 0.023513 seconds.
 
-1 tests, 1 assertions, 0 failures, 0 errors
+Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-This will run all the test methods from the test case. Note that `test_helper.rb` is in the `test` directory, hence this directory needs to be added to the load path using the `-I` switch.
-
-You can also run a particular test method from the test case by using the `-n` switch with the `test method name`.
+You can also run a particular test method from the test case by running the test and providing the `test method name`.
 
 ```bash
-$ ruby -Itest test/models/post_test.rb -n test_the_truth
-
-Loaded suite models/post_test
-Started
+$ rake test test/models/post_test.rb test_the_truth
 .
-Finished in 0.023513 seconds.
 
-1 tests, 1 assertions, 0 failures, 0 errors
+Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
+
+This will run all test methods from the test case. Note that `test_helper.rb` is in the `test` directory, hence this directory needs to be added to the load path using the `-I` switch.
 
 The `.` (dot) above indicates a passing test. When a test fails you see an `F`; when a test throws an error you see an `E` in its place. The last line of the output is the summary.
 
@@ -264,17 +260,16 @@ end
 Let us run this newly added test.
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
-Loaded suite -e
-Started
+$ rake test test/models/post_test.rb test_should_not_save_post_without_title
 F
-Finished in 0.102072 seconds.
+
+Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
 
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
-<false> is not true.
+test_should_not_save_post_without_title(PostTest) [test/models/post_test.rb:6]:
+Failed assertion, no message given.
 
-1 tests, 1 assertions, 1 failures, 0 errors
+1 tests, 1 assertions, 1 failures, 0 errors, 0 skips
 ```
 
 In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
@@ -290,29 +285,27 @@ Running this test shows the friendlier assertion message:
 
 ```bash
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
-Saved the post without a title.
-<false> is not true.
+test_should_not_save_post_without_title(PostTest) [test/models/post_test.rb:6]:
+Saved the post without a title
 ```
 
 Now to get this test to pass we can add a model level validation for the _title_ field.
 
 ```ruby
 class Post < ActiveRecord::Base
-  validates :title, :presence => true
+  validates :title, presence: true
 end
 ```
 
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
-Loaded suite unit/post_test
-Started
+$ rake test test/models/post_test.rb test_should_not_save_post_without_title
 .
-Finished in 0.193608 seconds.
 
-1 tests, 1 assertions, 0 failures, 0 errors
+Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
@@ -332,18 +325,17 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ ruby unit/post_test.rb -n test_should_report_error
-Loaded suite -e
-Started
+$ rake test test/models/post_test.rb test_should_report_error
 E
-Finished in 0.082603 seconds.
+
+Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
 
   1) Error:
 test_should_report_error(PostTest):
-NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x249d354>
-    /test/models/post_test.rb:6:in `test_should_report_error'
+NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x007fe32e24afe0>
+    test/models/post_test.rb:10:in `block in <class:PostTest>'
 
-1 tests, 0 assertions, 0 failures, 1 errors
+1 tests, 0 assertions, 0 failures, 1 errors, 0 skips
 ```
 
 Notice the 'E' in the output. It denotes a test with error.
@@ -397,7 +389,7 @@ Rails adds some custom assertions of its own to the `test/unit` framework:
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299,  `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
-| `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(:controller => "weblog")` will also match the redirection of `redirect_to(:controller => "weblog", :action => "show")` and so on.|
+| `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on.|
 | `assert_template(expected = nil, message=nil)`                                    | Asserts that the request was rendered with the appropriate template file.|
 
 You'll see the usage of some of these assertions in the next chapter.
@@ -457,7 +449,7 @@ Let us modify `test_should_create_post` test in `posts_controller_test.rb` so th
 ```ruby
 test "should create post" do
   assert_difference('Post.count') do
-    post :create, :post => { :title => 'Some title'}
+    post :create, post: {title: 'Some title'}
   end
 
   assert_redirected_to post_path(assigns(:post))
@@ -509,6 +501,21 @@ You also have access to three instance variables in your functional tests:
 * `@request` - The request
 * `@response` - The response
 
+### Setting Headers and CGI variables
+
+Headers and cgi variables can be set directly on the `@request`
+instance variable:
+
+```ruby
+# setting a HTTP Header
+@request.headers["Accepts"] = "text/plain, text/html"
+get :index # simulate the request with custom header
+
+# setting a CGI variable
+@request.headers["HTTP_REFERER"] = "http://example.com/home"
+post :create # simulate the request with custom env variable
+```
+
 ### Testing Templates and Layouts
 
 If you want to make sure that the response rendered the correct template and layout, you can use the `assert_template`
@@ -518,7 +525,7 @@ method:
 test "index should render correct template and layout" do
   get :index
   assert_template :index
-  assert_template :layout => "layouts/application"
+  assert_template layout: "layouts/application"
 end
 ```
 
@@ -528,7 +535,7 @@ things clearer. On the other hand, you have to include the "layouts" directory n
 file in this standard layout directory. Hence,
 
 ```ruby
-assert_template :layout => "application"
+assert_template layout: "application"
 ```
 
 will not work.
@@ -541,7 +548,7 @@ Hence:
 ```ruby
 test "new should render correct layout" do
   get :new
-  assert_template :layout => "layouts/application", :partial => "_form"
+  assert_template layout: "layouts/application", partial: "_form"
 end
 ```
 
@@ -554,7 +561,7 @@ Here's another example that uses `flash`, `assert_redirected_to`, and `assert_di
 ```ruby
 test "should create post" do
   assert_difference('Post.count') do
-    post :create, :post => { :title => 'Hi', :body => 'This is my first post.'}
+    post :create, post: {title: 'Hi', body: 'This is my first post.'}
   end
   assert_redirected_to post_path(assigns(:post))
   assert_equal 'Post was successfully created.', flash[:notice]
@@ -640,12 +647,9 @@ Here's what a freshly-generated integration test looks like:
 require 'test_helper'
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
-  fixtures :all
-
-  # Replace this with your real tests.
-  test "the truth" do
-    assert true
-  end
+  # test "the truth" do
+  #   assert true
+  # end
 end
 ```
 
@@ -686,9 +690,9 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
     get "/login"
     assert_response :success
 
-    post_via_redirect "/login", :username => users(:avs).username, :password => users(:avs).password
+    post_via_redirect "/login", username: users(:david).username, password: users(:david).password
     assert_equal '/welcome', path
-    assert_equal 'Welcome avs!', flash[:notice]
+    assert_equal 'Welcome david!', flash[:notice]
 
     https!(false)
     get "/posts/all"
@@ -711,12 +715,12 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
   test "login and browse site" do
 
     # User avs logs in
-    avs = login(:avs)
+    avs = login(:david)
     # User guest logs in
     guest = login(:guest)
 
     # Both are now available in different sessions
-    assert_equal 'Welcome avs!', avs.flash[:notice]
+    assert_equal 'Welcome david!', avs.flash[:notice]
     assert_equal 'Welcome guest!', guest.flash[:notice]
 
     # User avs can browse site
@@ -742,7 +746,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
       sess.extend(CustomDsl)
       u = users(user)
       sess.https!
-      sess.post "/login", :username => u.username, :password => u.password
+      sess.post "/login", username: u.username, password: u.password
       assert_equal '/welcome', path
       sess.https!(false)
     end
@@ -753,31 +757,37 @@ end
 Rake Tasks for Running your Tests
 ---------------------------------
 
-You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rails project.
+You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
 
-| Tasks                           | Description |
-| ------------------------------- | ----------- |
-| `rake test`                     | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
-| `rake test:benchmark`           | Benchmark the performance tests|
-| `rake test:controllers`         | Runs all the controller tests from `test/controllers`|
-| `rake test:functionals`         | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
-| `rake test:helpers`             | Runs all the helper tests from `test/helpers`|
-| `rake test:integration`         | Runs all the integration tests from `test/integration`|
-| `rake test:mailers`             | Runs all the mailer tests from `test/mailers`|
-| `rake test:models`              | Runs all the model tests from `test/models`|
-| `rake test:profile`             | Profile the performance tests|
-| `rake test:recent`              | Tests recent changes|
-| `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
-| `rake test:units`               | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
+| Tasks                    | Description |
+| ------------------------ | ----------- |
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake test` as Rails will run all the tests by default|
+| `rake test:controllers` | Runs all the controller tests from `test/controllers`|
+| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
+| `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
+| `rake test:integration` | Runs all the integration tests from `test/integration`|
+| `rake test:mailers`     | Runs all the mailer tests from `test/mailers`|
+| `rake test:models`      | Runs all the model tests from `test/models`|
+| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 
+There're also some test commands which you can initiate by running rake tasks:
 
-Brief Note About `Test::Unit`
+| Tasks                    | Description |
+| ------------------------ | ----------- |
+| `rake test`              | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
+| `rake test:recent`       | Tests recent changes|
+| `rake test:uncommitted`  | Runs all the tests which are uncommitted. Supports Subversion and Git|
+
+Brief Note About `MiniTest`
 -----------------------------
 
-Ruby ships with a boat load of libraries. One little gem of a library is `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
+Ruby ships with a boat load of libraries. Ruby 1.8 provides `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
 us to use all of the basic assertions in our tests.
 
+Ruby 1.9 introduced `MiniTest`, an updated version of `Test::Unit` which provides a backwards compatible API for `Test::Unit`. You could also use `MiniTest` in Ruby 1.8 by installing the `minitest` gem.
+
 NOTE: For more information on `Test::Unit`, refer to [test/unit Documentation](http://ruby-doc.org/stdlib/libdoc/test/unit/rdoc/)
+For more information on `MiniTest`, refer to [Minitest](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/minitest/unit/rdoc/)
 
 Setup and Teardown
 ------------------
@@ -803,13 +813,13 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   test "should show post" do
-    get :show, :id => @post.id
+    get :show, id: @post.id
     assert_response :success
   end
 
   test "should destroy post" do
     assert_difference('Post.count', -1) do
-      delete :destroy, :id => @post.id
+      delete :destroy, id: @post.id
     end
 
     assert_redirected_to posts_path
@@ -828,7 +838,7 @@ Above, the `setup` method is called before each test and so `@post` is available
 Let's see the earlier example by specifying `setup` callback by specifying a method name as a symbol:
 
 ```ruby
-require '../test_helper'
+require 'test_helper'
 
 class PostsControllerTest < ActionController::TestCase
 
@@ -841,18 +851,18 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   test "should show post" do
-    get :show, :id => @post.id
+    get :show, id: @post.id
     assert_response :success
   end
 
   test "should update post" do
-    patch :update, :id => @post.id, :post => { }
+    patch :update, id: @post.id, post: {}
     assert_redirected_to post_path(assigns(:post))
   end
 
   test "should destroy post" do
     assert_difference('Post.count', -1) do
-      delete :destroy, :id => @post.id
+      delete :destroy, id: @post.id
     end
 
     assert_redirected_to posts_path
@@ -874,7 +884,7 @@ Like everything else in your Rails application, it is recommended that you test 
 
 ```ruby
 test "should route to post" do
-  assert_routing '/posts/1', { :controller => "posts", :action => "show", :id => "1" }
+  assert_routing '/posts/1', {controller: "posts", action: "show", id: "1"}
 end
 ```
 
@@ -885,7 +895,7 @@ Testing mailer classes requires some specific tools to do a thorough job.
 
 ### Keeping the Postman in Check
 
-Your mailer classes -- like every other part of your Rails application -- should be tested to ensure that it is working as expected.
+Your mailer classes — like every other part of your Rails application — should be tested to ensure that it is working as expected.
 
 The goals of testing your mailer classes are to ensure that:
 
@@ -917,19 +927,24 @@ require 'test_helper'
 class UserMailerTest < ActionMailer::TestCase
   tests UserMailer
   test "invite" do
-    @expected.from    = 'me@example.com'
-    @expected.to      = 'friend@example.com'
-    @expected.subject = "You have been invited by #{@expected.from}"
-    @expected.body    = read_fixture('invite')
-    @expected.date    = Time.now
+    # Send the email, then test that it got queued
+    email = UserMailer.create_invite('me@example.com',
+                                     'friend@example.com', Time.now).deliver
+    assert !ActionMailer::Base.deliveries.empty?
 
-    assert_equal @expected.encoded, UserMailer.create_invite('me@example.com', 'friend@example.com', @expected.date).encoded
+    # Test the body of the sent email contains what we expect it to
+    assert_equal ['me@example.com'], email.from
+    assert_equal ['friend@example.com'], email.to
+    assert_equal 'You have been invited by me@example.com', email.subject
+    assert_equal read_fixture('invite').join, email.body.to_s
   end
-
 end
 ```
 
-In this test, `@expected` is an instance of `TMail::Mail` that you can use in your tests. It is defined in `ActionMailer::TestCase`. The test above uses `@expected` to construct an email, which it then asserts with email created by the custom mailer. The `invite` fixture is the body of the email and is used as the sample content to assert against. The helper `read_fixture` is used to read in the content from this file.
+In the test we send the email and store the returned object in the `email`
+variable. We then ensure that it was sent (the first assert), then, in the
+second batch of assertions, we ensure that the email does indeed contain what we
+expect. The helper `read_fixture` is used to read in the content from this file.
 
 Here's the content of the `invite` fixture:
 
@@ -941,9 +956,17 @@ You have been invited.
 Cheers!
 ```
 
-This is the right time to understand a little more about writing tests for your mailers. The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (`ActionMailer::Base.deliveries`).
+This is the right time to understand a little more about writing tests for your
+mailers. The line `ActionMailer::Base.delivery_method = :test` in
+`config/environments/test.rb` sets the delivery method to test mode so that
+email will not actually be delivered (useful to avoid spamming your users while
+testing) but instead it will be appended to an array
+(`ActionMailer::Base.deliveries`).
 
-However often in unit tests, mails will not actually be sent, simply constructed, as in the example above, where the precise content of the email is checked against what it should be.
+NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
+`ActionMailer::TestCase` tests. If you want to have a clean slate outside Action
+Mailer tests, you can reset it manually with:
+`ActionMailer::Base.deliveries.clear`
 
 ### Functional Testing
 
@@ -955,7 +978,7 @@ require 'test_helper'
 class UserControllerTest < ActionController::TestCase
   test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
-      post :invite_friend, :email => 'friend@example.com'
+      post :invite_friend, email: 'friend@example.com'
     end
     invite_email = ActionMailer::Base.deliveries.last
 
@@ -974,5 +997,6 @@ The built-in `test/unit` based testing is not the only way to test Rails applica
 * [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
 * [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
 * [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
+* [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
 * [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
 * [RSpec](http://relishapp.com/rspec), a behavior-driven development framework

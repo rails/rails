@@ -51,10 +51,13 @@ module ActiveRecord
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
 
+          path_to_adapter = "active_record/connection_adapters/#{spec[:adapter]}_adapter"
           begin
-            require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+            require path_to_adapter
+          rescue Gem::LoadError => e
+            raise Gem::LoadError, "Specified '#{spec[:adapter]}' for database adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile."
           rescue LoadError => e
-            raise LoadError, "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e.message})", e.backtrace
+            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql', 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
@@ -72,13 +75,19 @@ module ActiveRecord
                    :port     => config.port,
                    :database => config.path.sub(%r{^/},""),
                    :host     => config.host }
+
           spec.reject!{ |_,value| value.blank? }
+
           uri_parser = URI::Parser.new
+
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
+
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+
             spec.merge!(options)
           end
+
           spec
         end
       end

@@ -18,16 +18,15 @@ module TestUnit # :nodoc:
       private
 
         def attributes_hash
-          return if accessible_attributes.empty?
+          return if attributes_names.empty?
 
-          accessible_attributes.map do |a|
-            name = a.name
-            "#{name}: @#{singular_table_name}.#{name}"
+          attributes_names.map do |name|
+            if %w(password password_confirmation).include?(name) && attributes.any?(&:password_digest?)
+              "#{name}: 'secret'"
+            else
+              "#{name}: @#{singular_table_name}.#{name}"
+            end
           end.sort.join(', ')
-        end
-
-        def accessible_attributes
-          attributes.reject(&:reference?)
         end
     end
   end

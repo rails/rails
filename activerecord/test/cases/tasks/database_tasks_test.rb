@@ -11,10 +11,10 @@ module ActiveRecord
   end
 
   ADAPTERS_TASKS = {
-     :mysql      => :mysql_tasks,
-     :mysql2     => :mysql_tasks,
-     :postgresql => :postgresql_tasks,
-     :sqlite3    => :sqlite_tasks
+    mysql:      :mysql_tasks,
+    mysql2:     :mysql_tasks,
+    postgresql: :postgresql_tasks,
+    sqlite3:    :sqlite_tasks
   }
 
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
@@ -31,8 +31,14 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
       ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :foo}, "awesome-file.sql")
     end
+
+    def test_unregistered_task
+      assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :bar}, "awesome-file.sql")
+      end
+    end
   end
- 
+
   class DatabaseTasksCreateTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
@@ -258,7 +264,7 @@ module ActiveRecord
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
- 
+
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_charset") do
         eval("@#{v}").expects(:charset)
@@ -269,7 +275,7 @@ module ActiveRecord
 
   class DatabaseTasksCollationTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
- 
+
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_collation") do
         eval("@#{v}").expects(:collation)

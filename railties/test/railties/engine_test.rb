@@ -105,7 +105,7 @@ module RailtiesTest
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `bundle exec rake railties:install:migrations`
+        `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
       end
@@ -187,7 +187,7 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
-    test "adds its views to view paths with lower proriority than app ones" do
+    test "adds its views to view paths with lower priority than app ones" do
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
           def index
@@ -568,7 +568,7 @@ YAML
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'hello'] }
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['hello']] }
           end
         end
       RUBY
@@ -1239,6 +1239,12 @@ YAML
 
       get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
       assert_equal '/foo/bukkits/bukkit', last_response.body
+    end
+
+    test "engines method is properly deprecated" do
+      boot_rails
+
+      assert_deprecated { app.railties.engines }
     end
 
   private

@@ -21,10 +21,10 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
-require 'models/bulb'
 require 'models/bird'
+require 'models/car'
+require 'models/bulb'
 require 'rexml/document'
-require 'active_support/core_ext/exception'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -123,7 +123,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
+  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
     def test_limit_with_comma
       assert Topic.limit("1,2").to_a
     end
@@ -140,19 +140,19 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_limit_should_sanitize_sql_injection_for_limit_without_comas
+  def test_limit_should_sanitize_sql_injection_for_limit_without_commas
     assert_raises(ArgumentError) do
       Topic.limit("1 select * from schema").to_a
     end
   end
 
-  def test_limit_should_sanitize_sql_injection_for_limit_with_comas
+  def test_limit_should_sanitize_sql_injection_for_limit_with_commas
     assert_raises(ArgumentError) do
       Topic.limit("1, 7 procedure help()").to_a
     end
   end
 
-  unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_limit_should_allow_sql_literal
       assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
     end
@@ -221,7 +221,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -299,13 +299,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_invalid_attribute
-    begin
-      Topic.new({ "title" => "test",
-        "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
-    rescue ActiveRecord::MultiparameterAssignmentErrors => ex
-      assert_equal(1, ex.errors.size)
-      assert_equal("last_read", ex.errors[0].attribute)
-    end
+    Topic.new({ "title" => "test",
+      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
+  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+    assert_equal(1, ex.errors.size)
+    assert_equal("last_read", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block
@@ -320,27 +318,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(true, cb.frickinawesome)
   end
 
-  def test_first_or_create
-    parrot = Bird.first_or_create(:color => 'green', :name => 'parrot')
-    assert parrot.persisted?
-    the_same_parrot = Bird.first_or_create(:color => 'yellow', :name => 'macaw')
-    assert_equal parrot, the_same_parrot
-  end
-
-  def test_first_or_create_bang
-    assert_raises(ActiveRecord::RecordInvalid) { Bird.first_or_create! }
-    parrot = Bird.first_or_create!(:color => 'green', :name => 'parrot')
-    assert parrot.persisted?
-    the_same_parrot = Bird.first_or_create!(:color => 'yellow', :name => 'macaw')
-    assert_equal parrot, the_same_parrot
-  end
-
-  def test_first_or_initialize
-    parrot = Bird.first_or_initialize(:color => 'green', :name => 'parrot')
-    assert_kind_of Bird, parrot
-    assert !parrot.persisted?
-    assert parrot.new_record?
-    assert parrot.valid?
+  def test_create_after_initialize_with_array_param
+    cbs = CustomBulb.create([{ name: 'Dude' }, { name: 'Bob' }])
+    assert_equal 'Dude', cbs[0].name
+    assert_equal 'Bob', cbs[1].name
+    assert cbs[0].frickinawesome
+    assert !cbs[1].frickinawesome
   end
 
   def test_load
@@ -470,7 +453,7 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
     end
@@ -592,7 +575,7 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
 
-    post.update_attributes(:title => "try to change", :body => "changed")
+    post.update(title: "try to change", body: "changed")
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
@@ -614,6 +597,12 @@ class BasicsTest < ActiveRecord::TestCase
     weird.reload
     assert_equal 'value2', weird.send('a$b')
     assert_equal 'value2', weird.read_attribute('a$b')
+  end
+
+  def test_group_weirds_by_from
+    Weird.create('a$b' => 'value', :from => 'aaron')
+    count = Weird.group(Weird.arel_table[:from]).count
+    assert_equal 1, count['aaron']
   end
 
   def test_attributes_on_dummy_time
@@ -850,7 +839,7 @@ class BasicsTest < ActiveRecord::TestCase
       # Reload and check that we have all the geometric attributes.
       h = Geometric.find(g.id)
 
-      assert_equal '(5,6.1)', h.a_point
+      assert_equal [5.0, 6.1], h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
       assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
       assert_equal '[(2,3),(5.5,7),(8.5,11)]', h.a_path
@@ -879,7 +868,7 @@ class BasicsTest < ActiveRecord::TestCase
       # Reload and check that we have all the geometric attributes.
       h = Geometric.find(g.id)
 
-      assert_equal '(5,6.1)', h.a_point
+      assert_equal [5.0, 6.1], h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
       assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
       assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_path
@@ -890,6 +879,29 @@ class BasicsTest < ActiveRecord::TestCase
       objs = Geometric.find_by_sql ["select isclosed(a_path) from geometrics where id = ?", g.id]
 
       assert_equal true, objs[0].isclosed
+
+      # test native ruby formats when defining the geometric types
+      g = Geometric.new(
+        :a_point        => [5.0, 6.1],
+        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        :a_line_segment => '((2.0, 3), (5.5, 7.0))',
+        :a_box          => '(2.0, 3), (5.5, 7.0)',
+        :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
+        :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
+        :a_circle       => '((5.3, 10.4), 2)'
+      )
+
+      assert g.save
+
+      # Reload and check that we have all the geometric attributes.
+      h = Geometric.find(g.id)
+
+      assert_equal [5.0, 6.1], h.a_point
+      assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
+      assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
+      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_path
+      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_polygon
+      assert_equal '<(5.3,10.4),2>', h.a_circle
     end
   end
 
@@ -994,7 +1006,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_reload_with_exclusive_scope
     dev = DeveloperCalledDavid.first
-    dev.update_attributes!( :name => "NotDavid" )
+    dev.update!(name: "NotDavid" )
     assert_equal dev, dev.reload
   end
 
@@ -1034,7 +1046,7 @@ class BasicsTest < ActiveRecord::TestCase
     Joke.reset_sequence_name
   end
 
-  def test_dont_clear_inheritnce_column_when_setting_explicitly
+  def test_dont_clear_inheritance_column_when_setting_explicitly
     Joke.inheritance_column = "my_type"
     before_inherit = Joke.inheritance_column
 
@@ -1101,7 +1113,7 @@ class BasicsTest < ActiveRecord::TestCase
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
     assert_nothing_raised do
-      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count(distinct: true)
+      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     end
     assert_equal res6, res7
   end
@@ -1152,8 +1164,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').to_a
-    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).to_a
+    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on').to_a
+    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at', 'developers.created_on', 'developers.updated_on']).to_a
   end
 
   def test_find_symbol_ordered_last
@@ -1354,9 +1366,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns['posts']
+    c1 = Post.connection.schema_cache.columns('posts')
     ActiveRecord::Base.clear_cache!
-    c2 = Post.connection.schema_cache.columns['posts']
+    c2 = Post.connection.schema_cache.columns('posts')
     assert_not_equal c1, c2
   end
 
@@ -1436,10 +1448,57 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
   end
 
-  def test_cache_key_format_for_existing_record_with_nil_updated_at
+  def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
+    dev = CachedDeveloper.first
+    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_changes_when_child_touched
+    car = Car.create
+    Bulb.create(car: car)
+
+    key = car.cache_key
+    car.bulb.touch
+    car.reload
+    assert_not_equal key, car.cache_key
+  end
+
+  def test_cache_key_format_for_existing_record_with_nil_updated_timestamps
     dev = Developer.first
-    dev.update_columns(updated_at: nil)
+    dev.update_columns(updated_at: nil, updated_on: nil)
     assert_match(/\/#{dev.id}$/, dev.cache_key)
+  end
+
+  def test_cache_key_for_updated_on
+    dev = Developer.first
+    dev.updated_at = nil
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_newer_updated_at
+    dev = Developer.first
+    dev.updated_at += 3600
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_newer_updated_on
+    dev = Developer.first
+    dev.updated_on += 3600
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_touch_should_raise_error_on_a_new_object
+    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    assert_raises(ActiveRecord::ActiveRecordError) do
+      company.touch :updated_at
+    end
+  end
+
+  def test_cache_key_format_is_precise_enough
+    dev = Developer.first
+    key = dev.cache_key
+    dev.touch
+    assert_not_equal key, dev.cache_key
   end
 
   def test_uniq_delegates_to_scoped
@@ -1448,13 +1507,19 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal scope, Bird.uniq
   end
 
+  def test_distinct_delegates_to_scoped
+    scope = stub
+    Bird.stubs(:all).returns(mock(:distinct => scope))
+    assert_equal scope, Bird.distinct
+  end
+
   def test_table_name_with_2_abstract_subclasses
     assert_equal "photos", Photo.table_name
   end
 
   def test_column_types_typecast
     topic = Topic.first
-    refute_equal 't.lo', topic.author_name
+    assert_not_equal 't.lo', topic.author_name
 
     attrs = topic.attributes.dup
     attrs.delete 'id'
@@ -1511,5 +1576,62 @@ class BasicsTest < ActiveRecord::TestCase
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
+  end
+
+  test "connection_handler can be overridden" do
+    klass = Class.new(ActiveRecord::Base)
+    orig_handler = klass.connection_handler
+    new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    thread_connection_handler = nil
+
+    t = Thread.new do
+      klass.connection_handler = new_handler
+      thread_connection_handler = klass.connection_handler
+    end
+    t.join
+
+    assert_equal klass.connection_handler, orig_handler
+    assert_equal thread_connection_handler, new_handler
+  end
+
+  test "new threads get default the default connection handler" do
+    klass = Class.new(ActiveRecord::Base)
+    orig_handler = klass.connection_handler
+    handler = nil
+
+    t = Thread.new do
+      handler = klass.connection_handler
+    end
+    t.join
+
+    assert_equal handler, orig_handler
+    assert_equal klass.connection_handler, orig_handler
+    assert_equal klass.default_connection_handler, orig_handler
+  end
+
+  test "changing a connection handler in a main thread does not poison the other threads" do
+    klass = Class.new(ActiveRecord::Base)
+    orig_handler = klass.connection_handler
+    new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    after_handler = nil
+    is_set = false
+
+    t = Thread.new do
+      klass.connection_handler = new_handler
+      is_set = true
+      Thread.stop
+      after_handler = klass.connection_handler
+    end
+
+    while(!is_set)
+      Thread.pass
+    end
+
+    klass.connection_handler = orig_handler
+    t.wakeup
+    t.join
+
+    assert_equal after_handler, new_handler
+    assert_equal orig_handler, klass.connection_handler
   end
 end

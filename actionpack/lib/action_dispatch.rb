@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2012 David Heinemeier Hansson
+# Copyright (c) 2004-2013 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -47,7 +47,6 @@ module ActionDispatch
 
   autoload_under 'middleware' do
     autoload :RequestId
-    autoload :BestStandardsSupport
     autoload :Callbacks
     autoload :Cookies
     autoload :DebugExceptions
@@ -63,6 +62,7 @@ module ActionDispatch
     autoload :Static
   end
 
+  autoload :Journey
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 
@@ -75,6 +75,7 @@ module ActionDispatch
     autoload :Parameters
     autoload :ParameterFilter
     autoload :FilterParameters
+    autoload :FilterRedirect
     autoload :Upload
     autoload :UploadedFile, 'action_dispatch/http/upload'
     autoload :URL
@@ -93,7 +94,6 @@ module ActionDispatch
     autoload :Assertions
     autoload :Integration
     autoload :IntegrationTest, 'action_dispatch/testing/integration'
-    autoload :PerformanceTest
     autoload :TestProcess
     autoload :TestRequest
     autoload :TestResponse

@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def join_table_name(table_1, table_2)
-        [table_1, table_2].sort.join("_").to_sym
+        [table_1.to_s, table_2.to_s].sort.join("_").to_sym
       end
     end
   end

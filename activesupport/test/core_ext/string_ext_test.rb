@@ -87,6 +87,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal('capital', 'Capital'.camelize(:lower))
   end
 
+  def test_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(dasherized, underscored.dasherize)
+    end
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, camel.underscore)
@@ -161,30 +167,6 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal 97, 'abc'.ord
   end
 
-  def test_string_to_time
-    assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
-    assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
-    assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
-    assert_equal Time.local_time(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time
-    assert_nil "".to_time
-  end
-
-  def test_string_to_datetime
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
-    assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
-    assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"), "2039-02-27T23:50:19.275038-04:00".to_datetime
-    assert_nil "".to_datetime
-  end
-
-  def test_string_to_date
-    assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
-    assert_nil "".to_date
-  end
-
   def test_access
     s = "hello"
     assert_equal "h", s.at(0)
@@ -247,10 +229,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_squish
-    original = %{ A string with tabs(\t\t), newlines(\n\n), and
-                  many spaces(  ). }
+    original = %{\u180E\u180E A string surrounded by unicode mongolian vowel separators,
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u180E\u180E}
 
-    expected = "A string with tabs( ), newlines( ), and many spaces( )."
+    expected = "A string surrounded by unicode mongolian vowel separators, " +
+      "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:
     assert_equal original.squish,  expected
@@ -287,8 +270,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
+      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8).truncate(10)
   end
 
   def test_truncate_should_not_be_html_safe
@@ -308,6 +291,70 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 end
 
+class StringConversionsTest < ActiveSupport::TestCase
+  def test_string_to_time
+    with_env_tz "Europe/Moscow" do
+      assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
+      assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
+      assert_equal Time.utc(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:utc)
+      assert_equal Time.local(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
+      assert_equal Time.local(2011, 2, 27, 18, 50), "2011-02-27 13:50 -0100".to_time
+      assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 14:50 -0500".to_time
+      assert_nil "".to_time
+    end
+  end
+
+  def test_string_to_time_utc_offset
+    with_env_tz "US/Eastern" do
+      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+    end
+  end
+
+  def test_partial_string_to_time
+    with_env_tz "Europe/Moscow" do
+      now = Time.now
+      assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
+      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
+      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
+      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
+    end
+  end
+
+  def test_string_to_datetime
+    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
+    assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
+    assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
+    assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"), "2039-02-27T23:50:19.275038-04:00".to_datetime
+    assert_nil "".to_datetime
+  end
+
+  def test_partial_string_to_datetime
+    now = DateTime.now
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50), "23:50".to_datetime
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, "-04:00"), "23:50 -0400".to_datetime
+  end
+
+  def test_string_to_date
+    assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
+    assert_nil "".to_date
+    assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
+  end
+
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
+end
+
 class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
     assert 'Bambi'.acts_like_string?
@@ -315,22 +362,24 @@ class StringBehaviourTest < ActiveSupport::TestCase
 end
 
 class CoreExtStringMultibyteTest < ActiveSupport::TestCase
-  UNICODE_STRING = 'こにちわ'
-  ASCII_STRING = 'ohayo'
-  BYTE_STRING = "\270\236\010\210\245"
+  UTF8_STRING = 'こにちわ'
+  ASCII_STRING = 'ohayo'.encode('US-ASCII')
+  EUC_JP_STRING = 'さよなら'.encode('EUC-JP')
+  INVALID_UTF8_STRING = "\270\236\010\210\245"
 
   def test_core_ext_adds_mb_chars
-    assert_respond_to UNICODE_STRING, :mb_chars
+    assert_respond_to UTF8_STRING, :mb_chars
   end
 
   def test_string_should_recognize_utf8_strings
-    assert UNICODE_STRING.is_utf8?
+    assert UTF8_STRING.is_utf8?
     assert ASCII_STRING.is_utf8?
-    assert !BYTE_STRING.is_utf8?
+    assert !EUC_JP_STRING.is_utf8?
+    assert !INVALID_UTF8_STRING.is_utf8?
   end
 
   def test_mb_chars_returns_instance_of_proxy_class
-    assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
+    assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
   end
 end
 

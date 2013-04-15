@@ -13,15 +13,15 @@ module ActionView
           end
         end
 
-        def render
+        def render(&block)
           rendered_collection = render_collection do |item, value, text, default_html_options|
             default_html_options[:multiple] = true
             builder = instantiate_builder(CheckBoxBuilder, item, value, text, default_html_options)
 
             if block_given?
-              yield builder
+              @template_object.capture(builder, &block)
             else
-              builder.check_box + builder.label
+              render_component(builder)
             end
           end
 
@@ -30,6 +30,12 @@ module ActionView
           hidden = @template_object.hidden_field_tag("#{tag_name}[]", "", :id => nil)
 
           rendered_collection + hidden
+        end
+
+        private
+
+        def render_component(builder)
+          builder.check_box + builder.label
         end
       end
     end

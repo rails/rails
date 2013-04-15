@@ -11,27 +11,29 @@ DEFAULT_APP_FILES = %w(
   app/assets/stylesheets
   app/assets/images
   app/controllers
+  app/controllers/concerns
   app/helpers
   app/mailers
   app/models
+  app/models/concerns
   app/views/layouts
+  bin/bundle
+  bin/rails
+  bin/rake
   config/environments
   config/initializers
   config/locales
   db
-  doc
   lib
   lib/tasks
   lib/assets
   log
-  script/rails
   test/fixtures
   test/controllers
   test/models
   test/helpers
   test/mailers
   test/integration
-  test/performance
   vendor
   vendor/assets
   tmp/cache
@@ -54,8 +56,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application"/
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
-    assert_file "config/application.rb", /config\.assets\.enabled = true/
-    assert_file "public/index.html", /url\("assets\/rails.png"\);/
   end
 
   def test_invalid_application_name_raises_an_error
@@ -70,7 +70,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    quietly { system 'rails new test' }
+    quietly { system 'rails new test --no-rc' }
     assert_equal false, $?.success?
   end
 
@@ -164,6 +164,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_database_app_name_with_period
+    run_generator [File.join(destination_root, "common.usage.com"), "-d", "postgresql"]
+    assert_file "common.usage.com/config/database.yml", /common_usage_com/
+  end
+
   def test_config_postgresql_database
     run_generator([destination_root, "-d", "postgresql"])
     assert_file "config/database.yml", /postgresql/
@@ -217,19 +222,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
-    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
-      assert_no_match(/config\.assets\.enabled = true/, content)
+      assert_match(/config\.assets\.enabled = false/, content)
     end
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
-      assert_no_match(/coffee-rails/, content)
       assert_no_match(/uglifier/, content)
+      assert_match(/coffee-rails/, content)
     end
     assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.assets\.debug = true/, content)
@@ -238,8 +242,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.digest = true/, content)
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
+      assert_no_match(/config\.assets\.version = '1\.0'/, content)
     end
-    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_inclusion_of_javascript_runtime
@@ -249,13 +253,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_file "Gemfile", /# gem\s+["']therubyracer["']+, platforms: :ruby$/
     end
-  end
-
-  def test_generator_if_skip_index_html_is_given
-    run_generator [destination_root, '--skip-index-html']
-    assert_no_file 'public/index.html'
-    assert_no_file 'app/assets/images/rails.png'
-    assert_file 'app/assets/images/.keep'
   end
 
   def test_creation_of_a_test_directory
@@ -279,7 +276,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require jquery}, contents
       assert_match %r{^//= require jquery_ujs}, contents
     end
-    assert_gem "jquery-rails"
+    assert_file "Gemfile", /^gem 'jquery-rails'/
   end
 
   def test_other_javascript_libraries
@@ -296,11 +293,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_no_match %r{^//=\s+require\s}, contents
     end
+    assert_file "Gemfile" do |content|
+      assert_match(/coffee-rails/, content)
+    end
   end
 
   def test_inclusion_of_debugger
     run_generator
     assert_file "Gemfile", /# gem 'debugger'/
+  end
+
+  def test_inclusion_of_lazy_loaded_sdoc
+    run_generator
+    assert_file 'Gemfile', /gem 'sdoc', require: false/
   end
 
   def test_template_from_dir_pwd
@@ -345,15 +350,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generated_environments_file_for_auto_explain
-    run_generator [destination_root, "--skip-active-record"]
-    %w(development production).each do |env|
-      assert_file "config/environments/#{env}.rb" do |file|
-        assert_no_match %r(auto_explain_threshold_in_seconds), file
-      end
-    end
-  end
-
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
@@ -367,30 +363,5 @@ protected
 
   def assert_gem(gem)
     assert_file "Gemfile", /^gem\s+["']#{gem}["']$/
-  end
-end
-
-class CustomAppGeneratorTest < Rails::Generators::TestCase
-  include GeneratorsTestHelper
-  tests Rails::Generators::AppGenerator
-
-  arguments [destination_root]
-  include SharedCustomGeneratorTests
-
-protected
-  def default_files
-    ::DEFAULT_APP_FILES
-  end
-
-  def builders_dir
-    "app_builders"
-  end
-
-  def builder_class
-    :AppBuilder
-  end
-
-  def action(*args, &block)
-    silence(:stdout) { generator.send(*args, &block) }
   end
 end

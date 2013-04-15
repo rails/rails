@@ -3,7 +3,6 @@ require 'zlib'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
@@ -276,34 +275,14 @@ module ActiveSupport
         if block_given?
           options = merged_options(options)
           key = namespaced_key(name, options)
-          unless options[:force]
-            entry = instrument(:read, name, options) do |payload|
-              payload[:super_operation] = :fetch if payload
-              read_entry(key, options)
-            end
-          end
-          if entry && entry.expired?
-            race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl && (Time.now - entry.expires_at <= race_ttl)
-              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
-              # for a brief period while the entry is begin recalculated.
-              entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
-            else
-              delete_entry(key, options)
-            end
-            entry = nil
-          end
+
+          cached_entry = find_cached_entry(key, name, options) unless options[:force]
+          entry = handle_expired_entry(cached_entry, key, options)
 
           if entry
-            instrument(:fetch_hit, name, options) { |payload| }
-            entry.value
+            get_entry_value(entry, name, options)
           else
-            result = instrument(:generate, name, options) do |payload|
-              yield(name)
-            end
-            write(name, result, options)
-            result
+            save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         else
           read(name, options)
@@ -365,7 +344,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
-        instrument(:write, name, options) do |payload|
+        instrument(:write, name, options) do
           entry = Entry.new(value, options)
           write_entry(namespaced_key(name, options), entry, options)
         end
@@ -376,7 +355,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
-        instrument(:delete, name) do |payload|
+        instrument(:delete, name) do
           delete_entry(namespaced_key(name, options), options)
         end
       end
@@ -386,7 +365,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
-        instrument(:exist?, name) do |payload|
+        instrument(:exist?, name) do
           entry = read_entry(namespaced_key(name, options), options)
           entry && !entry.expired?
         end
@@ -532,6 +511,42 @@ module ActiveSupport
           return unless logger && logger.debug? && !silence?
           logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
         end
+
+        def find_cached_entry(key, name, options)
+          instrument(:read, name, options) do |payload|
+            payload[:super_operation] = :fetch if payload
+            read_entry(key, options)
+          end
+        end
+
+        def handle_expired_entry(entry, key, options)
+          if entry && entry.expired?
+            race_ttl = options[:race_condition_ttl].to_i
+            if race_ttl && (Time.now - entry.expires_at <= race_ttl)
+              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
+              # for a brief period while the entry is begin recalculated.
+              entry.expires_at = Time.now + race_ttl
+              write_entry(key, entry, :expires_in => race_ttl * 2)
+            else
+              delete_entry(key, options)
+            end
+            entry = nil
+          end
+          entry
+        end
+
+        def get_entry_value(entry, name, options)
+          instrument(:fetch_hit, name, options) { |payload| }
+          entry.value
+        end
+
+        def save_block_result_to_cache(name, options)
+          result = instrument(:generate, name, options) do |payload|
+            yield(name)
+          end
+          write(name, result, options)
+          result
+        end
     end
 
     # This class is used to represent cache entries. Cache entries have a value and an optional
@@ -582,7 +597,7 @@ module ActiveSupport
       end
 
       # Returns the size of the cached value. This could be less than
-      # <tt>value.size</tt> if the data is compressed.
+      # <tt>value.size</tt> if the data is compressed.
       def size
         if defined?(@s)
           @s

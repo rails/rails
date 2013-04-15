@@ -2,10 +2,11 @@ require 'abstract_unit'
 require 'fileutils'
 
 class FixtureTemplate
-  attr_reader :source
+  attr_reader :source, :handler
 
   def initialize(template_path)
     @source = File.read(template_path)
+    @handler = ActionView::Template.handler_for_extension(:erb)
   rescue Errno::ENOENT
     raise ActionView::MissingTemplate.new([], "", [], true, [])
   end
@@ -43,6 +44,12 @@ class TemplateDigestorTest < ActionView::TestCase
   def test_explicit_dependency
     assert_digest_difference("messages/show") do
       change_template("messages/_message")
+    end
+  end
+
+  def test_explicit_dependency_in_multiline_erb_tag
+    assert_digest_difference("messages/show") do
+      change_template("messages/_form")
     end
   end
 
@@ -132,6 +139,20 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_dependencies_via_options_results_in_different_digest
+    digest_plain        = digest("comments/_comment")
+    digest_fridge       = digest("comments/_comment", dependencies: ["fridge"])
+    digest_phone        = digest("comments/_comment", dependencies: ["phone"])
+    digest_fridge_phone = digest("comments/_comment", dependencies: ["fridge", "phone"])
+
+    assert_not_equal digest_plain, digest_fridge
+    assert_not_equal digest_plain, digest_phone
+    assert_not_equal digest_plain, digest_fridge_phone
+    assert_not_equal digest_fridge, digest_phone
+    assert_not_equal digest_fridge, digest_fridge_phone
+    assert_not_equal digest_phone, digest_fridge_phone
+  end
+
   private
     def assert_logged(message)
       old_logger = ActionView::Base.logger
@@ -158,8 +179,8 @@ class TemplateDigestorTest < ActionView::TestCase
       ActionView::Digestor.cache.clear
     end
 
-    def digest(template_name)
-      ActionView::Digestor.digest(template_name, :html, FixtureFinder.new)
+    def digest(template_name, options={})
+      ActionView::Digestor.digest(template_name, :html, FixtureFinder.new, options)
     end
 
     def change_template(template_name)

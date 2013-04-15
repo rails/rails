@@ -266,14 +266,12 @@ module ActiveSupport
     #   'UnknownModule'.safe_constantize  # => nil
     #   'UnknownModule::Foo::Bar'.safe_constantize  # => nil
     def safe_constantize(camel_cased_word)
-      begin
-        constantize(camel_cased_word)
-      rescue NameError => e
-        raise unless e.message =~ /(uninitialized constant|wrong constant name) #{const_regexp(camel_cased_word)}$/ ||
-          e.name.to_s == camel_cased_word.to_s
-      rescue ArgumentError => e
-        raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
-      end
+      constantize(camel_cased_word)
+    rescue NameError => e
+      raise unless e.message =~ /(uninitialized constant|wrong constant name) #{const_regexp(camel_cased_word)}$/ ||
+        e.name.to_s == camel_cased_word.to_s
+    rescue ArgumentError => e
+      raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
     end
 
     # Returns the suffix that should be added to a number to denote the position
@@ -286,10 +284,12 @@ module ActiveSupport
     #   ordinal(-11)   # => "th"
     #   ordinal(-1021) # => "st"
     def ordinal(number)
-      if (11..13).include?(number.to_i.abs % 100)
+      abs_number = number.to_i.abs
+
+      if (11..13).include?(abs_number % 100)
         "th"
       else
-        case number.to_i.abs % 10
+        case abs_number % 10
           when 1; "st"
           when 2; "nd"
           when 3; "rd"

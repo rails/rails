@@ -6,7 +6,7 @@ module ActionDispatch
     # of its interface is available directly for convenience.
     #
     # Uploaded files are temporary files whose lifespan is one request. When
-    # the object is finalized Ruby unlinks the file, so there is not need to
+    # the object is finalized Ruby unlinks the file, so there is no need to
     # clean them with a separate maintenance task.
     class UploadedFile
       # The basename of the file in the client.
@@ -19,7 +19,7 @@ module ActionDispatch
       # its interface is available directly.
       attr_accessor :tempfile
 
-      # TODO.
+      # A string with the headers of the multipart request.
       attr_accessor :headers
 
       def initialize(hash) # :nodoc:
@@ -70,21 +70,21 @@ module ActionDispatch
 
       def encode_filename(filename)
         # Encode the filename in the utf8 encoding, unless it is nil
-        filename.force_encoding("UTF-8").encode! if filename
+        filename.force_encoding(Encoding::UTF_8).encode! if filename
       end
     end
 
     module Upload # :nodoc:
-      # Convert nested Hash to HashWithIndifferentAccess and replace
-      # file upload hash with UploadedFile objects
-      def normalize_parameters(value)
+      # Replace file upload hash with UploadedFile objects
+      # when normalize and encode parameters.
+      def normalize_encode_params(value)
         if Hash === value && value.has_key?(:tempfile)
           UploadedFile.new(value)
         else
           super
         end
       end
-      private :normalize_parameters
+      private :normalize_encode_params
     end
   end
 end

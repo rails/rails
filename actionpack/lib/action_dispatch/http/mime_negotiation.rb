@@ -68,7 +68,7 @@ module ActionDispatch
       # that are not controlled by the extension.
       #
       #   class ApplicationController < ActionController::Base
-      #     before_filter :adjust_format_for_iphone
+      #     before_action :adjust_format_for_iphone
       #
       #     private
       #       def adjust_format_for_iphone
@@ -87,7 +87,7 @@ module ActionDispatch
       # to the :html format.
       #
       #   class ApplicationController < ActionController::Base
-      #     before_filter :adjust_format_for_iphone_with_html_fallback
+      #     before_action :adjust_format_for_iphone_with_html_fallback
       #
       #     private
       #       def adjust_format_for_iphone_with_html_fallback
@@ -121,8 +121,8 @@ module ActionDispatch
       BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
       def valid_accept_header
-        (xhr? && (accept || content_mime_type)) ||
-          (accept && accept !~ BROWSER_LIKE_ACCEPTS)
+        (xhr? && (accept.present? || content_mime_type)) ||
+          (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
       end
 
       def use_accept_header

@@ -74,8 +74,6 @@ module ActionDispatch
       # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
       #   Default is <tt>:url</tt>.
       #
-      # ==== Examples
-      #
       #   # an Article record
       #   polymorphic_url(record)  # same as article_url(record)
       #

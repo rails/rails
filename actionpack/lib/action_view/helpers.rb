@@ -1,3 +1,5 @@
+require 'active_support/benchmarkable'
+
 module ActionView #:nodoc:
   module Helpers #:nodoc:
     extend ActiveSupport::Autoload
@@ -6,7 +8,6 @@ module ActionView #:nodoc:
     autoload :AssetTagHelper
     autoload :AssetUrlHelper
     autoload :AtomFeedHelper
-    autoload :BenchmarkHelper
     autoload :CacheHelper
     autoload :CaptureHelper
     autoload :ControllerHelper
@@ -29,11 +30,11 @@ module ActionView #:nodoc:
 
     extend ActiveSupport::Concern
 
+    include ActiveSupport::Benchmarkable
     include ActiveModelHelper
     include AssetTagHelper
     include AssetUrlHelper
     include AtomFeedHelper
-    include BenchmarkHelper
     include CacheHelper
     include CaptureHelper
     include ControllerHelper

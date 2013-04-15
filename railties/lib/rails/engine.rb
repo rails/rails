@@ -1,4 +1,5 @@
 require 'rails/railtie'
+require 'rails/engine/railties'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
 require 'rbconfig'
@@ -106,7 +107,7 @@ module Rails
   #
   # The <tt>Application</tt> class adds a couple more paths to this set. And as in your
   # <tt>Application</tt>, all folders under +app+ are automatically added to the load path.
-  # If you have an <tt>app/observers</tt> folder for example, it will be added by default.
+  # If you have an <tt>app/services</tt> folder for example, it will be added by default.
   #
   # == Endpoint
   #
@@ -175,7 +176,7 @@ module Rails
   # There are some places where an Engine's name is used:
   #
   # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
-  #   it's used as default :as option
+  #   it's used as default <tt>:as</tt> option
   # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
@@ -408,7 +409,7 @@ module Rails
     end
 
     delegate :middleware, :root, :paths, to: :config
-    delegate :engine_name, :isolated?, to: "self.class"
+    delegate :engine_name, :isolated?, to: :class
 
     def initialize
       @_all_autoload_paths = nil
@@ -464,6 +465,10 @@ module Rails
           require_dependency file.sub(matcher, '\1')
         end
       end
+    end
+
+    def railties
+      @railties ||= Railties.new
     end
 
     # Returns a module with all the helpers defined for the engine.
@@ -548,7 +553,7 @@ module Rails
     #
     # This needs to be an initializer, since it needs to run once
     # per engine and get the engine as a block parameter
-    initializer :set_autoload_paths, before: :bootstrap_hook do |app|
+    initializer :set_autoload_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 
