@@ -120,7 +120,6 @@ class DirtyTest < ActiveModel::TestCase
   test "changing the same attribute multiple times retains the correct original value" do
     @model.name = "Otto"
     @model.save
-    @model.name = "DudeFella ManGuy"
     @model.name = "Mr. Manfredgensonton"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
     assert_equal @model.name_was, "Otto"
