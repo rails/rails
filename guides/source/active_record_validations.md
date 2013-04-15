@@ -434,7 +434,7 @@ end
 
 Note that the default error messages are plural (e.g., "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a personalized message or use `validates_presence_of` instead. When
+provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
 
