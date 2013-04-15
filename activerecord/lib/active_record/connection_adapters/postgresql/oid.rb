@@ -18,6 +18,16 @@ module ActiveRecord
           end
         end
 
+        class Bit < Type
+          def type_cast(value)
+            if String === value
+              ConnectionAdapters::PostgreSQLColumn.string_to_bit value
+            else
+              value
+            end
+          end
+        end
+
         class Bytea < Type
           def type_cast(value)
             return if value.nil?
@@ -323,14 +333,14 @@ module ActiveRecord
         # FIXME: why are we keeping these types as strings?
         alias_type 'tsvector', 'text'
         alias_type 'interval', 'text'
-        alias_type 'bit',      'text'
-        alias_type 'varbit',   'text'
         alias_type 'macaddr',  'text'
         alias_type 'uuid',     'text'
 
         register_type 'money', OID::Money.new
         register_type 'bytea', OID::Bytea.new
         register_type 'bool', OID::Boolean.new
+        register_type 'bit', OID::Bit.new
+        register_type 'varbit', OID::Bit.new
 
         register_type 'float4', OID::Float.new
         alias_type 'float8', 'float4'

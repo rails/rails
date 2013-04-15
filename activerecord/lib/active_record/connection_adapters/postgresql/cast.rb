@@ -26,6 +26,13 @@ module ActiveRecord
           end
         end
 
+        def string_to_bit(value)
+          case value
+          when /^[01]*$/      then value             # Bit-string notation
+          when /^[0-9A-F]*$/i then value.hex.to_s(2) # Hexadecimal notation
+          end
+        end
+
         def hstore_to_string(object)
           if Hash === object
             object.map { |k,v|
