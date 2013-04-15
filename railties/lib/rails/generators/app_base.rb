@@ -116,7 +116,7 @@ module Rails
 
       def database_gemfile_entry
         options[:skip_active_record] ? "" : 
-          <<-GEMFILE.gsub(/^ {12}/, '').strip
+          <<-GEMFILE.strip_heredoc.chomp
             # Use #{options[:database]} as the database for ActiveRecord
             gem '#{gem_for_database}'
           GEMFILE
@@ -182,20 +182,20 @@ module Rails
         return if options[:skip_sprockets]
 
         gemfile = if options.dev? || options.edge?
-          <<-GEMFILE.gsub(/^ {12}/, '')
+          <<-GEMFILE.strip_heredoc
             # Use edge version of sprockets-rails
             gem 'sprockets-rails', github: 'rails/sprockets-rails'
 
             # Use SCSS for stylesheets
-            gem 'sass-rails',   github: 'rails/sass-rails'
+            gem 'sass-rails', github: 'rails/sass-rails'
 
             # Use Uglifier as compressor for JavaScript assets
             gem 'uglifier', '~> 1.3'
           GEMFILE
         else
-          <<-GEMFILE.gsub(/^ {12}/, '')
+          <<-GEMFILE.strip_heredoc
             # Use SCSS for stylesheets
-            gem 'sass-rails',   '~> 4.0.0.beta1'
+            gem 'sass-rails', '~> 4.0.0.beta1'
 
             # Use Uglifier as compressor for JavaScript assets
             gem 'uglifier', '~> 1.3'
@@ -203,34 +203,32 @@ module Rails
         end
 
         if options[:skip_javascript]
-          gemfile += <<-GEMFILE.gsub(/^ {12}/, '')
+          gemfile += <<-GEMFILE
             #{coffee_gemfile_entry}
             #{javascript_runtime_gemfile_entry}
           GEMFILE
         end
 
-        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
+        gemfile.gsub(/^[ \t]+/, '')
       end
 
       def coffee_gemfile_entry
-        gemfile = if options.dev? || options.edge?
-          <<-GEMFILE.gsub(/^ {12}/, '')
+        if options.dev? || options.edge?
+          <<-GEMFILE
             # Use CoffeeScript for .js.coffee assets and views
             gem 'coffee-rails', github: 'rails/coffee-rails'
           GEMFILE
         else
-          <<-GEMFILE.gsub(/^ {12}/, '')
+          <<-GEMFILE
             # Use CoffeeScript for .js.coffee assets and views
             gem 'coffee-rails', '~> 4.0.0.beta1'
           GEMFILE
         end
-
-        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
       def javascript_gemfile_entry
         unless options[:skip_javascript]
-          <<-GEMFILE.gsub(/^ {12}/, '').strip_heredoc
+          <<-GEMFILE.gsub(/^[ \t]+/, '')
             #{coffee_gemfile_entry}
             #{javascript_runtime_gemfile_entry}
             # Use #{options[:javascript]} as the JavaScript library
@@ -248,7 +246,7 @@ module Rails
         else
           "# gem 'therubyracer', platforms: :ruby"
         end
-        <<-GEMFILE.gsub(/^ {10}/, '')
+        <<-GEMFILE
           # See https://github.com/sstephenson/execjs#readme for more supported runtimes
           #{runtime}
         GEMFILE
