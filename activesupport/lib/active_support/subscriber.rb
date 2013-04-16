@@ -1,6 +1,6 @@
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
-  # ActiveSupport::Notifications.  The subscriber dispatches notifications to
+  # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
   # An example would be Active Record subscriber responsible for collecting
@@ -16,15 +16,14 @@ module ActiveSupport
   #
   # And it's finally registered as:
   #
-  #   ActiveRecord::Subscriber.attach_to :active_record
+  #   ActiveRecord::StatsSubscriber.attach_to :active_record
   #
   # Since we need to know all instance methods before attaching the log
-  # subscriber, the line above should be called after your
-  # <tt>ActiveRecord::Subscriber</tt> definition.
+  # subscriber, the line above should be called after your subscriber definition.
   #
   # After configured, whenever a "sql.active_record" notification is published,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
-  # the `sql` method.
+  # the +sql+ method.
   class Subscriber
     class << self
 
@@ -45,7 +44,7 @@ module ActiveSupport
     end
 
     def initialize
-      @queue_key = [self.class.name, object_id].join  "-"
+      @queue_key = [self.class.name, object_id].join "-"
       super
     end
 
