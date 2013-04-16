@@ -100,6 +100,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_element_attributes
+    assert_dom_equal(
+      "<option value=\"USA\" class=\"bold\">USA</option>",
+      options_from_collection_for_select([[ "USA", "USA", { :class => 'bold' } ]], :first, :second)
+    )
+  end
+
   def test_string_options_for_select
     options = "<option value=\"Denmark\">Denmark</option><option value=\"USA\">USA</option><option value=\"Sweden\">Sweden</option>"
     assert_dom_equal(

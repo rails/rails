@@ -380,7 +380,7 @@ module ActionView
       # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
-          [value_for_collection(element, text_method), value_for_collection(element, value_method)]
+          [value_for_collection(element, text_method), value_for_collection(element, value_method), option_html_attributes(element)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
