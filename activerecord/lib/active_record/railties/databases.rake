@@ -383,5 +383,5 @@ namespace :railties do
   end
 end
 
-task 'test:prepare' => ['db:test:prepare', 'db:test:load_schema', 'db:abort_if_pending_migrations']
+task 'test:prepare' => ['db:test:prepare', 'db:test:load', 'db:abort_if_pending_migrations']
 
