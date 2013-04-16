@@ -99,4 +99,9 @@ class TaggedLoggingTest < ActiveSupport::TestCase
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
   end
+
+  test "renders tags on each line" do
+    @logger.tagged("BCX") { @logger.info "Funky time\nJunky time" }
+    assert_equal "[BCX] Funky time\n[BCX] Junky time\n", @output.string
+  end
 end
