@@ -7,7 +7,7 @@ if ActiveRecord::Base.connection.supports_explain?
     def test_collects_nothing_if_available_queries_for_explain_is_nil
       with_queries(nil) do
         SUBSCRIBER.finish(nil, nil, {})
-        assert_nil Thread.current[:available_queries_for_explain]
+        assert_nil ActiveRecord::RuntimeRegistry.available_queries_for_explain
       end
     end
 
@@ -46,10 +46,11 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def with_queries(queries)
-      Thread.current[:available_queries_for_explain] = queries
+      ActiveRecord::RuntimeRegistry.save_available_queries
+      ActiveRecord::RuntimeRegistry.available_queries_for_explain = queries
       yield queries
     ensure
-      Thread.current[:available_queries_for_explain] = nil
+      ActiveRecord::RuntimeRegistry.restore_available_queries
     end
   end
 end

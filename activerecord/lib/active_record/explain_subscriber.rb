@@ -7,8 +7,8 @@ module ActiveRecord
     end
 
     def finish(name, id, payload)
-      if queries = Thread.current[:available_queries_for_explain]
-        queries << payload.values_at(:sql, :binds) unless ignore_payload?(payload)
+      if ActiveRecord::RuntimeRegistry.collecting_queries_flag && !ignore_payload?(payload)
+        ActiveRecord::RuntimeRegistry.available_queries_for_explain << payload.values_at(:sql, :binds)
       end
     end
 
