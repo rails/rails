@@ -19,8 +19,9 @@ module ActiveSupport
       def call(severity, timestamp, progname, msg)
         lines = (String === msg ? msg : msg.inspect).split("\n", -1)
         lines = [""] if lines.empty?
-        message = lines.map{|line| "#{tags_text}#{line}" }.join("\n")
-        super(severity, timestamp, progname, message)
+        lines.map do |line|
+          super(severity, timestamp, progname, "#{tags_text}#{line}")
+        end.join
       end
 
       def tagged(*tags)
