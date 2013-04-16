@@ -1,4 +1,4 @@
-Ruby On Rails Security Guide
+Ruby on Rails Security Guide
 ============================
 
 This manual describes common security problems in web applications and how to avoid them with Rails.
