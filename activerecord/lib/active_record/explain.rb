@@ -1,22 +1,22 @@
 require 'active_support/lazy_load_hooks'
+require 'active_record/explain_registry'
 
 module ActiveRecord
   module Explain
-    # Relation#explain needs to be able to collect the queries.
+    # Executes the block with the collect flag enabled. Queries are collected
+    # asynchronously by the subscriber and returned.
     def collecting_queries_for_explain # :nodoc:
-      current = Thread.current
-      original, current[:available_queries_for_explain] = current[:available_queries_for_explain], []
+      ExplainRegistry.collect = true
       yield
-      return current[:available_queries_for_explain]
+      ExplainRegistry.queries
     ensure
-      # Note that the return value above does not depend on this assignment.
-      current[:available_queries_for_explain] = original
+      ExplainRegistry.reset
     end
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
     def exec_explain(queries) # :nodoc:
-      str = queries && queries.map do |sql, bind|
+      str = queries.map do |sql, bind|
         [].tap do |msg|
           msg << "EXPLAIN for: #{sql}"
           unless bind.empty?
@@ -31,6 +31,7 @@ module ActiveRecord
       def str.inspect
         self
       end
+
       str
     end
   end
