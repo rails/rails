@@ -104,4 +104,9 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     @logger.tagged("BCX") { @logger.info "Funky time\nJunky time" }
     assert_equal "[BCX] Funky time\n[BCX] Junky time\n", @output.string
   end
+
+  test "renders trailing newlines" do
+    @logger.tagged("BCX") { @logger.info "Funky time\nJunky time\n\n" }
+    assert_equal "[BCX] Funky time\n[BCX] Junky time\n[BCX] \n[BCX] \n", @output.string
+  end
 end

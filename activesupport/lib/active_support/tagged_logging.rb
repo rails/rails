@@ -17,10 +17,9 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        message =
-          (String === msg ? msg : msg.inspect).split("\n").map do |line|
-            "#{tags_text}#{line}"
-          end.join("\n")
+        lines = (String === msg ? msg : msg.inspect).split("\n", -1)
+        lines = [""] if lines.empty?
+        message = lines.map{|line| "#{tags_text}#{line}" }.join("\n")
         super(severity, timestamp, progname, message)
       end
 
