@@ -41,8 +41,8 @@
     relation all the context that `Post` was joined with `Author` is lost and hence the error
     that `author` was not found on `Comment`.
 
-    Ths solution is to build JoinAssociation when two relations with join information are being
-    merged. And later while building the arel use the  previously built `JoinAssociation` record
+    The solution is to build `JoinAssociation` when two relations with join information are being
+    merged. And later while building the Arel use the previously built `JoinAssociation` record
     in `JoinDependency#graft` to build the right from clause.
     Fixes #3002.
 
@@ -106,8 +106,8 @@
     *kennyj*
 
 *   Allow `ActiveRecord::Base.connection_handler` to have thread affinity and be
-    settable, this effectively allows Active Record to be used in a multi threaded
-    setup with multiple connections to multiple dbs.
+    settable, this effectively allows Active Record to be used in a multithreaded
+    setup with multiple connections to multiple databases.
 
     *Sam Saffron*
 
