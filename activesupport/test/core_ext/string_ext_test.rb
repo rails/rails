@@ -326,18 +326,36 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_string_to_datetime
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
-    assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
-    assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"), "2039-02-27T23:50:19.275038-04:00".to_datetime
-    assert_nil "".to_datetime
+  def test_string_to_datetime_utc
+    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime(:utc)
+    assert_equal 0, "2039-02-27 23:50".to_datetime(:utc).offset # use UTC offset
+    assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime(:utc).start # use Ruby's default start value
+    assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"),
+                 "2039-02-27T23:50:19.275038-04:00".to_datetime(:utc)
+  end
+
+  def test_string_to_datetime_local
+    with_env_tz 'Europe/Moscow' do
+      assert_equal DateTime.civil(2039, 2, 27, 23, 50, 0, '+04:00'), '2039-02-27 23:50'.to_datetime
+      assert_equal Rational(1, 6), '2039-02-27 23:50'.to_datetime.offset
+      assert_equal ::Date::ITALY, '2039-02-27 23:50'.to_datetime.start # use Ruby's default start value
+      assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), '-04:00'),
+                   '2039-02-27T23:50:19.275038-04:00'.to_datetime
+      assert_nil ''.to_datetime
+    end
   end
 
   def test_partial_string_to_datetime
-    now = DateTime.now
-    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50), "23:50".to_datetime
-    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, "-04:00"), "23:50 -0400".to_datetime
+    with_env_tz 'Europe/Moscow' do
+      now = DateTime.now
+
+      assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, '+04:00'),
+                   '23:50'.to_datetime
+      assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, '-04:00'),
+                   '23:50 -0400'.to_datetime
+      assert_equal DateTime.civil(now.year, now.month, now.day + 1, 3, 50),
+                   '23:50 -0400'.to_datetime(:utc)
+    end
   end
 
   def test_string_to_date
