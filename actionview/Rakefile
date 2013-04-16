@@ -1,4 +1,5 @@
 require 'rake/testtask'
+require 'rake/packagetask'
 require 'rubygems/package_task'
 
 desc "Default Task"
@@ -7,29 +8,38 @@ task :default => :test
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_pack]
+task :test => [:test_action_view, :test_active_record_integration]
 
-Rake::TestTask.new(:test_action_pack) do |t|
+Rake::TestTask.new(:test_action_view) do |t|
   t.libs << 'test'
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob('test/{abstract,controller,dispatch,assertions,journey}/**/*_test.rb').sort
+  t.test_files = Dir.glob('test/template/**/*_test.rb').sort
 
   t.warning = true
   t.verbose = true
 end
 
 namespace :test do
-  task :isolated do
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    Dir.glob("test/{abstract,controller,dispatch,template}/**/*_test.rb").all? do |file|
-      sh(ruby, '-Ilib:test', file)
-    end or raise "Failures"
+  Rake::TestTask.new(:isolated) do |t|
+    t.libs << 'test'
+    t.pattern = 'test/ts_isolated.rb'
+  end
+
+  Rake::TestTask.new(:template) do |t|
+    t.libs << 'test'
+    t.pattern = 'test/template/**/*.rb'
   end
 end
 
-spec = eval(File.read('actionpack.gemspec'))
+desc 'ActiveRecord Integration Tests'
+Rake::TestTask.new(:test_active_record_integration) do |t|
+  t.libs << 'test'
+  t.test_files = Dir.glob("test/activerecord/*_test.rb")
+end
+
+spec = eval(File.read('actionview.gemspec'))
 
 Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
@@ -65,9 +75,3 @@ task :lines do
 
   puts "Total: Lines #{total_lines}, LOC #{total_codelines}"
 end
-
-rule '.rb' => '.y' do |t|
-  sh "racc -l -o #{t.name} #{t.source}"
-end
-
-task compile: 'lib/action_dispatch/journey/parser.rb'
