@@ -57,7 +57,7 @@ module ActionController
   # And then to route requests to your metal controller, you would add
   # something like this to <tt>config/routes.rb</tt>:
   #
-  #   match 'hello', to: HelloController.action(:index)
+  #   get 'hello', to: HelloController.action(:index)
   #
   # The +action+ method returns a valid Rack application for the \Rails
   # router to dispatch to.
