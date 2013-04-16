@@ -1,5 +1,6 @@
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/subscriber'
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume
@@ -33,7 +34,7 @@ module ActiveSupport
   # Log subscriber also has some helpers to deal with logging and automatically
   # flushes all logs when the request finishes (via action_dispatch.callback
   # notification) in a Rails environment.
-  class LogSubscriber
+  class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR   = "\e[0m"
     BOLD    = "\e[1m"
@@ -60,18 +61,8 @@ module ActiveSupport
 
       attr_writer :logger
 
-      def attach_to(namespace, log_subscriber=new, notifier=ActiveSupport::Notifications)
-        log_subscribers << log_subscriber
-
-        log_subscriber.public_methods(false).each do |event|
-          next if %w{ start finish }.include?(event.to_s)
-
-          notifier.subscribe("#{event}.#{namespace}", log_subscriber)
-        end
-      end
-
       def log_subscribers
-        @@log_subscribers ||= []
+        subscribers
       end
 
       # Flush all log_subscribers' logger.
@@ -80,39 +71,18 @@ module ActiveSupport
       end
     end
 
-    def initialize
-      @queue_key = [self.class.name, object_id].join  "-"
-      super
-    end
-
     def logger
       LogSubscriber.logger
     end
 
     def start(name, id, payload)
-      return unless logger
-
-      e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
-      parent = event_stack.last
-      parent << e if parent
-
-      event_stack.push e
+      super if logger
     end
 
     def finish(name, id, payload)
-      return unless logger
-
-      finished  = Time.now
-      event     = event_stack.pop
-      event.end = finished
-      event.payload.merge!(payload)
-
-      method = name.split('.').first
-      begin
-        send(method, event)
-      rescue Exception => e
-        logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
-      end
+      super if logger
+    rescue Exception => e
+      logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
     end
 
   protected
@@ -134,12 +104,6 @@ module ActiveSupport
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
       bold  = bold ? BOLD : ""
       "#{bold}#{color}#{text}#{CLEAR}"
-    end
-
-    private
-
-    def event_stack
-      Thread.current[@queue_key] ||= []
     end
   end
 end
