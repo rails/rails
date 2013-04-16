@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Alias "rails plugin" to "rails plugin new". *Yves Senn*
+
 *   Move rails.png into a data-uri. One less file to get generated into a new
     application. This is also consistent with the removal of index.html.
 

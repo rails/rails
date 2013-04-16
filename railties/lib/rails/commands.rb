@@ -40,7 +40,8 @@ case command
 when 'generate', 'destroy', 'plugin'
   require 'rails/generators'
 
-  if command == 'plugin' && ARGV.first == 'new'
+  if command == 'plugin'
+    ARGV.unshift 'new' unless ARGV.first == 'new'
     require "rails/commands/plugin_new"
   else
     require APP_PATH
