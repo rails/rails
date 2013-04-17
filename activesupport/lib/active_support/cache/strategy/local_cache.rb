@@ -9,7 +9,7 @@ module ActiveSupport
       # in-memory cache for faster access.
       module LocalCache
         # Class for storing and registering the local caches.
-        class LocalCacheRegistry
+        class LocalCacheRegistry # :nodoc:
           extend ActiveSupport::PerThreadRegistry
 
           def initialize
