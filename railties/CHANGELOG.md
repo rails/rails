@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Alias `rails plugin new <engine-name> --mountable` to
+    `rails engine <engine-name>`.
+
+    *Caleb Thompson*
+
 *   Move rails.png into a data-uri. One less file to get generated into a new
     application. This is also consistent with the removal of index.html.
 
