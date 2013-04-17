@@ -181,6 +181,13 @@ module Arel
         assert_match(/LIMIT 'omg'/, compile(sc))
       end
 
+      it "should contain a single space before ORDER BY" do
+        table = Table.new(:users)
+        test = table.order(table[:name])
+        sql = compile test
+        assert_match(/"users" ORDER BY/, sql)
+      end
+
       it "should quote LIMIT without column type coercion" do
         table = Table.new(:users)
         sc = table.where(table[:name].eq(0)).take(1).ast
@@ -291,7 +298,7 @@ module Arel
       end
 
       it "should visit_Arel_Nodes_Assignment" do
-	column = @table["id"] 
+	column = @table["id"]
 	node = Nodes::Assignment.new(
             Nodes::UnqualifiedColumn.new(column),
             Nodes::UnqualifiedColumn.new(column)
