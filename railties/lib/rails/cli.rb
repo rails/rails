@@ -9,8 +9,7 @@ require 'rails/ruby_version_check'
 Signal.trap("INT") { puts; exit(1) }
 
 if ARGV.first == 'engine'
-  ARGV.shift
-  ARGV.unshift('plugin', 'new')
+  ARGV.first = 'plugin'
   ARGV << '--mountable'
 end
 

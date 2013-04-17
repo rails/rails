@@ -1,7 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Alias `rails plugin new <engine-name> --mountable` to
-    `rails engine <engine-name>`.
+    `rails engine new <engine-name>`.
 
     *Caleb Thompson*
 
