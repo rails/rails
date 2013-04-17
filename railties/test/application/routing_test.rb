@@ -277,6 +277,30 @@ module ApplicationTests
       end
     end
 
+    def test_root_path
+      app('development')
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render :text => "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get 'foo', :to => 'foo#index'
+          root :to => 'foo#index'
+        end
+      RUBY
+
+      remove_file 'public/index.html'
+
+      get '/'
+      assert_equal 'foo', last_response.body
+    end
+
     test 'routes are added and removed when reloading' do
       app('development')
 
