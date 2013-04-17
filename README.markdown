@@ -116,3 +116,7 @@ The `parent_id` column is a foreign key from the `comments` table to itself. Now
     # => SELECT * FROM comments INNER JOIN comments AS comments_2 WHERE comments_2.parent_id = comments.id
 
 This will return the first comment's reply's body.
+
+### License
+    
+Arel is released under the [MIT License](http://opensource.org/licenses/MIT).
