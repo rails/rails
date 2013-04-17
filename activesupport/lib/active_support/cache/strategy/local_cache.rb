@@ -106,29 +106,13 @@ module ActiveSupport
 
         def increment(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          increment_or_decrement(value, name, amount, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          increment_or_decrement(value, name, amount, options)
           value
         end
 
@@ -157,6 +141,18 @@ module ActiveSupport
           end
 
         private
+          def increment_or_decrement(value, name, amount, options)
+            if local_cache
+              local_cache.mute do
+                if value
+                  local_cache.write(name, value, options)
+                else
+                  local_cache.delete(name, options)
+                end
+              end
+            end
+          end
+
           def local_cache_key
             @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
           end
