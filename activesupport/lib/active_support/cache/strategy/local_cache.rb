@@ -58,13 +58,7 @@ module ActiveSupport
 
         # Use a local cache for the duration of block.
         def with_local_cache
-          save_val = LocalCacheRegistry.cache_for(local_cache_key)
-          begin
-            LocalCacheRegistry.set_cache_for(local_cache_key, LocalStore.new)
-            yield
-          ensure
-            LocalCacheRegistry.set_cache_for(local_cache_key, save_val)
-          end
+          use_temporary_local_cache(LocalStore.new) { yield }
         end
 
         #--
@@ -172,9 +166,13 @@ module ActiveSupport
           end
 
           def bypass_local_cache
+            use_temporary_local_cache(nil) { yield }
+          end
+
+          def use_temporary_local_cache(temporary_cache)
             save_cache = LocalCacheRegistry.cache_for(local_cache_key)
             begin
-              LocalCacheRegistry.set_cache_for(local_cache_key, nil)
+              LocalCacheRegistry.set_cache_for(local_cache_key, temporary_cache)
               yield
             ensure
               LocalCacheRegistry.set_cache_for(local_cache_key, save_cache)
