@@ -1,7 +1,7 @@
 require 'active_support/per_thread_registry'
 
 module ActiveRecord
-  # This is a thread locals registry for Active Record. For example
+  # This is a thread locals registry for Active Record. For example:
   #
   #   ActiveRecord::RuntimeRegistry.connection_handler
   #
@@ -9,7 +9,7 @@ module ActiveRecord
   #
   # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
   # for further details.
-  class RuntimeRegistry
+  class RuntimeRegistry # :nodoc:
     extend ActiveSupport::PerThreadRegistry
 
     attr_accessor :connection_handler, :sql_runtime, :connection_id
