@@ -8,6 +8,23 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
       module LocalCache
+        # Class for storing and registering the local caches.
+        class LocalCacheRegistry
+          extend ActiveSupport::PerThreadRegistry
+
+          def initialize
+            @registry = {}
+          end
+
+          def cache_for(local_cache_key)
+            @registry[local_cache_key]
+          end
+
+          def set_cache_for(local_cache_key, value)
+            @registry[local_cache_key] = value
+          end
+        end
+
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
         class LocalStore < Store
@@ -41,12 +58,12 @@ module ActiveSupport
 
         # Use a local cache for the duration of block.
         def with_local_cache
-          save_val = Thread.current[thread_local_key]
+          save_val = LocalCacheRegistry.cache_for(local_cache_key)
           begin
-            Thread.current[thread_local_key] = LocalStore.new
+            LocalCacheRegistry.set_cache_for(local_cache_key, LocalStore.new)
             yield
           ensure
-            Thread.current[thread_local_key] = save_val
+            LocalCacheRegistry.set_cache_for(local_cache_key, save_val)
           end
         end
 
@@ -54,11 +71,11 @@ module ActiveSupport
         # This class wraps up local storage for middlewares. Only the middleware method should
         # construct them.
         class Middleware # :nodoc:
-          attr_reader :name, :thread_local_key
+          attr_reader :name, :local_cache_key
 
-          def initialize(name, thread_local_key)
+          def initialize(name, local_cache_key)
             @name             = name
-            @thread_local_key = thread_local_key
+            @local_cache_key = local_cache_key
             @app              = nil
           end
 
@@ -68,10 +85,10 @@ module ActiveSupport
           end
 
           def call(env)
-            Thread.current[thread_local_key] = LocalStore.new
+            LocalCacheRegistry.set_cache_for(local_cache_key, LocalStore.new)
             @app.call(env)
           ensure
-            Thread.current[thread_local_key] = nil
+            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
           end
         end
 
@@ -80,7 +97,7 @@ module ActiveSupport
         def middleware
           @middleware ||= Middleware.new(
             "ActiveSupport::Cache::Strategy::LocalCache",
-            thread_local_key)
+            local_cache_key)
         end
 
         def clear(options = nil) # :nodoc:
@@ -146,21 +163,21 @@ module ActiveSupport
           end
 
         private
-          def thread_local_key
-            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
+          def local_cache_key
+            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
           end
 
           def local_cache
-            Thread.current[thread_local_key]
+            LocalCacheRegistry.cache_for(local_cache_key)
           end
 
           def bypass_local_cache
-            save_cache = Thread.current[thread_local_key]
+            save_cache = LocalCacheRegistry.cache_for(local_cache_key)
             begin
-              Thread.current[thread_local_key] = nil
+              LocalCacheRegistry.set_cache_for(local_cache_key, nil)
               yield
             ensure
-              Thread.current[thread_local_key] = save_cache
+              LocalCacheRegistry.set_cache_for(local_cache_key, save_cache)
             end
           end
       end
