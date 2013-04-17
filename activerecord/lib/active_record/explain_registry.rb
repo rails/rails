@@ -9,7 +9,7 @@ module ActiveRecord
   #
   # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
   # for further details.
-  class ExplainRegistry
+  class ExplainRegistry # :nodoc:
     extend ActiveSupport::PerThreadRegistry
 
     attr_accessor :queries, :collect
