@@ -204,6 +204,8 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
+    # This method raises an +ActiveRecord::ActiveRecordError+  if the
+    # attribute is marked as readonly.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
