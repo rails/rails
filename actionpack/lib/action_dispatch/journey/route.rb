@@ -102,6 +102,10 @@ module ActionDispatch
             value === request.send(method).to_s
           when Array
             value.include?(request.send(method))
+          when TrueClass
+            request.send(method).present?
+          when FalseClass
+            request.send(method).blank?
           else
             value === request.send(method)
           end
