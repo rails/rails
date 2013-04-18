@@ -1,4 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
+
+*   Add support for extracting the port from the `:host` option passed to `url_for`.
+
+    *Andrew White*
+
+*   Add support for removing the subdomain from a url by passing `nil`, `false` or `''`.
+    Fixes #10180.
+
+    *Derek Watson + Andrew White*
+
 *   Element of the collection for `options_from_collection_for_select` helper can
     optionally contain html attributes as the last element of the array as
     `options_for_select` helper.
