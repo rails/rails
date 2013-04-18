@@ -3356,6 +3356,7 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
   test "false constraint expressions check for absence of values" do
     get 'http://example.com/search'
     assert_response :success
+    assert_equal 'http://example.com/search', search_url
 
     get 'http://api.example.com/search'
     assert_response :not_found
@@ -3364,6 +3365,7 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
   test "true constraint expressions check for presence of values" do
     get 'http://api.example.com/logs'
     assert_response :success
+    assert_equal 'http://api.example.com/logs', logs_url
 
     get 'http://example.com/logs'
     assert_response :not_found
