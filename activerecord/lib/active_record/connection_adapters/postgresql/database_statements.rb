@@ -44,21 +44,6 @@ module ActiveRecord
           end
         end
 
-
-        # Inserts the given fixture into the table. 
-        def insert_fixture(fixture, table_name)
-          columns = schema_cache.columns_hash(table_name)
-
-          key_list   = []
-          value_list = fixture.map do |name, value|
-            key_list << quote_column_name(name)
-            [columns[name], value]
-          end
-
-          insert_statement = "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(", ")}) VALUES (#{key_list.count.times.map{|i| "$#{i+1}" }.join(", ")})"
-          exec_insert(insert_statement, 'Fixture Insert', value_list)
-        end
-
         # Executes a SELECT query and returns an array of rows. Each row is an
         # array of field values.
         def select_rows(sql, name = nil)
