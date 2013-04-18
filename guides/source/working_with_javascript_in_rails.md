@@ -58,9 +58,9 @@ Unobtrusive JavaScript
 -------------------------------------
 
 Rails uses a technique called "Unobtrusive JavaScript" to handle attaching
-JavaScript to the DOM. This is generally considered to be a best-practice
-within the frontend community, but you may occasionally read tutorials that
-demonstrate other ways.
+JavaScript to the DOM, getting separated from the HTML markup. This is generally 
+considered to be a best-practice within the frontend community, but you may 
+occasionally read tutorials that demonstrate other ways.
 
 Here's the simplest way to write JavaScript. You may see it referred to as
 'inline JavaScript':
