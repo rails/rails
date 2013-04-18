@@ -88,7 +88,7 @@ module ActiveRecord
 
       # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
-        return nil if value.nil?
+        return if value.nil?
         return coder.load(value) if encoded?
 
         klass = self.class
@@ -161,7 +161,7 @@ module ActiveRecord
 
         def value_to_date(value)
           if value.is_a?(String)
-            return nil if value.empty?
+            return if value.empty?
             fast_string_to_date(value) || fallback_string_to_date(value)
           elsif value.respond_to?(:to_date)
             value.to_date
@@ -172,20 +172,20 @@ module ActiveRecord
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          return nil if string.empty?
+          return if string.empty?
 
           fast_string_to_time(string) || fallback_string_to_time(string)
         end
 
         def string_to_dummy_time(string)
           return string unless string.is_a?(String)
-          return nil if string.empty?
+          return if string.empty?
 
           dummy_time_string = "2000-01-01 #{string}"
 
           fast_string_to_time(dummy_time_string) || begin
             time_hash = Date._parse(dummy_time_string)
-            return nil if time_hash[:hour].nil?
+            return if time_hash[:hour].nil?
             new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
           end
         end
@@ -239,7 +239,7 @@ module ActiveRecord
 
           def new_time(year, mon, mday, hour, min, sec, microsec)
             # Treat 0000-00-00 00:00:00 as nil.
-            return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
+            return if year.nil? || (year == 0 && mon == 0 && mday == 0)
 
             Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end

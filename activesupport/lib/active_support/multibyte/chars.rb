@@ -204,8 +204,8 @@ module ActiveSupport #:nodoc:
       protected
 
         def translate_offset(byte_offset) #:nodoc:
-          return nil if byte_offset.nil?
-          return 0   if @wrapped_string == ''
+          return if byte_offset.nil?
+          return 0 if @wrapped_string == ''
 
           begin
             @wrapped_string.byteslice(0...byte_offset).unpack('U*').length

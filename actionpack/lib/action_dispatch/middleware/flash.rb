@@ -87,7 +87,7 @@ module ActionDispatch
       end
 
       def to_session_value
-        return nil if empty?
+        return if empty?
         {'discard' => @discard.to_a, 'flashes' => @flashes}
       end
 
