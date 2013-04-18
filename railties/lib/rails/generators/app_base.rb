@@ -193,7 +193,7 @@ module Rails
         else
           <<-GEMFILE.strip_heredoc
             # Use SCSS for stylesheets
-            gem 'sass-rails', '~> 4.0.0.beta1'
+            gem 'sass-rails', '~> 4.0.0.rc1'
 
             # Use Uglifier as compressor for JavaScript assets
             gem 'uglifier', '>= 1.3.0'
