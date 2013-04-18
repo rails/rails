@@ -33,7 +33,7 @@ module HTML #:nodoc:
     # Return the next token in the sequence, or +nil+ if there are no more tokens in
     # the stream.
     def next
-      return nil if @scanner.eos?
+      return if @scanner.eos?
       @position = @scanner.pos
       @line = @current_line
       if @scanner.check(/<\S/)

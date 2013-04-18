@@ -20,7 +20,7 @@ module ActiveRecord
       #   { name: "foo'bar", group_id: 4 }  returns "name='foo''bar' and group_id='4'"
       #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
       def sanitize_sql_for_conditions(condition, table_name = self.table_name)
-        return nil if condition.blank?
+        return if condition.blank?
 
         case condition
         when Array; sanitize_sql_array(condition)
