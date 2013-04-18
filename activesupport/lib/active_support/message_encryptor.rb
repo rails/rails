@@ -28,7 +28,7 @@ module ActiveSupport
     end
 
     class InvalidMessage < StandardError; end
-    OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
+    OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
     # the cipher key size. For the default 'aes-256-cbc' cipher, this is 256
@@ -66,12 +66,11 @@ module ActiveSupport
 
     def _encrypt(value)
       cipher = new_cipher
-      # Rely on OpenSSL for the initialization vector
-      iv = cipher.random_iv
-
       cipher.encrypt
       cipher.key = @secret
-      cipher.iv  = iv
+
+      # Rely on OpenSSL for the initialization vector
+      iv = cipher.random_iv
 
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
