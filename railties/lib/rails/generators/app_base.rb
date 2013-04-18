@@ -219,7 +219,7 @@ module Rails
         else
           <<-GEMFILE
             # Use CoffeeScript for .js.coffee assets and views
-            gem 'coffee-rails', '~> 4.0.0.beta1'
+            gem 'coffee-rails', '~> 4.0.0'
           GEMFILE
         end
       end
