@@ -6,8 +6,8 @@ en:
     # The values :model, :attribute and :value are always available for interpolation
     # The value :count is available when applicable. Can be used for pluralization.
     messages:
-      inclusion: "is not included in the list"
-      exclusion: "is reserved"
+      inclusion: "is not (or does not include) a value in the list"
+      exclusion: "is (or has a value that is) reserved"
       invalid: "is invalid"
       confirmation: "doesn't match %{attribute}"
       accepted: "must be accepted"
