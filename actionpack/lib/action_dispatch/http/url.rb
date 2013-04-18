@@ -28,6 +28,7 @@ module ActionDispatch
         end
 
         def url_for(options = {})
+          options = options.dup
           path  = options.delete(:script_name).to_s.chomp("/")
           path << options.delete(:path).to_s
 
