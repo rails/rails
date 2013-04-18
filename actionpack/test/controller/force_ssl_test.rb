@@ -78,6 +78,25 @@ class ForceSSLControllerLevelTest < ActionController::TestCase
     assert_response 301
     assert_equal "https://test.host/force_ssl_controller_level/cheeseburger", redirect_to_url
   end
+
+  def test_cheeseburger_redirects_to_https_with_extra_format
+    get :cheeseburger, format: :json
+    assert_response 301
+    assert_equal "https://test.host/force_ssl_controller_level/cheeseburger.json", redirect_to_url
+  end
+
+  def test_cheeseburger_redirects_to_https_with_extra_invalid_format
+    get :cheeseburger, format: :rise
+    assert_response 301
+    assert_equal "https://test.host/force_ssl_controller_level/cheeseburger", redirect_to_url
+  end
+
+  def test_cheeseburger_redirects_to_https_with_html_format_on_url
+     get :cheeseburger, format: :html
+     assert_response 301
+     assert_equal "https://test.host/force_ssl_controller_level/cheeseburger.html", redirect_to_url
+   end
+
 end
 
 class ForceSSLCustomDomainTest < ActionController::TestCase
