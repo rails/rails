@@ -249,7 +249,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
-    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
+    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
+    %(video_tag([{:src => "multiple.ogg", :type => "video/ogg; codecs=theora,vorbis" }, "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" type="video/ogg; codecs=theora,vorbis" /><source src="/videos/multiple.avi" /></video>)
   }
 
   AudioPathToTag = {
@@ -287,7 +288,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
-    %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
+    %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
+    %(audio_tag([{:src => "audio.mp3", :type => "audio/mpeg"}, "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" type="audio/mpeg" /><source src="/audios/audio.ogg" /></audio>)
   }
 
   FontPathToTag = {
@@ -443,8 +445,8 @@ class AssetTagHelperTest < ActionView::TestCase
     [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
       assert_equal 'Rails', image_alt("#{prefix}rails.png")
       assert_equal 'Rails', image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
-      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png") 
-      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")  
+      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png")
+      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")
     end
   end
 
