@@ -142,7 +142,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
 
-*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby stdlib.
+*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby standard library.
 
 *   Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 
