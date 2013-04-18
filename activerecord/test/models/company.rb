@@ -202,6 +202,10 @@ end
 class VerySpecialClient < SpecialClient
 end
 
+class AccountClient < Client
+  validates_presence_of :account
+end
+
 class Account < ActiveRecord::Base
   belongs_to :firm, :class_name => 'Company'
   belongs_to :unautosaved_firm, :foreign_key => "firm_id", :class_name => "Firm", :autosave => false
