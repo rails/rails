@@ -156,7 +156,7 @@ db_namespace = namespace :db do
     begin
       puts ActiveRecord::Tasks::DatabaseTasks.collation_current
     rescue NoMethodError
-      $stderr.puts 'Sorry, your database adapter is not supported yet, feel free to submit a patch'
+      $stderr.puts 'Sorry, your database adapter is not supported yet. Feel free to submit a patch.'
     end
   end
 
@@ -170,7 +170,7 @@ db_namespace = namespace :db do
     pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Migrator.migrations_paths).pending_migrations
 
     if pending_migrations.any?
-      puts "You have #{pending_migrations.size} pending migrations:"
+      puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
       pending_migrations.each do |pending_migration|
         puts '  %4d %s' % [pending_migration.version, pending_migration.name]
       end
@@ -241,7 +241,7 @@ db_namespace = namespace :db do
       if File.exists?(file)
         load(file)
       else
-        abort %{#{file} doesn't exist yet. Run `rake db:migrate` to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded}
+        abort %{#{file} doesn't exist yet. Run `rake db:migrate` to create it, then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.}
       end
     end
 
