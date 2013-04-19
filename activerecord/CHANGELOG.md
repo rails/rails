@@ -1,3 +1,22 @@
+*   Apply default scope when joining associations. For example:
+
+        class Post < ActiveRecord::Base
+          default_scope -> { where published: true }
+        end
+
+        class Comment
+          belongs_to :post
+        end
+
+    When calling `Comment.joins(:post)`, we expect to receive only
+    comments on published posts, since that is the default scope for
+    posts.
+
+    Before this change, the default scope from `Post` was not applied,
+    so we'd get comments on unpublished posts.
+
+    *Jon Leighton*
+
 *   Remove `activerecord-deprecated_finders` as a dependency
 
     *Łukasz Strzałkowski*

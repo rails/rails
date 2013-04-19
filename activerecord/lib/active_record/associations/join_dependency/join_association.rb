@@ -106,6 +106,8 @@ module ActiveRecord
               ]
             end
 
+            scope_chain_items += [reflection.klass.send(:build_default_scope)].compact
+
             constraint = scope_chain_items.inject(constraint) do |chain, item|
               unless item.is_a?(Relation)
                 item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
