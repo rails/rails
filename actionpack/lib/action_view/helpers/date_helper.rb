@@ -808,7 +808,7 @@ module ActionView
           options[:max_years_allowed] = @options[:max_years_allowed] || 1000
 
           if (options[:end] - options[:start]).abs > options[:max_years_allowed]
-            raise ArgumentError,  "There're too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter"
+            raise ArgumentError, "There are too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter."
           end
 
           build_options_and_select(:year, val, options)
