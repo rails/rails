@@ -1,5 +1,24 @@
 ## unreleased ##
 
+*   Apply default scope when joining associations. For example:
+
+        class Post < ActiveRecord::Base
+          default_scope -> { where published: true }
+        end
+
+        class Comment
+          belongs_to :post
+        end
+
+    When calling `Comment.joins(:post)`, we expect to receive only
+    comments on published posts, since that is the default scope for
+    posts.
+
+    Before this change, the default scope from `Post` was not applied,
+    so we'd get comments on unpublished posts.
+
+    *Jon Leighton*
+
 *   `inspect` on Active Record model classes does not initiate a
     new connection. This means that calling `inspect`, when the
     database is missing, will no longer raise an exception.
