@@ -258,6 +258,32 @@ class MigrationTest < ActiveRecord::TestCase
      "On error, the Migrator should revert schema changes but it did not."
   end
 
+  def test_migrator_one_up_with_exception_and_rollback_using_run
+    unless ActiveRecord::Base.connection.supports_ddl_transactions?
+      skip "not supported on #{ActiveRecord::Base.connection.class}"
+    end
+
+    assert_not Person.column_methods_hash.include?(:last_name)
+
+    migration = Class.new(ActiveRecord::Migration) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+        raise 'Something broke'
+      end
+    }.new
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+
+    e = assert_raise(StandardError) { migrator.run }
+
+    assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
+
+    Person.reset_column_information
+    assert_not Person.column_methods_hash.include?(:last_name),
+      "On error, the Migrator should revert schema changes but it did not."
+  end
+
   def test_migration_without_transaction
     unless ActiveRecord::Base.connection.supports_ddl_transactions?
       skip "not supported on #{ActiveRecord::Base.connection.class}"

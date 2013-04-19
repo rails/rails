@@ -867,11 +867,18 @@ module ActiveRecord
     alias :current :current_migration
 
     def run
-      target = migrations.detect { |m| m.version == @target_version }
-      raise UnknownMigrationVersionError.new(@target_version) if target.nil?
-      unless (up? && migrated.include?(target.version.to_i)) || (down? && !migrated.include?(target.version.to_i))
-        target.migrate(@direction)
-        record_version_state_after_migrating(target.version)
+      migration = migrations.detect { |m| m.version == @target_version }
+      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
+        begin
+          ddl_transaction(migration) do
+            migration.migrate(@direction)
+            record_version_state_after_migrating(migration.version)
+          end
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
+          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
+        end
       end
     end
 
