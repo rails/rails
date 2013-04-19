@@ -163,8 +163,20 @@ module ActiveRecord
     #   person.respond_to('age?')   # => true
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
+      name = name.to_s
       self.class.define_attribute_methods unless self.class.attribute_methods_generated?
-      super
+      result = super
+
+      # If the result is false then it means this method is not supported by ActiveModel too
+      return false unless result
+
+      # If the result is true then check for the select case.
+      # For queries selecting a subset of columns, return false for unselected columns.
+      if @attributes.present? && self.class.column_names.include?(name)
+        return has_attribute?(name)
+      end
+
+      return true
     end
 
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.
