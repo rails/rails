@@ -67,7 +67,7 @@ Creating a Rails 3.2 application
 --------------------------------
 
 ```bash
-# You should have the 'rails' rubygem installed
+# You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
