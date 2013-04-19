@@ -59,35 +59,33 @@ dependencies of the application. `config/boot.rb` sets
 `ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
 exists, `bundler/setup` is then required.
 
-The gems that a Rails 4 application depends on are as follows:
+A standard Rails application depends on several gems, specifically:
 
-TODO: change these when the Rails 4 release is near.
-
-* abstract (1.0.0)
-* actionmailer (4.0.0.beta)
-* actionpack (4.0.0.beta)
-* activemodel (4.0.0.beta)
-* activerecord (4.0.0.beta)
-* activesupport (4.0.0.beta)
-* arel (2.0.7)
-* builder (3.0.0)
-* bundler (1.0.6)
-* erubis (2.6.6)
-* i18n (0.5.0)
-* mail (2.2.12)
-* mime-types (1.16)
-* polyglot (0.3.1)
-* rack (1.2.1)
-* rack-cache (0.5.3)
-* rack-mount (0.6.13)
-* rack-test (0.5.6)
-* rails (4.0.0.beta)
-* railties (4.0.0.beta)
-* rake (0.8.7)
-* sqlite3-ruby (1.3.2)
-* thor (0.14.6)
-* treetop (1.4.9)
-* tzinfo (0.3.23)
+* abstract
+* actionmailer
+* actionpack
+* activemodel
+* activerecord
+* activesupport
+* arel
+* builder
+* bundler
+* erubis
+* i18n
+* mail
+* mime-types
+* polyglot
+* rack
+* rack-cache
+* rack-mount
+* rack-test
+* rails
+* railties
+* rake
+* sqlite3-ruby
+* thor
+* treetop
+* tzinfo
 
 ### `rails/commands.rb`
 
