@@ -129,7 +129,7 @@ when 'server'
   end
 ```
 
-This file will change into the root of the directory (a path two directories back from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
+This file will change into the Rails root directory (a path two directories up from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
 
 ```ruby
 require 'fileutils'
