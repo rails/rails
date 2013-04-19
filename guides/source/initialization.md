@@ -145,11 +145,11 @@ module Rails
 ### `actionpack/lib/action_dispatch.rb`
 
 Action Dispatch is the routing component of the Rails framework.
-It adds functionalities like routing, session, and common middlewares.
+It adds functionality like routing, session, and common middlewares.
 
 ### `rails/commands/server.rb`
 
-The `Rails::Server` class is defined in this file as inheriting from `Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize` method in `rails/commands/server.rb`:
+The `Rails::Server` class is defined in this file by inheriting from `Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize` method in `rails/commands/server.rb`:
 
 ```ruby
 def initialize(*)
@@ -439,14 +439,14 @@ inside each of those frameworks, but you're encouraged to try and
 explore them on your own.
 
 For now, just keep in mind that common functionality like Rails engines,
-I18n and Rails configuration is all being defined here.
+I18n and Rails configuration are all being defined here.
 
 ### Back to `config/environment.rb`
 
 When `config/application.rb` has finished loading Rails, and defined
-your application namespace, you go back to `config/environment.rb`,
-where your application is initialized. For example, if you application was called
-`Blog`, here you would find `Blog::Application.initialize!`, which is
+the application namespace, we go back to `config/environment.rb`,
+where the application is initialized. For example, if the application was called
+`Blog`, here we would find `Blog::Application.initialize!`, which is
 defined in `rails/application.rb`
 
 ### `railties/lib/rails/application.rb`
