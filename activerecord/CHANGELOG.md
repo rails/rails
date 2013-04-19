@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Run `rake migrate:down` & `rake migrate:up` in transaction if database supports.
+
+    *Alexander Bondarev*
+
 *   `0x` prefix must be added when assigning hexadecimal string into `bit` column in PostgreSQL.
 
     *kennyj*
