@@ -1,4 +1,19 @@
 module ActionView
+  # This class defines the interface for a renderer. Each class that
+  # subclasses +AbstractRenderer+ is used by the base +Renderer+ class to
+  # render a specific type of object.
+  #
+  # The base +Renderer+ class uses its +render+ method to delegate to the
+  # renderers. These currently consist of
+  #
+  #   PartialRenderer - Used for rendering partials
+  #   TemplateRenderer - Used for rendering other types of templates
+  #   StreamingTemplateRenderer - Used for streaming
+  #
+  # Whenever the +render+ method is called on the base +Renderer+ class, a new
+  # renderer object of the correct type is created, and the +render+ method on
+  # that new object is called in turn. This abstracts the setup and rendering
+  # into a separate classes for partials and templates.
   class AbstractRenderer #:nodoc:
     delegate :find_template, :template_exists?, :with_fallbacks, :with_layout_format, :formats, :to => :@lookup_context
 
