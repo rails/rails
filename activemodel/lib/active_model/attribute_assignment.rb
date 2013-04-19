@@ -34,6 +34,20 @@ module ActiveModel
     extend ActiveSupport::Concern
     include ActiveModel::ForbiddenAttributesProtection
 
+    # Initializes a new model with the given +params+.
+    #
+    #   class Person
+    #     include ActiveModel::AttributeAssignment
+    #     attr_accessor :name, :age
+    #   end
+    #
+    #   person = Person.new(name: 'bob', age: '18')
+    #   person.name # => "bob"
+    #   person.age  # => 18
+    def initialize(params={})
+      assign_attributes(params)
+    end
+
     # Allows you to set all the attributes by passing in a hash of attributes with
     # keys matching the attribute names (which again matches the column names).
     #
