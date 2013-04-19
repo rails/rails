@@ -32,7 +32,7 @@ module ActiveRecord
             when 'point' then super(PostgreSQLColumn.point_to_string(value))
             else
               if column.array
-                "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
+                "'#{PostgreSQLColumn.array_to_string(value, column, self).gsub(/'/, "''")}'"
               else
                 super
               end
