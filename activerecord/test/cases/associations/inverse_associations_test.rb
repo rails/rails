@@ -4,6 +4,8 @@ require 'models/face'
 require 'models/interest'
 require 'models/zine'
 require 'models/club'
+require 'models/membership'
+require 'models/drink'
 require 'models/sponsor'
 
 class InverseAssociationTests < ActiveRecord::TestCase
@@ -23,28 +25,28 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
   def test_should_be_able_to_ask_a_reflection_if_it_has_an_inverse
     has_one_with_inverse_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_with_inverse_ref, :has_inverse?
-    assert has_one_with_inverse_ref.has_inverse?
+    assert_respond_to has_one_with_inverse_ref, :has_explicit_inverse?
+    assert has_one_with_inverse_ref.has_explicit_inverse?
 
     has_many_with_inverse_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_with_inverse_ref, :has_inverse?
-    assert has_many_with_inverse_ref.has_inverse?
+    assert_respond_to has_many_with_inverse_ref, :has_explicit_inverse?
+    assert has_many_with_inverse_ref.has_explicit_inverse?
 
     belongs_to_with_inverse_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_with_inverse_ref, :has_inverse?
-    assert belongs_to_with_inverse_ref.has_inverse?
+    assert_respond_to belongs_to_with_inverse_ref, :has_explicit_inverse?
+    assert belongs_to_with_inverse_ref.has_explicit_inverse?
 
     has_one_without_inverse_ref = Club.reflect_on_association(:sponsor)
-    assert_respond_to has_one_without_inverse_ref, :has_inverse?
-    assert !has_one_without_inverse_ref.has_inverse?
+    assert_respond_to has_one_without_inverse_ref, :has_explicit_inverse?
+    assert !has_one_without_inverse_ref.has_explicit_inverse?
 
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
-    assert_respond_to has_many_without_inverse_ref, :has_inverse?
-    assert !has_many_without_inverse_ref.has_inverse?
+    assert_respond_to has_many_without_inverse_ref, :has_explicit_inverse?
+    assert !has_many_without_inverse_ref.has_explicit_inverse?
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert_respond_to belongs_to_without_inverse_ref, :has_inverse?
-    assert !belongs_to_without_inverse_ref.has_inverse?
+    assert_respond_to belongs_to_without_inverse_ref, :has_explicit_inverse?
+    assert !belongs_to_without_inverse_ref.has_explicit_inverse?
   end
 
   def test_should_be_able_to_ask_a_reflection_what_it_is_the_inverse_of
@@ -69,15 +71,26 @@ class InverseAssociationTests < ActiveRecord::TestCase
     assert_equal Man.reflect_on_association(:face), belongs_to_ref.inverse_of
   end
 
-  def test_associations_with_no_inverse_of_should_return_nil
+  def test_associations_with_no_derivable_inverse_of_should_return_nil
     has_one_ref = Club.reflect_on_association(:sponsor)
     assert_nil has_one_ref.inverse_of
 
-    has_many_ref = Club.reflect_on_association(:memberships)
+    has_many_ref = Club.reflect_on_association(:beverages)
     assert_nil has_many_ref.inverse_of
 
-    belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
+    belongs_to_ref = Drink.reflect_on_association(:bar)
     assert_nil belongs_to_ref.inverse_of
+  end
+
+  def test_associations_are_able_to_derive_simple_inverses
+    has_one_ref = Club.reflect_on_association(:membership)
+    assert_equal Membership.reflect_on_association(:club), has_one_ref.inverse_of
+
+    has_many_ref = Club.reflect_on_association(:memberships)
+    assert_equal Membership.reflect_on_association(:club), has_many_ref.inverse_of
+
+    belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
+    assert_equal Club.reflect_on_association(:sponsor), belongs_to_ref.inverse_of
   end
 end
 

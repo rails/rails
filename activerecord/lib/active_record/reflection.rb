@@ -256,7 +256,7 @@ module ActiveRecord
 
       def check_validity_of_inverse!
         unless options[:polymorphic]
-          if has_inverse? && inverse_of.nil?
+          if has_explicit_inverse? && inverse_of.nil?
             raise InverseOfAssociationNotFoundError.new(self)
           end
         end
@@ -288,18 +288,21 @@ module ActiveRecord
 
       alias :source_macro :macro
 
-      def has_inverse?
+      def has_explicit_inverse?
         @options[:inverse_of]
       end
 
+      def has_inverse?
+        ActiveSupport::Deprecation.warn '#has_inverse? is deprecated. Please use #has_explicit_inverse? instead.'
+        has_explicit_inverse?
+      end
+
       def inverse_of
-        if has_inverse?
-          @inverse_of ||= klass.reflect_on_association(options[:inverse_of])
-        end
+        @inverse_of ||= derive_inverse
       end
 
       def polymorphic_inverse_of(associated_class)
-        if has_inverse?
+        if has_explicit_inverse?
           if inverse_relationship = associated_class.reflect_on_association(options[:inverse_of])
             inverse_relationship
           else
@@ -385,6 +388,22 @@ module ActiveRecord
 
         def derive_join_table
           [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+        end
+
+        def derive_inverse
+          if has_explicit_inverse?
+            klass.reflect_on_association(options[:inverse_of])
+          else
+            klass.reflect_on_association(inverse_record_name.to_sym) || klass.reflect_on_association(plural_inverse_record_name.to_sym)
+          end
+        end
+
+        def inverse_record_name
+          active_record.name.underscore
+        end
+
+        def plural_inverse_record_name
+          inverse_record_name.pluralize
         end
 
         def primary_key(klass)

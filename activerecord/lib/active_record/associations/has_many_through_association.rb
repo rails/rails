@@ -101,7 +101,7 @@ module ActiveRecord
 
           record = super(attributes)
 
-          inverse = source_reflection.inverse_of
+          inverse = source_reflection.inverse_of unless source_reflection.polymorphic?
           if inverse
             if inverse.macro == :has_many
               record.send(inverse.name) << build_through_record(record)
