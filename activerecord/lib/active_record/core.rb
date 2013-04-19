@@ -307,9 +307,11 @@ module ActiveRecord
       id.hash
     end
 
-    # Freeze the attributes hash such that associations are still accessible, even on destroyed records.
+    # Clone and freeze the attributes hash such that associations are still
+    # accessible, even on destroyed records, but cloned models will not be
+    # frozen.
     def freeze
-      @attributes.freeze
+      @attributes = @attributes.clone.freeze
       self
     end
 
