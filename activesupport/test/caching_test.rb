@@ -272,6 +272,22 @@ module CacheStoreBehavior
     assert_nil @cache.read('foo')
   end
 
+  def test_select_multi
+    @cache.write('foo', true)
+    @cache.write('bar', false)
+
+    values = @cache.select_multi('foo', 'bar', 'baz') {|value| true }
+
+    assert_equal(['foo', 'baz'], values)
+  end
+
+  def test_select_multi_writes_back_to_cache
+    @cache.select_multi('foo', 'bar') {|value| value == 'foo' }
+
+    assert_equal(true, @cache.read('foo'))
+    assert_equal(false, @cache.read('bar'))
+  end
+
   def test_cache_key
     obj = Object.new
     def obj.cache_key
