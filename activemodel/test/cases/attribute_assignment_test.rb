@@ -41,4 +41,23 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     assert_equal 'The City', person.address.city
     assert_equal 'The Country', person.address.country
   end
+
+  def test_unknown_multiparameter_attribute
+    errors = assert_raise(ActiveModel::MultiparameterAssignmentErrors) do
+      person = Person.new(
+        'name' => 'John Doe',
+        'unknown(1i)' => '2015',
+        'unknown(2i)' => '10',
+        'unknown(3i)' => '21'
+      )
+    end
+
+    original_error = unpack_multiparameter_assignment_errors(errors)
+    assert original_error.is_a?(ActiveModel::UnknownAttributeError)
+  end
+
+  def unpack_multiparameter_assignment_errors(errors)
+    attribute_assignment_error = errors.errors.first
+    attribute_assignment_error.exception
+  end
 end

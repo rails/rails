@@ -162,6 +162,10 @@ module ActiveModel
       errors = []
       callstack.each do |name, values_with_empty_parameters|
         begin
+          unless respond_to?("#{name}=")
+            raise unknown_attribute_error_class, "unknown attribute: #{name}"
+          end
+
           attr_class = self.class.const_get('MultiparameterAttribute')
           send("#{name}=", attr_class.new(self, name, values_with_empty_parameters).read_value)
         rescue => ex
