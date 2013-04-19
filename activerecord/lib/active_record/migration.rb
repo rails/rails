@@ -876,7 +876,7 @@ module ActiveRecord
             record_version_state_after_migrating(migration.version)
           end
         rescue => e
-          canceled_msg = use_transaction?(migration) ? ", the migration canceled" : ""
+          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
           raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
         end
       end

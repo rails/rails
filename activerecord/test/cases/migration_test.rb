@@ -277,7 +277,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     e = assert_raise(StandardError) { migrator.run }
 
-    assert_equal "An error has occurred, the migration canceled:\n\nSomething broke", e.message
+    assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
 
     Person.reset_column_information
     assert_not Person.column_methods_hash.include?(:last_name),
