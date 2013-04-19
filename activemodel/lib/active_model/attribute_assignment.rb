@@ -26,6 +26,14 @@ module ActiveModel
     end
   end
 
+  # Raised when the +attributes=+ method receives a multi-parameter value for
+  # an attribute that isn't expecting one. This either means that the attribute
+  # shouldn't have been passed a multi-parameter value because it expects a
+  # simple type (like a String), or that the +class_for_attribute+ method needs
+  # to be modified to return the correct class for this attribute.
+  class UnexpectedMultiparameterValueError < StandardError
+  end
+
   # Raised when unknown attributes are supplied via mass assignment.
   class UnknownAttributeError < NoMethodError
   end
@@ -218,7 +226,13 @@ module ActiveModel
 
         klass = class_for_attribute
 
-        if klass == Time
+        if klass.nil?
+          raise UnexpectedMultiparameterValueError,
+                "Did not expect a multiparameter value for #{name}. " +
+                "You may be passing the wrong value, or you need to modify " +
+                "class_for_attribute so that it returns the right class for " +
+                "#{name}."
+        elsif klass == Time
           read_time
         elsif klass == Date
           read_date
