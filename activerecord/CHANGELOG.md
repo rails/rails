@@ -8,10 +8,10 @@
         post = Post.select("'title' as post_title").first
 
     In the above case when `post.body` is invoked then an exception is
-    raised since `body` attribute is not selected. Howevere `respond_to?`
+    raised since `body` attribute is not selected. However `respond_to?`
     did not behave correctly.
 
-        pos.respond_to?(:body) #=> true
+        post.respond_to?(:body) #=> true
 
     Reason was that Active Record calls `super` to pass the call to
     Active Model and all the columns are defined on Active Model.
