@@ -85,8 +85,8 @@ ERB allows you to embed Ruby code within templates. The YAML fixture format is p
 ```erb
 <% 1000.times do |n| %>
 user_<%= n %>:
-  username: <%= "user%03d" % n %>
-  email: <%= "user%03d@example.com" % n %>
+  username: <%= "user#{n}" %>
+  email: <%= "user#{n}@example.com" %>
 <% end %>
 ```
 
