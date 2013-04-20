@@ -1,23 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   If a query selects only a few columns and gives custom names to
-    those columns then `respond_to?` was returning true for the non
-    selected columns. However calling those non selected columns
-    raises exception.
+*   If a model was instantiated from the database using `select`, `respond_to?`
+    returns false for non-selected attributes. For example:
 
-        post = Post.select("'title' as post_title").first
+        post = Post.select(:title).first
+        post.respond_to?(:body) # => false
 
-    In the above case when `post.body` is invoked then an exception is
-    raised since `body` attribute is not selected. However `respond_to?`
-    did not behave correctly.
-
-        post.respond_to?(:body) #=> true
-
-    Reason was that Active Record calls `super` to pass the call to
-    Active Model and all the columns are defined on Active Model.
-
-    Fix is to actually check if the data returned from the db contains
-    the data for column in question.
+        post = Post.select('title as post_title').first
+        post.respond_to?(:title) # => false
 
     Fixes #4208.
 
