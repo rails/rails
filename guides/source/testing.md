@@ -476,7 +476,7 @@ NOTE: Functional tests do not verify whether the specified request type should b
 
 ### The Four Hashes of the Apocalypse
 
-After a request has been made by using one of the 5 methods (`get`, `post`, etc.) and processed, you will have 4 Hash objects ready for use:
+After a request has been made using one of the 6 methods (`get`, `post`, etc.) and processed, you will have 4 Hash objects ready for use:
 
 * `assigns` - Any objects that are stored as instance variables in actions for use in views.
 * `cookies` - Any cookies that are set.
