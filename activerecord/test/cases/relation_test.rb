@@ -186,8 +186,11 @@ module ActiveRecord
     end
 
     def test_respond_to_for_non_selected_element
+      post = Post.select(:title).first
+      assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+
       post = Post.select("'title' as post_title").first
-      assert !post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
     end
 
   end

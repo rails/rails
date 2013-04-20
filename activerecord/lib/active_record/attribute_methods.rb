@@ -167,7 +167,7 @@ module ActiveRecord
       self.class.define_attribute_methods unless self.class.attribute_methods_generated?
       result = super
 
-      # If the result is false then it means this method is not supported by ActiveModel too
+      # If the result is false the answer is false.
       return false unless result
 
       # If the result is true then check for the select case.
