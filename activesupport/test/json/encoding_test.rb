@@ -327,12 +327,39 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
-  def test_enumerable_should_pass_encoding_options_to_children_in_as_json
-    people = [
-      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+  People = Class.new(BasicObject) do
+    include Enumerable
+    def initialize()
+      @people = [
+        { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+        { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+      ]
+    end
+    def each(*, &blk)
+      @people.each do |p|
+        yield p if blk
+        p
+      end.each
+    end
+  end
+
+  def test_enumerable_should_generate_json_with_as_json
+    json = People.new.as_json :only => [:address, :city]
+    expected = [
+      { 'address' => { 'city' => 'London' }},
+      { 'address' => { 'city' => 'Paris' }}
     ]
-    json = people.each.as_json :only => [:address, :city]
+
+    assert_equal(expected, json)
+  end
+
+  def test_enumerable_should_generate_json_with_to_json
+    json = People.new.to_json :only => [:address, :city]
+    assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
+  end
+
+  def test_enumerable_should_pass_encoding_options_to_children_in_as_json
+    json = People.new.each.as_json :only => [:address, :city]
     expected = [
       { 'address' => { 'city' => 'London' }},
       { 'address' => { 'city' => 'Paris' }}
@@ -342,11 +369,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_enumerable_should_pass_encoding_options_to_children_in_to_json
-    people = [
-      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
-    ]
-    json = people.each.to_json :only => [:address, :city]
+    json = People.new.each.to_json :only => [:address, :city]
 
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
