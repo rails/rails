@@ -183,6 +183,26 @@ class AddDetailsToProducts < ActiveRecord::Migration
 end
 ```
 
+You can also generate migrations to create table indexes. If the migration name
+matches the form "IndexNameOfIndexOnTableName" and is followed by a list of
+column names, then a migration creating an index named `index_name_of_index`
+on table `table_name` using the columns you listed will be generated.
+For example:
+
+```bash
+$ rails generate migration IndexProductNameAndPriceOnProducts name price
+```
+
+generates
+
+```ruby
+class IndexProductNameOnProducts < ActiveRecord::Migration
+  def change
+    add_index :products, [:name, :price], name: 'index_product_name_and_price'
+  end
+end
+```
+
 If the migration name is of the form "CreateXXX" and is
 followed by a list of column names and types then a migration creating the table
 XXX with the columns listed will be generated. For example:

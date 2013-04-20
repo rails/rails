@@ -183,7 +183,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
+  def test_index_migration
+    run_generator ["IndexTitleAndContentOnBooks", "title", "content"]
+    assert_migration "db/migrate/index_title_and_content_on_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_index :books/, change)
+        assert_match(/[:title, :content]/, change)
+			  assert_match(/name: 'index_title_and_content'/, change)
+      end
+    end
+  end
+
+  def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create_or_index
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]
 
