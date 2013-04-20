@@ -3,41 +3,6 @@ require 'active_support/core_ext/time/zones'
 require 'active_model/forbidden_attributes_protection'
 
 module ActiveModel
-  # Raised when an error occurred while doing a mass assignment to an attribute
-  # through the <tt>attributes=</tt> method. The exception has an +attribute+
-  # property that is the name of the offending attribute.
-  class AttributeAssignmentError < StandardError
-    attr_reader :exception, :attribute
-    def initialize(message, exception, attribute)
-      super(message)
-      @exception = exception
-      @attribute = attribute
-    end
-  end
-
-  # Raised when there are multiple errors while doing a mass assignment through
-  # the +attributes=+ method. The exception has an +errors+ property that
-  # contains an array of AttributeAssignmentError objects, each corresponding
-  # to the error while assigning to an attribute.
-  class MultiparameterAssignmentErrors < StandardError
-    attr_reader :errors
-    def initialize(errors)
-      @errors = errors
-    end
-  end
-
-  # Raised when the +attributes=+ method receives a multi-parameter value for
-  # an attribute that isn't expecting one. This either means that the attribute
-  # shouldn't have been passed a multi-parameter value because it expects a
-  # simple type (like a String), or that the +class_for_attribute+ method needs
-  # to be modified to return the correct class for this attribute.
-  class UnexpectedMultiparameterValueError < StandardError
-  end
-
-  # Raised when unknown attributes are supplied via mass assignment.
-  class UnknownAttributeError < NoMethodError
-  end
-
   # == Active \Model Attribute Assignment
   #
   # Provides support for multi-parameter attributes, e.g. date attributes in
@@ -296,5 +261,40 @@ module ActiveModel
         [values.keys.max, upper_cap].min
       end
     end
+  end
+
+  # Raised when an error occurred while doing a mass assignment to an attribute
+  # through the <tt>attributes=</tt> method. The exception has an +attribute+
+  # property that is the name of the offending attribute.
+  class AttributeAssignmentError < StandardError
+    attr_reader :exception, :attribute
+    def initialize(message, exception, attribute)
+      super(message)
+      @exception = exception
+      @attribute = attribute
+    end
+  end
+
+  # Raised when there are multiple errors while doing a mass assignment through
+  # the +attributes=+ method. The exception has an +errors+ property that
+  # contains an array of AttributeAssignmentError objects, each corresponding
+  # to the error while assigning to an attribute.
+  class MultiparameterAssignmentErrors < StandardError
+    attr_reader :errors
+    def initialize(errors)
+      @errors = errors
+    end
+  end
+
+  # Raised when the +attributes=+ method receives a multi-parameter value for
+  # an attribute that isn't expecting one. This either means that the attribute
+  # shouldn't have been passed a multi-parameter value because it expects a
+  # simple type (like a String), or that the +class_for_attribute+ method needs
+  # to be modified to return the correct class for this attribute.
+  class UnexpectedMultiparameterValueError < StandardError
+  end
+
+  # Raised when unknown attributes are supplied via mass assignment.
+  class UnknownAttributeError < NoMethodError
   end
 end
