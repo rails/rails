@@ -28,6 +28,32 @@
 
     *Charles Jones*
 
+*   Defaults the resulting JSON output to UTF-8. This is for ruby 1.9.3
+(not 2.0.x) which doesn't default ruby files to UTF-8.
+
+    Before this change:
+
+        >> hash = {"foo" => "bar"}
+        => {"foo"=>"bar"}
+        >> hash.keys.first.encoding
+        => #<Encoding:UTF-8>
+        >> hash.values.first.encoding
+        => #<Encoding:UTF-8>
+        >> ActiveSupport::JSON.encode(hash).encoding
+        => #<Encoding:US-ASCII>
+
+    After this change:
+
+        >> hash = {"foo" => "bar"}
+        => {"foo"=>"bar"}
+        >> hash.keys.first.encoding
+        => #<Encoding:UTF-8>
+        >> hash.values.first.encoding
+        => #<Encoding:UTF-8>
+        >> ActiveSupport::JSON.encode(hash).encoding
+        => #<Encoding:UTF-8>
+
+    Zach Moazeni
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 

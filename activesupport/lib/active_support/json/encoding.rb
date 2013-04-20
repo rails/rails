@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/json/variable'
