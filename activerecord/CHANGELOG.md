@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix for a regression bug in which counter cache columns were not being updated
+    when record was pushed into a has_many association. For example:
+
+        Post.first.comments << Comment.create
+
+    Fixes #3891.
+
+    *Matthew Robertson*
+
 *   If a model was instantiated from the database using `select`, `respond_to?`
     returns false for non-selected attributes. For example:
 
