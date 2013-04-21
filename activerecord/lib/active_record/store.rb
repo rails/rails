@@ -124,21 +124,22 @@ module ActiveRecord
       end
 
     class IndifferentCoder # :nodoc:
-      def initialize(coder_or_class_name)
+      def initialize(coder_or_class_name, default={})
         @coder =
           if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
             coder_or_class_name
           else
             ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
           end
+        @default = default
       end
 
       def dump(obj)
-        @coder.dump self.class.as_indifferent_hash(obj)
+        @coder.dump self.class.as_indifferent_hash(obj || @default)
       end
 
-      def load(yaml)
-        self.class.as_indifferent_hash @coder.load(yaml)
+      def load(serial)
+        serial.present? ? self.class.as_indifferent_hash(@coder.load(serial)) : @default.clone
       end
 
       def self.as_indifferent_hash(obj)
