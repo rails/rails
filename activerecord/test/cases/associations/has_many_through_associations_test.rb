@@ -303,17 +303,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
 
-    assert_difference ['post.reload.taggings_count', 'post.reload.tags_count'], -1 do
+    assert_difference ['post.reload.taggings_count', 'post.reload.taggings.count'], -1 do
       posts(:welcome).tags.delete(tag)
     end
+
   end
 
   def test_update_counter_caches_on_delete_with_dependent_destroy
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
-    post.update_columns(tags_with_destroy_count: post.tags.count)
 
-    assert_difference ['post.reload.taggings_count', 'post.reload.tags_with_destroy_count'], -1 do
+    assert_difference ['post.reload.taggings_count', 'post.reload.taggings.count'], -1 do
       posts(:welcome).tags_with_destroy.delete(tag)
     end
   end
@@ -321,12 +321,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_update_counter_caches_on_delete_with_dependent_nullify
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
-    post.update_columns(tags_with_nullify_count: post.tags.count)
 
-    assert_no_difference 'post.reload.taggings_count' do
-      assert_difference 'post.reload.tags_with_nullify_count', -1 do
-        posts(:welcome).tags_with_nullify.delete(tag)
-      end
+    assert_no_difference ['post.reload.taggings_count', 'post.reload.taggings.count'] do
+      posts(:welcome).tags_with_nullify.delete(tag)
     end
   end
 

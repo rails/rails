@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Depreciate automatic detection of counter cache columns for has_many associations
+    based on attribute names.
+
+    Fixes #8446 #3903
+
+    *Matthew Robertson*
+
 *   If a model was instantiated from the database using `select`, `respond_to?`
     returns false for non-selected attributes. For example:
 
