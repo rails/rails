@@ -19,7 +19,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_instance_of TZInfo::TimezonePeriod, zone.period_for_local(Time.utc(2000))
   end
 
-  ActiveSupport::TimeZone::MAPPING.keys.each do |name|
+  ActiveSupport::TimeZone.mapping.keys.each do |name|
     define_method("test_map_#{name.downcase.gsub(/[^a-z]/, '_')}_to_tzinfo") do
       zone = ActiveSupport::TimeZone[name]
       assert_respond_to zone.tzinfo, :period_for_local
@@ -350,6 +350,15 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_new
     assert_equal ActiveSupport::TimeZone["Central Time (US & Canada)"], ActiveSupport::TimeZone.new("Central Time (US & Canada)")
+  end
+
+  def test_add_new_tz
+    ActiveSupport::TimeZone.add_new_tz("Curaçao", "America/Curacao")
+    assert ActiveSupport::TimeZone["Curaçao"].present?
+    assert_equal ActiveSupport::TimeZone["Curaçao"].tzinfo.name, "America/Curacao"
+    assert_raises(ActiveSupport::InvalidTimezoneIdentifier) do
+      ActiveSupport::TimeZone.add_new_tz("bogus", "bogus")
+    end
   end
 
   def test_us_zones

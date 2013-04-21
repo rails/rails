@@ -31,8 +31,9 @@ module ActiveSupport
   # install the TZInfo gem (if a recent version of the gem is installed locally,
   # this will be used instead of the bundled version.)
   class TimeZone
+    cattr_reader :mapping
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
-    MAPPING = {
+    @@mapping = {
       "International Date Line West" => "Pacific/Midway",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
@@ -240,7 +241,7 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      re === name || re === MAPPING[name]
+      re === name || re === @@mapping[name]
     end
 
     # Returns a textual representation of this time zone.
@@ -340,7 +341,7 @@ module ActiveSupport
     end
 
     def self.find_tzinfo(name)
-      TZInfo::TimezoneProxy.new(MAPPING[name] || name)
+      TZInfo::TimezoneProxy.new(@@mapping[name] || name)
     end
 
     class << self
@@ -360,9 +361,27 @@ module ActiveSupport
         @zones ||= zones_map.values.sort
       end
 
+      # Adds a new TimeZone based on +rails_tz_name+ to +tz_identifier+ mapping, to available mappings.
+      # Raises a +ActiveSupport::InvalidTimezoneIdentifier+ on specifying an invalid +tz_identifier+
+      #
+      #   ActiveSupport::TimeZone.add_new_tz("Curaçao", "America/Curacao")  # => nil
+      #   ActiveSupport::TimeZone.add_new_tz("Curaçao", "bogus")            # => raises ActiveSupport::InvalidTimezoneIdentifier
+      def add_new_tz(rails_tz_name, tz_identifier)
+        begin
+          TZInfo::Timezone.get(tz_identifier)
+          # Update all variables to include new TimeZone
+          @@mapping[rails_tz_name] = tz_identifier
+          @zones_map[rails_tz_name] = create(rails_tz_name)
+          populate_zones!
+          @us_zones = populate_us_zones! if us_zone?(rails_tz_name)
+        rescue TZInfo::InvalidTimezoneIdentifier
+          raise InvalidTimezoneIdentifier, "Invalid TimeZone identifier supplied: #{tz_identifier}"
+        end
+      end
+
       def zones_map
         @zones_map ||= begin
-          new_zones_names = MAPPING.keys - lazy_zones_map.keys
+          new_zones_names = @@mapping.keys - lazy_zones_map.keys
           new_zones       = Hash[new_zones_names.map { |place| [place, create(place)] }]
 
           lazy_zones_map.merge(new_zones)
@@ -393,7 +412,7 @@ module ActiveSupport
       # A convenience method for returning a collection of TimeZone objects
       # for time zones in the USA.
       def us_zones
-        @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
+        @us_zones ||= populate_us_zones!
       end
 
       protected
@@ -407,6 +426,18 @@ module ActiveSupport
 
       private
 
+        def us_zone?(name)
+          name =~ /US|Arizona|Indiana|Hawaii|Alaska/
+        end
+
+        def populate_zones!
+          @zones = zones_map.values.sort!
+        end
+
+        def populate_us_zones!
+          @us_zones = all.find_all { |z| us_zone?(z.name) }
+        end
+
         def lookup(name)
           (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
         end
@@ -415,7 +446,7 @@ module ActiveSupport
           require_tzinfo
 
           @lazy_zones_map ||= Hash.new do |hash, place|
-            hash[place] = create(place) if MAPPING.has_key?(place)
+            hash[place] = create(place) if @@mapping.has_key?(place)
           end
         end
     end
@@ -425,5 +456,8 @@ module ActiveSupport
     def time_now
       Time.now
     end
+  end
+
+  class InvalidTimezoneIdentifier < StandardError
   end
 end
