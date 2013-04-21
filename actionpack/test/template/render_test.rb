@@ -29,14 +29,6 @@ module RenderTestCases
     assert_equal "Hello world!", @view.render(:file => "test/hello_world")
   end
 
-  def test_render_file_not_using_full_path
-    assert_equal "Hello world!", @view.render(:file => "test/hello_world")
-  end
-
-  def test_render_file_without_specific_extension
-    assert_equal "Hello world!", @view.render(:file => "test/hello_world")
-  end
-
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
   def test_render_file_with_format
     assert_match "<h1>No Comment</h1>", @view.render(:file => "comments/empty", :formats => [:html])
