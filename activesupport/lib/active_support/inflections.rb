@@ -23,7 +23,8 @@ module ActiveSupport
     inflect.plural(/^(ox)$/i, '\1en')
     inflect.plural(/^(oxen)$/i, '\1')
     inflect.plural(/(quiz)$/i, '\1zes')
-
+    inflect.plural(/^(goose)$/i, 'geese')
+    
     inflect.singular(/s$/i, '')
     inflect.singular(/(ss)$/i, '\1')
     inflect.singular(/(n)ews$/i, '\1ews')
@@ -51,7 +52,8 @@ module ActiveSupport
     inflect.singular(/(matr)ices$/i, '\1ix')
     inflect.singular(/(quiz)zes$/i, '\1')
     inflect.singular(/(database)s$/i, '\1')
-
+    inflect.singular(/^(geese)$/i, 'goose')
+    
     inflect.irregular('person', 'people')
     inflect.irregular('man', 'men')
     inflect.irregular('child', 'children')
@@ -60,6 +62,6 @@ module ActiveSupport
     inflect.irregular('cow', 'kine')
     inflect.irregular('zombie', 'zombies')
 
-    inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police))
+    inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police deer))
   end
 end
