@@ -372,7 +372,7 @@ Here's an extract of the assertions you can use with `minitest`, the default tes
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
-| `refute_instance_of( class, obje, [msg] )`                       | Ensures that `obj` is not an instance of `class`.|
+| `refute_instance_of( class, obj, [msg] )`                       | Ensures that `obj` is not an instance of `class`.|
 | `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
 | `refute_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is not an instance of `class` and is not descending from it.|
 | `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
