@@ -383,7 +383,7 @@ module ActiveRecord
 
         TYPES = {}
 
-        # Register an MySQL +type_id+ with a typcasting object in
+        # Register an MySQL +type_id+ with a typecasting object in
         # +type+.
         def self.register_type(type_id, type)
           TYPES[type_id] = type
