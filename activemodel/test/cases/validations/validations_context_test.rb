@@ -36,4 +36,21 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
+
+  test "with a class that adds errors on save and validating a new model with no arguments" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: :save)
+    topic = Topic.new
+    assert topic.invalid?, "Validation does run on valid? if 'on' is set to save"
+  end
+
+  test "with a class that adds errors on save and validating model" do
+    Topic.validates_presence_of(:title, on: :save)
+    topic = Topic.new title: 'testing'
+    assert topic.valid?
+
+    topic.title = nil
+    assert topic.invalid?, "Validation should run if 'on' is set to save"
+    assert_equal ["Title can't be blank"], topic.errors.full_messages
+  end
+
 end

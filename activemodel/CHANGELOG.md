@@ -1,5 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   In the below case `User.new.valid?` returns true. Also while
+    updating user can set `name` value to `nil` and no validation
+    error is found while saving the record.
+
+       class User < ActiveRecord::Base
+          validates :name, presence: true, on: :save
+        end
+
+    Active Model understands validations in either `:create` or
+    `:update` context. Otherwise it is best to not set any context.
+
+    It removes context if context is `:save`.
+
+    Fixes #10248.
+
+    *Neeraj Singh*
+
 *   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
     for a given attribute.
 
