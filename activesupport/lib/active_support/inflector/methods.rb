@@ -18,6 +18,31 @@ module ActiveSupport
   module Inflector
     extend self
 
+    # -- THIS IS A QUICK HACK TO EVALUATE IF THIS IS WORTHWHILE. --------------
+
+    LRU_CACHE_SIZE = 200
+    LRU_CACHES = []
+
+    def self.clear_lru_caches
+      LRU_CACHES.each(&:clear)
+    end
+
+    def self.memoize(method_name)
+      cache = ThreadSafeLru::LruCache.new(LRU_CACHE_SIZE)
+      LRU_CACHES << cache
+
+      alias_method "#{method_name}_without_cache", method_name
+
+      # Note that so far no method in the inflector gets a block.
+      define_method(method_name) do |*args|
+        cache.get(args) do
+          send("#{method_name}_without_cache", *args)
+        end
+      end
+    end
+
+    # -------------------------------------------------------------------------
+
     # Returns the plural form of the word in the string.
     #
     # If passed an optional +locale+ parameter, the word will be
@@ -33,6 +58,7 @@ module ActiveSupport
     def pluralize(word, locale = :en)
       apply_inflections(word, inflections(locale).plurals)
     end
+    memoize :pluralize
 
     # The reverse of +pluralize+, returns the singular form of a word in a
     # string.
@@ -50,6 +76,7 @@ module ActiveSupport
     def singularize(word, locale = :en)
       apply_inflections(word, inflections(locale).singulars)
     end
+    memoize :singularize
 
     # By default, +camelize+ converts strings to UpperCamelCase. If the argument
     # to +camelize+ is set to <tt>:lower</tt> then +camelize+ produces
@@ -76,6 +103,7 @@ module ActiveSupport
       end
       string.gsub(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }.gsub('/', '::')
     end
+    memoize :camelize
 
     # Makes an underscored, lowercase form from the expression in the string.
     #
@@ -98,6 +126,7 @@ module ActiveSupport
       word.downcase!
       word
     end
+    memoize :underscore
 
     # Capitalizes the first word and turns underscores into spaces and strips a
     # trailing "_id", if any. Like +titleize+, this is meant for creating pretty
@@ -114,6 +143,7 @@ module ActiveSupport
         "#{inflections.acronyms[match] || match.downcase}"
       }.gsub(/^\w/) { $&.upcase }
     end
+    memoize :humanize
 
     # Capitalizes all the words and replaces some characters in the string to
     # create a nicer looking title. +titleize+ is meant for creating pretty
@@ -128,6 +158,7 @@ module ActiveSupport
     def titleize(word)
       humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { $&.capitalize }
     end
+    memoize :titleize
 
     # Create the name of a table like Rails does for models to table names. This
     # method uses the +pluralize+ method on the last word in the string.
@@ -138,6 +169,7 @@ module ActiveSupport
     def tableize(class_name)
       pluralize(underscore(class_name))
     end
+    memoize :tableize
 
     # Create a class name from a plural table name like Rails does for table
     # names to models. Note that this returns a string and not a Class (To
@@ -153,6 +185,7 @@ module ActiveSupport
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, '')))
     end
+    memoize :classify
 
     # Replaces underscores with dashes in the string.
     #
@@ -160,6 +193,7 @@ module ActiveSupport
     def dasherize(underscored_word)
       underscored_word.tr('_', '-')
     end
+    memoize :dasherize
 
     # Removes the module part from the expression in the string.
     #
@@ -175,6 +209,7 @@ module ActiveSupport
         path
       end
     end
+    memoize :demodulize
 
     # Removes the rightmost segment from the constant expression in the string.
     #
@@ -188,6 +223,7 @@ module ActiveSupport
     def deconstantize(path)
       path.to_s[0...(path.rindex('::') || 0)] # implementation based on the one in facets' Module#spacename
     end
+    memoize :deconstantize
 
     # Creates a foreign key name from a class name.
     # +separate_class_name_and_id_with_underscore+ sets whether
@@ -199,6 +235,7 @@ module ActiveSupport
     def foreign_key(class_name, separate_class_name_and_id_with_underscore = true)
       underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? "_id" : "id")
     end
+    memoize :foreign_key
 
     # Tries to find a constant with the name specified in the argument string.
     #
@@ -243,6 +280,7 @@ module ActiveSupport
         end
       end
     end
+    memoize :constantize
 
     # Tries to find a constant with the name specified in the argument string.
     #
@@ -274,6 +312,7 @@ module ActiveSupport
     rescue ArgumentError => e
       raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
     end
+    memoize :safe_constantize
 
     # Returns the suffix that should be added to a number to denote the position
     # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
@@ -311,37 +350,6 @@ module ActiveSupport
     def ordinalize(number)
       "#{number}#{ordinal(number)}"
     end
-
-
-    # -- THIS IS A QUICK HACK TO EVALUATE IF THIS IS WORTHWHILE. --------------
-
-    LRU_CACHE_SIZE = 200
-    LRU_CACHES = []
-
-    def self.clear_lru_caches
-      LRU_CACHES.each(&:clear)
-    end
-
-    def self.memoize(method_name)
-      cache = ThreadSafeLru::LruCache.new(LRU_CACHE_SIZE)
-      LRU_CACHES << cache
-
-      alias_method "#{method_name}_without_cache", method_name
-
-      # Note that so far no method in the inflector gets a block.
-      define_method(method_name) do |*args|
-        cache.get(args) do
-          send("#{method_name}_without_cache", *args)
-        end
-      end
-    end
-
-    public_instance_methods.each do |method_name|
-      memoize(method_name)
-    end
-
-
-    # -------------------------------------------------------------------------
 
     private
 
