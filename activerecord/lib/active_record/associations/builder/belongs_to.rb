@@ -25,9 +25,10 @@ module ActiveRecord::Associations::Builder
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def belongs_to_counter_cache_after_create_for_#{name}
-          record = #{name}
-          record.class.increment_counter(:#{cache_column}, record.id) unless record.nil?
-          @_after_create_counter_called = true
+          if record = #{name}
+            record.class.increment_counter(:#{cache_column}, record.id)
+            @_after_create_counter_called = true
+          end
         end
 
         def belongs_to_counter_cache_before_destroy_for_#{name}
