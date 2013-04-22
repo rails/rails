@@ -1,7 +1,6 @@
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
+require RAKEVERSION == '0.8.0' ? 'rake/gempackagetask' : 'rubygems/package_task'
 
 require 'date'
 require 'rbconfig'
@@ -267,18 +266,22 @@ task :generate_app_doc do
   system %{cd #{PKG_DESTINATION}; rake doc:app}
 end
 
-Rake::RDocTask.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Railties -- Gluing the Engine to the Rails"
-  rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/*.rb')
-  rdoc.rdoc_files.include('lib/rails/*.rb')
-  rdoc.rdoc_files.include('lib/rails_generator/*.rb')
-  rdoc.rdoc_files.include('lib/commands/**/*.rb')
-}
+if RAKEVERSION == '0.8.0'
+  require 'rake/rdoctask'
+
+  Rake::RDocTask.new do |rdoc|
+    rdoc.rdoc_dir = 'doc'
+    rdoc.title    = "Railties -- Gluing the Engine to the Rails"
+    rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
+    rdoc.options << '--charset' << 'utf-8'
+    rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
+    rdoc.rdoc_files.include('README', 'CHANGELOG')
+    rdoc.rdoc_files.include('lib/*.rb')
+    rdoc.rdoc_files.include('lib/rails/*.rb')
+    rdoc.rdoc_files.include('lib/rails_generator/*.rb')
+    rdoc.rdoc_files.include('lib/commands/**/*.rb')
+  end
+end
 
 # Generate GEM ----------------------------------------------------------------------------
 
@@ -334,7 +337,8 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "rails"
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
+package_task = RAKEVERSION == '0.8.0' ? Rake::GemPackageTask : Gem::PackageTask
+package_task.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
@@ -344,14 +348,6 @@ desc "Publish the rails gem"
 task :pgem => [:gem] do 
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
-end
-
-desc "Publish the guides"
-task :pguides => :generate_guides do
-  mkdir_p 'pkg'
-  `tar -czf pkg/guides.gz guides/output`
-  Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
-  `ssh web.rubyonrails.org 'cd /u/sites/guides.rubyonrails.org/public/ && tar -xvzf guides.gz && mv guides/output/* . && rm -rf guides*'`
 end
 
 desc "Publish the release files to RubyForge."

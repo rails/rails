@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
 
 task :default => :test
 
@@ -12,13 +11,17 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-# Generate the RDoc documentation
-Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Active Model"
-  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'CHANGES')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+if RAKEVERSION == '0.8.0'
+  require 'rake/rdoctask'
+
+  # Generate the RDoc documentation
+  Rake::RDocTask.new do |rdoc|
+    rdoc.rdoc_dir = 'doc'
+    rdoc.title    = "Active Model"
+    rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+    rdoc.options << '--charset' << 'utf-8'
+    rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
+    rdoc.rdoc_files.include('README', 'CHANGES')
+    rdoc.rdoc_files.include('lib/**/*.rb')
+  end
 end

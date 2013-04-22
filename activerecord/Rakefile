@@ -1,9 +1,8 @@
 require 'rubygems'
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require RAKEVERSION == '0.8.0' ? 'rake/gempackagetask' : 'rubygems/package_task'
 
 require File.join(File.dirname(__FILE__), 'lib', 'active_record', 'version')
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
@@ -154,20 +153,22 @@ end
 task :build_frontbase_databases => 'frontbase:build_databases'
 task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
 
+if RAKEVERSION == '0.8.0'
+  require 'rake/rdoctask'
 
-# Generate the RDoc documentation
-
-Rake::RDocTask.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Active Record -- Object-relation mapping put on rails"
-  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
-  rdoc.rdoc_files.include('dev-utils/*.rb')
-}
+  # Generate the RDoc documentation
+  Rake::RDocTask.new do |rdoc|
+    rdoc.rdoc_dir = 'doc'
+    rdoc.title    = "Active Record -- Object-relation mapping put on rails"
+    rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+    rdoc.options << '--charset' << 'utf-8'
+    rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
+    rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
+    rdoc.rdoc_files.include('lib/**/*.rb')
+    rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
+    rdoc.rdoc_files.include('dev-utils/*.rb')
+  end
+end
 
 # Enhance rdoc task to copy referenced images also
 task :rdoc do
@@ -211,7 +212,8 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "activerecord"
 end
 
-Rake::GemPackageTask.new(spec) do |p|
+package_task = RAKEVERSION == '0.8.0' ? Rake::GemPackageTask : Gem::PackageTask
+package_task.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
@@ -249,12 +251,6 @@ task :pgem => [:package] do
   require 'rake/contrib/sshpublisher'
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
-end
-
-desc "Publish the API documentation"
-task :pdoc => [:rdoc] do
-  require 'rake/contrib/sshpublisher'
-  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ar", "doc").upload
 end
 
 desc "Publish the release files to RubyForge."
