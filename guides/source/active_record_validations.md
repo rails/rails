@@ -765,11 +765,10 @@ class Person < ActiveRecord::Base
   validates :age, numericality: true, on: :update
 
   # the default (validates on both create and update)
-  # The following line is in review state and as of now, it is not running in any version of Rails 3.2.x as discussed in this [issue](https://github.com/rails/rails/issues/10248)
-
   validates :name, presence: true, on: :save
 end
 ```
+The last line is in review state and as of now, it is not running in any version of Rails 3.2.x as discussed in this [issue](https://github.com/rails/rails/issues/10248)
 
 Strict Validations
 ------------------
