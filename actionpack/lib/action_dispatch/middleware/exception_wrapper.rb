@@ -9,6 +9,7 @@ module ActionDispatch
       'ActionController::RoutingError'             => :not_found,
       'AbstractController::ActionNotFound'         => :not_found,
       'ActionController::MethodNotAllowed'         => :method_not_allowed,
+      'ActionController::UnknownHttpMethod'        => :method_not_allowed,
       'ActionController::NotImplemented'           => :not_implemented,
       'ActionController::UnknownFormat'            => :not_acceptable,
       'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,

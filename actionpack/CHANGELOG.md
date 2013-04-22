@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Return a 405 Method Not Allowed response when a request contains an unknown
+    HTTP method.
+
+    *Lewis Marshall*
+
 *   Add support for extracting the port from the `:host` option passed to `url_for`.
 
     *Andrew White*
