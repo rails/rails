@@ -77,6 +77,7 @@ module Rails
         callback = lambda do
           ActiveSupport::DescendantsTracker.clear
           ActiveSupport::Dependencies.clear
+          ActiveSupport::Inflector.clear_lru_caches
         end
 
         if config.reload_classes_only_on_change

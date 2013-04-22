@@ -25,4 +25,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'tzinfo',     '~> 0.3.37'
   s.add_dependency 'minitest',   '~> 4.2'
   s.add_dependency 'thread_safe','~> 0.1'
+  s.add_dependency 'threadsafe-lru', '~> 0.0.2'
 end
