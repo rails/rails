@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix skipping of filters defined by objects in `ActiveSupport::Callbacks::Callback`.
+
+    *Ben McRedmond*
+
 *   An `ActiveSupport::Subscriber` class has been extracted from
     `ActiveSupport::LogSubscriber`, allowing you to use the event attachment
     API for other kinds of subscribers.
@@ -27,10 +31,6 @@
 *   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
 
     *Charles Jones*
-
-*   Fix skipping of filters defined by objects in `ActiveSupport::Callbacks::Callback`.
-
-    *Ben McRedmond*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
