@@ -5,10 +5,31 @@ module ActiveRecord
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
-      attr_reader :join_parts, :reflections, :alias_tracker, :active_record
+      attr_reader :join_parts, :reflections, :alias_tracker, :base_klass
 
+      # base is the base class on which operation is taking place.
+      # associations is the list of associations which are joined using hash, symbol or array.
+      # joins is the list of all string join commnads and arel nodes.
+      #
+      #  Example :
+      #
+      #  class Physician < ActiveRecord::Base
+      #    has_many :appointments
+      #    has_many :patients, through: :appointments
+      #  end
+      #
+      #  If I execute `@physician.patients.to_a` then
+      #    base #=> Physician
+      #    associations #=> []
+      #    joins #=>  [#<Arel::Nodes::InnerJoin: ...]
+      #
+      #  However if I execute `Physician.joins(:appointments).to_a` then
+      #    base #=> Physician
+      #    associations #=> [:appointments]
+      #    joins #=>  []
+      #
       def initialize(base, associations, joins)
-        @active_record = base
+        @base_klass    = base
         @table_joins   = joins
         @join_parts    = [JoinBase.new(base)]
         @associations  = {}
@@ -54,9 +75,11 @@ module ActiveRecord
           parent
         }.uniq
 
-        remove_duplicate_results!(active_record, records, @associations)
+        remove_duplicate_results!(base_klass, records, @associations)
         records
       end
+
+      protected
 
       def remove_duplicate_results!(base, records, associations)
         case associations
@@ -88,8 +111,6 @@ module ActiveRecord
         end
       end
 
-      protected
-
       def cache_joined_association(association)
         associations = []
         parent = association.parent
@@ -108,8 +129,8 @@ module ActiveRecord
         parent ||= join_parts.last
         case associations
         when Symbol, String
-          reflection = parent.reflections[associations.to_s.intern] or
-          raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
+          reflection = parent.reflections[associations.intern] or
+          raise ConfigurationError, "Association named '#{ associations }' was not found on #{ parent.base_klass.name }; perhaps you misspelled it?"
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
             join_association = build_join_association(reflection, parent)

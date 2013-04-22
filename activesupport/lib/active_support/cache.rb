@@ -344,7 +344,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
-        instrument(:write, name, options) do |payload|
+        instrument(:write, name, options) do
           entry = Entry.new(value, options)
           write_entry(namespaced_key(name, options), entry, options)
         end
@@ -355,7 +355,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
-        instrument(:delete, name) do |payload|
+        instrument(:delete, name) do
           delete_entry(namespaced_key(name, options), options)
         end
       end
@@ -365,7 +365,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
-        instrument(:exist?, name) do |payload|
+        instrument(:exist?, name) do
           entry = read_entry(namespaced_key(name, options), options)
           entry && !entry.expired?
         end
@@ -522,7 +522,7 @@ module ActiveSupport
         def handle_expired_entry(entry, key, options)
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl && (Time.now - entry.expires_at <= race_ttl)
+            if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
               # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is begin recalculated.
               entry.expires_at = Time.now + race_ttl
@@ -562,38 +562,38 @@ module ActiveSupport
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
         if should_compress?(value, options)
-          @v = compress(value)
-          @c = true
+          @value = compress(value)
+          @compressed = true
         else
-          @v = value
+          @value = value
         end
-        if expires_in = options[:expires_in]
-          @x = (Time.now + expires_in).to_i
-        end
+        @created_at = Time.now.to_f
+        @expires_in = options[:expires_in]
+        @expires_in = @expires_in.to_f if @expires_in
       end
 
       def value
-        convert_version_3_entry! if defined?(@value)
-        compressed? ? uncompress(@v) : @v
+        convert_version_4beta1_entry! if defined?(@v)
+        compressed? ? uncompress(@value) : @value
       end
 
       # Check if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
-        convert_version_3_entry! if defined?(@value)
-        if defined?(@x)
-          @x && @x < Time.now.to_i
-        else
-          false
-        end
+        convert_version_4beta1_entry! if defined?(@value)
+        @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
       def expires_at
-        Time.at(@x) if defined?(@x)
+        @expires_in ? @created_at + @expires_in : nil
       end
 
       def expires_at=(value)
-        @x = value.to_i
+        if value
+          @expires_in = value.to_f - @created_at
+        else
+          @expires_in = nil
+        end
       end
 
       # Returns the size of the cached value. This could be less than
@@ -606,9 +606,9 @@ module ActiveSupport
           when NilClass
             0
           when String
-            @v.bytesize
+            @value.bytesize
           else
-            @s = Marshal.dump(@v).bytesize
+            @s = Marshal.dump(@value).bytesize
           end
         end
       end
@@ -616,12 +616,12 @@ module ActiveSupport
       # Duplicate the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
-        convert_version_3_entry! if defined?(@value)
-        if @v && !compressed? && !(@v.is_a?(Numeric) || @v == true || @v == false)
-          if @v.is_a?(String)
-            @v = @v.dup
+        convert_version_4beta1_entry! if defined?(@v)
+        if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
+          if @value.is_a?(String)
+            @value = @value.dup
           else
-            @v = Marshal.load(Marshal.dump(@v))
+            @value = Marshal.load(Marshal.dump(@value))
           end
         end
       end
@@ -637,7 +637,7 @@ module ActiveSupport
         end
 
         def compressed?
-          defined?(@c) ? @c : false
+          defined?(@compressed) ? @compressed : false
         end
 
         def compress(value)
@@ -650,19 +650,19 @@ module ActiveSupport
 
         # The internals of this method changed between Rails 3.x and 4.0. This method provides the glue
         # to ensure that cache entries created under the old version still work with the new class definition.
-        def convert_version_3_entry!
-          if defined?(@value)
-            @v = @value
-            remove_instance_variable(:@value)
+        def convert_version_4beta1_entry!
+          if defined?(@v)
+            @value = @v
+            remove_instance_variable(:@v)
           end
-          if defined?(@compressed)
-            @c = @compressed
-            remove_instance_variable(:@compressed)
+          if defined?(@c)
+            @compressed = @c
+            remove_instance_variable(:@c)
           end
-          if defined?(@expires_in) && defined?(@created_at) && @expires_in && @created_at
-            @x = (@created_at + @expires_in).to_i
-            remove_instance_variable(:@created_at)
-            remove_instance_variable(:@expires_in)
+          if defined?(@x) && @x
+            @created_at ||= Time.now.to_f
+            @expires_in = @x - @created_at
+            remove_instance_variable(:@x)
           end
         end
     end

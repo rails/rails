@@ -7,14 +7,14 @@ gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
-gem 'coffee-rails', '~> 4.0.0.beta1'
+gem 'coffee-rails', '~> 4.0.0'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem 'uglifier', require: false
+gem 'uglifier', '>= 1.3.0', require: false
 
 group :doc do
-  gem 'sdoc',  github: 'voloko/sdoc'
+  gem 'sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb'
@@ -27,11 +27,16 @@ gem 'dalli', '>= 2.2.1'
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exists? local_gemfile
 
-platforms :mri do
-  group :test do
-    gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
-    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0'
+group :test do
+  platforms :mri_19 do
+    gem 'ruby-prof', '~> 0.11.2'
   end
+
+  platforms :mri_19, :mri_20 do
+    gem 'debugger'
+  end
+
+  gem 'benchmark-ips'
 end
 
 platforms :ruby do
@@ -53,7 +58,7 @@ end
 
 platforms :jruby do
   gem 'json'
-  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.0'
+  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   # This is needed by now to let tests work on JRuby
   # TODO: When the JRuby guys merge jruby-openssl in
@@ -61,8 +66,8 @@ platforms :jruby do
   gem 'jruby-openssl'
 
   group :db do
-    gem 'activerecord-jdbcmysql-adapter', '>= 1.2.0'
-    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.0'
+    gem 'activerecord-jdbcmysql-adapter', '>= 1.2.7'
+    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.7'
   end
 end
 
@@ -76,5 +81,3 @@ end
 
 # A gem necessary for ActiveRecord tests with IBM DB
 gem 'ibm_db' if ENV['IBM_DB']
-
-gem 'benchmark-ips'

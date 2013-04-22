@@ -22,7 +22,7 @@ module ActiveRecord
       private
 
       def column_for(table_name, column_name)
-        columns = alias_tracker.connection.schema_cache.columns_hash[table_name]
+        columns = alias_tracker.connection.schema_cache.columns_hash(table_name)
         columns[column_name]
       end
 
@@ -101,6 +101,7 @@ module ActiveRecord
 
             scope.includes! item.includes_values
             scope.where_values += item.where_values
+            scope.order_values |= item.order_values
           end
         end
 

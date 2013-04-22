@@ -14,7 +14,6 @@ module ActionView
     #   # => <img alt="Rails" src="/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
-    #
     module AssetTagHelper
       extend ActiveSupport::Concern
 
@@ -50,7 +49,6 @@ module ActionView
       #
       #   javascript_include_tag "http://www.example.com/xmlhr.js"
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
-      #
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!('protocol').symbolize_keys
@@ -58,7 +56,7 @@ module ActionView
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
-          }.merge(options)
+          }.merge!(options)
           content_tag(:script, "", tag_options)
         }.join("\n").html_safe
       end
@@ -67,7 +65,7 @@ module ActionView
       # you don't specify an extension, <tt>.css</tt> will be appended automatically.
       # You can modify the link attributes by passing a hash as the last argument.
       # For historical reasons, the 'media' attribute will always be present and defaults
-      # to "screen", so you must explicitely set it to "all" for the stylesheet(s) to
+      # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
       #   stylesheet_link_tag "style"
@@ -88,7 +86,6 @@ module ActionView
       #   stylesheet_link_tag "random.styles", "/css/stylish"
       #   # => <link href="/assets/random.styles" media="screen" rel="stylesheet" />
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
-      #
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!('protocol').symbolize_keys
@@ -98,7 +95,7 @@ module ActionView
             "rel" => "stylesheet",
             "media" => "screen",
             "href" => path_to_stylesheet(source, path_options)
-          }.merge(options)
+          }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
       end
@@ -109,9 +106,12 @@ module ActionView
       # +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
       # ==== Options
+      #
       # * <tt>:rel</tt>  - Specify the relation of this link, defaults to "alternate"
       # * <tt>:type</tt>  - Override the auto-generated mime type
       # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+
+      #
+      # ==== Examples
       #
       #   auto_discovery_link_tag
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
@@ -148,8 +148,11 @@ module ActionView
       # you can override "rel" and "type".
       #
       # ==== Options
+      #
       # * <tt>:rel</tt>   - Specify the relation of this link, defaults to 'shortcut icon'
       # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to 'image/vnd.microsoft.icon'
+      #
+      # ==== Examples
       #
       #   favicon_link_tag '/myicon.ico'
       #   # => <link href="/assets/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
@@ -160,19 +163,19 @@ module ActionView
       #
       #   favicon_link_tag '/mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      #
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
           :type => 'image/vnd.microsoft.icon',
           :href => path_to_image(source)
-        }.merge(options.symbolize_keys))
+        }.merge!(options.symbolize_keys))
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
       # path or a file.
       #
       # ==== Options
+      #
       # You can add HTML attributes using the +options+. The +options+ supports
       # three additional keys for convenience and conformance:
       #
@@ -249,6 +252,8 @@ module ActionView
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
+      #
+      # ==== Examples
       #
       #   video_tag("trailer")
       #   # => <video src="/videos/trailer" />

@@ -46,7 +46,10 @@ module Rails
     def initialize(app, options={})
       @app     = app
       @options = options
+
+      app.sandbox = sandbox?
       app.load_console
+
       @console = app.config.console || IRB
     end
 
@@ -71,7 +74,6 @@ module Rails
     end
 
     def start
-      app.sandbox = sandbox?
       require_debugger if debugger?
       set_environment! if environment?
 

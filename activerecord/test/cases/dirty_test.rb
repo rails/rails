@@ -213,9 +213,11 @@ class DirtyTest < ActiveRecord::TestCase
       topic = target.create
       assert_nil topic.written_on
 
-      topic.written_on = ""
-      assert_nil topic.written_on
-      assert !topic.written_on_changed?
+      ["", nil].each do |value|
+        topic.written_on = value
+        assert_nil topic.written_on
+        assert !topic.written_on_changed?
+      end
     end
   end
 
@@ -243,6 +245,21 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
+  def test_float_zero_to_string_zero_not_marked_as_changed
+    data = NumericData.new :temperature => 0.0
+    data.save!
+
+    assert_not data.changed?
+
+    data.temperature = '0'
+    assert_empty data.changes
+
+    data.temperature = '0.0'
+    assert_empty data.changes
+
+    data.temperature = '0.00'
+    assert_empty data.changes
+  end
 
   def test_zero_to_blank_marked_as_changed
     pirate = Pirate.new

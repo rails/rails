@@ -4,3 +4,7 @@ uk:
     - Green
     - Red
     - Orange
+  long_state:
+    - "Green, go ahead"
+    - "Red, wait"
+    - "Orange, caution light is about to switch"

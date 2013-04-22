@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class SearchField < TextField #:nodoc:
+    module Tags # :nodoc:
+      class SearchField < TextField # :nodoc:
         def render
           options = @options.stringify_keys
 

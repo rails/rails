@@ -205,7 +205,7 @@ module ActiveRecord
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @columns ||= connection.schema_cache.columns[table_name].map do |col|
+        @columns ||= connection.schema_cache.columns(table_name).map do |col|
           col = col.dup
           col.primary = (col.name == primary_key)
           col

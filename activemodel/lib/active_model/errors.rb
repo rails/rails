@@ -12,7 +12,6 @@ module ActiveModel
   # A minimal implementation could be:
   #
   #   class Person
-  #
   #     # Required dependency for ActiveModel::Errors
   #     extend ActiveModel::Naming
   #
@@ -40,7 +39,6 @@ module ActiveModel
   #     def Person.lookup_ancestors
   #       [self]
   #     end
-  #
   #   end
   #
   # The last three methods are required in your object for Errors to be
@@ -350,6 +348,20 @@ module ActiveModel
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
       map { |attribute, message| full_message(attribute, message) }
+    end
+
+    # Returns all the full error messages for a given attribute in an array.
+    #
+    #   class Person
+    #     validates_presence_of :name, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create()
+    #   person.errors.full_messages_for(:name)
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
+    def full_messages_for(attribute)
+      (get(attribute) || []).map { |message| full_message(attribute, message) }
     end
 
     # Returns a full message for a given attribute.

@@ -1,7 +1,7 @@
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
-      # A JoinPart represents a part of a JoinDependency. It is an abstract class, inherited
+      # A JoinPart represents a part of a JoinDependency. It is inherited
       # by JoinBase and JoinAssociation. A JoinBase represents the Active Record which
       # everything else is being joined onto. A JoinAssociation represents an association which
       # is joining to the base. A JoinAssociation may result in more than one actual join
@@ -11,12 +11,12 @@ module ActiveRecord
         # The Active Record class which this join part is associated 'about'; for a JoinBase
         # this is the actual base model, for a JoinAssociation this is the target model of the
         # association.
-        attr_reader :active_record
+        attr_reader :base_klass
 
-        delegate :table_name, :column_names, :primary_key, :reflections, :arel_engine, :to => :active_record
+        delegate :table_name, :column_names, :primary_key, :reflections, :arel_engine, :to => :base_klass
 
-        def initialize(active_record)
-          @active_record = active_record
+        def initialize(base_klass)
+          @base_klass = base_klass
           @cached_record = {}
           @column_names_with_alias = nil
         end
@@ -70,7 +70,7 @@ module ActiveRecord
         end
 
         def instantiate(row)
-          @cached_record[record_id(row)] ||= active_record.instantiate(extract_record(row))
+          @cached_record[record_id(row)] ||= base_klass.instantiate(extract_record(row))
         end
       end
     end

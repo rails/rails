@@ -232,8 +232,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
-      assert_no_match(/coffee-rails/, content)
       assert_no_match(/uglifier/, content)
+      assert_match(/coffee-rails/, content)
     end
     assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.assets\.debug = true/, content)
@@ -276,7 +276,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require jquery}, contents
       assert_match %r{^//= require jquery_ujs}, contents
     end
-    assert_gem "jquery-rails"
+    assert_file "Gemfile", /^gem 'jquery-rails'/
   end
 
   def test_other_javascript_libraries
@@ -293,11 +293,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_no_match %r{^//=\s+require\s}, contents
     end
+    assert_file "Gemfile" do |content|
+      assert_match(/coffee-rails/, content)
+    end
   end
 
   def test_inclusion_of_debugger
     run_generator
     assert_file "Gemfile", /# gem 'debugger'/
+  end
+
+  def test_inclusion_of_lazy_loaded_sdoc
+    run_generator
+    assert_file 'Gemfile', /gem 'sdoc', require: false/
   end
 
   def test_template_from_dir_pwd
@@ -338,7 +346,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|
-      assert_match(/config.session_store :encrypted_cookie_store, key: '_.+_session'/, file)
+      assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
     end
   end
 

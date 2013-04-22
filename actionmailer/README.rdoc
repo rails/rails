@@ -1,6 +1,6 @@
 = Action Mailer -- Easy email delivery and testing
 
-Action Mailer is a framework for designing email-service layers. These layers
+Action Mailer is a framework for designing email service layers. These layers
 are used to consolidate code for sending out forgotten passwords, welcome
 wishes on signup, invoices for billing, and any other use case that requires
 a written notification to either a person or another system.
@@ -78,7 +78,7 @@ Or you can just chain the methods together like:
 
 It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from ActionMailer::Base. This method accepts a Hash as the parameter. You can use any of the headers e-mail messages has, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you won't need to worry about that. Finally, it is also possible to pass in a Proc that will get evaluated when it is needed.
 
-Note that every value you set with this method will get over written if you use the same key in your mailer method.
+Note that every value you set with this method will get overwritten if you use the same key in your mailer method.
 
 Example:
 

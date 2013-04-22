@@ -6,7 +6,7 @@ require 'models/reply'
 require 'models/author'
 require 'models/developer'
 
-class NamedScopeTest < ActiveRecord::TestCase
+class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
@@ -271,6 +271,19 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal 'lifo', topic.author_name
   end
 
+  # Method delegation for scope names which look like /\A[a-zA-Z_]\w*[!?]?\z/
+  # has been done by evaluating a string with a plain def statement. For scope
+  # names which contain spaces this approach doesn't work.
+  def test_spaces_in_scope_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      scope :"title containing space", -> { where("title LIKE '% %'") }
+      scope :approved, -> { where(:approved => true) }
+    end
+    assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
+    assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
+  end
+
   def test_find_all_should_behave_like_select
     assert_equal Topic.base.to_a.select(&:approved), Topic.base.to_a.find_all(&:approved)
   end
@@ -309,7 +322,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal post.comments.size, Post.joins(join).joins(join).where("posts.id = #{post.id}").size
   end
 
-  def test_chaining_should_use_latest_conditions_when_creating
+  def test_chaining_applies_last_conditions_when_creating
     post = Topic.rejected.new
     assert !post.approved?
 
@@ -323,13 +336,13 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert post.approved?
   end
 
-  def test_chaining_should_use_latest_conditions_when_searching
+  def test_chaining_combines_conditions_when_searching
     # Normal hash conditions
-    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.to_a
-    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.to_a
+    assert_equal Topic.where(approved: false).where(approved: true).to_a, Topic.rejected.approved.to_a
+    assert_equal Topic.where(approved: true).where(approved: false).to_a, Topic.approved.rejected.to_a
 
     # Nested hash conditions with same keys
-    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.to_a
+    assert_equal [], Post.with_special_comments.with_very_special_comments.to_a
 
     # Nested hash conditions with different keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
@@ -446,4 +459,9 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
     assert_equal [posts(:welcome).title], klass.all.map(&:title)
   end
+
+  def test_subclass_merges_scopes_properly
+    assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
+  end
+
 end

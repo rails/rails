@@ -16,9 +16,7 @@ Gem::Specification.new do |s|
   s.email    = 'david@loudthinking.com'
   s.homepage = 'http://www.rubyonrails.org'
 
-  s.bindir      = 'bin'
-  s.executables = []
-  s.files       = ['README.rdoc'] + Dir['guides/**/*']
+  s.files = ['README.md'] + Dir['guides/**/*']
 
   s.add_dependency 'activesupport', version
   s.add_dependency 'actionpack',    version
@@ -27,5 +25,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'railties',      version
 
   s.add_dependency 'bundler',         '>= 1.3.0', '< 2.0'
-  s.add_dependency 'sprockets-rails', '~> 2.0.0.rc3'
+  s.add_dependency 'sprockets-rails', '~> 2.0.0.rc4'
 end

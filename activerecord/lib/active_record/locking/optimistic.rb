@@ -86,7 +86,7 @@ module ActiveRecord
               )
             ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
 
-            affected_rows = connection.update stmt
+            affected_rows = self.class.connection.update stmt
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError.new(self, "update")
@@ -117,7 +117,7 @@ module ActiveRecord
           if locking_enabled?
             column_name = self.class.locking_column
             column      = self.class.columns_hash[column_name]
-            substitute  = connection.substitute_at(column, relation.bind_values.length)
+            substitute  = self.class.connection.substitute_at(column, relation.bind_values.length)
 
             relation = relation.where(self.class.arel_table[column_name].eq(substitute))
             relation.bind_values << [column, self[column_name].to_i]

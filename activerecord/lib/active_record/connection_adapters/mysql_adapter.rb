@@ -16,9 +16,9 @@ class Mysql
 end
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
-    def mysql_connection(config) # :nodoc:
+    def mysql_connection(config)
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]
@@ -150,8 +150,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?)
+      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
+        Column.new(field, default, type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception) # :nodoc:
@@ -383,7 +383,7 @@ module ActiveRecord
 
         TYPES = {}
 
-        # Register an MySQL +type_id+ with a typcasting object in
+        # Register an MySQL +type_id+ with a typecasting object in
         # +type+.
         def self.register_type(type_id, type)
           TYPES[type_id] = type

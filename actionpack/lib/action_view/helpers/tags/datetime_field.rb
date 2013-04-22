@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
-    module Tags
-      class DatetimeField < TextField #:nodoc:
+    module Tags # :nodoc:
+      class DatetimeField < TextField # :nodoc:
         def render
           options = @options.stringify_keys
           options["value"] = @options.fetch("value") { format_date(value(object)) }

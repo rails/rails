@@ -223,8 +223,8 @@ module Mime
         Mime.instance_eval { remove_const(symbol) }
 
         SET.delete_if { |v| v.eql?(mime) }
-        LOOKUP.delete_if { |k,v| v.eql?(mime) }
-        EXTENSION_LOOKUP.delete_if { |k,v| v.eql?(mime) }
+        LOOKUP.delete_if { |_,v| v.eql?(mime) }
+        EXTENSION_LOOKUP.delete_if { |_,v| v.eql?(mime) }
       end
     end
 
@@ -306,10 +306,18 @@ module Mime
       method.to_s.ends_with? '?'
     end
   end
-  
+
   class NullType
     def nil?
       true
+    end
+
+    def ref
+      nil
+    end
+
+    def respond_to_missing?(method, include_private = false)
+      method.to_s.ends_with? '?'
     end
 
     private

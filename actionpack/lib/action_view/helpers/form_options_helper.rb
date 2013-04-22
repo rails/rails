@@ -380,7 +380,7 @@ module ActionView
       # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
-          [value_for_collection(element, text_method), value_for_collection(element, value_method)]
+          [value_for_collection(element, text_method), value_for_collection(element, value_method), option_html_attributes(element)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
@@ -565,7 +565,7 @@ module ActionView
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = zones.grep(priority_zones)
+            priority_zones = zones.select { |z| z =~ priority_zones }
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
@@ -752,7 +752,7 @@ module ActionView
         end
 
         def prompt_text(prompt)
-          prompt = prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', :default => 'Please select')
+          prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', :default => 'Please select')
         end
     end
 

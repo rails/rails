@@ -107,7 +107,7 @@ module Rails
   #
   # The <tt>Application</tt> class adds a couple more paths to this set. And as in your
   # <tt>Application</tt>, all folders under +app+ are automatically added to the load path.
-  # If you have an <tt>app/services/tt> folder for example, it will be added by default.
+  # If you have an <tt>app/services</tt> folder for example, it will be added by default.
   #
   # == Endpoint
   #
@@ -553,7 +553,7 @@ module Rails
     #
     # This needs to be an initializer, since it needs to run once
     # per engine and get the engine as a block parameter
-    initializer :set_autoload_paths, before: :bootstrap_hook do |app|
+    initializer :set_autoload_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 

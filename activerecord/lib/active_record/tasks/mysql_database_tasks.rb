@@ -26,7 +26,9 @@ module ActiveRecord
           $stdout.print error.error
           establish_connection root_configuration_without_database
           connection.create_database configuration['database'], creation_options
-          connection.execute grant_statement.gsub(/\s+/, ' ').strip
+          if configuration['username'] != 'root'
+            connection.execute grant_statement.gsub(/\s+/, ' ').strip
+          end
           establish_connection configuration
         else
           $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
@@ -57,7 +59,10 @@ module ActiveRecord
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
         args.concat(["#{configuration['database']}"])
-        Kernel.system(*args)
+        unless Kernel.system(*args)
+          $stderr.puts "Could not dump the database structure. "\
+                       "Make sure `mysqldump` is in your PATH and check the command output for warnings."
+        end
       end
 
       def structure_load(filename)

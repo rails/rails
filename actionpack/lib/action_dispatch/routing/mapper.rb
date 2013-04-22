@@ -10,6 +10,9 @@ module ActionDispatch
   module Routing
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
+      SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
+                       :controller, :path_names, :constraints, :defaults,
+                       :shallow, :blocks, :options]
 
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
@@ -58,8 +61,8 @@ module ActionDispatch
           @set, @scope, @path, @options = set, scope, path, options
           @requirements, @conditions, @defaults = {}, {}, {}
 
-          normalize_path!
           normalize_options!
+          normalize_path!
           normalize_requirements!
           normalize_conditions!
           normalize_defaults!
@@ -181,7 +184,8 @@ module ActionDispatch
 
             if !via_all && options[:via].blank?
               msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
-                    "If you want to expose your action to GET, use `get` in the router:\n\n" \
+                    "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
+                    "If you want to expose your action to GET, use `get` in the router:\n" \
                     "  Instead of: match \"controller#action\"\n" \
                     "  Do: get \"controller#action\""
               raise msg
@@ -485,7 +489,7 @@ module ActionDispatch
             end
 
             options = app
-            app, path = options.find { |k, v| k.respond_to?(:call) }
+            app, path = options.find { |k, _| k.respond_to?(:call) }
             options.delete(app) if app
           end
 
@@ -588,8 +592,7 @@ module ActionDispatch
         private
           def map_method(method, args, &block)
             options = args.extract_options!
-            options[:via]    = method
-            options[:path] ||= args.first if args.first.is_a?(String)
+            options[:via] = method
             match(*args, options, &block)
             self
           end
@@ -697,18 +700,20 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
-          scope_options.each do |option|
-            if value = options.delete(option)
+          SCOPE_OPTIONS.each do |option|
+            if option == :blocks
+              value = block
+            elsif option == :options
+              value = options
+            else
+              value = options.delete(option)
+            end
+
+            if value
               recover[option] = @scope[option]
               @scope[option]  = send("merge_#{option}_scope", @scope[option], value)
             end
           end
-
-          recover[:blocks] = @scope[:blocks]
-          @scope[:blocks]  = merge_blocks_scope(@scope[:blocks], block)
-
-          recover[:options] = @scope[:options]
-          @scope[:options]  = merge_options_scope(@scope[:options], options)
 
           yield
           self
@@ -840,10 +845,6 @@ module ActionDispatch
         end
 
         private
-          def scope_options #:nodoc:
-            @scope_options ||= private_methods.grep(/^merge_(.+)_scope$/) { $1.to_sym }
-          end
-
           def merge_path_scope(parent, child) #:nodoc:
             Mapper.normalize_path("#{parent}/#{child}")
           end
@@ -944,6 +945,8 @@ module ActionDispatch
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
+        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
+        RESOURCE_SCOPES = [:resource, :resources]
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
@@ -1360,7 +1363,7 @@ module ActionDispatch
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
-            path, to = options.find { |name, value| name.is_a?(String) }
+            path, to = options.find { |name, _value| name.is_a?(String) }
             options[:to] = to
             options.delete(path)
             paths = [path]
@@ -1369,18 +1372,23 @@ module ActionDispatch
             paths = [path] + rest
           end
 
-          path_without_format = path.to_s.sub(/\(\.:format\)$/, '')
-          if using_match_shorthand?(path_without_format, options)
-            options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
-          end
-
           options[:anchor] = true unless options.key?(:anchor)
 
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
-          paths.each { |_path| decomposed_match(_path, options.dup) }
+          paths.each do |_path|
+            route_options = options.dup
+            route_options[:path] ||= _path if _path.is_a?(String)
+
+            path_without_format = _path.to_s.sub(/\(\.:format\)$/, '')
+            if using_match_shorthand?(path_without_format, route_options)
+              route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+            end
+
+            decomposed_match(_path, route_options)
+          end
           self
         end
 
@@ -1493,11 +1501,11 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            [:resource, :resources].include? @scope[:scope_level]
+            RESOURCE_SCOPES.include? @scope[:scope_level]
           end
 
           def resource_method_scope? #:nodoc:
-            [:collection, :member, :new].include? @scope[:scope_level]
+            RESOURCE_METHOD_SCOPES.include? @scope[:scope_level]
           end
 
           def with_exclusive_scope

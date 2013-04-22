@@ -1,5 +1,5 @@
 class Array
-  # *DEPRECATED*: Use +Array#uniq+ instead.
+  # *DEPRECATED*: Use <tt>Array#uniq</tt> instead.
   #
   # Returns a unique array based on the criteria in the block.
   #
@@ -9,7 +9,7 @@ class Array
     uniq(&block)
   end
 
-  # *DEPRECATED*: Use +Array#uniq!+ instead.
+  # *DEPRECATED*: Use <tt>Array#uniq!</tt> instead.
   #
   # Same as +uniq_by+, but modifies +self+.
   def uniq_by!(&block)

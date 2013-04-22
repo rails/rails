@@ -118,7 +118,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to protect attributes from mass assignment when non-permitted attributes are passed.
 
-*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with AP out of box.
+*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with ActionPack out of box.
 
 ### Deprecations
 
@@ -182,12 +182,6 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
     * New method `revert` will revert a whole migration or the given block.
       If migrating down, the given migration / block is run normally.
       See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
-
-*   Adds some metadata columns to `schema_migrations` table.
-
-    * `migrated_at`
-    * `fingerprint` - an md5 hash of the migration.
-    * `name` - the filename minus version and extension.
 
 *   Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 

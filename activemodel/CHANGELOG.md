@@ -1,5 +1,72 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
+    for a given attribute.
+
+    Example:
+
+        class Person
+          include ActiveModel::Validations
+
+          attr_reader :name, :email
+          validates_presence_of :name, :email
+        end
+
+        person = Person.new
+        person.valid?                           # => false
+        person.errors.full_messages_for(:name)  # => ["Name can't be blank"]
+
+    *Volodymyr Shatsky*
+
+*   Added a method so that validations can be easily cleared on a model.
+    For example:
+
+        class Person
+          include ActiveModel::Validations
+
+          validates_uniqueness_of :first_name
+          validate :cannot_be_robot
+
+          def cannot_be_robot
+            errors.add(:base, 'A person cannot be a robot') if person_is_robot
+          end
+        end
+
+    Now, if someone runs `Person.clear_validators!`, then the following occurs:
+
+        Person.validators                  # => []
+        Person._validate_callbacks.empty?  # => true
+
+    *John Wang*
+
+*   `has_secure_password` does not fail the confirmation validation
+    when assigning empty String to `password` and `password_confirmation`.
+    Fixes #9535.
+
+    Example:
+
+        # Given User has_secure_password.
+        @user.password = ""
+        @user.password_confirmation = ""
+        @user.valid?(:update) # used to be false
+
+    *Yves Senn*
+
+*   `validates_confirmation_of` does not override writer methods for
+    the confirmation attribute if no reader is defined.
+
+    Example:
+
+        class Blog
+          def title=(new_title)
+            @title = new_title.downcase
+          end
+
+          # previously this would override the setter above.
+          validates_confirmation_of :title
+        end
+
+    *Yves Senn*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
@@ -43,7 +110,7 @@
 
     *Yves Senn*
 
-*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_pasword`.
+*   Use BCrypt's `MIN_COST` in the test environment for speedier tests when using `has_secure_password`.
 
     *Brian Cardarella + Jeremy Kemper + Trevor Turk*
 
@@ -84,7 +151,7 @@
 
 *   Changed `ActiveModel::Serializers::Xml::Serializer#add_associations` to by default
     propagate `:skip_types, :dasherize, :camelize` keys to included associations.
-    It can be overriden on each association by explicitly specifying the option on one
+    It can be overridden on each association by explicitly specifying the option on one
     or more associations
 
     *Anthony Alberto*

@@ -1,10 +1,51 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix deletion of empty directories in ActiveSupport::Cache::FileStore.
-    
+*   Fix skipping of filters defined by objects in `ActiveSupport::Callbacks::Callback`.
+
+    *Ben McRedmond*
+
+*   An `ActiveSupport::Subscriber` class has been extracted from
+    `ActiveSupport::LogSubscriber`, allowing you to use the event attachment
+    API for other kinds of subscribers.
+
+    *Daniel Schierbeck*
+
+*   `Class#class_attribute` accepts an `instance_predicate` option which
+    defaults to `true`. If set to `false` the predicate method will not
+    be defined.
+
+    *Agis Anastasopoulos*
+
+*   `fast_xs` support has been removed.  Use `String#encode(xml: :attr)`.
+
+*   `ActiveSupport::Notifications::Instrumenter#instrument` should
+    yield its payload.
+
+    *stopdropandrew*
+
+*   `ActiveSupport::TimeWithZone` raises `NoMethodError` in proper context.
+    Fixes #9772.
+
+    *Yves Senn*
+
+*   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
+
     *Charles Jones*
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
+
+*   Improve singularizing a singular for multiple cases.
+    Fixes #2608 #1825 #2395.
+
+    Example:
+
+        # Before
+        'address'.singularize # => 'addres'
+
+        # After
+        'address'.singularize # => 'address'
+
+    *Mark McSpadden*
 
 *   Prevent `DateTime#change` from truncating the second fraction, when seconds
     do not need to be changed.

@@ -98,6 +98,12 @@ module ActiveRecord
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
+    def max_updated_column_timestamp
+      if (timestamps = timestamp_attributes_for_update.map { |attr| self[attr] }.compact).present?
+        timestamps.map { |ts| ts.to_time }.max
+      end
+    end
+
     def current_time_from_proper_timezone
       self.class.default_timezone == :utc ? Time.now.utc : Time.now
     end

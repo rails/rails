@@ -20,7 +20,7 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_collecting_queries_for_explain
-      result, queries = ActiveRecord::Base.collecting_queries_for_explain do
+      queries = ActiveRecord::Base.collecting_queries_for_explain do
         Car.where(:name => 'honda').to_a
       end
 
@@ -28,7 +28,6 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_match "SELECT", sql
       assert_match "honda", sql
       assert_equal [], binds
-      assert_equal [cars(:honda)], result
     end
 
     def test_exec_explain_with_no_binds

@@ -537,7 +537,7 @@ module HTML
       # Get identifier, class, attribute name, pseudo or negation.
       while true
         # Element identifier.
-        next if statement.sub!(/^#(\?|[\w\-]+)/) do |match|
+        next if statement.sub!(/^#(\?|[\w\-]+)/) do
           id = $1
           if id == "?"
             id = values.shift
@@ -549,7 +549,7 @@ module HTML
         end
 
         # Class name.
-        next if statement.sub!(/^\.([\w\-]+)/) do |match|
+        next if statement.sub!(/^\.([\w\-]+)/) do
           class_name = $1
           @source << ".#{class_name}"
           class_name = Regexp.new("(^|\s)#{Regexp.escape(class_name)}($|\s)") unless class_name.is_a?(Regexp)
@@ -558,7 +558,7 @@ module HTML
         end
 
         # Attribute value.
-        next if statement.sub!(/^\[\s*([[:alpha:]][\w\-:]*)\s*((?:[~|^$*])?=)?\s*('[^']*'|"[^*]"|[^\]]*)\s*\]/) do |match|
+        next if statement.sub!(/^\[\s*([[:alpha:]][\w\-:]*)\s*((?:[~|^$*])?=)?\s*('[^']*'|"[^*]"|[^\]]*)\s*\]/) do
           name, equality, value = $1, $2, $3
           if value == "?"
             value = values.shift
@@ -575,7 +575,7 @@ module HTML
         end
 
         # Root element only.
-        next if statement.sub!(/^:root/) do |match|
+        next if statement.sub!(/^:root/) do
           pseudo << lambda do |element|
             element.parent.nil? || !element.parent.tag?
           end
@@ -611,7 +611,7 @@ module HTML
           "" # Remove
         end
         # First/last child (of type).
-        next if statement.sub!(/^:(first|last)-(child|of-type)/) do |match|
+        next if statement.sub!(/^:(first|last)-(child|of-type)/) do
           reverse = $1 == "last"
           of_type = $2 == "of-type"
           pseudo << nth_child(0, 1, of_type, reverse)
@@ -619,7 +619,7 @@ module HTML
           "" # Remove
         end
         # Only child (of type).
-        next if statement.sub!(/^:only-(child|of-type)/) do |match|
+        next if statement.sub!(/^:only-(child|of-type)/) do
           of_type = $1 == "of-type"
           pseudo << only_child(of_type)
           @source << ":only-#{$1}"
@@ -628,7 +628,7 @@ module HTML
 
         # Empty: no child elements or meaningful content (whitespaces
         # are ignored).
-        next if statement.sub!(/^:empty/) do |match|
+        next if statement.sub!(/^:empty/) do
           pseudo << lambda do |element|
             empty = true
             for child in element.children
@@ -644,7 +644,7 @@ module HTML
         end
         # Content: match the text content of the element, stripping
         # leading and trailing spaces.
-        next if statement.sub!(/^:content\(\s*(\?|'[^']*'|"[^"]*"|[^)]*)\s*\)/) do |match|
+        next if statement.sub!(/^:content\(\s*(\?|'[^']*'|"[^"]*"|[^)]*)\s*\)/) do
           content = $1
           if content == "?"
             content = values.shift

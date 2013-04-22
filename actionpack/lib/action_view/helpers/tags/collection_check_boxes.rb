@@ -2,11 +2,11 @@ require 'action_view/helpers/tags/collection_helpers'
 
 module ActionView
   module Helpers
-    module Tags
-      class CollectionCheckBoxes < Base
+    module Tags # :nodoc:
+      class CollectionCheckBoxes < Base # :nodoc:
         include CollectionHelpers
 
-        class CheckBoxBuilder < Builder
+        class CheckBoxBuilder < Builder # :nodoc:
           def check_box(extra_html_options={})
             html_options = extra_html_options.merge(@input_html_options)
             @template_object.check_box(@object_name, @method_name, html_options, @value, nil)

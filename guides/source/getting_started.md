@@ -103,7 +103,7 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 ```
 
-If it says something like "Rails 3.2.9", you are ready to continue.
+If it says something like "Rails 4.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -208,7 +208,7 @@ create      app/assets/stylesheets/welcome.css.scss
 
 Most important of these are of course the controller, located at `app/controllers/welcome_controller.rb` and the view, located at `app/views/welcome/index.html.erb`.
 
-Open the `app/views/welcome/index.html.erb` file in your text editor and edit it to contain a single line of code:
+Open the `app/views/welcome/index.html.erb` file in your text editor. Delete all of the existing code in the file, and replace it with the following single line of code:
 
 ```html
 <h1>Hello, Rails!</h1>
@@ -278,7 +278,7 @@ With the route defined, requests can now be made to `/posts/new` in the applicat
 
 ![Another routing error, uninitialized constant PostsController](images/getting_started/routing_error_no_controller.png)
 
-This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called `PostsController`. You can do this by running this command:
+This error occurs because the route needs to have a controller defined in order to serve the request. The solution to this particular problem is simple: create a controller called `PostsController`. You can do this by running this command:
 
 ```bash
 $ rails g controller posts
@@ -568,7 +568,7 @@ interested in. We also use an instance variable (prefixed by `@`) to
 hold a reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
-Now, create a new file `app/view/posts/show.html.erb` with the following
+Now, create a new file `app/views/posts/show.html.erb` with the following
 content:
 
 ```html+erb
@@ -1043,7 +1043,7 @@ REST convention, so to create a new `Post` object it will look for a
 route named `posts_path`, and to update a `Post` object it will look for
 a route named `post_path` and pass the current object. Similarly, rails
 knows that it should create new objects via POST and update them via
-PUT.
+PATCH.
 
 If you run `rake routes` from the console you'll see that we already
 have a `posts_path` route, which was created automatically by Rails when we
@@ -1054,13 +1054,13 @@ received an error before. With your server running you can view your routes by v
 ```bash
 $ rake routes
 
-    posts GET  /posts(.:format)            posts#index
-posts_new GET  /posts/new(.:format)        posts#new
-          POST /posts(.:format)            posts#create
-          GET  /posts/:id(.:format)        posts#show
-          GET  /posts/:id/edit(.:format)   posts#edit
-          PUT  /posts/:id(.:format)        posts#update
-     root      /                           welcome#index
+    posts GET   /posts(.:format)            posts#index
+posts_new GET   /posts/new(.:format)        posts#new
+          POST  /posts(.:format)            posts#create
+          GET   /posts/:id(.:format)        posts#show
+          GET   /posts/:id/edit(.:format)   posts#edit
+          PATCH /posts/:id(.:format)        posts#update
+     root       /                           welcome#index
 ```
 
 To fix this, open `config/routes.rb` and modify the `get "posts/:id"`
@@ -1197,6 +1197,7 @@ $ rake routes
  new_post GET    /posts/new(.:format)      posts#new
 edit_post GET    /posts/:id/edit(.:format) posts#edit
      post GET    /posts/:id(.:format)      posts#show
+          PATCH  /posts/:id(.:format)      posts#update
           PUT    /posts/:id(.:format)      posts#update
           DELETE /posts/:id(.:format)      posts#destroy
      root        /                         welcome#index
@@ -1761,7 +1762,7 @@ cannot be automatically detected by Rails and corrected.
 
 Two very common sources of data that are not UTF-8:
 
-* Your text editor: Most text editors (such as Textmate), default to saving files as
+* Your text editor: Most text editors (such as TextMate), default to saving files as
   UTF-8. If your text editor does not, this can result in special characters that you
   enter in your templates (such as é) to appear as a diamond with a question mark inside
   in the browser. This also applies to your i18n translation files.

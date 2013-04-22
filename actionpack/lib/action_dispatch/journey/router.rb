@@ -38,7 +38,9 @@ module ActionDispatch
           env['REMOTE_ADDR']
         end
 
-        def [](k); env[k]; end
+        def [](k)
+          env[k]
+        end
       end
 
       attr_reader :request_class, :formatter

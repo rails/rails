@@ -410,7 +410,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     # Mary and Bob both have posts in misc, but they are the only ones.
     authors = Author.joins(:similar_posts).where('posts.id' => posts(:misc_by_bob).id)
-    assert_equal [authors(:mary), authors(:bob)], authors.uniq.sort_by(&:id)
+    assert_equal [authors(:mary), authors(:bob)], authors.distinct.sort_by(&:id)
 
     # Check the polymorphism of taggings is being observed correctly (in both joins)
     authors = Author.joins(:similar_posts).where('taggings.taggable_type' => 'FakeModel')

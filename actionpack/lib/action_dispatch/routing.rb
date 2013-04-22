@@ -69,6 +69,22 @@ module ActionDispatch
   # <tt>Routing::Mapper::Scoping#namespace</tt>, and
   # <tt>Routing::Mapper::Scoping#scope</tt>.
   #
+  # == Non-resourceful routes
+  #
+  # For routes that don't fit the <tt>resources</tt> mold, you can use the HTTP helper
+  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
+  #
+  #   get 'post/:id' => 'posts#show'
+  #   post 'post/:id' => 'posts#create_comment'
+  #
+  # If your route needs to respond to more than one HTTP method (or all methods) then using the
+  # <tt>:via</tt> option on <tt>match</tt> is preferable.
+  #
+  #   match 'post/:id' => 'posts#show', via: [:get, :post]
+  #
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
+  # URL will route to the <tt>show</tt> action.
+  #
   # == Named routes
   #
   # Routes can be named by passing an <tt>:as</tt> option,
@@ -78,7 +94,7 @@ module ActionDispatch
   # Example:
   #
   #   # In routes.rb
-  #   match '/login' => 'accounts#login', as: 'login'
+  #   get '/login' => 'accounts#login', as: 'login'
   #
   #   # With render, redirect_to, tests, etc.
   #   redirect_to login_url
@@ -104,9 +120,9 @@ module ActionDispatch
   #
   #   # In routes.rb
   #   controller :blog do
-  #     match 'blog/show'     => :list
-  #     match 'blog/delete'   => :delete
-  #     match 'blog/edit/:id' => :edit
+  #     get 'blog/show'     => :list
+  #     get 'blog/delete'   => :delete
+  #     get 'blog/edit/:id' => :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit
@@ -116,7 +132,7 @@ module ActionDispatch
   #
   # Routes can generate pretty URLs. For example:
   #
-  #   match '/articles/:year/:month/:day' => 'articles#find_by_id', constraints: {
+  #   get '/articles/:year/:month/:day' => 'articles#find_by_id', constraints: {
   #     year:       /\d{4}/,
   #     month:      /\d{1,2}/,
   #     day:        /\d{1,2}/
@@ -131,7 +147,7 @@ module ActionDispatch
   # You can specify a regular expression to define a format for a parameter.
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /\d{5}(-\d{4})?/
   #     }
   #
@@ -139,13 +155,13 @@ module ActionDispatch
   # expression modifiers:
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /hx\d\d\s\d[a-z]{2}/i
   #     }
   #   end
   #
   #   controller 'geocode' do
-  #     match 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /# Postcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
@@ -153,73 +169,21 @@ module ActionDispatch
   #     }
   #   end
   #
-  # Using the multiline match modifier will raise an +ArgumentError+.
+  # Using the multiline modifier will raise an +ArgumentError+.
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
-  #
-  # == Default route
-  #
-  # Consider the following route, which you will find commented out at the
-  # bottom of your generated <tt>config/routes.rb</tt>:
-  #
-  #   match ':controller(/:action(/:id))(.:format)'
-  #
-  # This route states that it expects requests to consist of a
-  # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in
-  # turn is followed optionally by an <tt>:id</tt>, which in turn is followed
-  # optionally by a <tt>:format</tt>.
-  #
-  # Suppose you get an incoming request for <tt>/blog/edit/22</tt>, you'll end
-  # up with:
-  #
-  #   params = { controller: 'blog',
-  #              action:     'edit',
-  #              id:         '22'
-  #           }
-  #
-  # By not relying on default routes, you improve the security of your
-  # application since not all controller actions, which includes actions you
-  # might add at a later time, are exposed by default.
-  #
-  # == HTTP Methods
-  #
-  # Using the <tt>:via</tt> option when specifying a route allows you to
-  # restrict it to a specific HTTP method.  Possible values are <tt>:post</tt>,
-  # <tt>:get</tt>, <tt>:patch</tt>, <tt>:put</tt>, <tt>:delete</tt> and
-  # <tt>:any</tt>.  If your route needs to respond to more than one method you
-  # can use an array, e.g. <tt>[ :get, :post ]</tt>.  The default value is
-  # <tt>:any</tt> which means that the route will respond to any of the HTTP
-  # methods.
-  #
-  #   match 'post/:id' => 'posts#show', via: :get
-  #   match 'post/:id' => 'posts#create_comment', via: :post
-  #
-  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
-  #
-  # === HTTP helper methods
-  #
-  # An alternative method of specifying which HTTP method a route should respond to is to use the helper
-  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
-  #
-  #   get 'post/:id' => 'posts#show'
-  #   post 'post/:id' => 'posts#create_comment'
-  #
-  # This syntax is less verbose and the intention is more apparent to someone else reading your code,
-  # however if your route needs to respond to more than one HTTP method (or all methods) then using the
-  # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
   # == External redirects
   #
   # You can redirect any path to another path using the redirect helper in your router:
   #
-  #   match "/stories" => redirect("/posts")
+  #   get "/stories" => redirect("/posts")
   #
   # == Unicode character routes
   #
   # You can specify unicode character routes in your router:
   #
-  #   match "こんにちは" => "welcome#index"
+  #   get "こんにちは" => "welcome#index"
   #
   # == Routing to Rack Applications
   #
@@ -227,7 +191,7 @@ module ActionDispatch
   # index action in the PostsController, you can specify any Rack application
   # as the endpoint for a matcher:
   #
-  #   match "/application.js" => Sprockets
+  #   get "/application.js" => Sprockets
   #
   # == Reloading routes
   #

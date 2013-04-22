@@ -170,9 +170,10 @@ module ActionDispatch
 
             def call(t, args)
               if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
-                @options.merge!(t.url_options) if t.respond_to?(:url_options)
-                @options[:path] = optimized_helper(args)
-                ActionDispatch::Http::URL.url_for(@options)
+                options = @options.dup
+                options.merge!(t.url_options) if t.respond_to?(:url_options)
+                options[:path] = optimized_helper(args)
+                ActionDispatch::Http::URL.url_for(options)
               else
                 super
               end
@@ -403,11 +404,19 @@ module ActionDispatch
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
+        if name && named_routes[name]
+          raise ArgumentError, "Invalid route name, already in use: '#{name}' \n" \
+            "You may have defined two routes with the same name using the `:as` option, or " \
+            "you may be overriding a route already defined by a resource with the same naming. " \
+            "For the latter, you can restrict the routes created with `resources` as explained here: \n" \
+            "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
+        end
+
         path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
         conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
-        named_routes[name] = route if name && !named_routes[name]
+        named_routes[name] = route if name
         route
       end
 
@@ -657,7 +666,7 @@ module ActionDispatch
         end
 
         req = @request_class.new(env)
-        @router.recognize(req) do |route, matches, params|
+        @router.recognize(req) do |route, _matches, params|
           params.merge!(extras)
           params.each do |key, value|
             if value.is_a?(String)

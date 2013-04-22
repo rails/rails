@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'dependencies_test_helpers'
 
 class Foo; end
 class Bar < Foo
@@ -10,6 +11,7 @@ module FooBar; end
 
 class ConstantLookupTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::ConstantLookup
+  include DependenciesTestHelpers
 
   def find_foo(name)
     self.class.determine_constant_from_test_name(name) do |constant|
@@ -55,5 +57,13 @@ class ConstantLookupTest < ActiveSupport::TestCase
     assert_nil find_module("DoesntExist::Nadda")
     assert_nil find_module("DoesntExist::Nadda::Nope")
     assert_nil find_module("DoesntExist::Nadda::Nope::NotHere")
+  end
+
+  def test_does_not_swallow_exception_on_no_method_error
+    assert_raises(NoMethodError) {
+      with_autoloading_fixtures {
+        self.class.determine_constant_from_test_name("RaisesNoMethodError")
+      }
+    }
   end
 end

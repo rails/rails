@@ -193,7 +193,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_finding_with_includes_on_has_one_assocation_with_same_include_includes_only_once
+  def test_finding_with_includes_on_has_one_association_with_same_include_includes_only_once
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
@@ -302,7 +302,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_foreign_keys
     pets = Pet.all.merge!(:includes => :owner).to_a
-    assert_equal 3, pets.length
+    assert_equal 4, pets.length
   end
 
   def test_eager_association_loading_with_belongs_to
@@ -467,7 +467,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts_with_comments = people(:michael).posts.merge(:includes => :comments, :order => 'posts.id').to_a
     posts_with_author = people(:michael).posts.merge(:includes => :author, :order => 'posts.id').to_a
     posts_with_comments_and_author = people(:michael).posts.merge(:includes => [ :comments, :author ], :order => 'posts.id').to_a
-    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum + post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
   end
@@ -523,7 +523,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit
     posts = Post.all.merge!(:order => 'posts.id asc', :includes => [ :author, :comments ], :limit => 2).to_a
     assert_equal 2, posts.size
-    assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal 3, posts.inject(0) { |sum, post| sum + post.comments.size }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
@@ -1172,6 +1172,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = Author.includes(:comments_with_order_and_conditions, :posts).first
     assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
     assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
+  end
+
+  test "preloading a through association twice does not reset it" do
+    members = Member.includes(current_membership: :club).includes(:club).to_a
+    assert_no_queries {
+      assert_equal 3, members.map(&:current_membership).map(&:club).size
+    }
   end
 
   test "works in combination with order(:symbol)" do

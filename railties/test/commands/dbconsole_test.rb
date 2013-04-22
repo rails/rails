@@ -172,8 +172,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_match(/Usage:.*dbconsole/, stdout)
   end
 
-  private
   attr_reader :aborted, :output
+  private :aborted, :output
+
+  private
 
   def dbconsole
     @dbconsole ||= Rails::DBConsole.new(nil)

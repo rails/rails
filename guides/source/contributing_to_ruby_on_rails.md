@@ -24,11 +24,19 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
 At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself — and others — to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
+
+### Create a Self-Contained gist for Active Record Issues
+
+If you are filing a bug report for Active Record, please use
+[this template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb)
+if the bug is found in a published gem, and
+[this template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+if the bug happens in the master branch.
 
 ### Special Treatment for Security Issues
 
@@ -52,6 +60,22 @@ The easiest and recommended way to get a development environment ready to hack i
 ### The Hard Way
 
 In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
+
+
+Running an Application Against Your Local Branch
+------------------------------------------------
+
+The `--dev` flag of `rails new` generates an application that uses your local
+branch:
+
+```bash
+$ cd rails
+$ bundle exec rails new ~/my-test-app --dev
+```
+
+The application generated in `~/my-test-app` runs against your local branch
+and in particular sees any modifications upon server reboot.
+
 
 Testing Active Record
 ---------------------
@@ -190,7 +214,7 @@ $ cd rails
 $ git checkout -b my_new_branch
 ```
 
-It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on Github. It won't be part of the Rails Git repository.
+It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
 ### Write Your Code
 
@@ -200,6 +224,17 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Use Rails idioms and helpers.
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
+
+It is not customary in Rails to run the full test suite before pushing
+changes. The railties test suite in particular takes a long time, and even
+more if the source code is mounted in `/vagrant` as happens in the recommended
+workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
+
+As a compromise, test what your code obviously affects, and if the change is
+not in railties run the whole test suite of the affected component. If all is
+green that's enough to propose your contribution. We have [Travis CI](https
+://travis-ci.org/) as a safety net for catching unexpected breakages
+elsewhere.
 
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 
@@ -225,7 +260,7 @@ The above are guidelines — please use your best judgment in using them.
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
 
-You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, commiting a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
+You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, committing a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
 
 A CHANGELOG entry should summarize what was changed and should end with author's name. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
 
@@ -249,8 +284,6 @@ Your name can be added directly after the last word if you don't provide any cod
 ### Sanity Check
 
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
-
-You might want also to check out the [RailsBridge BugMash](http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash) as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
 
 ### Commit Your Changes
 

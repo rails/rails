@@ -48,7 +48,7 @@ module ActiveRecord
         column = reflection.foreign_key
       end
 
-      queries << build(table[column.to_sym], value)
+      queries << build(table[column], value)
       queries
     end
 

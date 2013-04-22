@@ -27,7 +27,7 @@ module ActionController
       end
 
       def visible_action?(action_name)
-        action_methods.include?(action_name)
+        not hidden_actions.include?(action_name)
       end
 
       # Overrides AbstractController::Base#action_methods to remove any methods

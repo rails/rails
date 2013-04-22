@@ -55,11 +55,18 @@ module ActiveRecord
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
         assert_equal 70000, default_before
 
-        rename_column "test_models", "salary", "anual_salary"
+        rename_column "test_models", "salary", "annual_salary"
 
-        assert TestModel.column_names.include?("anual_salary")
-        default_after = connection.columns("test_models").find { |c| c.name == "anual_salary" }.default
+        assert TestModel.column_names.include?("annual_salary")
+        default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
         assert_equal 70000, default_after
+      end
+
+      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        def test_mysql_rename_column_preserves_auto_increment
+          rename_column "test_models", "id", "id_test"
+          assert_equal "auto_increment", connection.columns("test_models").find { |c| c.name == "id_test" }.extra
+        end
       end
 
       def test_rename_nonexistent_column

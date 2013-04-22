@@ -266,7 +266,7 @@ def start
   url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
   puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
   puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-  puts "=> Call with -d to detach" unless options[:daemonize]
+  puts "=> Run `rails server -h` for more startup options"
   trap(:INT) { exit }
   puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 

@@ -21,7 +21,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     mount SprocketsApp, :at => "/sprockets"
     mount SprocketsApp => "/shorthand"
 
-    mount FakeEngine, :at => "/fakeengine"
+    mount FakeEngine, :at => "/fakeengine", :as => :fake
     mount FakeEngine, :at => "/getfake", :via => :get
 
     scope "/its_a" do

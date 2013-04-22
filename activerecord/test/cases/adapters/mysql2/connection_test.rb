@@ -70,12 +70,6 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_logs_name_structure_dump
-    @connection.structure_dump
-    assert_equal "SCHEMA", @connection.logged[0][1]
-    assert_equal "SCHEMA", @connection.logged[2][1]
-  end
-
   def test_logs_name_show_variable
     @connection.show_variable 'foo'
     assert_equal "SCHEMA", @connection.logged[0][1]

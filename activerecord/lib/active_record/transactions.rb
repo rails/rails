@@ -160,7 +160,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    # only "Kotori" is created. (This works on MySQL and PostgreSQL, but not on SQLite3.)
+    # only "Kotori" is created. This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also supports it.
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested
@@ -339,8 +339,12 @@ module ActiveRecord
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
-      @_start_transaction_state[:new_record] = @new_record
-      @_start_transaction_state[:destroyed] = @destroyed
+      unless @_start_transaction_state.include?(:new_record)
+        @_start_transaction_state[:new_record] = @new_record
+      end
+      unless @_start_transaction_state.include?(:destroyed)
+        @_start_transaction_state[:destroyed] = @destroyed
+      end
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
       @_start_transaction_state[:frozen?] = @attributes.frozen?
     end

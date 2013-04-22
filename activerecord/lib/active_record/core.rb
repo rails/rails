@@ -69,8 +69,25 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
-      class_attribute :connection_handler, instance_writer: false
-      self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+      ##
+      # :singleton-method:
+      # Disable implicit join references. This feature was deprecated with Rails 4.
+      # If you don't make use of implicit references but still see deprecation warnings
+      # you can disable the feature entirely. This will be the default with Rails 4.1.
+      mattr_accessor :disable_implicit_join_references, instance_writer: false
+      self.disable_implicit_join_references = false
+
+      class_attribute :default_connection_handler, instance_writer: false
+
+      def self.connection_handler
+        ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
+      end
+
+      def self.connection_handler=(handler)
+        ActiveRecord::RuntimeRegistry.connection_handler = handler
+      end
+
+      self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
     module ClassMethods
@@ -168,6 +185,7 @@ module ActiveRecord
       @columns_hash = self.class.column_types.dup
 
       init_internals
+      init_changed_attributes
       ensure_proper_type
       populate_with_current_scope_attributes
 
@@ -238,9 +256,7 @@ module ActiveRecord
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @changed_attributes = {}
-      self.class.column_defaults.each do |attr, orig_value|
-        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
-      end
+      init_changed_attributes
 
       @aggregation_cache = {}
       @association_cache = {}
@@ -291,9 +307,11 @@ module ActiveRecord
       id.hash
     end
 
-    # Freeze the attributes hash such that associations are still accessible, even on destroyed records.
+    # Clone and freeze the attributes hash such that associations are still
+    # accessible, even on destroyed records, but cloned models will not be
+    # frozen.
     def freeze
-      @attributes.freeze
+      @attributes = @attributes.clone.freeze
       self
     end
 
@@ -324,7 +342,12 @@ module ActiveRecord
     # also be used to "borrow" the connection to do database work that isn't
     # easily done without going straight to SQL.
     def connection
+      ActiveSupport::Deprecation.warn("#connection is deprecated in favour of accessing it via the class")
       self.class.connection
+    end
+
+    def connection_handler
+      self.class.connection_handler
     end
 
     # Returns the contents of the record as a nicely formatted string.
@@ -418,11 +441,21 @@ module ActiveRecord
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
+      @destroyed_by_association = nil
       @new_record               = true
       @txn                      = nil
       @_start_transaction_state = {}
       @transaction_state        = nil
       @reflects_state           = [false]
+    end
+
+    def init_changed_attributes
+      # Intentionally avoid using #column_defaults since overridden defaults (as is done in
+      # optimistic locking) won't get written unless they get marked as changed
+      self.class.columns.each do |c|
+        attr, orig_value = c.name, c.default
+        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+      end
     end
   end
 end

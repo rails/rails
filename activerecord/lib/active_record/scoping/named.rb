@@ -159,10 +159,14 @@ module ActiveRecord
           end
 
           singleton_class.send(:define_method, name) do |*args|
-            options  = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
-            relation = all.merge(options)
+            if body.respond_to?(:call)
+              scope = all.scoping { body.call(*args) }
+              scope = scope.extending(extension) if extension
+            else
+              scope = body
+            end
 
-            extension ? relation.extending(extension) : relation
+            scope || all
           end
         end
       end

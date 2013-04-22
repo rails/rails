@@ -316,7 +316,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     dev.projects << projects(:active_record)
 
     assert_equal 3, dev.projects.size
-    assert_equal 1, dev.projects.uniq.size
+    assert_equal 1, dev.projects.distinct.size
   end
 
   def test_uniq_before_the_fact

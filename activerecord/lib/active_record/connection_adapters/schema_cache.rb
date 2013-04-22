@@ -1,7 +1,9 @@
+require 'active_support/deprecation/reporting'
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      attr_reader :primary_keys, :tables, :version
+      attr_reader :version
       attr_accessor :connection
 
       def initialize(conn)
@@ -12,6 +14,15 @@ module ActiveRecord
         @primary_keys = {}
         @tables       = {}
         prepare_default_proc
+      end
+
+      def primary_keys(table_name = nil)
+        if table_name
+          @primary_keys[table_name]
+        else
+          ActiveSupport::Deprecation.warn('call primary_keys with a table name!')
+          @primary_keys.dup
+        end
       end
 
       # A cached lookup for table existence.
@@ -30,12 +41,22 @@ module ActiveRecord
         end
       end
 
+      def tables(name = nil)
+        if name
+          @tables[name]
+        else
+          ActiveSupport::Deprecation.warn('call tables with a name!')
+          @tables.dup
+        end
+      end
+
       # Get the columns for a table
       def columns(table = nil)
         if table
           @columns[table]
         else
-          @columns
+          ActiveSupport::Deprecation.warn('call columns with a table name!')
+          @columns.dup
         end
       end
 
@@ -45,7 +66,8 @@ module ActiveRecord
         if table
           @columns_hash[table]
         else
-          @columns_hash
+          ActiveSupport::Deprecation.warn('call columns_hash with a table name!')
+          @columns_hash.dup
         end
       end
 
@@ -56,6 +78,12 @@ module ActiveRecord
         @primary_keys.clear
         @tables.clear
         @version = nil
+      end
+
+      def size
+        [@columns, @columns_hash, @primary_keys, @tables].map { |x|
+          x.size
+        }.inject :+
       end
 
       # Clear out internal caches for table with +table_name+.
@@ -69,9 +97,9 @@ module ActiveRecord
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = ActiveRecord::Migrator.current_version
-        [@version] + [:@columns, :@columns_hash, :@primary_keys, :@tables].map do |val|
-          self.instance_variable_get(val).inject({}) { |h, v| h[v[0]] = v[1]; h }
-        end
+        [@version] + [@columns, @columns_hash, @primary_keys, @tables].map { |val|
+          Hash[val]
+        }
       end
 
       def marshal_load(array)
@@ -87,7 +115,7 @@ module ActiveRecord
         end
 
         @columns_hash.default_proc = Proc.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
+          h[table_name] = Hash[columns(table_name).map { |col|
             [col.name, col]
           }]
         end

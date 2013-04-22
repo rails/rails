@@ -42,7 +42,7 @@ module AbstractController
         end
       end
 
-      test "generated methods call custom with args received" do
+      test "generated methods call custom with arguments received" do
         collector = MyCollector.new
         collector.html
         collector.text(:foo)

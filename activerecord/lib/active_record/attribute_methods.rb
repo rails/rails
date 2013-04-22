@@ -21,7 +21,7 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
-        # Use a mutex; we don't want two thread simaltaneously trying to define
+        # Use a mutex; we don't want two thread simultaneously trying to define
         # attribute methods.
         @attribute_methods_mutex.synchronize do
           return if attribute_methods_generated?
@@ -163,8 +163,20 @@ module ActiveRecord
     #   person.respond_to('age?')   # => true
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
+      name = name.to_s
       self.class.define_attribute_methods unless self.class.attribute_methods_generated?
-      super
+      result = super
+
+      # If the result is false the answer is false.
+      return false unless result
+
+      # If the result is true then check for the select case.
+      # For queries selecting a subset of columns, return false for unselected columns.
+      if @attributes.present? && self.class.column_names.include?(name)
+        return has_attribute?(name)
+      end
+
+      return true
     end
 
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.
@@ -334,7 +346,7 @@ module ActiveRecord
     private
 
     # Returns a Hash of the Arel::Attributes and attribute values that have been
-    # type casted for use in an Arel insert/update method.
+    # typecasted for use in an Arel insert/update method.
     def arel_attributes_with_values(attribute_names)
       attrs = {}
       arel_table = self.class.arel_table
@@ -348,7 +360,7 @@ module ActiveRecord
     # Filters the primary keys and readonly attributes from the attribute names.
     def attributes_for_update(attribute_names)
       attribute_names.select do |name|
-        column_for_attribute(name) && !pk_attribute?(name) && !readonly_attribute?(name)
+        column_for_attribute(name) && !readonly_attribute?(name)
       end
     end
 

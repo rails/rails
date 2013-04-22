@@ -11,7 +11,7 @@ module AbstractController
     def translate(*args)
       key = args.first
       if key.is_a?(String) && (key[0] == '.')
-        key = "#{ controller_path.gsub('/', '.') }.#{ action_name }#{ key }"
+        key = "#{ controller_path.tr('/', '.') }.#{ action_name }#{ key }"
         args[0] = key
       end
 

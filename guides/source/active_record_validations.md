@@ -530,6 +530,47 @@ field you should use `validates :field_name, inclusion: { in: [true, false] }`.
 
 The default error message is _"can't be empty"_.
 
+### `absence`
+
+This helper validates that the specified attributes are absent. It uses the
+`present?` method to check if the value is not either nil or a blank string, that
+is, a string that is either empty or consists of whitespace.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :name, :login, :email, absence: true
+end
+```
+
+If you want to be sure that an association is absent, you'll need to test
+whether the associated object itself is absent, and not the foreign key used
+to map the association.
+
+```ruby
+class LineItem < ActiveRecord::Base
+  belongs_to :order
+  validates :order, absence: true
+end
+```
+
+In order to validate associated records whose absence is required, you must
+specify the `:inverse_of` option for the association:
+
+```ruby
+class Order < ActiveRecord::Base
+  has_many :line_items, inverse_of: :order
+end
+```
+
+If you validate the absence of an object associated via a `has_one` or
+`has_many` relationship, it will check that the object is neither `present?` nor
+`marked_for_destruction?`.
+
+Since `false.present?` is false, if you want to validate the absence of a boolean
+field you should use `validates :field_name, exclusion: { in: [true, false] }`.
+
+The default error message is _"must be blank"_.
+
 ### `uniqueness`
 
 This helper validates that the attribute's value is unique right before the

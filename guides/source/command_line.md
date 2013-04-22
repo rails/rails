@@ -82,7 +82,7 @@ The server can be run on a different port using the `-p` option. The default dev
 $ rails server -e production -p 4000
 ```
 
-The `-b` option binds Rails to the specified ip, by default it is 0.0.0.0. You can run a server as a daemon by passing a `-d` option.
+The `-b` option binds Rails to the specified IP, by default it is 0.0.0.0. You can run a server as a daemon by passing a `-d` option.
 
 ### `rails generate`
 
@@ -414,7 +414,7 @@ app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] any other way to do this?
   * [132] [FIXME] high priority for next deploy
 
-app/model/school.rb:
+app/models/school.rb:
   * [ 13] [OPTIMIZE] refactor this code to make it faster
   * [ 17] [FIXME]
 ```
@@ -427,7 +427,7 @@ $ rake notes:fixme
 app/controllers/admin/users_controller.rb:
   * [132] high priority for next deploy
 
-app/model/school.rb:
+app/models/school.rb:
   * [ 17]
 ```
 
@@ -436,7 +436,7 @@ You can also use custom annotations in your code and list them using `rake notes
 ```bash
 $ rake notes:custom ANNOTATION=BUG
 (in /home/foobar/commandsapp)
-app/model/post.rb:
+app/models/post.rb:
   * [ 23] Have to fix this one before pushing!
 ```
 
@@ -445,12 +445,12 @@ NOTE. When using specific annotations and custom annotations, the annotation nam
 By default, `rake notes` will look in the `app`, `config`, `lib`, `bin` and `test` directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
 
 ```bash
-$ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'
+$ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
 $ rake notes
 (in /home/foobar/commandsapp)
-app/model/user.rb:
+app/models/user.rb:
   * [ 35] [FIXME] User should have a subscription at this point
-rspec/model/user_spec.rb:
+spec/models/user_spec.rb:
   * [122] [TODO] Verify the user that has a subscription works
 ```
 

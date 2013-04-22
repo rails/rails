@@ -48,6 +48,33 @@ module ActionController
         end
         response.stream.close
       end
+
+      def with_stale
+        render :text => 'stale' if stale?(:etag => "123")
+      end
+
+      def exception_in_view
+        render 'doesntexist'
+      end
+
+      def exception_with_callback
+        response.headers['Content-Type'] = 'text/event-stream'
+
+        response.stream.on_error do
+          response.stream.write %(data: "500 Internal Server Error"\n\n)
+          response.stream.close
+        end
+
+        raise 'An exception occurred...'
+      end
+
+      def exception_in_exception_callback
+        response.headers['Content-Type'] = 'text/event-stream'
+        response.stream.on_error do
+          raise 'We need to go deeper.'
+        end
+        response.stream.write params[:widget][:didnt_check_for_nil]
+      end
     end
 
     tests TestController
@@ -60,6 +87,21 @@ module ActionController
 
     def build_response
       TestResponse.new
+    end
+
+    def assert_stream_closed
+      assert response.stream.closed?, 'stream should be closed'
+    end
+
+    def capture_log_output
+      output = StringIO.new
+      old_logger, ActionController::Base.logger = ActionController::Base.logger, ActiveSupport::Logger.new(output)
+
+      begin
+        yield output
+      ensure
+        ActionController::Base.logger = old_logger
+      end
     end
 
     def test_set_response!
@@ -115,7 +157,54 @@ module ActionController
     def test_render_text
       get :render_text
       assert_equal 'zomg', response.body
-      assert response.stream.closed?, 'stream should be closed'
+      assert_stream_closed
+    end
+
+    def test_exception_handling_html
+      capture_log_output do |output|
+        get :exception_in_view
+        assert_match %r((window\.location = "/500\.html"</script></html>)$), response.body
+        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_stream_closed
+      end
+    end
+
+    def test_exception_handling_plain_text
+      capture_log_output do |output|
+        get :exception_in_view, format: :json
+        assert_equal '', response.body
+        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_stream_closed
+      end
+    end
+
+    def test_exception_callback
+      capture_log_output do |output|
+        get :exception_with_callback, format: 'text/event-stream'
+        assert_equal %(data: "500 Internal Server Error"\n\n), response.body
+        assert_match 'An exception occurred...', output.rewind && output.read
+        assert_stream_closed
+      end
+    end
+
+    def test_exceptions_raised_handling_exceptions
+      capture_log_output do |output|
+        get :exception_in_exception_callback, format: 'text/event-stream'
+        assert_equal '', response.body
+        assert_match 'We need to go deeper', output.rewind && output.read
+        assert_stream_closed
+      end
+    end
+
+    def test_stale_without_etag
+      get :with_stale
+      assert_equal 200, @response.status.to_i
+    end
+
+    def test_stale_with_etag
+      @request.if_none_match = Digest::MD5.hexdigest("123")
+      get :with_stale
+      assert_equal 304, @response.status.to_i
     end
   end
 end

@@ -40,7 +40,7 @@ module Rails
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content = content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
+          content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)
@@ -163,6 +163,7 @@ module Rails
         def attributes_names
           @attributes_names ||= attributes.each_with_object([]) do |a, names|
             names << a.column_name
+            names << 'password_confirmation' if a.password_digest?
             names << "#{a.name}_type" if a.polymorphic?
           end
         end

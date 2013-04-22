@@ -361,6 +361,16 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("user", "avatar")
   end
 
+  def test_file_field_with_multiple_behavior
+    expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+    assert_dom_equal expected, file_field("import", "file", :multiple => true)
+  end
+
+  def test_file_field_with_multiple_behavior_and_explicit_name
+    expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
+    assert_dom_equal expected, file_field("import", "file", :multiple => true, :name => "custom")
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
@@ -2791,8 +2801,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_html_options_adds_options_to_form_tag
-    form_for(@post, html: { id: 'some_form', class: 'some_class' }) do |f| end
-    expected = whole_form("/posts/123", "some_form", "some_class", method: "patch")
+    form_for(@post, html: { id: 'some_form', class: 'some_class', multipart: true }) do |f| end
+    expected = whole_form("/posts/123", "some_form", "some_class", method: "patch", multipart: "multipart/form-data")
 
     assert_dom_equal expected, output_buffer
   end

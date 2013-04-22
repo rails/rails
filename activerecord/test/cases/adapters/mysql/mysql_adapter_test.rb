@@ -16,6 +16,15 @@ module ActiveRecord
         eosql
       end
 
+      def test_valid_column
+        column = @conn.columns('ex').find { |col| col.name == 'id' }
+        assert @conn.valid_type?(column.type)
+      end
+
+      def test_invalid_column
+        assert_not @conn.valid_type?(:foobar)
+      end
+
       def test_client_encoding
         assert_equal Encoding::UTF_8, @conn.client_encoding
       end

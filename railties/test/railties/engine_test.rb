@@ -105,7 +105,7 @@ module RailtiesTest
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `bundle exec rake railties:install:migrations`
+        `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
       end
@@ -187,7 +187,7 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
-    test "adds its views to view paths with lower proriority than app ones" do
+    test "adds its views to view paths with lower priority than app ones" do
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
           def index

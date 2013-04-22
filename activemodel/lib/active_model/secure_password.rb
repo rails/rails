@@ -30,23 +30,30 @@ module ActiveModel
       #   end
       #
       #   user = User.new(name: 'david', password: '', password_confirmation: 'nomatch')
-      #   user.save                                                      # => false, password required
+      #   user.save                                                       # => false, password required
       #   user.password = 'mUc3m00RsqyRe'
-      #   user.save                                                      # => false, confirmation doesn't match
+      #   user.save                                                       # => false, confirmation doesn't match
       #   user.password_confirmation = 'mUc3m00RsqyRe'
-      #   user.save                                                      # => true
-      #   user.authenticate('notright')                                  # => false
-      #   user.authenticate('mUc3m00RsqyRe')                             # => user
-      #   User.find_by_name('david').try(:authenticate, 'notright')      # => false
-      #   User.find_by_name('david').try(:authenticate, 'mUc3m00RsqyRe') # => user
+      #   user.save                                                       # => true
+      #   user.authenticate('notright')                                   # => false
+      #   user.authenticate('mUc3m00RsqyRe')                              # => user
+      #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
+      #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
       def has_secure_password(options = {})
         # Load bcrypt-ruby only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
-        gem 'bcrypt-ruby', '~> 3.0.0'
-        require 'bcrypt'
+        begin
+          gem 'bcrypt-ruby', '~> 3.0.0'
+          require 'bcrypt'
+        rescue LoadError
+          $stderr.puts "You don't have bcrypt-ruby installed in your application. Please add it to your Gemfile and run bundle install"
+          raise
+        end
 
         attr_reader :password
+
+        include InstanceMethodsOnActivation
 
         if options.fetch(:validations, true)
           validates_confirmation_of :password
@@ -54,8 +61,6 @@ module ActiveModel
 
           before_create { raise "Password digest missing on new record" if password_digest.blank? }
         end
-
-        include InstanceMethodsOnActivation
 
         if respond_to?(:attributes_protected_by_default)
           def self.attributes_protected_by_default #:nodoc:
@@ -97,6 +102,12 @@ module ActiveModel
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine::DEFAULT_COST
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
+        end
+      end
+
+      def password_confirmation=(unencrypted_password)
+        unless unencrypted_password.blank?
+          @password_confirmation = unencrypted_password
         end
       end
     end

@@ -12,13 +12,13 @@ require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/minivan'
+require 'models/owner'
 require 'models/person'
 require 'models/pet'
 require 'models/toy'
 require 'rexml/document'
 
 class PersistencesTest < ActiveRecord::TestCase
-
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
@@ -247,15 +247,15 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.title = "Another New Topic"
     topic.written_on = "2003-12-12 23:23:00"
     topic.save
-    topicReloaded = Topic.find(topic.id)
-    assert_equal("Another New Topic", topicReloaded.title)
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another New Topic", topic_reloaded.title)
 
-    topicReloaded.title = "Updated topic"
-    topicReloaded.save
+    topic_reloaded.title = "Updated topic"
+    topic_reloaded.save
 
-    topicReloadedAgain = Topic.find(topic.id)
+    topic_reloaded_again = Topic.find(topic.id)
 
-    assert_equal("Updated topic", topicReloadedAgain.title)
+    assert_equal("Updated topic", topic_reloaded_again.title)
   end
 
   def test_update_columns_not_equal_attributes
@@ -263,12 +263,12 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.title = "Still another topic"
     topic.save
 
-    topicReloaded = Topic.allocate
-    topicReloaded.init_with(
+    topic_reloaded = Topic.allocate
+    topic_reloaded.init_with(
       'attributes' => topic.attributes.merge('does_not_exist' => 'test')
     )
-    topicReloaded.title = 'A New Topic'
-    assert_nothing_raised { topicReloaded.save }
+    topic_reloaded.title = 'A New Topic'
+    assert_nothing_raised { topic_reloaded.save }
   end
 
   def test_update_for_record_with_only_primary_key
@@ -294,6 +294,22 @@ class PersistencesTest < ActiveRecord::TestCase
 
     assert_instance_of Topic, topic
     assert_equal "Reply", topic.type
+  end
+
+  def test_update_after_create
+    klass = Class.new(Topic) do
+      def self.name; 'Topic'; end
+      after_create do
+        update_attribute("author_name", "David")
+      end
+    end
+    topic = klass.new
+    topic.title = "Another New Topic"
+    topic.save
+
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another New Topic", topic_reloaded.title)
+    assert_equal("David", topic_reloaded.author_name)
   end
 
   def test_delete
@@ -397,14 +413,6 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
     assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
-  end
-
-  def test_string_ids
-    # FIXME: Fix this failing test
-    skip "Failing test. We need this fixed before 4.0.0"
-    mv = Minivan.where(:minivan_id => 1234).first_or_initialize
-    assert mv.new_record?
-    assert_equal '1234', mv.minivan_id
   end
 
   def test_update_attribute_with_one_updated
@@ -669,6 +677,15 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.reload
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
+
+    assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
+      topic.update_attributes(id: 3, title: "Hm is it possible?")
+    end
+    assert_not_equal "Hm is it possible?", Topic.find(3).title
+
+    topic.update_attributes(id: 1234)
+    assert_nothing_raised { topic.reload }
+    assert_equal topic.title, Topic.find(1234).title
   end
 
   def test_update!

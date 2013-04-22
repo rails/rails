@@ -157,7 +157,7 @@ module Notifications
       assert_equal 2, instrument(:awesome) { 1 + 1 }
     end
 
-    def test_instrument_yields_the_paylod_for_further_modification
+    def test_instrument_yields_the_payload_for_further_modification
       assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
       assert_equal 1, @events.size
       assert_equal :awesome, @events.first.name

@@ -5,8 +5,17 @@ module ActiveRecord
 
       included do
         # Stores the default scope for the class.
-        class_attribute :default_scopes, instance_writer: false
+        class_attribute :default_scopes, instance_writer: false, instance_predicate: false
+
         self.default_scopes = []
+
+        def self.default_scopes?
+          ActiveSupport::Deprecation.warn(
+            "#default_scopes? is deprecated. Do something like #default_scopes.empty? instead."
+          )
+
+          !!self.default_scopes
+        end
       end
 
       module ClassMethods
@@ -27,14 +36,6 @@ module ActiveRecord
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
-        #
-        # It is recommended that you use the block form of unscoped because
-        # chaining unscoped with +scope+ does not work. Assuming that
-        # +published+ is a +scope+, the following two statements
-        # are equal: the +default_scope+ is applied on both.
-        #
-        #   Post.unscoped.published
-        #   Post.published
         def unscoped
           block_given? ? relation.scoping { yield } : relation
         end
@@ -119,11 +120,11 @@ module ActiveRecord
         end
 
         def ignore_default_scope? # :nodoc:
-          Thread.current["#{self}_ignore_default_scope"]
+          ScopeRegistry.value_for(:ignore_default_scope, self)
         end
 
         def ignore_default_scope=(ignore) # :nodoc:
-          Thread.current["#{self}_ignore_default_scope"] = ignore
+          ScopeRegistry.set_value_for(:ignore_default_scope, self, ignore)
         end
 
         # The ignore_default_scope flag is used to prevent an infinite recursion

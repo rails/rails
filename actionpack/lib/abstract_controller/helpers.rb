@@ -29,7 +29,7 @@ module AbstractController
       #     helper_method :current_user, :logged_in?
       #
       #     def current_user
-      #       @current_user ||= User.find_by_id(session[:user])
+      #       @current_user ||= User.find_by(id: session[:user])
       #     end
       #
       #     def logged_in?
@@ -59,7 +59,7 @@ module AbstractController
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
       # ==== Options
-      # * <tt>*args</tt> - Module, Symbol, String, :all
+      # * <tt>*args</tt> - Module, Symbol, String
       # * <tt>block</tt> - A block defining helper methods
       #
       # When the argument is a module it will be included directly in the template class.

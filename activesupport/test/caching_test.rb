@@ -1,7 +1,7 @@
 require 'logger'
 require 'abstract_unit'
 require 'active_support/cache'
-require 'dependecies_test_helpers'
+require 'dependencies_test_helpers'
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_entry_legacy_optional_ivars
@@ -405,7 +405,7 @@ module CacheStoreBehavior
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
-# The error is caused by charcter encodings that can't be compared with ASCII-8BIT regular expressions and by special
+# The error is caused by character encodings that can't be compared with ASCII-8BIT regular expressions and by special
 # characters like the umlaut in UTF-8.
 module EncodedKeyCacheBehavior
   Encoding.list.each do |encoding|
@@ -564,7 +564,7 @@ module LocalCacheBehavior
 end
 
 module AutoloadingCacheBehavior
-  include DependeciesTestHelpers
+  include DependenciesTestHelpers
   def test_simple_autoloading
     with_autoloading_fixtures do
       @cache.write('foo', E.new)
@@ -943,29 +943,28 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal value.bytesize, entry.size
   end
 
-  def test_restoring_version_3_entries
-    version_3_entry = ActiveSupport::Cache::Entry.allocate
-    version_3_entry.instance_variable_set(:@value, "hello")
-    version_3_entry.instance_variable_set(:@created_at, Time.now - 60)
-    entry = Marshal.load(Marshal.dump(version_3_entry))
+  def test_restoring_version_4beta1_entries
+    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
+    version_4beta1_entry.instance_variable_set(:@v, "hello")
+    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i + 60)
+    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
     assert_equal "hello", entry.value
     assert_equal false, entry.expired?
   end
 
-  def test_restoring_compressed_version_3_entries
-    version_3_entry = ActiveSupport::Cache::Entry.allocate
-    version_3_entry.instance_variable_set(:@value, Zlib::Deflate.deflate(Marshal.dump("hello")))
-    version_3_entry.instance_variable_set(:@compressed, true)
-    entry = Marshal.load(Marshal.dump(version_3_entry))
+  def test_restoring_compressed_version_4beta1_entries
+    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
+    version_4beta1_entry.instance_variable_set(:@v, Zlib::Deflate.deflate(Marshal.dump("hello")))
+    version_4beta1_entry.instance_variable_set(:@c, true)
+    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
     assert_equal "hello", entry.value
   end
 
-  def test_restoring_expired_version_3_entries
-    version_3_entry = ActiveSupport::Cache::Entry.allocate
-    version_3_entry.instance_variable_set(:@value, "hello")
-    version_3_entry.instance_variable_set(:@created_at, Time.now - 60)
-    version_3_entry.instance_variable_set(:@expires_in, 58.9)
-    entry = Marshal.load(Marshal.dump(version_3_entry))
+  def test_restoring_expired_version_4beta1_entries
+    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
+    version_4beta1_entry.instance_variable_set(:@v, "hello")
+    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i - 1)
+    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
     assert_equal "hello", entry.value
     assert_equal true, entry.expired?
   end

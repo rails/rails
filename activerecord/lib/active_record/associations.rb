@@ -241,6 +241,7 @@ module ActiveRecord
     #   others.destroy_all                |   X   |    X     |    X
     #   others.find(*args)                |   X   |    X     |    X
     #   others.exists?                    |   X   |    X     |    X
+    #   others.distinct                   |   X   |    X     |    X
     #   others.uniq                       |   X   |    X     |    X
     #   others.reset                      |   X   |    X     |    X
     #
@@ -965,7 +966,7 @@ module ActiveRecord
     # For +has_and_belongs_to_many+, <tt>delete</tt> and <tt>destroy</tt> are the same: they
     # cause the records in the join table to be removed.
     #
-    # For +has_many+, <tt>destroy</tt> and <tt>destory_all</tt> will always call the <tt>destroy</tt> method of the
+    # For +has_many+, <tt>destroy</tt> and <tt>destroy_all</tt> will always call the <tt>destroy</tt> method of the
     # record(s) being removed so that callbacks are run. However <tt>delete</tt> and <tt>delete_all</tt> will either
     # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
     # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
@@ -987,7 +988,7 @@ module ActiveRecord
     # associated objects themselves. So with +has_and_belongs_to_many+ and +has_many+
     # <tt>:through</tt>, the join records will be deleted, but the associated records won't.
     #
-    # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by_name('food'))</tt>
+    # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by(name: 'food'))</tt>
     # you would want the 'food' tag to be unlinked from the post, rather than for the tag itself
     # to be removed from the database.
     #
@@ -1024,7 +1025,7 @@ module ActiveRecord
       # [collection<<(object, ...)]
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       #   Note that this operation instantly fires update sql without waiting for the save or update call on the
-      #   parent object.
+      #   parent object, unless the parent object is a new record.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
       #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
@@ -1072,6 +1073,9 @@ module ActiveRecord
       #   with +attributes+, linked to this object through a foreign key, and that has already
       #   been saved (if it passed the validation). *Note*: This only works if the base model
       #   already exists in the DB, not if it is a new (unsaved) record!
+      # [collection.create!(attributes = {})]
+      #   Does the same as <tt>collection.create</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   if the record is invalid.
       #
       # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
@@ -1093,6 +1097,7 @@ module ActiveRecord
       # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
+      # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       #
       # === Options
@@ -1114,11 +1119,11 @@ module ActiveRecord
       #   similar callbacks may affect the :dependent behavior, and the
       #   :dependent behavior may affect other callbacks.
       #
-      #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed
-      #   * <tt>:delete_all</tt> causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
+      #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
       #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
-      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records
-      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects
+      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records.
+      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1231,7 +1236,7 @@ module ActiveRecord
       #   its owner is destroyed:
       #
       #   * <tt>:destroy</tt> causes the associated object to also be destroyed
-      #   * <tt>:delete</tt> causes the asssociated object to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
       #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
       #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
       #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
@@ -1407,6 +1412,8 @@ module ActiveRecord
       # to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes",
       # but it in fact generates a join table name of "paper_boxes_papers". Be aware of this caveat, and use the
       # custom <tt>:join_table</tt> option if you need to.
+      # If your tables share a common prefix, it will only appear once at the beginning. For example,
+      # the tables "catalog_categories" and "catalog_products" generate a join table name of "catalog_categories_products".
       #
       # The join table should not have a primary key or a model associated with it. You must manually generate the
       # join table with a migration such as this:
@@ -1433,7 +1440,7 @@ module ActiveRecord
       #   Adds one or more objects to the collection by creating associations in the join table
       #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
       #   Note that this operation instantly fires update sql without waiting for the save or update call on the
-      #   parent object.
+      #   parent object, unless the parent object is a new record.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by removing their associations from the join table.
       #   This does not destroy the objects.

@@ -44,6 +44,27 @@ module ActiveRecord
         assert_match(/database 'foo-bar'/, e.inspect)
       end
 
+      def test_dump_indexes
+        index_a_name = 'index_key_tests_on_snack'
+        index_b_name = 'index_key_tests_on_pizza'
+        index_c_name = 'index_key_tests_on_awesome'
+
+        table = 'key_tests'
+
+        indexes = @connection.indexes(table).sort_by {|i| i.name}
+        assert_equal 3,indexes.size
+
+        index_a = indexes.select{|i| i.name == index_a_name}[0]
+        index_b = indexes.select{|i| i.name == index_b_name}[0]
+        index_c = indexes.select{|i| i.name == index_c_name}[0]
+        assert_equal :btree, index_a.using
+        assert_nil index_a.type
+        assert_equal :btree, index_b.using
+        assert_nil index_b.type
+
+        assert_nil index_c.using
+        assert_equal :fulltext, index_c.type
+      end
     end
   end
 end

@@ -81,6 +81,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_cycle(['1',nil,nil])
   end
 
+  def test_insert_fixture
+    tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
+    @connection.insert_fixture({"tags" => tag_values}, "pg_arrays" )
+    assert_equal(PgArray.last.tags, tag_values)
+  end
+
   private
   def assert_cycle array
     # test creation

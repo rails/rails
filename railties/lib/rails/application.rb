@@ -1,6 +1,6 @@
 require 'fileutils'
 require 'active_support/queueing'
-# FIXME remove DummyKeyGenerator and this require in 4.1
+require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
 require 'rails/engine'
 
@@ -47,10 +47,10 @@ module Rails
   #   6)  Run config.before_initialize callbacks
   #   7)  Run Railtie#initializer defined by railties, engines and application.
   #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
-  #   9)  Custom Railtie#initializers added by railties, engines and applications are executed
-  #   10) Build the middleware stack and run to_prepare callbacks
-  #   11) Run config.before_eager_load and eager_load! if eager_load is true
-  #   12) Run config.after_initialize callbacks
+  #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
+  #   9)  Build the middleware stack and run to_prepare callbacks
+  #   10) Run config.before_eager_load and eager_load! if eager_load is true
+  #   11) Run config.after_initialize callbacks
   #
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
@@ -81,7 +81,7 @@ module Rails
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
-      @env_config       = nil
+      @app_env_config   = nil
       @ordered_railties = nil
       @railties         = nil
       @queue            = nil
@@ -114,7 +114,7 @@ module Rails
           key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
-          ActiveSupport::DummyKeyGenerator.new(config.secret_token)
+          ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
       end
     end
@@ -125,7 +125,8 @@ module Rails
     #
     #   * "action_dispatch.parameter_filter"             => config.filter_parameters
     #   * "action_dispatch.redirect_filter"              => config.filter_redirect
-    #   * "action_dispatch.secret_token"                 => config.secret_token,
+    #   * "action_dispatch.secret_token"                 => config.secret_token
+    #   * "action_dispatch.secret_key_base"              => config.secret_key_base
     #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
     #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
     #   * "action_dispatch.logger"                       => Rails.logger
@@ -137,14 +138,13 @@ module Rails
     #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
     #
     def env_config
-      @env_config ||= begin
-        if config.secret_key_base.nil?
-          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base in config/initializers/secret_token.rb file. " +
-            "This should be used instead of the old deprecated config.secret_token in order to use the new EncryptedCookieStore. " +
-            "To convert safely to the encrypted store (without losing existing cookies and sessions), see http://guides.rubyonrails.org/upgrading_ruby_on_rails.html#action-pack"
+      @app_env_config ||= begin
+        if config.secret_key_base.blank?
+          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
+            "Read the upgrade documentation to learn more about this new config option."
 
           if config.secret_token.blank?
-            raise "You must set config.secret_key_base in your app's config"
+            raise "You must set config.secret_key_base in your app's config."
           end
         end
 
@@ -152,6 +152,7 @@ module Rails
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.secret_key_base" => config.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,

@@ -21,7 +21,7 @@ module ActiveRecord
     # <tt>resources :users</tt> route. Normally, +user_path+ will
     # construct a path with the user object's 'id' in it:
     #
-    #   user = User.find_by_name('Phusion')
+    #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/1"
     #
     # You can override +to_param+ in your model to make +user_path+ construct
@@ -33,7 +33,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   user = User.find_by_name('Phusion')
+    #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/Phusion"
     def to_param
       # We can't use alias_method here, because method 'id' optimizes itself on the fly.
@@ -49,7 +49,7 @@ module ActiveRecord
       case
       when new_record?
         "#{self.class.model_name.cache_key}/new"
-      when timestamp = self[:updated_at]
+      when timestamp = max_updated_column_timestamp
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
       else

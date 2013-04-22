@@ -124,7 +124,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip_active_record"]
     assert_no_file "test/dummy/config/database.yml"
     assert_file "test/test_helper.rb" do |contents|
-      assert_no_match /ActiveRecord/, contents
+      assert_no_match(/ActiveRecord/, contents)
     end
   end
 
@@ -292,7 +292,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
+      assert_match(/gem "rails", "~> #{Rails.version}"/, contents)
       assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
       assert_no_match(/# gem "jquery-rails"/, contents)
     end
@@ -303,7 +303,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
+      assert_match(/gem "rails", "~> #{Rails.version}"/, contents)
       assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
     end
   end

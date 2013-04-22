@@ -12,16 +12,21 @@ source 'https://rubygems.org'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 1.0.1'
 
-# To use ActiveModel has_secure_password
+group :doc do
+  # bundle exec rake doc:rails generates the API under doc/api.
+  gem 'sdoc', require: false
+end
+
+# Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
 # Use unicorn as the app server
 # gem 'unicorn'
 
-# Deploy with Capistrano
+# Use Capistrano for deployment
 # gem 'capistrano', group: :development
 
 <% unless defined?(JRUBY_VERSION) -%>
-# To use debugger
-# gem 'debugger'
+# Use debugger
+# gem 'debugger', group: [:development, :test]
 <% end -%>

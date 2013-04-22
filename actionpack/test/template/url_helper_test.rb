@@ -51,7 +51,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
-  # TODO: missing test cases
   def test_button_to_with_straight_url
     assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com")
   end
@@ -539,6 +538,22 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert mail_to("david@loudthinking.com").html_safe?
   end
 
+  def test_mail_to_with_block
+    assert_dom_equal %{<a href="mailto:me@example.com"><span>Email me</span></a>},
+      mail_to('me@example.com') { content_tag(:span, 'Email me') }
+  end
+
+  def test_mail_to_with_block_and_options
+    assert_dom_equal %{<a class="special" href="mailto:me@example.com?cc=ccaddress%40example.com"><span>Email me</span></a>},
+      mail_to('me@example.com', cc: "ccaddress@example.com", class: "special") { content_tag(:span, 'Email me') }
+  end
+
+  def test_mail_to_does_not_modify_html_options_hash
+    options = { class: 'special' }
+    mail_to 'me@example.com', 'ME!', options
+    assert_equal({ class: 'special' }, options)
+  end
+
   def protect_against_forgery?
     self.request_forgery
   end
@@ -597,7 +612,7 @@ class UrlHelperControllerTest < ActionController::TestCase
       render inline: "<%= url_for controller: 'url_helper_controller_test/url_helper', action: 'show_url_for' %>"
     end
 
-    def show_overriden_url_for
+    def show_overridden_url_for
       render inline: "<%= url_for params.merge(controller: 'url_helper_controller_test/url_helper', action: 'show_url_for') %>"
     end
 
@@ -634,8 +649,8 @@ class UrlHelperControllerTest < ActionController::TestCase
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 
-  def test_overriden_url_for_shows_only_path
-    get :show_overriden_url_for
+  def test_overridden_url_for_shows_only_path
+    get :show_overridden_url_for
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 
@@ -685,7 +700,7 @@ class UrlHelperControllerTest < ActionController::TestCase
     assert_equal 'ok', @response.body
   end
 
-  def test_url_helper_can_be_overriden
+  def test_url_helper_can_be_overridden
     get :override_url_helper
     assert_equal '/url_helper_controller_test/url_helper/override_url_helper/override', @response.body
   end

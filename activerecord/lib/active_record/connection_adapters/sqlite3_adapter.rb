@@ -6,9 +6,9 @@ gem 'sqlite3', '~> 1.3.6'
 require 'sqlite3'
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # sqlite3 adapter reuses sqlite_connection.
-    def sqlite3_connection(config) # :nodoc:
+    def sqlite3_connection(config)
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -113,7 +113,7 @@ module ActiveRecord
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::SQLite.new self
         else
-          @visitor = BindSubstitution.new self
+          @visitor = unprepared_visitor
         end
       end
 
@@ -458,7 +458,7 @@ module ActiveRecord
 
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
-          definition.columns.delete(definition[column_name])
+          definition.remove_column column_name
         end
       end
 
@@ -583,9 +583,17 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
           quoted_to = quote_table_name(to)
+
+          raw_column_mappings = Hash[columns(from).map { |c| [c.name, c] }]
+
           exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
             sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
-            sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
+
+            column_values = columns.map do |col|
+              quote(row[column_mappings[col]], raw_column_mappings[col])
+            end
+
+            sql << column_values * ', '
             sql << ')'
             exec_query sql
           end

@@ -1,4 +1,5 @@
 require 'active_support/notifications'
+require 'active_record/explain_registry'
 
 module ActiveRecord
   class ExplainSubscriber # :nodoc:
@@ -7,8 +8,8 @@ module ActiveRecord
     end
 
     def finish(name, id, payload)
-      if queries = Thread.current[:available_queries_for_explain]
-        queries << payload.values_at(:sql, :binds) unless ignore_payload?(payload)
+      if ExplainRegistry.collect? && !ignore_payload?(payload)
+        ExplainRegistry.queries << payload.values_at(:sql, :binds)
       end
     end
 

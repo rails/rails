@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'models/topic'
 require 'models/person'
+require 'models/traffic_light'
 require 'bcrypt'
 
 class SerializedAttributeTest < ActiveRecord::TestCase
@@ -233,5 +234,11 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert person.save
     person = person.reload
     assert_equal(insures, person.insures)
+  end
+
+  def test_regression_serialized_default_on_text_column_with_null_false
+    light = TrafficLight.new
+    assert_equal [], light.state
+    assert_equal [], light.long_state
   end
 end

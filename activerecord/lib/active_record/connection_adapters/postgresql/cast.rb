@@ -2,6 +2,17 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLColumn < Column
       module Cast
+        def point_to_string(point)
+          "(#{point[0]},#{point[1]})"
+        end
+
+        def string_to_point(string)
+          if string[0] == '(' && string[-1] == ')'
+            string = string[1...-1]
+          end
+          string.split(',').map{ |v| Float(v) }
+        end
+
         def string_to_time(string)
           return string unless String === string
 
@@ -12,6 +23,15 @@ module ActiveRecord
             super("-" + string.sub(/ BC$/, ""))
           else
             super
+          end
+        end
+
+        def string_to_bit(value)
+          case value
+          when /^0x/i
+            value[2..-1].hex.to_s(2) # Hexadecimal notation
+          else
+            value                    # Bit-string notation
           end
         end
 
@@ -30,8 +50,8 @@ module ActiveRecord
             nil
           elsif String === string
             Hash[string.scan(HstorePair).map { |k,v|
-              v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
-              k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
+              v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
+              k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
               [k,v]
             }]
           else

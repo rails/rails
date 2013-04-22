@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def replace(record)
-        raise_on_type_mismatch(record) if record
+        raise_on_type_mismatch!(record) if record
 
         update_counters(record)
         replace_keys(record)

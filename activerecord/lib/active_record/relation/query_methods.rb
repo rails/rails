@@ -5,7 +5,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
-    # In this case, #where must be chained with either #not, #like, or #not_like to return a new relation.
+    # In this case, #where must be chained with #not to return a new relation.
     class WhereChain
       def initialize(scope)
         @scope = scope
@@ -34,7 +34,6 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
-      #
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
@@ -353,7 +352,7 @@ module ActiveRecord
       spawn.unscope!(*args)
     end
 
-    def unscope!(*args)
+    def unscope!(*args) # :nodoc:
       args.flatten!
 
       args.each do |scope|
@@ -614,7 +613,7 @@ module ActiveRecord
     #
     # The returned <tt>ActiveRecord::NullRelation</tt> inherits from Relation and implements the
     # Null Object pattern. It is an object with defined null behavior and always returns an empty
-    # array of records without quering the database.
+    # array of records without querying the database.
     #
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
@@ -710,20 +709,22 @@ module ActiveRecord
     #   User.select(:name)
     #   # => Might return two records with the same name
     #
-    #   User.select(:name).uniq
-    #   # => Returns 1 record per unique name
+    #   User.select(:name).distinct
+    #   # => Returns 1 record per distinct name
     #
-    #   User.select(:name).uniq.uniq(false)
+    #   User.select(:name).distinct.distinct(false)
     #   # => You can also remove the uniqueness
-    def uniq(value = true)
-      spawn.uniq!(value)
+    def distinct(value = true)
+      spawn.distinct!(value)
     end
+    alias uniq distinct
 
-    # Like #uniq, but modifies relation in place.
-    def uniq!(value = true) # :nodoc:
-      self.uniq_value = value
+    # Like #distinct, but modifies relation in place.
+    def distinct!(value = true) # :nodoc:
+      self.distinct_value = value
       self
     end
+    alias uniq! distinct!
 
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.
@@ -814,7 +815,7 @@ module ActiveRecord
 
       build_select(arel, select_values.uniq)
 
-      arel.distinct(uniq_value)
+      arel.distinct(distinct_value)
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
@@ -932,9 +933,7 @@ module ActiveRecord
       association_joins         = buckets[:association_join] || []
       stashed_association_joins = buckets[:stashed_join] || []
       join_nodes                = (buckets[:join_node] || []).uniq
-      string_joins              = (buckets[:string_join] || []).map { |x|
-        x.strip
-      }.uniq
+      string_joins              = (buckets[:string_join] || []).map { |x| x.strip }.uniq
 
       join_list = join_nodes + custom_join_ast(manager, string_joins)
 

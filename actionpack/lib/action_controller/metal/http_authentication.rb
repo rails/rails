@@ -29,7 +29,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate
@@ -299,6 +299,7 @@ module ActionController
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
+        return false if value.nil?
         t = ::Base64.decode64(value).split(":").first.to_i
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
@@ -344,7 +345,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate

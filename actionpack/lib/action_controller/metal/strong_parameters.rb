@@ -2,6 +2,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
+require 'stringio'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -67,6 +68,8 @@ module ActionController
   #   write a message on the logger or <tt>:raise</tt> to raise
   #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
   #   in test and development environments, +false+ otherwise.
+  #
+  # Examples:
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => false
@@ -339,7 +342,8 @@ module ActionController
         if unpermitted_keys.any?
           case self.class.action_on_unpermitted_parameters
           when :log
-            ActionController::Base.logger.debug "Unpermitted parameters: #{unpermitted_keys.join(", ")}"
+            name = "unpermitted_parameters.action_controller"
+            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
           end
@@ -417,7 +421,7 @@ module ActionController
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
           else
-            # Declaration { user: :name } or { user: [:name, :age, { adress: ... }] }.
+            # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               if element.is_a?(Hash)
                 element = self.class.new(element) unless element.respond_to?(:permit)

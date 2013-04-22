@@ -29,14 +29,6 @@ module RenderTestCases
     assert_equal "Hello world!", @view.render(:file => "test/hello_world")
   end
 
-  def test_render_file_not_using_full_path
-    assert_equal "Hello world!", @view.render(:file => "test/hello_world")
-  end
-
-  def test_render_file_without_specific_extension
-    assert_equal "Hello world!", @view.render(:file => "test/hello_world")
-  end
-
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
   def test_render_file_with_format
     assert_match "<h1>No Comment</h1>", @view.render(:file => "comments/empty", :formats => [:html])
@@ -61,7 +53,7 @@ module RenderTestCases
 
   def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
     @view.lookup_context.formats = [:html]
-    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priorty")
+    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priority")
   end
 
   def test_render_template_with_a_missing_partial_of_another_format

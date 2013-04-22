@@ -96,6 +96,14 @@ class ActionPackAssertionsController < ActionController::Base
     raise "post" if request.post?
     render :text => "request method: #{request.env['REQUEST_METHOD']}"
   end
+
+  def render_file_absolute_path
+    render :file => File.expand_path('../../../README.rdoc', __FILE__)
+  end
+
+  def render_file_relative_path
+    render :file => 'README.rdoc'
+  end
 end
 
 # Used to test that assert_response includes the exception message
@@ -140,6 +148,16 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_tag_and_url_for
     get :render_url
     assert_tag :content => "/action_pack_assertions/flash_me"
+  end
+
+  def test_render_file_absolute_path
+    get :render_file_absolute_path
+    assert_match(/\A= Action Pack/, @response.body)
+  end
+
+  def test_render_file_relative_path
+    get :render_file_relative_path
+    assert_match(/\A= Action Pack/, @response.body)
   end
 
   def test_get_request
@@ -439,6 +457,23 @@ class AssertTemplateTest < ActionController::TestCase
   def test_with_partial
     get :partial
     assert_template :partial => '_partial'
+  end
+
+  def test_file_with_absolute_path_success
+    get :render_file_absolute_path
+    assert_template :file => File.expand_path('../../../README.rdoc', __FILE__)
+  end
+
+  def test_file_with_relative_path_success
+    get :render_file_relative_path
+    assert_template :file => 'README.rdoc'
+  end
+
+  def test_with_file_failure
+    get :render_file_absolute_path
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :file => 'test/hello_world'
+    end
   end
 
   def test_with_nil_passes_when_no_template_rendered

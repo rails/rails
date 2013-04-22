@@ -96,25 +96,24 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_order_by_grouped_field
-    c = Account.all.merge!(:group => :firm_id, :order => "firm_id").sum(:credit_limit)
+    c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
   end
 
   def test_should_order_by_calculation
-    c = Account.all.merge!(:group => :firm_id, :order => "sum_credit_limit desc, firm_id").sum(:credit_limit)
+    c = Account.group(:firm_id).order("sum_credit_limit desc, firm_id").sum(:credit_limit)
     assert_equal [105, 60, 53, 50, 50], c.keys.collect { |k| c[k] }
     assert_equal [6, 2, 9, 1], c.keys.compact
   end
 
   def test_should_limit_calculation
-    c = Account.all.merge!(:where => "firm_id IS NOT NULL",
-                       :group => :firm_id, :order => "firm_id", :limit => 2).sum(:credit_limit)
+    c = Account.where("firm_id IS NOT NULL").group(:firm_id).order("firm_id").limit(2).sum(:credit_limit)
     assert_equal [1, 2], c.keys.compact
   end
 
   def test_should_limit_calculation_with_offset
-    c = Account.all.merge!(:where => "firm_id IS NOT NULL", :group => :firm_id,
-                       :order => "firm_id", :limit => 2, :offset => 1).sum(:credit_limit)
+    c = Account.where("firm_id IS NOT NULL").group(:firm_id).order("firm_id").
+     limit(2).offset(1).sum(:credit_limit)
     assert_equal [2, 6], c.keys.compact
   end
 
@@ -164,8 +163,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_having_condition
-    c = Account.all.merge!(:group => :firm_id,
-                       :having => 'sum(credit_limit) > 50').sum(:credit_limit)
+    c = Account.group(:firm_id).having('sum(credit_limit) > 50').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
@@ -200,17 +198,15 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_with_conditions
-    c = Account.all.merge!(:where => 'firm_id > 1',
-                       :group => :firm_id).sum(:credit_limit)
+    c = Account.where('firm_id > 1').group(:firm_id).sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
   end
 
   def test_should_group_by_summed_field_with_conditions_and_having
-    c = Account.all.merge!(:where => 'firm_id > 1',
-                       :group => :firm_id,
-                       :having => 'sum(credit_limit) > 60').sum(:credit_limit)
+    c = Account.where('firm_id > 1').group(:firm_id).
+     having('sum(credit_limit) > 60').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_nil        c[2]
@@ -305,8 +301,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_selected_field_with_include
-    assert_equal 6, Account.includes(:firm).count(:distinct => true)
-    assert_equal 4, Account.includes(:firm).select(:credit_limit).count(:distinct => true)
+    assert_equal 6, Account.includes(:firm).distinct.count
+    assert_equal 4, Account.includes(:firm).distinct.select(:credit_limit).count
   end
 
   def test_should_not_perform_joined_include_by_default
@@ -322,7 +318,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_scoped_select
     Account.update_all("credit_limit = NULL")
-    assert_equal 0, Account.all.merge!(:select => "credit_limit").count
+    assert_equal 0, Account.select("credit_limit").count
   end
 
   def test_should_count_scoped_select_with_options
@@ -330,18 +326,29 @@ class CalculationsTest < ActiveRecord::TestCase
     Account.last.update_columns('credit_limit' => 49)
     Account.first.update_columns('credit_limit' => 51)
 
-    assert_equal 1, Account.all.merge!(:select => "credit_limit").where('credit_limit >= 50').count
+    assert_equal 1, Account.select("credit_limit").where('credit_limit >= 50').count
   end
 
   def test_should_count_manual_select_with_include
-    assert_equal 6, Account.all.merge!(:select => "DISTINCT accounts.id", :includes => :firm).count
+    assert_equal 6, Account.select("DISTINCT accounts.id").includes(:firm).count
   end
 
   def test_count_with_column_parameter
     assert_equal 5, Account.count(:firm_id)
   end
 
-  def test_count_with_uniq
+  def test_count_distinct_option_is_deprecated
+    assert_deprecated do
+      assert_equal 4, Account.select(:credit_limit).count(distinct: true)
+    end
+
+    assert_deprecated do
+      assert_equal 6, Account.select(:credit_limit).count(distinct: false)
+    end
+  end
+
+  def test_count_with_distinct
+    assert_equal 4, Account.select(:credit_limit).distinct.count
     assert_equal 4, Account.select(:credit_limit).uniq.count
   end
 
@@ -351,11 +358,11 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_field_in_joined_table
     assert_equal 5, Account.joins(:firm).count('companies.id')
-    assert_equal 4, Account.joins(:firm).count('companies.id', :distinct => true)
+    assert_equal 4, Account.joins(:firm).distinct.count('companies.id')
   end
 
   def test_should_count_field_in_joined_table_with_group_by
-    c = Account.all.merge!(:group => 'accounts.firm_id', :joins => :firm).count('companies.id')
+    c = Account.group('accounts.firm_id').joins(:firm).count('companies.id')
 
     [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
   end
@@ -455,7 +462,7 @@ class CalculationsTest < ActiveRecord::TestCase
     approved_topics_count = Topic.group(:approved).count(:author_name)[true]
     assert_equal approved_topics_count, 3
     # Count the number of distinct authors for approved Topics
-    distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
+    distinct_authors_for_approved_count = Topic.group(:approved).distinct.count(:author_name)[true]
     assert_equal distinct_authors_for_approved_count, 2
   end
 

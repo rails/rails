@@ -50,14 +50,10 @@ class XmlSerializationTest < ActiveModel::TestCase
     customer.name = "John"
     @contact.preferences = customer
     @contact.address = Address.new
-    @contact.address.street = "123 Lane"
     @contact.address.city = "Springfield"
-    @contact.address.state = "CA"
-    @contact.address.zip = 11111
     @contact.address.apt_number = 35
     @contact.friends = [Contact.new, Contact.new]
     @related_contact = SerializableContact.new
-    @related_contact.name = "related"
     @contact.contact = @related_contact
   end
 
