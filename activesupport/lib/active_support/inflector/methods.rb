@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'active_support/inflector/inflections'
+require 'active_support/inflector/memoization'
 require 'active_support/inflections'
 require 'threadsafe-lru'
 
@@ -17,31 +18,6 @@ module ActiveSupport
   # than English, please correct or add them yourself (explained below).
   module Inflector
     extend self
-
-    # -- THIS IS A QUICK HACK TO EVALUATE IF THIS IS WORTHWHILE. --------------
-
-    LRU_CACHE_SIZE = 200
-    LRU_CACHES = []
-
-    def self.clear_lru_caches
-      LRU_CACHES.each(&:clear)
-    end
-
-    def self.memoize(method_name)
-      cache = ThreadSafeLru::LruCache.new(LRU_CACHE_SIZE)
-      LRU_CACHES << cache
-
-      alias_method "#{method_name}_without_cache", method_name
-
-      # Note that so far no method in the inflector gets a block.
-      define_method(method_name) do |*args|
-        cache.get(args) do
-          send("#{method_name}_without_cache", *args)
-        end
-      end
-    end
-
-    # -------------------------------------------------------------------------
 
     # Returns the plural form of the word in the string.
     #
@@ -280,7 +256,6 @@ module ActiveSupport
         end
       end
     end
-    memoize :constantize
 
     # Tries to find a constant with the name specified in the argument string.
     #
@@ -312,7 +287,6 @@ module ActiveSupport
     rescue ArgumentError => e
       raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
     end
-    memoize :safe_constantize
 
     # Returns the suffix that should be added to a number to denote the position
     # in an ordered sequence such as 1st, 2nd, 3rd, 4th.

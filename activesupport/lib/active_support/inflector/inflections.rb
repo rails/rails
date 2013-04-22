@@ -1,4 +1,5 @@
 require 'thread_safe'
+require 'active_support/inflector/memoization'
 require 'active_support/core_ext/array/prepend_and_append'
 require 'active_support/i18n'
 
@@ -94,6 +95,7 @@ module ActiveSupport
       #   underscore 'McDonald' #=> 'mcdonald'
       #   camelize 'mcdonald'   #=> 'McDonald'
       def acronym(word)
+        Inflector.clear_lru_caches
         @acronyms[word.downcase] = word
         @acronym_regex = /#{@acronyms.values.join("|")}/
       end
@@ -103,6 +105,7 @@ module ActiveSupport
       # always be a string that may include references to the matched data from
       # the rule.
       def plural(rule, replacement)
+        Inflector.clear_lru_caches
         @uncountables.delete(rule) if rule.is_a?(String)
         @uncountables.delete(replacement)
         @plurals.prepend([rule, replacement])
@@ -113,6 +116,7 @@ module ActiveSupport
       # always be a string that may include references to the matched data from
       # the rule.
       def singular(rule, replacement)
+        Inflector.clear_lru_caches
         @uncountables.delete(rule) if rule.is_a?(String)
         @uncountables.delete(replacement)
         @singulars.prepend([rule, replacement])
@@ -126,6 +130,8 @@ module ActiveSupport
       #   irregular 'octopus', 'octopi'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
+        Inflector.clear_lru_caches
+
         @uncountables.delete(singular)
         @uncountables.delete(plural)
 
@@ -160,6 +166,7 @@ module ActiveSupport
       #   uncountable 'money', 'information'
       #   uncountable %w( money information rice )
       def uncountable(*words)
+        Inflector.clear_lru_caches
         (@uncountables << words).flatten!
       end
 
@@ -172,6 +179,7 @@ module ActiveSupport
       #   human /_cnt$/i, '\1_count'
       #   human 'legacy_col_person_name', 'Name'
       def human(rule, replacement)
+        Inflector.clear_lru_caches
         @humans.prepend([rule, replacement])
       end
 
@@ -183,6 +191,7 @@ module ActiveSupport
       #   clear :all
       #   clear :plurals
       def clear(scope = :all)
+        Inflector.clear_lru_caches
         case scope
           when :all
             @plurals, @singulars, @uncountables, @humans = [], [], [], []
