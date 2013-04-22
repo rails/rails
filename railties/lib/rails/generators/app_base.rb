@@ -117,7 +117,7 @@ module Rails
       def database_gemfile_entry
         options[:skip_active_record] ? "" :
           <<-GEMFILE.strip_heredoc.chomp
-            # Use #{options[:database]} as the database for ActiveRecord
+            # Use #{options[:database]} as the database for Active Record
             gem '#{gem_for_database}'
           GEMFILE
       end
