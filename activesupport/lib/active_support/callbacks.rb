@@ -61,6 +61,8 @@ module ActiveSupport
       extend ActiveSupport::DescendantsTracker
     end
 
+    CALLBACK_FILTER_TYPES = [:before, :after, :around]
+
     # Runs the callbacks for the given event.
     #
     # Calls the before and around callbacks in the order they were set, yields
@@ -396,7 +398,7 @@ module ActiveSupport
       # This is used internally to append, prepend and skip callbacks to the
       # CallbackChain.
       def __update_callbacks(name, filters = [], block = nil) #:nodoc:
-        type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
+        type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 
