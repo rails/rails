@@ -133,8 +133,6 @@ module ActiveSupport
       end
 
       def matches?(_kind, _filter)
-        _filter_matches = false
-
         if @_is_object_filter
           _filter_matches = @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
         else
