@@ -755,6 +755,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal topic.replies.to_a.size, topic.replies_count
   end
 
+  def test_pushing_association_updates_counter_cache
+    topic = Topic.order("id ASC").first
+    reply = Reply.create!
+
+    assert_difference "topic.reload.replies_count", 1 do
+      topic.replies << reply
+    end
+  end
+
   def test_deleting_updates_counter_cache_without_dependent_option
     post = posts(:welcome)
 
