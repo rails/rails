@@ -10,6 +10,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         raise AbstractController::ActionNotFound
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed
+      when "/unknown_http_method"
+        raise ActionController::UnknownHttpMethod
       when "/not_found_original_exception"
         raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
       else
@@ -39,6 +41,10 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "404 error fixture\n", body
 
     get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 405
+    assert_equal "", body
+
+    get "/unknown_http_method", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_equal "", body
   end
