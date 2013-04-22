@@ -1,3 +1,5 @@
+require 'active_support/per_thread_registry'
+
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
@@ -68,8 +70,24 @@ module ActiveSupport
 
     private
 
-    def event_stack
-      Thread.current[@queue_key] ||= []
+      def event_stack
+        SubscriberQueueRegistry.get_queue(@queue_key)
+      end
+  end
+
+  # This is a registry for all the event stacks kept for subscribers.
+  #
+  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # for further details.
+  class SubscriberQueueRegistry # :nodoc:
+    extend PerThreadRegistry
+
+    def initialize
+      @registry = {}
+    end
+
+    def get_queue(queue_key)
+      @registry[queue_key] ||= []
     end
   end
 end
