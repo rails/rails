@@ -272,7 +272,7 @@ class SanitizerTest < ActionController::TestCase
   end
 
   def test_should_sanitize_neverending_attribute
-    assert_sanitized "<span class=\"\\", "<span class=\"\\\">"
+    assert_sanitized "<span class=\"", "<span class=\"\">"
   end
 
   def test_x03a
