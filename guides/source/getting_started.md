@@ -252,6 +252,34 @@ Now that you've seen how to create a controller, an action and a view, let's cre
 
 In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
+Rails provides a `resources` method which can be used to declare a
+standard REST resource. Here's how `config/routes.rb` will look like.
+
+```ruby
+Blog::Application.routes.draw do
+
+  resources :posts
+
+  root to: "welcome#index"
+end
+```
+
+If you run `rake routes`, you'll see that all the routes for the 
+standard RESTful actions.
+
+```bash
+$ rake routes
+    posts GET    /posts(.:format)          posts#index
+          POST   /posts(.:format)          posts#create
+ new_post GET    /posts/new(.:format)      posts#new
+edit_post GET    /posts/:id/edit(.:format) posts#edit
+     post GET    /posts/:id(.:format)      posts#show
+          PATCH  /posts/:id(.:format)      posts#update
+          PUT    /posts/:id(.:format)      posts#update
+          DELETE /posts/:id(.:format)      posts#destroy
+     root        /                         welcome#index
+```
+
 In the next section, you will add the ability to create new posts in your application and be able to view them. This is the "C" and the "R" from CRUD: creation and reading. The form for doing this will look like this:
 
 ![The new post form](images/getting_started/new_post.png)
@@ -260,21 +288,7 @@ It will look a little basic for now, but that's ok. We'll look at improving the 
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. If you attempt to navigate to that now — by visiting <http://localhost:3000/posts/new> — Rails will give you a routing error:
-
-![A routing error, no route matches /posts/new](images/getting_started/routing_error_no_route_matches.png)
-
-This is because there is nowhere inside the routes for the application — defined inside `config/routes.rb` — that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
-
- To do this, you're going to need to create a route inside `config/routes.rb` file, on a new line between the `do` and the `end` for the `draw` method:
-
-```ruby
-get "posts/new"
-```
-
-This route is a super-simple route: it defines a new route that only responds to `GET` requests, and that the route is at `posts/new`. But how does it know where to go without the use of the `:to` option? Well, Rails uses a sensible default here: Rails will assume that you want this route to go to the new action inside the posts controller.
-
-With the route defined, requests can now be made to `/posts/new` in the application. Navigate to <http://localhost:3000/posts/new> and you'll see another routing error:
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`.  With the route already defined, requests can now be made to `/posts/new` in the application. Navigate to <http://localhost:3000/posts/new> and you'll see a routing error:
 
 ![Another routing error, uninitialized constant PostsController](images/getting_started/routing_error_no_controller.png)
 
@@ -1153,62 +1167,11 @@ generated the application. Without this file, the confirmation dialog box wouldn
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
 Congratulations, you can now create, show, list, update and destroy
-posts. In the next section will see how Rails can aid us when creating
-REST applications, and how we can refactor our Blog app to take
-advantage of it.
-
-### Going Deeper into REST
-
-We've now covered all the CRUD actions of a REST app. We did so by
-declaring separate routes with the appropriate verbs into
-`config/routes.rb`. Here's how that file looks so far:
-
-```ruby
-get "posts" => "posts#index"
-get "posts/new"
-post "posts" => "posts#create"
-get "posts/:id" => "posts#show", as: :post
-get "posts/:id/edit" => "posts#edit"
-patch "posts/:id" => "posts#update"
-delete "posts/:id" => "posts#destroy"
-```
-
-That's a lot to type for covering a single **resource**. Fortunately,
-Rails provides a `resources` method which can be used to declare a
-standard REST resource. Here's how `config/routes.rb` looks after the
-cleanup:
-
-```ruby
-Blog::Application.routes.draw do
-
-  resources :posts
-
-  root to: "welcome#index"
-end
-```
-
-If you run `rake routes`, you'll see that all the routes that we
-declared before are still available:
-
-```bash
-$ rake routes
-    posts GET    /posts(.:format)          posts#index
-          POST   /posts(.:format)          posts#create
- new_post GET    /posts/new(.:format)      posts#new
-edit_post GET    /posts/:id/edit(.:format) posts#edit
-     post GET    /posts/:id(.:format)      posts#show
-          PATCH  /posts/:id(.:format)      posts#update
-          PUT    /posts/:id(.:format)      posts#update
-          DELETE /posts/:id(.:format)      posts#destroy
-     root        /                         welcome#index
-```
-
-Also, if you go through the motions of creating, updating and deleting
-posts the app still works as before.
+posts. 
 
 TIP: In general, Rails encourages the use of resources objects in place
-of declaring routes manually. It was only done in this guide as a learning
-exercise. For more information about routing, see
+of declaring routes manually.
+For more information about routing, see
 [Rails Routing from the Outside In](routing.html).
 
 Adding a Second Model
