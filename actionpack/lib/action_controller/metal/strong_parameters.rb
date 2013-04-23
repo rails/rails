@@ -330,7 +330,7 @@ module ActionController
           object.map { |el| yield el }.compact
         elsif object.is_a?(Hash) && object.keys.all? { |k| k =~ /\A-?\d+\z/ }
           hash = object.class.new
-          object.each { |k,v| hash[k] = yield v }
+          object.each { |k,v| hash[k] = yield(v, k) }
           hash
         else
           yield object
@@ -403,9 +403,9 @@ module ActionController
         end
       end
 
-      def array_of_permitted_scalars_filter(params, key)
-        if has_key?(key) && array_of_permitted_scalars?(self[key])
-          params[key] = self[key]
+      def array_of_permitted_scalars_filter(params, key, hash = self)
+        if hash.has_key?(key) && array_of_permitted_scalars?(hash[key])
+          params[key] = hash[key]
         end
       end
 
@@ -422,10 +422,12 @@ module ActionController
             array_of_permitted_scalars_filter(params, key)
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
-            params[key] = each_element(value) do |element|
+            params[key] = each_element(value) do |element, index|
               if element.is_a?(Hash)
                 element = self.class.new(element) unless element.respond_to?(:permit)
                 element.permit(*Array.wrap(filter[key]))
+              elsif filter[key].is_a?(Hash) && filter[key][index] == []
+                array_of_permitted_scalars_filter(params, index, value)
               end
             end
           end
