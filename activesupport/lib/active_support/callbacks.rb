@@ -340,10 +340,7 @@ module ActiveSupport
       end
 
       def compile
-        method = []
-        method << "value = nil"
-        method << "halted = false"
-
+        method =  ["value = nil", "halted = false"]
         callbacks = "value = !halted && (!block_given? || yield)"
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
