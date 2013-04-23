@@ -450,7 +450,7 @@ The default matcher for compiling files includes `application.js`, `application.
 
 NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are **not** automatically included as they compile to JS/CSS.
 
-If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array:
+If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array in `config/application.rb`:
 
 ```ruby
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
@@ -459,7 +459,7 @@ config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 Or you can opt to precompile all assets with something like this:
 
 ```ruby
-# config/environments/production.rb
+# config/application.rb
 config.assets.precompile << Proc.new do |path|
   if path =~ /\.(css|js)\z/
     full_path = Rails.application.assets.resolve(path).to_path
