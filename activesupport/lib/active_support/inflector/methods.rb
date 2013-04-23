@@ -3,7 +3,6 @@
 require 'active_support/inflector/inflections'
 require 'active_support/inflector/memoization'
 require 'active_support/inflections'
-require 'threadsafe-lru'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
