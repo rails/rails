@@ -596,9 +596,9 @@ module ActionMailer
     # class method:
     #
     #  class Notifier < ActionMailer::Base
-    #    self.default from: 'no-reply@test.lindsaar.net',
-    #                 bcc: 'email_logger@test.lindsaar.net',
-    #                 reply_to: 'bounces@test.lindsaar.net'
+    #    default from: 'no-reply@test.lindsaar.net',
+    #            bcc: 'email_logger@test.lindsaar.net',
+    #            reply_to: 'bounces@test.lindsaar.net'
     #  end
     #
     # If you need other headers not listed above, you can either pass them in
