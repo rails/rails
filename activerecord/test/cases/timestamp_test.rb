@@ -176,6 +176,29 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal time, owner.updated_at
   end
 
+  def test_touching_a_record_touches_polymorphic_record
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, :touch => true
+    end
+
+    wheel_klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Wheel'; end
+      belongs_to :wheelable, :polymorphic => true, :touch => true
+    end
+
+    toy = klass.first
+    time = 3.days.ago
+    toy.update_columns(updated_at: time)
+
+    wheel = wheel_klass.new
+    wheel.wheelable = toy
+    wheel.save
+    wheel.touch
+
+    assert_not_equal time, toy.updated_at
+  end
+
   def test_changing_parent_of_a_record_touches_both_new_and_old_parent_record
     klass = Class.new(ActiveRecord::Base) do
       def self.name; 'Toy'; end
@@ -200,6 +223,39 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal time, new_pet.updated_at
     assert_not_equal time, old_pet.updated_at
+  end
+
+  def test_changing_parent_of_a_record_touches_both_new_and_old_polymorphic_parent_record
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Toy'; end
+      belongs_to :pet, touch: true
+    end
+
+    wheel_klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Wheel'; end
+      belongs_to :wheelable, :polymorphic => true, :touch => true
+    end
+
+    toy1 = klass.find(1)
+    toy2 = klass.find(2)
+
+    wheel = wheel_klass.new
+    wheel.wheelable = toy1
+    wheel.save!
+
+    time = 3.days.ago.at_beginning_of_hour
+
+    toy1.update_columns(updated_at: time)
+    toy2.update_columns(updated_at: time)
+
+    wheel.wheelable = toy2
+    wheel.save!
+
+    toy1.reload
+    toy2.reload
+
+    assert_not_equal time, toy1.updated_at
+    assert_not_equal time, toy2.updated_at
   end
 
   def test_clearing_association_touches_the_old_record
