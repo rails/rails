@@ -391,14 +391,10 @@ like this is called "create", and so the form should be pointed to that action.
 Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this:
 
 ```html+erb
-<%= form_for :post, url: { action: :create } do |f| %>
+<%= form_for :post, url: posts_path do |f| %>
 ```
 
-In this example, a `Hash` object is passed to the `:url` option. What Rails will do with this is that it will point the form to the `create` action of the current controller, the `PostsController`, and will send a `POST` request to that route. For this to work, you will need to add a route to `config/routes.rb`, right underneath the one for "posts/new":
-
-```ruby
-post "posts" => "posts#create"
-```
+In this example, the `posts_path` helper is passed to the `:url` option. What Rails will do with this is that it will point the form to the `create` action of the current controller, the `PostsController`, and will send a `POST` request to that route.
 
 By using the `post` method rather than the `get` method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
 
@@ -538,7 +534,7 @@ def create
   @post = Post.new(params[:post])
 
   @post.save
-  redirect_to action: :show, id: @post.id
+  redirect_to post 
 end
 ```
 
@@ -557,16 +553,14 @@ whether the model was saved or not.
 
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
-`show` action before proceeding. Open `config/routes.rb` and add the following route:
+`show` action before proceeding. 
 
 ```ruby
-get "posts/:id" => "posts#show"
+post GET    /posts/:id(.:format)      posts#show
 ```
 
 The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the post. Note that this
-time we had to specify the actual mapping, `posts#show` because
-otherwise Rails would not know which action to render.
+parameter, which in our case will be the id of the post. 
 
 As we did before, we need to add the `show` action in
 `app/controllers/posts_controller.rb` and its respective view.
@@ -615,7 +609,7 @@ look like this:
     @post = Post.new(params[:post].permit(:title, :text))
 
     @post.save
-    redirect_to action: :show, id: @post.id
+    redirect_to post
   end
 ```
 
@@ -627,11 +621,11 @@ Visit <http://localhost:3000/posts/new> and give it a try!
 
 ### Listing all posts
 
-We still need a way to list all our posts, so let's do that. As usual,
-we'll need a route placed into `config/routes.rb`:
+We still need a way to list all our posts, so let's do that. 
+We'll use a specific route from `config/routes.rb`:
 
 ```ruby
-get "posts" => "posts#index"
+posts GET    /posts(.:format)          posts#index
 ```
 
 And an action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
@@ -683,7 +677,7 @@ for posts.
 Let's add links to the other views as well, starting with adding this "New Post" link to `app/views/posts/index.html.erb`, placing it above the `<table>` tag:
 
 ```erb
-<%= link_to 'New post', action: :new %>
+<%= link_to 'New post', new_post_path %>
 ```
 
 This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template — `app/views/posts/new.html.erb` — to go back to the `index` action. Do this by adding this underneath the form in this template:
@@ -693,7 +687,7 @@ This link will allow you to bring up the form that lets you create a new post. Y
   ...
 <% end %>
 
-<%= link_to 'Back', action: :index %>
+<%= link_to 'Back', posts_path %>
 ```
 
 Finally, add another link to the `app/views/posts/show.html.erb` template to go back to the `index` action as well, so that people who are viewing a single post can go back and view the whole list again:
@@ -709,7 +703,7 @@ Finally, add another link to the `app/views/posts/show.html.erb` template to go 
   <%= @post.text %>
 </p>
 
-<%= link_to 'Back', action: :index %>
+<%= link_to 'Back', posts_path %>
 ```
 
 TIP: If you want to link to an action in the same controller, you don't
@@ -769,7 +763,7 @@ def create
   @post = Post.new(params[:post].permit(:title, :text))
 
   if @post.save
-    redirect_to action: :show, id: @post.id
+    redirect_to post 
   else
     render 'new'
   end
@@ -790,7 +784,7 @@ something went wrong. To do that, you'll modify
 `app/views/posts/new.html.erb` to check for error messages:
 
 ```html+erb
-<%= form_for :post, url: { action: :create } do |f| %>
+<%= form_for :post, url: posts_path do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -817,7 +811,7 @@ something went wrong. To do that, you'll modify
   </p>
 <% end %>
 
-<%= link_to 'Back', action: :index %>
+<%= link_to 'Back', posts_path %>
 ```
 
 A few things are going on. We check if there are any errors with
@@ -846,14 +840,6 @@ We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating p
 
 The first step we'll take is adding an `edit` action to `posts_controller`.
 
-Start by adding a route to `config/routes.rb`:
-
-```ruby
-get "posts/:id/edit" => "posts#edit"
-```
-
-And then add the controller action:
-
 ```ruby
 def edit
   @post = Post.find(params[:id])
@@ -867,7 +853,7 @@ it look as follows:
 ```html+erb
 <h1>Editing post</h1>
 
-<%= form_for :post, url: { action: :update, id: @post.id },
+<%= form_for :post, url: post_path(@post.id) },
 method: :patch do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
@@ -895,7 +881,7 @@ method: :patch do |f| %>
   </p>
 <% end %>
 
-<%= link_to 'Back', action: :index %>
+<%= link_to 'Back', posts_path %>
 ```
 
 This time we point the form to the `update` action, which is not defined yet
@@ -907,21 +893,14 @@ via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 
 TIP: By default forms built with the _form_for_ helper are sent via `POST`.
 
-Next, we need to add the `update` action. The file
-`config/routes.rb` will need just one more line:
-
-```ruby
-patch "posts/:id" => "posts#update"
-```
-
-And then create the `update` action in `app/controllers/posts_controller.rb`:
+Next we need to create the `update` action in `app/controllers/posts_controller.rb`:
 
 ```ruby
 def update
   @post = Post.find(params[:id])
 
   if @post.update(params[:post].permit(:title, :text))
-    redirect_to action: :show, id: @post.id
+    redirect_to post
   else
     render 'edit'
   end
@@ -955,8 +934,8 @@ appear next to the "Show" link:
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', action: :show, id: post.id %></td>
-    <td><%= link_to 'Edit', action: :edit, id: post.id %></td>
+    <td><%= link_to 'Show', post_path %></td>
+    <td><%= link_to 'Edit', edit_post_path(post) %></td>
   </tr>
 <% end %>
 </table>
@@ -969,8 +948,8 @@ the template:
 ```html+erb
 ...
 
-<%= link_to 'Back', action: :index %>
-| <%= link_to 'Edit', action: :edit, id: @post.id %>
+<%= link_to 'Back', posts_path %>
+| <%= link_to 'Edit', edit_post_path(@post) %>
 ```
 
 And here's how our app looks so far:
@@ -1030,7 +1009,7 @@ completely:
 
 <%= render 'form' %>
 
-<%= link_to 'Back', action: :index %>
+<%= link_to 'Back', posts_path %>
 ```
 
 Then do the same for the `app/views/posts/edit.html.erb` view:
@@ -1040,66 +1019,17 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 
 <%= render 'form' %>
 
-<%= link_to 'Back', action: :index %>
+<%= link_to 'Back', posts_path %>
 ```
-
-Point your browser to <http://localhost:3000/posts/new> and
-try creating a new post. Everything still works. Now try editing the
-post and you'll receive the following error:
-
-![Undefined method post_path](images/getting_started/undefined_method_post_path.png)
-
-To understand this error, you need to understand how `form_for` works.
-When you pass an object to `form_for` and you don't specify a `:url`
-option, Rails will try to guess the `action` and `method` options by
-checking if the passed object is a new record or not. Rails follows the
-REST convention, so to create a new `Post` object it will look for a
-route named `posts_path`, and to update a `Post` object it will look for
-a route named `post_path` and pass the current object. Similarly, rails
-knows that it should create new objects via POST and update them via
-PATCH.
-
-If you run `rake routes` from the console you'll see that we already
-have a `posts_path` route, which was created automatically by Rails when we
-defined the route for the index action.
-However, we don't have a `post_path` yet, which is the reason why we
-received an error before. With your server running you can view your routes by visiting [localhost:3000/rails/info/routes](http://localhost:3000/rails/info/routes), or you can generate them from the command line by running `rake routes`:
-
-```bash
-$ rake routes
-
-    posts GET   /posts(.:format)            posts#index
-posts_new GET   /posts/new(.:format)        posts#new
-          POST  /posts(.:format)            posts#create
-          GET   /posts/:id(.:format)        posts#show
-          GET   /posts/:id/edit(.:format)   posts#edit
-          PATCH /posts/:id(.:format)        posts#update
-     root       /                           welcome#index
-```
-
-To fix this, open `config/routes.rb` and modify the `get "posts/:id"`
-line like this:
-
-```ruby
-get "posts/:id" => "posts#show", as: :post
-```
-
-The `:as` option tells the `get` method that we want to make routing helpers
-called `post_url` and `post_path` available to our application. These are
-precisely the methods that the `form_for` needs when editing a post, and so now
-you'll be able to update posts again.
-
-NOTE: The `:as` option is available on the `post`, `patch`, `put`, `delete` and `match`
-routing methods also.
 
 ### Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
-database. Following the REST convention, we're going to add a route for
-deleting posts to `config/routes.rb`:
+database. Following the REST convention, the route for
+deleting posts in the `config/routes.rb` is:
 
 ```ruby
-delete "posts/:id" => "posts#destroy"
+DELETE /posts/:id(.:format)      posts#destroy
 ```
 
 The `delete` routing method should be used for routes that destroy
@@ -1119,7 +1049,7 @@ def destroy
   @post = Post.find(params[:id])
   @post.destroy
 
-  redirect_to action: :index
+  redirect_to posts_path
 end
 ```
 
@@ -1146,18 +1076,17 @@ together.
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', action: :show, id: post.id %></td>
-    <td><%= link_to 'Edit', action: :edit, id: post.id %></td>
-    <td><%= link_to 'Destroy', { action: :destroy, id: post.id },
+    <td><%= link_to 'Show', post_path %></td>
+    <td><%= link_to 'Edit', edit_post_path(post) %></td>
+    <td><%= link_to 'Destroy', post_path(post),
                     method: :delete, data: { confirm: 'Are you sure?' } %></td>
   </tr>
 <% end %>
 </table>
 ```
 
-Here we're using `link_to` in a different way. We wrap the
-`:action` and `:id` attributes in a hash so that we can pass those two keys in
-first as one argument, and then the final two keys as another argument. The `:method` and `:'data-confirm'`
+Here we're using `link_to` in a different way. We pass the named route as the first argument, 
+and then the final two keys as another argument. The `:method` and `:'data-confirm'`
 options are used as HTML5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the link with method `delete`.
 This is done via the JavaScript file `jquery_ujs` which is automatically included
