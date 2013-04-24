@@ -41,6 +41,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
       ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
       ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
+      ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
 
       if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
         if engine.paths['db/migrate'].existent

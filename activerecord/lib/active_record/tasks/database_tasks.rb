@@ -7,7 +7,8 @@ module ActiveRecord
       extend self
 
       attr_writer :current_config
-      attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir
+      attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir,
+                    :fixtures_path
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
