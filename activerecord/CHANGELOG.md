@@ -7,6 +7,8 @@
 
     *Dan Erikson & kennyj*
 
+*   Allow to use databases.rake tasks without having Rails.application *Piotr Sarnacki*
+
 *   Fix for a regression bug in which counter cache columns were not being updated
     when record was pushed into a has_many association. For example:
 
