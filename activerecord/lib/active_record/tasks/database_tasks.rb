@@ -175,7 +175,7 @@ module ActiveRecord
 
       def each_current_configuration(environment)
         environments = [environment]
-        environments << 'test' if environment.development?
+        environments << 'test' if environment == 'development'
 
         configurations = ActiveRecord::Base.configurations.values_at(*environments)
         configurations.compact.each do |configuration|
