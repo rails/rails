@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix a SystemStackError problem when using time zone aware or serialized attributes.
+    In current implementation, we re-use `column_types` argument when initiating an instance.
+    If an instance have serialized or timezone aware attributes,
+    column_types is wrapped multiple times in `decorate_columns` method. Thus the above error occurs.
+
+    *Dan Erikson & kennyj*
+
 *   Fix for a regression bug in which counter cache columns were not being updated
     when record was pushed into a has_many association. For example:
 
