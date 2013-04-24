@@ -9,29 +9,29 @@ module ActiveRecord
     # The tasks defined here are used in rake tasks provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
-    # config values are set by rails already, so it's necessary to do it only if you
-    # want to change the default or when you want to use Active Record outside of Rails
-    # (in such case after cofniguring database tasks, you can also use rake tasks defined in
-    # Active Record)
+    # config values are set by Rails already, so it's necessary to do it only if you
+    # want to change the defaults or when you want to use Active Record outside of Rails
+    # (in such case after configuring the database tasks, you can also use the rake tasks
+    # defined in Active Record).
     #
     #
-    # The possible config values are the following:
+    # The possible config values are:
     #
-    #   * env: current environment
-    #   * db_dir: your 'db' directory
-    #   * seed_loader: an object which will load seeds, it needs to respond to `load_seed` method
-    #   * database_configuration: configuration of your databases (as in config/database.yml)
-    #   * migrations_paths: a list of paths to directories with migrations
-    #   * fixtures_path: a path to fixtures directory
+    #   * +env+: current environment (like Rails.env).
+    #   * +database_configuration+: configuration of your databases (as in +config/database.yml+).
+    #   * +db_dir+: your +db+ directory.
+    #   * +fixtures_path+: a path to fixtures directory.
+    #   * +migrations_paths+: a list of paths to directories with migrations.
+    #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
     #
-    # Example usage of DatabaseTasks outside Rails could look as such:
+    # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
-    #     include ActiveRecord::Tasks
-    #     DatabaseTasks.database_configuration = YAML.load(File.read('my_database_config.yml'))
-    #     DatabaseTasks.db_dir = 'db'
-    #     # other settings...
+    #   include ActiveRecord::Tasks
+    #   DatabaseTasks.database_configuration = YAML.load(File.read('my_database_config.yml'))
+    #   DatabaseTasks.db_dir = 'db'
+    #   # other settings...
     #
-    #     DatabaseTasks.create_current('production')
+    #   DatabaseTasks.create_current('production')
     module DatabaseTasks
       extend self
 
