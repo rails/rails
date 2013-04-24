@@ -51,7 +51,7 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(record, column_types = {})
         klass = discriminate_class_for_record(record)
-        column_types = klass.decorate_columns(column_types)
+        column_types = klass.decorate_columns(column_types.dup)
         klass.allocate.init_with('attributes' => record, 'column_types' => column_types)
       end
 
