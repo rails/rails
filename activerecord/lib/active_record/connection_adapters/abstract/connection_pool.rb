@@ -253,14 +253,6 @@ module ActiveRecord
         @available = Queue.new self
       end
 
-      # Hack for tests to be able to add connections.  Do not call outside of tests
-      def insert_connection_for_test!(c) #:nodoc:
-        synchronize do
-          @connections << c
-          @available.add c
-        end
-      end
-
       # Retrieve the connection associated with the current thread, or call
       # #checkout to obtain one if necessary.
       #
