@@ -179,7 +179,6 @@ class TimestampTest < ActiveRecord::TestCase
   def test_touching_a_record_touches_polymorphic_record
     klass = Class.new(ActiveRecord::Base) do
       def self.name; 'Toy'; end
-      belongs_to :pet, :touch => true
     end
 
     wheel_klass = Class.new(ActiveRecord::Base) do
@@ -228,7 +227,6 @@ class TimestampTest < ActiveRecord::TestCase
   def test_changing_parent_of_a_record_touches_both_new_and_old_polymorphic_parent_record
     klass = Class.new(ActiveRecord::Base) do
       def self.name; 'Toy'; end
-      belongs_to :pet, touch: true
     end
 
     wheel_klass = Class.new(ActiveRecord::Base) do
