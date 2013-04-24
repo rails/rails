@@ -2,14 +2,8 @@ require 'active_record'
 
 db_namespace = namespace :db do
   task :load_config do
-    ActiveRecord::Base.configurations = Rails.application.config.database_configuration || {}
-    ActiveRecord::Migrator.migrations_paths = Rails.application.paths['db/migrate'].to_a
-
-    if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
-      if engine.paths['db/migrate'].existent
-        ActiveRecord::Migrator.migrations_paths += engine.paths['db/migrate'].to_a
-      end
-    end
+    ActiveRecord::Base.configurations = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
+    ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
   end
 
   namespace :create do
@@ -184,7 +178,7 @@ db_namespace = namespace :db do
   desc 'Load the seed data from db/seeds.rb'
   task :seed do
     db_namespace['abort_if_pending_migrations'].invoke
-    Rails.application.load_seed
+    ActiveRecord::Tasks::DatabaseTasks.load_seed
   end
 
   namespace :fixtures do
@@ -228,7 +222,7 @@ db_namespace = namespace :db do
     desc 'Create a db/schema.rb file that can be portably used against any DB supported by AR'
     task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
-      filename = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
+      filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
       File.open(filename, "w:utf-8") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
@@ -237,7 +231,7 @@ db_namespace = namespace :db do
 
     desc 'Load a schema.rb file into the database'
     task :load => [:environment, :load_config] do
-      file = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
+      file = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
       if File.exists?(file)
         load(file)
       else
@@ -253,7 +247,7 @@ db_namespace = namespace :db do
       desc 'Create a db/schema_cache.dump file.'
       task :dump => [:environment, :load_config] do
         con = ActiveRecord::Base.connection
-        filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
+        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
 
         con.schema_cache.clear!
         con.tables.each { |table| con.schema_cache.add(table) }
@@ -262,7 +256,7 @@ db_namespace = namespace :db do
 
       desc 'Clear a db/schema_cache.dump file.'
       task :clear => [:environment, :load_config] do
-        filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
+        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
         FileUtils.rm(filename) if File.exists?(filename)
       end
     end
@@ -272,7 +266,7 @@ db_namespace = namespace :db do
   namespace :structure do
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
-      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
+      filename = ENV['DB_STRUCTURE'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
@@ -286,7 +280,7 @@ db_namespace = namespace :db do
 
     # desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
-      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
+      filename = ENV['DB_STRUCTURE'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_load(current_config, filename)
     end

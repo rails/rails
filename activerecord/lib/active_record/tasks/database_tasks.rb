@@ -7,6 +7,7 @@ module ActiveRecord
       extend self
 
       attr_writer :current_config
+      attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
@@ -115,6 +116,16 @@ module ActiveRecord
         configuration = arguments.first
         filename = arguments.delete_at 1
         class_for_adapter(configuration['adapter']).new(*arguments).structure_load(filename)
+      end
+
+      def load_seed
+        if seed_loader
+          seed_loader.load_seed
+        else
+          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " +
+                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" +
+                "Seed loader should respond to load_seed method"
+        end
       end
 
       private

@@ -36,6 +36,18 @@ module ActiveRecord
 
     rake_tasks do
       require "active_record/base"
+
+      ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
+      ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
+      ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
+
+      if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
+        if engine.paths['db/migrate'].existent
+          ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+        end
+      end
+
       load "active_record/railties/databases.rake"
     end
 
