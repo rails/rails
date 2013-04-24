@@ -17,6 +17,7 @@ module ActiveRecord
     #
     # The possible config values are the following:
     #
+    #   * env: current environment
     #   * db_dir: your 'db' directory
     #   * seed_loader: an object which will load seeds, it needs to respond to `load_seed` method
     #   * database_configuration: configuration of your databases (as in config/database.yml)
@@ -36,7 +37,7 @@ module ActiveRecord
 
       attr_writer :current_config
       attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir,
-                    :fixtures_path
+                    :fixtures_path, :env
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
@@ -54,7 +55,7 @@ module ActiveRecord
       register_task(/(oci|oracle)/, ActiveRecord::Tasks::OracleDatabaseTasks)
 
       def current_config(options = {})
-        options.reverse_merge! :env => Rails.env
+        options.reverse_merge! :env => env
         if options.has_key?(:config)
           @current_config = options[:config]
         else
@@ -80,7 +81,7 @@ module ActiveRecord
         each_local_configuration { |configuration| create configuration }
       end
 
-      def create_current(environment = Rails.env)
+      def create_current(environment = env)
         each_current_configuration(environment) { |configuration|
           create configuration
         }
@@ -103,7 +104,7 @@ module ActiveRecord
         each_local_configuration { |configuration| drop configuration }
       end
 
-      def drop_current(environment = Rails.env)
+      def drop_current(environment = env)
         each_current_configuration(environment) { |configuration|
           drop configuration
         }
@@ -113,7 +114,7 @@ module ActiveRecord
         drop database_url_config
       end
 
-      def charset_current(environment = Rails.env)
+      def charset_current(environment = env)
         charset ActiveRecord::Base.configurations[environment]
       end
 
@@ -122,7 +123,7 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(*arguments).charset
       end
 
-      def collation_current(environment = Rails.env)
+      def collation_current(environment = env)
         collation ActiveRecord::Base.configurations[environment]
       end
 
