@@ -94,9 +94,7 @@ module ActiveModel
     #   person.serializable_hash(except: :name) # => {"age"=>22}
     #   person.serializable_hash(methods: :capitalized_name)
     #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
-    def serializable_hash(options = nil)
-      options ||= {}
-
+    def serializable_hash(options = {})
       attribute_names = attributes.keys
       if only = options[:only]
         attribute_names &= Array(only).map(&:to_s)
