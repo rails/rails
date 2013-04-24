@@ -833,6 +833,8 @@ class FinderTest < ActiveRecord::TestCase
     rescue ActiveRecord::RecordNotFound => e
       assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
     end
+  ensure
+    Toy.reset_primary_key
   end
 
   def test_finder_with_offset_string
