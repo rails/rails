@@ -230,7 +230,7 @@ module ActionController
     #   params = ActionController::Parameters.new({
     #     person: {
     #       contact: {
-    #         email: 'none@test.com'
+    #         email: 'none@test.com',
     #         phone: '555-1234'
     #       }
     #     }
