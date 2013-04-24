@@ -3,7 +3,35 @@ module ActiveRecord
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
-    module DatabaseTasks # :nodoc:
+    # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
+    # logic behind common tasks used to manage database and migrations.
+    #
+    # The tasks defined here are used in rake tasks provided by Active Record.
+    #
+    # In order to use DatabaseTasks, a few config values need to be set. All the needed
+    # config values are set by rails already, so it's necessary to do it only if you
+    # want to change the default or when you want to use Active Record outside of Rails
+    # (in such case after cofniguring database tasks, you can also use rake tasks defined in
+    # Active Record)
+    #
+    #
+    # The possible config values are the following:
+    #
+    #   * db_dir: your 'db' directory
+    #   * seed_loader: an object which will load seeds, it needs to respond to `load_seed` method
+    #   * database_configuration: configuration of your databases (as in config/database.yml)
+    #   * migrations_paths: a list of paths to directories with migrations
+    #   * fixtures_path: a path to fixtures directory
+    #
+    # Example usage of DatabaseTasks outside Rails could look as such:
+    #
+    #     include ActiveRecord::Tasks
+    #     DatabaseTasks.database_configuration = YAML.load(File.read('my_database_config.yml'))
+    #     DatabaseTasks.db_dir = 'db'
+    #     # other settings...
+    #
+    #     DatabaseTasks.create_current('production')
+    module DatabaseTasks
       extend self
 
       attr_writer :current_config
