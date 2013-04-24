@@ -85,6 +85,16 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{\# Could not dump table}, output
   end
 
+  def test_schema_dump_has_no_duplicate_tables
+    output_lines = standard_dump.split("\n")
+    assert output_lines.select{|i| i.match(/create_table "duplicate_table"/)}.size == 1
+  end
+
+  def test_schema_dump_has_no_duplicate_indexes
+    output_lines = standard_dump.split("\n")
+    assert output_lines.select{|i| i.match(/add_index "duplicate_table"/)}.size == 1
+  end
+
   def test_schema_dump_includes_not_null_columns
     stream = StringIO.new
 

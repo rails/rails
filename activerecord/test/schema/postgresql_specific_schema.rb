@@ -1,7 +1,7 @@
 ActiveRecord::Schema.define do
 
   %w(postgresql_ranges postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids postgresql_ltrees
-      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type).each do |table_name|
+      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type duplicate_table).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -13,6 +13,7 @@ ActiveRecord::Schema.define do
   execute 'DROP FUNCTION IF EXISTS partitioned_insert_trigger()'
 
   execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+  execute "DROP SCHEMA IF EXISTS schema_2 CASCADE"
 
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
@@ -220,5 +221,29 @@ _SQL
     t.binary :binary, limit: 100_000
     t.text :text, limit: 100_000
   end
+
+  execute "CREATE SCHEMA schema_2"
+  execute "CREATE DOMAIN schema_2.text AS text"
+  execute "CREATE DOMAIN schema_2.varchar AS varchar"
+  execute "CREATE DOMAIN schema_2.bpchar AS bpchar"
+
+  create_table :duplicate_table do |t|
+    t.integer :field1
+    t.index :field1
+  end
+
+  # Temporarily switch search_path to schema_2 and create a duplicate table
+  conn = ActiveRecord::Base.connection
+  old_search_path = conn.schema_search_path
+  conn.schema_search_path = 'schema_2'
+
+  create_table :duplicate_table do |t|
+    t.integer :field1
+    t.index :field1
+  end
+
+  # Revert search_path
+  conn.schema_search_path = old_search_path
+
 end
 
