@@ -71,8 +71,8 @@ module ActiveRecord::Associations::Builder
           old_foreign_id    = attribute_was(foreign_key_field)
 
           if old_foreign_id
-            reflection_klass = #{reflection.klass}
-            old_record       = reflection_klass.find_by(reflection_klass.primary_key => old_foreign_id)
+            klass      = association(#{name.inspect}).klass
+            old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
             if old_record
               old_record.touch #{options[:touch].inspect if options[:touch] != true}
