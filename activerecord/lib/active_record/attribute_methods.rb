@@ -172,7 +172,7 @@ module ActiveRecord
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
-      if @attributes.present? && self.class.column_names.include?(name)
+      if defined?(@attributes) && @attributes.present? && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 
