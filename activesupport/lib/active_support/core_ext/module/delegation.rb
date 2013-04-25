@@ -112,6 +112,20 @@ class Module
   #   end
   #
   #   Foo.new.zoo   # returns nil
+  #
+  # If the delegate object is not +nil+ or +false+ and the object doesn't
+  # respond to the delegated method it will raise an exception.
+  #
+  #   class Foo
+  #     def initialize(bar)
+  #       @bar = bar
+  #     end
+  #
+  #     delegate :name, to: :@bar
+  #   end
+  #
+  #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
+  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]

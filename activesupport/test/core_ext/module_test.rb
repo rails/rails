@@ -171,6 +171,11 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nil rails.name
   end
 
+  def test_delegation_with_allow_nil_and_invalid_value
+    rails = Project.new("Rails", "David")
+    assert_raise(NoMethodError) { rails.name }
+  end
+
   def test_delegation_with_allow_nil_and_nil_value_and_prefix
     Project.class_eval do
       delegate :name, :to => :person, :allow_nil => true, :prefix => true
