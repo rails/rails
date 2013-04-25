@@ -145,7 +145,7 @@ class Module
       if allow_nil
         module_eval(<<-EOS, file, line - 2)
           def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
+            if #{to}.respond_to?(:#{method})                  #   if client.respond_to?(:name)
               #{to}.#{method}(#{definition})                  #     client.name(*args, &block)
             end                                               #   end
           end                                                 # end
