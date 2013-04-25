@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add support for passing custom url options other than `:host` and custom
+    status and flash options to `force_ssl`.
+
+    *Andrew White*
+
 *   The `force_ssl` command now builds the redirect url from `request.fullpath`.
     This ensures that the format is maintained and it doesn't redirect to a route
     that has the same parameters but is defined earlier in `routes.rb`. Also any
