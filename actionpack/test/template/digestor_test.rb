@@ -15,7 +15,7 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  def find(logical_name, keys, partial, options)
+  def find(logical_name, prefixes, partial, keys, options)
     FixtureTemplate.new("digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
   end
 end

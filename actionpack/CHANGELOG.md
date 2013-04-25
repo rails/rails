@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix cache digests to respect the format of view files being looked up.
+    `Digestor` called `LookupContext#find` with the options as the wrong argument
+    causing the formats option to be ignored.
+
+    Caching `article/show.pdf.erb` now correctly digests any dependencies as
+    `_partial.pdf.erb` and not `_partial.html.erb`.
+
+    *Martin Westin*
+
 *   Add support for passing custom url options other than `:host` and custom
     status and flash options to `force_ssl`.
 
