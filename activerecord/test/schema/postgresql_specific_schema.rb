@@ -222,28 +222,34 @@ _SQL
     t.text :text, limit: 100_000
   end
 
-  execute "CREATE SCHEMA schema_2"
-  execute "CREATE DOMAIN schema_2.text AS text"
-  execute "CREATE DOMAIN schema_2.varchar AS varchar"
-  execute "CREATE DOMAIN schema_2.bpchar AS bpchar"
+  begin
+    conn = ActiveRecord::Base.connection
+    old_search_path = conn.schema_search_path
 
-  create_table :duplicate_table do |t|
-    t.integer :field1
-    t.index :field1
+    execute "CREATE SCHEMA schema_2"
+    execute "CREATE DOMAIN schema_2.text AS text"
+    execute "CREATE DOMAIN schema_2.varchar AS varchar"
+    execute "CREATE DOMAIN schema_2.bpchar AS bpchar"
+
+    # Create table in schema_1
+    create_table :duplicate_table do |t|
+      t.integer :field1
+      t.index :field1
+    end
+
+    # Temporarily switch search_path to schema_2
+    conn.schema_search_path = 'schema_2'
+
+    # Create table in schema_2
+    create_table :duplicate_table do |t|
+      t.integer :field1
+      t.index :field1
+    end
+
+  ensure
+    # Revert search_path
+    conn.schema_search_path = old_search_path if conn
   end
-
-  # Temporarily switch search_path to schema_2 and create a duplicate table
-  conn = ActiveRecord::Base.connection
-  old_search_path = conn.schema_search_path
-  conn.schema_search_path = 'schema_2'
-
-  create_table :duplicate_table do |t|
-    t.integer :field1
-    t.index :field1
-  end
-
-  # Revert search_path
-  conn.schema_search_path = old_search_path
 
 end
 
