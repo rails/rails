@@ -51,11 +51,14 @@ module ActionController
     # * <tt>host</tt> - Redirect to a different host name
     def force_ssl_redirect(host = nil)
       unless request.ssl?
-        redirect_options = {:protocol => 'https://', :status => :moved_permanently}
-        redirect_options.merge!(:host => host) if host
-        redirect_options.merge!(:params => request.query_parameters)
+        secure_url = ActionDispatch::Http::URL.url_for({
+          :protocol => 'https://',
+          :path     => request.fullpath,
+          :host     => host || request.host
+        })
+
         flash.keep if respond_to?(:flash)
-        redirect_to redirect_options
+        redirect_to secure_url, :status => :moved_permanently
       end
     end
   end

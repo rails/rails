@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `force_ssl` command now builds the redirect url from `request.fullpath`.
+    This ensures that the format is maintained and it doesn't redirect to a route
+    that has the same parameters but is defined earlier in `routes.rb`. Also any
+    optional segments are maintained.
+
+    Fixes #7528, #9061, #10305.
+
+    *Andrew White*
+
 *   Return a 405 Method Not Allowed response when a request contains an unknown
     HTTP method.
 

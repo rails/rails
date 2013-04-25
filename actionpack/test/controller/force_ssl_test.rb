@@ -149,13 +149,76 @@ class ForceSSLFlashTest < ActionController::TestCase
     assert_response 302
     assert_equal "http://test.host/force_ssl_flash/cheeseburger", redirect_to_url
 
+    # FIXME: AC::TestCase#build_request_uri doesn't build a new uri if PATH_INFO exists
+    @request.env.delete('PATH_INFO')
+
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_flash/cheeseburger", redirect_to_url
 
+    # FIXME: AC::TestCase#build_request_uri doesn't build a new uri if PATH_INFO exists
+    @request.env.delete('PATH_INFO')
+
     get :use_flash
     assert_equal "hello", assigns["flash_copy"]["that"]
     assert_equal "hello", assigns["flashy"]
+  end
+end
+
+class ForceSSLDuplicateRoutesTest < ActionController::TestCase
+  tests ForceSSLCustomDomain
+
+  def test_force_ssl_redirects_to_same_path
+    with_routing do |set|
+      set.draw do
+        get '/foo', :to => 'force_ssl_custom_domain#banana'
+        get '/bar', :to => 'force_ssl_custom_domain#banana'
+      end
+
+      @request.env['PATH_INFO'] = '/bar'
+
+      get :banana
+      assert_response 301
+      assert_equal 'https://secure.test.host/bar', redirect_to_url
+    end
+  end
+end
+
+class ForceSSLFormatTest < ActionController::TestCase
+  tests ForceSSLControllerLevel
+
+  def test_force_ssl_redirects_to_same_format
+    with_routing do |set|
+      set.draw do
+        get '/foo', :to => 'force_ssl_controller_level#banana'
+      end
+
+      get :banana, :format => :json
+      assert_response 301
+      assert_equal 'https://test.host/foo.json', redirect_to_url
+    end
+  end
+end
+
+class ForceSSLOptionalSegmentsTest < ActionController::TestCase
+  tests ForceSSLControllerLevel
+
+  def test_force_ssl_redirects_to_same_format
+    with_routing do |set|
+      set.draw do
+        scope '(:locale)' do
+          defaults :locale => 'en' do
+            get '/foo', :to => 'force_ssl_controller_level#banana'
+          end
+        end
+      end
+
+      @request.env['PATH_INFO'] = '/en/foo'
+      get :banana, :locale => 'en'
+      assert_equal 'en',  @controller.params[:locale]
+      assert_response 301
+      assert_equal 'https://test.host/en/foo', redirect_to_url
+    end
   end
 end
 
