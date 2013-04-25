@@ -22,7 +22,7 @@ module ActiveSupport
         super
         @notifier     = TestNotifier.new
         @instrumenter = Instrumenter.new @notifier
-        @payload      =  { :foo => Object.new }
+        @payload      = {}
       end
 
       def test_instrument
