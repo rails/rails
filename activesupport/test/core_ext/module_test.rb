@@ -82,6 +82,21 @@ class Name
   end
 end
 
+class SideEffect
+  attr_reader :ints
+
+  delegate :to_i, :to => :shift, :allow_nil => true
+  delegate :to_s, :to => :shift
+
+  def initialize
+    @ints = [1, 2, 3]
+  end
+
+  def shift
+    @ints.shift
+  end
+end
+
 class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
@@ -171,6 +186,12 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nil rails.name
   end
 
+  # Ensures with check for nil, not for a falseish target.
+  def test_delegation_with_allow_nil_and_false_value
+    project = Project.new(false, false)
+    assert_raise(NoMethodError) { project.name }
+  end
+
   def test_delegation_with_allow_nil_and_invalid_value
     rails = Project.new("Rails", "David")
     assert_raise(NoMethodError) { rails.name }
@@ -231,6 +252,16 @@ class ModuleTest < ActiveSupport::TestCase
     # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
     assert e.backtrace.any?{|a| a.include?(file_and_line)},
            "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
+  end
+
+  def test_delegation_invokes_the_target_exactly_once
+    se = SideEffect.new
+
+    assert_equal 1, se.to_i
+    assert_equal [2, 3], se.ints
+
+    assert_equal '2', se.to_s
+    assert_equal [3], se.ints
   end
 
   def test_parent
