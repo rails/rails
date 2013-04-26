@@ -221,9 +221,9 @@ module ActiveSupport
         as_utf8 = string.dup.force_encoding(Encoding::UTF_8)
 
         if !force && as_utf8.valid_encoding?
-          return as_utf8
+          as_utf8
         else
-          return as_utf8.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+          as_utf8.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
         end
       end
 
