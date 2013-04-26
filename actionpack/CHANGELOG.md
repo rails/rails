@@ -1,3 +1,8 @@
+*   Fix incorrect `assert_redirected_to` failure message for protocol-relative
+    URLs.
+
+    *Derek Prior*
+
 *   Fix an issue where router can't recognize downcased url encoding path.
 
     Fixes #12269
