@@ -111,7 +111,7 @@ module DateAndTime
     # Returns a new date/time representing the given day in the next week.
     # The +given_day_in_next_week+ defaults to the beginning of the week
     # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
-    # when set. DateTime objects have their time set to 0:00.
+    # when set. +DateTime+ objects have their time set to 0:00.
     def next_week(given_day_in_next_week = Date.beginning_of_week)
       first_hour{ weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)) }
     end
