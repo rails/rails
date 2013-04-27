@@ -144,31 +144,32 @@ class FilterTest < ActionController::TestCase
 
   class FilterChainHaltProcController < ActionController::Base
     before_filter :render_something
-    after_filter :after_filter_with_proc, :if => Proc.new{|c| @state = "after_filter_proc" }, :only => :test_after_filter_proc
-    around_filter :around_filter_with_proc, :if => Proc.new{|c| @state = "around_filter_proc"}, :only => :test_around_filter_proc
+    after_filter :after_filter_with_proc, :if => Proc.new{|c| @state << "after_filter_proc" }, :only => :after_filter_proc
+    around_filter :around_filter_with_proc, :if => Proc.new{|c| @state << "around_filter_proc"}, :only => :around_filter_proc
     attr_reader :variable
 
-    def test_after_filter_proc
-      @state = "in_method1"
+    def after_filter_proc
+      @state << "after_filter_proc"
     end
 
-    def test_around_filter_proc
-      @state = "in_method2"
+    def around_filter_proc
+      @state << "around_filter_proc"
     end
 
     private
 
     def render_something
-      @state = "render_something"
-      render :json => { :a => :b}
+      @state ||= ""
+      @state << "render_something"
+      head :ok
     end
 
     def after_filter_with_proc
-      @state = "after_filter"
+      @state << "after_filter"
     end
 
     def around_filter_with_proc
-      @state = "around_filter"
+      @state << "around_filter"
     end
   end
 
@@ -740,12 +741,12 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_after_filter_proc_not_getting_executed_when_filter_chain_breaks
-    test_process(FilterChainHaltProcController, 'test_after_filter_proc')
+    test_process(FilterChainHaltProcController, 'after_filter_proc')
     assert_equal "render_something", assigns["state"]
   end
 
   def test_around_filter_proc_not_getting_executed_when_filter_chain_breaks
-    test_process(FilterChainHaltProcController, 'test_around_filter_proc')
+    test_process(FilterChainHaltProcController, 'around_filter_proc')
     assert_equal "render_something", assigns["state"]
   end
 
