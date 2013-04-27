@@ -55,9 +55,13 @@ module ActiveRecord
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
-      if klass && value.is_a?(Base) && reflection = klass.reflect_on_association(column.to_sym)
+      if klass && (value.is_a?(Base) || value.is_a?(Relation)) && reflection = klass.reflect_on_association(column.to_sym)
         if reflection.polymorphic?
-          queries << build(table[reflection.foreign_type], value.class.base_class)
+          if value.is_a? Base
+            queries << build(table[reflection.foreign_type], value.class.base_class)
+          elsif value.is_a? Relation
+            queries << build(table[reflection.foreign_type], value.klass.base_class)
+          end
         end
 
         column = reflection.foreign_key
