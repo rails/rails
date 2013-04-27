@@ -20,6 +20,26 @@ class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
 
+  def test_first_or_create_works_with_has_many_through_with_where_clause
+    post = posts :welcome
+    count = Tagging.count
+    tag = post.tags.where(name: 'ruby').first_or_create(name: 'ruby')
+
+    assert_equal count + 1, Tagging.count
+    assert_equal tag, post.tags.where(name: 'ruby').first_or_create(name: 'ruby')
+    assert_equal tag, post.tags.where(name: 'ruby').first_or_initialize(name: 'ruby')
+  end
+
+  def test_first_or_create_with_bang_works_with_has_many_through_with_where_clause
+    post = posts :welcome
+    count = Tagging.count
+    tag = post.tags.where(name: 'ruby').first_or_create!(name: 'ruby')
+
+    assert_equal count + 1, Tagging.count
+    assert_equal tag, post.tags.where(name: 'ruby').first_or_create!(name: 'ruby')
+    assert_equal tag, post.tags.where(name: 'ruby').first_or_initialize(name: 'ruby')
+  end
+
   def test_do_not_double_quote_string_id
     van = Minivan.last
     assert van
