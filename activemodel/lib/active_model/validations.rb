@@ -139,8 +139,10 @@ module ActiveModel
       #   value.
       def validate(*args, &block)
         options = args.extract_options!
+        options = options.dup
+        options.delete(:on) if options[:on] == :save
+
         if options.key?(:on)
-          options = options.dup
           options[:if] = Array(options[:if])
           options[:if].unshift("validation_context == :#{options[:on]}")
         end
