@@ -124,7 +124,7 @@ class Module
   #       @bar = bar
   #     end
   #
-  #     delegate :name, to: :@bar, :allow_nil => true
+  #     delegate :name, to: :@bar, allow_nil: true
   #   end
   #
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
