@@ -243,7 +243,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [], light.long_state
   end
 
-  def test_serialized_columh_should_not_be_wrapped_twice
+  def test_serialized_column_should_not_be_wrapped_twice
     Topic.serialize(:content, MyObject)
 
     myobj = MyObject.new('value1', 'value2')
