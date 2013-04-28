@@ -165,7 +165,7 @@ TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the 
 
 This will fire up WEBrick, a webserver built into Ruby by default. To see your application in action, open a browser window and navigate to <http://localhost:3000>. You should see the Rails default information page:
 
-![Welcome Aboard screenshot](images/rails_welcome.png)
+![Welcome Aboard screenshot](images/getting_started/rails_welcome.png)
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. To verify the server has stopped you should see your command prompt cursor again. For most UNIX-like systems including Mac OS X this will be a dollar sign `$`. In development mode, Rails does not generally require you to restart the server; changes you make in files will be automatically picked up by the server.
 
@@ -1614,7 +1614,7 @@ class CommentsController < ApplicationController
 Now if you try to create a new post, you will be greeted with a basic HTTP
 Authentication challenge
 
-![Basic HTTP Authentication Challenge](images/challenge.png)
+![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
 What's Next?
 ------------
