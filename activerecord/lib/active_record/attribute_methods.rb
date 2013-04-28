@@ -172,6 +172,8 @@ module ActiveRecord
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
+      # We check defined?(@attributes) not to issue warnings if called on objects that
+      # have been allocated but not yet initialized.
       if defined?(@attributes) && @attributes.present? && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
@@ -340,6 +342,7 @@ module ActiveRecord
     end
 
     def attribute_method?(attr_name) # :nodoc:
+      # We check defined? because Syck calls respond_to? before actually calling initialize.
       defined?(@attributes) && @attributes.include?(attr_name)
     end
 
