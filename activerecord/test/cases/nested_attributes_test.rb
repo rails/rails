@@ -938,8 +938,8 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
 
     @params = {
       :pets_attributes => {
-        '0' => { :id => @pet1.id, :name => 'Foo' },
-        '1' => { :id => @pet2.id, :name => 'Bar' }
+        '0' => { :pet_id => @pet1.pet_id, :name => 'Foo' },
+        '1' => { :pet_id => @pet2.pet_id, :name => 'Bar' }
       }
     }
   end
@@ -952,7 +952,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   def test_attr_accessor_of_child_should_be_value_provided_during_update
     @owner = owners(:ashley)
     @pet1 = pets(:chew)
-    attributes = {:pets_attributes => { "1"=> { :id => @pet1.id,
+    attributes = {:pets_attributes => { "1"=> { :pet_id => @pet1.pet_id,
                                                 :name => "Foo2",
                                                 :current_user => "John",
                                                 :_destroy=>true }}}
