@@ -198,6 +198,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_and_scope
+    developer_klass = Class.new(Developer) do
+      scope :by_name, -> name { unscope(where: :name).where(name: name) }
+    end
+
+    expected = developer_klass.where(name: 'Jamis').collect { |dev| [dev.name, dev.id] }
+    received = developer_klass.where(name: 'David').by_name('Jamis').collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
   def test_unscope_errors_with_invalid_value
     assert_raises(ArgumentError) do
       Developer.includes(:projects).where(name: "Jamis").unscope(:stupidly_incorrect_value)
