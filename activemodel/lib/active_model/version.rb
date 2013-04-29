@@ -1,7 +1,7 @@
 module ActiveModel
   # Returns the version of the currently loaded ActiveModel as a Gem::Version
   def self.version
-    Gem::Version.new "4.0.0.beta1"
+    Gem::Version.new "4.0.0.rc1"
   end
 
   module VERSION #:nodoc:
