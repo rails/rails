@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Add support for passing custom url options other than `:host` and custom
     status and flash options to `force_ssl`.

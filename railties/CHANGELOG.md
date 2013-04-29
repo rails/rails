@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Move rails.png into a data-uri. One less file to get generated into a new
     application. This is also consistent with the removal of index.html.

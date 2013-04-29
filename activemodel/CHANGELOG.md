@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
     for a given attribute.

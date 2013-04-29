@@ -1,4 +1,4 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Allow to use databases.rake tasks without having `Rails.application`.
 

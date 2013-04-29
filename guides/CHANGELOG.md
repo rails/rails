@@ -1,7 +1,9 @@
-## Rails 4.0.0 (unreleased) ##
+## Rails 4.0.0.rc1 (April 29, 2013) ##
+
 *   Change Service pages(404, etc). *Stanislav Sobolev*
 
-## Rails 4.0.0.beta1 (unreleased) ##
+
+## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Split Validations and Callbacks guide into two. *Steve Klabnik*
 
