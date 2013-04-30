@@ -179,7 +179,7 @@ module Rails
       # Railtie::Configurable, but this module is no longer required for all
       # subclasses of Railtie so we provide the class method here.
       def configure(&block)
-        class_eval(&block)
+        instance.configure(&block)
       end
 
       protected
@@ -204,6 +204,10 @@ module Rails
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
       end
+    end
+
+    def configure(&block)
+      instance_eval(&block)
     end
 
     def config
