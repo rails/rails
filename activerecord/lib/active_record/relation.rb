@@ -39,7 +39,7 @@ module ActiveRecord
       reset
     end
 
-    def insert(values)
+    def insert(values) # :nodoc:
       primary_key_value = nil
 
       if primary_key && Hash === values
@@ -73,7 +73,7 @@ module ActiveRecord
         binds)
     end
 
-    def update_record(values, id, id_was)
+    def update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
       um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes)
       
@@ -83,7 +83,7 @@ module ActiveRecord
         binds)
     end
 
-    def substitute_values(values)
+    def substitute_values(values) # :nodoc:
       substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
       binds       = substitutes.map do |arel_attr, value|
         [@klass.columns_hash[arel_attr.name], value]
