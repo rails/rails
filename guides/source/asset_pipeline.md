@@ -416,7 +416,7 @@ You can call this task on the server during deployment to create compiled versio
 The rake task is:
 
 ```bash
-$ bundle exec rake assets:precompile
+$ RAILS_ENV=production bundle exec rake assets:precompile
 ```
 
 For faster asset precompiles, you can partially load your application by setting
