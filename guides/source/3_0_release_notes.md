@@ -475,7 +475,7 @@ As well as the following deprecations:
 * `named_scope` in an Active Record class is deprecated and has been renamed to just `scope`.
 * In `scope` methods, you should move to using the relation methods, instead of a `:conditions => {}` finder method, for example `scope :since, lambda {|time| where("created_at > ?", time) }`.
 * `save(false)` is deprecated, in favor of `save(:validate => false)`.
-* I18n error messages for ActiveRecord should be changed from :en.activerecord.errors.template to `:en.errors.template`.
+* I18n error messages for Active Record should be changed from :en.activerecord.errors.template to `:en.errors.template`.
 * `model.errors.on` is deprecated in favor of `model.errors[]`
 * validates_presence_of => validates... :presence => true
 * `ActiveRecord::Base.colorize_logging` and `config.active_record.colorize_logging` are deprecated in favor of `Rails::LogSubscriber.colorize_logging` or `config.colorize_logging`

@@ -134,7 +134,7 @@ Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes,
 
 ### Batch Processing
 
-You can now process large numbers of records from an ActiveRecord model with less pressure on memory by using `find_in_batches`:
+You can now process large numbers of records from an Active Record model with less pressure on memory by using `find_in_batches`:
 
 ```ruby
 Customer.find_in_batches(:conditions => {:active => true}) do |customer_group|

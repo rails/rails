@@ -189,7 +189,7 @@ Action Pack
 
 * form\_for is changed to use "#{action}\_#{as}" as the css class and id if `:as` option is provided. Earlier versions used "#{as}\_#{action}".
 
-* `ActionController::ParamsWrapper` on ActiveRecord models now only wrap `attr_accessible` attributes if they were set. If not, only the attributes returned by the class method `attribute_names` will be wrapped. This fixes the wrapping of nested attributes by adding them to `attr_accessible`.
+* `ActionController::ParamsWrapper` on Active Record models now only wrap `attr_accessible` attributes if they were set. If not, only the attributes returned by the class method `attribute_names` will be wrapped. This fixes the wrapping of nested attributes by adding them to `attr_accessible`.
 
 * Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts.
 
