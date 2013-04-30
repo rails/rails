@@ -365,6 +365,7 @@ module ActiveRecord
       def recreate_database(name, options = {})
         drop_database(name)
         create_database(name, options)
+        reconnect!
       end
 
       # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
