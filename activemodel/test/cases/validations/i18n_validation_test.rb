@@ -31,7 +31,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
     @person.errors.add(:name, 'not found')
-    Person.expects(:human_attribute_name).with(:name, :default => 'Name').returns("Person's name")
+    Person.expects(:human_attribute_name).with("name", :default => 'Name').returns("Person's name")
     assert_equal ["Person's name not found"], @person.errors.full_messages
   end
 
