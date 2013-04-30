@@ -132,7 +132,11 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # #<User id: nil, name: nil, ...>
     def create(*args, &block)
-      scoping { @klass.create(*args, &block) }
+      if proxy_association
+        proxy_association.create(*args, &block)
+      else
+        scoping { @klass.create(*args, &block) }
+      end
     end
 
     # Similar to #create, but calls +create!+ on the base class. Raises
@@ -140,7 +144,11 @@ module ActiveRecord
     #
     # Expects arguments in the same format as <tt>Base.create!</tt>.
     def create!(*args, &block)
-      scoping { @klass.create!(*args, &block) }
+      if proxy_association
+        proxy_association.create!(*args, &block)
+      else
+        scoping { @klass.create!(*args, &block) }
+      end
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
