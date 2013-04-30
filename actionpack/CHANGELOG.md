@@ -1058,6 +1058,14 @@
 
     *Andrew White*
 
+*   In the routes DSL the `:via` option of `match` is now mandatory.
+
+    For routes that respond to one single verb it is recommended to use the more specific
+    macros `get`, `post`, etc. instead. You can still map all HTTP verbs to one action
+    with `match`, but it has to be explictly configured using `:via => :all`.
+
+    *José Valim and Yehuda Katz*
+
 *   Add `index` method to FormBuilder class. *Jorge Bejar*
 
 *   Remove the leading \n added by textarea on `assert_select`. *Santiago Pastorino*
