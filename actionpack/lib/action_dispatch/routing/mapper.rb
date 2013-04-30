@@ -299,7 +299,7 @@ module ActionDispatch
           end
       end
 
-      # Invokes Rack::Mount::Utils.normalize path and ensure that
+      # Invokes Journey::Router::Utils.normalize_path and ensure that
       # (:locale) becomes (/:locale) instead of /(:locale). Except
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
