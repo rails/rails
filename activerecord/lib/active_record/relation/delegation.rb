@@ -14,14 +14,14 @@ module ActiveRecord
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
 
-    module ClassSpecificRelation
+    module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
 
       included do
         @delegation_mutex = Mutex.new
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         def name
           superclass.name
         end
@@ -70,7 +70,7 @@ module ActiveRecord
       end
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       @@subclasses = ThreadSafe::Cache.new(:initial_capacity => 2)
 
       def new(klass, *args)
