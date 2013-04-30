@@ -3,6 +3,7 @@ require 'abstract_controller'
 require 'action_dispatch'
 require 'action_controller/metal/live'
 require 'action_controller/metal/strong_parameters'
+require 'action_controller/metal/resource_loader'
 
 module ActionController
   extend ActiveSupport::Autoload
@@ -33,6 +34,7 @@ module ActionController
     autoload :Rendering
     autoload :RequestForgeryProtection
     autoload :Rescue
+    autoload :ResourceLoader
     autoload :Responder
     autoload :Streaming
     autoload :StrongParameters
