@@ -186,19 +186,19 @@ module Rails
 
             # Use SCSS for stylesheets
             gem 'sass-rails', github: 'rails/sass-rails'
-
-            # Use Uglifier as compressor for JavaScript assets
-            gem 'uglifier', '>= 1.3.0'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             # Use SCSS for stylesheets
             gem 'sass-rails', '~> 4.0.0.rc1'
-
-            # Use Uglifier as compressor for JavaScript assets
-            gem 'uglifier', '>= 1.3.0'
           GEMFILE
         end
+
+        gemfile += <<-GEMFILE.strip_heredoc
+
+          # Use Uglifier as compressor for JavaScript assets
+          gem 'uglifier', '>= 1.3.0'
+        GEMFILE
 
         if options[:skip_javascript]
           gemfile += <<-GEMFILE
