@@ -428,23 +428,11 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def update_record(attribute_names = @attributes.keys)
-      attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
-      if attributes_with_values.empty?
+      attributes_values = arel_attributes_with_values_for_update(attribute_names)
+      if attributes_values.empty?
         0
       else
-        klass = self.class
-        column_hash = klass.connection.schema_cache.columns_hash klass.table_name
-        db_columns_with_values = attributes_with_values.map { |attr,value|
-          real_column = column_hash[attr.name]
-          [real_column, value]
-        }
-        bind_attrs = attributes_with_values.dup
-        bind_attrs.keys.each_with_index do |column, i|
-          real_column = db_columns_with_values[i].first
-          bind_attrs[column] = klass.connection.substitute_at(real_column, i)
-        end
-        stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id_was || id)).arel.compile_update(bind_attrs)
-        klass.connection.update stmt, 'SQL', db_columns_with_values
+        self.class.unscoped.update_record attributes_values, id, id_was
       end
     end
 
