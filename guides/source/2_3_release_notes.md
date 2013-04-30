@@ -504,7 +504,7 @@ A lot of folks have adopted the notion of using try() to attempt operations on o
 
 ### Swappable Parsers for XMLmini
 
-The support for XML parsing in ActiveSupport has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
+The support for XML parsing in Active Support has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
 
 ```ruby
 XmlMini.backend = 'LibXML'

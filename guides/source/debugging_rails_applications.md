@@ -198,7 +198,9 @@ Adding extra logging like this makes it easy to search for unexpected or unusual
 
 ### Tagged Logging
 
-When running multi-user, multi-account applications, it’s often useful to be able to filter the logs using some custom rules. `TaggedLogging` in ActiveSupport helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
+When running multi-user, multi-account applications, it’s often useful
+to be able to filter the logs using some custom rules. `TaggedLogging`
+in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
 ```ruby
 logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))

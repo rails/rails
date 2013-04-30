@@ -580,7 +580,7 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 
 * All mailers are now in `app/mailers` by default.
 * Can now send email using new API with three methods: `attachments`, `headers` and `mail`.
-* ActionMailer now has native support for inline attachments using the `attachments.inline` method.
+* Action Mailer now has native support for inline attachments using the `attachments.inline` method.
 * Action Mailer emailing methods now return `Mail::Message` objects, which can then be sent the `deliver` message to send itself.
 * All delivery methods are now abstracted out to the Mail gem.
 * The mail delivery method can accept a hash of all valid mail header fields with their value pair.
