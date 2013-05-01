@@ -58,7 +58,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
-* `config.autoload_once_paths` accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is `false`, which is the case in development mode by default. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
+* `config.autoload_once_paths` accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is false, which is the case in development mode by default. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
 
 * `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is all directories under `app`.
 
@@ -70,7 +70,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to true.
 
-* `config.consider_all_requests_local` is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in development and test environments, and `false` in production mode. For finer-grained control, set this to `false` and implement `local_request?` in controllers to specify which requests should provide debugging information on errors.
+* `config.consider_all_requests_local` is a flag. If true then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. True by default in development and test environments, and false in production mode. For finer-grained control, set this to false and implement `local_request?` in controllers to specify which requests should provide debugging information on errors.
 
 * `config.console` allows you to set class that will be used as console you run `rails console`. It's best to run it in `console` block:
 
@@ -83,7 +83,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
     end
     ```
 
-* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to `false`. It only has effect if `config.cache_classes` is true, which it is by default in production mode. This flag is set to `false` by `config.threadsafe!`.
+* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode. This flag is set to false by `config.threadsafe!`.
 
 * `config.eager_load` when true, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
 
@@ -155,7 +155,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.assets.compile` is a boolean that can be used to turn on live Sprockets compilation in production.
 
-* `config.assets.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to the same configured at `config.logger`. Setting `config.assets.logger` to `false` will turn off served assets logging.
+* `config.assets.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to the same configured at `config.logger`. Setting `config.assets.logger` to false will turn off served assets logging.
 
 ### Configuring Generators
 
@@ -284,7 +284,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
 
-* `config.action_controller.perform_caching` configures whether the application should perform caching or not. Set to `false` in development mode, `true` in production.
+* `config.action_controller.perform_caching` configures whether the application should perform caching or not. Set to false in development mode, true in production.
 
 * `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 
@@ -342,7 +342,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. It defaults to `'-'`. See the [ERB documentation](http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/) for more information.
 
-* `config.action_view.embed_authenticity_token_in_remote_forms` allows you to set the default behavior for `authenticity_token` in forms with `:remote => true`. By default it's set to `false`, which means that remote forms will not include `authenticity_token`, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the `meta` tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass `:authenticity_token => true` as a form option or set this config setting to `true`
+* `config.action_view.embed_authenticity_token_in_remote_forms` allows you to set the default behavior for `authenticity_token` in forms with `:remote => true`. By default it's set to false, which means that remote forms will not include `authenticity_token`, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the `meta` tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass `:authenticity_token => true` as a form option or set this config setting to `true`
 
 * `config.action_view.prefix_partial_path_with_controller_namespace` determines whether or not partials are looked up from a subdirectory in templates rendered from namespaced controllers. For example, consider a controller named `Admin::PostsController` which renders this template:
 
@@ -374,7 +374,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.delivery_method` defines the delivery method. The allowed values are `:smtp` (default), `:sendmail`, and `:test`.
 
-* `config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to `false` for testing.
+* `config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to false for testing.
 
 * `config.action_mailer.default_options` configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 
