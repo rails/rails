@@ -1,3 +1,8 @@
+## unreleased ##
+
+*  No changes.
+
+
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Move rails.png into a data-uri. One less file to get generated into a new

@@ -1,6 +1,9 @@
+## unreleased ##
+
 *   Mute `psql` output when running rake db:schema:load.
 
     *Godfrey Chan*
+
 
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
 
