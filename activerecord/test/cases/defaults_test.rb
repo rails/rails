@@ -134,6 +134,8 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       # 0 in MySQL 4, nil in 5.
       assert [0, nil].include?(klass.columns_hash['omit'].default)
       assert !klass.columns_hash['omit'].null
+      
+      klass.connection.reconnect!
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
 
