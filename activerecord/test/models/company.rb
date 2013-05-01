@@ -206,6 +206,8 @@ class Account < ActiveRecord::Base
   belongs_to :firm, :class_name => 'Company'
   belongs_to :unautosaved_firm, :foreign_key => "firm_id", :class_name => "Firm", :autosave => false
 
+  alias_attribute :available_credit, :credit_limit
+
   def self.destroyed_account_ids
     @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }
   end
