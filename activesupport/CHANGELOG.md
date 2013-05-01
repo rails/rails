@@ -1,3 +1,9 @@
+## unreleased ##
+
+*  Remove multiple parameters support of `Object#in?`.
+
+   *Brian Morearty*
+
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Fix skipping of filters defined by objects in `ActiveSupport::Callbacks::Callback`.
