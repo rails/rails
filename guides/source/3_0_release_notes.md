@@ -79,7 +79,7 @@ Creating a Rails 3.0 application
 --------------------------------
 
 ```bash
-# You should have the 'rails' rubygem installed
+# You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
@@ -475,7 +475,7 @@ As well as the following deprecations:
 * `named_scope` in an Active Record class is deprecated and has been renamed to just `scope`.
 * In `scope` methods, you should move to using the relation methods, instead of a `:conditions => {}` finder method, for example `scope :since, lambda {|time| where("created_at > ?", time) }`.
 * `save(false)` is deprecated, in favor of `save(:validate => false)`.
-* I18n error messages for ActiveRecord should be changed from :en.activerecord.errors.template to `:en.errors.template`.
+* I18n error messages for Active Record should be changed from :en.activerecord.errors.template to `:en.errors.template`.
 * `model.errors.on` is deprecated in favor of `model.errors[]`
 * validates_presence_of => validates... :presence => true
 * `ActiveRecord::Base.colorize_logging` and `config.active_record.colorize_logging` are deprecated in favor of `Rails::LogSubscriber.colorize_logging` or `config.colorize_logging`
@@ -580,7 +580,7 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 
 * All mailers are now in `app/mailers` by default.
 * Can now send email using new API with three methods: `attachments`, `headers` and `mail`.
-* ActionMailer now has native support for inline attachments using the `attachments.inline` method.
+* Action Mailer now has native support for inline attachments using the `attachments.inline` method.
 * Action Mailer emailing methods now return `Mail::Message` objects, which can then be sent the `deliver` message to send itself.
 * All delivery methods are now abstracted out to the Mail gem.
 * The mail delivery method can accept a hash of all valid mail header fields with their value pair.

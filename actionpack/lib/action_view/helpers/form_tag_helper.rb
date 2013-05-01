@@ -81,7 +81,7 @@ module ActionView
       # ==== Options
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:include_blank</tt> - If set to true, an empty option will be create
+      # * <tt>:include_blank</tt> - If set to true, an empty option will be created.
       # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something
       # * Any other key creates standard HTML attributes for the tag.
       #
