@@ -112,7 +112,7 @@ module ActionView
               # english it would read better as about 80 years.
               minutes_with_offset         = distance_in_minutes - minute_offset_for_leap_year
               remainder                   = (minutes_with_offset % 525600)
-              distance_in_years           = (minutes_with_offset / 525600)
+              distance_in_years           = (minutes_with_offset.div 525600)
               if remainder < 131400
                 locale.t(:about_x_years,  :count => distance_in_years)
               elsif remainder < 394200
