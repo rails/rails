@@ -268,7 +268,7 @@ def legacy
 end
 ```
 
-This will redirect the user to the main action if he tried to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can exploited by an attacker if he includes a host key in the URL:
+This will redirect the user to the main action if he tried to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can be exploited by an attacker if he includes a host key in the URL:
 
 ```
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
