@@ -134,7 +134,7 @@ Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes,
 
 ### Batch Processing
 
-You can now process large numbers of records from an ActiveRecord model with less pressure on memory by using `find_in_batches`:
+You can now process large numbers of records from an Active Record model with less pressure on memory by using `find_in_batches`:
 
 ```ruby
 Customer.find_in_batches(:conditions => {:active => true}) do |customer_group|
@@ -504,7 +504,7 @@ A lot of folks have adopted the notion of using try() to attempt operations on o
 
 ### Swappable Parsers for XMLmini
 
-The support for XML parsing in ActiveSupport has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
+The support for XML parsing in Active Support has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
 
 ```ruby
 XmlMini.backend = 'LibXML'

@@ -148,7 +148,7 @@ Also, if you've turned on `config.wrap_parameters` in your initializer or callin
 And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
 
 ```ruby
-{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" } }
+{ name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
@@ -246,7 +246,7 @@ To declare that the value in `params` must be an array of permitted
 scalar values map the key to an empty array:
 
 ```ruby
-params.permit(:id => [])
+params.permit(id: [])
 ```
 
 To whitelist an entire hash of parameters, the `permit!` method can be
@@ -266,9 +266,9 @@ mass-assigned.
 You can also use permit on nested parameters, like:
 
 ```ruby
-params.permit(:name, {:emails => []},
-              :friends => [ :name,
-                            { :family => [ :name ], :hobbies => [] }])
+params.permit(:name, { emails: [] },
+              friends: [ :name,
+                         { family: [ :name ], hobbies: [] }])
 ```
 
 This declaration whitelists the `name`, `emails` and `friends`

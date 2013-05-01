@@ -99,6 +99,9 @@ module ActiveRecord
     # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
+    #
+    # Attributes marked as readonly are silently ignored if the record is
+    # being updated.
     def save(*)
       create_or_update
     rescue ActiveRecord::RecordInvalid
@@ -118,6 +121,9 @@ module ActiveRecord
     # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
     # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
     # ActiveRecord::Callbacks for further details.
+    #
+    # Attributes marked as readonly are silently ignored if the record is
+    # being updated.
     def save!(*)
       create_or_update || raise(RecordNotSaved)
     end
@@ -204,6 +210,8 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
+    # This method raises an +ActiveRecord::ActiveRecordError+  if the
+    # attribute is marked as readonly.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
