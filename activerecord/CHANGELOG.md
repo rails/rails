@@ -1,3 +1,7 @@
+*   Mute `psql` output when running rake db:schema:load.
+
+    *Godfrey Chan*
+
 *   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
 
     Fix #8856.
