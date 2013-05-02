@@ -1,3 +1,12 @@
+*   Add `ActiveRecord::FinderMethods#group_by` method, which collects records into sets, grouped by distinct values for the specified `field`.  This patch leverages `ActiveRecord::Relation` to be far more efficient than `Enumerable#group_by` when selecting based on a column name.
+
+    Example:
+
+        User.group_by('role')
+        # => {"normal" => #<ActiveRecord::Relation [...]>, "admin" => #<ActiveRecord::Relation [...]>}
+
+    *Aidan Feldman*
+
 *   Handle aliased attributes in ActiveRecord::Relation.
 
     When using symbol keys, ActiveRecord will now translate aliased attribute names to the actual column name used in the database:
