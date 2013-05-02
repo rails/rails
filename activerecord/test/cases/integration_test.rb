@@ -11,7 +11,12 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_kind_of String, Client.first.to_param
   end
 
-  def test_to_param_returns_id_even_if_not_persisted
+  def test_to_param_returns_nil_if_not_persisted
+    client = Client.new
+    assert_equal nil, client.to_param
+  end
+
+  def test_to_param_returns_id_if_not_persisted_but_id_is_set
     client = Client.new
     client.id = 1
     assert_equal '1', client.to_param
