@@ -752,7 +752,7 @@ module CallbacksTest
 
   class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
 
-    def test_per_key_option_deprecaton
+    def test_per_key_option_deprecation
       assert_raise NotImplementedError do
         Phone.class_eval do
           set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
