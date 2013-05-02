@@ -59,7 +59,6 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-
     @connection.reconnect!
 
     @connection.transaction do
