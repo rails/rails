@@ -47,7 +47,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists
     assert Topic.exists?(1)
     assert Topic.exists?("1")
-    assert Topic.exists?(:author_name => "David")
+    assert Topic.exists?(title: "The First Topic")
+    assert Topic.exists?(heading: "The First Topic")
     assert Topic.exists?(:author_name => "Mary", :approved => true)
     assert Topic.exists?(["parent_id = ?", 1])
     assert !Topic.exists?(45)
