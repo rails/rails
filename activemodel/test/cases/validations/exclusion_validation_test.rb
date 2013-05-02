@@ -11,14 +11,14 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of
-    Topic.validates_exclusion_of( :title, :in => %w( abe monkey ) )
+    Topic.validates_exclusion_of(:title, in: %w( abe monkey ))
 
     assert Topic.new("title" => "something", "content" => "abc").valid?
     assert Topic.new("title" => "monkey", "content" => "abc").invalid?
   end
 
   def test_validates_exclusion_of_with_formatted_message
-    Topic.validates_exclusion_of( :title, :in => %w( abe monkey ), :message => "option %{value} is restricted" )
+    Topic.validates_exclusion_of(:title, in: %w( abe monkey ), message: "option %{value} is restricted")
 
     assert Topic.new("title" => "something", "content" => "abc")
 
@@ -29,7 +29,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of_with_within_option
-    Topic.validates_exclusion_of( :title, :within => %w( abe monkey ) )
+    Topic.validates_exclusion_of(:title, within: %w( abe monkey ))
 
     assert Topic.new("title" => "something", "content" => "abc")
 
@@ -39,7 +39,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of_for_ruby_class
-    Person.validates_exclusion_of :karma, :in => %w( abe monkey )
+    Person.validates_exclusion_of :karma, in: %w( abe monkey )
 
     p = Person.new
     p.karma = "abe"
@@ -54,7 +54,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of_with_lambda
-    Topic.validates_exclusion_of :title, :in => lambda{ |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
+    Topic.validates_exclusion_of :title, in: lambda { |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
 
     t = Topic.new
     t.title = "elephant"
@@ -66,7 +66,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_inclusion_of_with_symbol
-    Person.validates_exclusion_of :karma, :in => :reserved_karmas
+    Person.validates_exclusion_of :karma, in: :reserved_karmas
 
     p = Person.new
     p.karma = "abe"

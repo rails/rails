@@ -343,7 +343,7 @@ module ActiveModel
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
         def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(:initial_capacity => 4)
+          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(initial_capacity: 4)
         end
 
         def attribute_method_matcher(method_name) #:nodoc:
