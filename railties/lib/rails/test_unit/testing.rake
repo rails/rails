@@ -121,31 +121,17 @@ namespace :test do
 
   Rails::TestTask.new(single: "test:prepare")
 
-  Rails::TestTask.new(models: "test:prepare") do |t|
-    t.pattern = 'test/models/**/*_test.rb'
-  end
-
-  Rails::TestTask.new(helpers: "test:prepare") do |t|
-    t.pattern = 'test/helpers/**/*_test.rb'
+  ["models", "helpers", "controllers", "mailers", "integration"].each do |name|
+    Rails::TestTask.new(name => "test:prepare") do |t|
+      t.pattern = "test/#{name}/**/*_test.rb"
+    end
   end
 
   Rails::TestTask.new(units: "test:prepare") do |t|
     t.pattern = 'test/{models,helpers,unit}/**/*_test.rb'
   end
 
-  Rails::TestTask.new(controllers: "test:prepare") do |t|
-    t.pattern = 'test/controllers/**/*_test.rb'
-  end
-
-  Rails::TestTask.new(mailers: "test:prepare") do |t|
-    t.pattern = 'test/mailers/**/*_test.rb'
-  end
-
   Rails::TestTask.new(functionals: "test:prepare") do |t|
     t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
-  end
-
-  Rails::TestTask.new(integration: "test:prepare") do |t|
-    t.pattern = 'test/integration/**/*_test.rb'
   end
 end
