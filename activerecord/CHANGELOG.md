@@ -1,7 +1,7 @@
 ## unreleased ##
 
 *   Fix pending migrations error when loading schema and ActiveRecord::Base.table_name_prefix
-    it not blank.
+    is not blank.
 
     Fixes #10411.
 
