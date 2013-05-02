@@ -3,7 +3,7 @@ module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
-        super({ :allow_nil => true, :accept => "1" }.merge!(options))
+        super({ allow_nil: true, accept: "1" }.merge!(options))
       end
 
       def validate_each(record, attribute, value)
