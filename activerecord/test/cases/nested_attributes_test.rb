@@ -260,12 +260,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
   end
 
-  def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
-    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find Ship with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
-      @pirate.ship_attributes = { :id => 1234567890 }
-    end
-  end
-
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
     @pirate.reload.ship_attributes = { 'id' => @ship.id, 'name' => 'Davy Jones Gold Dagger' }
 
@@ -373,6 +367,27 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal @ship, @pirate.reload.ship
   end
 
+  def test_should_update_existing_when_update_only_is_true_and_nonmatching_id_is_given
+    @ship.delete
+    @ship = @pirate.create_update_only_ship(name: 'Nights Dirty Lightning')
+
+    @pirate.update(update_only_ship_attributes: { name: 'Mayflower', id: @ship.id + 42 })
+
+    assert_equal 'Mayflower', @ship.reload.name
+    assert_equal @ship, @pirate.reload.ship
+  end
+
+  def test_should_create_new_model_when_update_only_is_false_and_nonmatching_id_is_given
+    @ship.delete
+    @ship = @pirate.reload.create_ship(name: 'Mister Pablo')
+
+    @pirate.update(ship_attributes: { name: 'Flying Dragon', id: @ship.id + 42 })
+
+    @new_ship = @pirate.reload.ship
+    assert_equal 'Flying Dragon', @new_ship.name
+    assert_not_equal @ship, @new_ship
+  end
+
   def test_should_destroy_existing_when_update_only_is_true_and_id_is_given_and_is_marked_for_destruction
     Pirate.accepts_nested_attributes_for :update_only_ship, :update_only => true, :allow_destroy => true
     @ship.delete
@@ -385,7 +400,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     Pirate.accepts_nested_attributes_for :update_only_ship, :update_only => true, :allow_destroy => false
   end
-
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
@@ -443,12 +457,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     assert_equal @pirate, @ship.pirate
     assert_equal 'Arr', @ship.pirate.catchphrase
-  end
-
-  def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
-    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find Pirate with ID=1234567890 for Ship with ID=#{@ship.id}" do
-      @ship.pirate_attributes = { :id => 1234567890 }
-    end
   end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
@@ -655,12 +663,6 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
   end
 
-  def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
-    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
-      @pirate.attributes = { association_getter => [{ :id => 1234567890 }] }
-    end
-  end
-
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
     @pirate.send(@association_name).destroy_all
     @pirate.reload.attributes = {
@@ -731,6 +733,18 @@ module NestedAttributesOnACollectionAssociationTests
       @pirate.update @alternate_params
     end
     assert_equal ['Grace OMalley', 'Privateers Greed', 'Buccaneers Servant'].to_set, @pirate.reload.send(@association_name).map(&:name).to_set
+  end
+
+  def test_should_update_existing_records_and_add_new_ones_that_have_an_id
+    new_id = @pirate.send(@association_name).map(&:id).max + 42
+    @alternate_params[association_getter]['baz'] = { name: 'Buccaneers Servant', id: new_id }
+    assert_difference('@pirate.send(@association_name).count', +1) do
+      @pirate.update @alternate_params
+    end
+
+    assert_equal ['Grace OMalley', 'Privateers Greed', 'Buccaneers Servant'].to_set, @pirate.reload.send(@association_name).map(&:name).to_set
+    assert_nothing_raised(ActiveRecord::RecordNotFound) { @new_bird = @pirate.send(@association_name).where(id: new_id).first }
+    assert_equal('Buccaneers Servant', @new_bird.name)
   end
 
   def test_should_be_possible_to_destroy_a_record

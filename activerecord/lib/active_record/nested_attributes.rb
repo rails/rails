@@ -162,7 +162,24 @@ module ActiveRecord
     #
     #   member.posts.first.title # => '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!'
     #   member.posts.second.title # => '[UPDATED] other post'
+    # 
+    # If the hash contains an <tt>id</tt> key that doesn't match an already
+    # associated record, a new record will be created:
     #
+    #   member.posts.first.title # => 'A Ruby documentation browser!'
+    #   member.posts.last.title # => 'A Ruby documentation browser!'
+    #
+    #   member.attributes = {
+    #     name: 'Joe',
+    #     posts_attributes: [
+    #       { id: 1, title: '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!' },
+    #       { id: 2, title: '[NEW] Brand new post!' }
+    #     ]
+    #   }
+    #
+    #   member.posts.first.title # => '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!'
+    #   member.posts.second.title # => '[NEW] Brand new post!'
+    # 
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
     # hash, you have to enable it first using the <tt>:allow_destroy</tt>
@@ -338,32 +355,40 @@ module ActiveRecord
 
     # Attribute hash keys that should not be assigned as normal attributes.
     # These hash keys are nested attributes implementation details.
-    UNASSIGNABLE_KEYS = %w( id _destroy )
+    UNASSIGNABLE_KEYS = %w( _destroy )
 
     # Assigns the given attributes to the association.
     #
     # If an associated record does not yet exist, one will be instantiated. If
     # an associated record already exists, the method's behavior depends on
     # the value of the update_only option. If update_only is +false+ and the
-    # given attributes include an <tt>:id</tt> that matches the existing record's
-    # id, then the existing record will be modified. If no <tt>:id</tt> is provided
-    # it will be replaced with a new record. If update_only is +true+ the existing
-    # record will be modified regardless of whether an <tt>:id</tt> is provided.
+    # given attributes include a primary key (<tt>:id</tt> by default) that 
+    # matches an existing record, then the existing record will be modified. If 
+    # no primary key is provided, or if the id does not match the existing record,
+    # then the existing record will be replaced with a new one.
     #
-    # If the given attributes include a matching <tt>:id</tt> attribute, or
+    # If update_only is +true+, a new record will only be created when one does
+    # not exist. Otherwise, the existing record will be modified, regardless of
+    # whether a primary key is provided.
+    #
+    # If the given attributes include a matching primary key attribute, or
     # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
+      record = send(association_name)
 
-      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
-          (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
-
-      elsif attributes['id'].present?
-        raise_nested_attributes_record_not_found!(association_name, attributes['id'])
-
+      if record && options[:update_only]
+        unless call_reject_if(association_name, attributes)
+          assign_to_or_mark_for_destruction(record, attributes.except('id'), options[:allow_destroy])
+        end
+        
+      elsif record && (attributes['id'].present? && attributes['id'].to_s == record.id.to_s)
+        unless call_reject_if(association_name, attributes)
+          assign_to_or_mark_for_destruction(record, attributes.except('id'), options[:allow_destroy])
+        end
+      
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
         if respond_to?(method)
@@ -376,11 +401,15 @@ module ActiveRecord
 
     # Assigns the given attributes to the collection association.
     #
-    # Hashes with an <tt>:id</tt> value matching an existing associated record
-    # will update that record. Hashes without an <tt>:id</tt> value will build
-    # a new record for the association. Hashes with a matching <tt>:id</tt>
-    # value and a <tt>:_destroy</tt> key set to a truthy value will mark the
-    # matched record for destruction.
+    # Hashes with a primary key (<tt>:id</tt> by default) value matching an
+    # existing associated record will update that record. Hashes without a
+    # key matching the association's primary key (<tt>:id</tt> by default),
+    # or where the primary key value does not match an existing record
+    # will build a new record for the association.
+    # 
+    # Hashes with a matching primary key value and a 
+    # <tt>:_destroy</tt> key set to a truthy value will mark the matched
+    # record for destruction.
     #
     # For example:
     #
@@ -452,7 +481,9 @@ module ActiveRecord
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else
-          raise_nested_attributes_record_not_found!(association_name, attributes['id'])
+          unless reject_new_record?(association_name, attributes)
+            association.build(attributes.except(*UNASSIGNABLE_KEYS))
+          end
         end
       end
     end
