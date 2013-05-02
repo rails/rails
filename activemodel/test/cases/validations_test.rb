@@ -190,16 +190,16 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_validation_order
     Topic.validates_presence_of :title
-    Topic.validates_length_of :title, :minimum => 2
+    Topic.validates_length_of :title, minimum: 2
 
     t = Topic.new("title" => "")
     assert t.invalid?
     assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
     Topic.validate {errors.add('author_email_address', 'will never be valid')}
-    Topic.validates_length_of :title, :content, :minimum => 2
+    Topic.validates_length_of :title, :content, minimum: 2
 
-    t = Topic.new :title => ''
+    t = Topic.new title: ''
     assert t.invalid?
 
     assert_equal :title, key = t.errors.keys[0]
@@ -214,9 +214,9 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validation_with_if_and_on
-    Topic.validates_presence_of :title, :if => Proc.new{|x| x.author_name = "bad"; true }, :on => :update
+    Topic.validates_presence_of :title, if: Proc.new{|x| x.author_name = "bad"; true }, on: :update
 
-    t = Topic.new(:title => "")
+    t = Topic.new(title: "")
 
     # If block should not fire
     assert t.valid?
@@ -239,7 +239,7 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validation_with_message_as_proc
-    Topic.validates_presence_of(:title, :message => proc { "no blanks here".upcase })
+    Topic.validates_presence_of(:title, message: proc { "no blanks here".upcase })
 
     t = Topic.new
     assert t.invalid?
@@ -248,7 +248,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_list_of_validators_for_model
     Topic.validates_presence_of :title
-    Topic.validates_length_of :title, :minimum => 2
+    Topic.validates_length_of :title, minimum: 2
 
     assert_equal 2, Topic.validators.count
     assert_equal [:presence, :length], Topic.validators.map(&:kind)
@@ -256,7 +256,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_list_of_validators_on_an_attribute
     Topic.validates_presence_of :title, :content
-    Topic.validates_length_of :title, :minimum => 2
+    Topic.validates_length_of :title, minimum: 2
 
     assert_equal 2, Topic.validators_on(:title).count
     assert_equal [:presence, :length], Topic.validators_on(:title).map(&:kind)
@@ -265,13 +265,13 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_accessing_instance_of_validator_on_an_attribute
-    Topic.validates_length_of :title, :minimum => 10
+    Topic.validates_length_of :title, minimum: 10
     assert_equal 10, Topic.validators_on(:title).first.options[:minimum]
   end
 
   def test_list_of_validators_on_multiple_attributes
-    Topic.validates :title, :length => { :minimum => 10 }
-    Topic.validates :author_name, :presence => true, :format => /a/
+    Topic.validates :title, length: { minimum: 10 }
+    Topic.validates :author_name, presence: true, format: /a/
 
     validators = Topic.validators_on(:title, :author_name)
 
@@ -283,7 +283,7 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_list_of_validators_will_be_empty_when_empty
-    Topic.validates :title, :length => { :minimum => 10 }
+    Topic.validates :title, length: { minimum: 10 }
     assert_equal [], Topic.validators_on(:author_name)
   end
 
@@ -300,52 +300,52 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_strict_validation_in_validates
-    Topic.validates :title, :strict => true, :presence => true
+    Topic.validates :title, strict: true, presence: true
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
   end
 
   def test_strict_validation_not_fails
-    Topic.validates :title, :strict => true, :presence => true
-    assert Topic.new(:title => "hello").valid?
+    Topic.validates :title, strict: true, presence: true
+    assert Topic.new(title: "hello").valid?
   end
 
   def test_strict_validation_particular_validator
-    Topic.validates :title,  :presence => { :strict => true }
+    Topic.validates :title, presence: { strict: true }
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
   end
 
   def test_strict_validation_in_custom_validator_helper
-    Topic.validates_presence_of :title, :strict => true
+    Topic.validates_presence_of :title, strict: true
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
   end
 
   def test_strict_validation_custom_exception
-    Topic.validates_presence_of :title, :strict => CustomStrictValidationException
+    Topic.validates_presence_of :title, strict: CustomStrictValidationException
     assert_raises CustomStrictValidationException do
       Topic.new.valid?
     end
   end
 
   def test_validates_with_bang
-    Topic.validates! :title,  :presence => true
+    Topic.validates! :title, presence: true
     assert_raises ActiveModel::StrictValidationFailed do
       Topic.new.valid?
     end
   end
 
   def test_validates_with_false_hash_value
-    Topic.validates :title,  :presence => false
+    Topic.validates :title, presence: false
     assert Topic.new.valid?
   end
 
   def test_strict_validation_error_message
-    Topic.validates :title, :strict => true, :presence => true
+    Topic.validates :title, strict: true, presence: true
 
     exception = assert_raises(ActiveModel::StrictValidationFailed) do
       Topic.new.valid?
@@ -354,9 +354,9 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_does_not_modify_options_argument
-    options = { :presence => true }
+    options = { presence: true }
     Topic.validates :title, options
-    assert_equal({ :presence => true }, options)
+    assert_equal({ presence: true }, options)
   end
 
   def test_dup_validity_is_independent
