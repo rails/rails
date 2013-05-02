@@ -5,6 +5,10 @@ This guide covers how to setup an environment for Ruby on Rails core development
 
 After reading this guide, you will know:
 
+* How to set up your machine for Rails development
+* How to run specific groups of unit tests from the Rails test suite
+* How the ActiveRecord portion of the Rails test suite operates
+
 --------------------------------------------------------------------------------
 
 The Easy Way
