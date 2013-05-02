@@ -100,10 +100,10 @@ module ActiveModel
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-        :terminator => "result == false",
-        :skip_after_callbacks_if_terminated => true,
-        :scope => [:kind, :name],
-        :only => [:before, :around, :after]
+        terminator: "result == false",
+        skip_after_callbacks_if_terminated: true,
+        scope: [:kind, :name],
+        only: [:before, :around, :after]
       }.merge!(options)
 
       types = Array(options.delete(:only))

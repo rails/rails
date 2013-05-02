@@ -20,14 +20,6 @@ module InitializableTests
     end
   end
 
-  module Word
-    include Rails::Initializable
-
-    initializer :word do
-      $word = "bird"
-    end
-  end
-
   class Parent
     include Rails::Initializable
 

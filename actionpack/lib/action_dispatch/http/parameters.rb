@@ -65,7 +65,7 @@ module ActionDispatch
 
         new_hash = {}
         params.each do |k, v|
-          new_key = k.is_a?(String) ? k.dup.force_encoding("UTF-8").encode! : k
+          new_key = k.is_a?(String) ? k.dup.force_encoding(Encoding::UTF_8).encode! : k
           new_hash[new_key] =
             case v
             when Hash

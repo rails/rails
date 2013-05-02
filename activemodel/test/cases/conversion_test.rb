@@ -13,7 +13,7 @@ class ConversionTest < ActiveModel::TestCase
   end
 
   test "to_key default implementation returns the id in an array for persisted records" do
-    assert_equal [1], Contact.new(:id => 1).to_key
+    assert_equal [1], Contact.new(id: 1).to_key
   end
 
   test "to_param default implementation returns nil for new records" do
@@ -21,7 +21,7 @@ class ConversionTest < ActiveModel::TestCase
   end
 
   test "to_param default implementation returns a string of ids for persisted records" do
-    assert_equal "1", Contact.new(:id => 1).to_param
+    assert_equal "1", Contact.new(id: 1).to_param
   end
 
   test "to_partial_path default implementation returns a string giving a relative path" do
