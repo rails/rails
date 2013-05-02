@@ -227,7 +227,7 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("psql -f #{filename} my-app-db")
+      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end

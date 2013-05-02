@@ -434,7 +434,7 @@ end
 
 Note that the default error messages are plural (e.g., "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a personalized message or use `validates_presence_of` instead. When
+provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
 
@@ -768,6 +768,7 @@ class Person < ActiveRecord::Base
   validates :name, presence: true, on: :save
 end
 ```
+The last line is in review state and as of now, it is not running in any version of Rails 3.2.x as discussed in this [issue](https://github.com/rails/rails/issues/10248)
 
 Strict Validations
 ------------------

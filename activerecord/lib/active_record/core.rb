@@ -352,7 +352,9 @@ module ActiveRecord
 
     # Returns the contents of the record as a nicely formatted string.
     def inspect
-      inspection = if @attributes
+      # We check defined?(@attributes) not to issue warnings if the object is
+      # allocated but not initialized.
+      inspection = if defined?(@attributes) && @attributes
                      self.class.column_names.collect { |name|
                        if has_attribute?(name)
                          "#{name}: #{attribute_for_inspect(name)}"

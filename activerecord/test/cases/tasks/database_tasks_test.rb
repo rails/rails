@@ -305,4 +305,11 @@ module ActiveRecord
       end
     end
   end
+
+  class DatabaseTasksCheckSchemaFileTest < ActiveRecord::TestCase
+    def test_check_schema_file
+      Kernel.expects(:abort).with(regexp_matches(/awesome-file.sql/))
+      ActiveRecord::Tasks::DatabaseTasks.check_schema_file("awesome-file.sql")
+    end
+  end
 end

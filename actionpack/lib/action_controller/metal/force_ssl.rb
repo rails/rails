@@ -61,8 +61,9 @@ module ActionController
       #                         will be called only when it returns a false value.
       def force_ssl(options = {})
         action_options = options.slice(*ACTION_OPTIONS)
+        redirect_options = options.except(*ACTION_OPTIONS)
         before_action(action_options) do
-          force_ssl_redirect(options.except(*ACTION_OPTIONS))
+          force_ssl_redirect(redirect_options)
         end
       end
     end
