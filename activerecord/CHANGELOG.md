@@ -941,6 +941,11 @@
 
     *Aaron Stone*
 
+*   Allow setting of all libpq connection parameters through the PostgreSQL adapter. See also:
+    http://www.postgresql.org/docs/9.2/static/libpq-connect.html#LIBPQ-PARAMKEYWORDS
+
+    *Lars Kanis*
+
 *   Allow `Relation#where` with no arguments to be chained with new `not` query method.
 
     Example:
