@@ -50,6 +50,18 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     u.reload
     assert_not_nil u.other_uuid
   end
+
+  def test_pk_and_sequence_for_uuid_primary_key
+    pk, seq = @connection.pk_and_sequence_for('pg_uuids')
+    assert_equal 'id', pk
+    assert_equal nil, seq
+  end
+
+  def test_schema_dumper_for_uuid_primary_key
+    schema = StringIO.new
+    ActiveRecord::SchemaDumper.dump(@connection, schema)
+    assert_match /\bcreate_table "pg_uuids", id: :uuid\b/, schema.string
+  end
 end
 
 class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
