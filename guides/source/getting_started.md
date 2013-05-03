@@ -29,7 +29,7 @@ prerequisites installed:
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
 curve diving straight into Rails. There are some good free resources on the
-internet for learning Ruby, including:
+Internet for learning Ruby, including:
 
 * [Mr. Neighborly's Humble Little Ruby Book](http://www.humblelittlerubybook.com)
 * [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)
