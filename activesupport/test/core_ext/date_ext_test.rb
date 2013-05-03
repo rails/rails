@@ -357,11 +357,6 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
       Date.today.freeze.freeze
     end
   end
-
-  def test_compare_with_infinity
-    assert_equal(-1, Date.today <=> Float::INFINITY)
-    assert_equal(1, Date.today <=> -Float::INFINITY)
-  end
 end
 
 class DateExtConversionsTest < ActiveSupport::TestCase
