@@ -14,6 +14,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
       remove_method :execute
       alias_method :execute, :execute_without_stub
     end
+    ActiveRecord::Base.connection.reconnect!
   end
 
   def test_add_index
