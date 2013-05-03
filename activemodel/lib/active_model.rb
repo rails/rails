@@ -40,6 +40,7 @@ module ActiveModel
   autoload :DeprecatedMassAssignmentSecurity
   autoload :Name, 'active_model/naming'
   autoload :Naming
+  autoload :OneTimePassword
   autoload :SecurePassword
   autoload :Serialization
   autoload :TestCase
