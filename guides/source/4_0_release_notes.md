@@ -22,7 +22,7 @@ Creating a Rails 4.0 application
 --------------------------------
 
 ```
- You should have the 'rails' rubygem installed
+ You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
@@ -113,7 +113,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to protect attributes from mass assignment when non-permitted attributes are passed.
 
-*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with ActionPack out of box.
+*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with
+    Action Pack out of box.
 
 ### Deprecations
 
@@ -142,7 +143,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
 
-*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby stdlib.
+*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby standard library.
 
 *   Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 
