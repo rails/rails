@@ -1,3 +1,24 @@
+*   Do not overwrite manually built records during one-to-one nested attribute assignment
+
+    For one-to-one nested associations, if you build the new (in-memory)
+    child object yourself before assignment, then the NestedAttributes
+    module will not overwrite it, e.g.:
+
+        class Member < ActiveRecord::Base
+          has_one :avatar
+          accepts_nested_attributes_for :avatar
+
+          def avatar
+            super || build_avatar(width: 200)
+          end
+        end
+
+        member = Member.new
+        member.avatar_attributes = {icon: 'sad'}
+        member.avatar.width # => 200
+
+    *Olek Janiszewski*
+
 *   fixes bug introduced by #3329.  Now, when autosaving associations,
     deletions happen before inserts and saves.  This prevents a 'duplicate
     unique value' database error that would occur if a record being created had
