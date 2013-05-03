@@ -141,19 +141,6 @@
 
     *Kelly Stannard*
 
-*   It's now possible to compare `Date`, `DateTime`, `Time` and `TimeWithZone`
-    with `Float::INFINITY`. This allows to create date/time ranges with one infinite bound.
-    Example:
-
-        range = Range.new(Date.today, Float::INFINITY)
-
-    Also it's possible to check inclusion of date/time in range with conversion.
-
-        range.include?(Time.now + 1.year)     # => true
-        range.include?(DateTime.now + 1.year) # => true
-
-    *Alexander Grebennik*
-
 *   Remove meaningless `ActiveSupport::FrozenObjectError`, which was just an alias of `RuntimeError`.
 
     *Akira Matsuda*
