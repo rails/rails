@@ -8,6 +8,8 @@ module Rails
 
       class_option :stylesheets, :type => :boolean, :desc => "Generate Stylesheets"
       class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
+      class_option :assets, :type => :boolean
+      class_option :resource_route, :type => :boolean
 
       hook_for :scaffold_controller, :required => true
 
