@@ -83,7 +83,10 @@ module ActiveSupport
     end
 
     def drain
-      @queue.pop.run until @queue.empty?
+      while job = @queue.pop(true)
+        job.run
+      end
+    rescue ThreadError
     end
 
     def consume

@@ -24,6 +24,11 @@ class TestThreadConsumer < ActiveSupport::TestCase
     @queue.drain
   end
 
+  def test_nil_job_is_ok
+    @queue << nil
+    assert_nil @queue.drain
+  end
+
   test "the jobs are executed" do
     ran = false
     job = Job.new { ran = true }
