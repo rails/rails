@@ -31,6 +31,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_symbols_table_ref
+    Post.first # warm up
+    x = Symbol.all_symbols.count
+    Post.where("title" => {"xxxqqqq" => "bar"})
+    assert_equal x, Symbol.all_symbols.count
+  end
+
   # find should handle strings that come from URLs
   # (example: Category.find(params[:id]))
   def test_find_with_string
@@ -40,7 +47,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists
     assert Topic.exists?(1)
     assert Topic.exists?("1")
-    assert Topic.exists?(:author_name => "David")
+    assert Topic.exists?(title: "The First Topic")
+    assert Topic.exists?(heading: "The First Topic")
     assert Topic.exists?(:author_name => "Mary", :approved => true)
     assert Topic.exists?(["parent_id = ?", 1])
     assert !Topic.exists?(45)
@@ -833,6 +841,8 @@ class FinderTest < ActiveRecord::TestCase
     rescue ActiveRecord::RecordNotFound => e
       assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
     end
+  ensure
+    Toy.reset_primary_key
   end
 
   def test_finder_with_offset_string

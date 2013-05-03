@@ -57,8 +57,8 @@ namespace :doc do
 
   # desc "Generate Rails Guides"
   task :guides do
-    # FIXME: Reaching outside lib directory is a bad idea
-    require File.expand_path('../../../../../guides/rails_guides', __FILE__)
+    rails_gem_dir = Gem::Specification.find_by_name("rails").gem_dir
+    require File.expand_path(File.join(rails_gem_dir, "/guides/rails_guides"))
     RailsGuides::Generator.new(Rails.root.join("doc/guides")).generate
   end
 end

@@ -7,6 +7,6 @@ class Automobile
 
   def validations
     validates_presence_of :make
-    validates_length_of   :model, :within => 2..10
+    validates_length_of   :model, within: 2..10
   end
 end

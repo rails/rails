@@ -9,8 +9,8 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Validates whether the associated object or objects are all valid
-      # themselves. Works with any kind of association.
+      # Validates whether the associated object or objects are all valid.
+      # Works with any kind of association.
       #
       #   class Book < ActiveRecord::Base
       #     has_many :pages

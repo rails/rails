@@ -14,8 +14,42 @@ class ForceSSLControllerLevel < ForceSSLController
   force_ssl
 end
 
-class ForceSSLCustomDomain < ForceSSLController
-  force_ssl :host => "secure.test.host"
+class ForceSSLCustomOptions < ForceSSLController
+  force_ssl :host => "secure.example.com", :only => :redirect_host
+  force_ssl :port => 8443, :only => :redirect_port
+  force_ssl :subdomain => 'secure', :only => :redirect_subdomain
+  force_ssl :domain => 'secure.com', :only => :redirect_domain
+  force_ssl :path => '/foo', :only => :redirect_path
+  force_ssl :status => :found, :only => :redirect_status
+  force_ssl :flash => { :message => 'Foo, Bar!' }, :only => :redirect_flash
+  force_ssl :alert => 'Foo, Bar!', :only => :redirect_alert
+  force_ssl :notice => 'Foo, Bar!', :only => :redirect_notice
+
+  def force_ssl_action
+    render :text => action_name
+  end
+
+  alias_method :redirect_host, :force_ssl_action
+  alias_method :redirect_port, :force_ssl_action
+  alias_method :redirect_subdomain, :force_ssl_action
+  alias_method :redirect_domain, :force_ssl_action
+  alias_method :redirect_path, :force_ssl_action
+  alias_method :redirect_status, :force_ssl_action
+  alias_method :redirect_flash, :force_ssl_action
+  alias_method :redirect_alert, :force_ssl_action
+  alias_method :redirect_notice, :force_ssl_action
+
+  def use_flash
+    render :text => flash[:message]
+  end
+
+  def use_alert
+    render :text => flash[:alert]
+  end
+
+  def use_notice
+    render :text => flash[:notice]
+  end
 end
 
 class ForceSSLOnlyAction < ForceSSLController
@@ -80,19 +114,77 @@ class ForceSSLControllerLevelTest < ActionController::TestCase
   end
 end
 
-class ForceSSLCustomDomainTest < ActionController::TestCase
-  tests ForceSSLCustomDomain
+class ForceSSLCustomOptionsTest < ActionController::TestCase
+  tests ForceSSLCustomOptions
 
-  def test_banana_redirects_to_https_with_custom_host
-    get :banana
-    assert_response 301
-    assert_equal "https://secure.test.host/force_ssl_custom_domain/banana", redirect_to_url
+  def setup
+    @request.env['HTTP_HOST'] = 'www.example.com:80'
   end
 
-  def test_cheeseburger_redirects_to_https_with_custom_host
-    get :cheeseburger
+  def test_redirect_to_custom_host
+    get :redirect_host
     assert_response 301
-    assert_equal "https://secure.test.host/force_ssl_custom_domain/cheeseburger", redirect_to_url
+    assert_equal "https://secure.example.com/force_ssl_custom_options/redirect_host", redirect_to_url
+  end
+
+  def test_redirect_to_custom_port
+    get :redirect_port
+    assert_response 301
+    assert_equal "https://www.example.com:8443/force_ssl_custom_options/redirect_port", redirect_to_url
+  end
+
+  def test_redirect_to_custom_subdomain
+    get :redirect_subdomain
+    assert_response 301
+    assert_equal "https://secure.example.com/force_ssl_custom_options/redirect_subdomain", redirect_to_url
+  end
+
+  def test_redirect_to_custom_domain
+    get :redirect_domain
+    assert_response 301
+    assert_equal "https://www.secure.com/force_ssl_custom_options/redirect_domain", redirect_to_url
+  end
+
+  def test_redirect_to_custom_path
+    get :redirect_path
+    assert_response 301
+    assert_equal "https://www.example.com/foo", redirect_to_url
+  end
+
+  def test_redirect_to_custom_status
+    get :redirect_status
+    assert_response 302
+    assert_equal "https://www.example.com/force_ssl_custom_options/redirect_status", redirect_to_url
+  end
+
+  def test_redirect_to_custom_flash
+    get :redirect_flash
+    assert_response 301
+    assert_equal "https://www.example.com/force_ssl_custom_options/redirect_flash", redirect_to_url
+
+    get :use_flash
+    assert_response 200
+    assert_equal "Foo, Bar!", @response.body
+  end
+
+  def test_redirect_to_custom_alert
+    get :redirect_alert
+    assert_response 301
+    assert_equal "https://www.example.com/force_ssl_custom_options/redirect_alert", redirect_to_url
+
+    get :use_alert
+    assert_response 200
+    assert_equal "Foo, Bar!", @response.body
+  end
+
+  def test_redirect_to_custom_notice
+    get :redirect_notice
+    assert_response 301
+    assert_equal "https://www.example.com/force_ssl_custom_options/redirect_notice", redirect_to_url
+
+    get :use_notice
+    assert_response 200
+    assert_equal "Foo, Bar!", @response.body
   end
 end
 
@@ -149,13 +241,76 @@ class ForceSSLFlashTest < ActionController::TestCase
     assert_response 302
     assert_equal "http://test.host/force_ssl_flash/cheeseburger", redirect_to_url
 
+    # FIXME: AC::TestCase#build_request_uri doesn't build a new uri if PATH_INFO exists
+    @request.env.delete('PATH_INFO')
+
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_flash/cheeseburger", redirect_to_url
 
+    # FIXME: AC::TestCase#build_request_uri doesn't build a new uri if PATH_INFO exists
+    @request.env.delete('PATH_INFO')
+
     get :use_flash
     assert_equal "hello", assigns["flash_copy"]["that"]
     assert_equal "hello", assigns["flashy"]
+  end
+end
+
+class ForceSSLDuplicateRoutesTest < ActionController::TestCase
+  tests ForceSSLControllerLevel
+
+  def test_force_ssl_redirects_to_same_path
+    with_routing do |set|
+      set.draw do
+        get '/foo', :to => 'force_ssl_controller_level#banana'
+        get '/bar', :to => 'force_ssl_controller_level#banana'
+      end
+
+      @request.env['PATH_INFO'] = '/bar'
+
+      get :banana
+      assert_response 301
+      assert_equal 'https://test.host/bar', redirect_to_url
+    end
+  end
+end
+
+class ForceSSLFormatTest < ActionController::TestCase
+  tests ForceSSLControllerLevel
+
+  def test_force_ssl_redirects_to_same_format
+    with_routing do |set|
+      set.draw do
+        get '/foo', :to => 'force_ssl_controller_level#banana'
+      end
+
+      get :banana, :format => :json
+      assert_response 301
+      assert_equal 'https://test.host/foo.json', redirect_to_url
+    end
+  end
+end
+
+class ForceSSLOptionalSegmentsTest < ActionController::TestCase
+  tests ForceSSLControllerLevel
+
+  def test_force_ssl_redirects_to_same_format
+    with_routing do |set|
+      set.draw do
+        scope '(:locale)' do
+          defaults :locale => 'en' do
+            get '/foo', :to => 'force_ssl_controller_level#banana'
+          end
+        end
+      end
+
+      @request.env['PATH_INFO'] = '/en/foo'
+      get :banana, :locale => 'en'
+      assert_equal 'en',  @controller.params[:locale]
+      assert_response 301
+      assert_equal 'https://test.host/en/foo', redirect_to_url
+    end
   end
 end
 

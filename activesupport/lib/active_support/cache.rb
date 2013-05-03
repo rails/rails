@@ -56,16 +56,7 @@ module ActiveSupport
 
         case store
         when Symbol
-          store_class_name = store.to_s.camelize
-          store_class =
-            begin
-              require "active_support/cache/#{store}"
-            rescue LoadError => e
-              raise "Could not find cache store adapter for #{store} (#{e})"
-            else
-              ActiveSupport::Cache.const_get(store_class_name)
-            end
-          store_class.new(*parameters)
+          retrieve_store_class(store).new(*parameters)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
@@ -73,6 +64,18 @@ module ActiveSupport
         end
       end
 
+      # Expands out the +key+ argument into a key that can be used for the
+      # cache store. Optionally accepts a namespace, and all keys will be
+      # scoped within that namespace.
+      #
+      # If the +key+ argument provided is an array, or responds to +to_a+, then
+      # each of elements in the array will be turned into parameters/keys and
+      # concatenated into a single key. For example:
+      #
+      #   expand_cache_key([:foo, :bar])               # => "foo/bar"
+      #   expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
+      #
+      # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
         expanded_cache_key = namespace ? "#{namespace}/" : ""
 
@@ -93,6 +96,16 @@ module ActiveSupport
         when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
         else                                  key.to_param
         end.to_s
+      end
+
+      # Obtains the specified cache store class, given the name of the +store+.
+      # Raises an error when the store class cannot be found.
+      def retrieve_store_class(store)
+        require "active_support/cache/#{store}"
+      rescue LoadError => e
+        raise "Could not find cache store adapter for #{store} (#{e})"
+      else
+        ActiveSupport::Cache.const_get(store.to_s.camelize)
       end
     end
 

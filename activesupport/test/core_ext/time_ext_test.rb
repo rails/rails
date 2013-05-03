@@ -855,10 +855,3 @@ class TimeExtMarshalingTest < ActiveSupport::TestCase
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 5, 31).last_quarter
   end
 end
-
-class TimeExtBehaviorTest < ActiveSupport::TestCase
-  def test_compare_with_infinity
-    assert_equal(-1, Time.now <=> Float::INFINITY)
-    assert_equal(1, Time.now <=> -Float::INFINITY)
-  end
-end

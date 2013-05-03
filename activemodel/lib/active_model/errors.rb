@@ -231,7 +231,7 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      to_a.to_xml({ :root => "errors", :skip_types => true }.merge!(options))
+      to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
     end
 
     # Returns a Hash that can be used as the JSON representation for this
@@ -370,11 +370,11 @@ module ActiveModel
     def full_message(attribute, message)
       return message if attribute == :base
       attr_name = attribute.to_s.tr('.', '_').humanize
-      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
       I18n.t(:"errors.format", {
-        :default   => "%{attribute} %{message}",
-        :attribute => attr_name,
-        :message   => message
+        default:  "%{attribute} %{message}",
+        attribute: attr_name,
+        message:   message
       })
     end
 
@@ -426,10 +426,10 @@ module ActiveModel
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {
-        :default => defaults,
-        :model => @base.class.model_name.human,
-        :attribute => @base.class.human_attribute_name(attribute),
-        :value => value
+        default: defaults,
+        model: @base.class.model_name.human,
+        attribute: @base.class.human_attribute_name(attribute),
+        value: value
       }.merge!(options)
 
       I18n.translate(key, options)

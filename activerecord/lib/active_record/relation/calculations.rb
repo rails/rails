@@ -27,7 +27,7 @@ module ActiveRecord
     # Calculates the average value on a given column. Returns +nil+ if there's
     # no row. See +calculate+ for examples with options.
     #
-    #   Person.average('age') # => 35.8
+    #   Person.average(:age) # => 35.8
     def average(column_name, options = {})
       calculate(:average, column_name, options)
     end
@@ -36,7 +36,7 @@ module ActiveRecord
     # with the same data type of the column, or +nil+ if there's no row. See
     # +calculate+ for examples with options.
     #
-    #   Person.minimum('age') # => 7
+    #   Person.minimum(:age) # => 7
     def minimum(column_name, options = {})
       calculate(:minimum, column_name, options)
     end
@@ -45,7 +45,7 @@ module ActiveRecord
     # with the same data type of the column, or +nil+ if there's no row. See
     # +calculate+ for examples with options.
     #
-    #   Person.maximum('age') # => 93
+    #   Person.maximum(:age) # => 93
     def maximum(column_name, options = {})
       calculate(:maximum, column_name, options)
     end
@@ -54,7 +54,7 @@ module ActiveRecord
     # with the same data type of the column, 0 if there's no row. See
     # +calculate+ for examples with options.
     #
-    #   Person.sum('age') # => 4562
+    #   Person.sum(:age) # => 4562
     def sum(*args)
       if block_given?
         ActiveSupport::Deprecation.warn(
@@ -100,6 +100,10 @@ module ActiveRecord
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
       relation = with_default_scope
+
+      if column_name.is_a?(Symbol) && attribute_aliases.key?(column_name.to_s)
+        column_name = attribute_aliases[column_name.to_s].to_sym
+      end
 
       if relation.equal?(self)
         if has_include?(column_name)
@@ -149,11 +153,17 @@ module ActiveRecord
     #
     def pluck(*column_names)
       column_names.map! do |column_name|
-        if column_name.is_a?(Symbol) && self.column_names.include?(column_name.to_s)
-          "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
-        else
-          column_name
+        if column_name.is_a?(Symbol)
+          if attribute_aliases.key?(column_name.to_s)
+            column_name = attribute_aliases[column_name.to_s].to_sym
+          end
+
+          if self.columns_hash.key?(column_name.to_s)
+            column_name = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
+          end
         end
+
+        column_name
       end
 
       if has_include?(column_names.first)

@@ -17,7 +17,8 @@ module ActiveRecord
   # be destroyed directly. They will however still be marked for destruction.
   #
   # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
-  # When the <tt>:autosave</tt> option is not present new associations are saved.
+  # When the <tt>:autosave</tt> option is not present then new association records are
+  # saved but the updated association records are not saved.
   #
   # == Validation
   #
@@ -334,15 +335,18 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          records_to_destroy = []
+
+          if autosave
+            records_to_destroy = records.select(&:marked_for_destruction?)
+            records_to_destroy.each { |record| association.destroy(record) }
+            records -= records_to_destroy
+          end
+
           records.each do |record|
-            next if record.destroyed?
 
             saved = true
 
-            if autosave && record.marked_for_destruction?
-              records_to_destroy << record
-            elsif autosave != false && (@new_record_before_save || record.new_record?)
+            if autosave != false && (@new_record_before_save || record.new_record?)
               if autosave
                 saved = association.insert_record(record, false)
               else
@@ -353,10 +357,6 @@ module ActiveRecord
             end
 
             raise ActiveRecord::Rollback unless saved
-          end
-
-          records_to_destroy.each do |record|
-            association.destroy(record)
           end
         end
 
