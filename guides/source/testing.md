@@ -85,8 +85,8 @@ ERB allows you to embed Ruby code within templates. The YAML fixture format is p
 ```erb
 <% 1000.times do |n| %>
 user_<%= n %>:
-  username: <%= "user%03d" % n %>
-  email: <%= "user%03d@example.com" % n %>
+  username: <%= "user#{n}" %>
+  email: <%= "user#{n}@example.com" %>
 <% end %>
 ```
 
@@ -159,9 +159,10 @@ class PostTest < ActiveSupport::TestCase
 
 The `PostTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `PostTest` thus has all the methods available from `ActiveSupport::TestCase`. You'll see those methods a little later in this guide.
 
-Any method defined within a `Test::Unit` test case that begins with `test` (case sensitive) is simply called a test. So, `test_password`, `test_valid_password` and `testValidPassword` all are legal test names and are run automatically when the test case is run.
+Any method defined within a class inherited from `MiniTest::Unit::TestCase` 
+(which is the superclass of `ActiveSupport::TestCase`) that begins with `test` (case sensitive) is simply called a test. So, `test_password`, `test_valid_password` and `testValidPassword` all are legal test names and are run automatically when the test case is run.
 
-Rails adds a `test` method that takes a test name and a block. It generates a normal `Test::Unit` test with method names prefixed with `test_`. So,
+Rails adds a `test` method that takes a test name and a block. It generates a normal `MiniTest::Unit` test with method names prefixed with `test_`. So,
 
 ```ruby
 test "the truth" do
@@ -346,31 +347,38 @@ NOTE: The execution of each test method stops as soon as any error or an asserti
 
 Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
 
-### Assertions Available
+### Available Assertions
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
-There are a bunch of different types of assertions you can use. Here's the complete list of assertions that ship with `test/unit`, the default testing library used by Rails. The `[msg]` parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
+There are a bunch of different types of assertions you can use.
+Here's an extract of the assertions you can use with `minitest`, the default testing library used by Rails. The `[msg]` parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
 
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
-| `assert( boolean, [msg] )`                                       | Ensures that the object/expression is true.|
+| `assert( test, [msg] )`                                          | Ensures that `test` is true.|
+| `refute( test, [msg] )`                                          | Ensures that `test` is false.|
 | `assert_equal( expected, actual, [msg] )`                        | Ensures that `expected == actual` is true.|
-| `assert_not_equal( expected, actual, [msg] )`                    | Ensures that `expected != actual` is true.|
+| `refute_equal( expected, actual, [msg] )`                        | Ensures that `expected != actual` is true.|
 | `assert_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is true.|
-| `assert_not_same( expected, actual, [msg] )`                     | Ensures that `!expected.equal?(actual)` is true.|
+| `refute_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is false.|
 | `assert_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is true.|
-| `assert_not_nil( obj, [msg] )`                                   | Ensures that `!obj.nil?` is true.|
+| `refute_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is false.|
 | `assert_match( regexp, string, [msg] )`                          | Ensures that a string matches the regular expression.|
-| `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
-| `assert_in_delta( expecting, actual, delta, [msg] )`             | Ensures that the numbers `expecting` and `actual` are within `delta` of each other.|
+| `refute_match( regexp, string, [msg] )`                          | Ensures that a string doesn't match the regular expression.|
+| `assert_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
+| `refute_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
-| `assert_raise( exception1, exception2, ... ) { block }`          | Ensures that the given block raises one of the given exceptions.|
+| `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
-| `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is of the `class` type.|
+| `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
+| `refute_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class`.|
 | `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
-| `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` has a method called `symbol`.|
-| `assert_operator( obj1, operator, obj2, [msg] )`                 | Ensures that `obj1.operator(obj2)` is true.|
+| `refute_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is not an instance of `class` and is not descending from it.|
+| `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
+| `refute_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` does not respond to `symbol`.|
+| `assert_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is true.|
+| `refute_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
@@ -475,7 +483,7 @@ NOTE: Functional tests do not verify whether the specified request type should b
 
 ### The Four Hashes of the Apocalypse
 
-After a request has been made by using one of the 5 methods (`get`, `post`, etc.) and processed, you will have 4 Hash objects ready for use:
+After a request has been made using one of the 6 methods (`get`, `post`, etc.) and processed, you will have 4 Hash objects ready for use:
 
 * `assigns` - Any objects that are stored as instance variables in actions for use in views.
 * `cookies` - Any cookies that are set.

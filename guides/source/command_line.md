@@ -201,7 +201,7 @@ Usage:
 
 ...
 
-ActiveRecord options:
+Active Record options:
       [--migration]            # Indicates when to generate migration
                                # Default: true
 

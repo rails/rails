@@ -17,7 +17,8 @@ module ActiveRecord
   # be destroyed directly. They will however still be marked for destruction.
   #
   # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
-  # When the <tt>:autosave</tt> option is not present new associations are saved.
+  # When the <tt>:autosave</tt> option is not present then new association records are
+  # saved but the updated association records are not saved.
   #
   # == Validation
   #
