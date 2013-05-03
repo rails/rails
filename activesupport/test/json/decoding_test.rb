@@ -62,21 +62,25 @@ class TestJSONDecoding < ActiveSupport::TestCase
   backends.each do |backend|
     TESTS.each do |json, expected|
       test "json decodes #{json} with the #{backend} backend" do
+        prev = ActiveSupport.parse_json_times
         ActiveSupport.parse_json_times = true
         silence_warnings do
           ActiveSupport::JSON.with_backend backend do
             assert_equal expected, ActiveSupport::JSON.decode(json)
           end
         end
+        ActiveSupport.parse_json_times = prev
       end
     end
 
     test "json decodes time json with time parsing disabled with the #{backend} backend" do
+      prev = ActiveSupport.parse_json_times
       ActiveSupport.parse_json_times = false
       expected = {"a" => "2007-01-01 01:12:34 Z"}
       ActiveSupport::JSON.with_backend backend do
         assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
       end
+      ActiveSupport.parse_json_times = prev
     end
   end
 
