@@ -168,6 +168,13 @@ module ActiveRecord
         @reflection = @owner.class.reflect_on_association(reflection_name)
       end
 
+      def initialize_attributes(record) #:nodoc:
+        skip_assign = [reflection.foreign_key, reflection.type].compact
+        attributes = create_scope.except(*(record.changed - skip_assign))
+        record.assign_attributes(attributes)
+        set_inverse_instance(record)
+      end
+
       private
 
         def find_target?
@@ -237,10 +244,7 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            skip_assign = [reflection.foreign_key, reflection.type].compact
-            attributes = create_scope.except(*(record.changed - skip_assign))
-            record.assign_attributes(attributes)
-            set_inverse_instance(record)
+            initialize_attributes(record)
           end
         end
     end
