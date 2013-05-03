@@ -132,10 +132,6 @@ module ActiveSupport
         @@_callback_sequence += 1
       end
 
-      def object_filter?
-        @_is_object_filter
-      end
-
       def matches?(_kind, _filter)
         if @_is_object_filter
           _filter_matches = @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
@@ -341,7 +337,6 @@ module ActiveSupport
           :terminator => "false",
           :scope => [ :kind ]
         }.merge!(config)
-        @callbacks_hash = Hash.new { |h, k| h[k] = [] }
       end
 
       def compile
@@ -366,37 +361,20 @@ module ActiveSupport
 
       private
 
-        def append_one(callback)
-          handle_duplicates(callback)
-          push(callback)
-        end
+      def append_one(callback)
+        remove_duplicates(callback)
+        push(callback)
+      end
 
-        def prepend_one(callback)
-          handle_duplicates(callback)
-          unshift(callback)
-        end
+      def prepend_one(callback)
+        remove_duplicates(callback)
+        unshift(callback)
+      end
 
-        # We check to see if this callback already exists. If it does (i.e. if
-        # +callback.duplicates?(c)+ for any callback +c+ in the list of
-        # callbacks), then we delete the previously defined callback.
-        #
-        # We make use of the rep-invariant that only one callback exists which
-        # might match the new callback. The +@callbacks_hash+ is keyed on the
-        # +kind+ and +filter+ of the callback, the attributes used to check if
-        # two callbacks match.
-        def handle_duplicates(callback)
-          if callback.object_filter?
-            scan_and_remove_duplicates(callback)
-          else
-            hash_key = [callback.kind, callback.filter]
-            delete @callbacks_hash[hash_key] if @callbacks_hash[hash_key]
-            @callbacks_hash[hash_key] = callback
-          end
-        end
+      def remove_duplicates(callback)
+        delete_if { |c| callback.duplicates?(c) }
+      end
 
-        def scan_and_remove_duplicates(callback)
-          delete_if { |c| callback.duplicates?(c) }
-        end
     end
 
     module ClassMethods
