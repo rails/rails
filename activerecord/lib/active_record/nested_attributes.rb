@@ -229,6 +229,23 @@ module ActiveRecord
     #     belongs_to :member, inverse_of: :posts
     #     validates_presence_of :member
     #   end
+    #
+    # For one-to-one nested associations, if you build the new (in-memory)
+    # child object yourself before assignment, then this module will not
+    # overwrite it, e.g.:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_one :avatar
+    #     accepts_nested_attributes_for :avatar
+    #
+    #     def avatar
+    #       super || build_avatar(width: 200)
+    #     end
+    #   end
+    #
+    #   member = Member.new
+    #   member.avatar_attributes = {icon: 'sad'}
+    #   member.avatar.width # => 200
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
 
@@ -356,20 +373,28 @@ module ActiveRecord
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
+      existing_record = send(association_name)
 
-      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
-          (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
+      if (options[:update_only] || !attributes['id'].blank?) && existing_record &&
+          (options[:update_only] || existing_record.id.to_s == attributes['id'].to_s)
+        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
       elsif attributes['id'].present?
         raise_nested_attributes_record_not_found!(association_name, attributes['id'])
 
       elsif !reject_new_record?(association_name, attributes)
-        method = "build_#{association_name}"
-        if respond_to?(method)
-          send(method, attributes.except(*UNASSIGNABLE_KEYS))
+        assignable_attributes = attributes.except(*UNASSIGNABLE_KEYS)
+
+        if existing_record && existing_record.new_record?
+          existing_record.assign_attributes(assignable_attributes)
+          association(association_name).initialize_attributes(existing_record)
         else
-          raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+          method = "build_#{association_name}"
+          if respond_to?(method)
+            send(method, assignable_attributes)
+          else
+            raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+          end
         end
       end
     end
