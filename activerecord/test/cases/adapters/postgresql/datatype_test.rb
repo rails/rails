@@ -281,7 +281,6 @@ _SQL
     tz = ::ActiveRecord::Base.default_timezone
     assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 0)..Time.send(tz, 2011, 1, 1, 14, 30, 0), @first_range.ts_range
     assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 1, 1, 14, 30, 0), @second_range.ts_range
-    assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 0)...Float::INFINITY, @third_range.ts_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.ts_range)
     assert_equal nil, @empty_range.ts_range
   end
@@ -290,7 +289,6 @@ _SQL
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     assert_equal Time.parse('2010-01-01 09:30:00 UTC')..Time.parse('2011-01-01 17:30:00 UTC'), @first_range.tstz_range
     assert_equal Time.parse('2010-01-01 09:30:00 UTC')...Time.parse('2011-01-01 17:30:00 UTC'), @second_range.tstz_range
-    assert_equal Time.parse('2010-01-01 09:30:00 UTC')...Float::INFINITY, @third_range.tstz_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.tstz_range)
     assert_equal nil, @empty_range.tstz_range
   end
