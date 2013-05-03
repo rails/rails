@@ -19,6 +19,9 @@ module ActiveSupport
 
       def record(*args)
       end
+
+      def info_signal
+      end
     end
 
     def test_standard_error_raised_within_setup_callback_is_puked

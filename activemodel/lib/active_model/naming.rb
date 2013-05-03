@@ -129,7 +129,7 @@ module ActiveModel
     #
     # Equivalent to +to_s+.
     delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
-             :to_str, :to => :name
+             :to_str, to: :name
 
     # Returns a new ActiveModel::Name instance. By default, the +namespace+
     # and +name+ option will take the namespace and name of the given class
@@ -183,7 +183,7 @@ module ActiveModel
       defaults << options[:default] if options[:default]
       defaults << @human
 
-      options = { :scope => [@klass.i18n_scope, :models], :count => 1, :default => defaults }.merge!(options.except(:default))
+      options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
       I18n.translate(defaults.shift, options)
     end
 
