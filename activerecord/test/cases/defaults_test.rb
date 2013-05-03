@@ -124,7 +124,6 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_mysql_integer_not_null_defaults
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_integer_not_null_default_zero'
-      klass.connection.execute "set @@SESSION.sql_mode = 'STRICT_ALL_TABLES';"
       klass.connection.create_table klass.table_name do |t|
         t.column :zero, :integer, :null => false, :default => 0
         t.column :omit, :integer, :null => false
