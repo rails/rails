@@ -412,6 +412,8 @@ module ActionMailer
         Mail.register_interceptor(delivery_interceptor)
       end
 
+      # Returns the name of current mailer. This method also being used as a path for a view lookup.
+      # If this is an anonymous mailer, this method will return +anonymous+ instead.
       def mailer_name
         @mailer_name ||= anonymous? ? "anonymous" : name.underscore
       end
