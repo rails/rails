@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix pending migrations error when loading schema and ActiveRecord::Base.table_name_prefix
+    is not blank.
+
+    Fixes #10411.
+
+    *Kyle Stevens*
+
 *   Mute `psql` output when running rake db:schema:load.
 
     *Godfrey Chan*
