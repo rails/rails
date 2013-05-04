@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2012 David Heinemeier Hansson
+# Copyright (c) 2004-2013 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,4 +21,73 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'action_view/version'
+require 'active_support'
+require 'active_support/rails'
+require 'action_pack'
+
+module ActionView
+  extend ActiveSupport::Autoload
+
+  eager_autoload do
+    autoload :Base
+    autoload :Context
+    autoload :CompiledTemplates, "action_view/context"
+    autoload :Digestor
+    autoload :Helpers
+    autoload :LookupContext
+    autoload :PathSet
+    autoload :RecordIdentifier
+    autoload :RoutingUrlFor
+    autoload :Template
+
+    autoload_under "renderer" do
+      autoload :Renderer
+      autoload :AbstractRenderer
+      autoload :PartialRenderer
+      autoload :TemplateRenderer
+      autoload :StreamingTemplateRenderer
+    end
+
+    autoload_at "action_view/template/resolver" do
+      autoload :Resolver
+      autoload :PathResolver
+      autoload :FileSystemResolver
+      autoload :OptimizedFileSystemResolver
+      autoload :FallbackFileSystemResolver
+    end
+
+    autoload_at "action_view/buffers" do
+      autoload :OutputBuffer
+      autoload :StreamingBuffer
+    end
+
+    autoload_at "action_view/flows" do
+      autoload :OutputFlow
+      autoload :StreamingFlow
+    end
+
+    autoload_at "action_view/template/error" do
+      autoload :MissingTemplate
+      autoload :ActionViewError
+      autoload :EncodingError
+      autoload :MissingRequestError
+      autoload :TemplateError
+      autoload :WrongEncodingError
+    end
+  end
+
+  autoload :TestCase
+
+  ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
+
+  def self.eager_load!
+    super
+    ActionView::Template.eager_load!
+  end
+end
+
+require 'active_support/core_ext/string/output_safety'
+
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+end
