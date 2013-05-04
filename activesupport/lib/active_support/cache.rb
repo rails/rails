@@ -352,6 +352,21 @@ module ActiveSupport
         results
       end
 
+      def select_multi(*names)
+        options = names.extract_options!
+        options = merged_options(options)
+
+        results = read_multi(*names, options)
+        
+        names.select do |name|
+          results.fetch(name) do
+            value = yield(name)
+            write(name, value, options)
+            value
+          end
+        end
+      end
+
       # Writes the value to the cache, with the key.
       #
       # Options are passed to the underlying cache implementation.
