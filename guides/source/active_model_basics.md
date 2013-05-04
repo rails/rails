@@ -14,7 +14,7 @@ Active Model is a library containing various modules used in developing framewor
 
 ### AttributeMethods
 
-The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes, which methods on the object will use them.
+The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes and which methods on the object will use them.
 
 ```ruby
 class Person
@@ -69,7 +69,7 @@ end
 
 ### Conversion
 
-If a class defines `persisted?` and `id` methods then you can include `Conversion` module in that class and you can able to call Rails conversion methods to objects of that class.
+If a class defines `persisted?` and `id` methods, then you can include the `Conversion` module in that class and call the Rails conversion methods on objects of that class.
 
 ```ruby
 class Person
