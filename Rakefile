@@ -36,7 +36,7 @@ task :smoke do
 end
 
 desc "Install gems for all projects."
-task :install => :gem do
+task :install => :build do
   version = File.read("RAILS_VERSION").strip
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
