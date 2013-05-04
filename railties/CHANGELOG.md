@@ -1,6 +1,9 @@
 ## unreleased ##
 
-*  No changes.
+*   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
+    Fixes #9525.
+
+    *Arun Agrawal*
 
 
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
