@@ -321,6 +321,7 @@ module ActiveRecord
             result = query(<<-end_sql, 'SCHEMA')[0]
               SELECT attr.attname,
                 CASE
+                  WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
                   WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
                     substr(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2),
                            strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
@@ -332,7 +333,7 @@ module ActiveRecord
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               WHERE t.oid = '#{quote_table_name(table)}'::regclass
                 AND cons.contype = 'p'
-                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval'
+                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
             end_sql
           end
 
