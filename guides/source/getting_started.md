@@ -934,7 +934,7 @@ appear next to the "Show" link:
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', post_path %></td>
+    <td><%= link_to 'Show', post_path(post) %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
   </tr>
 <% end %>
