@@ -60,7 +60,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   def test_schema_dumper_for_uuid_primary_key
     schema = StringIO.new
     ActiveRecord::SchemaDumper.dump(@connection, schema)
-    assert_match /\bcreate_table "pg_uuids", id: :uuid\b/, schema.string
+    assert_match(/\bcreate_table "pg_uuids", id: :uuid\b/, schema.string)
   end
 end
 
