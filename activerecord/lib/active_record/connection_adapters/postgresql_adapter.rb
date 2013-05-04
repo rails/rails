@@ -768,7 +768,7 @@ module ActiveRecord
         end
 
         def exec_cache(sql, binds)
-          stmt_key = prepare_statement sql
+          stmt_key = prepare_statement(sql)
 
           # Clear the queue
           @connection.get_last_result
