@@ -1,4 +1,5 @@
-*   Fixes bug with Scaffold generator with --assets=false --resource-route=false See #9525 for more details.
+*   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
+    Fixes #9525.
 
     *Arun Agrawal*
 
