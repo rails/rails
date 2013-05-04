@@ -45,7 +45,7 @@ person.age_highest?  # false
 
 ### Callbacks
 
-Callbacks gives Active Record style callbacks. This provides the ability to define the callbacks and those will run at appropriate time. After defining a callbacks you can wrap with before, after and around custom methods.
+Callbacks gives Active Record style callbacks. This provides an ability to define callbacks which run at appropriate times. After defining callbacks, you can wrap them with before, after and around custom methods.
 
 ```ruby
 class Person
@@ -57,12 +57,12 @@ class Person
 
   def update
     run_callbacks(:update) do
-      # This will call when we are trying to call update on object.
+      # This method is called when update is called on an object.
     end
   end
 
   def reset_me
-    # This method will call when you are calling update on object as a before_update callback as defined.
+    # This method is called when update is called on an object as a before_update callback is defined.
   end
 end
 ```
