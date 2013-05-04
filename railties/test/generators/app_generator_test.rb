@@ -260,6 +260,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file 'test'
   end
 
+  def test_creation_of_app_assets_images_directory
+    run_generator
+    assert_file "app/assets/images"
+  end
+
   def test_creation_of_vendor_assets_javascripts_directory
     run_generator
     assert_file "vendor/assets/javascripts"
