@@ -1,5 +1,7 @@
 require "cases/helper"
 require 'models/binary'
+require 'models/price_estimate'
+require 'models/treasure'
 
 class SanitizeTest < ActiveRecord::TestCase
   def setup
@@ -21,5 +23,13 @@ class SanitizeTest < ActiveRecord::TestCase
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper"])
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper".mb_chars])
+  end
+
+  def test_sanitize_sql_hash_handles_models_as_values
+    treasure = Treasure.new
+    treasure.id = 1
+    assert_nothing_raised do
+      PriceEstimate.send :sanitize_sql, {estimate_of: treasure}
+    end
   end
 end

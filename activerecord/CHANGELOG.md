@@ -1,3 +1,9 @@
+*   In `ActiveRecord#sanitize_sql_hash_for_conditions`, self is already a
+    class, so do not call `class` on it again, otherwise the PredicateBuilder
+    will try to call the non-existant `Class#reflection_on_association`.
+
+    *Marc Schütz*
+
 *   Do not overwrite manually built records during one-to-one nested attribute assignment
 
     For one-to-one nested associations, if you build the new (in-memory)
