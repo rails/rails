@@ -1,3 +1,8 @@
+*   Add `params` option to `button_to` form helper, which renders the given hash
+    as hidden form fields.
+
+    *Andy Waite*
+
 *   Development mode exceptions are rendered in text format in case of XHR request.
 
     *Kir Shatrov*
