@@ -239,21 +239,21 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end
 
-  def test_scaffold_generator_no_assets
+  def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
-  def test_scaffold_generator_no_assets
+  def test_scaffold_generator_no_assets_with_switch_assets_false
     run_generator [ "posts", "--assets=false" ]
-    assert_file "app/assets/stylesheets/scaffold.css"
+    assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
-  def test_scaffold_generator_no_assets
+  def test_scaffold_generator_no_assets_with_switch_resource_route_false
     run_generator [ "posts", "--resource-route=false" ]
     assert_file "config/routes.rb" do |route|
       assert_no_match(/resources :posts$/, route)
