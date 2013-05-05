@@ -78,7 +78,7 @@ task :update_versions do
 end
 
 #
-# We have a webhook configured in Github that gets invoked after pushes.
+# We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
 #
 #   * updates the local checkout
