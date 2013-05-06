@@ -61,8 +61,8 @@ module ActiveRecord
     class RemoveIndexMigration1 < SilentMigration
       def self.up
         create_table("horses") do |t|
-          t.column :name, :text
-          t.column :color, :text
+          t.column :name, :string
+          t.column :color, :string
           t.index [:name, :color]
         end
       end
