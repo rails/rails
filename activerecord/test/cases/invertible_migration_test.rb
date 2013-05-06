@@ -58,6 +58,24 @@ module ActiveRecord
       end
     end
 
+    class RemoveIndexMigration1 < SilentMigration
+      def self.up
+        create_table("horses") do |t|
+          t.column :name, :text
+          t.column :color, :text
+          t.index [:name, :color]
+        end
+      end
+    end
+
+    class RemoveIndexMigration2 < SilentMigration
+      def change
+        change_table("horses") do |t|
+          t.remove_index [:name, :color]
+        end
+      end
+    end
+
     class LegacyMigration < ActiveRecord::Migration
       def self.up
         create_table("horses") do |t|
@@ -99,6 +117,16 @@ module ActiveRecord
     def test_no_reverse
       migration = NonInvertibleMigration.new
       migration.migrate(:up)
+      assert_raises(IrreversibleMigration) do
+        migration.migrate(:down)
+      end
+    end
+
+    def test_exception_on_removing_index_without_column_option
+      RemoveIndexMigration1.new.migrate(:up)
+      migration = RemoveIndexMigration2.new
+      migration.migrate(:up)
+
       assert_raises(IrreversibleMigration) do
         migration.migrate(:down)
       end
