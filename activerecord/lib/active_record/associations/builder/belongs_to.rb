@@ -34,7 +34,9 @@ module ActiveRecord::Associations::Builder
         def belongs_to_counter_cache_before_destroy_for_#{name}
           unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == #{foreign_key.to_sym.inspect}
             record = #{name}
-            record.class.decrement_counter(:#{cache_column}, record.id) unless record.nil?
+            if record && !self.destroyed?
+              record.class.decrement_counter(:#{cache_column}, record.id)
+            end
           end
         end
 
