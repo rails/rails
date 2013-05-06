@@ -80,7 +80,7 @@ module HTML
     self.protocol_separator     = /:|(&#0*58)|(&#x70)|(&#x0*3a)|(%|&#37;)3A/i
 
     # Specifies a Set of HTML attributes that can have URIs.
-    self.uri_attributes         = Set.new(%w(href src cite action longdesc xlink:href lowsrc))
+    self.uri_attributes         = Set.new(%w(href src cite action longdesc poster xlink:href lowsrc))
 
     # Specifies a Set of 'bad' tags that the #sanitize helper will remove completely, as opposed
     # to just escaping harmless tags like &lt;font&gt;
@@ -89,7 +89,7 @@ module HTML
     # Specifies the default Set of tags that the #sanitize helper will allow unscathed.
     self.allowed_tags           = Set.new(%w(strong em b i p code pre tt samp kbd var sub
       sup dfn cite big small address hr br div span h1 h2 h3 h4 h5 h6 ul ol li dl dt dd abbr
-      acronym a img blockquote del ins))
+      acronym a img blockquote del ins video))
 
     # Specifies the default Set of html attributes that the #sanitize helper will leave
     # in the allowed tag.
