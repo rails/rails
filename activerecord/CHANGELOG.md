@@ -1,5 +1,22 @@
 ## unreleased ##
 
+*   While removing index if column option is missing then raise IrreversibleMigration exception.
+
+    Following code should raise `IrreversibleMigration`. But the code was
+    failing since options is an array and not a hash.
+
+        def change
+          change_table :users do |t|
+            t.remove_index [:name, :email]
+          end
+        end
+
+    Fix was to check if the options is a Hash before operating on it.
+
+    Fixes #10419.
+
+    *Neeraj Singh*
+
 *   Mute `psql` output when running rake db:schema:load.
 
     *Godfrey Chan*
