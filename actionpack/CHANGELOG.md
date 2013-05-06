@@ -1,3 +1,9 @@
+*   In HTTP Basic Authentication, do not continue to login procedure with Base64 encrypted
+    blank credentials.
+    Fixes #9172
+
+    *Lau Taarnskov*
+
 *   ActionDispatch::Response#new no longer applies default headers.  If you want
     default headers applied to the response object, then call
     `ActionDispatch::Response.create`.  This change only impacts people who are
