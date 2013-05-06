@@ -1,3 +1,7 @@
+*   Confirm a record has not already been destroyed before decrementing counter cache.
+
+    *Ben Tucker*
+
 *   Mute `psql` output when running rake db:schema:load.
 
     *Godfrey Chan*
