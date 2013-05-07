@@ -189,7 +189,11 @@ module ActiveRecord
       post = Post.select(:title).first
       assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
 
-      post = Post.select("'title' as post_title").first
+      if current_adapter?(:PostgreSQLAdapter)
+        post = Post.select("'title'::character(255) as post_title").first
+      else
+        post = Post.select("'title' as post_title").first
+      end
       assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
     end
 
