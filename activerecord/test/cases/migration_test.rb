@@ -849,4 +849,16 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   ensure
     clear
   end
+
+  def test_check_pending_middleware
+    called = nil
+    app = lambda { |env| called = env }
+    original_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new(StringIO.new)
+    env = {"REMOTE_ADDR" => "127.0.0.1"}
+    ActiveRecord::Migration::CheckPending.new(app).call(env)
+    assert_equal env, called
+  ensure
+    ActiveRecord::Base.logger = original_logger
+  end
+
 end
