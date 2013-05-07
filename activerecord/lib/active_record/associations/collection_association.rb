@@ -491,6 +491,10 @@ module ActiveRecord
           records.each { |record| callback(:before_remove, record) }
 
           delete_records(existing_records, method) if existing_records.any?
+
+          # remove association records for has_many :through case
+          delete_through_records(records) if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
+
           records.each { |record| target.delete(record) }
 
           records.each { |record| callback(:after_remove, record) }
