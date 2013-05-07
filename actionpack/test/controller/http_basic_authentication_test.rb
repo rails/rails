@@ -35,6 +35,8 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     def authenticate_with_request
       if authenticate_with_http_basic { |username, password| username == 'pretty' && password == 'please' }
         @logged_in = true
+      elsif authenticate_with_http_basic { |username, password| username.blank? && password.blank? }
+        @logged_in = true
       else
         request_http_basic_authentication("SuperSecret")
       end
@@ -101,6 +103,24 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_equal 'Basic realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
+  test "authentication request with encoded blank credentials" do
+    @request.env['HTTP_AUTHORIZATION'] = "Basic "
+    get :display
+    assert_response :unauthorized
+
+    @request.env['HTTP_AUTHORIZATION'] = " "
+    get :display
+    assert_response :unauthorized
+
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials('', '')
+    get :display
+    assert_response :unauthorized
+
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials('  ', '  ')
+    get :display
+    assert_response :unauthorized
+  end
+  
   test "authentication request with invalid credential" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials('pretty', 'foo')
     get :display
