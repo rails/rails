@@ -558,7 +558,7 @@ module ActionController
         parameters ||= {}
         controller_class_name = @controller.class.anonymous? ?
           "anonymous" :
-          @controller.class.name.underscore.sub(/_controller$/, '')
+          @controller.class.controller_path
 
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
