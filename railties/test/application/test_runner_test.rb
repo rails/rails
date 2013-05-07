@@ -32,13 +32,13 @@ module ApplicationTests
     def test_run_single_file
       create_test_file :models, 'foo'
       create_test_file :models, 'bar'
-      assert_match "1 tests, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
+      assert_match "1 runs, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
     end
 
     def test_run_multiple_files
       create_test_file :models,  'foo'
       create_test_file :models,  'bar'
-      assert_match "2 tests, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
+      assert_match "2 runs, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
     end
 
     def test_run_file_with_syntax_error
@@ -59,7 +59,7 @@ module ApplicationTests
       run_test_models_command.tap do |output|
         assert_match "FooTest", output
         assert_match "BarTest", output
-        assert_match "2 tests, 2 assertions, 0 failures", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
       end
     end
 
@@ -70,7 +70,7 @@ module ApplicationTests
       run_test_helpers_command.tap do |output|
         assert_match "FooHelperTest", output
         assert_match "BarHelperTest", output
-        assert_match "2 tests, 2 assertions, 0 failures", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
       end
     end
 
@@ -83,7 +83,7 @@ module ApplicationTests
         assert_match "FooTest", output
         assert_match "BarHelperTest", output
         assert_match "BazUnitTest", output
-        assert_match "3 tests, 3 assertions, 0 failures", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -94,7 +94,7 @@ module ApplicationTests
       run_test_controllers_command.tap do |output|
         assert_match "FooControllerTest", output
         assert_match "BarControllerTest", output
-        assert_match "2 tests, 2 assertions, 0 failures", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
       end
     end
 
@@ -105,7 +105,7 @@ module ApplicationTests
       run_test_mailers_command.tap do |output|
         assert_match "FooMailerTest", output
         assert_match "BarMailerTest", output
-        assert_match "2 tests, 2 assertions, 0 failures", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
       end
     end
 
@@ -118,7 +118,7 @@ module ApplicationTests
         assert_match "FooMailerTest", output
         assert_match "BarControllerTest", output
         assert_match "BazFunctionalTest", output
-        assert_match "3 tests, 3 assertions, 0 failures", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -127,7 +127,7 @@ module ApplicationTests
       create_test_file :models, 'foo'
       run_test_integration_command.tap do |output|
         assert_match "FooIntegration", output
-        assert_match "1 tests, 1 assertions, 0 failures", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
       end
     end
 
@@ -136,7 +136,7 @@ module ApplicationTests
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command('') .tap do |output|
         suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
-        assert_match "7 tests, 7 assertions, 0 failures", output
+        assert_match "7 runs, 7 assertions, 0 failures", output
       end
     end
 
