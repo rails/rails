@@ -1,3 +1,11 @@
+*   Allow the PostgreSQL adapter to handle bigserial pk types again.
+
+    Fixes #10410
+
+    *Patrick Robertson*
+
+*   Perform necessary deeper encoding when hstore is inside an array.
+
 * `before_add` callbacks are fired before the record is saved on
   `has_and_belongs_to_many` assocations *and* on `has_many :through`
   associations.  Before this change, `before_add` callbacks would be fired
