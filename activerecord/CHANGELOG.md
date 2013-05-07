@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Confirm a record has not already been destroyed before decrementing counter cache.
+
+    *Ben Tucker*
+
 *   Fixed a bug in `ActiveRecord#sanitize_sql_hash_for_conditions` in which
     `self.class` is an argument to `PredicateBuilder#build_from_hash`
     causing `PredicateBuilder` to call non-existant method
@@ -2081,6 +2085,5 @@
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
     *Aaron Patterson*
-
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
