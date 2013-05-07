@@ -102,6 +102,9 @@ module CallbacksTest
     def no; false; end
   end
 
+  class PersonForProgrammaticSkipping < Person
+  end
+
   class ParentController
     include ActiveSupport::Callbacks
 
@@ -441,6 +444,25 @@ module CallbacksTest
         [:before_save, :proc],
         [:before_save, :object],
         [:before_save, :block],
+        [:after_save, :block],
+        [:after_save, :class],
+        [:after_save, :object],
+        [:after_save, :proc],
+        [:after_save, :string],
+        [:after_save, :symbol]
+      ], person.history
+    end
+
+    def test_skip_person_programmatically
+      PersonForProgrammaticSkipping._save_callbacks.each do |save_callback|
+        if "before" == save_callback.kind.to_s
+          PersonForProgrammaticSkipping.skip_callback("save", save_callback.kind, save_callback.filter)
+        end
+      end
+      person = PersonForProgrammaticSkipping.new
+      assert_equal [], person.history
+      person.save
+      assert_equal [
         [:after_save, :block],
         [:after_save, :class],
         [:after_save, :object],
