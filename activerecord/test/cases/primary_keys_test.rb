@@ -216,3 +216,32 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   end
 end
 
+if current_adapter?(:PostgreSQLAdapter)
+  class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    class Widget < ActiveRecord::Base
+    end
+
+    def setup
+      @con = ActiveRecord::Base.connection
+
+      ActiveRecord::Schema.define do
+        create_table :widgets, id: :bigserial do |t|
+        end
+      end
+    end
+
+    def teardown
+      ActiveRecord::Schema.define do
+        drop_table :widgets
+      end
+    end
+
+    def test_bigserial_primary_key
+      widget = Widget.create!
+
+      assert_not_nil widget.id
+    end
+  end
+end
