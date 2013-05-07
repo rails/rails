@@ -360,8 +360,12 @@ module ActiveRecord
         # done via the SecureRandom.uuid method and a +before_save+ callback,
         # for instance.
         def primary_key(name, type = :primary_key, options = {})
-          return super unless type == :uuid
-          options[:default] = options.fetch(:default, 'uuid_generate_v4()')
+          return super unless type = :primary_key
+
+          if type == :uuid
+            options[:default] = options.fetch(:default, 'uuid_generate_v4()')
+          end
+
           options[:primary_key] = true
           column name, type, options
         end
