@@ -7,10 +7,6 @@
 
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
 
-*   Fix skipping of filters defined by objects in `ActiveSupport::Callbacks::Callback`.
-
-    *Ben McRedmond*
-
 *   An `ActiveSupport::Subscriber` class has been extracted from
     `ActiveSupport::LogSubscriber`, allowing you to use the event attachment
     API for other kinds of subscribers.
