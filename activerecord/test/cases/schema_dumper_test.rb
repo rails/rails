@@ -86,13 +86,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_has_no_duplicate_tables
-    output_lines = standard_dump.split("\n")
-    assert_equal 1, output_lines.select{|i| i.match(/create_table "duplicate_table"/)}.size
+    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      output_lines = standard_dump.split("\n")
+      assert_equal 1, output_lines.select{|i| i.match(/create_table "duplicate_table"/)}.size
+    end
   end
 
   def test_schema_dump_has_no_duplicate_indexes
-    output_lines = standard_dump.split("\n")
-    assert_equal 1, output_lines.select{|i| i.match(/add_index "duplicate_table"/)}.size
+    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      output_lines = standard_dump.split("\n")
+      assert_equal 1, output_lines.select{|i| i.match(/add_index "duplicate_table"/)}.size
+    end
   end
 
   def test_schema_dump_includes_not_null_columns
