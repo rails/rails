@@ -99,10 +99,12 @@ module ActiveSupport
 
       class Object < Callback
         def matches?(_kind, _filter)
+          return false unless super
+
           if !_filter.is_a?(String)
-            super && @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
+            @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
           else
-            super && @filter == _filter
+            @filter == _filter
           end
         end
       end
@@ -163,6 +165,8 @@ module ActiveSupport
       end
 
       def duplicates?(other)
+        return false unless self.class == other.class
+
         matches?(other.kind, other.filter)
       end
 
