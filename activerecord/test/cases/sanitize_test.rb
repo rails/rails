@@ -6,7 +6,13 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_sanitize_sql_hash_handles_associations
-    assert_equal "`adorable_animals`.`name` = 'Bambi'", Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      expected_value = "`adorable_animals`.`name` = 'Bambi'"
+    else
+      expected_value =  "\"adorable_animals\".\"name\" = 'Bambi'"
+    end
+
+    assert_equal expected_value, Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
   end
 
   def test_sanitize_sql_array_handles_string_interpolation
