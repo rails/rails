@@ -2,10 +2,10 @@
 
     *Ben Tucker*
 
-*   Fixed a bug in ActiveRecord#sanitize_sql_hash_for_conditions in which
-    `self.class` is an argument to PredicateBuilder#build_from_hash
-    causing PredicateBuilder to call non-existant method
-    Class#reflect_on_association.
+*   Fixed a bug in `ActiveRecord#sanitize_sql_hash_for_conditions` in which
+    `self.class` is an argument to `PredicateBuilder#build_from_hash`
+    causing `PredicateBuilder` to call non-existant method
+    `Class#reflect_on_association`.
 
     *Zach Ohlgren*
 
