@@ -1,3 +1,9 @@
+*   Allow the PostgreSQL adapter to handle bigserial pk types again.
+
+    Fixes #10410.
+
+    *Patrick Robertson*
+
 *   Deprecate joining, eager loading and preloading of instance dependent
     associations without replacement. These operations happen before instances
     are created. The current behavior is unexpected and can result in broken
