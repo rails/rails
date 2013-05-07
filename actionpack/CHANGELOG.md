@@ -1,6 +1,8 @@
 ## unreleased ##
 
-*   No changes.
+*   Fix an issue where partials with a number in the filename weren't being digested for cache dependencies.
+
+    *Bryan Ricker*
 
 
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
