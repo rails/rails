@@ -99,7 +99,11 @@ module ActiveSupport
 
       class Object < Callback
         def matches?(_kind, _filter)
-          super && @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
+          if !_filter.is_a?(String)
+            super && @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
+          else
+            super && @filter == _filter
+          end
         end
       end
 
