@@ -89,7 +89,7 @@ module ActiveRecord
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
         table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
-        PredicateBuilder.build_from_hash(self.class, attrs, table).map { |b|
+        PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
           connection.visitor.accept b
         }.join(' AND ')
       end
