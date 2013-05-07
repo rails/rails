@@ -36,7 +36,7 @@ task :smoke do
 end
 
 desc "Install gems for all projects."
-task :install => :gem do
+task :install => :build do
   version = File.read("RAILS_VERSION").strip
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
@@ -78,7 +78,7 @@ task :update_versions do
 end
 
 #
-# We have a webhook configured in Github that gets invoked after pushes.
+# We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
 #
 #   * updates the local checkout

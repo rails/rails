@@ -91,7 +91,7 @@ module ActiveModel
 
     included do
       attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-      attribute_method_affix :prefix => 'reset_', :suffix => '!'
+      attribute_method_affix prefix: 'reset_', suffix: '!'
     end
 
     # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.

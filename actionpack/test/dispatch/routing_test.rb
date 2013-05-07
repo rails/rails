@@ -1124,6 +1124,35 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "Not Found", @response.body
   end
 
+  def test_resources_with_format_false_from_scope
+    draw do
+      scope format: false do
+        resources :posts
+        resource :user
+      end
+    end
+
+    get "/posts"
+    assert_response :success
+    assert_equal "posts#index", @response.body
+    assert_equal "/posts", posts_path
+
+    get "/posts.html"
+    assert_response :not_found
+    assert_equal "Not Found", @response.body
+    assert_equal "/posts?format=html", posts_path(format: "html")
+
+    get "/user"
+    assert_response :success
+    assert_equal "users#show", @response.body
+    assert_equal "/user", user_path
+
+    get "/user.html"
+    assert_response :not_found
+    assert_equal "Not Found", @response.body
+    assert_equal "/user?format=html", user_path(format: "html")
+  end
+
   def test_index
     draw do
       get '/info' => 'projects#info', :as => 'info'

@@ -213,9 +213,11 @@ class DirtyTest < ActiveRecord::TestCase
       topic = target.create
       assert_nil topic.written_on
 
-      topic.written_on = ""
-      assert_nil topic.written_on
-      assert !topic.written_on_changed?
+      ["", nil].each do |value|
+        topic.written_on = value
+        assert_nil topic.written_on
+        assert !topic.written_on_changed?
+      end
     end
   end
 

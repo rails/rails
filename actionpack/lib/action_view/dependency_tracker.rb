@@ -39,7 +39,7 @@ module ActionView
         render\s*                     # render, followed by optional whitespace
         \(?                           # start an optional parenthesis for the render call
         (partial:|:partial\s+=>)?\s*  # naming the partial, used with collection -- 1st capture
-        ([@a-z"'][@a-z_\/\."']+)      # the template name itself -- 2nd capture
+        ([@a-z"'][@\w\/\."']+)        # the template name itself -- 2nd capture
       /x
 
       def self.call(name, template)

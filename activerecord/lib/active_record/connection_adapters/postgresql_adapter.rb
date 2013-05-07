@@ -20,8 +20,8 @@ module ActiveRecord
     VALID_CONN_PARAMS = [:host, :hostaddr, :port, :dbname, :user, :password, :connect_timeout,
                          :client_encoding, :options, :application_name, :fallback_application_name,
                          :keepalives, :keepalives_idle, :keepalives_interval, :keepalives_count,
-                         :tty, :sslmode, :requiressl, :sslcert, :sslkey, :sslrootcert, :sslcrl,
-                         :requirepeer, :krbsrvname, :gsslib, :service]
+                         :tty, :sslmode, :requiressl, :sslcompression, :sslcert, :sslkey,
+                         :sslrootcert, :sslcrl, :requirepeer, :krbsrvname, :gsslib, :service]
 
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config)
@@ -330,9 +330,37 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        # Defines the primary key field.
+        # Use of the native PostgreSQL UUID type is supported, and can be used
+        # by defining your tables as such:
+        #
+        #   create_table :stuffs, id: :uuid do |t|
+        #     t.string :content
+        #     t.timestamps
+        #   end
+        #
+        # By default, this will use the +uuid_generate_v4()+ function from the
+        # +uuid-ossp+ extension, which MUST be enabled on your database. To enable
+        # the +uuid-ossp+ extension, you can use the +enable_extension+ method in your
+        # migrations. To use a UUID primary key without +uuid-ossp+ enabled, you can
+        # set the +:default+ option to +nil+:
+        #
+        #   create_table :stuffs, id: false do |t|
+        #     t.primary_key :id, :uuid, default: nil
+        #     t.uuid :foo_id
+        #     t.timestamps
+        #   end
+        #
+        # You may also pass a different UUID generation function from +uuid-ossp+
+        # or another library.
+        #
+        # Note that setting the UUID primary key default value to +nil+ will
+        # require you to assure that you always provide a UUID value before saving
+        # a record (as primary keys cannot be +nil+). This might be done via the
+        # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, options = {})
           return super unless type == :uuid
-          options[:default] ||= 'uuid_generate_v4()'
+          options[:default] = options.fetch(:default, 'uuid_generate_v4()')
           options[:primary_key] = true
           column name, type, options
         end
@@ -740,7 +768,7 @@ module ActiveRecord
         end
 
         def exec_cache(sql, binds)
-          stmt_key = prepare_statement sql
+          stmt_key = prepare_statement(sql)
 
           # Clear the queue
           @connection.get_last_result

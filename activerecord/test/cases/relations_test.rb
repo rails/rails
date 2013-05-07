@@ -1299,6 +1299,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
   end
 
+  def test_doesnt_add_having_values_if_options_are_blank
+    scope = Post.having('')
+    assert_equal [], scope.having_values
+
+    scope = Post.having([])
+    assert_equal [], scope.having_values
+  end
+
   def test_references_triggers_eager_loading
     scope = Post.includes(:comments)
     assert !scope.eager_loading?

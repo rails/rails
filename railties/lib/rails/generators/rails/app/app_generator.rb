@@ -56,6 +56,7 @@ module Rails
     def app
       directory 'app'
 
+      keep_file  'app/assets/images'
       keep_file  'app/mailers'
       keep_file  'app/models'
 

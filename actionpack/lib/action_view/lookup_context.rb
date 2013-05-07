@@ -1,5 +1,6 @@
 require 'thread_safe'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   # = Action View Lookup Context

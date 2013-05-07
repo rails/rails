@@ -515,7 +515,6 @@ module ActionView
           divider = options[:divider]
         else
           prompt  = options
-          options = {}
           message = "Passing the prompt to grouped_options_for_select as an argument is deprecated. " \
                     "Please use an options hash like `{ prompt: #{prompt.inspect} }`."
           ActiveSupport::Deprecation.warn message

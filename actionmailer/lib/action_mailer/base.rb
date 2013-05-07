@@ -334,8 +334,8 @@ module ActionMailer
   #     and starts to use it.
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
-  #     of an OpenSSL verify constant ('none', 'peer', 'client_once','fail_if_no_peer_cert') or directly the
-  #     constant  (OpenSSL::SSL::VERIFY_NONE, OpenSSL::SSL::VERIFY_PEER,...).
+  #     of an OpenSSL verify constant ('none', 'peer', 'client_once', 'fail_if_no_peer_cert') or directly the
+  #     constant  (OpenSSL::SSL::VERIFY_NONE, OpenSSL::SSL::VERIFY_PEER, ...).
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
@@ -596,9 +596,9 @@ module ActionMailer
     # class method:
     #
     #  class Notifier < ActionMailer::Base
-    #    self.default from: 'no-reply@test.lindsaar.net',
-    #                 bcc: 'email_logger@test.lindsaar.net',
-    #                 reply_to: 'bounces@test.lindsaar.net'
+    #    default from: 'no-reply@test.lindsaar.net',
+    #            bcc: 'email_logger@test.lindsaar.net',
+    #            reply_to: 'bounces@test.lindsaar.net'
     #  end
     #
     # If you need other headers not listed above, you can either pass them in

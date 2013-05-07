@@ -57,24 +57,25 @@ module ActiveRecord
   class RecordNotDestroyed < ActiveRecordError
   end
 
-  # Raised when SQL statement cannot be executed by the database (for example, it's often the case for
-  # MySQL when Ruby driver used is too old).
+  # Superclass for all database execution errors.
+  #
+  # Wraps the underlying database error as +original_exception+.
   class StatementInvalid < ActiveRecordError
+    attr_reader :original_exception
+
+    def initialize(message, original_exception = nil)
+      super(message)
+      @original_exception = original_exception
+    end
   end
 
   # Raised when SQL statement is invalid and the application gets a blank result.
   class ThrowResult < ActiveRecordError
   end
 
-  # Parent class for all specific exceptions which wrap database driver exceptions
-  # provides access to the original exception also.
+  # Defunct wrapper class kept for compatibility.
+  # +StatementInvalid+ wraps the original exception now.
   class WrappedDatabaseException < StatementInvalid
-    attr_reader :original_exception
-
-    def initialize(message, original_exception)
-      super(message)
-      @original_exception = original_exception
-    end
   end
 
   # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
