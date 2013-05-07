@@ -6,11 +6,10 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_sanitize_sql_hash_handles_associations
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-      expected_value = "`adorable_animals`.`name` = 'Bambi'"
-    else
-      expected_value =  "\"adorable_animals\".\"name\" = 'Bambi'"
-    end
+    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
+    quoted_column_name = ActiveRecord::Base.connection.quote_column_name("name")
+    quoted_table_name = ActiveRecord::Base.connection.quote_table_name("adorable_animals")
+    expected_value = "#{quoted_table_name}.#{quoted_column_name} = #{quoted_bambi}" 
 
     assert_equal expected_value, Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
   end
