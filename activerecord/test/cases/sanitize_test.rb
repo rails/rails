@@ -5,6 +5,10 @@ class SanitizeTest < ActiveRecord::TestCase
   def setup
   end
 
+  def test_sanitize_sql_hash_handles_associations
+    assert_equal "`adorable_animals`.`name` = 'Bambi'", Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
+  end
+
   def test_sanitize_sql_array_handles_string_interpolation
     quoted_bambi = ActiveRecord::Base.connection.quote_string("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=%s", "Bambi"])
