@@ -91,6 +91,28 @@ module ActiveSupport
     class Callback #:nodoc:#
       @@_callback_sequence = 0
 
+      class Basic < Callback
+        def matches?(_kind, _filter)
+          super && @filter == _filter
+        end
+      end
+
+      class Object < Callback
+        def matches?(_kind, _filter)
+          super && @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
+        end
+      end
+
+      def self.build(chain, filter, kind, options, _klass)
+        klass = case filter
+                when Array, Symbol, String, Proc
+                  Callback::Basic
+                else
+                  Callback::Object
+                end
+        klass.new chain, filter, kind, options, _klass
+      end
+
       attr_accessor :chain, :filter, :kind, :options, :klass, :raw_filter
 
       def initialize(chain, filter, kind, options, klass)
@@ -133,13 +155,7 @@ module ActiveSupport
       end
 
       def matches?(_kind, _filter)
-        if @_is_object_filter && !_filter.is_a?(String)
-          _filter_matches = @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
-        else
-          _filter_matches = (@filter == _filter) 
-        end
-
-        @kind == _kind && _filter_matches
+        @kind == _kind
       end
 
       def duplicates?(other)
@@ -273,8 +289,6 @@ module ActiveSupport
       #     a method is created that calls the before_foo method
       #     on the object.
       def _compile_filter(filter)
-        @_is_object_filter = false
-
         case filter
         when Array
           filter.map {|f| _compile_filter(f)}
@@ -290,7 +304,6 @@ module ActiveSupport
           method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
           method_name = _method_name_for_object_filter(kind, filter)
-          @_is_object_filter = true
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)
@@ -465,7 +478,7 @@ module ActiveSupport
 
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           mapped ||= filters.map do |filter|
-            Callback.new(chain, filter, type, options.dup, self)
+            Callback.build(chain, filter, type, options.dup, self)
           end
 
           options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
