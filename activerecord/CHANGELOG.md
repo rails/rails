@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Confirm a record has not already been destroyed before decrementing counter cache.
+
+    *Ben Tucker*
+
 *   Default values for PostgreSQL bigint types now get parsed and dumped to the
     schema correctly.
     Backport #10098.
