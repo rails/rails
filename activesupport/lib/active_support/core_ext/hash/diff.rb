@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 class Hash
   # Returns a hash that represents the difference between two hashes.
   #

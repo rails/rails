@@ -218,51 +218,31 @@ module ActiveSupport
       # Passing +true+ will forcibly tidy all bytes, assuming that the string's
       # encoding is entirely CP1252 or ISO-8859-1.
       def tidy_bytes(string, force = false)
+        return string if string.empty?
+
         if force
-          return string.unpack("C*").map do |b|
-            tidy_byte(b)
-          end.flatten.compact.pack("C*").unpack("U*").pack("U*")
+          return string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
         end
 
-        bytes = string.unpack("C*")
-        conts_expected = 0
-        last_lead = 0
+        # We can't transcode to the same format, so we choose a nearly-identical encoding.
+        # We're going to 'transcode' bytes from UTF-8 when possible, then fall back to
+        # CP1252 when we get errors. The final string will be 'converted' back to UTF-8
+        # before returning.
+        reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_8_MAC)
 
-        bytes.each_index do |i|
+        source = string.dup
+        out = ''.force_encoding(Encoding::UTF_8_MAC)
 
-          byte          = bytes[i]
-          is_cont       = byte > 127 && byte < 192
-          is_lead       = byte > 191 && byte < 245
-          is_unused     = byte > 240
-          is_restricted = byte > 244
-
-          # Impossible or highly unlikely byte? Clean it.
-          if is_unused || is_restricted
-            bytes[i] = tidy_byte(byte)
-          elsif is_cont
-            # Not expecting continuation byte? Clean up. Otherwise, now expect one less.
-            conts_expected == 0 ? bytes[i] = tidy_byte(byte) : conts_expected -= 1
-          else
-            if conts_expected > 0
-              # Expected continuation, but got ASCII or leading? Clean backwards up to
-              # the leading byte.
-              (1..(i - last_lead)).each {|j| bytes[i - j] = tidy_byte(bytes[i - j])}
-              conts_expected = 0
-            end
-            if is_lead
-              # Final byte is leading? Clean it.
-              if i == bytes.length - 1
-                bytes[i] = tidy_byte(bytes.last)
-              else
-                # Valid leading byte? Expect continuations determined by position of
-                # first zero bit, with max of 3.
-                conts_expected = byte < 224 ? 1 : byte < 240 ? 2 : 3
-                last_lead = i
-              end
-            end
-          end
+        loop do
+          reader.primitive_convert(source, out)
+          _, _, _, error_bytes, _ = reader.primitive_errinfo
+          break if error_bytes.nil?
+          out << error_bytes.encode(Encoding::UTF_8_MAC, Encoding::Windows_1252, invalid: :replace, undef: :replace)
         end
-        bytes.empty? ? "" : bytes.flatten.compact.pack("C*").unpack("U*").pack("U*")
+
+        reader.finish
+
+        out.encode!(Encoding::UTF_8)
       end
 
       # Returns the KC normalization of the string by default. NFKC is

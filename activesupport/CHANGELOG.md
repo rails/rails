@@ -1,3 +1,8 @@
+*   Fix skipping object callbacks using metadata fetched via callback chain
+    inspection methods (`_*_callbacks`)
+
+    *Sean Walbran*
+
 *   Add a `fetch_multi` method to the cache stores. The method provides
     an easy to use API for fetching multiple values from the cache.
 
