@@ -102,6 +102,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "html_tidy_generator", "HTMLTidyGenerator".underscore
   end
 
+  def test_snake_case
+    CamelToUnderscore.each do |camel, snake_case|
+      assert_equal(snake_case, camel.snake_case)
+    end
+
+    assert_equal "html_tidy", "HTMLTidy".snake_case
+    assert_equal "html_tidy_generator", "HTMLTidyGenerator".snake_case
+  end
+
   def test_underscore_to_lower_camel
     UnderscoreToLowerCamel.each do |underscored, lower_camel|
       assert_equal(lower_camel, underscored.camelize(:lower))
