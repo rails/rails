@@ -77,9 +77,9 @@ module SharedGeneratorTests
   end
 
   def test_template_raises_an_error_with_invalid_path
-    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existant/path"]) }
+    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existent/path"]) }
     assert_match(/The template \[.*\] could not be loaded/, content)
-    assert_match(/non\/existant\/path/, content)
+    assert_match(/non\/existent\/path/, content)
   end
 
   def test_template_is_executed_when_supplied
