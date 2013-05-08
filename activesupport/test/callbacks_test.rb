@@ -815,6 +815,25 @@ module CallbacksTest
 
     # FIXME: do we really want to support classes as conditionals?  There were
     # no tests for it previous to this.
+    def test_class_conditional_with_scope
+      z = []
+      callback = Class.new {
+        define_singleton_method(:foo) { |o| z << o }
+      }
+      klass = Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo, :scope => [:name]
+        set_callback :foo, :before, :foo, :if => callback
+        def foo; end
+        def run; run_callbacks :foo; end
+      }
+      object = klass.new
+      object.run
+      assert_equal [object], z
+    end
+
+    # FIXME: do we really want to support classes as conditionals?  There were
+    # no tests for it previous to this.
     def test_class
       z = []
       klass = build_class Class.new {
