@@ -807,9 +807,9 @@ module CallbacksTest
       Class.new {
         include ActiveSupport::Callbacks
         define_callbacks :foo
-        n.times { set_callback :foo, callback }
+        n.times { set_callback :foo, :before, callback }
         def run; run_callbacks :foo; end
-        def self.skip(thing); skip_callback :foo, thing; end
+        def self.skip(thing); skip_callback :foo, :before, thing; end
       }
     end
 
