@@ -802,17 +802,18 @@ module CallbacksTest
     end
   end
 
-  class AddCallbackTypeTest < ActiveSupport::TestCase
+  class CallbackTypeTest < ActiveSupport::TestCase
     def build_class(callback, n = 10)
       Class.new {
         include ActiveSupport::Callbacks
         define_callbacks :foo
         n.times { set_callback :foo, callback }
         def run; run_callbacks :foo; end
+        def self.skip(thing); skip_callback :foo, thing; end
       }
     end
 
-    def test_class
+    def test_add_class
       calls = []
       callback = Class.new {
         define_singleton_method(:before) { |o| calls << o }
@@ -821,13 +822,13 @@ module CallbacksTest
       assert_equal 10, calls.length
     end
 
-    def test_lambda
+    def test_add_lambda
       calls = []
       build_class(->(o) { calls << o }).new.run
       assert_equal 10, calls.length
     end
 
-    def test_symbol
+    def test_add_symbol
       calls = []
       klass = build_class(:bar)
       klass.class_eval { define_method(:bar) { calls << klass } }
@@ -835,10 +836,51 @@ module CallbacksTest
       assert_equal 1, calls.length
     end
 
-    def test_string
+    def test_add_eval
       calls = []
       klass = build_class("bar")
       klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_skip_class # removes one at a time
+      calls = []
+      callback = Class.new {
+        define_singleton_method(:before) { |o| calls << o }
+      }
+      klass = build_class(callback)
+      9.downto(0) { |i|
+        klass.skip callback
+        klass.new.run
+        assert_equal i, calls.length
+        calls.clear
+      }
+    end
+
+    def test_skip_lambda # removes nothing
+      calls = []
+      callback = ->(o) { calls << o }
+      klass = build_class(callback)
+      10.times { klass.skip callback }
+      klass.new.run
+      assert_equal 10, calls.length
+    end
+
+    def test_skip_symbol # removes all
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip :bar
+      klass.new.run
+      assert_equal 0, calls.length
+    end
+
+    def test_skip_eval # removes nothing
+      calls = []
+      klass = build_class("bar")
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip "bar"
       klass.new.run
       assert_equal 1, calls.length
     end
