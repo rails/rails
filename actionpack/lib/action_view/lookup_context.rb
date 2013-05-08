@@ -197,7 +197,7 @@ module ActionView
         values.concat(default_formats) if values.delete "*/*"
         self.class.format_fallbacks.each do |k, v|
           if values == [k]
-            values += v
+            values.concat(v)
             @format_fallback = true
           end
         end
