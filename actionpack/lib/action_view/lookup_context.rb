@@ -103,7 +103,7 @@ module ActionView
 
     # Helpers related to template lookup using the lookup context information.
     module ViewPaths
-      attr_reader :view_paths, :html_fallback_for_js
+      attr_reader :view_paths, :format_fallback
 
       # Whenever setting view paths, makes a copy so we can manipulate then in
       # instance objects as we wish.
@@ -175,6 +175,10 @@ module ActionView
     include DetailsCache
     include ViewPaths
 
+    # configurable format fallbacks
+    mattr_accessor :format_fallbacks
+    self.format_fallbacks = {:js => [:html]}
+
     def initialize(view_paths, details = {}, prefixes = [])
       @details, @details_key = {}, nil
       @skip_default_locale = false
@@ -187,13 +191,15 @@ module ActionView
     end
 
     # Override formats= to expand ["*/*"] values and automatically
-    # add :html as fallback to :js.
+    # add all format fallbacks
     def formats=(values)
       if values
         values.concat(default_formats) if values.delete "*/*"
-        if values == [:js]
-          values << :html
-          @html_fallback_for_js = true
+        self.class.format_fallbacks.each do |k, v|
+          if values == [k]
+            values += v
+            @format_fallback = true
+          end
         end
       end
       super(values)
