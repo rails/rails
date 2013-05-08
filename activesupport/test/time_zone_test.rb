@@ -357,6 +357,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
   end
 
+  def test_phnom_penh_zone
+    assert_not_nil ActiveSupport::TimeZone["Phnom Penh"]
+    assert ActiveSupport::TimeZone.all.include?(ActiveSupport::TimeZone["Phnom Penh"])
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

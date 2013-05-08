@@ -178,7 +178,8 @@ module ActiveSupport
       "Nuku'alofa"                   => "Pacific/Tongatapu",
       "Tokelau Is."                  => "Pacific/Fakaofo",
       "Chatham Is."                  => "Pacific/Chatham",
-      "Samoa"                        => "Pacific/Apia"
+      "Samoa"                        => "Pacific/Apia",
+      "Phnom Penh"                   => "Asia/Phnom_Penh"
     }
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
