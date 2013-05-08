@@ -91,7 +91,26 @@ module ActiveSupport
     class Callback #:nodoc:#
       @@_callback_sequence = 0
 
-      attr_accessor :chain, :filter, :kind, :options, :klass, :raw_filter
+      class Basic < Callback
+      end
+
+      class Object < Callback
+        def duplicates?(other)
+          false
+        end
+      end
+
+      def self.build(chain, filter, kind, options, _klass)
+        klass = case filter
+                when Array, Symbol, String
+                  Callback::Basic
+                else
+                  Callback::Object
+                end
+        klass.new chain, filter, kind, options, _klass
+      end
+
+      attr_accessor :chain, :kind, :options, :klass, :raw_filter
 
       def initialize(chain, filter, kind, options, klass)
         @chain, @kind, @klass = chain, kind, klass
@@ -99,8 +118,13 @@ module ActiveSupport
         normalize_options!(options)
 
         @raw_filter, @options = filter, options
-        @filter               = _compile_filter(filter)
+        @key = compute_identifier filter
+        @source = _compile_source(filter)
         recompile_options!
+      end
+
+      def filter
+        @key
       end
 
       def deprecate_per_key_option(options)
@@ -133,16 +157,12 @@ module ActiveSupport
       end
 
       def matches?(_kind, _filter)
-        if @_is_object_filter && !_filter.is_a?(String)
-          _filter_matches = @filter.to_s.start_with?(_method_name_for_object_filter(_kind, _filter, false))
-        else
-          _filter_matches = (@filter == _filter) 
-        end
-
-        @kind == _kind && _filter_matches
+        @kind == _kind && filter == _filter
       end
 
       def duplicates?(other)
+        return false unless self.class == other.class
+
         matches?(other.kind, other.filter)
       end
 
@@ -167,7 +187,7 @@ module ActiveSupport
               # This double assignment is to prevent warnings in 1.9.3 as
               # the `result` variable is not always used except if the
               # terminator code refers to it.
-              result = result = #{@filter}
+              result = result = #{@source}
               halted = (#{chain.config[:terminator]})
               if halted
                 halted_callback_hook(#{@raw_filter.inspect.inspect})
@@ -179,7 +199,7 @@ module ActiveSupport
           <<-RUBY_EVAL
           #{code}
           if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}
-            #{@filter}
+            #{@source}
           end
           RUBY_EVAL
         when :around
@@ -194,6 +214,15 @@ module ActiveSupport
       end
 
       private
+
+      def compute_identifier(filter)
+        case filter
+        when String, ::Proc
+          filter.object_id
+        else
+          filter
+        end
+      end
 
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
@@ -214,7 +243,7 @@ module ActiveSupport
         @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
           def #{name}(halted)
            if #{@compiled_options} && !halted
-             #{@filter} do
+             #{@source} do
                yield self
              end
            else
@@ -232,11 +261,11 @@ module ActiveSupport
         conditions = ["true"]
 
         unless options[:if].empty?
-          conditions << Array(_compile_filter(options[:if]))
+          conditions << Array(_compile_source(options[:if]))
         end
 
         unless options[:unless].empty?
-          conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
+          conditions << Array(_compile_source(options[:unless])).map {|f| "!#{f}"}
         end
 
         @compiled_options = conditions.flatten.join(" && ")
@@ -272,25 +301,22 @@ module ActiveSupport
       #   Objects::
       #     a method is created that calls the before_foo method
       #     on the object.
-      def _compile_filter(filter)
-        @_is_object_filter = false
-
+      def _compile_source(filter)
         case filter
         when Array
-          filter.map {|f| _compile_filter(f)}
+          filter.map {|f| _compile_source(f)}
         when Symbol
           filter
         when String
           "(#{filter})"
-        when Proc
+        when ::Proc
           method_name = "_callback_#{@kind}_#{next_id}"
           @klass.send(:define_method, method_name, &filter)
           return method_name if filter.arity <= 0
 
-          method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
+          method_name << (filter.arity == 1 ? "(self)" : " self, ::Proc.new ")
         else
           method_name = _method_name_for_object_filter(kind, filter)
-          @_is_object_filter = true
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)
@@ -465,7 +491,7 @@ module ActiveSupport
 
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           mapped ||= filters.map do |filter|
-            Callback.new(chain, filter, type, options.dup, self)
+            Callback.build(chain, filter, type, options.dup, self)
           end
 
           options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
