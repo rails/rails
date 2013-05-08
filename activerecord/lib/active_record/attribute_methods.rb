@@ -109,7 +109,7 @@ module ActiveRecord
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
-            column_names
+            column_names + attribute_aliases.keys
           else
             []
           end
