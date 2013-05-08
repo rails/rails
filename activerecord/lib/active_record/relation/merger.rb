@@ -49,6 +49,7 @@ module ActiveRecord
         @relation = relation
         @values   = other.values
         @other    = other
+        @last_where_clause_wins = true
       end
 
       NORMAL_VALUES = Relation::SINGLE_VALUE_METHODS +
@@ -59,7 +60,8 @@ module ActiveRecord
         NORMAL_VALUES
       end
 
-      def merge
+      def merge(last_where_clause_wins = true)
+        @last_where_clause_wins = false unless last_where_clause_wins
         normal_values.each do |name|
           value = values[name]
           relation.send("#{name}!", *value) unless value.blank?
@@ -139,7 +141,11 @@ module ActiveRecord
         if values[:where].empty? || relation.where_values.empty?
           relation.where_values + values[:where]
         else
-          sanitized_wheres + values[:where]
+          if @last_where_clause_wins
+            sanitized_wheres + values[:where]
+          else
+            relation.where_values + values[:where]
+          end
         end
       end
 

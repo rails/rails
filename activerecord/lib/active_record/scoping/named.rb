@@ -163,7 +163,11 @@ module ActiveRecord
               scope = all.scoping { body.call(*args) }
               scope = scope.extending(extension) if extension
             else
-              scope = body
+              if body.is_a?(ActiveRecord::Relation) && current_scope.present?
+                scope = Relation::Merger.new(current_scope, body).merge(false)
+              else
+                scope = body
+              end
             end
 
             scope || all
