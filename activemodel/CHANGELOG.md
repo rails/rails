@@ -7,4 +7,9 @@
 
     *Nick Sutterer*
 
+*   Add the `ActiveModel#attribute_method_names` method, which returns an
+    array of attribute names and aliases as strings.
+
+    *Patrick Van Stee*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for previous changes.
