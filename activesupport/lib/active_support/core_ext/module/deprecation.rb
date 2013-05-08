@@ -1,5 +1,3 @@
-require 'active_support/deprecation/method_wrappers'
-
 class Module
   #   deprecate :foo
   #   deprecate bar: 'message'
@@ -20,6 +18,9 @@ class Module
   #     end
   #   end
   def deprecate(*method_names)
+    unless defined? ActiveSupport::Deprecation
+      require 'active_support/deprecation'
+    end
     ActiveSupport::Deprecation.deprecate_methods(self, *method_names)
   end
 end
