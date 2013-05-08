@@ -800,7 +800,9 @@ module NestedAttributesOnACollectionAssociationTests
   def test_validate_presence_of_parent_fails_without_inverse_of
     Man.accepts_nested_attributes_for(:interests)
     Man.reflect_on_association(:interests).options.delete(:inverse_of)
+    Man.reflect_on_association(:interests).clear_inverse_of_cache!
     Interest.reflect_on_association(:man).options.delete(:inverse_of)
+    Interest.reflect_on_association(:man).clear_inverse_of_cache!
 
     repair_validations(Interest) do
       Interest.validates_presence_of(:man)

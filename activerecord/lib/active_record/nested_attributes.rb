@@ -305,6 +305,11 @@ module ActiveRecord
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
 
+            # Clear cached values of any inverse associations found in the
+            # reflection and prevent the reflection from finding inverses
+            # automatically in the future.
+            reflection.remove_automatic_inverse_of!
+
             nested_attributes_options = self.nested_attributes_options.dup
             nested_attributes_options[association_name.to_sym] = options
             self.nested_attributes_options = nested_attributes_options
