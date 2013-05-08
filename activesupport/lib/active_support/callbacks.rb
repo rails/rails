@@ -102,7 +102,7 @@ module ActiveSupport
 
       def self.build(chain, filter, kind, options, _klass)
         klass = case filter
-                when Array, Symbol, String, Proc
+                when Array, Symbol, String
                   Callback::Basic
                 else
                   Callback::Object
@@ -110,7 +110,7 @@ module ActiveSupport
         klass.new chain, filter, kind, options, _klass
       end
 
-      attr_accessor :chain, :filter, :kind, :options, :klass, :raw_filter
+      attr_accessor :chain, :kind, :options, :klass, :raw_filter
 
       def initialize(chain, filter, kind, options, klass)
         @chain, @kind, @klass = chain, kind, klass
@@ -118,9 +118,13 @@ module ActiveSupport
         normalize_options!(options)
 
         @raw_filter, @options = filter, options
-        @filter = _compile_filter(filter)
+        @key = compute_identifier filter
         @source = _compile_source(filter)
         recompile_options!
+      end
+
+      def filter
+        @key
       end
 
       def deprecate_per_key_option(options)
@@ -211,6 +215,15 @@ module ActiveSupport
 
       private
 
+      def compute_identifier(filter)
+        case filter
+        when String, ::Proc
+          filter.object_id
+        else
+          filter
+        end
+      end
+
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
       #
@@ -268,25 +281,6 @@ module ActiveSupport
         method_name
       end
 
-      def _compile_filter(filter)
-        case filter
-        when Array
-          filter.map {|f| _compile_filter(f)}
-        when Symbol
-          filter
-        when String
-          "(#{filter})"
-        when Proc
-          method_name = "_callback_#{@kind}_#{next_id}"
-          @klass.send(:define_method, method_name, &filter)
-          return method_name if filter.arity <= 0
-
-          method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
-        else
-          filter
-        end
-      end
-
       # Filters support:
       #
       #   Arrays::  Used in conditions. This is used to specify
@@ -315,12 +309,12 @@ module ActiveSupport
           filter
         when String
           "(#{filter})"
-        when Proc
+        when ::Proc
           method_name = "_callback_#{@kind}_#{next_id}"
           @klass.send(:define_method, method_name, &filter)
           return method_name if filter.arity <= 0
 
-          method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
+          method_name << (filter.arity == 1 ? "(self)" : " self, ::Proc.new ")
         else
           method_name = _method_name_for_object_filter(kind, filter)
           @klass.send(:define_method, "#{method_name}_object") { filter }
