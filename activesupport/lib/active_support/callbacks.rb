@@ -183,7 +183,7 @@ module ActiveSupport
         case @kind
         when :before
           <<-RUBY_EVAL
-            if !halted && #{@compiled_options}
+            if !halted && #{@compiled_options}(value)
               # This double assignment is to prevent warnings in 1.9.3 as
               # the `result` variable is not always used except if the
               # terminator code refers to it.
@@ -198,14 +198,14 @@ module ActiveSupport
         when :after
           <<-RUBY_EVAL
           #{code}
-          if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}
+          if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}(value)
             #{@source}
           end
           RUBY_EVAL
         when :around
           name = define_conditional_callback
           <<-RUBY_EVAL
-          #{name}(halted) do
+          #{name}(halted, value) do
             #{code}
             value
           end
@@ -241,8 +241,8 @@ module ActiveSupport
       def define_conditional_callback
         name = "_conditional_callback_#{@kind}_#{next_id}"
         @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
-          def #{name}(halted)
-           if #{@compiled_options} && !halted
+          def #{name}(halted, value)
+           if #{@compiled_options}(value) && !halted
              #{@source} do
                yield self
              end
@@ -258,17 +258,24 @@ module ActiveSupport
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options.
       def recompile_options!
-        conditions = ["true"]
+        conditions = []
 
         unless options[:if].empty?
-          conditions << Array(_compile_source(options[:if]))
+          conditions.concat Array(_compile_options(options[:if]))
         end
 
         unless options[:unless].empty?
-          conditions << Array(_compile_source(options[:unless])).map {|f| "!#{f}"}
+          conditions.concat Array(_compile_options(options[:unless])).map { |f|
+            lambda { |*args,&blk| !f.call(*args, &blk) }
+          }
         end
 
-        @compiled_options = conditions.flatten.join(" && ")
+        method_name = "_callback_#{@kind}_#{next_id}"
+        @klass.send(:define_method, method_name) do |*args,&block|
+          conditions.all? { |c| c.call(self, *args, &block) }
+        end
+
+        @compiled_options = method_name
       end
 
       def _method_name_for_object_filter(kind, filter, append_next_id = true)
@@ -330,6 +337,33 @@ module ActiveSupport
           RUBY_EVAL
 
           method_name
+        end
+      end
+
+      def _compile_options(filter)
+        case filter
+        when Array
+          filter.map {|f| _compile_options(f)}
+        when Symbol
+          lambda { |target, value| target.send filter }
+        when String
+          l = eval "lambda { |value| #{filter} }"
+          lambda { |target,value| target.instance_exec(value, &l) }
+        when ::Proc
+          method_name = "_callback_#{@kind}_#{next_id}"
+          @klass.send(:define_method, method_name, &filter)
+
+          if filter.arity <= 0
+            return lambda { |target, _| target.instance_exec(&filter) }
+          end
+
+          if filter.arity == 1
+            lambda { |target, _| target.send method_name, target }
+          else
+            lambda { |target, _,&blk| target.send method_name, target, &blk }
+          end
+        else
+          raise
         end
       end
 
