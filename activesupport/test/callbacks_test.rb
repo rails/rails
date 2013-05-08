@@ -801,4 +801,45 @@ module CallbacksTest
       assert_equal ["two", "one", "three", "yielded"], model.record
     end
   end
+
+  class AddCallbackTypeTest < ActiveSupport::TestCase
+    def build_class(callback, n = 10)
+      Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        n.times { set_callback :foo, callback }
+      }
+    end
+
+    def test_class
+      calls = []
+      callback = Class.new {
+        define_singleton_method(:before) { |o| calls << o }
+      }
+      build_class(callback).new.run_callbacks :foo
+      assert_equal 10, calls.length
+    end
+
+    def test_lambda
+      calls = []
+      build_class(->(o) { calls << o }).new.run_callbacks :foo
+      assert_equal 10, calls.length
+    end
+
+    def test_symbol
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.new.run_callbacks :foo
+      assert_equal 1, calls.length
+    end
+
+    def test_string
+      calls = []
+      klass = build_class("bar")
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.new.run_callbacks :foo
+      assert_equal 1, calls.length
+    end
+  end
 end
