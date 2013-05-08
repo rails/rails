@@ -802,6 +802,46 @@ module CallbacksTest
     end
   end
 
+  class ConditionalTests < ActiveSupport::TestCase
+    def build_class(callback)
+      Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, :foo, :if => callback
+        def foo; end
+        def run; run_callbacks :foo; end
+      }
+    end
+
+    def test_proc_negative_arity # passes an empty list if *args
+      z = []
+      object = build_class(->(*args) { z << args }).new
+      object.run
+      assert_equal [], z.flatten
+    end
+
+    def test_proc_arity0
+      z = []
+      object = build_class(->() { z << 0 }).new
+      object.run
+      assert_equal [0], z
+    end
+
+    def test_proc_arity1
+      z = []
+      object = build_class(->(x) { z << x }).new
+      object.run
+      assert_equal [object], z
+    end
+
+    def test_proc_arity2
+      assert_raises(ArgumentError) do
+        object = build_class(->(a,b) { }).new
+        object.run
+      end
+    end
+  end
+
   class CallbackTypeTest < ActiveSupport::TestCase
     def build_class(callback, n = 10)
       Class.new {

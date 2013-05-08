@@ -314,7 +314,7 @@ module ActiveSupport
           @klass.send(:define_method, method_name, &filter)
           return method_name if filter.arity <= 0
 
-          method_name << (filter.arity == 1 ? "(self)" : " self, ::Proc.new ")
+          method_name << (filter.arity == 1 ? "(self)" : "(self, ::Proc.new)")
         else
           method_name = _method_name_for_object_filter(kind, filter)
           @klass.send(:define_method, "#{method_name}_object") { filter }
