@@ -813,6 +813,18 @@ module CallbacksTest
       }
     end
 
+    # FIXME: do we really want to support classes as conditionals?  There were
+    # no tests for it previous to this.
+    def test_class
+      z = []
+      klass = build_class Class.new {
+        define_singleton_method(:before) { |o| z << o }
+      }
+      object = klass.new
+      object.run
+      assert_equal [object], z
+    end
+
     def test_proc_negative_arity # passes an empty list if *args
       z = []
       object = build_class(->(*args) { z << args }).new
