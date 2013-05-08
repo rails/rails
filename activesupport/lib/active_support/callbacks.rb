@@ -321,7 +321,7 @@ module ActiveSupport
 
           _normalize_legacy_filter(kind, filter)
           scopes = Array(chain.config[:scope])
-          method_to_call = scopes.map{ |s| send(s) }.join("_")
+          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
 
           @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{method_name}(&blk)
