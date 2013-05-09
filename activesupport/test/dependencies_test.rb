@@ -526,7 +526,6 @@ class DependenciesTest < ActiveSupport::TestCase
     m = Module.new
     m.module_eval "def a() CountingLoader; end"
     extend m
-    kls = nil
     with_autoloading_fixtures do
       kls = nil
       assert_nothing_raised { kls = a }
