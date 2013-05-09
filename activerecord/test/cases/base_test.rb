@@ -1421,6 +1421,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [], AbstractCompany.attribute_names
   end
 
+  def test_attribute_names_with_aliases
+    assert_includes Topic.attribute_names, "heading"
+  end
+
   def test_touch_should_raise_error_on_a_new_object
     company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
     assert_raises(ActiveRecord::ActiveRecordError) do
