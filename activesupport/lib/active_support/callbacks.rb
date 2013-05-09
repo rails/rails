@@ -176,7 +176,7 @@ module ActiveSupport
         case @kind
         when :before
           halted_lambda = eval "lambda { |result| #{chain.config[:terminator]} }"
-          lambda { |target, halted, value, &block|
+          lambda { |target, halted, value, run_block|
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               result = user_callback.call target, value
               halted = halted_lambda.call result
@@ -184,20 +184,20 @@ module ActiveSupport
                 target.send :halted_callback_hook, @raw_filter.inspect
               end
             end
-            next_callback.call target, halted, value, &block
+            next_callback.call target, halted, value, run_block
           }
         when :after
           if chain.config[:skip_after_callbacks_if_terminated]
-            lambda { |target, halted, value, &block|
-              target, halted, value = next_callback.call target, halted, value, &block
+            lambda { |target, halted, value, run_block|
+              target, halted, value = next_callback.call target, halted, value, run_block
               if !halted && user_conditions.all? { |c| c.call(target, value) }
                 user_callback.call target, value
               end
               [target, halted, value]
             }
           else
-            lambda { |target, halted, value, &block|
-              target, halted, value = next_callback.call target, halted, value, &block
+            lambda { |target, halted, value, run_block|
+              target, halted, value = next_callback.call target, halted, value, run_block
               if user_conditions.all? { |c| c.call(target, value) }
                 user_callback.call target, value
               end
@@ -205,16 +205,16 @@ module ActiveSupport
             }
           end
         when :around
-          lambda { |target, halted, value, &block|
+          lambda { |target, halted, value, run_block|
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               retval = nil
               user_callback.call(target, value) {
-                retval = next_callback.call(target, halted, value, &block)
+                retval = next_callback.call(target, halted, value, run_block)
                 retval.last
               }
               retval
             else
-              next_callback.call target, halted, value, &block
+              next_callback.call target, halted, value, run_block
             end
           }
         end
@@ -334,8 +334,8 @@ module ActiveSupport
       end
 
       def compile
-        callbacks = lambda { |target,halted,value,&block|
-          value = !halted && (!block || block.call)
+        callbacks = lambda { |target, halted, value, run_block|
+          value = run_block.call if run_block && !halted
           [target, halted, value]
         }
         reverse_each do |callback|
@@ -381,7 +381,7 @@ module ActiveSupport
           str = object.send("_#{kind}_callbacks").compile
           class_eval do
             define_method(name) do |&block|
-              str.call(self, false, nil, &block)[2]
+              str.call(self, false, nil, block)[2]
             end
             protected name
           end
