@@ -317,16 +317,6 @@ module ActiveSupport
         @compiled_options = method_name
       end
 
-      def _method_name_for_object_filter(kind, filter, append_next_id = true)
-        class_name = filter.kind_of?(Class) ? filter.to_s : filter.class.to_s
-        class_name.gsub!(/<|>|#/, '')
-        class_name.gsub!(/\/|:/, "_")
-
-        method_name = "_callback_#{kind}_#{class_name}"
-        method_name << "_#{next_id}" if append_next_id
-        method_name
-      end
-
       # Filters support:
       #
       #   Arrays::  Used in conditions. This is used to specify
