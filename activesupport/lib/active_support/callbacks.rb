@@ -341,10 +341,7 @@ module ActiveSupport
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
-
-        lambda { |target, &block|
-          callbacks.call(target, false, nil, &block)[2]
-        }
+        callbacks
       end
 
       def append(*callbacks)
@@ -384,7 +381,7 @@ module ActiveSupport
           str = object.send("_#{kind}_callbacks").compile
           class_eval do
             define_method(name) do |&block|
-              str.call self, &block
+              str.call(self, false, nil, &block)[2]
             end
             protected name
           end
