@@ -254,8 +254,6 @@ module ActiveSupport
       #     on the object.
       def make_lambda(filter)
         case filter
-        when Array
-          filter.map {|f| _compile_options(f)}
         when Symbol
           lambda { |target, value, &blk|
             target.send filter, &blk
