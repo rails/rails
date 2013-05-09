@@ -119,8 +119,6 @@ module ActiveSupport
 
         @raw_filter, @options = filter, options
         @key = compute_identifier filter
-        @source = _compile_source(filter)
-        recompile_options!
       end
 
       def filter
@@ -174,42 +172,57 @@ module ActiveSupport
       def recompile!(_options)
         deprecate_per_key_option(_options)
         _update_filter(self.options, _options)
-
-        recompile_options!
       end
 
       # Wraps code with filter
       def apply(code)
+        conditions = conditions_lambdas
+        source = make_lambda @raw_filter
+
         case @kind
         when :before
-          <<-RUBY_EVAL
-            if !halted && #{@compiled_options}(value)
-              # This double assignment is to prevent warnings in 1.9.3 as
-              # the `result` variable is not always used except if the
-              # terminator code refers to it.
-              result = result = #{@source}(value)
-              halted = (#{chain.config[:terminator]})
+          halted_lambda = eval "lambda { |result| #{chain.config[:terminator]} }"
+          lambda { |target, halted, value, &block|
+            if !halted && conditions.all? { |c| c.call(target, value) }
+              result = source.call target, value
+              halted = halted_lambda.call result
               if halted
-                halted_callback_hook(#{@raw_filter.inspect.inspect})
+                target.send :halted_callback_hook, @raw_filter.inspect
               end
             end
-            #{code}
-          RUBY_EVAL
+            code.call target, halted, value, &block
+          }
         when :after
-          <<-RUBY_EVAL
-          #{code}
-          if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}(value)
-            #{@source}(value)
+          if chain.config[:skip_after_callbacks_if_terminated]
+            lambda { |target, halted, value, &block|
+              target, halted, value = code.call target, halted, value, &block
+              if !halted && conditions.all? { |c| c.call(target, value) }
+                source.call target, value
+              end
+              [target, halted, value]
+            }
+          else
+            lambda { |target, halted, value, &block|
+              target, halted, value = code.call target, halted, value, &block
+              if conditions.all? { |c| c.call(target, value) }
+                source.call target, value
+              end
+              [target, halted, value]
+            }
           end
-          RUBY_EVAL
         when :around
-          name = define_conditional_callback
-          <<-RUBY_EVAL
-          #{name}(halted, value) do
-            #{code}
-            value
-          end
-          RUBY_EVAL
+          lambda { |target, halted, value, &block|
+            if !halted && conditions.all? { |c| c.call(target, value) }
+              retval = nil
+              source.call(target, value) {
+                retval = code.call(target, halted, value, &block)
+                retval.last
+              }
+              retval
+            else
+              code.call target, halted, value, &block
+            end
+          }
         end
       end
 
@@ -219,6 +232,26 @@ module ActiveSupport
         lambda { |*args, &blk| !l.call(*args, &blk) }
       end
 
+      # Filters support:
+      #
+      #   Arrays::  Used in conditions. This is used to specify
+      #             multiple conditions. Used internally to
+      #             merge conditions from skip_* filters.
+      #   Symbols:: A method to call.
+      #   Strings:: Some content to evaluate.
+      #   Procs::   A proc to call with the object.
+      #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
+      #
+      # All of these objects are compiled into methods and handled
+      # the same after this point:
+      #
+      #   Arrays::  Merged together into a single filter.
+      #   Symbols:: Already methods.
+      #   Strings:: class_eval'ed into methods.
+      #   Procs::   define_method'ed into methods.
+      #   Objects::
+      #     a method is created that calls the before_foo method
+      #     on the object.
       def make_lambda(filter)
         case filter
         when Array
@@ -263,40 +296,7 @@ module ActiveSupport
         end
       end
 
-      # Compile around filters with conditions into proxy methods
-      # that contain the conditions.
-      #
-      # For `set_callback :save, :around, :filter_name, if: :condition':
-      #
-      #   def _conditional_callback_save_17
-      #     if condition
-      #       filter_name do
-      #         yield self
-      #       end
-      #     else
-      #       yield self
-      #     end
-      #   end
-      def define_conditional_callback
-        name = "_conditional_callback_#{@kind}_#{next_id}"
-        @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
-          def #{name}(halted, value)
-           if #{@compiled_options}(value) && !halted
-             #{@source}(value) do
-               yield self
-             end
-           else
-             yield self
-           end
-         end
-        RUBY_EVAL
-        name
-      end
-
-      # Options support the same options as filters themselves (and support
-      # symbols, string, procs, and objects), so compile a conditional
-      # expression based on the options.
-      def recompile_options!
+      def conditions_lambdas
         conditions = []
 
         unless options[:if].empty?
@@ -308,43 +308,7 @@ module ActiveSupport
           lambdas = Array(options[:unless]).map { |c| make_lambda c }
           conditions.concat lambdas.map { |l| invert_lambda l }
         end
-
-        method_name = "_callback_#{@kind}_#{next_id}"
-        @klass.send(:define_method, method_name) do |*args,&block|
-          conditions.all? { |c| c.call(self, *args, &block) }
-        end
-
-        @compiled_options = method_name
-      end
-
-      # Filters support:
-      #
-      #   Arrays::  Used in conditions. This is used to specify
-      #             multiple conditions. Used internally to
-      #             merge conditions from skip_* filters.
-      #   Symbols:: A method to call.
-      #   Strings:: Some content to evaluate.
-      #   Procs::   A proc to call with the object.
-      #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
-      #
-      # All of these objects are compiled into methods and handled
-      # the same after this point:
-      #
-      #   Arrays::  Merged together into a single filter.
-      #   Symbols:: Already methods.
-      #   Strings:: class_eval'ed into methods.
-      #   Procs::   define_method'ed into methods.
-      #   Objects::
-      #     a method is created that calls the before_foo method
-      #     on the object.
-      def _compile_source(filter)
-        l = make_lambda filter
-
-        method_name = "_callback_#{@kind}_#{next_id}"
-        @klass.send(:define_method, method_name) do |*args,&block|
-          l.call(self, *args, &block)
-        end
-        method_name
+        conditions
       end
 
       def _normalize_legacy_filter(kind, filter)
@@ -380,15 +344,19 @@ module ActiveSupport
       end
 
       def compile
-        method =  ["value = nil", "halted = false"]
-        callbacks = "value = !halted && (!block_given? || yield)"
+        callbacks = lambda { |target,halted,value,&block|
+          value = !halted && (!block || block.call)
+          [target, halted, value]
+        }
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
-        method << callbacks
 
-        method << "value"
-        method.join("\n")
+        lambda { |target, &block|
+          value = nil
+          halted = false
+          callbacks.call(target, halted, value, &block)[2]
+        }
       end
 
       def append(*callbacks)
@@ -426,10 +394,12 @@ module ActiveSupport
         name = __callback_runner_name(kind)
         unless object.respond_to?(name, true)
           str = object.send("_#{kind}_callbacks").compile
-          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{name}() #{str} end
-            protected :#{name}
-          RUBY_EVAL
+          class_eval do
+            define_method(name) do |&block|
+              str.call self, &block
+            end
+            protected name
+          end
         end
         name
       end
