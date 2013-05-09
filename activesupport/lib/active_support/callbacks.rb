@@ -170,15 +170,15 @@ module ActiveSupport
 
       # Wraps code with filter
       def apply(next_callback)
-        conditions = conditions_lambdas
-        source = make_lambda @raw_filter
+        user_conditions = conditions_lambdas
+        user_callback = make_lambda @raw_filter
 
         case @kind
         when :before
           halted_lambda = eval "lambda { |result| #{chain.config[:terminator]} }"
           lambda { |target, halted, value, &block|
-            if !halted && conditions.all? { |c| c.call(target, value) }
-              result = source.call target, value
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              result = user_callback.call target, value
               halted = halted_lambda.call result
               if halted
                 target.send :halted_callback_hook, @raw_filter.inspect
@@ -190,25 +190,25 @@ module ActiveSupport
           if chain.config[:skip_after_callbacks_if_terminated]
             lambda { |target, halted, value, &block|
               target, halted, value = next_callback.call target, halted, value, &block
-              if !halted && conditions.all? { |c| c.call(target, value) }
-                source.call target, value
+              if !halted && user_conditions.all? { |c| c.call(target, value) }
+                user_callback.call target, value
               end
               [target, halted, value]
             }
           else
             lambda { |target, halted, value, &block|
               target, halted, value = next_callback.call target, halted, value, &block
-              if conditions.all? { |c| c.call(target, value) }
-                source.call target, value
+              if user_conditions.all? { |c| c.call(target, value) }
+                user_callback.call target, value
               end
               [target, halted, value]
             }
           end
         when :around
           lambda { |target, halted, value, &block|
-            if !halted && conditions.all? { |c| c.call(target, value) }
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
               retval = nil
-              source.call(target, value) {
+              user_callback.call(target, value) {
                 retval = next_callback.call(target, halted, value, &block)
                 retval.last
               }
