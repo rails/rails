@@ -215,6 +215,45 @@ module ActiveSupport
 
       private
 
+      def invert_lambda(l)
+        lambda { |*args, &blk| !l.call(*args, &blk) }
+      end
+
+      def make_lambda(filter)
+        case filter
+        when Array
+          filter.map {|f| _compile_options(f)}
+        when Symbol
+          lambda { |target, value, &blk|
+            target.send filter, &blk
+          }
+        when String
+          l = eval "lambda { |value| #{filter} }"
+          lambda { |target,value| target.instance_exec(value, &l) }
+        when ::Proc
+          if filter.arity <= 0
+            return lambda { |target, _| target.instance_exec(&filter) }
+          end
+
+          if filter.arity == 1
+            lambda { |target, _|
+              target.instance_exec(target, &filter)
+            }
+          else
+            lambda { |target, _|
+              target.instance_exec target, ::Proc.new, &filter
+            }
+          end
+        else
+          scopes = Array(chain.config[:scope])
+          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
+
+          lambda { |target, _, &blk|
+            filter.public_send method_to_call, target, &blk
+          }
+        end
+      end
+
       def compute_identifier(filter)
         case filter
         when String, ::Proc
@@ -261,13 +300,13 @@ module ActiveSupport
         conditions = []
 
         unless options[:if].empty?
-          conditions.concat Array(_compile_options(options[:if]))
+          lambdas = Array(options[:if]).map { |c| make_lambda c }
+          conditions.concat lambdas
         end
 
         unless options[:unless].empty?
-          conditions.concat Array(_compile_options(options[:unless])).map { |f|
-            lambda { |*args,&blk| !f.call(*args, &blk) }
-          }
+          lambdas = Array(options[:unless]).map { |c| make_lambda c }
+          conditions.concat lambdas.map { |l| invert_lambda l }
         end
 
         method_name = "_callback_#{@kind}_#{next_id}"
@@ -309,48 +348,13 @@ module ActiveSupport
       #     a method is created that calls the before_foo method
       #     on the object.
       def _compile_source(filter)
-        l = _compile_options filter
+        l = make_lambda filter
 
         method_name = "_callback_#{@kind}_#{next_id}"
         @klass.send(:define_method, method_name) do |*args,&block|
           l.call(self, *args, &block)
         end
         method_name
-      end
-
-      def _compile_options(filter)
-        case filter
-        when Array
-          filter.map {|f| _compile_options(f)}
-        when Symbol
-          lambda { |target, value, &blk|
-            target.send filter, &blk
-          }
-        when String
-          l = eval "lambda { |value| #{filter} }", __FILE__, __LINE__
-          lambda { |target,value| target.instance_exec(value, &l) }
-        when ::Proc
-          if filter.arity <= 0
-            return lambda { |target, _| target.instance_exec(&filter) }
-          end
-
-          if filter.arity == 1
-            lambda { |target, _|
-              target.instance_exec(target, &filter)
-            }
-          else
-            lambda { |target, _|
-              target.instance_exec target, ::Proc.new, &filter
-            }
-          end
-        else
-          scopes = Array(chain.config[:scope])
-          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
-
-          lambda { |target, _, &blk|
-            filter.public_send method_to_call, target, &blk
-          }
-        end
       end
 
       def _normalize_legacy_filter(kind, filter)
