@@ -88,6 +88,10 @@ module ActiveSupport
     def halted_callback_hook(filter)
     end
 
+    module Filters
+      Environment = Struct.new(:target, :halted, :value, :run_block)
+    end
+
     class Callback #:nodoc:#
       class Unduplicable < Callback # :nodoc:
         def duplicates?(other)
@@ -173,45 +177,60 @@ module ActiveSupport
         case @kind
         when :before
           halted_lambda = eval "lambda { |result| #{chain.config[:terminator]} }"
-          lambda { |target, halted, value, run_block|
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               result = user_callback.call target, value
-              halted = halted_lambda.call result
-              if halted
+              env.halted = halted_lambda.call result
+              if env.halted
                 target.send :halted_callback_hook, @raw_filter.inspect
               end
             end
-            next_callback.call target, halted, value, run_block
+            next_callback.call env
           }
         when :after
           if chain.config[:skip_after_callbacks_if_terminated]
-            lambda { |target, halted, value, run_block|
-              target, halted, value = next_callback.call target, halted, value, run_block
+            lambda { |env|
+              env = next_callback.call env
+              target = env.target
+              value  = env.value
+              halted = env.halted
+
               if !halted && user_conditions.all? { |c| c.call(target, value) }
                 user_callback.call target, value
               end
-              [target, halted, value]
+              env
             }
           else
-            lambda { |target, halted, value, run_block|
-              target, halted, value = next_callback.call target, halted, value, run_block
+            lambda { |env|
+              env = next_callback.call env
+              target = env.target
+              value  = env.value
+              halted = env.halted
+
               if user_conditions.all? { |c| c.call(target, value) }
                 user_callback.call target, value
               end
-              [target, halted, value]
+              env
             }
           end
         when :around
-          lambda { |target, halted, value, run_block|
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
             if !halted && user_conditions.all? { |c| c.call(target, value) }
-              retval = nil
               user_callback.call(target, value) {
-                retval = next_callback.call(target, halted, value, run_block)
-                retval.last
+                env = next_callback.call env
+                env.value
               }
-              retval
+              env
             else
-              next_callback.call target, halted, value, run_block
+              next_callback.call env
             end
           }
         end
@@ -331,9 +350,9 @@ module ActiveSupport
       end
 
       def compile
-        callbacks = lambda { |target, halted, value, run_block|
-          value = run_block.call if run_block && !halted
-          [target, halted, value]
+        callbacks = lambda { |env|
+          env.value = env.run_block.call if env.run_block && !env.halted
+          env
         }
         reverse_each do |callback|
           callbacks = callback.apply(callbacks)
@@ -375,10 +394,11 @@ module ActiveSupport
       def __define_callbacks(kind, object) #:nodoc:
         name = __callback_runner_name(kind)
         unless object.respond_to?(name, true)
-          str = object.send("_#{kind}_callbacks").compile
+          filter_chain = object.send("_#{kind}_callbacks").compile
           class_eval do
             define_method(name) do |&block|
-              str.call(self, false, nil, block)[2]
+              e = Filters::Environment.new(self, false, nil, block)
+              filter_chain.call(e).value
             end
             protected name
           end
