@@ -89,8 +89,6 @@ module ActiveSupport
     end
 
     class Callback #:nodoc:#
-      @@_callback_sequence = 0
-
       class Basic < Callback
       end
 
@@ -148,10 +146,6 @@ module ActiveSupport
 
       def name
         chain.name
-      end
-
-      def next_id
-        @@_callback_sequence += 1
       end
 
       def matches?(_kind, _filter)
