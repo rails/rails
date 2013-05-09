@@ -1,5 +1,5 @@
 gem 'minitest'
 
-require 'minitest/autorun'
+require 'minitest'
 
 Minitest.autorun
