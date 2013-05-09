@@ -668,6 +668,11 @@ module ActiveRecord
       copied
     end
 
+    # Determines the version number of the next migration
+    # if the timestamped migrations are activated then the comparison with the current time is made
+    # and then higer of the two values is selected
+    # For non timestamped values, the simple numbers are used in the format of "057", "570"
+
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
