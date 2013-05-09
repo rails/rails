@@ -187,7 +187,7 @@ module ActiveSupport
               # This double assignment is to prevent warnings in 1.9.3 as
               # the `result` variable is not always used except if the
               # terminator code refers to it.
-              result = result = #{@source}
+              result = result = #{@source}(value)
               halted = (#{chain.config[:terminator]})
               if halted
                 halted_callback_hook(#{@raw_filter.inspect.inspect})
@@ -199,7 +199,7 @@ module ActiveSupport
           <<-RUBY_EVAL
           #{code}
           if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}(value)
-            #{@source}
+            #{@source}(value)
           end
           RUBY_EVAL
         when :around
@@ -243,7 +243,7 @@ module ActiveSupport
         @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
           def #{name}(halted, value)
            if #{@compiled_options}(value) && !halted
-             #{@source} do
+             #{@source}(value) do
                yield self
              end
            else
@@ -309,35 +309,13 @@ module ActiveSupport
       #     a method is created that calls the before_foo method
       #     on the object.
       def _compile_source(filter)
-        case filter
-        when Array
-          filter.map {|f| _compile_source(f)}
-        when Symbol
-          filter
-        when String
-          "(#{filter})"
-        when ::Proc
-          method_name = "_callback_#{@kind}_#{next_id}"
-          @klass.send(:define_method, method_name, &filter)
-          return method_name if filter.arity <= 0
+        l = _compile_options filter
 
-          method_name << (filter.arity == 1 ? "(self)" : "(self, ::Proc.new)")
-        else
-          method_name = _method_name_for_object_filter(kind, filter)
-          @klass.send(:define_method, "#{method_name}_object") { filter }
-
-          _normalize_legacy_filter(kind, filter)
-          scopes = Array(chain.config[:scope])
-          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
-
-          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{method_name}(&blk)
-              #{method_name}_object.send(:#{method_to_call}, self, &blk)
-            end
-          RUBY_EVAL
-
-          method_name
+        method_name = "_callback_#{@kind}_#{next_id}"
+        @klass.send(:define_method, method_name) do |*args,&block|
+          l.call(self, *args, &block)
         end
+        method_name
       end
 
       def _compile_options(filter)
@@ -345,9 +323,11 @@ module ActiveSupport
         when Array
           filter.map {|f| _compile_options(f)}
         when Symbol
-          lambda { |target, value| target.public_send filter }
+          lambda { |target, value, &blk|
+            target.send filter, &blk
+          }
         when String
-          l = eval "lambda { |value| #{filter} }"
+          l = eval "lambda { |value| #{filter} }", __FILE__, __LINE__
           lambda { |target,value| target.instance_exec(value, &l) }
         when ::Proc
           if filter.arity <= 0
