@@ -25,6 +25,7 @@ require 'active_support'
 require 'active_support/rails'
 require 'active_model/version'
 
+# :include: ../README.rdoc
 module ActiveModel
   extend ActiveSupport::Autoload
 

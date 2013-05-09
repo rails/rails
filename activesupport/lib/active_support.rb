@@ -27,6 +27,7 @@ require "active_support/version"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
 
+# :include: ../README.rdoc
 module ActiveSupport
   extend ActiveSupport::Autoload
 

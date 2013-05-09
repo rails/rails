@@ -32,6 +32,7 @@ require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/lazy_load_hooks'
 
+# :include: ../README.rdoc
 module ActionMailer
   extend ::ActiveSupport::Autoload
 

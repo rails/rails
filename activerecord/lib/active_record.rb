@@ -29,6 +29,7 @@ require 'active_record/deprecated_finders'
 
 require 'active_record/version'
 
+# :include: ../README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
 
