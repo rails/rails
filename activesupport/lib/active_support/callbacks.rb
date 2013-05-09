@@ -89,10 +89,7 @@ module ActiveSupport
     end
 
     class Callback #:nodoc:#
-      class Basic < Callback
-      end
-
-      class Object < Callback
+      class Unduplicable < Callback # :nodoc:
         def duplicates?(other)
           false
         end
@@ -100,10 +97,10 @@ module ActiveSupport
 
       def self.build(chain, filter, kind, options, _klass)
         klass = case filter
-                when Array, Symbol, String
-                  Callback::Basic
+                when Symbol, String
+                  Callback
                 else
-                  Callback::Object
+                  Callback::Unduplicable
                 end
         klass.new chain, filter, kind, options, _klass
       end
