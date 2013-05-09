@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Revert changes on `pluck` that was ignoring the select clause when the relation already
+    has one. This caused a regression since it changed the behavior in a stable release.
+
+    Fixes #9777.
+
+    *Rafael Mendonça França*
+
 *   Confirm a record has not already been destroyed before decrementing counter cache.
 
     *Ben Tucker*

@@ -493,9 +493,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
   end
 
-  def test_pluck_replaces_select_clause
-    taks_relation = Topic.select([:approved, :id]).order(:id)
-    assert_equal [1,2,3,4], taks_relation.pluck(:id)
+  def test_pluck_does_not_replace_select_clause
+    taks_relation = Topic.select("approved, id, id AS foo_id").order(:foo_id)
     assert_equal [false, true, true, true], taks_relation.pluck(:approved)
   end
 
