@@ -8,7 +8,7 @@ module ActiveRecord
           conn = ActiveRecord::Base.connection
 
           smtn = ActiveRecord::Migrator.schema_migrations_table_name
-          conn.drop_table(smtn) if conn.table_exists(smtn)
+          conn.drop_table(smtn) if conn.table_exists?(smtn)
 
           config = conn.instance_variable_get(:@config)
           original_encoding = config[:encoding]
