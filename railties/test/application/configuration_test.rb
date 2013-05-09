@@ -514,7 +514,7 @@ module ApplicationTests
 
       app_file 'app/models/post.rb', <<-RUBY
       class Post
-        def self.attribute_names
+        def self.attribute_method_names
           %w(title)
         end
       end

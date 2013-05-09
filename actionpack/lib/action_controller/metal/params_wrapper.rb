@@ -44,7 +44,7 @@ module ActionController
   #
   # On ActiveRecord models with no +:include+ or +:exclude+ option set,
   # it will only wrap the parameters returned by the class method
-  # <tt>attribute_names</tt>.
+  # <tt>attribute_method_names</tt>.
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
   # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
@@ -106,8 +106,8 @@ module ActionController
           @include_set = true
 
           unless super || exclude
-            if m.respond_to?(:attribute_names) && m.attribute_names.any?
-              self.include = m.attribute_names
+            if m.respond_to?(:attribute_method_names) && m.attribute_method_names.any?
+              self.include = m.attribute_method_names
             end
           end
         end
