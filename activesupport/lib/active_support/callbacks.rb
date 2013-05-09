@@ -345,25 +345,31 @@ module ActiveSupport
         when Array
           filter.map {|f| _compile_options(f)}
         when Symbol
-          lambda { |target, value| target.send filter }
+          lambda { |target, value| target.public_send filter }
         when String
           l = eval "lambda { |value| #{filter} }"
           lambda { |target,value| target.instance_exec(value, &l) }
         when ::Proc
-          method_name = "_callback_#{@kind}_#{next_id}"
-          @klass.send(:define_method, method_name, &filter)
-
           if filter.arity <= 0
             return lambda { |target, _| target.instance_exec(&filter) }
           end
 
           if filter.arity == 1
-            lambda { |target, _| target.send method_name, target }
+            lambda { |target, _|
+              target.instance_exec(target, &filter)
+            }
           else
-            lambda { |target, _,&blk| target.send method_name, target, &blk }
+            lambda { |target, _|
+              target.instance_exec target, ::Proc.new, &filter
+            }
           end
         else
-          raise
+          scopes = Array(chain.config[:scope])
+          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
+
+          lambda { |target, _, &blk|
+            filter.public_send method_to_call, target, &blk
+          }
         end
       end
 
