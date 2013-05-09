@@ -447,7 +447,7 @@ module Rails
       self
     end
 
-    # Load rails generators and invoke the registered hooks.
+    # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
     def load_generators(app=self)
       require "rails/generators"
