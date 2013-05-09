@@ -169,7 +169,7 @@ module ActiveSupport
       end
 
       # Wraps code with filter
-      def apply(code)
+      def apply(next_callback)
         conditions = conditions_lambdas
         source = make_lambda @raw_filter
 
@@ -184,12 +184,12 @@ module ActiveSupport
                 target.send :halted_callback_hook, @raw_filter.inspect
               end
             end
-            code.call target, halted, value, &block
+            next_callback.call target, halted, value, &block
           }
         when :after
           if chain.config[:skip_after_callbacks_if_terminated]
             lambda { |target, halted, value, &block|
-              target, halted, value = code.call target, halted, value, &block
+              target, halted, value = next_callback.call target, halted, value, &block
               if !halted && conditions.all? { |c| c.call(target, value) }
                 source.call target, value
               end
@@ -197,7 +197,7 @@ module ActiveSupport
             }
           else
             lambda { |target, halted, value, &block|
-              target, halted, value = code.call target, halted, value, &block
+              target, halted, value = next_callback.call target, halted, value, &block
               if conditions.all? { |c| c.call(target, value) }
                 source.call target, value
               end
@@ -209,12 +209,12 @@ module ActiveSupport
             if !halted && conditions.all? { |c| c.call(target, value) }
               retval = nil
               source.call(target, value) {
-                retval = code.call(target, halted, value, &block)
+                retval = next_callback.call(target, halted, value, &block)
                 retval.last
               }
               retval
             else
-              code.call target, halted, value, &block
+              next_callback.call target, halted, value, &block
             end
           }
         end
