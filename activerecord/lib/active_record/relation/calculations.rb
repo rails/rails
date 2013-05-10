@@ -181,8 +181,11 @@ module ActiveRecord
         column_name = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
       end
 
+      result = klass.connection.exec_query(select(column_name).to_sql)
+      last_column = result.columns.last
+
       klass.connection.select_all(select(column_name).arel).map! do |attributes|
-        klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
+        klass.type_cast_attribute(last_column, klass.initialize_attributes(attributes))
       end
     end
 
