@@ -231,16 +231,12 @@ module ActiveRecord
         relation = association.join_relation(relation)
       end
 
-      limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
-
-      if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation)
-        relation = relation.where(limited_id_condition)
+      if using_limitable_reflections?(join_dependency.reflections)
+        relation
+      else
+        relation = relation.where(construct_limited_ids_condition(relation)) if relation.limit_value
+        relation.except(:limit, :offset)
       end
-
-      relation = relation.except(:limit, :offset) unless limitable_reflections
-
-      relation
     end
 
     def construct_limited_ids_condition(relation)
