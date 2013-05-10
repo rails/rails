@@ -1,3 +1,5 @@
+require 'active_support/concern'
+
 module Rails
   module Generators
     # Holds common methods for migrations. It assumes that migrations has the
@@ -5,10 +7,7 @@ module Rails
     # just by implementing the next migration version method.
     module Migration
       attr_reader :migration_number, :migration_file_name, :migration_class_name
-
-      def self.included(base) #:nodoc:
-        base.extend ClassMethods
-      end
+      extend ActiveSupport::Concern
 
       module ClassMethods
         def migration_lookup_at(dirname) #:nodoc:
