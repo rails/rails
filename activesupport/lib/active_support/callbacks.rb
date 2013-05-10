@@ -351,7 +351,8 @@ module ActiveSupport
 
       def compile
         callbacks = lambda { |env|
-          env.value = env.run_block.call if env.run_block && !env.halted
+          block = env.run_block
+          env.value = !env.halted && (!block || block.call)
           env
         }
         reverse_each do |callback|
