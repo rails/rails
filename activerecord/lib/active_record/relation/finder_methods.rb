@@ -160,7 +160,7 @@ module ActiveRecord
       conditions = conditions.id if Base === conditions
       return false if !conditions
 
-      join_dependency = construct_join_dependency_for_association_find
+      join_dependency = construct_join_dependency
       relation = construct_relation_for_association_find(join_dependency)
       relation = relation.except(:select, :order).select("1 AS one").limit(1)
 
@@ -201,7 +201,7 @@ module ActiveRecord
     protected
 
     def find_with_associations
-      join_dependency = construct_join_dependency_for_association_find
+      join_dependency = construct_join_dependency
       relation = construct_relation_for_association_find(join_dependency)
       rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
       join_dependency.instantiate(rows)
@@ -209,15 +209,13 @@ module ActiveRecord
       []
     end
 
-    def construct_join_dependency_for_association_find
+    def construct_join_dependency(joins = [])
       including = (eager_load_values + includes_values).uniq
-      ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
+      ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
     end
 
     def construct_relation_for_association_calculations
-      including = (eager_load_values + includes_values).uniq
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
-      apply_join_dependency(self, join_dependency)
+      apply_join_dependency(self, construct_join_dependency(arel.froms.first))
     end
 
     def construct_relation_for_association_find(join_dependency)
