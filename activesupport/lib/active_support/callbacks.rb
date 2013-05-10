@@ -95,13 +95,15 @@ module ActiveSupport
 
     class Callback #:nodoc:#
       def self.build(chain, filter, kind, options)
-        new chain, filter, kind, options
+        new chain.name, filter, kind, options, chain.config
       end
 
-      attr_accessor :chain, :kind, :options
+      attr_accessor :kind, :options, :name
+      attr_reader :chain_config
 
-      def initialize(chain, filter, kind, options)
-        @chain   = chain
+      def initialize(name, filter, kind, options, chain_config)
+        @chain_config  = chain_config
+        @name    = name
         @kind    = kind
         @filter  = filter
         @options = options
@@ -131,16 +133,12 @@ module ActiveSupport
         _options[:if].concat     Array(new_options.fetch(:unless, []))
         _options[:unless].concat Array(new_options.fetch(:if, []))
 
-        self.class.new chain, @filter, @kind, _options
+        self.class.build chain, @filter, @kind, _options
       end
 
       def normalize_options!(options)
         options[:if] = Array(options[:if])
         options[:unless] = Array(options[:unless])
-      end
-
-      def name
-        chain.name
       end
 
       def matches?(_kind, _filter)
@@ -163,7 +161,7 @@ module ActiveSupport
 
         case kind
         when :before
-          halted_lambda = eval "lambda { |result| #{chain.config[:terminator]} }"
+          halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
           lambda { |env|
             target = env.target
             value  = env.value
@@ -179,7 +177,7 @@ module ActiveSupport
             next_callback.call env
           }
         when :after
-          if chain.config[:skip_after_callbacks_if_terminated]
+          if chain_config[:skip_after_callbacks_if_terminated]
             lambda { |env|
               env = next_callback.call env
               target = env.target
@@ -271,7 +269,7 @@ module ActiveSupport
             }
           end
         else
-          scopes = Array(chain.config[:scope])
+          scopes = Array(chain_config[:scope])
           method_to_call = scopes.map{ |s| public_send(s) }.join("_")
 
           lambda { |target, _, &blk|
