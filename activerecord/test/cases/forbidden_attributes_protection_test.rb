@@ -8,7 +8,7 @@ class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
   alias :permitted? :permitted
 
   def initialize(attributes)
-    super(attributes)
+    super
     @permitted = false
   end
 

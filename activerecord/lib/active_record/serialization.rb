@@ -14,7 +14,7 @@ module ActiveRecord #:nodoc:
       options[:except] = Array(options[:except]).map { |n| n.to_s }
       options[:except] |= Array(self.class.inheritance_column)
 
-      super(options)
+      super
     end
   end
 end

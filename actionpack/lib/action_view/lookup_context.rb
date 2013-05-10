@@ -196,7 +196,7 @@ module ActionView
           @html_fallback_for_js = true
         end
       end
-      super(values)
+      super
     end
 
     # Do not use the default locale on template lookup.

@@ -59,7 +59,7 @@ module ActiveSupport
         super()
         update(constructor)
       else
-        super(constructor)
+        super
       end
     end
 
@@ -123,7 +123,7 @@ module ActiveSupport
     #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
     def update(other_hash)
       if other_hash.is_a? HashWithIndifferentAccess
-        super(other_hash)
+        super
       else
         other_hash.each_pair do |key, value|
           if block_given? && key?(key)

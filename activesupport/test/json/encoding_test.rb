@@ -27,7 +27,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     def as_json(options={})
       options[:only] = %w(foo bar)
-      super(options)
+      super
     end
   end
 

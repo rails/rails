@@ -86,7 +86,7 @@ module ActionController
       # * <tt>array</tt> - A normalized list of modules for the list of helpers provided.
       def modules_for_helpers(args)
         args += all_application_helpers if args.delete(:all)
-        super(args)
+        super
       end
 
       def all_helpers_from_path(path)

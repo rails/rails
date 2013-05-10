@@ -9,7 +9,7 @@ module ActiveSupport
     # ActiveSupport::Cache::Strategy::LocalCache for more details.
     class NullStore < Store
       def initialize(options = nil)
-        super(options)
+        super
         extend Strategy::LocalCache
       end
 

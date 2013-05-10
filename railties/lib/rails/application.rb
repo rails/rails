@@ -94,7 +94,7 @@ module Rails
     def call(env)
       env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
       env["ORIGINAL_SCRIPT_NAME"] = env["SCRIPT_NAME"]
-      super(env)
+      super
     end
 
     # Reload application routes regardless if they changed or not.

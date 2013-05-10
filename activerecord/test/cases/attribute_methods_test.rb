@@ -346,7 +346,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new
     topic.title = "Stop changing the topic"
     def topic.read_attribute(attr_name)
-      super(attr_name).upcase
+      super.upcase
     end
 
     assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, "title")

@@ -99,7 +99,7 @@ module ActiveRecord
         def build_record(attributes)
           ensure_not_nested
 
-          record = super(attributes)
+          record = super
 
           inverse = source_reflection.inverse_of
           if inverse

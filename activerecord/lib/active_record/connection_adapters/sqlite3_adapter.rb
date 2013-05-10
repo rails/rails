@@ -448,7 +448,7 @@ module ActiveRecord
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
         if supports_add_column? && valid_alter_table_options( type, options )
-          super(table_name, column_name, type, options)
+          super
         else
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)

@@ -184,7 +184,7 @@ module ActiveSupport #:nodoc:
       end
 
       def unloadable(const_desc = self)
-        super(const_desc)
+        super
       end
     end
 
