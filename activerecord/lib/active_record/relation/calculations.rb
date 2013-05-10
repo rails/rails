@@ -189,6 +189,8 @@ module ActiveRecord
         end
         columns.one? ? result.map!(&:first) : result
       end
+    rescue ThrowResult
+      []
     end
 
     # Pluck all the ID's for the relation using the table's primary key
