@@ -94,20 +94,8 @@ module ActiveSupport
     end
 
     class Callback #:nodoc:#
-      class Unduplicable < Callback # :nodoc:
-        def duplicates?(other)
-          false
-        end
-      end
-
       def self.build(chain, filter, kind, options, _klass)
-        klass = case filter
-                when Symbol, String
-                  Callback
-                else
-                  Callback::Unduplicable
-                end
-        klass.new chain, filter, kind, options, _klass
+        new chain, filter, kind, options, _klass
       end
 
       attr_accessor :chain, :kind, :options, :klass, :raw_filter
@@ -155,9 +143,12 @@ module ActiveSupport
       end
 
       def duplicates?(other)
-        return false unless self.class == other.class
-
-        matches?(other.kind, other.filter)
+        case @raw_filter
+        when Symbol, String
+          matches?(other.kind, other.filter)
+        else
+          false
+        end
       end
 
       def _update_filter(filter_options, new_options)
