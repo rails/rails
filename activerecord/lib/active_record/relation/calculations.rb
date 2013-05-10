@@ -179,11 +179,8 @@ module ActiveRecord
     def pluck(column_name)
       if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
         column_name = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
-      else
-        column_name = column_name.to_s
       end
 
-      column_name = column_name.to_s
       klass.connection.select_all(select(column_name).arel).map! do |attributes|
         klass.type_cast_attribute(attributes.keys.first, klass.initialize_attributes(attributes))
       end
