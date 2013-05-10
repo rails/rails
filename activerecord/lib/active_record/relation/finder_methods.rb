@@ -160,7 +160,7 @@ module ActiveRecord
       conditions = conditions.id if Base === conditions
       return false if !conditions
 
-      join_dependency = construct_join_dependency_for_association_find
+      join_dependency = construct_join_dependency
       relation = construct_relation_for_association_find(join_dependency)
       relation = relation.except(:select, :order).select("1 AS one").limit(1)
 
@@ -201,7 +201,7 @@ module ActiveRecord
     protected
 
     def find_with_associations
-      join_dependency = construct_join_dependency_for_association_find
+      join_dependency = construct_join_dependency
       relation = construct_relation_for_association_find(join_dependency)
       rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
       join_dependency.instantiate(rows)
@@ -209,45 +209,37 @@ module ActiveRecord
       []
     end
 
-    def construct_join_dependency_for_association_find
+    def construct_join_dependency(joins = [])
       including = (eager_load_values + includes_values).uniq
-      ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
+      ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
     end
 
     def construct_relation_for_association_calculations
-      including = (eager_load_values + includes_values).uniq
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
-      relation = except(:includes, :eager_load, :preload)
-      apply_join_dependency(relation, join_dependency)
+      apply_join_dependency(self, construct_join_dependency(arel.froms.first))
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns)
+      relation = except(:select).select(join_dependency.columns)
       apply_join_dependency(relation, join_dependency)
     end
 
     def apply_join_dependency(relation, join_dependency)
-      join_dependency.join_associations.each do |association|
-        relation = association.join_relation(relation)
+      relation = relation.except(:includes, :eager_load, :preload)
+      relation = join_dependency.join_relation(relation)
+
+      if using_limitable_reflections?(join_dependency.reflections)
+        relation
+      else
+        relation.where!(construct_limited_ids_condition(relation)) if relation.limit_value
+        relation.except(:limit, :offset)
       end
-
-      limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
-
-      if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
-        relation = relation.where(limited_id_condition)
-      end
-
-      relation = relation.except(:limit, :offset) unless limitable_reflections
-
-      relation
     end
 
     def construct_limited_ids_condition(relation)
-      orders = relation.order_values.map { |val| val.presence }.compact
-      values = @klass.connection.columns_for_distinct("#{quoted_table_name}.#{quoted_primary_key}", orders)
+      values = @klass.connection.columns_for_distinct(
+        "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
-      relation = relation.dup.select(values).distinct!
+      relation = relation.except(:select).select(values).distinct!
 
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
       ids_array = id_rows.map {|row| row[primary_key]}
