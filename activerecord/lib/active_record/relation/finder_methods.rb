@@ -160,8 +160,9 @@ module ActiveRecord
       conditions = conditions.id if Base === conditions
       return false if !conditions
 
-      join_dependency = construct_join_dependency
-      relation = construct_relation_for_association_find(join_dependency)
+      relation = construct_relation_for_association_find(construct_join_dependency)
+      return false if ActiveRecord::NullRelation === relation
+
       relation = relation.except(:select, :order).select("1 AS one").limit(1)
 
       case conditions
@@ -172,8 +173,6 @@ module ActiveRecord
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bind_values)
-    rescue ThrowResult
-      false
     end
 
     # This method is called whenever no records are found with either a single
@@ -203,10 +202,12 @@ module ActiveRecord
     def find_with_associations
       join_dependency = construct_join_dependency
       relation = construct_relation_for_association_find(join_dependency)
-      rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
-      join_dependency.instantiate(rows)
-    rescue ThrowResult
-      []
+      if ActiveRecord::NullRelation === relation
+        []
+      else
+        rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
+        join_dependency.instantiate(rows)
+      end
     end
 
     def construct_join_dependency(joins = [])
@@ -230,21 +231,22 @@ module ActiveRecord
       if using_limitable_reflections?(join_dependency.reflections)
         relation
       else
-        relation.where!(construct_limited_ids_condition(relation)) if relation.limit_value
+        if relation.limit_value
+          limited_ids = limited_ids_for(relation)
+          limited_ids.empty? ? relation.none! : relation.where!(table[primary_key].in(limited_ids))
+        end
         relation.except(:limit, :offset)
       end
     end
 
-    def construct_limited_ids_condition(relation)
+    def limited_ids_for(relation)
       values = @klass.connection.columns_for_distinct(
         "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
       relation = relation.except(:select).select(values).distinct!
 
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
-      ids_array = id_rows.map {|row| row[primary_key]}
-
-      ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
+      id_rows.map {|row| row[primary_key]}
     end
 
     def find_with_ids(*ids)

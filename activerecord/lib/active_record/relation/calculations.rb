@@ -114,8 +114,6 @@ module ActiveRecord
       else
         relation.calculate(operation, column_name, options)
       end
-    rescue ThrowResult
-      0
     end
 
     # Use <tt>pluck</tt> as a shortcut to select one or more attributes without
@@ -189,8 +187,6 @@ module ActiveRecord
         end
         columns.one? ? result.map!(&:first) : result
       end
-    rescue ThrowResult
-      []
     end
 
     # Pluck all the ID's for the relation using the table's primary key
