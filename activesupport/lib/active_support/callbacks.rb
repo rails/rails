@@ -338,7 +338,9 @@ module ActiveSupport
     end
 
     # An Array with a compile method.
-    class CallbackChain < Array #:nodoc:#
+    class CallbackChain #:nodoc:#
+      include Enumerable
+
       attr_reader :name, :config
 
       def initialize(name, config)
@@ -347,6 +349,18 @@ module ActiveSupport
           :terminator => "false",
           :scope => [ :kind ]
         }.merge!(config)
+        @chain = []
+      end
+
+      def each(&block);     @chain.each(&block); end
+      def index(o);         @chain.index(o); end
+      def insert(index, o); @chain.insert(index, o); end
+      def delete(o);        @chain.delete(o); end
+      def clear;            @chain.clear; self; end
+      def empty?;           @chain.empty?; end
+
+      def initialize_copy(other)
+        @chain = other.chain.dup
       end
 
       def compile
@@ -355,7 +369,7 @@ module ActiveSupport
           env.value = !env.halted && (!block || block.call)
           env
         }
-        reverse_each do |callback|
+        @chain.reverse_each do |callback|
           callbacks = callback.apply(callbacks)
         end
         callbacks
@@ -369,20 +383,23 @@ module ActiveSupport
         callbacks.each { |c| prepend_one(c) }
       end
 
+      protected
+      def chain; @chain; end
+
       private
 
       def append_one(callback)
         remove_duplicates(callback)
-        push(callback)
+        @chain.push(callback)
       end
 
       def prepend_one(callback)
         remove_duplicates(callback)
-        unshift(callback)
+        @chain.unshift(callback)
       end
 
       def remove_duplicates(callback)
-        delete_if { |c| callback.duplicates?(c) }
+        @chain.delete_if { |c| callback.duplicates?(c) }
       end
 
     end
