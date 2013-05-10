@@ -108,7 +108,10 @@ module ActiveSupport
         '\\'   =>  '\\\\',
         '>'    =>  '\u003E',
         '<'    =>  '\u003C',
-        '&'    =>  '\u0026' }
+        '&'    =>  '\u0026',
+        "#{0xe2.chr}#{0x80.chr}#{0xa8.chr}" => '\u2028',
+        "#{0xe2.chr}#{0x80.chr}#{0xa9.chr}" => '\u2029',
+        }
 
       class << self
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back
