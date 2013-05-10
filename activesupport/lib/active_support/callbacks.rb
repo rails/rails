@@ -98,20 +98,22 @@ module ActiveSupport
         new chain, filter, kind, options, _klass
       end
 
-      attr_accessor :chain, :kind, :options, :klass, :raw_filter
+      attr_accessor :chain, :kind, :options, :klass
 
       def initialize(chain, filter, kind, options, klass)
-        @chain, @kind, @klass = chain, kind, klass
+        @chain   = chain
+        @kind    = kind
+        @klass   = klass
+        @filter  = filter
+        @options = options
+        @key     = compute_identifier filter
+
         deprecate_per_key_option(options)
         normalize_options!(options)
-
-        @raw_filter, @options = filter, options
-        @key = compute_identifier filter
       end
 
-      def filter
-        @key
-      end
+      def filter; @key; end
+      def raw_filter; @filter; end
 
       def deprecate_per_key_option(options)
         if options[:per_key]
@@ -143,7 +145,7 @@ module ActiveSupport
       end
 
       def duplicates?(other)
-        case @raw_filter
+        case @filter
         when Symbol, String
           matches?(other.kind, other.filter)
         else
@@ -164,9 +166,9 @@ module ActiveSupport
       # Wraps code with filter
       def apply(next_callback)
         user_conditions = conditions_lambdas
-        user_callback = make_lambda @raw_filter
+        user_callback = make_lambda @filter
 
-        case @kind
+        case kind
         when :before
           halted_lambda = eval "lambda { |result| #{chain.config[:terminator]} }"
           lambda { |env|
@@ -178,7 +180,7 @@ module ActiveSupport
               result = user_callback.call target, value
               env.halted = halted_lambda.call result
               if env.halted
-                target.send :halted_callback_hook, @raw_filter.inspect
+                target.send :halted_callback_hook, @filter.inspect
               end
             end
             next_callback.call env
