@@ -120,12 +120,16 @@ module ActiveSupport
         end
       end
 
-      def initialize_copy(other)
-        super
-        @options = {
-          :if     => other.options[:if].dup,
-          :unless => other.options[:unless].dup
+      def merge(chain, new_options)
+        _options = {
+          :if     => @options[:if].dup,
+          :unless => @options[:unless].dup
         }
+
+        _options[:if].concat     Array(new_options.fetch(:unless, []))
+        _options[:unless].concat Array(new_options.fetch(:if, []))
+
+        self.class.new chain, @filter, @kind, _options
       end
 
       def normalize_options!(options)
@@ -148,16 +152,6 @@ module ActiveSupport
         else
           false
         end
-      end
-
-      def _update_filter(filter_options, new_options)
-        filter_options[:if].concat(Array(new_options[:unless])) if new_options.key?(:unless)
-        filter_options[:unless].concat(Array(new_options[:if])) if new_options.key?(:if)
-      end
-
-      def recompile!(_options)
-        deprecate_per_key_option(_options)
-        _update_filter(self.options, _options)
       end
 
       # Wraps code with filter
@@ -492,10 +486,8 @@ module ActiveSupport
             filter = chain.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
-              new_filter = filter.dup
-              new_filter.chain = chain
+              new_filter = filter.merge(chain, options)
               chain.insert(chain.index(filter), new_filter)
-              new_filter.recompile!(options)
             end
 
             chain.delete(filter)
