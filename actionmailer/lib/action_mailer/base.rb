@@ -591,22 +591,22 @@ module ActionMailer
     # Both methods accept a headers hash. This hash allows you to specify the most used headers
     # in an email message, these are:
     #
-    # * <tt>:subject</tt> - The subject of the message, if this is omitted, Action Mailer will
-    #   ask the Rails I18n class for a translated <tt>:subject</tt> in the scope of
+    # * +:subject+ - The subject of the message, if this is omitted, Action Mailer will
+    #   ask the Rails I18n class for a translated +:subject+ in the scope of
     #   <tt>[mailer_scope, action_name]</tt> or if this is missing, will translate the
-    #   humanized version of the <tt>action_name</tt>
-    # * <tt>:to</tt> - Who the message is destined for, can be a string of addresses, or an array
+    #   humanized version of the +action_name+
+    # * +:to+ - Who the message is destined for, can be a string of addresses, or an array
     #   of addresses.
-    # * <tt>:from</tt> - Who the message is from
-    # * <tt>:cc</tt> - Who you would like to Carbon-Copy on this email, can be a string of addresses,
+    # * +:from+ - Who the message is from
+    # * +:cc+ - Who you would like to Carbon-Copy on this email, can be a string of addresses,
     #   or an array of addresses.
-    # * <tt>:bcc</tt> - Who you would like to Blind-Carbon-Copy on this email, can be a string of
+    # * +:bcc+ - Who you would like to Blind-Carbon-Copy on this email, can be a string of
     #   addresses, or an array of addresses.
-    # * <tt>:reply_to</tt> - Who to set the Reply-To header of the email to.
-    # * <tt>:date</tt> - The date to say the email was sent on.
+    # * +:reply_to+ - Who to set the Reply-To header of the email to.
+    # * +:date+ - The date to say the email was sent on.
     #
-    # You can set default values for any of the above headers (except :date) by using the <tt>default</tt>
-    # class method:
+    # You can set default values for any of the above headers (except +:date+)
+    # by using the ::default class method:
     #
     #  class Notifier < ActionMailer::Base
     #    default from: 'no-reply@test.lindsaar.net',
@@ -618,17 +618,19 @@ module ActionMailer
     # as part of the headers hash or use the <tt>headers['name'] = value</tt>
     # method.
     #
-    # When a <tt>:return_path</tt> is specified as header, that value will be used as the 'envelope from'
-    # address for the Mail message. Setting this is useful when you want delivery notifications
-    # sent to a different address than the one in <tt>:from</tt>. Mail will actually use the
-    # <tt>:return_path</tt> in preference to the <tt>:sender</tt> in preference to the <tt>:from</tt>
-    # field for the 'envelope from' value.
+    # When a +:return_path+ is specified as header, that value will be used as
+    # the 'envelope from' address for the Mail message. Setting this is useful
+    # when you want delivery notifications sent to a different address than the
+    # one in +:from+. Mail will actually use the +:return_path+ in preference
+    # to the +:sender+ in preference to the +:from+ field for the 'envelope
+    # from' value.
     #
-    # If you do not pass a block to the +mail+ method, it will find all templates in the
-    # view paths using by default the mailer name and the method name that it is being
-    # called from, it will then create parts for each of these templates intelligently,
-    # making educated guesses on correct content type and sequence, and return a fully
-    # prepared Mail::Message ready to call <tt>:deliver</tt> on to send.
+    # If you do not pass a block to the +mail+ method, it will find all
+    # templates in the view paths using by default the mailer name and the
+    # method name that it is being called from, it will then create parts for
+    # each of these templates intelligently, making educated guesses on correct
+    # content type and sequence, and return a fully prepared Mail::Message
+    # ready to call +:deliver+ on to send.
     #
     # For example:
     #
@@ -663,8 +665,8 @@ module ActionMailer
     #     format.html { render text: "<h1>Hello Mikel!</h1>" }
     #   end
     #
-    # Which will render a <tt>multipart/alternative</tt> email with <tt>text/plain</tt> and
-    # <tt>text/html</tt> parts.
+    # Which will render a +multipart/alternative+ email with +text/plain+ and
+    # +text/html+ parts.
     #
     # The block syntax also allows you to customize the part headers if desired:
     #
