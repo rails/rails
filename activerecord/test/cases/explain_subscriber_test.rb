@@ -43,6 +43,11 @@ if ActiveRecord::Base.connection.supports_explain?
       assert queries.empty?
     end
 
+    def test_collects_nothing_if_the_statement_is_only_partially_matched
+      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'select_db yo_mama')
+      assert queries.empty?
+    end
+
     def teardown
       ActiveRecord::ExplainRegistry.reset
     end
