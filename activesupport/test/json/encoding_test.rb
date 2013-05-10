@@ -117,11 +117,18 @@ class TestJSONEncoding < Test::Unit::TestCase
       assert_equal Encoding::UTF_8, result.encoding
     end
 
-    def test_utf8_hash_key
+    def test_utf8_hash_key_does_not_change_the_encoding
       w = { '𠜎' => 'a' }
       result = ActiveSupport::JSON.encode(w)
       assert_equal '{"\\u070e":"a"}', result
-      assert_equal Encoding::US_ASCII, result.encoding
+
+      if RUBY_VERSION >= '2.0'
+        expected_encoding = Encoding::UTF_8
+      else
+        expected_encoding = Encoding::US_ASCII
+      end
+
+      assert_equal expected_encoding, result.encoding
     end
   end
 
