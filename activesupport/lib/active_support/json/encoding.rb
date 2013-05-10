@@ -98,6 +98,8 @@ module ActiveSupport
         "\010" =>  '\b',
         "\f"   =>  '\f',
         "\n"   =>  '\n',
+        "\xe2\x80\xa8" => '\u2028',
+        "\xe2\x80\xa9" => '\u2029',
         "\r"   =>  '\r',
         "\t"   =>  '\t',
         '"'    =>  '\"',
@@ -121,9 +123,9 @@ module ActiveSupport
         def escape_html_entities_in_json=(value)
           self.escape_regex = \
             if @escape_html_entities_in_json = value
-              /[\x00-\x1F"\\><&]/
+              /\xe2\x80(\xa8|\xa9)|[\x00-\x1F"\\><&]/
             else
-              /[\x00-\x1F"\\]/
+              /\xe2\x80(\xa8|\xa9)|[\x00-\x1F"\\]/
             end
         end
 
