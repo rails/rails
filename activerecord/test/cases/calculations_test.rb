@@ -479,6 +479,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_without_column_names
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
+      Company.order(:id).limit(1).pluck
+  end
+
   def test_pluck_type_cast
     topic = topics(:first)
     relation = Topic.where(:id => topic.id)
