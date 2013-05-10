@@ -94,9 +94,7 @@ module ActiveRecord
                                                                            [])
           relation.joins! rest
 
-          join_dependency.join_associations.each do |association|
-            @relation = association.join_relation(relation)
-          end
+          @relation = join_dependency.join_relation(relation)
         end
       end
 

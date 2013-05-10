@@ -55,6 +55,13 @@ module ActiveRecord
         join_parts.first
       end
 
+      def join_relation(relation)
+        join_associations.each do |association|
+          relation = association.join_relation(relation)
+        end
+        relation
+      end
+
       def columns
         join_parts.collect { |join_part|
           table = join_part.aliased_table
