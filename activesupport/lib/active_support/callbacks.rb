@@ -126,6 +126,8 @@ module ActiveSupport
           :unless => @options[:unless].dup
         }
 
+        deprecate_per_key_option new_options
+
         _options[:if].concat     Array(new_options.fetch(:unless, []))
         _options[:unless].concat Array(new_options.fetch(:if, []))
 
