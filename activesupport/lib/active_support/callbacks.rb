@@ -94,16 +94,15 @@ module ActiveSupport
     end
 
     class Callback #:nodoc:#
-      def self.build(chain, filter, kind, options, _klass)
-        new chain, filter, kind, options, _klass
+      def self.build(chain, filter, kind, options)
+        new chain, filter, kind, options
       end
 
-      attr_accessor :chain, :kind, :options, :klass
+      attr_accessor :chain, :kind, :options
 
-      def initialize(chain, filter, kind, options, klass)
+      def initialize(chain, filter, kind, options)
         @chain   = chain
         @kind    = kind
-        @klass   = klass
         @filter  = filter
         @options = options
         @key     = compute_identifier filter
@@ -121,10 +120,9 @@ module ActiveSupport
         end
       end
 
-      def clone(chain, klass)
+      def clone(chain)
         obj                  = super()
         obj.chain            = chain
-        obj.klass            = klass
         obj.options          = @options.dup
         obj.options[:if]     = @options[:if].dup
         obj.options[:unless] = @options[:unless].dup
@@ -473,7 +471,7 @@ module ActiveSupport
 
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           mapped ||= filters.map do |filter|
-            Callback.build(chain, filter, type, options.dup, self)
+            Callback.build(chain, filter, type, options.dup)
           end
 
           options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
@@ -495,7 +493,7 @@ module ActiveSupport
             filter = chain.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
-              new_filter = filter.clone(chain, self)
+              new_filter = filter.clone(chain)
               chain.insert(chain.index(filter), new_filter)
               new_filter.recompile!(options)
             end
