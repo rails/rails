@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
+    as it is no longer used by internals.
+
+    *Ben Woosley#
+
 *   Fix pending migrations error when loading schema and `ActiveRecord::Base.table_name_prefix`
     is not blank.
 
