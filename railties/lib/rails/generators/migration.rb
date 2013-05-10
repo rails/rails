@@ -6,8 +6,8 @@ module Rails
     # [0-9]*_name format and can be used by another frameworks (like Sequel)
     # just by implementing the next migration version method.
     module Migration
-      attr_reader :migration_number, :migration_file_name, :migration_class_name
       extend ActiveSupport::Concern
+      attr_reader :migration_number, :migration_file_name, :migration_class_name
 
       module ClassMethods
         def migration_lookup_at(dirname) #:nodoc:
