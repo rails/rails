@@ -184,7 +184,7 @@ module ActiveRecord
       result = klass.connection.exec_query(select(column_name).to_sql)
       last_column = result.columns.last
 
-      klass.connection.select_all(select(column_name).arel).map! do |attributes|
+      result.map do |attributes|
         klass.type_cast_attribute(last_column, klass.initialize_attributes(attributes))
       end
     end
