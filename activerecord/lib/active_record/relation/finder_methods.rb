@@ -217,16 +217,17 @@ module ActiveRecord
     def construct_relation_for_association_calculations
       including = (eager_load_values + includes_values).uniq
       join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
-      relation = except(:includes, :eager_load, :preload)
-      apply_join_dependency(relation, join_dependency)
+      apply_join_dependency(self, join_dependency)
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns)
+      relation = except(:select).select(join_dependency.columns)
       apply_join_dependency(relation, join_dependency)
     end
 
     def apply_join_dependency(relation, join_dependency)
+      relation = relation.except(:includes, :eager_load, :preload)
+
       join_dependency.join_associations.each do |association|
         relation = association.join_relation(relation)
       end
