@@ -233,7 +233,7 @@ module ActiveRecord
       if using_limitable_reflections?(join_dependency.reflections)
         relation
       else
-        relation = relation.where(construct_limited_ids_condition(relation)) if relation.limit_value
+        relation.where!(construct_limited_ids_condition(relation)) if relation.limit_value
         relation.except(:limit, :offset)
       end
     end
