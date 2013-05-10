@@ -120,13 +120,12 @@ module ActiveSupport
         end
       end
 
-      def clone(chain)
-        obj                  = super()
-        obj.chain            = chain
-        obj.options          = @options.dup
-        obj.options[:if]     = @options[:if].dup
-        obj.options[:unless] = @options[:unless].dup
-        obj
+      def initialize_copy(other)
+        super
+        @options = {
+          :if     => other.options[:if].dup,
+          :unless => other.options[:unless].dup
+        }
       end
 
       def normalize_options!(options)
@@ -493,7 +492,8 @@ module ActiveSupport
             filter = chain.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
-              new_filter = filter.clone(chain)
+              new_filter = filter.dup
+              new_filter.chain = chain
               chain.insert(chain.index(filter), new_filter)
               new_filter.recompile!(options)
             end
