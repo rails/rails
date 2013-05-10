@@ -234,7 +234,7 @@ module ActiveRecord
       limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
 
       if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
+        limited_id_condition = construct_limited_ids_condition(relation)
         relation = relation.where(limited_id_condition)
       end
 
@@ -247,7 +247,7 @@ module ActiveRecord
       values = @klass.connection.columns_for_distinct(
         "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
-      relation = relation.dup.select(values).distinct!
+      relation = relation.except(:select).select(values).distinct!
 
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
       ids_array = id_rows.map {|row| row[primary_key]}
