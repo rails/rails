@@ -39,7 +39,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= ""
+      ""
     end
 
     def where_values_hash
