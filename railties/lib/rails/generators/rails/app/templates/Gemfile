@@ -4,8 +4,6 @@ source 'https://rubygems.org'
 
 <%= database_gemfile_entry -%>
 
-<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
-
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry -%>
 
