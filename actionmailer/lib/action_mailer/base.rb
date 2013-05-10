@@ -398,7 +398,7 @@ module ActionMailer
 
       # Register an Observer which will be notified when mail is delivered.
       # Either a class or a string can be passed in as the Observer. If a string is passed in
-      # it will be <tt>constantize</tt>d.
+      # it will be +constantize+d.
       def register_observer(observer)
         delivery_observer = (observer.is_a?(String) ? observer.constantize : observer)
         Mail.register_observer(delivery_observer)
@@ -417,9 +417,15 @@ module ActionMailer
       def mailer_name
         @mailer_name ||= anonymous? ? "anonymous" : name.underscore
       end
+      # Allows to set the name of current mailer.
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
+      # Sets the defaults through app configuration:
+      #
+      #     config.action_mailer.default { from: "no-reply@example.org" }
+      #
+      # Aliased by ::default_options=
       def default(value = nil)
         self.default_params = default_params.merge(value).freeze if value
         default_params
@@ -431,13 +437,15 @@ module ActionMailer
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
-      # object's +receive+ method. If you want your mailer to be able to
-      # process incoming messages, you'll need to implement a +receive+
-      # method that accepts the raw email string as a parameter:
+      # object's +receive+ method.
+      #
+      # If you want your mailer to be able to process incoming messages, you'll
+      # need to implement a +receive+ method that accepts the raw email string
+      # as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
       #     def receive(mail)
-      #       ...
+      #       # ...
       #     end
       #   end
       def receive(raw_mail)
@@ -448,10 +456,12 @@ module ActionMailer
         end
       end
 
-      # Wraps an email delivery inside of Active Support Notifications instrumentation. This
-      # method is actually called by the <tt>Mail::Message</tt> object itself through a callback
-      # when you call <tt>:deliver</tt> on the Mail::Message, calling +deliver_mail+ directly
-      # and passing a Mail::Message will do nothing except tell the logger you sent the email.
+      # Wraps an email delivery inside of ActiveSupport::Notifications instrumentation.
+      #
+      # This method is actually called by the Mail::Message object itself
+      # through a callback when you call +:deliver+ on the Mail::Message,
+      # calling +deliver_mail+ directly and passing a Mail::Message will do
+      # nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           set_payload_for_mail(payload, mail)
@@ -477,7 +487,7 @@ module ActionMailer
         payload[:mail]       = mail.encoded
       end
 
-      def method_missing(method_name, *args)
+      def method_missing(method_name, *args) # :nodoc:
         if respond_to?(method_name)
           new(method_name, *args).message
         else
@@ -514,17 +524,18 @@ module ActionMailer
       end
     end
 
+    # Returns the name of the mailer object.
     def mailer_name
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt> object
-    # which will add them to itself.
+    # Allows you to pass random and unusual headers to the new Mail::Message
+    # object which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
     #
-    # You can also pass a hash into headers of header field names and values, which
-    # will then be set on the Mail::Message object:
+    # You can also pass a hash into headers of header field names and values,
+    # which will then be set on the Mail::Message object:
     #
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
