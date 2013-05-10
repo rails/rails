@@ -76,8 +76,9 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      runner_name = self.class.__define_callbacks(kind, self)
-      send(runner_name, &block)
+      runner = self.class.__define_callbacks(kind, self)
+      e = Filters::Environment.new(self, false, nil, block)
+      runner.call(e).value
     end
 
     private
@@ -430,18 +431,7 @@ module ActiveSupport
       # if it was not yet defined.
       # This generated method plays caching role.
       def __define_callbacks(kind, object) #:nodoc:
-        name = __callback_runner_name(kind)
-        unless object.respond_to?(name, true)
-          filter_chain = object.send("_#{kind}_callbacks").compile
-          class_eval do
-            define_method(name) do |&block|
-              e = Filters::Environment.new(self, false, nil, block)
-              filter_chain.call(e).value
-            end
-            protected name
-          end
-        end
-        name
+        object.send("_#{kind}_callbacks").compile
       end
 
       def __reset_runner(symbol)
