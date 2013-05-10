@@ -350,29 +350,46 @@ module ActiveSupport
           :scope => [ :kind ]
         }.merge!(config)
         @chain = []
+        @callbacks = nil
       end
 
       def each(&block);     @chain.each(&block); end
       def index(o);         @chain.index(o); end
-      def insert(index, o); @chain.insert(index, o); end
-      def delete(o);        @chain.delete(o); end
-      def clear;            @chain.clear; self; end
       def empty?;           @chain.empty?; end
 
+      def insert(index, o)
+        @callbacks = nil
+        @chain.insert(index, o)
+      end
+
+      def delete(o)
+        @callbacks = nil
+        @chain.delete(o)
+      end
+
+      def clear
+        @callbacks = nil
+        @chain.clear
+        self
+      end
+
       def initialize_copy(other)
-        @chain = other.chain.dup
+        @callbacks = nil
+        @chain     = other.chain.dup
       end
 
       def compile
-        callbacks = lambda { |env|
+        return @callbacks if @callbacks
+
+        @callbacks = lambda { |env|
           block = env.run_block
           env.value = !env.halted && (!block || block.call)
           env
         }
         @chain.reverse_each do |callback|
-          callbacks = callback.apply(callbacks)
+          @callbacks = callback.apply(@callbacks)
         end
-        callbacks
+        @callbacks
       end
 
       def append(*callbacks)
@@ -389,16 +406,19 @@ module ActiveSupport
       private
 
       def append_one(callback)
+        @callbacks = nil
         remove_duplicates(callback)
         @chain.push(callback)
       end
 
       def prepend_one(callback)
+        @callbacks = nil
         remove_duplicates(callback)
         @chain.unshift(callback)
       end
 
       def remove_duplicates(callback)
+        @callbacks = nil
         @chain.delete_if { |c| callback.duplicates?(c) }
       end
 
