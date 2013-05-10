@@ -111,4 +111,18 @@ class CallbacksTest < ActiveModel::TestCase
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
   end
 
+  class Saxophone
+    attr_reader :called
+    extend ActiveModel::Callbacks
+    define_model_callbacks :create
+    def create; run_callbacks(:create) {}; end
+    around_create { false }
+    after_create  { @called = true }
+  end
+
+  test "don't call after_create if around_create returns false" do
+    sax = Saxophone.new
+    sax.create
+    assert !sax.called
+  end
 end
