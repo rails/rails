@@ -2,7 +2,7 @@
     These characters are legal in JSON but break the Javascript interpreter.
     After escaping them, the JSON is still legal and can be parsed by Javascript.
 
-    *Mario Caropreso*
+    *Mario Caropreso + Viktor Kelemen + zackham*
 
 *   Fix skipping object callbacks using metadata fetched via callback chain
     inspection methods (`_*_callbacks`)
