@@ -1,3 +1,5 @@
+#encoding: us-ascii
+
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/json/variable'
@@ -123,9 +125,9 @@ module ActiveSupport
         def escape_html_entities_in_json=(value)
           self.escape_regex = \
             if @escape_html_entities_in_json = value
-              /\xe2\x80(\xa8|\xa9)|[\x00-\x1F"\\><&]/
+              /\xe2\x80\xa8|\xe2\x80\xa9|[\x00-\x1F"\\><&]/
             else
-              /\xe2\x80(\xa8|\xa9)|[\x00-\x1F"\\]/
+              /\xe2\x80\xa8|\xe2\x80\xa9|[\x00-\x1F"\\]/
             end
         end
 
