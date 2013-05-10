@@ -98,6 +98,18 @@ class FinderTest < ActiveRecord::TestCase
     assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
   end
 
+  def test_exists_with_distinct_association_includes_and_limit
+    author = Author.first
+    assert !author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+  end
+
+  def test_exists_with_distinct_association_includes_limit_and_order
+    author = Author.first
+    assert !author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+  end
+
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
