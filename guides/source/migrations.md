@@ -852,7 +852,7 @@ end
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, presence: true
+  validates :flag, :inclusion => { :in => [true, false] }
 end
 ```
 
@@ -877,7 +877,8 @@ end
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :fuzz, presence: true
+  validates :flag, :inclusion => { :in => [true, false] }
+  validates :fuzz, presence: true
 end
 ```
 
