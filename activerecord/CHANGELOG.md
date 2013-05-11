@@ -1,3 +1,7 @@
+*   Method read_attribute_before_type_cast should accept input as symbol.
+
+    *Neeraj Singh*
+
 *   Confirm a record has not already been destroyed before decrementing counter cache.
 
     *Ben Tucker*
