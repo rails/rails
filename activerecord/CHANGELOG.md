@@ -1,3 +1,19 @@
+*   Do not load all child records for inverse case.
+
+    currently `post.comments.find(Comment.first.id)` would load all
+    comments for the given post to set the inverse association.
+
+    This has a huge performance penalty. Because if post has 100k
+    records and all these 100k records would be loaded in memory
+    even though the comment id was supplied.
+
+    Fix is to use in-memory records only if loaded? is true. Otherwise
+    load the records using full sql.
+
+    Fixes #10509.
+
+    *Neeraj Singh*
+
 *   `inspect` on Active Record model classes does not initiate a
     new connection. This means that calling `inspect`, when the
     database is missing, will no longer raise an exception.
