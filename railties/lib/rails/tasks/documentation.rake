@@ -44,11 +44,6 @@ else
   end
 
   namespace :doc do
-    def gem_path(gem_name)
-      path = $LOAD_PATH.grep(/#{gem_name}[\w.-]*\/lib$/).first
-      yield File.dirname(path) if path
-    end
-
     RDocTaskWithoutDescriptions.new("app") { |rdoc|
       rdoc.rdoc_dir = 'doc/app'
       rdoc.template = ENV['template'] if ENV['template']
