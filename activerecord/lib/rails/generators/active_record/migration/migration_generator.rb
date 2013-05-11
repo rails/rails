@@ -24,7 +24,6 @@ module ActiveRecord
           if attributes.length == 2
             @migration_action = 'join'
             @join_tables      = attributes.map(&:plural_name)
-
             set_index_names
           end
         when /^create_(.+)/
