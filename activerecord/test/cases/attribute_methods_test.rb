@@ -130,6 +130,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal '10', keyboard.id_before_type_cast
     assert_equal nil, keyboard.read_attribute_before_type_cast('id')
     assert_equal '10', keyboard.read_attribute_before_type_cast('key_number')
+    assert_equal '10', keyboard.read_attribute_before_type_cast(:key_number)
   end
 
   # Syck calls respond_to? before actually calling initialize
