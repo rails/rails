@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Make sure the `EXPLAIN` command is never triggered by a `select_db` call.
+
+    *Daniel Schierbeck*
+
 *   Revert changes on `pluck` that was ignoring the select clause when the relation already
     has one. This caused a regression since it changed the behavior in a stable release.
 
