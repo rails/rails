@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   Require ActiveRecord::Base in railtie hooks for rake_tasks, console and runner to
+    avoid circular constant loading issues.
+
+    Backport #7695
+    Fixes #7683 and #882
+
+    *Ben Holley*
+
 *   Revert changes on `pluck` that was ignoring the select clause when the relation already
     has one. This caused a regression since it changed the behavior in a stable release.
 
