@@ -20,6 +20,13 @@
 
     *Dan Kubb*
 
+*   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
+    The encoding scheme was broken for unicode characters outside the basic
+    multilingual plane; since json is assumed to be UTF-8, and we already force the
+    encoding to UTF-8 simply pass through the un-encoded characters.
+
+    *Brett Carter*
+
 *   Fix mocha v0.13.0 compatibility. *James Mead*
 
 *   `#as_json` isolates options when encoding a hash. [Backport #8185]
