@@ -8,7 +8,7 @@ module ActiveRecord
       self.reflections = {}
     end
 
-    # Reflection enables to interrogate Active Record classes and objects
+    # \Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
@@ -100,7 +100,7 @@ module ActiveRecord
       # Returns the hash of options used for the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>{ class_name: "Money" }</tt>
-      # <tt>has_many :clients</tt> returns +{}+
+      # <tt>has_many :clients</tt> returns <tt>{}</tt>
       attr_reader :options
 
       attr_reader :active_record
@@ -449,8 +449,8 @@ module ActiveRecord
         # Checks to see if the reflection doesn't have any options that prevent
         # us from being able to guess the inverse automatically. First, the
         # +automatic_inverse_of+ option cannot be set to false. Second, we must
-        # have :has_many, :has_one, :belongs_to associations. Third, we must
-        # not have options such as :polymorphic or :foreign_key which prevent us
+        # have +has_many+, +has_one+, +belongs_to+ associations. Third, we must
+        # not have options such as +:polymorphic+ or +:foreign_key+ which prevent us
         # from correctly guessing the inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an
