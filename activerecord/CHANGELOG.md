@@ -1,3 +1,9 @@
+*   Extract PostgreSQL array column defaults more reliable.
+
+    Fix #9127
+
+    *Tawan Sierek*
+
 *   Previously, the `has_one` macro incorrectly accepted the `counter_cache`
     option, but never actually supported it. Now it will raise an `ArgumentError`
     when using `has_one` with `counter_cache`.
