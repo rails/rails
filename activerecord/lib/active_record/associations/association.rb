@@ -17,6 +17,7 @@ module ActiveRecord
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
+      attr_accessor :inversed
 
       delegate :options, :to => :reflection
 
@@ -72,7 +73,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !@inversed && loaded? && @stale_state != stale_state
+        !inversed && loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -106,7 +107,7 @@ module ActiveRecord
         if record && invertible_for?(record)
           inverse = record.association(inverse_reflection_for(record).name)
           inverse.target = owner
-          inverse.instance_variable_set(:@inversed, true)
+          inverse.inversed = true
         end
       end
 
