@@ -1,6 +1,6 @@
 *   Replace `multi_json` with `json`.
 
-    Since Rails require Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
+    Since Rails requires Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
     `multi_json` is no longer necessary.
 
     *Erik Michaels-Ober*
