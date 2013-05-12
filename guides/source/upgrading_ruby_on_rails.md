@@ -118,7 +118,7 @@ Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for d
 
 * Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
 
-* Rails 4.0 deprecates the `dom_id` and `dom_class` methods. You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
+* Rails 4.0 deprecates the `dom_id` and `dom_class` methods in controllers (they are fine in views). You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
