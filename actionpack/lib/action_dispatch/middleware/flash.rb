@@ -243,15 +243,9 @@ module ActionDispatch
       session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
-      if flash_hash
-        if !flash_hash.empty? || session.key?('flash')
-          session["flash"] = flash_hash.to_session_value
-          new_hash = flash_hash.dup
-        else
-          new_hash = flash_hash
-        end
-
-        env[KEY] = new_hash
+      if flash_hash.present? || session.key?('flash')
+        session["flash"] = flash_hash.to_session_value
+        env[KEY] = flash_hash.dup
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
