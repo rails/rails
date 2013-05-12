@@ -568,6 +568,8 @@ module ActiveRecord
     #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
     #   @group.avatars.delete(@group.avatars.last)  # so would this
     #
+    # == Setting Inverses
+    #
     # If you are using a +belongs_to+ on the join model, it is a good idea to set the
     # <tt>:inverse_of</tt> option on the +belongs_to+, which will mean that the following example
     # works correctly (where <tt>tags</tt> is a +has_many+ <tt>:through</tt> association):
@@ -582,6 +584,25 @@ module ActiveRecord
     #   class Taggable < ActiveRecord::Base
     #     belongs_to :post
     #     belongs_to :tag, inverse_of: :taggings
+    #   end
+    #
+    # If you do not set the +:inverse_of+ record, the association will do its
+    # best to match itself up with the correct inverse. Automatic +:inverse_of+
+    # detection only works on :has_many, :has_one, and :belongs_to associations.
+    #
+    # Extra options on the associations, as defined in the
+    # +AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS+ constant, will
+    # also prevent the association's inverse from being found automatically.
+    #
+    # The automatic guessing of the inverse association uses a heuristic based
+    # on the name of the class, so it may not work for all associations,
+    # especially the ones with non-standard names.
+    #
+    # You can turn off the automatic detection of inverse associations by setting
+    # the +:automatic_inverse_of+ option to +false+ like so:
+    #
+    #   class Taggable < ActiveRecord::Base
+    #     belongs_to :tag, automatic_inverse_of: false
     #   end
     #
     # == Nested Associations
