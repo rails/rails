@@ -1,3 +1,10 @@
+*   Replace `multi_json` with `json`.
+
+    Since Rails require Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
+    `multi_json` is no longer necessary.
+
+    *Erik Michaels-Ober*
+
 *   Added escaping of U+2028 and U+2029 inside the json encoder.
     These characters are legal in JSON but break the Javascript interpreter.
     After escaping them, the JSON is still legal and can be parsed by Javascript.
