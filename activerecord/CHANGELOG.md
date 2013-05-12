@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Maintain context for joins within ActiveRecord::Relation merges.
+    Backport #10164.
+
+    *Neeraj Singh + Andrew Horner*
+    
 *   Make sure the `EXPLAIN` command is never triggered by a `select_db` call.
 
     *Daniel Schierbeck*
