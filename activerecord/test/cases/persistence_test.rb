@@ -18,7 +18,7 @@ require 'models/pet'
 require 'models/toy'
 require 'rexml/document'
 
-class PersistencesTest < ActiveRecord::TestCase
+class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
