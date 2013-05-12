@@ -1,6 +1,10 @@
 ## unreleased ##
 
-*   Add support for runner hook. [Backport: #7695] *Ben Holley*
+*   Add support for runner hook.
+
+    Backport #7695.
+
+    *Ben Holley*
 
 *   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
     Fixes #9525.

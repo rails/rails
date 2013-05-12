@@ -1,7 +1,13 @@
 ## unreleased ##
 
-*   Require ActiveRecord::Base in railtie hooks for rake_tasks, console and runner to
-    avoid circular constant loading issues. [Backport #7695] [Fixes #7683 and #882] *Ben Holley*
+*   Require `ActiveRecord::Base` in railtie hooks for rake_tasks, console and runner to
+    avoid circular constant loading issues.
+
+    Backport #7695.
+
+    Fixes #7683 and #882
+
+    *Ben Holley*
 
 *   Maintain context for joins within ActiveRecord::Relation merges.
     Backport #10164.
