@@ -227,7 +227,7 @@ module ActiveSupport
       # Compile around filters with conditions into proxy methods
       # that contain the conditions.
       #
-      # For `set_callback :save, :around, :filter_name, if: :condition':
+      # For `set_callback :save, :around, :filter_name, if: :condition`:
       #
       #   def _conditional_callback_save_17
       #     if condition

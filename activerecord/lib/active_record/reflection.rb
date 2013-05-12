@@ -493,7 +493,7 @@ module ActiveRecord
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
-      # Gets the source of the through reflection. It checks both a singularized
+      # Returns the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base
@@ -507,8 +507,7 @@ module ActiveRecord
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
-      #
-      #   taggings_reflection = tags_reflection.source_reflection
+      #   tags_reflection.source_reflection
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
@@ -524,7 +523,8 @@ module ActiveRecord
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
-      #   taggings_reflection = tags_reflection.through_reflection
+      #   tags_reflection.through_reflection
+      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
       #
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])

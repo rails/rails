@@ -175,7 +175,7 @@ by relying on a number of conventions that make it easy for Active Record to inf
 complex relations and structures from a minimal amount of explicit direction.
 
 Convention over Configuration:
-* No XML-files!
+* No XML files!
 * Lots of reflection and run-time extension
 * Magic is not inherently a bad word
 
