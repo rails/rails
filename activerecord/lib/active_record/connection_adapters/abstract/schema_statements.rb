@@ -710,6 +710,7 @@ module ActiveRecord
       #   distinct("posts.id", ["posts.created_at desc"])
       #
       def distinct(columns, order_by)
+        ActiveSupport::Deprecation.warn("#distinct is deprecated and shall be removed from future releases.")
         "DISTINCT #{columns_for_distinct(columns, order_by)}"
       end
 
@@ -718,7 +719,7 @@ module ActiveRecord
       # require the order columns appear in the SELECT.
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
-      def columns_for_distinct(columns, orders)
+      def columns_for_distinct(columns, orders) # :nodoc:
         columns
       end
 
