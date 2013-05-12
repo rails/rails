@@ -1,11 +1,15 @@
 ## unreleased ##
 
-*   Fix pending migrations error when loading schema and ActiveRecord::Base.table_name_prefix is not blank.
+*   Fix pending migrations error when loading schema and `ActiveRecord::Base.table_name_prefix`
+    is not blank.
 
-    Call assume_migrated_upto_version on connection to prevent it from first being picked up in method_missing.
-    In the base class, Migration, method_missing expects the argument to be a table name, and calls proper_table_name
-    on the arguments before sending to connection. If table_name_prefix or table_name_suffix is used, the schema
-    version changes to prefix_version_suffix, breaking `rake test:prepare`.
+    Call `assume_migrated_upto_version` on connection to prevent it from first
+    being picked up in `method_missing`.
+
+    In the base class, `Migration`, `method_missing` expects the argument to be a
+    table name, and calls `proper_table_name` on the arguments before sending to
+    `connection`. If `table_name_prefix` or `table_name_suffix` is used, the schema
+    version changes to `prefix_version_suffix`, breaking `rake test:prepare`.
 
     Fixes #10411.
 
@@ -17,7 +21,7 @@
 
 *   Fixed a bug in `ActiveRecord#sanitize_sql_hash_for_conditions` in which
     `self.class` is an argument to `PredicateBuilder#build_from_hash`
-    causing `PredicateBuilder` to call non-existant method
+    causing `PredicateBuilder` to call non-existent method
     `Class#reflect_on_association`.
 
     *Zach Ohlgren*
