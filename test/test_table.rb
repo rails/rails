@@ -96,6 +96,20 @@ module Arel
           }
         end
       end
+
+      describe 'join' do
+        it 'creates an outer join' do
+          right     = @relation.alias
+          predicate = @relation[:id].eq(right[:id])
+          mgr = @relation.outer_join(right).on(predicate)
+
+          mgr.to_sql.must_be_like %{
+            SELECT FROM "users"
+              LEFT OUTER JOIN "users" "users_2"
+                ON "users"."id" = "users_2"."id"
+          }
+        end
+      end
     end
 
     describe 'group' do

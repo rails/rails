@@ -64,6 +64,10 @@ primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
       from(self).join(relation, klass)
     end
 
+    def outer_join relation
+      join(relation, Nodes::OuterJoin)
+    end
+
     def group *columns
       from(self).group(*columns)
     end
