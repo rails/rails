@@ -693,6 +693,17 @@ There are a few limitations to `inverse_of` support:
 * They do not work with `:as` associations.
 * For `belongs_to` associations, `has_many` inverse associations are ignored.
 
+Every association will attempt to automatically find the inverse association
+and set the `:inverse_of` option heuristically (based on the association name).
+Most associations with standard names will be supported. However, associations
+that contain the following options will not have their inverses set
+automatically:
+
+* :conditions
+* :through
+* :polymorphic
+* :foreign_key
+
 Detailed Association Reference
 ------------------------------
 

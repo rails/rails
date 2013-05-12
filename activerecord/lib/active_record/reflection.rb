@@ -450,7 +450,7 @@ module ActiveRecord
         # us from being able to guess the inverse automatically. First, the
         # +automatic_inverse_of+ option cannot be set to false. Second, we must
         # have :has_many, :has_one, :belongs_to associations. Third, we must
-        # not have options such as :class_name or :polymorphic which prevent us
+        # not have options such as :polymorphic or :foreign_key which prevent us
         # from correctly guessing the inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an
