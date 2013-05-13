@@ -243,13 +243,13 @@ module ActionDispatch
       session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
-      if flash_hash.present? || session.key?('flash')
+      if flash_hash && (flash_hash.present? || session.key?('flash'))
         session["flash"] = flash_hash.to_session_value
         env[KEY] = flash_hash.dup
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-         session.key?('flash') && session['flash'].nil?
+        session.key?('flash') && session['flash'].nil?
         session.delete('flash')
       end
     end
