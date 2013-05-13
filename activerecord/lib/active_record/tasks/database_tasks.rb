@@ -182,13 +182,7 @@ module ActiveRecord
       end
 
       def each_current_configuration(environment)
-        environments = [environment]
-        environments << 'test' if environment == 'development'
-
-        configurations = ActiveRecord::Base.configurations.values_at(*environments)
-        configurations.compact.each do |configuration|
-          yield configuration unless configuration['database'].blank?
-        end
+        yield ActiveRecord::Base.configurations.values_at(environment).first
       end
 
       def each_local_configuration
