@@ -446,12 +446,10 @@ module ActiveSupport
 
       # This is used internally to append, prepend and skip callbacks to the
       # CallbackChain.
-      def __update_callbacks(name, filters, block) #:nodoc:
-        type, filters, options = normalize_callback_params(name, filters, block)
-
+      def __update_callbacks(name) #:nodoc:
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
-          yield target, chain.dup, type, filters, options
+          yield target, chain.dup
           target.__reset_runner(name)
         end
       end
@@ -494,7 +492,9 @@ module ActiveSupport
       def set_callback(name, *filter_list, &block)
         mapped = nil
 
-        __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
+        type, filters, options = normalize_callback_params(name, filter_list, block)
+
+        __update_callbacks(name) do |target, chain|
           mapped ||= filters.map do |filter|
             Callback.build(chain, filter, type, options.dup, self)
           end
@@ -513,7 +513,9 @@ module ActiveSupport
       #      skip_callback :validate, :before, :check_membership, if: -> { self.age > 18 }
       #   end
       def skip_callback(name, *filter_list, &block)
-        __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
+        type, filters, options = normalize_callback_params(name, filter_list, block)
+
+        __update_callbacks(name) do |target, chain|
           filters.each do |filter|
             filter = chain.find {|c| c.matches?(type, filter) }
 
