@@ -720,6 +720,15 @@ module ActionMailer
 
   protected
 
+    # Used by #mail to set the content type of the message.
+    #
+    # It will use the given +user_content_type+, or multipart if the mail
+    # message has any attachments. If the attachments are inline, the content
+    # type will be "multipart/related", otherwise "multipart/mixed".
+    #
+    # If there is no content type passed in via headers, and there are no
+    # attachments, or the message is multipart, then the default content type is
+    # used.
     def set_content_type(m, user_content_type, class_default)
       params = m.content_type_parameters || {}
       case
