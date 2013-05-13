@@ -96,6 +96,15 @@ module ActiveSupport
 
     module Filters
       Environment = Struct.new(:target, :halted, :value, :run_block)
+
+      class End
+        def call(env)
+          block = env.run_block
+          env.value = !env.halted && (!block || block.call)
+          env
+        end
+      end
+      ENDING = End.new
     end
 
     class Callback #:nodoc:#
@@ -361,11 +370,7 @@ module ActiveSupport
       def compile
         return @callbacks if @callbacks
 
-        @callbacks = lambda { |env|
-          block = env.run_block
-          env.value = !env.halted && (!block || block.call)
-          env
-        }
+        @callbacks = Filters::ENDING
         @chain.reverse_each do |callback|
           @callbacks = callback.apply(@callbacks)
         end
