@@ -422,9 +422,9 @@ module ActiveRecord
         @association.delete_all
       end
 
-      # Deletes the records of the collection directly from the database.
-      # This will _always_ remove the records ignoring the +:dependent+
-      # option.
+      # Deletes the records of the collection directly from the database
+      # ignoring the +:dependent+ option. It invokes +before_remove+,
+      # +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
