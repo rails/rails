@@ -76,9 +76,14 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      runner = send("_#{kind}_callbacks").compile
-      e = Filters::Environment.new(self, false, nil, block)
-      runner.call(e).value
+      cbs = send("_#{kind}_callbacks")
+      if cbs.empty?
+        yield if block_given?
+      else
+        runner = cbs.compile
+        e = Filters::Environment.new(self, false, nil, block)
+        runner.call(e).value
+      end
     end
 
     private
