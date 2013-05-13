@@ -94,8 +94,8 @@ module Rails
       require 'debugger'
       puts "=> Debugger enabled"
     rescue LoadError
-      puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
-      exit
+      puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
+      exit(1)
     end
   end
 end
