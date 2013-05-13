@@ -437,12 +437,17 @@ module ActiveSupport
         __callback_runner_name_cache[kind]
       end
 
-      # This is used internally to append, prepend and skip callbacks to the
-      # CallbackChain.
-      def __update_callbacks(name, filters, block) #:nodoc:
+      def normalize_callback_params(name, filters, block) # :nodoc:
         type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
+        [type, filters, options]
+      end
+
+      # This is used internally to append, prepend and skip callbacks to the
+      # CallbackChain.
+      def __update_callbacks(name, filters, block) #:nodoc:
+        type, filters, options = normalize_callback_params(name, filters, block)
 
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
