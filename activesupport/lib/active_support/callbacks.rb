@@ -251,7 +251,7 @@ module ActiveSupport
       def make_lambda(filter)
         case filter
         when Symbol
-          lambda { |target, _| target.send filter }
+          lambda { |target, _, &blk| target.send filter, &blk }
         when String
           l = eval "lambda { |value| #{filter} }"
           lambda { |target, value| target.instance_exec(value, &l) }
