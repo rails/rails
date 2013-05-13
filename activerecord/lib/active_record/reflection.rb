@@ -8,7 +8,7 @@ module ActiveRecord
       self.reflections = {}
     end
 
-    # Reflection enables to interrogate Active Record classes and objects
+    # \Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
@@ -100,7 +100,7 @@ module ActiveRecord
       # Returns the hash of options used for the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>{ class_name: "Money" }</tt>
-      # <tt>has_many :clients</tt> returns +{}+
+      # <tt>has_many :clients</tt> returns <tt>{}</tt>
       attr_reader :options
 
       attr_reader :active_record
@@ -449,8 +449,8 @@ module ActiveRecord
         # Checks to see if the reflection doesn't have any options that prevent
         # us from being able to guess the inverse automatically. First, the
         # +automatic_inverse_of+ option cannot be set to false. Second, we must
-        # have :has_many, :has_one, :belongs_to associations. Third, we must
-        # not have options such as :class_name or :polymorphic which prevent us
+        # have +has_many+, +has_one+, +belongs_to+ associations. Third, we must
+        # not have options such as +:polymorphic+ or +:foreign_key+ which prevent us
         # from correctly guessing the inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an
@@ -493,7 +493,7 @@ module ActiveRecord
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
-      # Gets the source of the through reflection. It checks both a singularized
+      # Returns the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base
@@ -507,8 +507,7 @@ module ActiveRecord
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
-      #
-      #   taggings_reflection = tags_reflection.source_reflection
+      #   tags_reflection.source_reflection
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
@@ -524,7 +523,8 @@ module ActiveRecord
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
-      #   taggings_reflection = tags_reflection.through_reflection
+      #   tags_reflection.through_reflection
+      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
       #
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])

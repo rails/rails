@@ -430,7 +430,7 @@ in scope in development mode regardless of the value of this flag. Changing this
 engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
 engines (or other gems) will not be loaded, which can cause missing assets.
 
-Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
+Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
 
 ```ruby
 load 'deploy/assets'

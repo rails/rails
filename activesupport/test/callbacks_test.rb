@@ -873,6 +873,46 @@ module CallbacksTest
     end
   end
 
+  class ResetCallbackTest < ActiveSupport::TestCase
+    def build_class(memo)
+      klass = Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, :hello
+        def run; run_callbacks :foo; end
+      }
+      klass.class_eval {
+        define_method(:hello) { memo << :hi }
+      }
+      klass
+    end
+
+    def test_reset_callbacks
+      events = []
+      klass = build_class events
+      klass.new.run
+      assert_equal 1, events.length
+
+      klass.reset_callbacks :foo
+      klass.new.run
+      assert_equal 1, events.length
+    end
+
+    def test_reset_impacts_subclasses
+      events = []
+      klass = build_class events
+      subclass = Class.new(klass) { set_callback :foo, :before, :world }
+      subclass.class_eval { define_method(:world) { events << :world } }
+
+      subclass.new.run
+      assert_equal 2, events.length
+
+      klass.reset_callbacks :foo
+      subclass.new.run
+      assert_equal 3, events.length
+    end
+  end
+
   class CallbackTypeTest < ActiveSupport::TestCase
     def build_class(callback, n = 10)
       Class.new {

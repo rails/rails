@@ -46,18 +46,18 @@ Available field types:
 
         `rails generate model photo title:string album:references`
 
-    It will generate an album_id column. You should generate this kind of fields when
-    you will use a `belongs_to` association for instance. `references` also support
-    the polymorphism, you could enable the polymorphism like this:
+    It will generate an `album_id` column. You should generate these kinds of fields when
+    you will use a `belongs_to` association, for instance. `references` also supports
+    polymorphism, you can enable polymorphism like this:
 
         `rails generate model product supplier:references{polymorphic}`
 
-    For integer, string, text and binary fields an integer in curly braces will
+    For integer, string, text and binary fields, an integer in curly braces will
     be set as the limit:
 
         `rails generate model user pseudo:string{30}`
 
-    For decimal two integers separated by a comma in curly braces will be used
+    For decimal, two integers separated by a comma in curly braces will be used
     for precision and scale:
 
         `rails generate model product price:decimal{10,2}`

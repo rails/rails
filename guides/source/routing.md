@@ -857,7 +857,7 @@ resources :user_permissions, controller: 'admin/user_permissions'
 This will route to the `Admin::UserPermissions` controller.
 
 NOTE: Only the directory notation is supported. Specifying the
-controller with ruby constant notation (eg. `:controller =>
+controller with Ruby constant notation (eg. `:controller =>
 'Admin::UserPermissions'`) can lead to routing problems and results in
 a warning.
 

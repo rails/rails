@@ -151,7 +151,15 @@ module Rails
                              desc: "Show Rails version number and quit"
 
       def initialize(*args)
-        raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
+        if args[0].blank?
+          if args[1].blank?
+            # rails new
+            raise Error, "Application name should be provided in arguments. For details run: rails --help"
+          else
+            # rails new --skip-bundle my_new_application
+            raise Error, "Options should be given after the application name. For details run: rails --help"
+          end
+        end
 
         super
 
