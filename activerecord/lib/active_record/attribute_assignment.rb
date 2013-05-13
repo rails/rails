@@ -45,7 +45,7 @@ module ActiveRecord
       if respond_to?("#{k}=")
         raise
       else
-        raise UnknownAttributeError, "unknown attribute: #{k}"
+        raise UnknownAttributeError.new(self, k)
       end
     end
 

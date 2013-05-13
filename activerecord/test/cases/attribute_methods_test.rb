@@ -711,6 +711,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
+  def test_bulk_update_raise_unknown_attribute_errro
+    error = nil
+    begin
+      @target.new(:hello => "world")
+    rescue ActiveRecord::UnknownAttributeError => error
+    end
+    assert error
+    assert @target, error.record
+    assert "hello", error.attribute
+    assert "unknown attribute: hello", error.message
+  end
+
   def test_read_attribute_overwrites_private_method_not_considered_implemented
     # simulate a model with a db column that shares its name an inherited
     # private method (e.g. Object#system)
