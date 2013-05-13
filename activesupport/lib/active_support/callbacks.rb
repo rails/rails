@@ -439,7 +439,7 @@ module ActiveSupport
 
       # This is used internally to append, prepend and skip callbacks to the
       # CallbackChain.
-      def __update_callbacks(name, filters = [], block = nil) #:nodoc:
+      def __update_callbacks(name, filters, block) #:nodoc:
         type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
