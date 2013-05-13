@@ -229,9 +229,6 @@ module ActiveSupport
 
       # Filters support:
       #
-      #   Arrays::  Used in conditions. This is used to specify
-      #             multiple conditions. Used internally to
-      #             merge conditions from skip_* filters.
       #   Symbols:: A method to call.
       #   Strings:: Some content to evaluate.
       #   Procs::   A proc to call with the object.
@@ -240,7 +237,6 @@ module ActiveSupport
       # All of these objects are compiled into methods and handled
       # the same after this point:
       #
-      #   Arrays::  Merged together into a single filter.
       #   Symbols:: Already methods.
       #   Strings:: class_eval'ed into methods.
       #   Procs::   define_method'ed into methods.
