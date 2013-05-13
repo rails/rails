@@ -148,6 +148,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'defaulty', bulb.name
   end
 
+  def test_do_not_call_callbacks_for_delete_all
+    bulb_count = Bulb.count
+    car = Car.create(:name => 'honda')
+    car.funky_bulbs.create!
+    assert_nothing_raised { car.reload.funky_bulbs.delete_all }
+    assert_equal bulb_count + 1, Bulb.count, "bulbs should have been deleted using :nullify strategey"
+  end
+
   def test_building_the_associated_object_with_implicit_sti_base_class
     firm = DependentFirm.new
     company = firm.companies.build
@@ -930,16 +938,31 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     client_id = firm.dependent_clients_of_firm.first.id
     assert_equal 1, firm.dependent_clients_of_firm.size
+    assert_equal 1, Client.find_by_id(client_id).client_of
 
-    # :dependent means destroy is called on each client
+    # :nullify is called on each client
     firm.dependent_clients_of_firm.clear
 
     assert_equal 0, firm.dependent_clients_of_firm.size
     assert_equal 0, firm.dependent_clients_of_firm(true).size
-    assert_equal [client_id], Client.destroyed_client_ids[firm.id]
+    assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is dependent.
+    assert_nil Client.find_by_id(client_id).client_of
+  end
+
+  def test_delete_all_with_option_delete_all
+    firm = companies(:first_firm)
+    client_id = firm.dependent_clients_of_firm.first.id
+    firm.dependent_clients_of_firm.delete_all(:delete_all)
     assert_nil Client.find_by_id(client_id)
+  end
+
+  def test_delete_all_accepts_limited_parameters
+    firm = companies(:first_firm)
+    assert_raise(ArgumentError) do
+      firm.dependent_clients_of_firm.delete_all(:destroy)
+    end
   end
 
   def test_clearing_an_exclusively_dependent_association_collection
