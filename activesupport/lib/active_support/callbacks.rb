@@ -250,23 +250,17 @@ module ActiveSupport
       def make_lambda(filter)
         case filter
         when Symbol
-          lambda { |target, value, &blk| target.send filter, &blk }
+          lambda { |target, _, &blk| target.send filter, &blk }
         when String
           l = eval "lambda { |value| #{filter} }"
-          lambda { |target,value| target.instance_exec(value, &l) }
+          lambda { |target, value| target.instance_exec(value, &l) }
         when ::Proc
-          if filter.arity <= 0
-            return lambda { |target, _| target.instance_exec(&filter) }
-          end
+          raise ArgumentError if filter.arity > 1
 
-          if filter.arity == 1
-            lambda { |target, _|
-              target.instance_exec(target, &filter)
-            }
+          if filter.arity <= 0
+            lambda { |target, _| target.instance_exec(&filter) }
           else
-            lambda { |target, _|
-              target.instance_exec target, ::Proc.new, &filter
-            }
+            lambda { |target, _| target.instance_exec(target, &filter) }
           end
         else
           scopes = Array(chain_config[:scope])
