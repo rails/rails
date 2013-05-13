@@ -107,7 +107,9 @@ module ActiveModel
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @options = options.freeze
+      @klass    = options.delete(:class)
+      @options  = options.freeze
+      setup!
     end
 
     # Return the kind for this validator.
@@ -122,6 +124,10 @@ module ActiveModel
     # to the records +errors+ array where necessary.
     def validate(record)
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
+    end
+
+  private
+    def setup!
     end
   end
 

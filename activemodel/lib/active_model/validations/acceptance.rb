@@ -12,11 +12,11 @@ module ActiveModel
         end
       end
 
-      def setup(klass)
-        attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
-        attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
-        klass.send(:attr_reader, *attr_readers)
-        klass.send(:attr_writer, *attr_writers)
+      def setup!
+        attr_readers = attributes.reject { |name| @klass.attribute_method?(name) }
+        attr_writers = attributes.reject { |name| @klass.attribute_method?("#{name}=") }
+        @klass.send(:attr_reader, *attr_readers)
+        @klass.send(:attr_writer, *attr_writers)
       end
     end
 

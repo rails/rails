@@ -9,11 +9,6 @@ module ActiveRecord
         super({ case_sensitive: true }.merge!(options))
       end
 
-      # Unfortunately, we have to tie Uniqueness validators to a class.
-      def setup(klass)
-        @klass = klass
-      end
-
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
