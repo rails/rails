@@ -9,6 +9,8 @@
     added, and each use of the former has been transformed into a use of the
     latter as appropriate.
 
+    *Jeremy Audet*
+
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 
