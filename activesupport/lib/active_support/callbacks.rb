@@ -448,7 +448,7 @@ module ActiveSupport
       # CallbackChain.
       def __update_callbacks(name) #:nodoc:
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
-          chain = target.send("_#{name}_callbacks")
+          chain = target.get_callbacks name
           yield target, chain.dup
           target.__reset_runner(name)
         end
@@ -490,18 +490,15 @@ module ActiveSupport
       # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
       #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)
-        mapped = nil
-
         type, filters, options = normalize_callback_params(name, filter_list, block)
+        chain = get_callbacks name
+        mapped = filters.map do |filter|
+          Callback.build(chain, filter, type, options.dup, self)
+        end
 
         __update_callbacks(name) do |target, chain|
-          mapped ||= filters.map do |filter|
-            Callback.build(chain, filter, type, options.dup, self)
-          end
-
           options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
-
-          target.send("_#{name}_callbacks=", chain)
+          target.set_callbacks name, chain
         end
       end
 
@@ -527,22 +524,22 @@ module ActiveSupport
 
             chain.delete(filter)
           end
-          target.send("_#{name}_callbacks=", chain)
+          target.set_callbacks name, chain
         end
       end
 
       # Remove all set callbacks for the given event.
       def reset_callbacks(symbol)
-        callbacks = send("_#{symbol}_callbacks")
+        callbacks = get_callbacks symbol
 
         ActiveSupport::DescendantsTracker.descendants(self).each do |target|
-          chain = target.send("_#{symbol}_callbacks").dup
+          chain = target.get_callbacks(symbol).dup
           callbacks.each { |c| chain.delete(c) }
-          target.send("_#{symbol}_callbacks=", chain)
+          target.set_callbacks symbol, chain
           target.__reset_runner(symbol)
         end
 
-        self.send("_#{symbol}_callbacks=", callbacks.dup.clear)
+        self.set_callbacks symbol, callbacks.dup.clear
 
         __reset_runner(symbol)
       end
@@ -618,8 +615,18 @@ module ActiveSupport
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         callbacks.each do |callback|
           class_attribute "_#{callback}_callbacks"
-          send("_#{callback}_callbacks=", CallbackChain.new(callback, config))
+          set_callbacks callback, CallbackChain.new(callback, config)
         end
+      end
+
+      protected
+
+      def get_callbacks(name)
+        send "_#{name}_callbacks"
+      end
+
+      def set_callbacks(name, callbacks)
+        send "_#{name}_callbacks=", callbacks
       end
     end
   end
