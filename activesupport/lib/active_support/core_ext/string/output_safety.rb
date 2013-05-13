@@ -171,18 +171,15 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      if 'String'.respond_to?(unsafe_method)
-        class_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
-            to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
-          end                                       # end
-
-          def #{unsafe_method}!(*args)              # def capitalize!(*args)
-            @html_safe = false                      #   @html_safe = false
-            super                                   #   super
-          end                                       # end
-        EOT
-      end
+      if String.new.respond_to?(unsafe_method) 
+        define_method(unsafe_method.to_sym) do |*args, &block|
+          to_str.send(unsafe_method, *args, &block)          
+        end
+        define_method("#{unsafe_method}!".to_sym) do |*args|
+          @html_safe = false
+          super(*args)
+        end
+      end  
     end
   end
 end
