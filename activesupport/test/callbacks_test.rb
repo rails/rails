@@ -718,7 +718,7 @@ module CallbacksTest
     def test_termination_invokes_hook
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ":second", terminator.halted
+      assert_equal :second, terminator.halted
     end
 
     def test_block_never_called_if_terminated

@@ -171,7 +171,7 @@ module ActiveSupport
               result = user_callback.call target, value
               env.halted = halted_lambda.call result
               if env.halted
-                target.send :halted_callback_hook, @filter.inspect
+                target.send :halted_callback_hook, @filter
               end
             end
             next_callback.call env
