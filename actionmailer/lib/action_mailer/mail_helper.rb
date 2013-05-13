@@ -46,8 +46,9 @@ module ActionMailer
         end
       end
 
+      indentation = " " * indent
       sentences.map { |sentence|
-        "#{" " * indent}#{sentence.join(' ')}"
+        "#{indentation}#{sentence.join(' ')}"
       }.join "\n"
     end
   end
