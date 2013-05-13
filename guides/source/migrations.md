@@ -1065,8 +1065,8 @@ with foreign key constraints in the database.
 
 Although Active Record does not provide any tools for working directly with
 such features, the `execute` method can be used to execute arbitrary SQL. You
-could also use some gem like
-[foreigner](https://github.com/matthuhiggins/foreigner) which add foreign key
+can also use a gem like
+[foreigner](https://github.com/matthuhiggins/foreigner) which adds foreign key
 support to Active Record (including support for dumping foreign keys in
 `db/schema.rb`).
 
