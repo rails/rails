@@ -105,6 +105,59 @@ module ActiveSupport
         end
       end
       ENDING = End.new
+
+      class Before
+        def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
+          if chain_config.key?(:terminator) && user_conditions.any?
+            halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
+            lambda { |env|
+              target = env.target
+              value  = env.value
+              halted = env.halted
+
+              if !halted && user_conditions.all? { |c| c.call(target, value) }
+                result = user_callback.call target, value
+                env.halted = halted_lambda.call result
+                if env.halted
+                  target.send :halted_callback_hook, filter
+                end
+              end
+              next_callback.call env
+            }
+          elsif chain_config.key? :terminator
+            halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
+            lambda { |env|
+              target = env.target
+              value  = env.value
+              halted = env.halted
+
+              if !halted
+                result = user_callback.call target, value
+                env.halted = halted_lambda.call result
+                if env.halted
+                  target.send :halted_callback_hook, filter
+                end
+              end
+              next_callback.call env
+            }
+          elsif user_conditions.any?
+            lambda { |env|
+              target = env.target
+              value  = env.value
+
+              if user_conditions.all? { |c| c.call(target, value) }
+                user_callback.call target, value
+              end
+              next_callback.call env
+            }
+          else
+            lambda { |env|
+              user_callback.call env.target, env.value
+              next_callback.call env
+            }
+          end
+        end
+      end
     end
 
     class Callback #:nodoc:#
@@ -175,21 +228,7 @@ module ActiveSupport
 
         case kind
         when :before
-          halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
-          lambda { |env|
-            target = env.target
-            value  = env.value
-            halted = env.halted
-
-            if !halted && user_conditions.all? { |c| c.call(target, value) }
-              result = user_callback.call target, value
-              env.halted = halted_lambda.call result
-              if env.halted
-                target.send :halted_callback_hook, @filter
-              end
-            end
-            next_callback.call env
-          }
+          Filters::Before.build(next_callback, user_callback, user_conditions, chain_config, @filter)
         when :after
           if chain_config[:skip_after_callbacks_if_terminated]
             lambda { |env|
@@ -335,7 +374,6 @@ module ActiveSupport
       def initialize(name, config)
         @name = name
         @config = {
-          :terminator => "false",
           :scope => [ :kind ]
         }.merge!(config)
         @chain = []
