@@ -864,8 +864,9 @@ module CallbacksTest
         include ActiveSupport::Callbacks
         define_callbacks :foo, :scope => [:name]
         set_callback :foo, :before, :foo, :if => callback
-        def foo; end
         def run; run_callbacks :foo; end
+        private
+        def foo; end
       }
       object = klass.new
       object.run
