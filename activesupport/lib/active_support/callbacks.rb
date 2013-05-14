@@ -585,7 +585,7 @@ module ActiveSupport
         type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
-        [type, filters, options]
+        [type, filters, options.dup]
       end
 
       # This is used internally to append, prepend and skip callbacks to the
@@ -636,7 +636,7 @@ module ActiveSupport
         type, filters, options = normalize_callback_params(name, filter_list, block)
         self_chain = get_callbacks name
         mapped = filters.map do |filter|
-          Callback.build(self_chain, filter, type, options.dup)
+          Callback.build(self_chain, filter, type, options)
         end
 
         __update_callbacks(name) do |target, chain|
