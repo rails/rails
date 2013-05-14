@@ -76,8 +76,14 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      runner_name = self.class.__define_callbacks(kind, self)
-      send(runner_name, &block)
+      cbs = send("_#{kind}_callbacks")
+      if cbs.empty?
+        yield if block_given?
+      else
+        runner = cbs.compile
+        e = Filters::Environment.new(self, false, nil, block)
+        runner.call(e).value
+      end
     end
 
     private
@@ -88,44 +94,259 @@ module ActiveSupport
     def halted_callback_hook(filter)
     end
 
-    class Callback #:nodoc:#
-      @@_callback_sequence = 0
+    module Filters
+      Environment = Struct.new(:target, :halted, :value, :run_block)
 
-      class Basic < Callback
+      class End
+        def call(env)
+          block = env.run_block
+          env.value = !env.halted && (!block || block.call)
+          env
+        end
       end
+      ENDING = End.new
 
-      class Object < Callback
-        def duplicates?(other)
-          false
+      class Before
+        def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
+          if chain_config.key?(:terminator) && user_conditions.any?
+            halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
+            halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
+          elsif chain_config.key? :terminator
+            halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
+            halting(next_callback, user_callback, halted_lambda, filter)
+          elsif user_conditions.any?
+            conditional(next_callback, user_callback, user_conditions)
+          else
+            simple next_callback, user_callback
+          end
+        end
+
+        private
+
+        def self.halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              result = user_callback.call target, value
+              env.halted = halted_lambda.call result
+              if env.halted
+                target.send :halted_callback_hook, filter
+              end
+            end
+            next_callback.call env
+          }
+        end
+
+        def self.halting(next_callback, user_callback, halted_lambda, filter)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
+            if !halted
+              result = user_callback.call target, value
+              env.halted = halted_lambda.call result
+              if env.halted
+                target.send :halted_callback_hook, filter
+              end
+            end
+            next_callback.call env
+          }
+        end
+
+        def self.conditional(next_callback, user_callback, user_conditions)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+
+            if user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call target, value
+            end
+            next_callback.call env
+          }
+        end
+
+        def self.simple(next_callback, user_callback)
+          lambda { |env|
+            user_callback.call env.target, env.value
+            next_callback.call env
+          }
         end
       end
 
-      def self.build(chain, filter, kind, options, _klass)
-        klass = case filter
-                when Array, Symbol, String
-                  Callback::Basic
-                else
-                  Callback::Object
-                end
-        klass.new chain, filter, kind, options, _klass
+      class After
+        def self.build(next_callback, user_callback, user_conditions, chain_config)
+          if chain_config[:skip_after_callbacks_if_terminated]
+            if chain_config.key?(:terminator) && user_conditions.any?
+              halting_and_conditional(next_callback, user_callback, user_conditions)
+            elsif chain_config.key?(:terminator)
+              halting(next_callback, user_callback)
+            elsif user_conditions.any?
+              conditional next_callback, user_callback, user_conditions
+            else
+              simple next_callback, user_callback
+            end
+          else
+            if user_conditions.any?
+              conditional next_callback, user_callback, user_conditions
+            else
+              simple next_callback, user_callback
+            end
+          end
+        end
+
+        private
+
+        def self.halting_and_conditional(next_callback, user_callback, user_conditions)
+          lambda { |env|
+            env = next_callback.call env
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call target, value
+            end
+            env
+          }
+        end
+
+        def self.halting(next_callback, user_callback)
+          lambda { |env|
+            env = next_callback.call env
+            if !env.halted
+              user_callback.call env.target, env.value
+            end
+            env
+          }
+        end
+
+        def self.conditional(next_callback, user_callback, user_conditions)
+          lambda { |env|
+            env = next_callback.call env
+            target = env.target
+            value  = env.value
+
+            if user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call target, value
+            end
+            env
+          }
+        end
+
+        def self.simple(next_callback, user_callback)
+          lambda { |env|
+            env = next_callback.call env
+            user_callback.call env.target, env.value
+            env
+          }
+        end
       end
 
-      attr_accessor :chain, :kind, :options, :klass, :raw_filter
+      class Around
+        def self.build(next_callback, user_callback, user_conditions, chain_config)
+          if chain_config.key?(:terminator) && user_conditions.any?
+            halting_and_conditional(next_callback, user_callback, user_conditions)
+          elsif chain_config.key? :terminator
+            halting(next_callback, user_callback)
+          elsif user_conditions.any?
+            conditional(next_callback, user_callback, user_conditions)
+          else
+            simple(next_callback, user_callback)
+          end
+        end
 
-      def initialize(chain, filter, kind, options, klass)
-        @chain, @kind, @klass = chain, kind, klass
+        private
+
+        def self.halting_and_conditional(next_callback, user_callback, user_conditions)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call(target, value) {
+                env = next_callback.call env
+                env.value
+              }
+              env
+            else
+              next_callback.call env
+            end
+          }
+        end
+
+        def self.halting(next_callback, user_callback)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+
+            if !env.halted
+              user_callback.call(target, value) {
+                env = next_callback.call env
+                env.value
+              }
+              env
+            else
+              next_callback.call env
+            end
+          }
+        end
+
+        def self.conditional(next_callback, user_callback, user_conditions)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+
+            if user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call(target, value) {
+                env = next_callback.call env
+                env.value
+              }
+              env
+            else
+              next_callback.call env
+            end
+          }
+        end
+
+        def self.simple(next_callback, user_callback)
+          lambda { |env|
+            user_callback.call(env.target, env.value) {
+              env = next_callback.call env
+              env.value
+            }
+            env
+          }
+        end
+      end
+    end
+
+    class Callback #:nodoc:#
+      def self.build(chain, filter, kind, options)
+        new chain.name, filter, kind, options, chain.config
+      end
+
+      attr_accessor :kind, :options, :name
+      attr_reader :chain_config
+
+      def initialize(name, filter, kind, options, chain_config)
+        @chain_config  = chain_config
+        @name    = name
+        @kind    = kind
+        @filter  = filter
+        @options = options
+        @key     = compute_identifier filter
+
         deprecate_per_key_option(options)
         normalize_options!(options)
-
-        @raw_filter, @options = filter, options
-        @key = compute_identifier filter
-        @source = _compile_source(filter)
-        recompile_options!
       end
 
-      def filter
-        @key
-      end
+      def filter; @key; end
+      def raw_filter; @filter; end
 
       def deprecate_per_key_option(options)
         if options[:per_key]
@@ -133,14 +354,18 @@ module ActiveSupport
         end
       end
 
-      def clone(chain, klass)
-        obj                  = super()
-        obj.chain            = chain
-        obj.klass            = klass
-        obj.options          = @options.dup
-        obj.options[:if]     = @options[:if].dup
-        obj.options[:unless] = @options[:unless].dup
-        obj
+      def merge(chain, new_options)
+        _options = {
+          :if     => @options[:if].dup,
+          :unless => @options[:unless].dup
+        }
+
+        deprecate_per_key_option new_options
+
+        _options[:if].concat     Array(new_options.fetch(:unless, []))
+        _options[:unless].concat Array(new_options.fetch(:if, []))
+
+        self.class.build chain, @filter, @kind, _options
       end
 
       def normalize_options!(options)
@@ -148,72 +373,80 @@ module ActiveSupport
         options[:unless] = Array(options[:unless])
       end
 
-      def name
-        chain.name
-      end
-
-      def next_id
-        @@_callback_sequence += 1
-      end
-
       def matches?(_kind, _filter)
         @kind == _kind && filter == _filter
       end
 
       def duplicates?(other)
-        return false unless self.class == other.class
-
-        matches?(other.kind, other.filter)
-      end
-
-      def _update_filter(filter_options, new_options)
-        filter_options[:if].concat(Array(new_options[:unless])) if new_options.key?(:unless)
-        filter_options[:unless].concat(Array(new_options[:if])) if new_options.key?(:if)
-      end
-
-      def recompile!(_options)
-        deprecate_per_key_option(_options)
-        _update_filter(self.options, _options)
-
-        recompile_options!
+        case @filter
+        when Symbol, String
+          matches?(other.kind, other.filter)
+        else
+          false
+        end
       end
 
       # Wraps code with filter
-      def apply(code)
-        case @kind
+      def apply(next_callback)
+        user_conditions = conditions_lambdas
+        user_callback = make_lambda @filter
+
+        case kind
         when :before
-          <<-RUBY_EVAL
-            if !halted && #{@compiled_options}
-              # This double assignment is to prevent warnings in 1.9.3 as
-              # the `result` variable is not always used except if the
-              # terminator code refers to it.
-              result = result = #{@source}
-              halted = (#{chain.config[:terminator]})
-              if halted
-                halted_callback_hook(#{@raw_filter.inspect.inspect})
-              end
-            end
-            #{code}
-          RUBY_EVAL
+          Filters::Before.build(next_callback, user_callback, user_conditions, chain_config, @filter)
         when :after
-          <<-RUBY_EVAL
-          #{code}
-          if #{!chain.config[:skip_after_callbacks_if_terminated] || "!halted"} && #{@compiled_options}
-            #{@source}
-          end
-          RUBY_EVAL
+          Filters::After.build(next_callback, user_callback, user_conditions, chain_config)
         when :around
-          name = define_conditional_callback
-          <<-RUBY_EVAL
-          #{name}(halted) do
-            #{code}
-            value
-          end
-          RUBY_EVAL
+          Filters::Around.build(next_callback, user_callback, user_conditions, chain_config)
         end
       end
 
       private
+
+      def invert_lambda(l)
+        lambda { |*args, &blk| !l.call(*args, &blk) }
+      end
+
+      # Filters support:
+      #
+      #   Symbols:: A method to call.
+      #   Strings:: Some content to evaluate.
+      #   Procs::   A proc to call with the object.
+      #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
+      #
+      # All of these objects are compiled into methods and handled
+      # the same after this point:
+      #
+      #   Symbols:: Already methods.
+      #   Strings:: class_eval'ed into methods.
+      #   Procs::   define_method'ed into methods.
+      #   Objects::
+      #     a method is created that calls the before_foo method
+      #     on the object.
+      def make_lambda(filter)
+        case filter
+        when Symbol
+          lambda { |target, _, &blk| target.send filter, &blk }
+        when String
+          l = eval "lambda { |value| #{filter} }"
+          lambda { |target, value| target.instance_exec(value, &l) }
+        when ::Proc
+          raise ArgumentError if filter.arity > 1
+
+          if filter.arity <= 0
+            lambda { |target, _| target.instance_exec(&filter) }
+          else
+            lambda { |target, _| target.instance_exec(target, &filter) }
+          end
+        else
+          scopes = Array(chain_config[:scope])
+          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
+
+          lambda { |target, _, &blk|
+            filter.public_send method_to_call, target, &blk
+          }
+        end
+      end
 
       def compute_identifier(filter)
         case filter
@@ -224,113 +457,19 @@ module ActiveSupport
         end
       end
 
-      # Compile around filters with conditions into proxy methods
-      # that contain the conditions.
-      #
-      # For `set_callback :save, :around, :filter_name, if: :condition`:
-      #
-      #   def _conditional_callback_save_17
-      #     if condition
-      #       filter_name do
-      #         yield self
-      #       end
-      #     else
-      #       yield self
-      #     end
-      #   end
-      def define_conditional_callback
-        name = "_conditional_callback_#{@kind}_#{next_id}"
-        @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
-          def #{name}(halted)
-           if #{@compiled_options} && !halted
-             #{@source} do
-               yield self
-             end
-           else
-             yield self
-           end
-         end
-        RUBY_EVAL
-        name
-      end
-
-      # Options support the same options as filters themselves (and support
-      # symbols, string, procs, and objects), so compile a conditional
-      # expression based on the options.
-      def recompile_options!
-        conditions = ["true"]
+      def conditions_lambdas
+        conditions = []
 
         unless options[:if].empty?
-          conditions << Array(_compile_source(options[:if]))
+          lambdas = Array(options[:if]).map { |c| make_lambda c }
+          conditions.concat lambdas
         end
 
         unless options[:unless].empty?
-          conditions << Array(_compile_source(options[:unless])).map {|f| "!#{f}"}
+          lambdas = Array(options[:unless]).map { |c| make_lambda c }
+          conditions.concat lambdas.map { |l| invert_lambda l }
         end
-
-        @compiled_options = conditions.flatten.join(" && ")
-      end
-
-      def _method_name_for_object_filter(kind, filter, append_next_id = true)
-        class_name = filter.kind_of?(Class) ? filter.to_s : filter.class.to_s
-        class_name.gsub!(/<|>|#/, '')
-        class_name.gsub!(/\/|:/, "_")
-
-        method_name = "_callback_#{kind}_#{class_name}"
-        method_name << "_#{next_id}" if append_next_id
-        method_name
-      end
-
-      # Filters support:
-      #
-      #   Arrays::  Used in conditions. This is used to specify
-      #             multiple conditions. Used internally to
-      #             merge conditions from skip_* filters.
-      #   Symbols:: A method to call.
-      #   Strings:: Some content to evaluate.
-      #   Procs::   A proc to call with the object.
-      #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
-      #
-      # All of these objects are compiled into methods and handled
-      # the same after this point:
-      #
-      #   Arrays::  Merged together into a single filter.
-      #   Symbols:: Already methods.
-      #   Strings:: class_eval'ed into methods.
-      #   Procs::   define_method'ed into methods.
-      #   Objects::
-      #     a method is created that calls the before_foo method
-      #     on the object.
-      def _compile_source(filter)
-        case filter
-        when Array
-          filter.map {|f| _compile_source(f)}
-        when Symbol
-          filter
-        when String
-          "(#{filter})"
-        when ::Proc
-          method_name = "_callback_#{@kind}_#{next_id}"
-          @klass.send(:define_method, method_name, &filter)
-          return method_name if filter.arity <= 0
-
-          method_name << (filter.arity == 1 ? "(self)" : "(self, ::Proc.new)")
-        else
-          method_name = _method_name_for_object_filter(kind, filter)
-          @klass.send(:define_method, "#{method_name}_object") { filter }
-
-          _normalize_legacy_filter(kind, filter)
-          scopes = Array(chain.config[:scope])
-          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
-
-          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{method_name}(&blk)
-              #{method_name}_object.send(:#{method_to_call}, self, &blk)
-            end
-          RUBY_EVAL
-
-          method_name
-        end
+        conditions
       end
 
       def _normalize_legacy_filter(kind, filter)
@@ -354,27 +493,53 @@ module ActiveSupport
     end
 
     # An Array with a compile method.
-    class CallbackChain < Array #:nodoc:#
+    class CallbackChain #:nodoc:#
+      include Enumerable
+
       attr_reader :name, :config
 
       def initialize(name, config)
         @name = name
         @config = {
-          :terminator => "false",
           :scope => [ :kind ]
         }.merge!(config)
+        @chain = []
+        @callbacks = nil
+      end
+
+      def each(&block); @chain.each(&block); end
+      def index(o);     @chain.index(o); end
+      def empty?;       @chain.empty?; end
+
+      def insert(index, o)
+        @callbacks = nil
+        @chain.insert(index, o)
+      end
+
+      def delete(o)
+        @callbacks = nil
+        @chain.delete(o)
+      end
+
+      def clear
+        @callbacks = nil
+        @chain.clear
+        self
+      end
+
+      def initialize_copy(other)
+        @callbacks = nil
+        @chain     = other.chain.dup
       end
 
       def compile
-        method =  ["value = nil", "halted = false"]
-        callbacks = "value = !halted && (!block_given? || yield)"
-        reverse_each do |callback|
-          callbacks = callback.apply(callbacks)
-        end
-        method << callbacks
+        return @callbacks if @callbacks
 
-        method << "value"
-        method.join("\n")
+        @callbacks = Filters::ENDING
+        @chain.reverse_each do |callback|
+          @callbacks = callback.apply(@callbacks)
+        end
+        @callbacks
       end
 
       def append(*callbacks)
@@ -385,57 +550,31 @@ module ActiveSupport
         callbacks.each { |c| prepend_one(c) }
       end
 
+      protected
+      def chain; @chain; end
+
       private
 
       def append_one(callback)
+        @callbacks = nil
         remove_duplicates(callback)
-        push(callback)
+        @chain.push(callback)
       end
 
       def prepend_one(callback)
+        @callbacks = nil
         remove_duplicates(callback)
-        unshift(callback)
+        @chain.unshift(callback)
       end
 
       def remove_duplicates(callback)
-        delete_if { |c| callback.duplicates?(c) }
+        @callbacks = nil
+        @chain.delete_if { |c| callback.duplicates?(c) }
       end
 
     end
 
     module ClassMethods
-
-      # This method defines callback chain method for the given kind
-      # if it was not yet defined.
-      # This generated method plays caching role.
-      def __define_callbacks(kind, object) #:nodoc:
-        name = __callback_runner_name(kind)
-        unless object.respond_to?(name, true)
-          str = object.send("_#{kind}_callbacks").compile
-          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{name}() #{str} end
-            protected :#{name}
-          RUBY_EVAL
-        end
-        name
-      end
-
-      def __reset_runner(symbol)
-        name = __callback_runner_name(symbol)
-        undef_method(name) if method_defined?(name)
-      end
-
-      def __callback_runner_name_cache
-        @__callback_runner_name_cache ||= ThreadSafe::Cache.new {|cache, kind| cache[kind] = __generate_callback_runner_name(kind) }
-      end
-
-      def __generate_callback_runner_name(kind)
-        "_run__#{self.name.hash.abs}__#{kind}__callbacks"
-      end
-
-      def __callback_runner_name(kind)
-        __callback_runner_name_cache[kind]
-      end
 
       def normalize_callback_params(name, filters, block) # :nodoc:
         type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
@@ -450,7 +589,6 @@ module ActiveSupport
         ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.get_callbacks name
           yield target, chain.dup
-          target.__reset_runner(name)
         end
       end
 
@@ -491,9 +629,9 @@ module ActiveSupport
       #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)
         type, filters, options = normalize_callback_params(name, filter_list, block)
-        chain = get_callbacks name
+        self_chain = get_callbacks name
         mapped = filters.map do |filter|
-          Callback.build(chain, filter, type, options.dup, self)
+          Callback.build(self_chain, filter, type, options.dup)
         end
 
         __update_callbacks(name) do |target, chain|
@@ -517,9 +655,8 @@ module ActiveSupport
             filter = chain.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
-              new_filter = filter.clone(chain, self)
+              new_filter = filter.merge(chain, options)
               chain.insert(chain.index(filter), new_filter)
-              new_filter.recompile!(options)
             end
 
             chain.delete(filter)
@@ -536,12 +673,9 @@ module ActiveSupport
           chain = target.get_callbacks(symbol).dup
           callbacks.each { |c| chain.delete(c) }
           target.set_callbacks symbol, chain
-          target.__reset_runner(symbol)
         end
 
         self.set_callbacks symbol, callbacks.dup.clear
-
-        __reset_runner(symbol)
       end
 
       # Define sets of events in the object lifecycle that support callbacks.

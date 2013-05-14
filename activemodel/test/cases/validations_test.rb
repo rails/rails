@@ -166,7 +166,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_invalid_validator
     Topic.validate :i_dont_exist
-    assert_raise(NameError) do
+    assert_raises(NoMethodError) do
       t = Topic.new
       t.valid?
     end
