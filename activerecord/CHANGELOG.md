@@ -1,3 +1,13 @@
+*   Oracle and PostgreSQL supports "NULLS FIRST/LAST" in order by statement.
+    And `reverse_order` will now revert `NULLS FIRST/LAST` when
+    they're part of the order by statement.  For example,
+
+        User.order("name ASC NULLS LAST").reverse_order # generated SQL has 'ORDER BY name DESC NULLS FIRST'
+
+    Fixes #7423.
+
+    *Dingding Ye*
+
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 
