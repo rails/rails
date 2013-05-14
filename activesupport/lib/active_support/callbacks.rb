@@ -540,11 +540,9 @@ module ActiveSupport
       def compile
         return @callbacks if @callbacks
 
-        @callbacks = Filters::ENDING
-        @chain.reverse_each do |callback|
-          @callbacks = callback.apply(@callbacks)
+        @callbacks = @chain.reverse.inject(Filters::ENDING) do |chain, callback|
+          callback.apply chain
         end
-        @callbacks
       end
 
       def append(*callbacks)
