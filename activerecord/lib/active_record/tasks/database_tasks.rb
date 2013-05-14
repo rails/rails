@@ -82,9 +82,7 @@ module ActiveRecord
       end
 
       def create_current(environment = env)
-        each_current_configuration(environment) { |configuration|
-          create configuration
-        }
+        create current_configuration(environment)
         ActiveRecord::Base.establish_connection environment
       end
 
@@ -105,9 +103,7 @@ module ActiveRecord
       end
 
       def drop_current(environment = env)
-        each_current_configuration(environment) { |configuration|
-          drop configuration
-        }
+        drop current_configuration(environment)
       end
 
       def drop_database_url
@@ -181,14 +177,16 @@ module ActiveRecord
         @tasks[key]
       end
 
-      def each_current_configuration(environment)
-        environments = [environment]
-        environments << 'test' if environment == 'development'
-
-        configurations = ActiveRecord::Base.configurations.values_at(*environments)
-        configurations.compact.each do |configuration|
-          yield configuration unless configuration['database'].blank?
-        end
+      # Reads +Rails.env+ and returns the matching configuration from
+      # +database.yml+ as a dictionary.
+      #
+      # For example, this method might return:
+      #
+      #     {"adapter"=>"sqlite3", "database"=>"db/development.sqlite3" ...}
+      #
+      def current_configuration(environment)
+        # e.g. [{"adapter"=>"sqlite3", "database"=>"db/development.sqlite3" ...}].first
+        ActiveRecord::Base.configurations.values_at(environment).first
       end
 
       def each_local_configuration

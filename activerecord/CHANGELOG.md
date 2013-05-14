@@ -1,3 +1,18 @@
+*   Dont touch test db when Rails.env == development
+
+    Executing `rake db:create`, `rake db:drop`, and derived tasks such as `rake
+    db:reset` no longer touches the test database when `'development' ==
+    Rails.env`.
+
+    `ActiveRecord::Tasks::DatabaseTasks#each_current_configuration` has been
+    deleted, `ActiveRecord::Tasks::DatabaseTasks#current_configuration` has been
+    added, and each use of the former has been transformed into a use of the
+    latter as appropriate.
+
+    Also see #2419 and #711
+
+    *Jeremy Audet*
+
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 

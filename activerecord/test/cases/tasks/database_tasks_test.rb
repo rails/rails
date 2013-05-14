@@ -131,8 +131,6 @@ module ActiveRecord
     def test_creates_test_database_when_environment_is_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with('database' => 'test-db')
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -241,8 +239,6 @@ module ActiveRecord
     def test_creates_test_database_when_environment_is_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with('database' => 'test-db')
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
