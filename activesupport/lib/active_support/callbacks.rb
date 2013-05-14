@@ -110,52 +110,70 @@ module ActiveSupport
         def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
           if chain_config.key?(:terminator) && user_conditions.any?
             halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
-            lambda { |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
-
-              if !halted && user_conditions.all? { |c| c.call(target, value) }
-                result = user_callback.call target, value
-                env.halted = halted_lambda.call result
-                if env.halted
-                  target.send :halted_callback_hook, filter
-                end
-              end
-              next_callback.call env
-            }
+            terminal_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
           elsif chain_config.key? :terminator
             halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
-            lambda { |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
-
-              if !halted
-                result = user_callback.call target, value
-                env.halted = halted_lambda.call result
-                if env.halted
-                  target.send :halted_callback_hook, filter
-                end
-              end
-              next_callback.call env
-            }
+            terminal(next_callback, user_callback, halted_lambda, filter)
           elsif user_conditions.any?
-            lambda { |env|
-              target = env.target
-              value  = env.value
-
-              if user_conditions.all? { |c| c.call(target, value) }
-                user_callback.call target, value
-              end
-              next_callback.call env
-            }
+            conditional(next_callback, user_callback, user_conditions)
           else
-            lambda { |env|
-              user_callback.call env.target, env.value
-              next_callback.call env
-            }
+            simple next_callback, user_callback
           end
+        end
+
+        private
+
+        def self.terminal_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              result = user_callback.call target, value
+              env.halted = halted_lambda.call result
+              if env.halted
+                target.send :halted_callback_hook, filter
+              end
+            end
+            next_callback.call env
+          }
+        end
+
+        def self.terminal(next_callback, user_callback, halted_lambda, filter)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+            halted = env.halted
+
+            if !halted
+              result = user_callback.call target, value
+              env.halted = halted_lambda.call result
+              if env.halted
+                target.send :halted_callback_hook, filter
+              end
+            end
+            next_callback.call env
+          }
+        end
+
+        def self.conditional(next_callback, user_callback, user_conditions)
+          lambda { |env|
+            target = env.target
+            value  = env.value
+
+            if user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call target, value
+            end
+            next_callback.call env
+          }
+        end
+
+        def self.simple(next_callback, user_callback)
+          lambda { |env|
+            user_callback.call env.target, env.value
+            next_callback.call env
+          }
         end
       end
     end
