@@ -1,9 +1,9 @@
-require 'thread_safe'
 require 'active_support/concern'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'thread'
 
 module ActiveSupport
   # Callbacks are code hooks that are run at key points in an object's lifecycle.
@@ -510,6 +510,7 @@ module ActiveSupport
         }.merge!(config)
         @chain = []
         @callbacks = nil
+        @mutex = Mutex.new
       end
 
       def each(&block); @chain.each(&block); end
@@ -535,13 +536,14 @@ module ActiveSupport
       def initialize_copy(other)
         @callbacks = nil
         @chain     = other.chain.dup
+        @mutex     = Mutex.new
       end
 
       def compile
-        return @callbacks if @callbacks
-
-        @callbacks = @chain.reverse.inject(Filters::ENDING) do |chain, callback|
-          callback.apply chain
+        @callbacks || @mutex.synchronize do
+          @callbacks ||= @chain.reverse.inject(Filters::ENDING) do |chain, callback|
+            callback.apply chain
+          end
         end
       end
 
