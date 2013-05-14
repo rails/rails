@@ -131,7 +131,7 @@ module ActiveSupport
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               result = user_callback.call target, value
-              env.halted = halted_lambda.call result
+              env.halted = target.instance_exec result, &halted_lambda
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -148,7 +148,7 @@ module ActiveSupport
 
             if !halted
               result = user_callback.call target, value
-              env.halted = halted_lambda.call result
+              env.halted = target.instance_exec result, &halted_lambda
               if env.halted
                 target.send :halted_callback_hook, filter
               end
