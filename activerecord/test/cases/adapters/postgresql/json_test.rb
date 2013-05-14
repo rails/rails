@@ -83,4 +83,18 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     x = JsonDataType.first
     assert_equal(nil, x.payload)
   end
+
+  def test_select_array_json_value
+    @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
+    x = JsonDataType.first
+    assert_equal(['v0', {'k1' => 'v1'}], x.payload)
+  end
+
+  def test_rewrite_array_json_value
+    @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
+    x = JsonDataType.first
+    x.payload = ['v1', {'k2' => 'v2'}, 'v3']
+    assert x.save!
+  end
+
 end
