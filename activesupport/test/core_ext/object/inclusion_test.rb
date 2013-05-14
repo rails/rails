@@ -2,6 +2,20 @@ require 'abstract_unit'
 require 'active_support/core_ext/object/inclusion'
 
 class InTest < ActiveSupport::TestCase
+  def test_in_multiple_args
+    assert_deprecated do
+      assert :b.in?(:a,:b)
+      assert !:c.in?(:a,:b)
+    end
+  end
+
+  def test_in_multiple_arrays
+    assert_deprecated do
+      assert [1,2].in?([1,2],[2,3])
+      assert ![1,2].in?([1,3],[2,1])
+    end
+  end
+
   def test_in_array
     assert 1.in?([1,2])
     assert !3.in?([1,2])
@@ -43,7 +57,7 @@ class InTest < ActiveSupport::TestCase
     assert A.in?(C)
     assert !A.in?(A)
   end
-  
+
   def test_no_method_catching
     assert_raise(ArgumentError) { 1.in?(1) }
   end

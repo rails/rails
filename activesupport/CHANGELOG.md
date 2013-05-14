@@ -1,8 +1,8 @@
 ## unreleased ##
 
-*  Remove multiple parameters support of `Object#in?`.
+*  Deprecate multiple parameters support of `Object#in?`.
 
-   *Brian Morearty*
+   *Brian Morearty + Carlos Antonio da Silva*
 
 
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
