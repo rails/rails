@@ -490,6 +490,10 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+    new_to_hash = @nested_mixed.with_indifferent_access.to_hash
+    assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
   end
 
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
