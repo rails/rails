@@ -1,3 +1,8 @@
+*   Replace `ConnectionAdapters::PostgreSQLAdapter::TableDefinition#column` with `ConnectionAdapters::PostgreSQLAdapter::TableDefinition#new_column_definition`,
+    so all PostgreSQL migrations can take advantage of arrays.
+
+    *Tommy Fisher*
+
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 
