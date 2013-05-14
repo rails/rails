@@ -365,12 +365,10 @@ module ActiveRecord
           column name, type, options
         end
 
-        def column(name, type = nil, options = {})
-          super
-          column = self[name]
+        def new_column_definition(name, type, options) # :nodoc:
+          column = super
           column.array = options[:array]
-
-          self
+          column
         end
 
         def xml(options = {})
