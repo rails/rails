@@ -491,9 +491,9 @@ module ActiveSupport
       #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)
         type, filters, options = normalize_callback_params(name, filter_list, block)
-        chain = get_callbacks name
+        callback_chain = get_callbacks name
         mapped = filters.map do |filter|
-          Callback.build(chain, filter, type, options.dup, self)
+          Callback.build(callback_chain, filter, type, options.dup, self)
         end
 
         __update_callbacks(name) do |target, chain|
