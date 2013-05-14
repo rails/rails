@@ -108,11 +108,11 @@ module ActiveSupport
 
       class Before
         def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
+          halted_lambda = chain_config[:terminator]
+
           if chain_config.key?(:terminator) && user_conditions.any?
-            halted_lambda = class_eval "lambda { |result| #{chain_config[:terminator]} }", __FILE__, __LINE__
             halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
           elsif chain_config.key? :terminator
-            halted_lambda = class_eval "lambda { |result| #{chain_config[:terminator]} }", __FILE__, __LINE__
             halting(next_callback, user_callback, halted_lambda, filter)
           elsif user_conditions.any?
             conditional(next_callback, user_callback, user_conditions)
@@ -131,7 +131,7 @@ module ActiveSupport
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               result = user_callback.call target, value
-              env.halted = target.instance_exec result, &halted_lambda
+              env.halted = halted_lambda.call(target, result)
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -148,7 +148,7 @@ module ActiveSupport
 
             if !halted
               result = user_callback.call target, value
-              env.halted = target.instance_exec result, &halted_lambda
+              env.halted = halted_lambda.call(target, result)
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -752,6 +752,13 @@ module ActiveSupport
       #   would call <tt>Audit#save</tt>.
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
+        if config.key?(:terminator) && String === config[:terminator]
+          ActiveSupport::Deprecation.warn "String based terminators are deprecated, please use a lambda"
+          value = config[:terminator]
+          l = class_eval "lambda { |result| #{value} }", __FILE__, __LINE__
+          config[:terminator] = lambda { |target, result| target.instance_exec(result, &l) }
+        end
+
         callbacks.each do |callback|
           class_attribute "_#{callback}_callbacks"
           set_callbacks callback, CallbackChain.new(callback, config)

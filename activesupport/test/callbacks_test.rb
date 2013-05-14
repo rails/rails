@@ -525,7 +525,7 @@ module CallbacksTest
   class CallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => "result == :halt"
+    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
 
     set_callback :save, :before, :first
     set_callback :save, :before, :second
