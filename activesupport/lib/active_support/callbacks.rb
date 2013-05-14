@@ -110,10 +110,10 @@ module ActiveSupport
         def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
           if chain_config.key?(:terminator) && user_conditions.any?
             halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
-            terminal_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
+            halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
           elsif chain_config.key? :terminator
             halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
-            terminal(next_callback, user_callback, halted_lambda, filter)
+            halting(next_callback, user_callback, halted_lambda, filter)
           elsif user_conditions.any?
             conditional(next_callback, user_callback, user_conditions)
           else
@@ -123,7 +123,7 @@ module ActiveSupport
 
         private
 
-        def self.terminal_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
+        def self.halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
           lambda { |env|
             target = env.target
             value  = env.value
@@ -140,7 +140,7 @@ module ActiveSupport
           }
         end
 
-        def self.terminal(next_callback, user_callback, halted_lambda, filter)
+        def self.halting(next_callback, user_callback, halted_lambda, filter)
           lambda { |env|
             target = env.target
             value  = env.value
