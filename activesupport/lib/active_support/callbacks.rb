@@ -507,9 +507,9 @@ module ActiveSupport
         @callbacks = nil
       end
 
-      def each(&block);     @chain.each(&block); end
-      def index(o);         @chain.index(o); end
-      def empty?;           @chain.empty?; end
+      def each(&block); @chain.each(&block); end
+      def index(o);     @chain.index(o); end
+      def empty?;       @chain.empty?; end
 
       def insert(index, o)
         @callbacks = nil
@@ -629,9 +629,9 @@ module ActiveSupport
       #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)
         type, filters, options = normalize_callback_params(name, filter_list, block)
-        chain = get_callbacks name
+        self_chain = get_callbacks name
         mapped = filters.map do |filter|
-          Callback.build(chain, filter, type, options.dup)
+          Callback.build(self_chain, filter, type, options.dup)
         end
 
         __update_callbacks(name) do |target, chain|
