@@ -172,14 +172,15 @@ module ActiveSupport #:nodoc:
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       if String.new.respond_to?(unsafe_method) 
-        define_method(unsafe_method.to_sym) do |*args, &block|
-          to_str.send(unsafe_method, *args, &block)          
+        define_method(unsafe_method) do |*args, &block|
+          to_str.send(unsafe_method, *args, &block)
         end
-        define_method("#{unsafe_method}!".to_sym) do |*args|
+        
+        define_method("#{unsafe_method}!") do |*args|
           @html_safe = false
           super(*args)
         end
-      end  
+      end
     end
   end
 end
