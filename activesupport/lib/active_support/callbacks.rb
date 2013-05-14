@@ -109,10 +109,10 @@ module ActiveSupport
       class Before
         def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
           if chain_config.key?(:terminator) && user_conditions.any?
-            halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
+            halted_lambda = class_eval "lambda { |result| #{chain_config[:terminator]} }", __FILE__, __LINE__
             halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
           elsif chain_config.key? :terminator
-            halted_lambda = eval "lambda { |result| #{chain_config[:terminator]} }"
+            halted_lambda = class_eval "lambda { |result| #{chain_config[:terminator]} }", __FILE__, __LINE__
             halting(next_callback, user_callback, halted_lambda, filter)
           elsif user_conditions.any?
             conditional(next_callback, user_callback, user_conditions)
@@ -431,7 +431,12 @@ module ActiveSupport
           l = eval "lambda { |value| #{filter} }"
           lambda { |target, value| target.instance_exec(value, &l) }
         when ::Proc
-          raise ArgumentError if filter.arity > 1
+          if filter.arity > 1
+            return lambda { |target, _, &block|
+              raise ArgumentError unless block
+              target.instance_exec(target, block, &filter)
+            }
+          end
 
           if filter.arity <= 0
             lambda { |target, _| target.instance_exec(&filter) }
