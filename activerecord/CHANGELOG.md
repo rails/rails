@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix that under some conditions, Active Record could produce invalid SQL of the sort:
+    "SELECT DISTINCT DISTINCT".
+
+    Backport of #6792.
+
+    *Ben Woosley*
+
 *   Require `ActiveRecord::Base` in railtie hooks for rake_tasks, console and runner to
     avoid circular constant loading issues.
 
