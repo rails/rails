@@ -374,6 +374,9 @@ module ActiveRecord
         end
       end
 
+      #For bind param caching. TODO: VALIDATE AND CORRECT THIS
+      self.bind_values = []
+      #end
       self
     end
 
@@ -801,7 +804,7 @@ module ActiveRecord
 
       build_joins(arel, joins_values) unless joins_values.empty?
 
-      collapse_wheres(arel, (where_values - ['']).uniq)
+      collapse_wheres(arel, (where_values - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
 
       arel.having(*having_values.uniq.reject{|h| h.blank?}) unless having_values.empty?
 
@@ -890,8 +893,12 @@ module ActiveRecord
       when String, Array
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
+        temp_opts = opts.dup
 
+        create_binds(temp_opts)
+        temp_opts = substitute_opts(temp_opts)
+
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, temp_opts)
         attributes.values.grep(ActiveRecord::Relation) do |rel|
           self.bind_values += rel.bind_values
         end
@@ -899,6 +906,30 @@ module ActiveRecord
         PredicateBuilder.build_from_hash(klass, attributes, table)
       else
         [opts]
+      end
+    end
+
+    def create_binds(temp_opts)
+      binds = []
+      temp_opts.map do |column, value| 
+        case value
+          when String, Integer
+            if @klass.column_names.include? column.to_s
+              binds.push([@klass.columns_hash[column.to_s], value])
+            end
+        end
+      end
+      self.bind_values += binds
+    end
+
+    def substitute_opts(temp_opts)
+      temp_opts = temp_opts.each_with_index do |(column,value), index|
+        if @klass.columns_hash[column.to_s] != nil        
+          case value
+            when String, Integer
+              temp_opts[column] = connection.substitute_at(column, index) 
+          end
+        end
       end
     end
 
