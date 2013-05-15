@@ -76,7 +76,8 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      cbs = send("_#{kind}_callbacks")
+      cbs = self.class.send("_#{kind}_callbacks")
+
       if cbs.empty?
         yield if block_given?
       else
