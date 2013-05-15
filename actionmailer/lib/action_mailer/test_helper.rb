@@ -1,4 +1,4 @@
-module ActionMailer
+module ActionMailer # :nodoc:
   module TestHelper
     # Asserts that the number of emails sent matches the given number.
     #

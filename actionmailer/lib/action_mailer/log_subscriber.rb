@@ -1,4 +1,4 @@
-module ActionMailer
+module ActionMailer # :nodoc:
   # Implements the ActiveSupport::LogSubscriber for logging notifications when
   # email is delivered and received.
   class LogSubscriber < ActiveSupport::LogSubscriber

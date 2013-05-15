@@ -5,7 +5,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
 require 'action_mailer/log_subscriber'
 
-module ActionMailer
+module ActionMailer # :nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
   # = Mailer Models

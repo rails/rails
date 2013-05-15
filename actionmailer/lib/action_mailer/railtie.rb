@@ -2,7 +2,7 @@ require "action_mailer"
 require "rails"
 require "abstract_controller/railties/routes_helpers"
 
-module ActionMailer
+module ActionMailer # :nodoc:
   class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
     config.eager_load_namespaces << ActionMailer
