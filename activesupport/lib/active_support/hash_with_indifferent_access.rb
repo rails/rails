@@ -231,7 +231,7 @@ module ActiveSupport
     def to_hash
       _new_hash= {}
       each do |key, value|
-        _new_hash[convert_key(key)] = convert_value(value,true)
+        _new_hash[convert_key(key)] = convert_value(value, true)
       end
       Hash.new(default).merge!(_new_hash)
     end
@@ -246,7 +246,7 @@ module ActiveSupport
           _convert_for_to_hash ? value.to_hash : value.nested_under_indifferent_access
         elsif value.is_a?(Array)
           value = value.dup if value.frozen?
-          value.map! { |e| convert_value(e) }
+          value.map! { |e| convert_value(e, _convert_for_to_hash) }
         else
           value
         end
