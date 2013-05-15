@@ -330,7 +330,7 @@ module ActiveSupport
         new chain.name, filter, kind, options, chain.config
       end
 
-      attr_accessor :kind, :options, :name
+      attr_accessor :kind, :name
       attr_reader :chain_config
 
       def initialize(name, filter, kind, options, chain_config)
@@ -338,11 +338,11 @@ module ActiveSupport
         @name    = name
         @kind    = kind
         @filter  = filter
-        @options = options
         @key     = compute_identifier filter
+        @if      = Array(options[:if])
+        @unless  = Array(options[:unless])
 
         deprecate_per_key_option(options)
-        normalize_options!(options)
       end
 
       def filter; @key; end
@@ -356,8 +356,8 @@ module ActiveSupport
 
       def merge(chain, new_options)
         _options = {
-          :if     => @options[:if].dup,
-          :unless => @options[:unless].dup
+          :if     => @if.dup,
+          :unless => @unless.dup
         }
 
         deprecate_per_key_option new_options
@@ -366,11 +366,6 @@ module ActiveSupport
         _options[:unless].concat Array(new_options.fetch(:if, []))
 
         self.class.build chain, @filter, @kind, _options
-      end
-
-      def normalize_options!(options)
-        options[:if] = Array(options[:if])
-        options[:unless] = Array(options[:unless])
       end
 
       def matches?(_kind, _filter)
@@ -463,8 +458,8 @@ module ActiveSupport
       end
 
       def conditions_lambdas
-        options[:if].map { |c| make_lambda c } +
-          options[:unless].map { |c| invert_lambda make_lambda c }
+        @if.map { |c| make_lambda c } +
+          @unless.map { |c| invert_lambda make_lambda c }
       end
 
       def _normalize_legacy_filter(kind, filter)
