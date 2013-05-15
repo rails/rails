@@ -146,7 +146,7 @@ module ActiveSupport
             value  = env.value
             halted = env.halted
 
-            if !halted
+            unless halted
               result = user_callback.call target, value
               env.halted = halted_lambda.call(target, result)
               if env.halted
@@ -217,7 +217,7 @@ module ActiveSupport
         def self.halting(next_callback, user_callback)
           lambda { |env|
             env = next_callback.call env
-            if !env.halted
+            unless env.halted
               user_callback.call env.target, env.value
             end
             env
@@ -284,7 +284,7 @@ module ActiveSupport
             target = env.target
             value  = env.value
 
-            if !env.halted
+            unless env.halted
               user_callback.call(target, value) {
                 env = next_callback.call env
                 env.value
