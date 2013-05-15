@@ -463,18 +463,8 @@ module ActiveSupport
       end
 
       def conditions_lambdas
-        conditions = []
-
-        unless options[:if].empty?
-          lambdas = Array(options[:if]).map { |c| make_lambda c }
-          conditions.concat lambdas
-        end
-
-        unless options[:unless].empty?
-          lambdas = Array(options[:unless]).map { |c| make_lambda c }
-          conditions.concat lambdas.map { |l| invert_lambda l }
-        end
-        conditions
+        Array(options[:if]).map { |c| make_lambda c } +
+          Array(options[:unless]).map { |c| invert_lambda make_lambda c }
       end
 
       def _normalize_legacy_filter(kind, filter)
