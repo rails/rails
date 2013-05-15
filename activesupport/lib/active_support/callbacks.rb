@@ -347,15 +347,15 @@ module ActiveSupport
       def raw_filter; @filter; end
 
       def merge(chain, new_options)
-        _options = {
+        options = {
           :if     => @if.dup,
           :unless => @unless.dup
         }
 
-        _options[:if].concat     Array(new_options.fetch(:unless, []))
-        _options[:unless].concat Array(new_options.fetch(:if, []))
+        options[:if].concat     Array(new_options.fetch(:unless, []))
+        options[:unless].concat Array(new_options.fetch(:if, []))
 
-        self.class.build chain, @filter, @kind, _options
+        self.class.build chain, @filter, @kind, options
       end
 
       def matches?(_kind, _filter)
@@ -450,25 +450,6 @@ module ActiveSupport
       def conditions_lambdas
         @if.map { |c| make_lambda c } +
           @unless.map { |c| invert_lambda make_lambda c }
-      end
-
-      def _normalize_legacy_filter(kind, filter)
-        if !filter.respond_to?(kind) && filter.respond_to?(:filter)
-          message = "Filter object with #filter method is deprecated. Define method corresponding " \
-                    "to filter type (#before, #after or #around)."
-          ActiveSupport::Deprecation.warn message
-          filter.singleton_class.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{kind}(context, &block) filter(context, &block) end
-          RUBY_EVAL
-        elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around && !filter.respond_to?(:around)
-          message = "Filter object with #before and #after methods is deprecated. Define #around method instead."
-          ActiveSupport::Deprecation.warn message
-          def filter.around(context)
-            should_continue = before(context)
-            yield if should_continue
-            after(context)
-          end
-        end
       end
     end
 
