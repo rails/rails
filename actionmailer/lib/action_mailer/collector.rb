@@ -3,7 +3,7 @@ require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/array/extract_options'
 
 module ActionMailer
-  class Collector
+  class Collector # :nodoc: all
     include AbstractController::Collector
     attr_reader :responses
 
