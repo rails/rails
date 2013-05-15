@@ -341,26 +341,16 @@ module ActiveSupport
         @key     = compute_identifier filter
         @if      = Array(options[:if])
         @unless  = Array(options[:unless])
-
-        deprecate_per_key_option(options)
       end
 
       def filter; @key; end
       def raw_filter; @filter; end
-
-      def deprecate_per_key_option(options)
-        if options[:per_key]
-          raise NotImplementedError, ":per_key option is no longer supported. Use generic :if and :unless options instead."
-        end
-      end
 
       def merge(chain, new_options)
         _options = {
           :if     => @if.dup,
           :unless => @unless.dup
         }
-
-        deprecate_per_key_option new_options
 
         _options[:if].concat     Array(new_options.fetch(:unless, []))
         _options[:unless].concat Array(new_options.fetch(:if, []))

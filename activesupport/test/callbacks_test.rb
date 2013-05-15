@@ -772,22 +772,6 @@ module CallbacksTest
     end
   end
 
-  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
-
-    def test_per_key_option_deprecation
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-    end
-  end
-
   class ExcludingDuplicatesCallbackTest < ActiveSupport::TestCase
     def test_excludes_duplicates_in_separate_calls
       model = DuplicatingCallbacks.new
