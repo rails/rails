@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Also support extentions in PostgreSQL 9.1. This feature has been supported since 9.1.
+
+    *kennyj*
+
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 

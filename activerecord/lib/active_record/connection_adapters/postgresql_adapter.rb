@@ -623,9 +623,9 @@ module ActiveRecord
         true
       end
 
-      # Returns true if pg > 9.2
+      # Returns true if pg > 9.1
       def supports_extensions?
-        postgresql_version >= 90200
+        postgresql_version >= 90100
       end
 
       # Range datatypes weren't introduced until PostgreSQL 9.2
@@ -647,9 +647,9 @@ module ActiveRecord
 
       def extension_enabled?(name)
         if supports_extensions?
-          res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
+          res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled",
             'SCHEMA'
-          res.column_types['exists'].type_cast res.rows.first.first
+          res.column_types['enabled'].type_cast res.rows.first.first
         end
       end
 
