@@ -506,6 +506,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
+
+    hash = hash.to_hash
+    assert_not hash.instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"].instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)
   end
 
   def test_should_preserve_array_subclass_when_value_is_array
