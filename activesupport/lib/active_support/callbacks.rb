@@ -463,8 +463,8 @@ module ActiveSupport
       end
 
       def conditions_lambdas
-        Array(options[:if]).map { |c| make_lambda c } +
-          Array(options[:unless]).map { |c| invert_lambda make_lambda c }
+        options[:if].map { |c| make_lambda c } +
+          options[:unless].map { |c| invert_lambda make_lambda c }
       end
 
       def _normalize_legacy_filter(kind, filter)
