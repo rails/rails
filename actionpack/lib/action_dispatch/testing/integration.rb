@@ -62,12 +62,6 @@ module ActionDispatch
         process :head, path, parameters, headers_or_env
       end
 
-      # Performs a OPTIONS request with the given parameters. See +#get+ for
-      # more details.
-      def options(path, parameters = nil, headers_or_env = nil)
-        process :options, path, parameters, headers_or_env
-      end
-
       # Performs an XMLHttpRequest request with the given parameters, mirroring
       # a request from the Prototype library.
       #
@@ -342,7 +336,7 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
-      %w(get post patch put head delete options cookies assigns
+      %w(get post patch put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session
