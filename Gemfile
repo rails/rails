@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'mocha', git: 'https://github.com/freerange/mocha', require: false
+gem 'mocha', '~> 0.14'
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', '~> 2.2.0'
