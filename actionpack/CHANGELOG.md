@@ -1,3 +1,10 @@
+*   Fix an issue where rails raise exception about missing helper where it
+    should throw `LoadError`. When helper file exists and only loaded file from
+    this helper does not exist rails should throw LoadError instead of
+    `MissingHelperError`.
+
+    *Piotr Niełacny*
+
 *   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind body input stream on
     parsing json params.
 
