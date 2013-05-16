@@ -8,3 +8,7 @@ module Rails
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
 end
+
+
+
+                MAYOR bug (".")
