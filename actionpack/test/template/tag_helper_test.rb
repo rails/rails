@@ -59,6 +59,11 @@ class TagHelperTest < ActionView::TestCase
     assert_dom_equal %(<div class="green">Hello world!</div>), content_tag(:div, :class => "green") { "Hello world!" }
   end
 
+  def test_content_tag_with_block_passing_arguments
+    assert_dom_equal %(<div>Hello world!</div>), content_tag(:div, :arguments => 'world') { |who| "Hello #{who}!" }
+    assert_dom_equal %(<div>Hello world!</div>), content_tag(:div, :arguments => ['Hello', 'world']) { |what, who| "#{what} #{who}!" }
+  end
+
   def test_content_tag_with_block_and_options_outside_out_of_erb
     assert_equal content_tag("a", "Create", :href => "create"),
                  content_tag("a", "href" => "create") { "Create" }
