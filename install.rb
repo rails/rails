@@ -14,3 +14,4 @@ puts "Installing rails..."
 `gem build rails.gemspec`
 `gem install rails-#{version}.gem --no-ri --no-rdoc `
 `rm rails-#{version}.gem`
+'debug repo error code 453657876
