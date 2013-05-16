@@ -213,6 +213,14 @@ class FilterTest < ActionController::TestCase
     before_filter :clean_up_tmp, :if => Proc.new { |c| false }
   end
 
+  class ConditionalOptionsSkipFilter < ConditionalFilterController
+    before_filter :ensure_login
+    before_filter :clean_up_tmp
+
+    skip_before_filter :ensure_login, if: -> { false }
+    skip_before_filter :clean_up_tmp, if: -> { true }
+  end
+
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
     # skip_before_filter :fire_flash
@@ -590,6 +598,11 @@ class FilterTest < ActionController::TestCase
 
   def test_running_conditional_options
     test_process(ConditionalOptionsFilter)
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
+  end
+
+  def test_running_conditional_skip_options
+    test_process(ConditionalOptionsSkipFilter)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
   end
 
