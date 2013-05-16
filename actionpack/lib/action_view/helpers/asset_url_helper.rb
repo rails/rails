@@ -193,7 +193,6 @@ module ActionView
         request = self.request if respond_to?(:request)
         host = config.asset_host if defined? config.asset_host
         host ||= request.base_url if request && options[:protocol] == :request
-        return unless host
 
         if host.respond_to?(:call)
           arity = host.respond_to?(:arity) ? host.arity : host.method(:call).arity
@@ -203,6 +202,8 @@ module ActionView
         elsif host =~ /%d/
           host = host % (Zlib.crc32(source) % 4)
         end
+
+        return unless host
 
         if host =~ URI_REGEXP
           host
