@@ -69,6 +69,17 @@ module ActionDispatch
         end
       end
 
+      test "explicit keys win over implicit keys" do
+        draw do
+          resources :foo do
+            resources :bar, to: SimpleApp.new('foo#show')
+          end
+        end
+
+        assert_equal '/foo/1/bar/2', url_helpers.foo_bar_path(1, 2)
+        assert_equal '/foo/1/bar/2', url_helpers.foo_bar_path(2, foo_id: 1)
+      end
+
       private
         def clear!
           @set.clear!
