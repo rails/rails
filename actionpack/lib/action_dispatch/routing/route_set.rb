@@ -218,6 +218,7 @@ module ActionDispatch
                 keys -= t.url_options.keys if t.respond_to?(:url_options)
                 keys -= options.keys
               end
+              keys -= inner_options.keys
               result.merge!(Hash[keys.zip(args)])
             end
 
