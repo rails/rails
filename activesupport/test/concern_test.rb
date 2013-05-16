@@ -91,4 +91,18 @@ class ConcernTest < ActiveSupport::TestCase
     @klass.send(:include, Foo)
     assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz], @klass.included_modules[0..2]
   end
+
+  def test_raise_on_multiple_included_calls
+    assert_raises(ActiveSupport::Concern::MultipleIncludedBlocks) do
+      Module.new do
+        extend ActiveSupport::Concern
+
+        included do
+        end
+
+        included do
+        end
+      end
+    end
+  end
 end
