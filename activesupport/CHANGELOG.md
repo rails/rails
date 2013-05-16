@@ -1,3 +1,9 @@
+*   Raise an error when multiple `included` blocks are defined for a Concern.
+    The old behavior would silently discard previously defined blocks, running
+    only the last one.
+
+    *Mike Dillon*
+
 *   Replace `multi_json` with `json`.
 
     Since Rails requires Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
