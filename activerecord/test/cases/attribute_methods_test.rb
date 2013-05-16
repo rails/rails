@@ -712,12 +712,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_bulk_update_raise_unknown_attribute_errro
-    error = nil
-    begin
+    error = assert_raises(ActiveRecord::UnknownAttributeError) {
       @target.new(:hello => "world")
-    rescue ActiveRecord::UnknownAttributeError => error
-    end
-    assert error
+    }
     assert @target, error.record
     assert "hello", error.attribute
     assert "unknown attribute: hello", error.message
