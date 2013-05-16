@@ -1121,8 +1121,6 @@
 
     *dlee*
 
-*   Integration tests support the `OPTIONS` method. *Jeremy Kemper*
-
 *   `expires_in` accepts a `must_revalidate` flag. If true, "must-revalidate"
     is added to the Cache-Control header. *fxn*
 
