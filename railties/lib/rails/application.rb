@@ -93,6 +93,7 @@ module Rails
     # dispatches the request to the underlying middleware stack.
     def call(env)
       env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
+      env["ORIGINAL_SCRIPT_NAME"] = env["SCRIPT_NAME"]
       super(env)
     end
 

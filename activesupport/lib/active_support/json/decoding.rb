@@ -1,6 +1,6 @@
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/delegation'
-require 'multi_json'
+require 'json'
 
 module ActiveSupport
   # Look for and parse json strings that look like ISO 8601 times.
@@ -13,30 +13,13 @@ module ActiveSupport
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
-      def decode(json, options ={})
-        data = MultiJson.load(json, options)
+      def decode(json, proc = nil, options = {})
+        data = ::JSON.load(json, proc, options)
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
           data
         end
-      end
-
-      def engine
-        MultiJson.adapter
-      end
-      alias :backend :engine
-
-      def engine=(name)
-        MultiJson.use(name)
-      end
-      alias :backend= :engine=
-
-      def with_backend(name)
-        old_backend, self.backend = backend, name
-        yield
-      ensure
-        self.backend = old_backend
       end
 
       # Returns the class of the error that will be raised when there is an
@@ -50,7 +33,7 @@ module ActiveSupport
       #     Rails.logger.warn("Attempted to decode invalid JSON: #{some_string}")
       #   end
       def parse_error
-        MultiJson::DecodeError
+        ::JSON::ParserError
       end
 
       private

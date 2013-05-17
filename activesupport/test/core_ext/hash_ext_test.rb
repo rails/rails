@@ -490,6 +490,10 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+    new_to_hash = @nested_mixed.with_indifferent_access.to_hash
+    assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
   end
 
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
@@ -502,6 +506,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
+
+    hash = hash.to_hash
+    assert_not hash.instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"].instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)
   end
 
   def test_should_preserve_array_subclass_when_value_is_array

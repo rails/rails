@@ -668,6 +668,7 @@ module ActiveRecord
       copied
     end
 
+    # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max

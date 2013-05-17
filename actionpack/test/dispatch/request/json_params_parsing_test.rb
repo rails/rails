@@ -50,7 +50,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       output = StringIO.new
       json = "[\"person]\": {\"name\": \"David\"}}"
       post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output)}
-      assert_response :error
+      assert_response :bad_request
       output.rewind && err = output.read
       assert err =~ /Error occurred while parsing request parameters/
     end
@@ -62,7 +62,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
         exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
-        assert_equal MultiJson::DecodeError, exception.original_exception.class
+        assert_equal JSON::ParserError, exception.original_exception.class
         assert_equal exception.original_exception.message, exception.message
       ensure
         $stderr = STDERR

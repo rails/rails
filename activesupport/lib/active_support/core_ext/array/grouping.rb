@@ -25,7 +25,7 @@ class Array
       # subtracting from number gives how many to add;
       # modulo number ensures we don't add group of just fill.
       padding = (number - size % number) % number
-      collection = dup.concat([fill_with] * padding)
+      collection = dup.concat(Array.new(padding, fill_with))
     end
 
     if block_given?

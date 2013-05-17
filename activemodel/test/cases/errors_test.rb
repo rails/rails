@@ -271,8 +271,8 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_empty generates message with custom default message" do
     person = Person.new
-    person.errors.expects(:generate_message).with(:name, :empty, {:message => 'custom'})
-    person.errors.add_on_empty :name, :message => 'custom'
+    person.errors.expects(:generate_message).with(:name, :empty, { message: 'custom' })
+    person.errors.add_on_empty :name, message: 'custom'
   end
 
   test "add_on_empty generates message with empty string value" do
@@ -297,7 +297,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_blank generates message with custom default message" do
     person = Person.new
-    person.errors.expects(:generate_message).with(:name, :blank, {:message => 'custom'})
-    person.errors.add_on_blank :name, :message => 'custom'
+    person.errors.expects(:generate_message).with(:name, :blank, { message: 'custom' })
+    person.errors.add_on_blank :name, message: 'custom'
   end
 end

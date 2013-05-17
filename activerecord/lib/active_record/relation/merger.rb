@@ -94,9 +94,7 @@ module ActiveRecord
                                                                            [])
           relation.joins! rest
 
-          join_dependency.join_associations.each do |association|
-            @relation = association.join_relation(relation)
-          end
+          @relation = join_dependency.join_relation(relation)
         end
       end
 
@@ -139,21 +137,20 @@ module ActiveRecord
         if values[:where].empty? || relation.where_values.empty?
           relation.where_values + values[:where]
         else
-          # Remove equalities from the existing relation with a LHS which is
-          # present in the relation being merged in.
+          sanitized_wheres + values[:where]
+        end
+      end
 
-          seen = Set.new
-          values[:where].each { |w|
-            if w.respond_to?(:operator) && w.operator == :==
-              seen << w.left
-            end
-          }
+      # Remove equalities from the existing relation with a LHS which is
+      # present in the relation being merged in.
+      def sanitized_wheres
+        seen = Set.new
+        values[:where].each do |w|
+          seen << w.left if w.respond_to?(:operator) && w.operator == :==
+        end
 
-          relation.where_values.reject { |w|
-            w.respond_to?(:operator) &&
-              w.operator == :== &&
-              seen.include?(w.left)
-          } + values[:where]
+        relation.where_values.reject do |w|
+          w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
       end
     end

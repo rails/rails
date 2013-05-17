@@ -17,7 +17,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :default_scoped, :proxy_association
+    attr_accessor :default_scoped
     alias :model :klass
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
@@ -39,7 +39,7 @@ module ActiveRecord
       reset
     end
 
-    def insert(values)
+    def insert(values) # :nodoc:
       primary_key_value = nil
 
       if primary_key && Hash === values
@@ -56,16 +56,7 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
-      conn = @klass.connection
-
-      substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
-      binds       = substitutes.map do |arel_attr, value|
-        [@klass.columns_hash[arel_attr.name], value]
-      end
-
-      substitutes.each_with_index do |tuple, i|
-        tuple[1] = conn.substitute_at(binds[i][0], i)
-      end
+      substitutes, binds = substitute_values values
 
       if values.empty? # empty insert
         im.values = Arel.sql(connection.empty_insert_statement_value)
@@ -73,7 +64,7 @@ module ActiveRecord
         im.insert substitutes
       end
 
-      conn.insert(
+      @klass.connection.insert(
         im,
         'SQL',
         primary_key,
@@ -81,6 +72,29 @@ module ActiveRecord
         nil,
         binds)
     end
+
+    def update_record(values, id, id_was) # :nodoc:
+      substitutes, binds = substitute_values values
+      um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes)
+      
+      @klass.connection.update(
+        um, 
+        'SQL', 
+        binds)
+    end
+
+    def substitute_values(values) # :nodoc:
+      substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
+      binds       = substitutes.map do |arel_attr, value|
+        [@klass.columns_hash[arel_attr.name], value]
+      end
+
+      substitutes.each_with_index do |tuple, i|
+        tuple[1] = @klass.connection.substitute_at(binds[i][0], i)
+      end
+
+      [substitutes, binds]
+    end 
 
     # Initializes new record from relation while maintaining the current
     # scope.

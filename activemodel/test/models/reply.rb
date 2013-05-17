@@ -2,11 +2,11 @@ require 'models/topic'
 
 class Reply < Topic
   validate :errors_on_empty_content
-  validate :title_is_wrong_create,  :on => :create
+  validate :title_is_wrong_create,  on: :create
 
   validate :check_empty_title
-  validate :check_content_mismatch, :on => :create
-  validate :check_wrong_update,     :on => :update
+  validate :check_content_mismatch, on: :create
+  validate :check_wrong_update,     on: :update
 
   def check_empty_title
     errors[:title] << "is Empty" unless title && title.size > 0

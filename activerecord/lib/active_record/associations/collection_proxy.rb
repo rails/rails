@@ -847,9 +847,7 @@ module ActiveRecord
 
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        @association.scope.tap do |scope|
-          scope.proxy_association = @association
-        end
+        @association.scope
       end
 
       # :nodoc:

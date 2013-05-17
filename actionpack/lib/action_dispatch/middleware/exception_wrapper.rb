@@ -13,6 +13,7 @@ module ActionDispatch
       'ActionController::NotImplemented'           => :not_implemented,
       'ActionController::UnknownFormat'            => :not_acceptable,
       'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+      'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
       'ActionController::BadRequest'               => :bad_request,
       'ActionController::ParameterMissing'         => :bad_request
     )

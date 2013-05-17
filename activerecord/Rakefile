@@ -125,8 +125,6 @@ namespace :postgresql do
     %w(arunit arunit2).each do |db|
       if version < "9.1.0"
         puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
-      else
-        %x( psql #{config[db]['database']} -c "CREATE EXTENSION hstore;" )
       end
     end
   end

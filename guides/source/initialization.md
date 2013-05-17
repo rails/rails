@@ -59,35 +59,33 @@ dependencies of the application. `config/boot.rb` sets
 `ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
 exists, `bundler/setup` is then required.
 
-The gems that a Rails 4 application depends on are as follows:
+A standard Rails application depends on several gems, specifically:
 
-TODO: change these when the Rails 4 release is near.
-
-* abstract (1.0.0)
-* actionmailer (4.0.0.beta)
-* actionpack (4.0.0.beta)
-* activemodel (4.0.0.beta)
-* activerecord (4.0.0.beta)
-* activesupport (4.0.0.beta)
-* arel (2.0.7)
-* builder (3.0.0)
-* bundler (1.0.6)
-* erubis (2.6.6)
-* i18n (0.5.0)
-* mail (2.2.12)
-* mime-types (1.16)
-* polyglot (0.3.1)
-* rack (1.2.1)
-* rack-cache (0.5.3)
-* rack-mount (0.6.13)
-* rack-test (0.5.6)
-* rails (4.0.0.beta)
-* railties (4.0.0.beta)
-* rake (0.8.7)
-* sqlite3-ruby (1.3.2)
-* thor (0.14.6)
-* treetop (1.4.9)
-* tzinfo (0.3.23)
+* abstract
+* actionmailer
+* actionpack
+* activemodel
+* activerecord
+* activesupport
+* arel
+* builder
+* bundler
+* erubis
+* i18n
+* mail
+* mime-types
+* polyglot
+* rack
+* rack-cache
+* rack-mount
+* rack-test
+* rails
+* railties
+* rake
+* sqlite3-ruby
+* thor
+* treetop
+* tzinfo
 
 ### `rails/commands.rb`
 
@@ -116,7 +114,7 @@ If we used `s` rather than `server`, Rails will use the `aliases` defined in the
 
 ```ruby
 when 'server'
-  # Change to the application's path if there is no config.ru file in current dir.
+  # Change to the application's path if there is no config.ru file in current directory.
   # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
   Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
@@ -131,7 +129,7 @@ when 'server'
   end
 ```
 
-This file will change into the root of the directory (a path two directories back from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
+This file will change into the Rails root directory (a path two directories up from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
 
 ```ruby
 require 'fileutils'
@@ -147,11 +145,11 @@ module Rails
 ### `actionpack/lib/action_dispatch.rb`
 
 Action Dispatch is the routing component of the Rails framework.
-It adds functionalities like routing, session, and common middlewares.
+It adds functionality like routing, session, and common middlewares.
 
 ### `rails/commands/server.rb`
 
-The `Rails::Server` class is defined in this file as inheriting from `Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize` method in `rails/commands/server.rb`:
+The `Rails::Server` class is defined in this file by inheriting from `Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize` method in `rails/commands/server.rb`:
 
 ```ruby
 def initialize(*)
@@ -441,14 +439,14 @@ inside each of those frameworks, but you're encouraged to try and
 explore them on your own.
 
 For now, just keep in mind that common functionality like Rails engines,
-I18n and Rails configuration is all being defined here.
+I18n and Rails configuration are all being defined here.
 
 ### Back to `config/environment.rb`
 
 When `config/application.rb` has finished loading Rails, and defined
-your application namespace, you go back to `config/environment.rb`,
-where your application is initialized. For example, if you application was called
-`Blog`, here you would find `Blog::Application.initialize!`, which is
+the application namespace, we go back to `config/environment.rb`,
+where the application is initialized. For example, if the application was called
+`Blog`, here we would find `Blog::Application.initialize!`, which is
 defined in `rails/application.rb`
 
 ### `railties/lib/rails/application.rb`

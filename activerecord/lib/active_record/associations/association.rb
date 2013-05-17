@@ -122,7 +122,11 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        klass.all
+        all = klass.all
+        scope = AssociationRelation.new(klass, klass.arel_table, self)
+        scope.merge! all
+        scope.default_scoped = all.default_scoped?
+        scope
       end
 
       # Loads the \target if needed and returns it.
@@ -162,6 +166,13 @@ module ActiveRecord
         reflection_name, ivars = data
         ivars.each { |name, val| instance_variable_set(name, val) }
         @reflection = @owner.class.reflect_on_association(reflection_name)
+      end
+
+      def initialize_attributes(record) #:nodoc:
+        skip_assign = [reflection.foreign_key, reflection.type].compact
+        attributes = create_scope.except(*(record.changed - skip_assign))
+        record.assign_attributes(attributes)
+        set_inverse_instance(record)
       end
 
       private
@@ -233,10 +244,7 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            skip_assign = [reflection.foreign_key, reflection.type].compact
-            attributes = create_scope.except(*(record.changed - skip_assign))
-            record.assign_attributes(attributes)
-            set_inverse_instance(record)
+            initialize_attributes(record)
           end
         end
     end

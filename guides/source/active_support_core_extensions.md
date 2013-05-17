@@ -10,7 +10,7 @@ After reading this guide, you will know:
 * What Core Extensions are.
 * How to load all extensions.
 * How to cherry-pick just the extensions you want.
-* What extensions ActiveSupport provides.
+* What extensions Active Support provides.
 
 --------------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -476,12 +476,11 @@ NOTE: Defined in `active_support/core_ext/kernel/reporting.rb`.
 
 ### `in?`
 
-The predicate `in?` tests if an object is included in another object or a list of objects. An `ArgumentError` exception will be raised if a single argument is passed and it does not respond to `include?`.
+The predicate `in?` tests if an object is included in another object. An `ArgumentError` exception will be raised if the argument passed does not respond to `include?`.
 
 Examples of `in?`:
 
 ```ruby
-1.in?(1,2)          # => true
 1.in?([1,2])        # => true
 "lo".in?("hello")   # => true
 25.in?(30..50)      # => false
@@ -2216,7 +2215,9 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 The method `to_formatted_s` acts like `to_s` by default.
 
-If the array contains items that respond to `id`, however, it may be passed the symbol `:db` as argument. That's typically used with collections of ARs. Returned strings are:
+If the array contains items that respond to `id`, however, the symbol
+`:db` may be passed as argument. That's typically used with
+collections of Active Record objects. Returned strings are:
 
 ```ruby
 [].to_formatted_s(:db)            # => "null"
@@ -2372,7 +2373,8 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 ### Duplicating
 
-The method `Array.deep_dup` duplicates itself and all objects inside recursively with ActiveSupport method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
+The method `Array.deep_dup` duplicates itself and all objects inside
+recursively with Active Support method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
 
 ```ruby
 array = [1, [2, 3]]
@@ -2593,7 +2595,8 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 
 ### Deep duplicating
 
-The method `Hash.deep_dup` duplicates itself and all keys and values inside recursively with ActiveSupport method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
+The method `Hash.deep_dup` duplicates itself and all keys and values
+inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
 
 ```ruby
 hash = { a: 1, b: { c: 2, d: [3, 4] } }

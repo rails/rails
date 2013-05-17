@@ -28,6 +28,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_resolve_aliased_attributes
+    assert_equal 318, Account.sum(:available_credit)
+  end
+
   def test_should_return_decimal_average_of_integer_field
     value = Account.average(:id)
     assert_equal 3.5, value
@@ -352,6 +356,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.select(:credit_limit).uniq.count
   end
 
+  def test_count_with_aliased_attribute
+    assert_equal 6, Account.count(:available_credit)
+  end
+
   def test_count_with_column_and_options_parameter
     assert_equal 2, Account.where("credit_limit = 50 AND firm_id IS NOT NULL").count(:firm_id)
   end
@@ -486,6 +494,10 @@ class CalculationsTest < ActiveRecord::TestCase
     company = Company.first
     contract = company.contracts.create!
     assert_equal [contract.id], company.contracts.pluck(:id)
+  end
+
+  def test_pluck_on_aliased_attribute
+    assert_equal 'The First Topic', Topic.order(:id).pluck(:heading).first
   end
 
   def test_pluck_with_serialization

@@ -55,29 +55,23 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
   }
 
-  backends = [:ok_json]
-  backends << :json_gem if defined?(::JSON)
-  backends << :yajl if defined?(::Yajl)
-
-  backends.each do |backend|
-    TESTS.each do |json, expected|
-      test "json decodes #{json} with the #{backend} backend" do
-        ActiveSupport.parse_json_times = true
-        silence_warnings do
-          ActiveSupport::JSON.with_backend backend do
-            assert_equal expected, ActiveSupport::JSON.decode(json)
-          end
-        end
+  TESTS.each do |json, expected|
+    test "json decodes #{json}" do
+      prev = ActiveSupport.parse_json_times
+      ActiveSupport.parse_json_times = true
+      silence_warnings do
+        assert_equal expected, ActiveSupport::JSON.decode(json)
       end
+      ActiveSupport.parse_json_times = prev
     end
+  end
 
-    test "json decodes time json with time parsing disabled with the #{backend} backend" do
-      ActiveSupport.parse_json_times = false
-      expected = {"a" => "2007-01-01 01:12:34 Z"}
-      ActiveSupport::JSON.with_backend backend do
-        assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
-      end
-    end
+  test "json decodes time json with time parsing disabled" do
+    prev = ActiveSupport.parse_json_times
+    ActiveSupport.parse_json_times = false
+    expected = {"a" => "2007-01-01 01:12:34 Z"}
+    assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
+    ActiveSupport.parse_json_times = prev
   end
 
   def test_failed_json_decoding

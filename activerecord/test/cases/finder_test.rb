@@ -47,7 +47,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists
     assert Topic.exists?(1)
     assert Topic.exists?("1")
-    assert Topic.exists?(:author_name => "David")
+    assert Topic.exists?(title: "The First Topic")
+    assert Topic.exists?(heading: "The First Topic")
     assert Topic.exists?(:author_name => "Mary", :approved => true)
     assert Topic.exists?(["parent_id = ?", 1])
     assert !Topic.exists?(45)
@@ -95,6 +96,18 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_with_includes_limit_and_empty_result
     assert !Topic.includes(:replies).limit(0).exists?
     assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+  end
+
+  def test_exists_with_distinct_association_includes_and_limit
+    author = Author.first
+    assert !author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+  end
+
+  def test_exists_with_distinct_association_includes_limit_and_order
+    author = Author.first
+    assert !author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given

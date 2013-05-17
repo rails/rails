@@ -249,11 +249,8 @@ db_namespace = namespace :db do
     desc 'Load a schema.rb file into the database'
     task :load => [:environment, :load_config] do
       file = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
-      if File.exists?(file)
-        load(file)
-      else
-        abort %{#{file} doesn't exist yet. Run `rake db:migrate` to create it, then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.}
-      end
+      ActiveRecord::Tasks::DatabaseTasks.check_schema_file(file)
+      load(file)
     end
 
     task :load_if_ruby => ['db:create', :environment] do
@@ -298,6 +295,7 @@ db_namespace = namespace :db do
     # desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
       filename = ENV['DB_STRUCTURE'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
+      ActiveRecord::Tasks::DatabaseTasks.check_schema_file(filename)
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_load(current_config, filename)
     end
@@ -321,9 +319,13 @@ db_namespace = namespace :db do
 
     # desc "Recreate the test database from an existent schema.rb file"
     task :load_schema => 'db:test:purge' do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
-      ActiveRecord::Schema.verbose = false
-      db_namespace["schema:load"].invoke
+      begin
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
+        ActiveRecord::Schema.verbose = false
+        db_namespace["schema:load"].invoke
+      ensure
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[Rails.env])
+      end
     end
 
     # desc "Recreate the test database from an existent structure.sql file"

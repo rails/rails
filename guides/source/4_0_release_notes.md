@@ -22,7 +22,7 @@ Creating a Rails 4.0 application
 --------------------------------
 
 ```
- You should have the 'rails' rubygem installed
+ You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
@@ -59,15 +59,15 @@ Extraction of features to gems
 
 In Rails 4.0, several features have been extracted into gems. You can simply add the extracted gems to your `Gemfile` to bring the functionality back.
 
-* Hash-based & Dynamic finder methods ([Github](https://github.com/rails/activerecord-deprecated_finders))
-* Mass assignment protection in Active Record models ([Github](https://github.com/rails/protected_attributes), [Pull Request](https://github.com/rails/rails/pull/7251))
-* ActiveRecord::SessionStore ([Github](https://github.com/rails/activerecord-session_store), [Pull Request](https://github.com/rails/rails/pull/7436))
-* Active Record Observers ([Github](https://github.com/rails/rails-observers), [Commit](https://github.com/rails/rails/commit/39e85b3b90c58449164673909a6f1893cba290b2))
-* Active Resource ([Github](https://github.com/rails/activeresource), [Pull Request](https://github.com/rails/rails/pull/572), [Blog](http://yetimedia.tumblr.com/post/35233051627/activeresource-is-dead-long-live-activeresource))
-* Action Caching ([Github](https://github.com/rails/actionpack-action_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
-* Page Caching ([Github](https://github.com/rails/actionpack-page_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
-* Sprockets ([Github](https://github.com/rails/sprockets-rails))
-* Performance tests ([Github](https://github.com/rails/rails-perftest), [Pull Request](https://github.com/rails/rails/pull/8876))
+* Hash-based & Dynamic finder methods ([GitHub](https://github.com/rails/activerecord-deprecated_finders))
+* Mass assignment protection in Active Record models ([GitHub](https://github.com/rails/protected_attributes), [Pull Request](https://github.com/rails/rails/pull/7251))
+* ActiveRecord::SessionStore ([GitHub](https://github.com/rails/activerecord-session_store), [Pull Request](https://github.com/rails/rails/pull/7436))
+* Active Record Observers ([GitHub](https://github.com/rails/rails-observers), [Commit](https://github.com/rails/rails/commit/39e85b3b90c58449164673909a6f1893cba290b2))
+* Active Resource ([GitHub](https://github.com/rails/activeresource), [Pull Request](https://github.com/rails/rails/pull/572), [Blog](http://yetimedia.tumblr.com/post/35233051627/activeresource-is-dead-long-live-activeresource))
+* Action Caching ([GitHub](https://github.com/rails/actionpack-action_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
+* Page Caching ([GitHub](https://github.com/rails/actionpack-page_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
+* Sprockets ([GitHub](https://github.com/rails/sprockets-rails))
+* Performance tests ([GitHub](https://github.com/rails/rails-perftest), [Pull Request](https://github.com/rails/rails/pull/8876))
 
 Documentation
 -------------
@@ -85,7 +85,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 *   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well. ([Pull Request](https://github.com/rails/rails/pull/7878))
 
-* Your app's executables now live in the `bin/` dir. Run `rake rails:update:bin` to get `bin/bundle`, `bin/rails`, and `bin/rake`.
+* Your app's executables now live in the `bin/` directory. Run `rake rails:update:bin` to get `bin/bundle`, `bin/rails`, and `bin/rake`.
 
 * Threadsafe on by default
 
@@ -113,7 +113,8 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to protect attributes from mass assignment when non-permitted attributes are passed.
 
-*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with ActionPack out of box.
+*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with
+    Action Pack out of box.
 
 ### Deprecations
 
@@ -142,7 +143,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
 
-*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby stdlib.
+*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby standard library.
 
 *   Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 

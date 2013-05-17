@@ -8,7 +8,7 @@ module ActiveRecord
       self.reflections = {}
     end
 
-    # Reflection enables to interrogate Active Record classes and objects
+    # \Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
@@ -100,7 +100,7 @@ module ActiveRecord
       # Returns the hash of options used for the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>{ class_name: "Money" }</tt>
-      # <tt>has_many :clients</tt> returns +{}+
+      # <tt>has_many :clients</tt> returns <tt>{}</tt>
       attr_reader :options
 
       attr_reader :active_record
@@ -181,6 +181,7 @@ module ActiveRecord
       def initialize(*args)
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+        @automatic_inverse_of = nil
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
@@ -289,13 +290,30 @@ module ActiveRecord
       alias :source_macro :macro
 
       def has_inverse?
-        @options[:inverse_of]
+        @options[:inverse_of] || find_inverse_of_automatically
       end
 
       def inverse_of
-        if has_inverse?
-          @inverse_of ||= klass.reflect_on_association(options[:inverse_of])
+        @inverse_of ||= if options[:inverse_of]
+          klass.reflect_on_association(options[:inverse_of])
+        else
+          find_inverse_of_automatically
         end
+      end
+
+      # Clears the cached value of +@inverse_of+ on this object. This will
+      # not remove the :inverse_of option however, so future calls on the
+      # +inverse_of+ will have to recompute the inverse.
+      def clear_inverse_of_cache!
+        @inverse_of = nil
+      end
+
+      # Removes the cached inverse association that was found automatically
+      # and prevents this object from finding the inverse association
+      # automatically in the future.
+      def remove_automatic_inverse_of!
+        @automatic_inverse_of = nil
+        options[:automatic_inverse_of] = false
       end
 
       def polymorphic_inverse_of(associated_class)
@@ -366,7 +384,84 @@ module ActiveRecord
         options.key? :polymorphic
       end
 
+      VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
+      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
+
       private
+        # Attempts to find the inverse association automatically.
+        # If it cannot find a suitable inverse association, it returns
+        # nil.
+        def find_inverse_of_automatically
+          if @automatic_inverse_of == false
+            nil
+          elsif @automatic_inverse_of.nil?
+            set_automatic_inverse_of
+          else
+            klass.reflect_on_association(@automatic_inverse_of)
+          end
+        end
+
+        # Sets the +@automatic_inverse_of+ instance variable, and returns
+        # either nil or the inverse association that it finds.
+        #
+        # This method caches the inverse association that is found so that
+        # future calls to +find_inverse_of_automatically+ have much less
+        # overhead.
+        def set_automatic_inverse_of
+          if can_find_inverse_of_automatically?(self)
+            inverse_name = active_record.name.downcase.to_sym
+
+            begin
+              reflection = klass.reflect_on_association(inverse_name)
+            rescue NameError
+              # Give up: we couldn't compute the klass type so we won't be able
+              # to find any associations either.
+              reflection = false
+            end
+
+            if valid_inverse_reflection?(reflection)
+              @automatic_inverse_of = inverse_name
+              reflection
+            else
+              @automatic_inverse_of = false
+              nil
+            end
+          else
+            @automatic_inverse_of = false
+            nil
+          end
+        end
+
+        # Checks if the inverse reflection that is returned from the
+        # +set_automatic_inverse_of+ method is a valid reflection. We must
+        # make sure that the reflection's active_record name matches up
+        # with the current reflection's klass name.
+        #
+        # Note: klass will always be valid because when there's a NameError
+        # from calling +klass+, +reflection+ will already be set to false.
+        def valid_inverse_reflection?(reflection)
+          reflection &&
+            klass.name == reflection.active_record.try(:name) &&
+            klass.primary_key == reflection.active_record_primary_key &&
+            can_find_inverse_of_automatically?(reflection)
+        end
+
+        # Checks to see if the reflection doesn't have any options that prevent
+        # us from being able to guess the inverse automatically. First, the
+        # +automatic_inverse_of+ option cannot be set to false. Second, we must
+        # have +has_many+, +has_one+, +belongs_to+ associations. Third, we must
+        # not have options such as +:polymorphic+ or +:foreign_key+ which prevent us
+        # from correctly guessing the inverse association.
+        #
+        # Anything with a scope can additionally ruin our attempt at finding an
+        # inverse, so we exclude reflections with scopes.
+        def can_find_inverse_of_automatically?(reflection)
+          reflection.options[:automatic_inverse_of] != false &&
+            VALID_AUTOMATIC_INVERSE_MACROS.include?(reflection.macro) &&
+            !INVALID_AUTOMATIC_INVERSE_OPTIONS.any? { |opt| reflection.options[opt] } &&
+            !reflection.scope
+        end
+
         def derive_class_name
           class_name = name.to_s.camelize
           class_name = class_name.singularize if collection?
@@ -398,7 +493,7 @@ module ActiveRecord
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
-      # Gets the source of the through reflection. It checks both a singularized
+      # Returns the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base
@@ -412,8 +507,7 @@ module ActiveRecord
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
-      #
-      #   taggings_reflection = tags_reflection.source_reflection
+      #   tags_reflection.source_reflection
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
@@ -429,7 +523,8 @@ module ActiveRecord
       #   end
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
-      #   taggings_reflection = tags_reflection.through_reflection
+      #   tags_reflection.through_reflection
+      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
       #
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])

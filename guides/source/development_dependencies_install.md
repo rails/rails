@@ -5,6 +5,10 @@ This guide covers how to setup an environment for Ruby on Rails core development
 
 After reading this guide, you will know:
 
+* How to set up your machine for Rails development
+* How to run specific groups of unit tests from the Rails test suite
+* How the ActiveRecord portion of the Rails test suite operates
+
 --------------------------------------------------------------------------------
 
 The Easy Way
@@ -24,7 +28,7 @@ Ruby on Rails uses Git for source code control. The [Git homepage](http://git-sc
 * [Try Git course](http://try.github.io/) is an interactive course that will teach you the basics.
 * The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git
 * [Everyday Git](http://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
-* The [PeepCode screencast](https://peepcode.com/products/git) on Git ($9) is easier to follow.
+* The [PeepCode screencast](https://peepcode.com/products/git) on Git is easier to follow.
 * [GitHub](http://help.github.com) offers links to a variety of Git resources.
 * [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
 
@@ -53,7 +57,7 @@ If you are on Fedora or CentOS, you can run
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 ```
 
-If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
+If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
 Also, SQLite3 and its development files for the `sqlite3-ruby` gem — in Ubuntu you're done with just
 
@@ -93,7 +97,7 @@ $ cd actionpack
 $ bundle exec rake test
 ```
 
-If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests of the `railties/test/generators` directory only:
+If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests in the `railties/test/generators` directory only:
 
 ```bash
 $ cd railties
@@ -133,14 +137,14 @@ $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
 ```
 
-After that run:
+After that, run:
 
 ```bash
 $ rm .bundle/config
 $ bundle install
 ```
 
-We need first to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
+First, we need to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
 
 In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 

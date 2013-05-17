@@ -102,6 +102,9 @@ module CallbacksTest
     def no; false; end
   end
 
+  class PersonForProgrammaticSkipping < Person
+  end
+
   class ParentController
     include ActiveSupport::Callbacks
 
@@ -449,6 +452,25 @@ module CallbacksTest
         [:after_save, :symbol]
       ], person.history
     end
+
+    def test_skip_person_programmatically
+      PersonForProgrammaticSkipping._save_callbacks.each do |save_callback|
+        if "before" == save_callback.kind.to_s
+          PersonForProgrammaticSkipping.skip_callback("save", save_callback.kind, save_callback.filter)
+        end
+      end
+      person = PersonForProgrammaticSkipping.new
+      assert_equal [], person.history
+      person.save
+      assert_equal [
+        [:after_save, :block],
+        [:after_save, :class],
+        [:after_save, :object],
+        [:after_save, :proc],
+        [:after_save, :string],
+        [:after_save, :symbol]
+      ], person.history
+    end
   end
 
   class CallbacksTest < ActiveSupport::TestCase
@@ -503,7 +525,7 @@ module CallbacksTest
   class CallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => "result == :halt"
+    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
 
     set_callback :save, :before, :first
     set_callback :save, :before, :second
@@ -696,7 +718,7 @@ module CallbacksTest
     def test_termination_invokes_hook
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ":second", terminator.halted
+      assert_equal :second, terminator.halted
     end
 
     def test_block_never_called_if_terminated
@@ -750,22 +772,6 @@ module CallbacksTest
     end
   end
 
-  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
-
-    def test_per_key_option_deprecaton
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-    end
-  end
-
   class ExcludingDuplicatesCallbackTest < ActiveSupport::TestCase
     def test_excludes_duplicates_in_separate_calls
       model = DuplicatingCallbacks.new
@@ -777,6 +783,242 @@ module CallbacksTest
       model = DuplicatingCallbacksInSameCall.new
       model.save
       assert_equal ["two", "one", "three", "yielded"], model.record
+    end
+  end
+
+  class CallbackProcTest < ActiveSupport::TestCase
+    def build_class(callback)
+      Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, callback
+        def run; run_callbacks :foo; end
+      }
+    end
+
+    def test_proc_arity_0
+      calls = []
+      klass = build_class(->() { calls << :foo })
+      klass.new.run
+      assert_equal [:foo], calls
+    end
+
+    def test_proc_arity_1
+      calls = []
+      klass = build_class(->(o) { calls << o })
+      instance = klass.new
+      instance.run
+      assert_equal [instance], calls
+    end
+
+    def test_proc_arity_2
+      assert_raises(ArgumentError) do
+        klass = build_class(->(x,y) { })
+        klass.new.run
+      end
+    end
+
+    def test_proc_negative_called_with_empty_list
+      calls = []
+      klass = build_class(->(*args) { calls << args })
+      klass.new.run
+      assert_equal [[]], calls
+    end
+  end
+
+  class ConditionalTests < ActiveSupport::TestCase
+    def build_class(callback)
+      Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, :foo, :if => callback
+        def foo; end
+        def run; run_callbacks :foo; end
+      }
+    end
+
+    # FIXME: do we really want to support classes as conditionals?  There were
+    # no tests for it previous to this.
+    def test_class_conditional_with_scope
+      z = []
+      callback = Class.new {
+        define_singleton_method(:foo) { |o| z << o }
+      }
+      klass = Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo, :scope => [:name]
+        set_callback :foo, :before, :foo, :if => callback
+        def run; run_callbacks :foo; end
+        private
+        def foo; end
+      }
+      object = klass.new
+      object.run
+      assert_equal [object], z
+    end
+
+    # FIXME: do we really want to support classes as conditionals?  There were
+    # no tests for it previous to this.
+    def test_class
+      z = []
+      klass = build_class Class.new {
+        define_singleton_method(:before) { |o| z << o }
+      }
+      object = klass.new
+      object.run
+      assert_equal [object], z
+    end
+
+    def test_proc_negative_arity # passes an empty list if *args
+      z = []
+      object = build_class(->(*args) { z << args }).new
+      object.run
+      assert_equal [], z.flatten
+    end
+
+    def test_proc_arity0
+      z = []
+      object = build_class(->() { z << 0 }).new
+      object.run
+      assert_equal [0], z
+    end
+
+    def test_proc_arity1
+      z = []
+      object = build_class(->(x) { z << x }).new
+      object.run
+      assert_equal [object], z
+    end
+
+    def test_proc_arity2
+      assert_raises(ArgumentError) do
+        object = build_class(->(a,b) { }).new
+        object.run
+      end
+    end
+  end
+
+  class ResetCallbackTest < ActiveSupport::TestCase
+    def build_class(memo)
+      klass = Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, :hello
+        def run; run_callbacks :foo; end
+      }
+      klass.class_eval {
+        define_method(:hello) { memo << :hi }
+      }
+      klass
+    end
+
+    def test_reset_callbacks
+      events = []
+      klass = build_class events
+      klass.new.run
+      assert_equal 1, events.length
+
+      klass.reset_callbacks :foo
+      klass.new.run
+      assert_equal 1, events.length
+    end
+
+    def test_reset_impacts_subclasses
+      events = []
+      klass = build_class events
+      subclass = Class.new(klass) { set_callback :foo, :before, :world }
+      subclass.class_eval { define_method(:world) { events << :world } }
+
+      subclass.new.run
+      assert_equal 2, events.length
+
+      klass.reset_callbacks :foo
+      subclass.new.run
+      assert_equal 3, events.length
+    end
+  end
+
+  class CallbackTypeTest < ActiveSupport::TestCase
+    def build_class(callback, n = 10)
+      Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        n.times { set_callback :foo, :before, callback }
+        def run; run_callbacks :foo; end
+        def self.skip(thing); skip_callback :foo, :before, thing; end
+      }
+    end
+
+    def test_add_class
+      calls = []
+      callback = Class.new {
+        define_singleton_method(:before) { |o| calls << o }
+      }
+      build_class(callback).new.run
+      assert_equal 10, calls.length
+    end
+
+    def test_add_lambda
+      calls = []
+      build_class(->(o) { calls << o }).new.run
+      assert_equal 10, calls.length
+    end
+
+    def test_add_symbol
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_add_eval
+      calls = []
+      klass = build_class("bar")
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_skip_class # removes one at a time
+      calls = []
+      callback = Class.new {
+        define_singleton_method(:before) { |o| calls << o }
+      }
+      klass = build_class(callback)
+      9.downto(0) { |i|
+        klass.skip callback
+        klass.new.run
+        assert_equal i, calls.length
+        calls.clear
+      }
+    end
+
+    def test_skip_lambda # removes nothing
+      calls = []
+      callback = ->(o) { calls << o }
+      klass = build_class(callback)
+      10.times { klass.skip callback }
+      klass.new.run
+      assert_equal 10, calls.length
+    end
+
+    def test_skip_symbol # removes all
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip :bar
+      klass.new.run
+      assert_equal 0, calls.length
+    end
+
+    def test_skip_eval # removes nothing
+      calls = []
+      klass = build_class("bar")
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip "bar"
+      klass.new.run
+      assert_equal 1, calls.length
     end
   end
 end

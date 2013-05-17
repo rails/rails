@@ -75,7 +75,7 @@ The query string strategy has several disadvantages:
 2. **The file name can change between nodes in multi-server environments.**<br />
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
 3. **Too much cache invalidation**<br />
-    When static assets are deployed with each new release of code, the mtime of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
+    When static assets are deployed with each new release of code, the mtime(time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring that filenames are consistent based on their content.
 
@@ -430,7 +430,7 @@ in scope in development mode regardless of the value of this flag. Changing this
 engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
 engines (or other gems) will not be loaded, which can cause missing assets.
 
-Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
+Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
 
 ```ruby
 load 'deploy/assets'
@@ -450,7 +450,7 @@ The default matcher for compiling files includes `application.js`, `application.
 
 NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are **not** automatically included as they compile to JS/CSS.
 
-If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array:
+If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array in `config/application.rb`:
 
 ```ruby
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
@@ -459,7 +459,7 @@ config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 Or you can opt to precompile all assets with something like this:
 
 ```ruby
-# config/environments/production.rb
+# config/application.rb
 config.assets.precompile << Proc.new do |path|
   if path =~ /\.(css|js)\z/
     full_path = Rails.application.assets.resolve(path).to_path
@@ -707,7 +707,7 @@ config.assets.cache_store = :memory_store
 The options accepted by the assets cache store are the same as the application's cache store.
 
 ```ruby
-config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+config.assets.cache_store = :memory_store, { size: 32.megabytes }
 ```
 
 Adding Assets to Your Gems
