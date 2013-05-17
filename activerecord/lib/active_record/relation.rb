@@ -489,11 +489,13 @@ module ActiveRecord
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
     def where_values_hash
-      equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
+      scope = with_default_scope
+      equalities = scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
         node.left.relation.name == table_name
       }
 
-      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+      binds = Hash[scope.bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+      binds.merge!(Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }])
 
       Hash[equalities.map { |where|
         name = where.left.name

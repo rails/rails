@@ -12,10 +12,7 @@ module ActiveRecord
     end
 
     def test_construction
-      relation = nil
-      assert_nothing_raised do
-        relation = Relation.new FakeKlass, :b
-      end
+      relation = Relation.new FakeKlass, :b
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
       assert !relation.loaded, 'relation is not loaded'
