@@ -81,6 +81,20 @@ module Notifications
     end
   end
 
+  class TestSubscriber
+    attr_reader :starts, :finishes, :publishes
+
+    def initialize
+      @starts    = []
+      @finishes  = []
+      @publishes = []
+    end
+
+    def start(*args);  @starts << args; end
+    def finish(*args); @finishes << args; end
+    def publish(*args); @publishes << args; end
+  end
+
   class SyncPubSubTest < TestCase
     def test_events_are_published_to_a_listener
       @notifier.publish :foo
@@ -142,6 +156,14 @@ module Notifications
 
       assert_equal [[:foo]], @events
       assert_equal [[:foo]], @another
+    end
+
+    def test_publish_with_subscriber
+      subscriber = TestSubscriber.new
+      @notifier.subscribe nil, subscriber
+      @notifier.publish :foo
+
+      assert_equal [[:foo]], subscriber.publishes
     end
 
     private
