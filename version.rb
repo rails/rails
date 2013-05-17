@@ -8,3 +8,5 @@ module Rails
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
 end
+         Frame--23356728
+Reboot repo to fix frame
