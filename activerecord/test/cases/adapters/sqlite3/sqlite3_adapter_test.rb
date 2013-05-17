@@ -152,7 +152,7 @@ module ActiveRecord
 
       def test_quote_binary_column_escapes_it
         DualEncoding.connection.execute(<<-eosql)
-          CREATE TABLE dual_encodings (
+          CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
             name string,
             data binary
@@ -162,9 +162,8 @@ module ActiveRecord
         binary = DualEncoding.new :name => 'いただきます！', :data => str
         binary.save!
         assert_equal str, binary.data
-
       ensure
-        DualEncoding.connection.drop_table('dual_encodings')
+        #DualEncoding.connection.execute('DROP TABLE IF EXISTS dual_encodings')
       end
 
       def test_type_cast_should_not_mutate_encoding
