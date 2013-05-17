@@ -14,28 +14,28 @@ class ValidationsTest < ActiveRecord::TestCase
   # Other classes we mess with will be dealt with in the specific tests
   repair_validations(Topic)
 
-  def test_error_on_create
+  def test_valid_uses_create_context_when_new
     r = WrongReply.new
     r.title = "Wrong Create"
-    assert !r.save
+    assert_not r.valid?
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
-  def test_error_on_update
+  def test_valid_uses_update_context_when_persisted
     r = WrongReply.new
     r.title = "Bad"
     r.content = "Good"
-    assert r.save, "First save should be successful"
+    assert r.save, "First validation should be successful"
 
     r.title = "Wrong Update"
-    assert !r.save, "Second save should fail"
+    assert_not r.valid?, "Second validation should fail"
 
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
-  def test_error_on_given_context
+  def test_valid_using_special_context
     r = WrongReply.new(:title => "Valid title")
     assert !r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
@@ -45,11 +45,11 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.valid?(:special_case)
 
     r.author_name = nil
-    assert !r.save(:context => :special_case)
+    assert_not r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
-    assert r.save(:context => :special_case)
+    assert r.valid?(:special_case)
   end
 
   def test_invalid_record_exception
@@ -87,7 +87,7 @@ class ValidationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_create_without_validation
+  def test_save_without_validation
     reply = WrongReply.new
     assert !reply.save
     assert reply.save(:validate => false)
