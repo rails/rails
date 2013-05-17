@@ -179,12 +179,16 @@ module ActiveRecord
     #   end
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
     def find_or_create_by(attributes, &block)
-      find_by(attributes) || create(attributes, &block)
+      create(attributes, &block)
+    rescue RecordNotUnique
+      find_by(attributes)
     end
 
     # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      create!(attributes, &block)
+    rescue RecordNotUnique
+      find_by(attributes)
     end
 
     # Like <tt>find_or_create_by</tt>, but calls <tt>new</tt> instead of <tt>create</tt>.
