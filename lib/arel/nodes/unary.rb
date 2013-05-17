@@ -5,6 +5,7 @@ module Arel
       alias :value :expr
 
       def initialize expr
+        super()
         @expr = expr
       end
 

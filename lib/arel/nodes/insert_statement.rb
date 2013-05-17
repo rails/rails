@@ -4,6 +4,7 @@ module Arel
       attr_accessor :relation, :columns, :values
 
       def initialize
+        super()
         @relation = nil
         @columns  = []
         @values   = nil

@@ -5,6 +5,7 @@ module Arel
       attr_accessor :having, :source, :set_quantifier
 
       def initialize
+        super()
         @source         = JoinSource.new nil
         @top            = nil
 

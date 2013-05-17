@@ -4,6 +4,7 @@ module Arel
       attr_accessor :left, :right
 
       def initialize left, right
+        super()
         @left  = left
         @right = right
       end

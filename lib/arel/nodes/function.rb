@@ -7,6 +7,7 @@ module Arel
       attr_accessor :expressions, :alias, :distinct
 
       def initialize expr, aliaz = nil
+        super()
         @expressions = expr
         @alias       = aliaz && SqlLiteral.new(aliaz)
         @distinct    = false

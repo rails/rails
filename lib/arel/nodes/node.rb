@@ -6,6 +6,9 @@ module Arel
       include Arel::FactoryMethods
       include Enumerable
 
+      def initialize
+      end
+
       ###
       # Factory method to create a Nodes::Not node that has the recipient of
       # the caller as a child.

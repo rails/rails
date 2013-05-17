@@ -4,6 +4,7 @@ module Arel
       attr_reader :children
 
       def initialize children, right = nil
+        super()
         unless Array === children
           warn "(#{caller.first}) AND nodes should be created with a list"
           children = [children, right]
