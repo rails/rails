@@ -19,12 +19,8 @@ module ActiveRecord
       raise ArgumentError.new("Statement cannot be nil") if @relation.nil?
     end
 
-    def execute(binds = nil)
-      rel = @relation.dup
-      if (binds != nil)         
-        rel.replace_binds binds
-      end
-      rel.to_a
+    def execute
+      @relation.dup.to_a
     end
   end
 end
