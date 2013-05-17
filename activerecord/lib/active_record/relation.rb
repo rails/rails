@@ -203,7 +203,7 @@ module ActiveRecord
     # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
       #TODO: Fix for binds.
-      #exec_explain(collecting_queries_for_explain { exec_queries }) 
+      exec_explain(collecting_queries_for_explain { exec_queries })
     end
 
     # Converts relation objects to Array.
@@ -565,19 +565,6 @@ module ActiveRecord
       entries[10] = '...' if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
-    end
-
-    def replace_binds(bind_values)
-      temp_binds = []
-      bind_values.map do |column, value| 
-        case value
-          when String, Integer
-            if @klass.column_names.include? column.to_s
-              temp_binds.push([@klass.columns_hash[column.to_s], value])
-            end
-        end
-      end
-      self.bind_values = temp_binds
     end
 
     private
