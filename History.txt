@@ -19,11 +19,11 @@
 * Bug Fixes
 
   * Fix depth-first traversal to understand ascending / descending nodes.
-  * Parentheis are suppressed with nested unions in MySQL. Thanks jhtwong!
+  * Parenthesis are suppressed with nested unions in MySQL. Thanks jhtwong!
 
 == 2.1.3 / 2011-06-27
 
-* Bug Fixues
+* Bug Fixes
 
   * Fixed broken gem build.
 
@@ -31,7 +31,7 @@
 
 * Bug Fixes
 
-  * Visitors can define their own cache strategey so caches are not shared.
+  * Visitors can define their own cache strategy so caches are not shared.
     Fixes #57
   * Informix support fixed.  Thanks Khronos.
   * Ordering nodes broken to subclasses.  Thanks Ernie Miller!
