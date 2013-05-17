@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.homepage    = "TODO"
   s.summary     = "TODO: Summary of <%= camelized %>."
   s.description = "TODO: Description of <%= camelized %>."
+  s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
 <% unless options.skip_test_unit? -%>
