@@ -151,9 +151,9 @@ module ActionMailer # :nodoc:
   #
   # For example, if the following templates exist:
   # * signup_notification.text.erb
-  # * signup_notification.text.html.erb
-  # * signup_notification.text.xml.builder
-  # * signup_notification.text.yaml.erb
+  # * signup_notification.html.erb
+  # * signup_notification.xml.builder
+  # * signup_notification.yaml.erb
   #
   # Each would be rendered and added as a separate part to the message, with the corresponding content
   # type. The content type for the entire message is automatically set to <tt>multipart/alternative</tt>,
@@ -175,7 +175,7 @@ module ActionMailer # :nodoc:
   #     end
   #   end
   #
-  # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.text.html.erb</tt>
+  # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.html.erb</tt>
   # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
