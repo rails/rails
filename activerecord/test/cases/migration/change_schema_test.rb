@@ -285,6 +285,31 @@ module ActiveRecord
         assert_nil person_klass.columns_hash["money"].default
         assert_equal false, person_klass.columns_hash["money"].null
         assert_equal 2000, connection.select_values("SELECT money FROM testings").first.to_i
+
+        #mysql doesn't allow for defaults on text or blob fields
+        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+          [:text, :binary].each_with_index do |column_type, index|
+            column_name = "description_#{index}"
+
+            #it produces defaults only when :null => false
+            person_klass.connection.add_column "testings", column_name, :text, :null => false
+            renamed_column =  "new_#{column_name}"
+            person_klass.connection.rename_column "testings", column_name, renamed_column
+
+            assert_nil person_klass.columns_hash[column_name]
+            person_klass.reset_column_information
+            assert_equal false, person_klass.columns_hash[renamed_column].null
+          end
+
+          [:text, :binary].each_with_index do |column_type, index|
+            column_name = "new_description_#{index}"
+
+            person_klass.connection.change_column_null "testings", column_name, true 
+            person_klass.reset_column_information
+
+            assert_equal true, person_klass.columns_hash[column_name].null
+          end
+        end
       end
 
       def test_column_exists

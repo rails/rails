@@ -670,7 +670,7 @@ module ActiveRecord
       def change_column_sql(table_name, column_name, type, options = {})
         column = column_for(table_name, column_name)
 
-        unless options_include_default?(options)
+        unless options_include_default?(options) || [:binary, :text].include?(type)
           options[:default] = column.default
         end
 
@@ -688,7 +688,7 @@ module ActiveRecord
         options = {}
 
         if column = columns(table_name).find { |c| c.name == column_name.to_s }
-          options[:default] = column.default
+          options[:default] = column.default if column.has_default?
           options[:null] = column.null
           options[:auto_increment] = (column.extra == "auto_increment")
         else
