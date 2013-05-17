@@ -525,7 +525,7 @@ module CallbacksTest
   class CallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => "result == :halt"
+    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
 
     set_callback :save, :before, :first
     set_callback :save, :before, :second
@@ -718,7 +718,7 @@ module CallbacksTest
     def test_termination_invokes_hook
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ":second", terminator.halted
+      assert_equal :second, terminator.halted
     end
 
     def test_block_never_called_if_terminated
@@ -769,22 +769,6 @@ module CallbacksTest
       model = ExtendCallbacks.new.extend ExtendModule
       model.save
       assert_equal [1, 2, 3], model.recorder
-    end
-  end
-
-  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
-
-    def test_per_key_option_deprecation
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
     end
   end
 
@@ -864,8 +848,9 @@ module CallbacksTest
         include ActiveSupport::Callbacks
         define_callbacks :foo, :scope => [:name]
         set_callback :foo, :before, :foo, :if => callback
-        def foo; end
         def run; run_callbacks :foo; end
+        private
+        def foo; end
       }
       object = klass.new
       object.run

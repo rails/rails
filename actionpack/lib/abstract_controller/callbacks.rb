@@ -8,7 +8,9 @@ module AbstractController
     include ActiveSupport::Callbacks
 
     included do
-      define_callbacks :process_action, :terminator => "response_body", :skip_after_callbacks_if_terminated => true
+      define_callbacks :process_action,
+                       terminator: ->(controller,_) { controller.response_body },
+                       skip_after_callbacks_if_terminated: true
     end
 
     # Override AbstractController::Base's process_action to run the

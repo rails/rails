@@ -116,9 +116,10 @@ module ActiveRecord
             begin
               constant = ActiveSupport::Dependencies.constantize(candidate)
               return constant if candidate == constant.to_s
-            rescue NameError => e
-              # We don't want to swallow NoMethodError < NameError errors
-              raise e unless e.instance_of?(NameError)
+            # We don't want to swallow NoMethodError < NameError errors
+            rescue NoMethodError
+              raise
+            rescue NameError
             end
           end
 

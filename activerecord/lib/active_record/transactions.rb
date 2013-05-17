@@ -10,7 +10,9 @@ module ActiveRecord
     end
 
     included do
-      define_callbacks :commit, :rollback, :terminator => "result == false", :scope => [:kind, :name]
+      define_callbacks :commit, :rollback,
+                       terminator: ->(_, result) { result == false },
+                       scope: [:kind, :name]
     end
 
     # = Active Record Transactions

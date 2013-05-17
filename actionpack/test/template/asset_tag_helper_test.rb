@@ -530,6 +530,17 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal copy, source
   end
 
+  def test_image_path_with_asset_host_proc_returning_nil
+    @controller.config.asset_host = Proc.new do |source|
+      unless source.end_with?("tiff")
+        "cdn.example.com"
+      end
+    end
+
+    assert_equal "/images/file.tiff", image_path("file.tiff")
+    assert_equal "http://cdn.example.com/images/file.png", image_path("file.png")
+  end
+
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
     @controller.config.asset_host = Proc.new do |source, request|
       if request.ssl?
