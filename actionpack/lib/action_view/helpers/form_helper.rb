@@ -1161,16 +1161,15 @@ module ActionView
         end
 
         def check_box_checked?(value, checked_value)
-          case value
-          when TrueClass, FalseClass
+          if value.is_a?(TrueClass) || value.is_a?(FalseClass)
             value
-          when NilClass
+          elsif value.is_a? NilClass
             false
-          when Integer
+          elsif value.is_a? Integer
             value != 0
-          when String
+          elsif value.is_a? String
             value == checked_value
-          when Array
+          elsif value.is_a? Array
             value.include?(checked_value)
           else
             value.to_i != 0
