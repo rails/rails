@@ -1,6 +1,15 @@
 ## unreleased ##
 
-*   No changes.
+*   Add support for runner hook.
+
+    Backport #7695.
+
+    *Ben Holley*
+
+*   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
+    Fixes #9525.
+
+    *Arun Agrawal*
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##

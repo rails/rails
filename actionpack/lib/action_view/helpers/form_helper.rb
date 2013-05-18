@@ -1196,27 +1196,26 @@ module ActionView
 
         def add_default_name_and_id(options)
           if options.has_key?("index")
-            options["name"] ||= tag_name_with_index(options["index"])
+            options["name"] ||= tag_name_with_index(options["index"], options["multiple"])
             options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
             options.delete("index")
           elsif defined?(@auto_index)
-            options["name"] ||= tag_name_with_index(@auto_index)
+            options["name"] ||= tag_name_with_index(@auto_index, options["multiple"])
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= tag_name
+            options["name"] ||= tag_name(options["multiple"])
             options["id"] = options.fetch("id"){ tag_id }
           end
 
-          options["name"] += "[]" if options["multiple"] && !options["name"].ends_with?("[]")
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 
-        def tag_name
-          "#{@object_name}[#{sanitized_method_name}]"
+        def tag_name(multiple = false)
+          "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
         end
 
-        def tag_name_with_index(index)
-          "#{@object_name}[#{index}][#{sanitized_method_name}]"
+        def tag_name_with_index(index, multiple = false)
+          "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
         end
 
         def tag_id

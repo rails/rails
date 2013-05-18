@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   Fix explicit names on multiple file fields. If a file field tag has
+    the multiple option, it is turned into an array field (appending `[]`),
+    but if an explicit name is passed to `file_field` the `[]` is not
+    appended.
+    Fixes #9830.
+
+    *Ryan McGeary*
+
 *   Fix assets loading performance in 3.2.13.
 
     Issue #8756 uses Sprockets for resolving files that already exist on disk,

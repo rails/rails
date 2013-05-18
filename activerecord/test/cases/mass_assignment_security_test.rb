@@ -300,6 +300,16 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     assert_admin_attributes(p, true)
   end
 
+  def test_attr_protected_with_newline
+    p = LoosePerson.new
+    assert_raises(ActiveRecord::UnknownAttributeError) do
+      p.attributes = {"comments=\n"=>"hax"}
+    end
+    assert_nil p.comments, "Comments is meant to be attr_protected but I assigned it with attributes="
+    p.attributes= {"comments(1)\n" => "hax"}
+    assert_nil p.comments, "Comments is meant to be attr_protected but I assigned it with attributes="
+  end
+
 end
 
 

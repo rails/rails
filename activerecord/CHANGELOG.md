@@ -1,5 +1,47 @@
 ## unreleased ##
 
+*   Fix that under some conditions, Active Record could produce invalid SQL of the sort:
+    "SELECT DISTINCT DISTINCT".
+
+    Backport of #6792.
+
+    *Ben Woosley*
+
+*   Require `ActiveRecord::Base` in railtie hooks for rake_tasks, console and runner to
+    avoid circular constant loading issues.
+
+    Backport #7695.
+
+    Fixes #7683 and #882
+
+    *Ben Holley*
+
+*   Maintain context for joins within ActiveRecord::Relation merges.
+    Backport #10164.
+
+    *Neeraj Singh + Andrew Horner*
+
+*   Make sure the `EXPLAIN` command is never triggered by a `select_db` call.
+
+    *Daniel Schierbeck*
+
+*   Revert changes on `pluck` that was ignoring the select clause when the relation already
+    has one. This caused a regression since it changed the behavior in a stable release.
+
+    Fixes #9777.
+
+    *Rafael Mendonça França*
+
+*   Confirm a record has not already been destroyed before decrementing counter cache.
+
+    *Ben Tucker*
+
+*   Default values for PostgreSQL bigint types now get parsed and dumped to the
+    schema correctly.
+    Backport #10098.
+
+    *Erik Peterson*
+
 *   Removed warning when `auto_explain_threshold_in_seconds` is set and the
     connection adapter doesn't support explain.
     This is causing a regression since the Active Record Railtie is trying to

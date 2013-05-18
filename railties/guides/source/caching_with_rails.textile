@@ -434,4 +434,4 @@ end
 
 h3. Further reading
 
-* "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails
+* "Scaling Rails Screencasts":https://www.youtube.com/playlist?list=PLuVcDOUVjW2ePvFapFSHBZ71ya2fLHZS5

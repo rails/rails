@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Revert the changes on unicode character encoding from `ActiveSupport::JSON.encode`.
+    This was causing a regression where the resulting string is always returning UTF-8.
+    Also it changes the behavior of this method on a stable release.
+    Fixes #9498.
+
+    *Rafael Mendonça França*
+
 *   Fix `ActiveSupport::TimeZone.parse` when time is at a local DST jump.
     Fixes #9678.
 
