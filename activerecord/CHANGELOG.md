@@ -1,4 +1,4 @@
-*   Also support extentions in PostgreSQL 9.1. This feature has been supported since 9.1.
+*   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
     *kennyj*
 
