@@ -22,6 +22,59 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
+### HTTP PATCH
+
+Rails 4 now uses `PATCH` as the primary HTTP verb for updates. When a resource
+is declared in `config/routes.rb`:
+
+```ruby
+resources :users
+```
+
+the action in `UsersController` to update a user is still `update`.
+
+`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
+today.  So, if you have an API that gets real PUT requests it is going to work.
+The router also routes `PATCH` requests to `/users/:id` to the `update` action.
+
+So, in Rails 4 both `PUT` and `PATCH` are routed to update. We recommend
+switching to `PATCH` as part of your upgrade process if possible, as it's more
+likely what you want.
+
+For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+on the Rails blog.
+
+#### A note about media types
+
+The erratta for the `PATCH` verb [specifies that a 'diff' media type should be
+used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
+such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
+does not support JSON Patch natively, it's easy enough to add support:
+
+```
+# in your controller
+def update
+  respond_to do |format|
+    format.json do
+      # perform a partial update
+      @post.update params[:post]
+    end
+
+    format.json_patch do
+      # perform sophisticated change
+    end
+  end
+end
+
+# In config/initializers/json_patch.rb:
+Mime::Type.register 'application/json-patch+json', :json_patch
+```
+
+As JSON Patch was only recently made into an RFC, there aren't a lot of great
+Ruby libraries yet. Aaron Patterson's
+[hana](https://github.com/tenderlove/hana) is one such gem, but doesn't have
+full support for the last few changes in the specification.
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
