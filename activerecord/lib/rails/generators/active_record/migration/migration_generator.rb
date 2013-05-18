@@ -21,9 +21,10 @@ module ActiveRecord
       def set_local_assigns!
         @migration_template = "migration.rb"
         case file_name
-        when /^(add|remove)_.*_(?:to|from)_(.*)/
+        when /^(add|remove)_(.*)_(?:on|to|from)_(.*)/
           @migration_action = $1
-          @table_name       = $2.pluralize
+          @table_name       = $3.pluralize
+          @migration_template = 'indexes.rb' if $2 =~ /^index/
         when /join_table/
           if attributes.length == 2
             @migration_action = 'join'

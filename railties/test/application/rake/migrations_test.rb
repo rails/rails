@@ -127,6 +127,58 @@ module ApplicationTests
         end
       end
 
+      test 'migration for adding indexes and rollback' do
+        Dir.chdir(app_path) do
+          `rails generate model user username:string email:string;
+           rails generate migration add_index_username_on_users username;
+           rails generate migration add_index_email_on_users email:uniq`
+
+           output = `rake db:migrate`
+           assert_match(/create_table\(:users\)/, output)
+           assert_match(/CreateUsers: migrated/, output)
+           assert_match(/add_index\(:users, :username\)/, output)
+           assert_match(/AddIndexUsernameOnUsers: migrated/, output)
+           assert_match(/add_index\(:users, :email, \{:unique=>true\}\)/, output)
+           assert_match(/AddIndexEmailOnUsers: migrated/, output)
+
+           output = `rake db:rollback STEP=3`
+           assert_match(/remove_index\(:users, \{:unique=>true\, :column=>:email}\)/, output)
+           assert_match(/AddIndexEmailOnUsers: reverted/, output)
+           assert_match(/remove_index\(:users, \{:column=>:username}\)/, output)
+           assert_match(/AddIndexUsernameOnUsers: reverted/, output)
+           assert_match(/drop_table\(:users\)/, output)
+           assert_match(/CreateUsers: reverted/, output)
+        end
+      end
+
+      test 'migration for removing indexes and rollback' do
+        Dir.chdir(app_path) do
+          `rails generate model user username:string:index email:string:uniq;
+           rails generate migration remove_index_username_from_users username;
+           rails generate migration remove_index_email_from_users email:uniq`
+
+           output = `rake db:migrate`
+           assert_match(/create_table\(:users\)/, output)
+           assert_match(/CreateUsers: migrated/, output)
+           assert_match(/add_index\(:users, :username\)/, output)
+           assert_match(/add_index\(:users, :email, \{:unique=>true\}\)/, output)
+           assert_match(/remove_index\(:users, \{:column=>:username}\)/, output)
+           assert_match(/RemoveIndexUsernameFromUsers: migrated/, output)
+           assert_match(/remove_index\(:users, \{:column=>:email\, :unique=>true}\)/, output)
+           assert_match(/RemoveIndexEmailFromUsers: migrated/, output)
+
+           output = `rake db:rollback STEP=3`
+           assert_match(/add_index\(:users, :email, \{:unique=>true\}\)/, output)
+           assert_match(/RemoveIndexEmailFromUsers: reverted/, output)
+           assert_match(/add_index\(:users, :username, \{\}\)/, output)
+           assert_match(/RemoveIndexUsernameFromUsers: reverted/, output)
+           assert_match(/remove_index\(:users, \{:unique=>true\, :column=>:email}\)/, output)
+           assert_match(/remove_index\(:users, \{:column=>:username}\)/, output)
+           assert_match(/drop_table\(:users\)/, output)
+           assert_match(/CreateUsers: reverted/, output)
+        end
+      end
+
       test 'migration status after rollback and redo without timestamps' do
         add_to_config('config.active_record.timestamped_migrations = false')
 
