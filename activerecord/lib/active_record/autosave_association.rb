@@ -331,41 +331,33 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          begin
 
-            records_to_destroy = autosave ? records.select{|record| record.marked_for_destruction? } : []
-            records_to_destroy.each{ |record| association.proxy.destroy(record) }
-
+          if autosave
+            records_to_destroy = records.select(&:marked_for_destruction?)
+            records_to_destroy.each { |record| association.proxy.destroy(record) }
             records -= records_to_destroy
-
-            records.each do |record|
-
-              saved = true
-
-              if autosave && record.marked_for_destruction?
-                records_to_destroy << record
-              elsif autosave != false && (@new_record_before_save || record.new_record?)
-                if autosave
-                  saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
-                end
-              elsif autosave
-                saved = record.save(:validate => false)
-              end
-
-              raise ActiveRecord::Rollback unless saved
-            end
-
-          rescue
-            records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
-            raise
           end
 
+          records.each do |record|
+
+            saved = true
+
+            if autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave
+                saved = association.insert_record(record, false)
+              else
+                association.insert_record(record) unless reflection.nested?
+              end
+            elsif autosave
+              saved = record.save(:validate => false)
+            end
+
+            raise ActiveRecord::Rollback unless saved
+          end
         end
 
         # reconstruct the scope now that we know the owner's id
-        association.send(:reset_scope) if association.respond_to?(:reset_scope)
+        association.reset_scope if association.respond_to?(:reset_scope)
       end
     end
 
