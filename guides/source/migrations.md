@@ -201,6 +201,60 @@ class AddDetailsToProducts < ActiveRecord::Migration
 end
 ```
 
+You can also add or remove indexes on single or multiple columns:
+
+Example to index one single column:
+
+```bash
+$ rails generate migration add_index_category_id_on_products category_id:uniq
+```
+
+generates
+
+```ruby
+class AddIndexCategoryIdOnProducts < ActiveRecord::Migration
+  def change
+    add_index :products, :category_id, unique: true
+  end
+end
+```
+Example to index many single columns:
+
+```bash
+$ rails generate migration add_indexes_category_id_and_manager_id_and_factory_id_on_products category_id manager_id:uniq factory_id
+```
+
+generates
+
+```ruby
+class AddIndexesCategoryIdManagerIdFactoryId < ActiveRecord::Migration
+  def change
+    add_index :products, :category_id
+    add_index :products, :manager_id, unique: true
+    add_index :products, :factory_id
+  end
+end
+```
+
+Example to index many multiple columns:
+
+```bash
+$ rails generate migration add_index_category_id_with_manager_id_and_factory_id_on_products category_id manager_id:uniq factory_id
+```
+
+generates
+
+```ruby
+class AddIndexCategoryIdWithManagerIdAndFactoryIdOnProducts < ActiveRecord::Migration
+  def change
+    add_index :products, [:category_id, :manager_id, :factory_id], unique: true
+  end
+end
+```
+
+Use remove in the beginning of the migration name to create migration to remove indexes.
+
+
 If the migration name is of the form "CreateXXX" and is
 followed by a list of column names and types then a migration creating the table
 XXX with the columns listed will be generated. For example:

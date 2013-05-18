@@ -12,7 +12,7 @@ module ActiveRecord
       end
 
       protected
-      attr_reader :migration_action, :join_tables
+      attr_reader :migration_action, :migration_target, :join_tables
 
       # sets the default migration template that is being used for the generation of the migration
       # depending on the arguments which would be sent out in the command line, the migration template 
@@ -24,6 +24,13 @@ module ActiveRecord
         when /^(add|remove)_.*_(?:to|from)_(.*)/
           @migration_action = $1
           @table_name       = $2.pluralize
+        when /^(add|remove)_index(?:es)?_(.*)_(?:on)_(.*)/
+          @migration_action = $1
+          @table_name       = $3.pluralize
+          @migration_template = 'indexes.rb'
+          if $2 =~ /with/
+            @migration_target = 'index_combined'
+          end
         when /join_table/
           if attributes.length == 2
             @migration_action = 'join'

@@ -1,3 +1,87 @@
+*   Indexing or Unindexing many columns of a single table via migration generator
+
+    Examples follow:
+
+    rails generate migration add_index_author_id_with_library_id_and_category_id_uniq_on_books author_id:uniq library_id category_id
+
+        class AddIndexAuthorIdWithLibraryIdAndCategoryIdUniqOnBooks < ActiveRecord::Migration
+          def change
+            add_index :books, [:author_id, :library_id, :category_id], unique: true
+          end
+        end
+
+    rails generate migration remove_index_author_id_with_library_id_and_category_id_uniq_on_books author_id library_id:uniq category_id
+
+        class RemoveIndexAuthorIdWithLibraryIdUniqOnBooks < ActiveRecord::Migration
+          def change
+            remove_index :books, column: [:author_id, :library_id, :category_id], unique: true
+          end
+        end
+
+    !!! An empty migration is generated when no attributes are passed !!!
+
+    *Frank Pimenta (frankapimenta)*
+    *Sammy Larbi (codeodor)*
+
+*   Indexing or Unindexing single columns of a single table
+    via migration generator
+
+    Examples follow:
+
+        rails generate migration add_index_author_id_on_books author_id
+
+        class AddIndexAuthorIdOnBooks < ActiveRecord::Migration
+          def change
+            add_index :books, :author_id
+          end
+        end
+
+        rails generate migration remove_index_author_id_on_books author_id
+
+        class RemoveIndexAuthorIdOnBooks < ActiveRecord::Migration
+          def change
+            remove_index :books, column: :author_id
+          end
+        end
+
+        rails generate migration add_index_author_id_uniq_on_books author_id:uniq
+
+        class AddIndexAuthorIdUniqOnBooks < ActiveRecord::Migration
+          def change
+            add_index :books, :author_id, unique: true
+          end
+        end
+
+        rails generate migration remove_index_author_id_uniq_on_books author_id:uniq
+
+        class RemoveIndexAuthorIdUniqOnBooks < ActiveRecord::Migration
+          def change
+            remove_index :books, column: :author_id, unique: true
+          end
+        end
+
+        rails generate migration add_indexes_author_id_uniq_and_library_id_on_books author_id:uniq library_id
+
+        class AddIndexesAuthorIdUniqAndLibraryIdOnBooks < ActiveRecord::Migration
+          def change
+            add_index :books, :author_id, unique: true
+            add_index :books, :library_id
+          end
+        end
+
+        rails generate migration remove_indexes_author_id_uniq_and_library_id_on_books author_id:uniq library_id
+
+        class RemoveIndexesAuthorIdUniqAndLibraryIdOnBooks < ActiveRecord::Migration
+          def change
+            remove_index :books, column: :author_id, unique: true
+            remove_index :books, column: :library_id
+          end
+        end
+
+    !!! An empty migration is generated when no attributes are passed !!!
+
+    *Frank Pimenta (frankapimenta)*
+
 *   Also support extentions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
     *kennyj*
