@@ -183,6 +183,231 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_should_create_migration_to_add_index
+    migration = "add_index_author_id_on_books"
+    run_generator [migration, "author_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, :author_id/, change, "index not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_index
+    migration = "remove_index_author_id_from_books"
+    run_generator [migration, "author_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: :author_id/, change, "index not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_add_index_uniq
+    migration = "add_index_author_id_uniq_on_books"
+    run_generator [migration, "author_id:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdUniqOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, :author_id, unique: true/, change, "index not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_index_uniq
+    migration = "remove_index_author_id_uniq_from_books"
+    run_generator [migration, "author_id:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdUniqFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: :author_id, unique: true/, change, "index not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_add_multiple_indexes
+    migration = "add_indexes_author_id_uniq_and_library_id_on_books"
+    run_generator [migration, "author_id:uniq", "library_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexesAuthorIdUniqAndLibraryIdOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, :author_id, unique: true/, change, "index author_id not present")
+        assert_match(/add_index :books, :library_id/, change, "index library_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_multiple_indexes_uniq
+    migration = "remove_indexes_author_id_uniq_and_library_id_from_books"
+    run_generator [migration, "author_id:uniq", "library_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexesAuthorIdUniqAndLibraryIdFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: :author_id, unique: true/, change, "index author_id not present")
+        assert_match(/remove_index :books, column: :library_id/, change, "index library_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_add_index_of_two_columns
+    migration = "add_index_author_id_with_library_id_on_books"
+    run_generator [migration, "author_id", "library_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdWithLibraryIdOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, \[:author_id, :library_id\]/, change, "index author_id library_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_index_of_two_columns
+    migration = "remove_index_author_id_with_library_id_from_books"
+    run_generator [migration, "author_id", "library_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdWithLibraryIdFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: \[:author_id, :library_id\]/, change, "index author_id library_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_add_index_uniq_of_two_columns
+    migration = "add_index_author_id_with_library_id_uniq_on_books"
+    run_generator [migration, "author_id:uniq", "library_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdWithLibraryIdUniqOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, \[:author_id, :library_id\], unique: true/, change, "index author_id library_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_index_uniq_of_two_columns
+    migration = "remove_index_author_id_with_library_id_uniq_from_books"
+    run_generator [migration, "author_id", "library_id:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdWithLibraryIdUniqFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: \[:author_id, :library_id\], unique: true/, change, "index author_id library_id not present")
+      end
+    end
+
+  end
+
+  def test_should_create_migration_to_add_many_indexes_of_two_columns
+    migration = "add_index_author_id_with_library_id_and_author_id_with_category_id_on_books"
+    run_generator [migration, "author_id", "library_id", "author_id", "category_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdWithLibraryIdAndAuthorIdWithCategoryIdOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, \[:author_id, :library_id\]/, change, "index author_id library_id not present")
+        assert_match(/add_index :books, \[:author_id, :category_id\]/, change, "index author_id category_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_many_indexes_of_two_columns
+    migration = "remove_index_author_id_with_library_id_and_author_id_with_category_id_from_books"
+    run_generator [migration, "author_id", "library_id", "author_id", "category_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdWithLibraryIdAndAuthorIdWithCategoryIdFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: \[:author_id, :library_id\]/, change, "index author_id library_id not present")
+        assert_match(/remove_index :books, column: \[:author_id, :category_id\]/, change, "index author_id category_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_add_many_indexes_of_two_columns_one_uniq_first_version
+    migration = "add_index_author_id_with_library_id_and_author_id_with_category_id_on_books"
+    run_generator [migration, "author_id:uniq", "library_id", "author_id", "category_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdWithLibraryIdAndAuthorIdWithCategoryIdOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, \[:author_id, :library_id\], unique: true/, change, "index author_id library_id not present")
+        assert_match(/add_index :books, \[:author_id, :category_id\]/, change, "index author_id category_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_many_indexes_of_two_columns_one_uniq_first_version
+    migration = "remove_index_author_id_with_library_id_and_author_id_with_category_id_from_books"
+    run_generator [migration, "author_id:uniq", "library_id", "author_id", "category_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdWithLibraryIdAndAuthorIdWithCategoryIdFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: \[:author_id, :library_id\], unique: true/, change, "index author_id library_id not present")
+        assert_match(/remove_index :books, column: \[:author_id, :category_id\]/, change, "index author_id category_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_add_many_indexes_of_two_columns_one_uniq_second_version
+    migration = "add_index_author_id_with_library_id_and_author_id_with_category_id_on_books"
+    run_generator [migration, "author_id", "library_id", "author_id", "category_id:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdWithLibraryIdAndAuthorIdWithCategoryIdOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/add_index :books, \[:author_id, :library_id\]/, change, "index author_id library_id not present")
+        assert_match(/add_index :books, \[:author_id, :category_id\], unique: true/, change, "index author_id category_id not present")
+      end
+    end
+  end
+
+  def test_should_create_migration_to_remove_many_indexes_of_two_columns_one_uniq_second_version
+    migration = "remove_index_author_id_with_library_id_and_author_id_with_category_id_from_books"
+    run_generator [migration, "author_id", "library_id", "author_id", "category_id:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdWithLibraryIdAndAuthorIdWithCategoryIdFromBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert_match(/remove_index :books, column: \[:author_id, :library_id\]/, change, "index author_id library_id not present")
+        assert_match(/remove_index :books, column: \[:author_id, :category_id\], unique: true/, change, "index author_id category_id not present")
+      end
+    end
+  end
+
+  def test_should_create_empty_migration_to_add_many_indexes_of_two_columns_when_atributes_arity_is_odd
+    migration = "add_index_author_id_with_library_id_uniq_and_author_id_with_publisher_on_books"
+    run_generator [migration, "author_id:uniq", "library_id", "publisher"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/AddIndexAuthorIdWithLibraryIdUniqAndAuthorIdWithPublisherOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert change.empty?, 'change method was not empty'
+      end
+    end
+  end
+
+  def test_should_create_empty_migration_to_remove_index_of_two_columns_when_atributes_arity_is_odd
+    migration = "remove_index_author_id_with_library_id_uniq_and_author_id_with_publisher_on_books"
+    run_generator [migration, "author_id:uniq", "library_id", "author_id"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_match(/RemoveIndexAuthorIdWithLibraryIdUniqAndAuthorIdWithPublisherOnBooks/, content, "wrong class name")
+      assert_method :change, content do |change|
+        assert change.empty?, 'change method was not empty'
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]

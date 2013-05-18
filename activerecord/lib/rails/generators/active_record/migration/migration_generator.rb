@@ -12,7 +12,7 @@ module ActiveRecord
       end
 
       protected
-      attr_reader :migration_action, :join_tables
+      attr_reader :migration_action, :migration_target, :join_tables
 
       # sets the default migration template that is being used for the generation of the migration
       # depending on the arguments which would be sent out in the command line, the migration template 
@@ -21,6 +21,14 @@ module ActiveRecord
       def set_local_assigns!
         @migration_template = "migration.rb"
         case file_name
+        when /^(add|remove)_index(?:es)?_(.*)_(?:on|from)_(.*)/
+          @migration_action = $1
+          @table_name       = $3.pluralize
+          @migration_template = 'indexes.rb'
+          if $2 =~ /with/
+            @migration_target = 'index_combined'
+            @migration_template = 'empty.rb' unless attributes.count.even?
+          end
         when /^(add|remove)_.*_(?:to|from)_(.*)/
           @migration_action = $1
           @table_name       = $2.pluralize
