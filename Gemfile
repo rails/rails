@@ -2,7 +2,11 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'mocha', '~> 0.14'
+# This needs to be with require false as it is
+# loaded after loading the test library to
+# ensure correct loading order
+gem 'mocha', '~> 0.14', require: false
+
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', '~> 2.2.0'
