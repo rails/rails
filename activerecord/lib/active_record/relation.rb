@@ -76,10 +76,10 @@ module ActiveRecord
     def update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
       um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes)
-      
+
       @klass.connection.update(
-        um, 
-        'SQL', 
+        um,
+        'SQL',
         binds)
     end
 
@@ -94,7 +94,7 @@ module ActiveRecord
       end
 
       [substitutes, binds]
-    end 
+    end
 
     # Initializes new record from relation while maintaining the current
     # scope.
@@ -384,6 +384,35 @@ module ActiveRecord
         id.map { |one_id| destroy(one_id) }
       else
         find(id).destroy
+      end
+    end
+
+    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
+    # therefore all callbacks and filters are fired off before the object is deleted. This method is
+    # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
+    #
+    # This essentially finds the object (or multiple objects) with the given id, creates a new object
+    # from the attributes, and then calls destroy on it.
+    #
+    # It raises ActiveRecord::RecordNotDestroyed in case of failure.
+    #
+    # ==== Parameters
+    #
+    # * +id+ - Can be either an Integer or an Array of Integers.
+    #
+    # ==== Examples
+    #
+    #   # Destroy a single object
+    #   Todo.destroy(1)
+    #
+    #   # Destroy multiple objects
+    #   todos = [1,2,3]
+    #   Todo.destroy(todos)
+    def destroy!(id)
+      if id.is_a?(Array)
+        id.map { |one_id| destroy!(one_id) }
+      else
+        find(id).destroy!
       end
     end
 

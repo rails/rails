@@ -1,3 +1,8 @@
+*   Added a class level `#destroy!` method, which raises an `ActiveRecord::RecordNotDestroyed`
+    exception instead of returning `false`.
+
+    *Fabio Kreusch*
+
 *   Also support extentions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
     *kennyj*
