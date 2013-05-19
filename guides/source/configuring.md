@@ -340,7 +340,24 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_view.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to `nil` to disable logging.
 
-* `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. It defaults to `'-'`. See the [ERB documentation](http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/) for more information.
+* `config.action_view.erb_trim_mode` determines the Erubis trim state. It defaults to `'-'` which enables trimming spaces around expressions like `<% %>` (but not `<%= %>`).  Set it to `''` to disable trimming.  See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.02.html#tut-trim) for more information.
+
+* `config.action_view.erb_implementation` gives the eRuby implementation for templating.  It defaults to `Erubis`.  Alternate implementations need to conform to the same API as Erubis.
+
+    This can also be used to customize Erubis enhancers.
+
+    ```ruby
+    require 'erubis'
+    class MyEruby < Erubis::Eruby
+      include PercentLineEnhancer
+      include BiPatternEnhancer
+    end
+
+    # In application.rb
+    config.action_view.erb_implementation = MyEruby
+    ```
+
+    See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.03.html#enhancer) for more information.
 
 * `config.action_view.embed_authenticity_token_in_remote_forms` allows you to set the default behavior for `authenticity_token` in forms with `:remote => true`. By default it's set to false, which means that remote forms will not include `authenticity_token`, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the `meta` tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass `:authenticity_token => true` as a form option or set this config setting to `true`
 
