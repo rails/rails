@@ -1,3 +1,15 @@
+# This is the parent Association class which defines the variables
+# used by all associations.
+#
+# The hierarchy is defined as follows:
+#  Association 
+#    - SingularAssociation
+#      - BelongsToAssociation
+#      - HasOneAssociation
+#    - CollectionAssociation
+#      - HasManyAssociation
+#      - HasAndBelongsToManyAssociation
+
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class << self
@@ -58,6 +70,13 @@ module ActiveRecord::Associations::Builder
     def validate_options
       options.assert_valid_keys(valid_options)
     end
+    
+    # Defines the setter and getter methods for the association
+    # class Post < ActiveRecord::Base
+    #   has_many :comments
+    # end
+    # 
+    # Post.first.comments and Post.first.comments= methods are defined by this method...
 
     def define_accessors
       define_readers

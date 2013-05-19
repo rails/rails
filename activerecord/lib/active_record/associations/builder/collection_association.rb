@@ -1,3 +1,5 @@
+# This class is inherited by the has_many and has_many_and_belongs_to_many association classes 
+
 require 'active_record/associations'
 
 module ActiveRecord::Associations::Builder
@@ -65,6 +67,8 @@ module ActiveRecord::Associations::Builder
       model.class_attribute full_callback_name.to_sym unless model.method_defined?(full_callback_name)
       model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
     end
+
+    # Defines the setter and getter methods for the collection_singular_ids.
 
     def define_readers
       super
