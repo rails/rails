@@ -145,7 +145,14 @@ module ActiveSupport
     #   'egg_and_hams'.classify # => "EggAndHam"
     #   'posts'.classify        # => "Post"
     #
-    # Some singular names are not handled correctly, such as:
+    # Earlier in the Rails 3.2.x series, the some of the singular names were not handled correctly such as 
+    # for "business", "address" the classify function would return "busines" and "addres" respectively.. but now
+    # this has been resolved and corrected in Rails 4
+    # 
+    #   'business'.classify     # => "Business"
+    #   'address'.classify      # => "Address"
+    #
+    # Yet some singular names are not handled correctly and I guess we would work upon it to improve upon these shortcomings
     #
     # "radius".classify   #=> "Radiu" it should be "Radius"
     # "feet".classify     #=> "Foot", it should be "Feet"

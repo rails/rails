@@ -23,12 +23,4 @@
 
     *Daniel Schierbeck*
 
-*   Earlier in the Rails 3.2.x series, the some of the singular names were not handled correctly
-    such as for "business", "address" the classify function would return "busines" and "addres" respectively.. but now this has been resolved and corrected in Rails 4
-     
-        # 'business'.classify     # => "Business"
-        # 'address'.classify      # => "Address"
-
-    *Aditya Kapoor*
-    
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
