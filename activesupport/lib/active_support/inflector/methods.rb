@@ -138,25 +138,16 @@ module ActiveSupport
       pluralize(underscore(class_name))
     end
 
-    # Create a class name from a plural table name like Rails does for table names to models.
-    # Note that this returns a string and not a class. (To convert to an actual class
-    # follow +classify+ with +constantize+.)
+    # Create a class name from a plural table name like Rails does for table
+    # names to models. Note that this returns a string and not a Class (To
+    # convert to an actual class follow +classify+ with +constantize+).
     #
     #   'egg_and_hams'.classify # => "EggAndHam"
     #   'posts'.classify        # => "Post"
     #
-    # Earlier in the Rails 3.2.x series, the some of the singular names were not handled correctly such as 
-    # for "business", "address" the classify function would return "busines" and "addres" respectively.. but now
-    # this has been resolved and corrected in Rails 4
-    # 
-    #   'business'.classify     # => "Business"
-    #   'address'.classify      # => "Address"
+    # Singular names are not handled correctly:
     #
-    # Yet some singular names are not handled correctly and I guess we would work upon it to improve upon these shortcomings
-    #
-    # "radius".classify   #=> "Radiu" it should be "Radius"
-    # "feet".classify     #=> "Foot", it should be "Feet"
-    # "abacus".classify   #=> "Abacu" it should be "Abacus"
+    #   'business'.classify     # => "Busines"
     def classify(table_name)
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, '')))
