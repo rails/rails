@@ -1,6 +1,6 @@
 require 'active_support/test_case'
 
-module ActionMailer # :nodoc:
+module ActionMailer
   class NonInferrableMailerError < ::StandardError
     def initialize(name)
       super "Unable to determine the mailer to test from #{name}. " +
