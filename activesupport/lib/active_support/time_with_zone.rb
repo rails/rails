@@ -316,6 +316,7 @@ module ActiveSupport
       utc.to_i
     end
     alias_method :tv_sec, :to_i
+    alias_method :to_int, :to_i
 
     def to_r
       utc.to_r
