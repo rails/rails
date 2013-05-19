@@ -133,7 +133,8 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 ### Configuring Assets
 
-* `config.assets.enabled` a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in `config/application.rb`.
+* `config.assets.enabled` a flag that controls whether the asset
+pipeline is enabled. It is set to true by default.
 
 * `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
 
