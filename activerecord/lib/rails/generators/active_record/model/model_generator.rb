@@ -13,7 +13,7 @@ module ActiveRecord
       class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
 
       
-      # creates the migration file for the model first followed by the model file itself
+      # creates the migration file for the model.
 
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?

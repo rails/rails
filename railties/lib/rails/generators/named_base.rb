@@ -19,9 +19,7 @@ module Rails
       end
 
       # Defines the template that would be used for the migration file.
-      # The source defines the source template file that would be used in creating the migration
-      # The args is an array containing any other options and the name of the file which would be saved on the filesystem
-
+      # The arguments include the source template file, the migration filename etc.
       no_tasks do
         def template(source, *args, &block)
           inside_template do

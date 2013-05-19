@@ -1,17 +1,14 @@
-# This is the parent Association class which defines certain class variables (valid_options) and
-# instance variables (model, name, scope, options, reflection) which would be common across all the associations that we known today in Rails..
-# Every association need to have the values of these variables set and they are used at multiple places
-# The heirarchy is defined as follows:
+# This is the parent Association class which defines the variables
+# used by all associations.
+#
+# The hierarchy is defined as follows:
 #  Association 
 #    - SingularAssociation
-#      - BelongsTo
-#      - HasOne
+#      - BelongsToAssociation
+#      - HasOneAssociation
 #    - CollectionAssociation
-#      - HasMany
-#      - HasAndBelongsToMany
-#
-# The HasMany :Through association is a special case of HasMany association with the :through option set for it
-#
+#      - HasManyAssociation
+#      - HasAndBelongsToManyAssociation
 
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
