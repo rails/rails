@@ -30,10 +30,10 @@ Configuring Rails Components
 
 In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file `config/application.rb` and environment-specific configuration files (such as `config/environments/production.rb`) allow you to specify the various settings that you want to pass down to all of the components.
 
-For example, the default `config/application.rb` file includes this setting:
+For example, the `config/application.rb` file includes this setting:
 
 ```ruby
-config.filter_parameters += [:password]
+config.autoload_paths += %W(#{config.root}/extras)
 ```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
@@ -97,7 +97,9 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.file_watcher` the class used to detect file updates in the filesystem when `config.reload_classes_only_on_change` is true. Must conform to `ActiveSupport::FileUpdateChecker` API.
 
-* `config.filter_parameters` used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
+* `config.filter_parameters` used for filtering out the parameters that
+you don't want shown in the logs, such as passwords or credit card
+numbers. New applications filter out passwords by adding the following `config.filter_parameters+=[:password]` in `config/initializers/filter_parameter_logging.rb`.
 
 * `config.force_ssl` forces all requests to be under HTTPS protocol by using `ActionDispatch::SSL` middleware.
 
