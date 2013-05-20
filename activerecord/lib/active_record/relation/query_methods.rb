@@ -1002,7 +1002,7 @@ module ActiveRecord
         when Symbol
           table[order].asc
         when Hash
-          order.map { |field, dir| table[field].send(dir) }
+          order.map { |field, dir| table[field].send(dir.to_s.downcase) }
         else
           order
         end
@@ -1012,9 +1012,11 @@ module ActiveRecord
     end
 
     def validate_order_args(args)
-      args.select { |a| Hash === a  }.each do |h|
-        unless (h.values - [:asc, :desc]).empty?
-          raise ArgumentError, 'Direction should be :asc or :desc'
+      args.select { |arg| Hash === arg  }.each do |hash|
+        hash.values.each do |arg|
+          unless arg.to_s.casecmp('asc').zero? || arg.to_s.casecmp('desc').zero?
+            raise ArgumentError, 'Direction should be asc or desc'
+          end
         end
       end
     end

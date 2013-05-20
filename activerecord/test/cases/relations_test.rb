@@ -151,7 +151,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:first).title, topics.first.title
   end
 
-
   def test_finding_with_arel_order
     topics = Topic.order(Topic.arel_table[:id].asc)
     assert_equal 4, topics.to_a.size
@@ -170,8 +169,37 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
+  def test_finding_with_assoc_order_with_string
+    topics = Topic.order(:id => "desc")
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+  end
+
+  def test_nothing_raises_on_upcase_desc_arg
+    assert_nothing_raised { Topic.order(:id => "DESC") }
+  end
+
+  def test_nothing_raises_on_downcase_desc_arg
+    assert_nothing_raised { Topic.order(:id => "desc") }
+  end
+
+  def test_nothing_raises_on_upcase_asc_arg
+    assert_nothing_raised { Topic.order(:id => "ASC") }
+  end
+
+  def test_nothing_raises_on_downcase_asc_arg
+    assert_nothing_raised { Topic.order(:id => "asc") }
+  end
+
+  def test_nothing_raises_on_case_insensitive_args
+    assert_nothing_raised { Topic.order(:id => "DeSc") }
+    assert_nothing_raised { Topic.order(:id => :DeSc)  }
+    assert_nothing_raised { Topic.order(:id => "aSc")  }
+    assert_nothing_raised { Topic.order(:id => :aSc)   }
+  end
+
   def test_raising_exception_on_invalid_hash_params
-    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
+    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :asfsdf) }
   end
 
   def test_finding_last_with_arel_order
