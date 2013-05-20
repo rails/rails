@@ -670,7 +670,7 @@ module ActiveRecord
       def change_column_sql(table_name, column_name, type, options = {})
         column = column_for(table_name, column_name)
 
-        unless options_include_default?(options)
+        if supports_default_for_type(type) && !options_include_default?(options)  
           options[:default] = column.default
         end
 
@@ -688,7 +688,7 @@ module ActiveRecord
         options = {}
 
         if column = columns(table_name).find { |c| c.name == column_name.to_s }
-          options[:default] = column.default
+          options[:default] = column.default if column.has_default?
           options[:null] = column.null
           options[:auto_increment] = (column.extra == "auto_increment")
         else
@@ -731,6 +731,11 @@ module ActiveRecord
 
       def supports_views?
         version[0] >= 5
+      end
+
+      #mysql doesn't support defaults for text or blobs
+      def supports_default_for_type(type)
+        ![:binary, :text].include?(type)
       end
 
       def column_for(table_name, column_name)
