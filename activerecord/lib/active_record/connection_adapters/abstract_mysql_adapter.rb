@@ -670,7 +670,7 @@ module ActiveRecord
       def change_column_sql(table_name, column_name, type, options = {})
         column = column_for(table_name, column_name)
 
-        unless options_include_default?(options) || [:binary, :text].include?(type)
+        if supports_default_for_type(type) && !options_include_default?(options)  
           options[:default] = column.default
         end
 
@@ -731,6 +731,11 @@ module ActiveRecord
 
       def supports_views?
         version[0] >= 5
+      end
+
+      #mysql doesn't support defaults for text or blobs
+      def supports_default_for_type(type)
+        ![:binary, :text].include?(type)
       end
 
       def column_for(table_name, column_name)
