@@ -6,7 +6,14 @@ module Arel
       include Arel::FactoryMethods
       include Enumerable
 
-      def initialize
+      if $DEBUG
+        def _caller
+          @caller
+        end
+
+        def initialize
+          @caller = caller.dup
+        end
       end
 
       ###
