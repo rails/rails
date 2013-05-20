@@ -515,6 +515,11 @@ module ActionDispatch
           end
         end
 
+        # Query if the following named route was already defined.
+        def has_named_route?(name)
+          @set.named_routes.routes[name.to_sym]
+        end
+
         private
           def app_name(app)
             return unless app.respond_to?(:routes)

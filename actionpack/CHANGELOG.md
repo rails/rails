@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Add `has_named_route?(route_name)` to the mapper API.
+
+    *José Valim*
+
 *   Fix an issue where partials with a number in the filename weren't being digested for cache dependencies.
 
     *Bryan Ricker*
