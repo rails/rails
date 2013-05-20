@@ -46,7 +46,7 @@ on the Rails blog.
 
 #### A note about media types
 
-The erratta for the `PATCH` verb [specifies that a 'diff' media type should be
+The errata for the `PATCH` verb [specifies that a 'diff' media type should be
 used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
 such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
