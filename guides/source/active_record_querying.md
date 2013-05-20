@@ -1202,6 +1202,7 @@ class User < ActiveRecord::Base
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end
+```
 
 ```ruby
 User.active.inactive
