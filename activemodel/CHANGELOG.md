@@ -1,3 +1,10 @@
+## unreleased ## 
+
+*   Fix regression in has_secure_password. When a password is set, but a
+    confirmation is an empty string, it would incorrectly save.
+
+    *Steve Klabnik* and *Phillip Calvin*
+
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
