@@ -86,11 +86,14 @@ module ActiveRecord
 
         class Array < Type
           attr_reader :subtype
+          attr_writer :typecast
           def initialize(subtype)
             @subtype = subtype
+            @typecast = true
           end
 
           def type_cast(value)
+            return value unless @typecast
             if String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_array value, @subtype
             else

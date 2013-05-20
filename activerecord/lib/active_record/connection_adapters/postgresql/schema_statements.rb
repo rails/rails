@@ -169,12 +169,15 @@ module ActiveRecord
         end
 
         # Returns the list of all column definitions for a table.
-        def columns(table_name)
+        def columns(table_name, typecast = true)
           # Limit, precision, and scale are all handled by the superclass.
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
             oid = OID::TYPE_MAP.fetch(oid.to_i, fmod.to_i) {
               OID::Identity.new
             }
+            if !typecast && ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Array === oid
+              oid.typecast = false
+            end
             PostgreSQLColumn.new(column_name, default, oid, type, notnull == 'f')
           end
         end
