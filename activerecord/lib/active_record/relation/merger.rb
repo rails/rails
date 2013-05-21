@@ -102,7 +102,9 @@ module ActiveRecord
         rhs_wheres = values[:where] || []
         lhs_wheres = relation.where_values
 
-        relation.where_values = merged_wheres(lhs_wheres, rhs_wheres)
+        _, kept = partition_overwrites(lhs_wheres, rhs_wheres)
+
+        relation.where_values = kept + rhs_wheres
         relation.bind_values  = merged_binds
 
         if values[:reordering]
@@ -132,10 +134,6 @@ module ActiveRecord
         else
           relation.bind_values
         end
-      end
-
-      def merged_wheres(lhs_wheres, rhs_wheres)
-        partition_overwrites(lhs_wheres, rhs_wheres).last + rhs_wheres
       end
 
       # Remove equalities from the existing relation with a LHS which is
