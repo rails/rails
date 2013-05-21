@@ -470,6 +470,14 @@ module ActiveRecord
       load
     end
 
+    def set_binds(list)
+      @loaded  = nil
+      @records = []
+      list.zip(values[:bind]).each do |val, bv|
+        bv[1] = val
+      end
+    end
+
     def reset
       @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @should_eager_load = @join_dependency = nil
