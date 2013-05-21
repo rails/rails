@@ -145,10 +145,10 @@ module ActiveRecord
       # Remove equalities from the existing relation with a LHS which is
       # present in the relation being merged in.
       def reject_overwrites(lhs_wheres, rhs_wheres)
-        seen = Set.new
-        rhs_wheres.each do |w|
-          seen << w.left if w.respond_to?(:operator) && w.operator == :==
+        nodes = rhs_wheres.find_all do |w|
+          w.respond_to?(:operator) && w.operator == :==
         end
+        seen = Set.new(nodes) { |node| node.left }
 
         lhs_wheres.reject do |w|
           w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
