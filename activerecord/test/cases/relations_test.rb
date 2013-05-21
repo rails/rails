@@ -1546,4 +1546,14 @@ class RelationTest < ActiveRecord::TestCase
     assert merged.to_sql.include?("wtf")
     assert merged.to_sql.include?("bbq")
   end
+
+  def test_merging_removes_rhs_bind_parameters
+    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    column = Post.columns_hash['id']
+    left.bind_values += [[column, 20]]
+    right   = Post.where(id: 10)
+
+    merged = left.merge(right)
+    assert_equal [], merged.bind_values
+  end
 end

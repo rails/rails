@@ -99,13 +99,15 @@ module ActiveRecord
       end
 
       def merge_multi_values
-        rhs_wheres = values[:where] || []
         lhs_wheres = relation.where_values
+        rhs_wheres = values[:where] || []
+        lhs_binds  = relation.bind_values
+        rhs_binds  = values[:bind] || []
 
-        _, kept = partition_overwrites(lhs_wheres, rhs_wheres)
+        removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
 
         relation.where_values = kept + rhs_wheres
-        relation.bind_values  = merged_binds
+        relation.bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
 
         if values[:reordering]
           # override any order specified in the original relation
@@ -128,12 +130,9 @@ module ActiveRecord
         end
       end
 
-      def merged_binds
-        if values[:bind]
-          (relation.bind_values + values[:bind]).uniq(&:first)
-        else
-          relation.bind_values
-        end
+      def filter_binds(lhs_binds, removed_wheres)
+        set = Set.new removed_wheres.map { |x| x.left.name }
+        lhs_binds.dup.delete_if { |col,_| set.include? col.name }
       end
 
       # Remove equalities from the existing relation with a LHS which is
