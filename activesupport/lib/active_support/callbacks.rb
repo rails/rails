@@ -537,7 +537,7 @@ module ActiveSupport
 
     module ClassMethods
 
-      def normalize_callback_params(name, filters, block) # :nodoc:
+      def normalize_callback_params(filters, block) # :nodoc:
         type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
@@ -589,7 +589,7 @@ module ActiveSupport
       # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
       #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)
-        type, filters, options = normalize_callback_params(name, filter_list, block)
+        type, filters, options = normalize_callback_params(filter_list, block)
         self_chain = get_callbacks name
         mapped = filters.map do |filter|
           Callback.build(self_chain, filter, type, options)
@@ -609,7 +609,7 @@ module ActiveSupport
       #      skip_callback :validate, :before, :check_membership, if: -> { self.age > 18 }
       #   end
       def skip_callback(name, *filter_list, &block)
-        type, filters, options = normalize_callback_params(name, filter_list, block)
+        type, filters, options = normalize_callback_params(filter_list, block)
 
         __update_callbacks(name) do |target, chain|
           filters.each do |filter|
