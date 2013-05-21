@@ -245,6 +245,7 @@ module Rails
       require "rails/tasks"
       config = self.config
       task :environment do
+        $rails_rake_task = true
         config.eager_load = false
         require_environment!
       end
