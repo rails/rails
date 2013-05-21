@@ -34,9 +34,9 @@ module ActiveRecord
         set_owner_attributes(record)
 
         if raise
-          record.save!(:validate => validate)
+          record.save!(validate: validate)
         else
-          record.save(:validate => validate)
+          record.save(validate: validate)
         end
       end
 
