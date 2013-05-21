@@ -360,7 +360,7 @@ db_namespace = namespace :db do
     end
 
     # desc 'Check for pending migrations and load the test schema'
-    task :prepare do
+    task :prepare => :load_config do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
       end
