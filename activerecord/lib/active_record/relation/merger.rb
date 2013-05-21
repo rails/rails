@@ -132,12 +132,13 @@ module ActiveRecord
       end
 
       def merged_wheres
-        values[:where] ||= []
+        rhs_wheres = values[:where] || []
+        lhs_wheres = relation.where_values
 
-        if values[:where].empty? || relation.where_values.empty?
-          relation.where_values + values[:where]
+        if rhs_wheres.empty? || lhs_wheres.empty?
+          lhs_wheres + rhs_wheres
         else
-          sanitized_wheres(relation.where_values, values[:where]) + values[:where]
+          sanitized_wheres(lhs_wheres, rhs_wheres) + rhs_wheres
         end
       end
 
