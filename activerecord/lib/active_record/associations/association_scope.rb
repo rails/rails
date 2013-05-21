@@ -101,6 +101,7 @@ module ActiveRecord
 
             scope.includes! item.includes_values
             scope.where_values += item.where_values
+            scope.bind_values  += item.bind_values
             scope.order_values |= item.order_values
           end
         end

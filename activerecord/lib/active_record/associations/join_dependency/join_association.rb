@@ -64,7 +64,7 @@ module ActiveRecord
           end
         end
 
-        def join_to(manager)
+        def join_to(manager, relation)
           tables        = @tables.dup
           foreign_table = parent_table
           foreign_klass = parent.base_klass
@@ -110,6 +110,8 @@ module ActiveRecord
               unless item.is_a?(Relation)
                 item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
               end
+
+              relation.bind_values += item.bind_values
 
               if item.arel.constraints.empty?
                 chain

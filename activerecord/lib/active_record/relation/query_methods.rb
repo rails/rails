@@ -982,7 +982,7 @@ module ActiveRecord
 
       # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
-        association.join_to(manager)
+        association.join_to(manager, self)
       end
 
       manager.join_sources.concat join_list
