@@ -90,7 +90,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_create_without_validation
     reply = WrongReply.new
     assert !reply.save
-    assert reply.save(:validate => false)
+    assert reply.save(validate: false)
   end
 
   def test_validates_acceptance_of_with_non_existant_table

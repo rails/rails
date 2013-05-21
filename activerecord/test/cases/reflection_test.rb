@@ -297,10 +297,10 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_always_validate_association_if_explicit
-    assert AssociationReflection.new(:has_one, :client, nil, { :validate => true }, Firm).validate?
-    assert AssociationReflection.new(:belongs_to, :client, nil, { :validate => true }, Firm).validate?
-    assert AssociationReflection.new(:has_many, :clients, nil, { :validate => true }, Firm).validate?
-    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, nil, { :validate => true }, Firm).validate?
+    assert AssociationReflection.new(:has_one, :client, nil, { validate: true }, Firm).validate?
+    assert AssociationReflection.new(:belongs_to, :client, nil, { validate: true }, Firm).validate?
+    assert AssociationReflection.new(:has_many, :clients, nil, { validate: true }, Firm).validate?
+    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, nil, { validate: true }, Firm).validate?
   end
 
   def test_validate_association_if_autosave
@@ -311,10 +311,10 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_never_validate_association_if_explicit
-    assert !AssociationReflection.new(:has_one, :client, nil, { :autosave => true, :validate => false }, Firm).validate?
-    assert !AssociationReflection.new(:belongs_to, :client, nil, { :autosave => true, :validate => false }, Firm).validate?
-    assert !AssociationReflection.new(:has_many, :clients, nil, { :autosave => true, :validate => false }, Firm).validate?
-    assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, nil, { :autosave => true, :validate => false }, Firm).validate?
+    assert !AssociationReflection.new(:has_one, :client, nil, { :autosave => true, validate: false }, Firm).validate?
+    assert !AssociationReflection.new(:belongs_to, :client, nil, { :autosave => true, validate: false }, Firm).validate?
+    assert !AssociationReflection.new(:has_many, :clients, nil, { :autosave => true, validate: false }, Firm).validate?
+    assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, nil, { :autosave => true, validate: false }, Firm).validate?
   end
 
   def test_foreign_key
