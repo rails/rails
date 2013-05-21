@@ -99,7 +99,10 @@ module ActiveRecord
       end
 
       def merge_multi_values
-        relation.where_values = merged_wheres
+        rhs_wheres = values[:where] || []
+        lhs_wheres = relation.where_values
+
+        relation.where_values = merged_wheres(lhs_wheres, rhs_wheres)
         relation.bind_values  = merged_binds
 
         if values[:reordering]
@@ -131,30 +134,23 @@ module ActiveRecord
         end
       end
 
-      def merged_wheres
-        rhs_wheres = values[:where] || []
-        lhs_wheres = relation.where_values
-
-        if rhs_wheres.empty? || lhs_wheres.empty?
-          lhs_wheres + rhs_wheres
-        else
-          reject_overwrites(lhs_wheres, rhs_wheres) + rhs_wheres
-        end
+      def merged_wheres(lhs_wheres, rhs_wheres)
+        partition_overwrites(lhs_wheres, rhs_wheres).last + rhs_wheres
       end
 
       # Remove equalities from the existing relation with a LHS which is
       # present in the relation being merged in.
-      def reject_overwrites(lhs_wheres, rhs_wheres)
-        partition_overwrites(lhs_wheres, rhs_wheres).last
-      end
-
+      # returns [things_to_remove, things_to_keep]
       def partition_overwrites(lhs_wheres, rhs_wheres)
+        if lhs_wheres.empty? || rhs_wheres.empty?
+          return [[], lhs_wheres]
+        end
+
         nodes = rhs_wheres.find_all do |w|
           w.respond_to?(:operator) && w.operator == :==
         end
         seen = Set.new(nodes) { |node| node.left }
 
-        # returns [deleted, keepers]
         lhs_wheres.partition do |w|
           w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
