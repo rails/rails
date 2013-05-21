@@ -1,3 +1,8 @@
+*   Fix the `:primary_key` option for `has_many` associations.
+    Fixes #10693.
+
+    *Yves Senn*
+
 *   Fix bug where tiny types are incorectly coerced as booleand when the length is more than 1.
 
     Fixes #10620.
