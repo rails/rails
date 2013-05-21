@@ -1228,14 +1228,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_no_queries { assert true }
   end
 
-  def test_attribute_for_inspect
-    t = topics(:first)
-    t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
-
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
-    assert_equal '"The First Topic Now Has A Title With\nNewlines And M..."', t.attribute_for_inspect(:title)
-  end
-
   def test_becomes
     assert_kind_of Reply, topics(:first).becomes(Reply)
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
