@@ -137,19 +137,19 @@ module ActiveRecord
         if values[:where].empty? || relation.where_values.empty?
           relation.where_values + values[:where]
         else
-          sanitized_wheres + values[:where]
+          sanitized_wheres(relation.where_values, values[:where]) + values[:where]
         end
       end
 
       # Remove equalities from the existing relation with a LHS which is
       # present in the relation being merged in.
-      def sanitized_wheres
+      def sanitized_wheres(lhs_wheres, rhs_wheres)
         seen = Set.new
-        values[:where].each do |w|
+        rhs_wheres.each do |w|
           seen << w.left if w.respond_to?(:operator) && w.operator == :==
         end
 
-        relation.where_values.reject do |w|
+        lhs_wheres.reject do |w|
           w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
       end
