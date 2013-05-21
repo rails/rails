@@ -48,7 +48,7 @@ module ActiveRecord
       end
 
       def join_associations
-        join_parts.last(join_parts.length - 1)
+        join_parts.drop 1
       end
 
       def join_base
