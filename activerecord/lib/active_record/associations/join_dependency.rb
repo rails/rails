@@ -131,8 +131,7 @@ module ActiveRecord
         ref[association.reflection.name] ||= {}
       end
 
-      def build(associations, parent = nil, join_type = Arel::InnerJoin)
-        parent ||= join_parts.last
+      def build(associations, parent = join_parts.last, join_type = Arel::InnerJoin)
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.intern] or
