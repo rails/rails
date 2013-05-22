@@ -1511,6 +1511,20 @@ end
 
 By convention, Rails assumes that the column used to hold the primary key of the association is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
 
+Let's say that `users` table has `id` as the primary_key but it also has
+`guid` column. And the requirement is that `todos` table should hold
+`guid` column value and not `id` value. This can be achieved like this
+
+```ruby
+class User < ActiveRecord::Base
+  has_many :todos, primary_key: :guid
+end
+```
+
+Now if we execute `@user.todos.create` then `@todo` record will have
+`user_id` value as the `guid` value of `@user`.
+
+
 ##### `:source`
 
 The `:source` option specifies the source association name for a `has_many :through` association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
