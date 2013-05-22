@@ -91,7 +91,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 
 ### Retrieving a Single Object
 
-Active Record provides five different ways of retrieving a single object.
+Active Record provides several different ways of retrieving a single object.
 
 #### Using a Primary Key
 
