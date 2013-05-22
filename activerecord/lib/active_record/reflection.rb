@@ -21,10 +21,11 @@ module ActiveRecord
         case macro
         when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
           klass = options[:through] ? ThroughReflection : AssociationReflection
-          reflection = klass.new(macro, name, scope, options, active_record)
         when :composed_of
-          reflection = AggregateReflection.new(macro, name, scope, options, active_record)
+          klass = AggregateReflection
         end
+
+        reflection = klass.new(macro, name, scope, options, active_record)
 
         self.reflections = self.reflections.merge(name => reflection)
         reflection
