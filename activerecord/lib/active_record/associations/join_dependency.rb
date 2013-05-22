@@ -56,10 +56,9 @@ module ActiveRecord
       end
 
       def join_relation(relation)
-        join_associations.each do |association|
-          relation = association.join_relation(relation)
+        join_associations.inject(relation) do |rel,association|
+          association.join_relation(rel)
         end
-        relation
       end
 
       def columns
