@@ -1,5 +1,5 @@
 gem 'minitest' # make sure we get the gem, not stdlib
-require 'minitest/autorun'
+require 'minitest'
 require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
