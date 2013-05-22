@@ -71,6 +71,20 @@ class Hash
     end
   end
 
+  # Require hash to have all keys from <tt>*required_keys</tt>, raising ArgumentError
+  # on a miss. Note that keys are NOT treated indifferently, meaning if you
+  # use strings for keys but assert symbols as keys, this will fail.
+  #
+  #   { name: 'Rob', years: '28' }.assert_required_keys(:name, :age)                # => raises "Required key(s) not present: age"
+  #   { some: 'thing', name: 'Rob', age: '28' }.assert_required_keys('name', 'age') # => raises "Required key(s) not present: name, age"
+  #   { name: 'Rob' }.assert_required_keys(:name, :age)                             # => raises "Required key(s) not present: age"
+  #   { name: 'Rob', age: 25 }.assert_required_keys(:name, :age)                    # => passes, raises nothing
+  def assert_required_keys(*required_keys)
+    missing_keys = *required_keys.flatten - keys
+    raise ArgumentError, "Required key(s) not present: #{missing_keys.join(", ")}" if missing_keys.any?
+    self
+  end
+
   # Return a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes.

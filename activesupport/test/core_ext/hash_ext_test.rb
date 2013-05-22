@@ -587,6 +587,19 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_required_keys
+    assert_nothing_raised do
+      { :failure => "stuff", :funny => "business" }.assert_required_keys([ :failure, :funny ])
+      { :failure => "stuff", :funny => "business" }.assert_required_keys(:failure, :funny)
+      { :failure => "stuff", :funny => "business", :extra => :one }.assert_required_keys(:failure, :funny)
+    end
+
+    assert_raise(ArgumentError, "Required key(s) not present: failure") do
+      { :failore => "stuff", :funny => "business" }.assert_required_keys([ :failure, :funny ])
+      { :failore => "stuff", :funny => "business" }.assert_required_keys(:failure, :funny)
+    end
+  end
+
   def test_assorted_keys_not_stringified
     original = {Object.new => 2, 1 => 2, [] => true}
     indiff = original.with_indifferent_access
