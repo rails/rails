@@ -82,18 +82,16 @@ module ActiveModel
   #     validates :title, presence: true
   #   end
   #
-  # Validator may also define a +setup+ instance method which will get called
-  # with the class that using that validator as its argument. This can be
-  # useful when there are prerequisites such as an +attr_accessor+ being present.
+  # Validator may also define a +setup!+ instance method which will get called
+  # automatically in the constructor. It can be useful to access the class that is
+  # using that validator when there are prerequisites such as an +attr_accessor+ being present.
+  # This class is accessable via +@klass+.
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def setup(klass)
-  #       klass.send :attr_accessor, :custom_attribute
+  #     def setup!
+  #       @klass.send :attr_accessor, :custom_attribute
   #     end
   #   end
-  #
-  # This setup method is only called when used with validation macros or the
-  # class level <tt>validates_with</tt> method.
   class Validator
     attr_reader :options
 
