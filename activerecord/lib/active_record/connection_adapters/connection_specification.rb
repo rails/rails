@@ -83,12 +83,24 @@ module ActiveRecord
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
 
           if config.query
-            options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
-
-            spec.merge!(options)
+            spec.merge!(parse_nested_query_params(config.query))
           end
 
           spec
+        end
+
+        NESTED_PARAMS_REGEX = /^(.+)(%5b|\[)(.+)(%5d|\])$/i
+
+        def parse_nested_query_params(query)
+          query.split("&").map{ |pair| pair.split("=") }.inject({}) { |result, e|
+            key, value = e
+            if key =~ NESTED_PARAMS_REGEX
+              (result[$1.to_sym] ||= {})[$3.to_sym] = value
+            else
+              result[key.to_sym] = value
+            end
+            result
+          }
         end
       end
     end

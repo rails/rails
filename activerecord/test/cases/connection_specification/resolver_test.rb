@@ -57,6 +57,26 @@ module ActiveRecord
 
           assert_match "Could not load 'active_record/connection_adapters/non-existing_adapter'", error.message
         end
+
+        def test_url_properties
+          spec = resolve 'abstract://foo:123?encoding=utf8&properties%5Bname%5D=value&properties%5Bbar%5D=baz'
+          assert_equal({
+            adapter:  "abstract",
+            port:     123,
+            host:     "foo",
+            encoding: "utf8",
+            properties: { name: "value", bar: "baz" } }, spec)
+        end
+
+        def test_url_unescape_properties
+          spec = resolve 'abstract://foo:123?encoding=utf8&properties[name]=value&properties[bar]=baz'
+          assert_equal({
+            adapter:  "abstract",
+            port:     123,
+            host:     "foo",
+            encoding: "utf8",
+            properties: { name: "value", bar: "baz" } }, spec)
+        end
       end
     end
   end
