@@ -100,7 +100,7 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = mock()
-    validator.expects(:new).with(foo: :bar, if: "1 == 1").returns(validator)
+    validator.expects(:new).with(foo: :bar, if: "1 == 1", class: Topic).returns(validator)
     validator.expects(:validate).with(topic)
 
     Topic.validates_with(validator, if: "1 == 1", foo: :bar)
