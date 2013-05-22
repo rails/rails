@@ -82,14 +82,14 @@ module ActiveModel
   #     validates :title, presence: true
   #   end
   #
-  # Validator may also define a +setup!+ instance method which will get called
-  # automatically in the constructor. It can be useful to access the class that is
-  # using that validator when there are prerequisites such as an +attr_accessor+ being present.
-  # This class is accessable via +@klass+.
+  # It can be useful to access the class that is using that validator when there are prerequisites such
+  # as an +attr_accessor+ being present. This class is accessable via +options[:class]+ in the constructor.
+  # To setup your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def setup!
-  #       @klass.send :attr_accessor, :custom_attribute
+  #     def initialize(options={})
+  #       super
+  #       options[:class].send :attr_accessor, :custom_attribute
   #     end
   #   end
   class Validator
@@ -105,9 +105,8 @@ module ActiveModel
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @klass    = options[:class]
       @options  = options.except(:class).freeze
-      deprecated_setup or setup!
+      deprecated_setup(options)
     end
 
     # Return the kind for this validator.
@@ -125,11 +124,7 @@ module ActiveModel
     end
 
     private
-    # Override this private method to setup the validator.
-    def setup!
-    end
-
-    def deprecated_setup # TODO: remove me in 4.2.
+    def deprecated_setup(options) # TODO: remove me in 4.2.
       return unless respond_to?(:setup)
       ActiveSupport::Deprecation.warn "The `Validator#setup` instance method is deprecated and will be removed on Rails 4.2. Change your `setup` method to something like:
 
@@ -142,7 +137,7 @@ class MyValidator < ActiveModel::Validator
   end
 end
 "
-      setup(@klass)
+      setup(options[:class])
     end
   end
 

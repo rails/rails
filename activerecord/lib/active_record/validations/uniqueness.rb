@@ -7,6 +7,7 @@ module ActiveRecord
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
         super({ case_sensitive: true }.merge!(options))
+        @klass = options[:class]
       end
 
       def validate_each(record, attribute, value)
@@ -29,7 +30,6 @@ module ActiveRecord
       end
 
     protected
-
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
       # (self), to the first non-abstract class. Since classes don't know
