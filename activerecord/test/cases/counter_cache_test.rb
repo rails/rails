@@ -127,6 +127,12 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test 'update multiple counters' do
+    assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], 2 do
+      Topic.update_counters @topic.id, replies_count: 2, unique_replies_count: 2
+    end
+  end
+
   test "update other counters on parent destroy" do
     david, joanna = dog_lovers(:david, :joanna)
     joanna = joanna # squelch a warning
