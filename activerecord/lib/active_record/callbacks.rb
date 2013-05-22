@@ -18,6 +18,15 @@ module ActiveRecord
   # * (5) <tt>after_create</tt>
   # * (6) <tt>after_save</tt>
   # * (7) <tt>after_commit</tt>
+  # * (8) <tt>before_destroy</tt>
+  # * (9) <tt>after_destroy</tt>
+  # * (10) <tt>before_update</tt>
+  # * (11) <tt>after_update</tt>
+  # * (12) <tt>around_update</tt>
+  # * (13) <tt>around_create</tt>
+  # * (14) <tt>around_save</tt>
+  # * (15) <tt>around_destroy</tt>
+  # * (16) <tt>around_update</tt>
   #
   # Also, an <tt>after_rollback</tt> callback can be configured to be triggered whenever a rollback is issued.
   # Check out <tt>ActiveRecord::Transactions</tt> for more details about <tt>after_commit</tt> and
