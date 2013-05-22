@@ -175,7 +175,7 @@ module ActiveRecord
             oid = OID::TYPE_MAP.fetch(oid.to_i, fmod.to_i) {
               OID::Identity.new
             }
-            if !typecast && ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Array === oid
+            if !typecast && ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Array === oid && ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Identity === oid.subtype
               oid.typecast = false
             end
             PostgreSQLColumn.new(column_name, default, oid, type, notnull == 'f')
