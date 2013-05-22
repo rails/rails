@@ -1228,19 +1228,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_no_queries { assert true }
   end
 
-  def test_becomes
-    assert_kind_of Reply, topics(:first).becomes(Reply)
-    assert_equal "The First Topic", topics(:first).becomes(Reply).title
-  end
-
-  def test_becomes_includes_errors
-    company = Company.new(:name => nil)
-    assert !company.valid?
-    original_errors = company.errors
-    client = company.becomes(Client)
-    assert_equal original_errors, client.errors
-  end
-
   def test_silence_sets_log_level_to_error_in_block
     original_logger = ActiveRecord::Base.logger
 
