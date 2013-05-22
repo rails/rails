@@ -109,7 +109,7 @@ module ActiveModel
     def initialize(options = {})
       @klass    = options.delete(:class)
       @options  = options.freeze
-      setup!
+      deprecated_setup or setup!
     end
 
     # Return the kind for this validator.
@@ -126,8 +126,25 @@ module ActiveModel
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
     end
 
-  private
+    private
+    # Override this private method to setup the validator.
     def setup!
+    end
+
+    def deprecated_setup # TODO: remove me in 4.2.
+      return unless respond_to?(:setup)
+      ActiveSupport::Deprecation.warn "The `Validator#setup` instance method is deprecated and will be removed on Rails 4.2. Change your `setup` method to something like:
+
+class MyValidator < ActiveModel::Validator
+  private
+
+  def setup!
+    # you have access to @klass here:
+    prepare_something_with(@klass)
+  end
+end
+"
+      setup(@klass)
     end
   end
 
