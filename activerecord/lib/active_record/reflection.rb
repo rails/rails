@@ -17,13 +17,13 @@ module ActiveRecord
     # MacroReflection class has info for AggregateReflection and AssociationReflection
     # classes.
     module ClassMethods
-      def create_reflection(macro, name, scope, options, active_record)
+      def create_reflection(macro, name, scope, options, base_klass)
         case macro
         when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
           klass = options[:through] ? ThroughReflection : AssociationReflection
-          reflection = klass.new(macro, name, scope, options, active_record)
+          reflection = klass.new(macro, name, scope, options, base_klass)
         when :composed_of
-          reflection = AggregateReflection.new(macro, name, scope, options, active_record)
+          reflection = AggregateReflection.new(macro, name, scope, options, base_klass)
         end
 
         self.reflections = self.reflections.merge(name => reflection)
@@ -103,17 +103,17 @@ module ActiveRecord
       # <tt>has_many :clients</tt> returns <tt>{}</tt>
       attr_reader :options
 
-      attr_reader :active_record
+      attr_reader :base_klass
 
       attr_reader :plural_name # :nodoc:
 
-      def initialize(macro, name, scope, options, active_record)
+      def initialize(macro, name, scope, options, base_klass)
         @macro         = macro
         @name          = name
         @scope         = scope
         @options       = options
-        @active_record = active_record
-        @plural_name   = active_record.pluralize_table_names ?
+        @base_klass    = base_klass
+        @plural_name   = base_klass.pluralize_table_names ?
                             name.to_s.pluralize : name.to_s
       end
 
@@ -133,14 +133,14 @@ module ActiveRecord
         @class_name ||= (options[:class_name] || derive_class_name).to_s
       end
 
-      # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
+      # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +base_klass+ attribute,
       # and +other_aggregation+ has an options hash assigned to it.
       def ==(other_aggregation)
         super ||
           other_aggregation.kind_of?(self.class) &&
           name == other_aggregation.name &&
           other_aggregation.options &&
-          active_record == other_aggregation.active_record
+          base_klass == other_aggregation.base_klass
       end
 
       private
@@ -175,7 +175,7 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= active_record.send(:compute_type, class_name)
+        @klass ||= base_klass.send(:compute_type, class_name)
       end
 
       def initialize(*args)
@@ -228,12 +228,12 @@ module ActiveRecord
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= options[:primary_key] || primary_key(active_record)
+        @active_record_primary_key ||= options[:primary_key] || primary_key(base_klass)
       end
 
       def counter_cache_column
         if options[:counter_cache] == true
-          "#{active_record.name.demodulize.underscore.pluralize}_count"
+          "#{base_klass.name.demodulize.underscore.pluralize}_count"
         elsif options[:counter_cache]
           options[:counter_cache].to_s
         end
@@ -409,7 +409,7 @@ module ActiveRecord
         # overhead.
         def set_automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
-            inverse_name = active_record.name.downcase.to_sym
+            inverse_name = base_klass.name.downcase.to_sym
 
             begin
               reflection = klass.reflect_on_association(inverse_name)
@@ -434,14 +434,14 @@ module ActiveRecord
 
         # Checks if the inverse reflection that is returned from the
         # +set_automatic_inverse_of+ method is a valid reflection. We must
-        # make sure that the reflection's active_record name matches up
+        # make sure that the reflection's base_klass name matches up
         # with the current reflection's klass name.
         #
         # Note: klass will always be valid because when there's a NameError
         # from calling +klass+, +reflection+ will already be set to false.
         def valid_inverse_reflection?(reflection)
           reflection &&
-            klass.name == reflection.active_record.try(:name) &&
+            klass.name == reflection.base_klass.try(:name) &&
             klass.primary_key == reflection.active_record_primary_key &&
             can_find_inverse_of_automatically?(reflection)
         end
@@ -474,12 +474,12 @@ module ActiveRecord
           elsif options[:as]
             "#{options[:as]}_id"
           else
-            active_record.name.foreign_key
+            base_klass.name.foreign_key
           end
         end
 
         def derive_join_table
-          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+          [base_klass.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
         end
 
         def primary_key(klass)
@@ -508,7 +508,7 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.source_reflection
-      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
+      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @base_klass=Tagging, @plural_name="tags">
       #
       def source_reflection
         @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
@@ -524,10 +524,10 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.through_reflection
-      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
+      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @base_klass=Post, @plural_name="taggings">
       #
       def through_reflection
-        @through_reflection ||= active_record.reflect_on_association(options[:through])
+        @through_reflection ||= base_klass.reflect_on_association(options[:through])
       end
 
       # Returns an array of reflections which are involved in this association. Each item in the
@@ -544,8 +544,8 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.chain
-      #   # => [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @active_record=Post>,
-      #         <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @active_record=Post>]
+      #   # => [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @base_klass=Post>,
+      #         <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @base_klass=Post>]
       #
       def chain
         @chain ||= begin
@@ -642,11 +642,11 @@ module ActiveRecord
 
       def check_validity!
         if through_reflection.nil?
-          raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
+          raise HasManyThroughAssociationNotFoundError.new(base_klass.name, self)
         end
 
         if through_reflection.options[:polymorphic]
-          raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+          raise HasManyThroughAssociationPolymorphicThroughError.new(base_klass.name, self)
         end
 
         if source_reflection.nil?
@@ -654,15 +654,15 @@ module ActiveRecord
         end
 
         if options[:source_type] && source_reflection.options[:polymorphic].nil?
-          raise HasManyThroughAssociationPointlessSourceTypeError.new(active_record.name, self, source_reflection)
+          raise HasManyThroughAssociationPointlessSourceTypeError.new(base_klass.name, self, source_reflection)
         end
 
         if source_reflection.options[:polymorphic] && options[:source_type].nil?
-          raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
+          raise HasManyThroughAssociationPolymorphicSourceError.new(base_klass.name, self, source_reflection)
         end
 
         if macro == :has_one && through_reflection.collection?
-          raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
+          raise HasOneThroughCantAssociateThroughCollection.new(base_klass.name, self, through_reflection)
         end
 
         check_validity_of_inverse!
