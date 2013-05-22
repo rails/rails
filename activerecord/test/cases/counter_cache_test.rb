@@ -51,14 +51,9 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test 'reset multiple association counters' do
-    Topic.increment_counter(:replies_count, @topic.id)
-    assert_difference '@topic.reload.replies_count', -1 do
-      Topic.reset_counters(@topic.id, :replies, :unique_replies)
-    end
-
-    Topic.increment_counter(:unique_replies_count, @topic.id)
-    assert_difference '@topic.reload.unique_replies_count', -1 do
+  test 'reset multiple counters' do
+    Topic.update_counters @topic.id, replies_count: 1, unique_replies_count: 1
+    assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], -1 do
       Topic.reset_counters(@topic.id, :replies, :unique_replies)
     end
   end
