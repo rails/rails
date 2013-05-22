@@ -386,9 +386,9 @@ class ValidationsTest < ActiveModel::TestCase
       end
     end
 
-    #assert_deprecated do
+    assert_deprecated do
       Topic.validates_with validator_class
-    #end
+    end
 
     t = Topic.new
     t.valid?

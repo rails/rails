@@ -105,8 +105,8 @@ module ActiveModel
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @klass    = options.delete(:class)
-      @options  = options.freeze
+      @klass    = options[:class]
+      @options  = options.except(:class).freeze
       deprecated_setup or setup!
     end
 
