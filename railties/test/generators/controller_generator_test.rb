@@ -82,4 +82,12 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :bar, controller
     end
   end
+
+  def test_strip_controller_word_from_name_parameter
+    run_generator ["account_controller"]
+    assert_file "app/controllers/account_controller.rb", /class AccountController < ApplicationController/
+
+    run_generator ["AccountController"]
+    assert_file "app/controllers/account_controller.rb", /class AccountController < ApplicationController/
+  end
 end

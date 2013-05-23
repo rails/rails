@@ -15,6 +15,16 @@ module Rails
       end
 
       hook_for :template_engine, :test_framework, :helper, :assets
+
+      protected
+
+      def assign_names!(name) #:nodoc:
+        if self.name =~ /(C|_c)ontroller$/
+          self.name.chomp! $&
+        end
+
+        super
+      end
     end
   end
 end
