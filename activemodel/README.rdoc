@@ -20,7 +20,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
       include ActiveModel::Model
 
       attr_accessor :name, :age
-      validates :name, :presence => true
+      validates :name, presence: true
     end
 
     person = Person.new(name: 'bob', age: '18')
