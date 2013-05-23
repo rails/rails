@@ -1,3 +1,13 @@
+*   Allow passing string values to AR order method:
+
+    Example:
+
+        Model.order(id: 'asc').to_sql == Model.order(id: :asc).to_sql
+
+    Fixes #10732
+
+    *Marcelo Casiraghi*
+
 *   Default scopes are no longer overriden by chained conditions.
 
     Before this change when you defined a `default_scope` in a model

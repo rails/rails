@@ -1031,9 +1031,11 @@ module ActiveRecord
     end
 
     def validate_order_args(args)
-      args.grep(Hash) do |h|
-        unless (h.values - [:asc, :desc]).empty?
-          raise ArgumentError, 'Direction should be :asc or :desc'
+      args.grep(Hash) do |hash|
+        hash.values.each do |arg|
+          unless arg.to_s.casecmp('asc').zero? || arg.to_s.casecmp('desc').zero?
+            raise ArgumentError, 'Direction should be asc or desc'
+          end
         end
       end
     end
@@ -1055,7 +1057,7 @@ module ActiveRecord
         when Hash
           arg.map { |field, dir|
             field = klass.attribute_alias(field) if klass.attribute_alias?(field)
-            table[field].send(dir)
+            table[field].send(dir.to_s.downcase)
           }
         else
           arg
