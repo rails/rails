@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix the `:primary_key` option for `has_many` associations.
+    Fixes #10693.
+
+    *Yves Senn*
+
 *   fixes bug introduced by #3329.  Now, when autosaving associations,
     deletions happen before inserts and saves.  This prevents a 'duplicate
     unique value' database error that would occur if a record being created had
