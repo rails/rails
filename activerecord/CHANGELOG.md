@@ -1,3 +1,9 @@
+*   Fix bug where tiny types are incorectly coerced as booleand when the length is more than 1.
+
+    Fixes #10620.
+
+    *Aaron Peterson*
+
 *   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
     *kennyj*
