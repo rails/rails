@@ -122,5 +122,22 @@ module RailtiesTests
         assert_no_file "app/helpers/foo_bar/topics_helper.rb"
       end
     end
+
+    def test_controllers_ignores_trailing_controller
+      build_engine
+      Dir.chdir(engine_path) do
+        bundled_rails("g controller TopicsController")
+        assert_file "app/controllers/topics_controller.rb", /class TopicsController/
+      end
+    end
+
+    def test_controllers_ignores_trailing_controller_with_classpath
+      build_engine
+      Dir.chdir(engine_path) do
+        bundled_rails("g controller Admin::TopicsController")
+        assert_file "app/controllers/admin/topics_controller.rb", /class Admin::TopicsController/
+      end
+    end
+
   end
 end
