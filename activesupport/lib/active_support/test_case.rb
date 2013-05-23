@@ -16,10 +16,28 @@ begin
 rescue LoadError
 end
 
+module Minitest # :nodoc:
+  class << self
+    remove_method :__run
+  end
+
+  def self.__run reporter, options # :nodoc:
+    # FIXME: MT5's runnables is not ordered. This is needed because
+    # we have have tests have cross-class order-dependent bugs.
+    suites = Runnable.runnables.sort_by { |ts| ts.name.to_s }
+
+    parallel, serial = suites.partition { |s| s.test_order == :parallel }
+
+    ParallelEach.new(parallel).map { |suite| suite.run reporter, options } +
+     serial.map { |suite| suite.run reporter, options }
+  end
+end
+
 module ActiveSupport
-  class TestCase < ::MiniTest::Unit::TestCase
-    Assertion = MiniTest::Assertion
-    alias_method :method_name, :__name__
+  class TestCase < ::Minitest::Test
+    Assertion = Minitest::Assertion
+
+    alias_method :method_name, :name
 
     $tags = {}
     def self.for_tag(tag)
