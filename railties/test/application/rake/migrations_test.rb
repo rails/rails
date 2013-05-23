@@ -127,6 +127,44 @@ module ApplicationTests
         end
       end
 
+      test 'migration to add timestamps to products'  do
+        Dir.chdir(app_path) do
+          `rails generate migration create_products name:string;
+           rails generate migration add_timestamps_to_products`
+
+           output = `rake db:migrate`
+           assert_match(/create_table\(:products\)/, output)
+           assert_match(/CreateProducts: migrated/, output)
+           assert_match(/add_timestamps\(:products\)/, output)
+           assert_match(/AddTimestampsToProducts: migrated/, output)
+
+           output = `rake db:rollback STEP=2`
+           assert_match(/drop_table\(:products\)/, output)
+           assert_match(/CreateProducts: reverted/, output)
+           assert_match(/remove_timestamps\(:products\)/, output)
+           assert_match(/AddTimestampsToProducts: reverted/, output)
+        end
+      end
+
+      test 'migration to remove timestamps from products'  do
+        Dir.chdir(app_path) do
+          `rails generate migration create_products name:string;
+           rails generate migration remove_timestamps_from_products`
+
+           output = `rake db:migrate`
+           assert_match(/create_table\(:products\)/, output)
+           assert_match(/CreateProducts: migrated/, output)
+           assert_match(/remove_timestamps\(:products\)/, output)
+           assert_match(/RemoveTimestampsFromProducts: migrated/, output)
+
+           output = `rake db:rollback STEP=2`
+           assert_match(/drop_table\(:products\)/, output)
+           assert_match(/CreateProducts: reverted/, output)
+           assert_match(/add_timestamps\(:products\)/, output)
+           assert_match(/RemoveTimestampsFromProducts: reverted/, output)
+        end
+      end
+
       test 'migration status after rollback and redo without timestamps' do
         add_to_config('config.active_record.timestamped_migrations = false')
 

@@ -21,6 +21,10 @@ module ActiveRecord
       def set_local_assigns!
         @migration_template = "migration.rb"
         case file_name
+        when /^(add|remove)_timestamps_(?:to|from)_(.*)/
+          @migration_action = $1
+          @table_name       = $2.pluralize
+          @migration_template = 'timestamps.rb'
         when /^(add|remove)_.*_(?:to|from)_(.*)/
           @migration_action = $1
           @table_name       = $2.pluralize

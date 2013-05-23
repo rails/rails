@@ -245,6 +245,21 @@ end
 
 This migration will create a `user_id` column and appropriate index.
 
+Did you forget to add the timestamps when creating the table?
+
+```bash
+$ rails generate migration AddTimestampsToUsers
+```
+
+```ruby
+class AddTimestampsToUsers < ActiveRecord::Migration
+  add_timestamps :users
+end
+```
+
+User remove in the beginning of the previous migration name and you will have a migration to remove timestamps generated for you.
+
+
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash

@@ -159,6 +159,28 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_timestamps_to_books
+    migration = "add_timestamps_to_books"
+    run_generator [migration]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_timestamps :books/, change)
+      end
+    end
+  end
+
+  def test_remove_timestamps_from_books
+    migration = "remove_timestamps_from_books"
+    run_generator [migration]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_timestamps :books/, change)
+      end
+    end
+  end
+
   def test_create_join_table_migration
     migration = "add_media_join_table"
     run_generator [migration, "artist_id", "musics:uniq"]

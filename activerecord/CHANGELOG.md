@@ -1,3 +1,23 @@
+*   Create migration to add or remove timestamps to or from table
+
+    rails generate migration add_timestamps_to_users
+
+        class AddTimestampsToUsers < ActiveRecord::Migration
+          def change
+            add_timestamps :users
+          end
+        end
+
+    rails generate migration remove_timestamps_from_users
+
+        class RemoveTimestampsFromUsers < ActiveRecord::Migration
+          def change
+            remove_timestamps :users
+          end
+        end
+
+      *Frank Pimenta (frankapimenta)*
+
 *   Also support extentions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
     *kennyj*
