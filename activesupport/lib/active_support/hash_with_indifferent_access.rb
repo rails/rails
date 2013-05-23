@@ -227,6 +227,10 @@ module ActiveSupport
     def deep_symbolize_keys; to_hash.deep_symbolize_keys end
     def to_options!; self end
 
+    def select(*args, &block)
+      dup.select!(*args, &block)
+    end
+
     # Convert to a regular hash with string keys.
     def to_hash
       _new_hash= {}

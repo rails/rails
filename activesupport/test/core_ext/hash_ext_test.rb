@@ -480,6 +480,36 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal hash.delete('a'), nil
   end
 
+  def test_indifferent_select
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| v == 1}
+
+    assert_equal({ 'a' => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_select_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.select! {|k,v| v == 1}
+
+    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_reject
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject {|k,v| v != 1}
+
+    assert_equal({ 'a' => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_reject_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.reject! {|k,v| v != 1}
+
+    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
   def test_indifferent_to_hash
     # Should convert to a Hash with String keys.
     assert_equal @strings, @mixed.with_indifferent_access.to_hash
