@@ -575,6 +575,23 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal h.class, h.dup.class
   end
 
+  def test_indifferent_select
+    h = HashWithIndifferentAccess.new
+    h.default = 'the default'
+    h[:the_selected_key] = 'the selected value'
+    h[:not_a_selected_key] = 'not a selected value'
+    selected = h.select {|_,v| v == 'the selected value'}
+
+    # Should copy the default
+    assert_equal h.default, selected.default
+
+    # Should only copy true values
+    assert_equal selected.values, ['the selected value']
+
+    # Should preserve class for the copy
+    assert_equal h.class, selected.class
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
