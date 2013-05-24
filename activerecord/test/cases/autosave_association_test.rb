@@ -781,17 +781,17 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   def test_should_save_new_record_that_has_same_value_as_existing_record_marked_for_destruction_on_field_that_has_unique_index
-    Bird.connection.add_index :birds, :name, unique: true
+    Bird.connection.add_index :birds, :name, :unique => true
 
-    3.times { |i| @pirate.birds.create(name: "unique_birds_#{i}") }
+    3.times { |i| @pirate.birds.create(:name => "unique_birds_#{i}") }
 
     @pirate.birds[0].mark_for_destruction
-    @pirate.birds.build(name: @pirate.birds[0].name)
+    @pirate.birds.build(:name => @pirate.birds[0].name)
     @pirate.save!
 
     assert_equal 3, @pirate.birds.reload.length
   ensure
-    Bird.connection.remove_index :birds, column: :name
+    Bird.connection.remove_index :birds, :column => :name
   end
 
   # Add and remove callbacks tests for association collections.
