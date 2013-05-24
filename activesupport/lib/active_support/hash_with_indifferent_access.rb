@@ -182,6 +182,10 @@ module ActiveSupport
       end
     end
 
+    def select(*args, &block)
+      dup.select!(*args, &block)
+    end
+
     # This method has the same semantics of +update+, except it does not
     # modify the receiver but rather returns a new hash with indifferent
     # access with the result of the merge.
