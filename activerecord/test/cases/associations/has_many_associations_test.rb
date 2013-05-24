@@ -1496,7 +1496,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     david = people(:david)
 
     assert_equal ["A Modest Proposal"], david.essays.map(&:name)
-    david.essays = [Essay.create!(name: "Remote Work" )]
+    david.essays = [Essay.create!(:name => "Remote Work" )]
     assert_equal ["Remote Work"], david.essays.map(&:name)
   end
 
