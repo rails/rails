@@ -44,8 +44,8 @@ module ActionController #:nodoc:
         mimes.each do |mime|
           mime = mime.to_sym
           new[mime]          = {}
-          new[mime][:only]   = only_actions   unless only_actions.empty?
-          new[mime][:except] = except_actions unless except_actions.empty?
+          new[mime][:only]   = only_actions   if only_actions.any?
+          new[mime][:except] = except_actions if except_actions.any?
         end
         self.mimes_for_respond_to = new.freeze
       end

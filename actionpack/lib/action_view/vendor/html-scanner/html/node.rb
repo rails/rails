@@ -247,7 +247,7 @@ module HTML #:nodoc:
           conditions = validate_conditions(conditions)
 
           # Text nodes only have :content, :parent, :ancestor
-          unless (conditions.keys - [:content, :parent, :ancestor]).empty?
+          if (conditions.keys - [:content, :parent, :ancestor]).any?
             return false
           end
 

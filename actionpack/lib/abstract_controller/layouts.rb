@@ -259,7 +259,7 @@ module AbstractController
       # * :only   - A list of actions to apply this layout to.
       # * :except - Apply this layout to all actions but this one.
       def layout(layout, conditions = {})
-        include LayoutConditions unless conditions.empty?
+        include LayoutConditions if conditions.any?
 
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions

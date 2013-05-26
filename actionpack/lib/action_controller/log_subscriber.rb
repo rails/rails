@@ -12,7 +12,7 @@ module ActionController
       format  = format.to_s.upcase if format.is_a?(Symbol)
 
       info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
-      info "  Parameters: #{params.inspect}" unless params.empty?
+      info "  Parameters: #{params.inspect}" if params.any?
     end
 
     def process_action(event)
@@ -27,7 +27,7 @@ module ActionController
         status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
       end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
-      message << " (#{additions.join(" | ")})" unless additions.blank?
+      message << " (#{additions.join(" | ")})" if additions.present?
 
       info(message)
     end

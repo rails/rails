@@ -240,8 +240,8 @@ module ActionDispatch
               end
 
               hash = {}
-              hash[:controller] = controller unless controller.blank?
-              hash[:action]     = action unless action.blank?
+              hash[:controller] = controller if controller.present?
+              hash[:action]     = action if action.present?
               hash
             end
           end
@@ -1479,7 +1479,7 @@ module ActionDispatch
             end
 
             scope_options = options.slice!(*RESOURCE_OPTIONS)
-            unless scope_options.empty?
+            if scope_options.any?
               scope(scope_options) do
                 send(method, resources.pop, options, &block)
               end

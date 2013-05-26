@@ -52,7 +52,7 @@ module ActionDispatch
         required_keys = path.required_names
         supplied_keys = constraints.map { |k,v| v && k.to_s }.compact
 
-        return -1 unless (required_keys - supplied_keys).empty?
+        return -1 if (required_keys - supplied_keys).any?
 
         score = (supplied_keys & path.names).length
         score + (required_defaults.length * 2)

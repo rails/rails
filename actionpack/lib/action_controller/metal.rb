@@ -15,7 +15,7 @@ module ActionController
         options = args.extract_options!
         @only   = Array(options.delete(:only)).map(&:to_s)
         @except = Array(options.delete(:except)).map(&:to_s)
-        args << options unless options.empty?
+        args << options if options.any?
         super
       end
 
