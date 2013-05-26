@@ -3,7 +3,7 @@
 </header>
 <div id="container">
   <h2><%= @exception.message %></h2>
-  <% unless @exception.failures.empty? %>
+  <% if @exception.failures.any? %>
     <p>
       <h2>Failure reasons:</h2>
       <ol>

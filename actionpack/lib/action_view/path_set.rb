@@ -51,7 +51,7 @@ module ActionView #:nodoc:
       prefixes.each do |prefix|
         paths.each do |resolver|
           templates = resolver.find_all(path, prefix, *args)
-          return templates unless templates.empty?
+          return templates if templates.any?
         end
       end
       []

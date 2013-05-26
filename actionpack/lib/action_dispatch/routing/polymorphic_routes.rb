@@ -120,7 +120,7 @@ module ActionDispatch
         named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
 
         url_options = options.except(:action, :routing_type)
-        unless url_options.empty?
+        if url_options.any?
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
 

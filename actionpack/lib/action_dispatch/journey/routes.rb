@@ -41,7 +41,7 @@ module ActionDispatch
       def ast
         @ast ||= begin
           asts = partitioned_routes.first.map(&:ast)
-          Nodes::Or.new(asts) unless asts.empty?
+          Nodes::Or.new(asts) if asts.any?
         end
       end
 

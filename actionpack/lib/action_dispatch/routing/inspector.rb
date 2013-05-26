@@ -55,7 +55,7 @@ module ActionDispatch
       def reqs
         @reqs ||= begin
           reqs = endpoint
-          reqs += " #{constraints.to_s}" unless constraints.empty?
+          reqs += " #{constraints.to_s}" if constraints.any?
           reqs
         end
       end

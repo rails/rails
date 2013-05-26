@@ -34,7 +34,7 @@ module ActionDispatch
             end
           end
 
-          regexps << Regexp.new(strings.join('|'), true) unless strings.empty?
+          regexps << Regexp.new(strings.join('|'), true) if strings.any?
           new regexps, blocks
         end
 

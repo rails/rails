@@ -488,7 +488,7 @@ class RespondToControllerTest < ActionController::TestCase
   def test_render_action_for_html
     @controller.instance_eval do
       def render(*args)
-        @action = args.first[:action] unless args.empty?
+        @action = args.first[:action] if args.any?
         @action ||= action_name
 
         response.body = "#{@action} - #{formats}"
