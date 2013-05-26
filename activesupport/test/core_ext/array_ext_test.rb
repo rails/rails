@@ -96,6 +96,10 @@ class ArrayExtToSentenceTests < ActiveSupport::TestCase
     assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(options)
     assert_equal({ words_connector: ' ' }, options)
   end
+
+  def test_with_blank_elements
+    assert_equal ", one, , two, and three", [nil, 'one', '', 'two', 'three'].to_sentence
+  end
 end
 
 class ArrayExtToSTests < ActiveSupport::TestCase
