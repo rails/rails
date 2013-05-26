@@ -97,7 +97,7 @@ class RescuableTest < ActiveSupport::TestCase
     assert_equal expected, result
   end
 
-  def test_children_should_inherit_rescue_defintions_from_parents_and_child_rescue_should_be_appended
+  def test_children_should_inherit_rescue_definitions_from_parents_and_child_rescue_should_be_appended
     expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "CoolError"]
     result = @cool_stargate.send(:rescue_handlers).collect {|e| e.first}
     assert_equal expected, result
