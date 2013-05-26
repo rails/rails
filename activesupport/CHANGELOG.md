@@ -36,4 +36,8 @@
 
     *Daniel Schierbeck*
 
+*   Make `to_sentence` ignore blank array elements. GH#10758
+
+    *Arthur Klepchukov*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
