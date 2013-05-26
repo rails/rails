@@ -195,7 +195,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_nothing_raised do
       hash = {
         "CHI" => {
-          :dislay_name => "chicago",
+          :display_name => "chicago",
           :latitude => 123.234
         }
       }
