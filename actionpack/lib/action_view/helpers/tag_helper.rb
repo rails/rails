@@ -74,7 +74,8 @@ module ActionView
       # ==== Options
       # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
       # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
-      # symbols or strings for the attribute names.
+      # symbols or strings for the attribute names. You can use <tt>arguments</tt> option to pass
+      # arguments to the block.
       #
       # ==== Examples
       #   content_tag(:p, "Hello world!")
@@ -88,10 +89,15 @@ module ActionView
       #     Hello world!
       #   <% end -%>
       #    # => <div class="strong">Hello world!</div>
-      def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
+      #
+      #   <%= content_tag(:ol, arguments: nav, class: 'nav') do |nav|
+      #     <%= nav.navigation_link %>
+      #   <% end -%>
+      def content_tag(name, content_or_options_with_block = {}, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          content_tag_string(name, capture(&block), options, escape)
+          arguments = options.delete(:arguments)
+          content_tag_string(name, capture(*arguments, &block), options, escape)
         else
           content_tag_string(name, content_or_options_with_block, options, escape)
         end
