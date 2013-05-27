@@ -76,10 +76,10 @@ module ActiveRecord
     def update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
       um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes)
-      
+
       @klass.connection.update(
-        um, 
-        'SQL', 
+        um,
+        'SQL',
         binds)
     end
 
@@ -94,7 +94,7 @@ module ActiveRecord
       end
 
       [substitutes, binds]
-    end 
+    end
 
     # Initializes new record from relation while maintaining the current
     # scope.
