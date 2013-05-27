@@ -26,7 +26,6 @@ module ActiveRecord
       @klass             = klass
       @table             = table
       @values            = values
-      @implicit_readonly = nil
       @loaded            = false
       @default_scoped    = false
     end
@@ -582,10 +581,7 @@ module ActiveRecord
           ActiveRecord::Associations::Preloader.new(@records, associations).run
         end
 
-        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
-        # are JOINS and no explicit SELECT.
-        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
-        @records.each { |record| record.readonly! } if readonly
+        @records.each { |record| record.readonly! } if readonly_value
       else
         @records = default_scoped.to_a
       end
