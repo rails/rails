@@ -377,8 +377,8 @@ create_join_table :products, :categories, table_name: :categorization
 
 will create a `categorization` table.
 
-By default, `create_join_table` will create two columns with no options, but
-you can specify these options using the `:column_options` option. For example,
+For the two table columns, you can override the default `:null` option, or add
+others, by specifying the `:column_options` option. For example,
 
 ```ruby
 create_join_table :products, :categories, column_options: {null: true}
