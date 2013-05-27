@@ -1,3 +1,15 @@
+*   Usage of `implicit_readonly` is being removed`. Please use `readonly` method
+    explicitly to mark records as `readonly.
+    Fixes #10615.
+
+    Example:
+
+        user = User.joins(:todos).select("users.*, todos.title as todos_title").readonly(true).first
+        user.todos_title = 'clean pet'
+        user.save! # will raise error
+
+    *Yves Senn*
+
 *   Fix the `:primary_key` option for `has_many` associations.
     Fixes #10693.
 
