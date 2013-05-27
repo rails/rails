@@ -1015,7 +1015,7 @@ module ActiveRecord
     end
 
     def validate_order_args(args)
-      args.select { |a| Hash === a  }.each do |h|
+      args.grep(Hash) do |h|
         unless (h.values - [:asc, :desc]).empty?
           raise ArgumentError, 'Direction should be :asc or :desc'
         end
