@@ -135,7 +135,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
-|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html)|
+|config/|Configure your application's runtime rules, routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
 |Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
@@ -288,7 +288,7 @@ It will look a little basic for now, but that's ok. We'll look at improving the 
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`.  With the route already defined, requests can now be made to `/posts/new` in the application. Navigate to <http://localhost:3000/posts/new> and you'll see a routing error:
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. With the route already defined, requests can now be made to `/posts/new` in the application. Navigate to <http://localhost:3000/posts/new> and you'll see a routing error:
 
 ![Another routing error, uninitialized constant PostsController](images/getting_started/routing_error_no_controller.png)
 
@@ -742,7 +742,7 @@ end
 ```
 
 These changes will ensure that all posts have a title that is at least five
-characters long.  Rails can validate a variety of conditions in a model,
+characters long. Rails can validate a variety of conditions in a model,
 including the presence or uniqueness of columns, their format, and the
 existence of associated objects. Validations are covered in detail in [Active
 Record Validations](active_record_validations.html)

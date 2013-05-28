@@ -34,7 +34,7 @@ resources :users
 the action in `UsersController` to update a user is still `update`.
 
 `PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
-today.  So, if you have an API that gets real PUT requests it is going to work.
+today. So, if you have an API that gets real PUT requests it is going to work.
 The router also routes `PATCH` requests to `/users/:id` to the `update` action.
 
 So, in Rails 4 both `PUT` and `PATCH` are routed to update. We recommend

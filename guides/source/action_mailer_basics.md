@@ -496,7 +496,7 @@ end
 
 There may be cases in which you want to skip the template rendering step and
 supply the email body as a string. You can achieve this using the `:body`
-option.  In such cases don't forget to add the `:content_type` option. Rails
+option. In such cases don't forget to add the `:content_type` option. Rails
 will default to `text/plain` otherwise.
 
 ```ruby

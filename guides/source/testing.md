@@ -64,7 +64,7 @@ YAML-formatted fixtures are a very human-friendly way to describe your sample da
 Here's a sample YAML fixture file:
 
 ```yaml
-# lo & behold!  I am a YAML comment!
+# lo & behold! I am a YAML comment!
 david:
  name: David Heinemeier Hansson
  birthday: 1979-10-15
@@ -396,7 +396,7 @@ Rails adds some custom assertions of its own to the `test/unit` framework:
 | `assert_no_difference(expressions, message = nil, &amp;block)`                    | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
-| `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299,  `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
+| `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
 | `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on.|
 | `assert_template(expected = nil, message=nil)`                                    | Asserts that the request was rendered with the appropriate template file.|
 
