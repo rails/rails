@@ -1,5 +1,3 @@
-*   Fixes bug with testing nil Rake::Application (bug #10628).
-
 *   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
     Fixes #9525.
 
