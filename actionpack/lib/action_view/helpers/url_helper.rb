@@ -92,8 +92,9 @@ module ActionView
       # ==== Data attributes
       #
       # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified. If the user accepts, the link is
-      #   processed normally, otherwise no action is taken.
+      #   driver to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>. If the user accepts, the
+      #   link is processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted. This feature is provided
