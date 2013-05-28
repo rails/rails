@@ -778,13 +778,6 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 | `rake test:models`      | Runs all the model tests from `test/models`|
 | `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 
-There're also some test commands which you can initiate by running rake tasks:
-
-| Tasks                    | Description |
-| ------------------------ | ----------- |
-| `rake test`              | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
-| `rake test:recent`       | Tests recent changes|
-| `rake test:uncommitted`  | Runs all the tests which are uncommitted. Supports Subversion and Git|
 
 Brief Note About `MiniTest`
 -----------------------------
