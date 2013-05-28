@@ -1692,7 +1692,7 @@ person.posts.inspect # => [#<Post id: 5, name: "a1">, #<Post id: 5, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, post_id: 5>, #<Reading id: 13, person_id: 5, post_id: 5>]
 ```
 
-In the above case there are two readings and `person.posts` brings out both of 
+In the above case there are two readings and `person.posts` brings out both of
 them even though these records are pointing to the same post.
 
 Now let's set `distinct`:
@@ -1711,24 +1711,24 @@ person.posts.inspect # => [#<Post id: 7, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>]
 ```
 
-In the above case there are still two readings. However `person.posts` shows 
+In the above case there are still two readings. However `person.posts` shows
 only one post because the collection loads only unique records.
 
-If you want to make sure that, upon insertion, all of the records in the 
-persisted association are distinct (so that you can be sure that when you 
-inspect the association that you will never find duplicate records), you should 
-add a unique index on the table itself. For example, if you have a table named 
-``person_posts`` and you want to make sure all the posts are unique, you could 
+If you want to make sure that, upon insertion, all of the records in the
+persisted association are distinct (so that you can be sure that when you
+inspect the association that you will never find duplicate records), you should
+add a unique index on the table itself. For example, if you have a table named
+``person_posts`` and you want to make sure all the posts are unique, you could
 add the following in a migration:
 
 ```ruby
 add_index :person_posts, :post, :unique => true
 ```
 
-Note that checking for uniqueness using something like ``include?`` is subject 
-to race conditions. Do not attempt to use ``include?`` to enforce distinctness 
-in an association. For instance, using the post example from above, the 
-following code would be racy because multiple users could be attempting this 
+Note that checking for uniqueness using something like ``include?`` is subject
+to race conditions. Do not attempt to use ``include?`` to enforce distinctness
+in an association. For instance, using the post example from above, the
+following code would be racy because multiple users could be attempting this
 at the same time:
 
 ```ruby
@@ -1942,7 +1942,7 @@ TIP: The `:foreign_key` and `:association_foreign_key` options are useful when s
 
 ```ruby
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, 
+  has_and_belongs_to_many :friends,
       class_name: "User",
       foreign_key: "this_user_id",
       association_foreign_key: "other_user_id"

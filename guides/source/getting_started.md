@@ -264,7 +264,7 @@ Blog::Application.routes.draw do
 end
 ```
 
-If you run `rake routes`, you'll see that all the routes for the 
+If you run `rake routes`, you'll see that all the routes for the
 standard RESTful actions.
 
 ```bash
@@ -534,7 +534,7 @@ def create
   @post = Post.new(params[:post])
 
   @post.save
-  redirect_to @post 
+  redirect_to @post
 end
 ```
 
@@ -553,14 +553,14 @@ whether the model was saved or not.
 
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
-`show` action before proceeding. 
+`show` action before proceeding.
 
 ```ruby
 post GET    /posts/:id(.:format)      posts#show
 ```
 
 The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the post. 
+parameter, which in our case will be the id of the post.
 
 As we did before, we need to add the `show` action in
 `app/controllers/posts_controller.rb` and its respective view.
@@ -621,7 +621,7 @@ Visit <http://localhost:3000/posts/new> and give it a try!
 
 ### Listing all posts
 
-We still need a way to list all our posts, so let's do that. 
+We still need a way to list all our posts, so let's do that.
 We'll use a specific route from `config/routes.rb`:
 
 ```ruby
@@ -763,7 +763,7 @@ def create
   @post = Post.new(params[:post].permit(:title, :text))
 
   if @post.save
-    redirect_to @post 
+    redirect_to @post
   else
     render 'new'
   end
@@ -1084,7 +1084,7 @@ together.
 </table>
 ```
 
-Here we're using `link_to` in a different way. We pass the named route as the first argument, 
+Here we're using `link_to` in a different way. We pass the named route as the first argument,
 and then the final two keys as another argument. The `:method` and `:'data-confirm'`
 options are used as HTML5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the link with method `delete`.
@@ -1095,7 +1095,7 @@ generated the application. Without this file, the confirmation dialog box wouldn
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
 Congratulations, you can now create, show, list, update and destroy
-posts. 
+posts.
 
 TIP: In general, Rails encourages the use of resources objects in place
 of declaring routes manually.

@@ -25,7 +25,7 @@ Write in present tense: "Returns a hash that...", rather than "Returned a hash t
 Start comments in upper case. Follow regular punctuation rules:
 
 ```ruby
-# Declares an attribute reader backed by an internally-named 
+# Declares an attribute reader backed by an internally-named
 # instance variable.
 def attr_internal_reader(*attrs)
   ...
@@ -57,7 +57,7 @@ Use two spaces to indent chunks of code--that is, for markup purposes, two space
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 
 ```ruby
-# Converts a collection of elements into a formatted string by 
+# Converts a collection of elements into a formatted string by
 # calling +to_s+ on all elements and joining them.
 #
 #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"

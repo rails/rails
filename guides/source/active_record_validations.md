@@ -677,13 +677,13 @@ class GoodnessValidator
   def initialize(person)
     @person = person
   end
-  
+
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
       @person.errors[:base] << "This person is evil"
     end
   end
-  
+
   # …
 end
 ```
