@@ -622,11 +622,11 @@ The `assert_select` assertion is quite powerful. For more advanced usage, refer 
 
 There are more assertions that are primarily used in testing views:
 
-| Assertion                                                  | Purpose |
-| ---------------------------------------------------------- | ------- |
-| `assert_select_email`                                      | Allows you to make assertions on the body of an e-mail. |
-| `assert_select_encoded`                                    | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
-| `css_select(selector)`  or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
+| Assertion                                                 | Purpose |
+| --------------------------------------------------------- | ------- |
+| `assert_select_email`                                     | Allows you to make assertions on the body of an e-mail. |
+| `assert_select_encoded`                                   | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
+| `css_select(selector)` or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
 
 Here's an example of using `assert_select_email`:
 

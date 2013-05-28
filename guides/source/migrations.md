@@ -448,7 +448,7 @@ definitions:
 * `create_table`
 * `create_join_table`
 * `drop_table` (must supply a block)
-* `drop_join_table`  (must supply a block)
+* `drop_join_table` (must supply a block)
 * `remove_timestamps`
 * `rename_column`
 * `rename_index`

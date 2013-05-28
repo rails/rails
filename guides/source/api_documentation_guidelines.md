@@ -141,7 +141,7 @@ class Array
 end
 ```
 
-WARNING: Using a pair of `+...+` for fixed-width font only works with **words**; that is: anything matching `\A\w+\z`. For anything else  use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
+WARNING: Using a pair of `+...+` for fixed-width font only works with **words**; that is: anything matching `\A\w+\z`. For anything else use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
 
 ### Regular Font
 
