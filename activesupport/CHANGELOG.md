@@ -1,3 +1,8 @@
+*   `OptionMerger` no longer performs lambda merging.
+    Fixes #9805.
+
+    *Yves Senn*
+
 *   Raise an error when multiple `included` blocks are defined for a Concern.
     The old behavior would silently discard previously defined blocks, running
     only the last one.
