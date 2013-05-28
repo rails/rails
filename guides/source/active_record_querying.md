@@ -1229,7 +1229,7 @@ One important caveat is that `default_scope` will be overridden by
 
 ```ruby
 class User < ActiveRecord::Base
-  default_scope  { where state: 'pending' }
+  default_scope { where state: 'pending' }
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end

@@ -173,8 +173,8 @@ before_save :update_credit_rating, :if => :active,
 Rails now has a `:having` option on find (as well as on `has_many` and `has_and_belongs_to_many` associations) for filtering records in grouped finds. As those with heavy SQL backgrounds know, this allows filtering based on grouped results:
 
 ```ruby
-developers =  Developer.find(:all, :group => "salary",
-  :having => "sum(salary) >  10000", :select => "salary")
+developers = Developer.find(:all, :group => "salary",
+  :having => "sum(salary) > 10000", :select => "salary")
 ```
 
 * Lead Contributor: [Emilio Tagua](http://github.com/miloops)

@@ -885,7 +885,7 @@ end
         :name => 'John Doe',
         :addresses_attributes => {
             '0' => {
-                :kind  => 'Home',
+                :kind => 'Home',
                 :street => '221b Baker Street',
             },
             '1' => {
