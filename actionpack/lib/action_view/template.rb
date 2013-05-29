@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'action_view/compiler'
 require 'thread'
 
 module ActionView
@@ -139,8 +140,10 @@ module ActionView
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
       instrument("!render_template") do
-        compile!(view)
-        view.send(method_name, locals, buffer, &block)
+        encode!
+        compiled_template = Compiler.compile_template(self)
+        compiled_view = compiled_template.new(view)
+        compiled_view.render(locals, buffer, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)

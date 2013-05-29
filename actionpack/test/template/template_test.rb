@@ -17,9 +17,12 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   class Context
+    attr_accessor :output_buffer, :virtual_path, :assigns, :view_flow
+
     def initialize
       @output_buffer = "original"
       @virtual_path = nil
+      @assigns = {}
     end
 
     def hello
