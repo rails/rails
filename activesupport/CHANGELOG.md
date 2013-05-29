@@ -1,3 +1,9 @@
+*   Prevent side effects to hashes inside arrays when
+    `Hash#with_indifferent_access` is called.
+    Fixes #10526
+
+    *Yves Senn*
+
 *   Raise an error when multiple `included` blocks are defined for a Concern.
     The old behavior would silently discard previously defined blocks, running
     only the last one.
