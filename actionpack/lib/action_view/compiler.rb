@@ -17,11 +17,14 @@ module ActionView
       # Make sure that the resulting String to be evalled is in the
       # encoding of the code
       source = <<-end_src
-        def initialize(view)
+        attr_reader :local_assigns
+
+        def initialize(view, local_assigns)
           @view = view
           @view_flow = view.view_flow
           @virtual_path = #{virtual_path.inspect}
           @output_buffer = view.output_buffer
+          @local_assigns = local_assigns
 
           if view.respond_to?(:assigns)
             view.assigns.each do |key, value|
@@ -30,10 +33,10 @@ module ActionView
           end
         end
 
-        def render(local_assigns, output_buffer)
-          _old_virtual_path, @view.virtual_path = @view.virtual_path, @virtual_path;_old_output_buffer = @output_buffer;#{locals_code};#{code}
+        def render(output_buffer)
+          @view.virtual_path = @virtual_path;_old_output_buffer = @output_buffer;#{locals_code};#{code}
         ensure
-          @view.virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
+          @view.virtual_path, @output_buffer = @virtual_path, _old_output_buffer
         end
 
         def method_missing(method, *args, &block)

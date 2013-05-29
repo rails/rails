@@ -142,8 +142,8 @@ module ActionView
       instrument("!render_template") do
         encode!
         compiled_template = Compiler.compile_template(self)
-        compiled_view = compiled_template.new(view)
-        compiled_view.render(locals, buffer, &block)
+        compiled_view = compiled_template.new(view, locals)
+        compiled_view.render(buffer, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)
