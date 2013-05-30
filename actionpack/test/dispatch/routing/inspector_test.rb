@@ -234,6 +234,15 @@ module ActionDispatch
                       "          PUT    /posts/:id(.:format)      posts#update",
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
       end
+
+      def test_regression_route_with_controller_regexp
+        output = draw do
+          get ':controller(/:action)', controller: /api\/[^\/]+/, format: false
+        end
+
+        assert_equal ["Prefix Verb URI Pattern            Controller#Action",
+                      " GET /:controller(/:action) (?-mix:api\\/[^\\/]+)#:action"], output
+      end
     end
   end
 end
