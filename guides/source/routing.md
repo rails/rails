@@ -461,7 +461,7 @@ For other actions, you just need to insert the action name as the first element 
 
 This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.
 
-### Adding More Resourceful Actions
+### Adding More RESTful Actions
 
 You are not limited to the seven routes that RESTful routing creates by default. If you like, you may add additional routes that apply to the collection or individual members of the collection.
 
