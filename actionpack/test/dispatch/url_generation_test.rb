@@ -39,6 +39,10 @@ module TestUrlGeneration
       https!
       assert_equal "http://www.example.com/foo", foo_url(:protocol => "http")
     end
+
+    test "remove trailing slash from host" do
+      assert_equal "http://www.example.com/foo", foo_url(host: "www.example.com/")
+    end
   end
 end
 
