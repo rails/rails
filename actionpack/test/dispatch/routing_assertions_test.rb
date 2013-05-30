@@ -42,7 +42,7 @@ class RoutingAssertionsTest < ActionController::TestCase
   def test_assert_recognizes_with_extras
     assert_recognizes({ :controller => 'articles', :action => 'index', :page => '1' }, '/articles', { :page => '1' })
   end
- 
+
   def test_assert_recognizes_with_method
     assert_recognizes({ :controller => 'articles', :action => 'create' }, { :path => '/articles', :method => :post })
     assert_recognizes({ :controller => 'articles', :action => 'update', :id => '1' }, { :path => '/articles/1', :method => :put })

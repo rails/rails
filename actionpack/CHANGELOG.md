@@ -1,5 +1,14 @@
 ## unreleased ##
 
+*   Fix `ActionDispatch::Assertions::ResponseAssertions#assert_redirected_to`
+    does not show user-supplied message.
+
+    Issue: when `assert_redirected_to` fails due to the response redirect not
+    matching the expected redirect the user-supplied message (second parameter)
+    is not shown. This message is only shown if the response is not a redirect.
+
+    *Alexey Chernenkov*
+
 *   Merge `:action` from routing scope and assign endpoint if both `:controller`
     and `:action` are present. The endpoint assignment only occurs if there is
     no `:to` present in the options hash so should only affect routes using the
