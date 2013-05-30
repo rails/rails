@@ -1,3 +1,12 @@
+*   Handle `name` and `"char"` column types in the PostgreSQL adapter.
+
+    `name` and `"char"` are special character types used internally by
+    PostgreSQL and are used by internal system catalogs. These field types
+    can sometimes show up in structure-sniffing queries that feature internal system
+    structures or with certain PostgreSQL extensions.
+
+    *J Smith*
+
 *   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
     and `ActiveRecord::Base.symbolized_sti_name` without replacement.
 
