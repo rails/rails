@@ -780,6 +780,7 @@ module ActiveRecord
       end
 
       def needs_migration?
+        return false if last_version == 0
         current_version < last_version
       end
 
