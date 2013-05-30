@@ -311,6 +311,20 @@ module ActiveRecord
         end
       end
 
+      def test_internal_name_column_type
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(data name)')
+        column = @connection.columns('ex').find { |col| col.name == 'data' }
+        assert_equal :string, column.type
+      end
+
+      def test_internal_char_column_type
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(data "char")')
+        column = @connection.columns('ex').find { |col| col.name == 'data' }
+        assert_equal :string, column.type
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|
