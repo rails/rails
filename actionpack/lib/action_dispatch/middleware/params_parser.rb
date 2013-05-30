@@ -43,7 +43,7 @@ module ActionDispatch
         when :json
           data = ActiveSupport::JSON.decode(request.body)
           data = {:_json => data} unless data.is_a?(Hash)
-          request.deep_munge(data).with_indifferent_access
+          Request::Utils.deep_munge(data).with_indifferent_access
         else
           false
         end
