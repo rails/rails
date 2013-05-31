@@ -35,6 +35,7 @@ module ActionView
 
         def call(output_buffer)
           old_ivars = instance_variables
+          @view.virtual_path = @virtual_path
           #{locals_code};#{code}
         ensure
           ivars = instance_variables - old_ivars
