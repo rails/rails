@@ -159,7 +159,8 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `CONTROLLER=cart rake routes` }
+      ENV['CONTROLLER'] = 'cart'
+      output = Dir.chdir(app_path){ `rake routes` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
     end
 
