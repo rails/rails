@@ -34,9 +34,7 @@ module ActionView
         end
 
         def render(output_buffer)
-          @view.virtual_path = @virtual_path;_old_output_buffer = @output_buffer;#{locals_code};#{code}
-        ensure
-          @view.virtual_path, @output_buffer = @virtual_path, _old_output_buffer
+          #{locals_code};#{code}
         end
 
         def method_missing(method, *args, &block)
