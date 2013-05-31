@@ -104,6 +104,15 @@ This method generates a cache key that depends on all products and can be used i
   All available products:
 <% end %>
 ```
+
+If you want to cache a fragment under certain condition you can use `cache_if` or `cache_unless` 
+
+```erb
+<% cache_if (condition, cache_key_for_products) do %>
+  All available products:
+<% end %>
+```
+
 You can also use an Active Record model as the cache key:
 
 ```erb
