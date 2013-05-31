@@ -299,8 +299,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_uuid_shorthand_definition
       output = standard_dump
-      if %r{create_table "poistgresql_uuids"} =~ output
+      if %r{create_table "postgresql_uuids"} =~ output
         assert_match %r{t.uuid "guid"}, output
+        assert_match %r{t.uuid "v1_guid",\s+default: "uuid_generate_v1\(\)"}, output
+        assert_match %r{t.uuid "v4_guid",\s+default: "uuid_generate_v4\(\)"}, output
       end
     end
 

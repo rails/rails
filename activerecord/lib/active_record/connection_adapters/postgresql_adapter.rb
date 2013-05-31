@@ -119,6 +119,9 @@ module ActiveRecord
           # JSON
           when /\A'(.*)'::json\z/
             $1
+          # UUID functions
+          when /\A(uuid_generate.*)\z/
+            $1
           # Object identifier types
           when /\A-?\d+\z/
             $1

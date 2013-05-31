@@ -1,3 +1,8 @@
+*   Migration dump UUID default functions to schema.rb.
+    Fixes #10751.
+
+    *kennyj*
+
 *   Usage of `implicit_readonly` is being removed`. Please use `readonly` method
     explicitly to mark records as `readonly.
     Fixes #10615.
