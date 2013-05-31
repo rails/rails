@@ -142,7 +142,7 @@ module ActionView
       instrument("!render_template") do
         @compiled_template ||= compile!
         compiled_view = @compiled_template.new(view, locals)
-        compiled_view.render(buffer, &block)
+        compiled_view.call(buffer, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)

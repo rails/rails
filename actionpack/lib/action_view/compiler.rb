@@ -33,8 +33,15 @@ module ActionView
           end
         end
 
-        def render(output_buffer)
+        def call(output_buffer)
+          old_ivars = instance_variables
           #{locals_code};#{code}
+        ensure
+          ivars = instance_variables - old_ivars
+          ivars.each do |ivar|
+            value = instance_variable_get(ivar)
+            @view.instance_variable_set(ivar, value)
+          end
         end
 
         def method_missing(method, *args, &block)
@@ -56,7 +63,7 @@ module ActionView
         raise WrongEncodingError.new(@source, Encoding.default_internal)
       end
 
-      compiled_template.class_eval(source)
+      compiled_template.class_eval(source, @template.identifier, 0)
       compiled_template
     end
 
