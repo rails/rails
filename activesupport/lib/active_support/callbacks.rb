@@ -539,7 +539,7 @@ module ActiveSupport
 
       def normalize_callback_params(filters, block) # :nodoc:
         type = CALLBACK_FILTER_TYPES.include?(filters.first) ? filters.shift : :before
-        options = filters.last.is_a?(Hash) ? filters.pop : {}
+        options = filters.extract_options!
         filters.unshift(block) if block
         [type, filters, options.dup]
       end
