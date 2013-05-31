@@ -333,10 +333,44 @@ module ActiveRecord
       toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
-    # Reloads the attributes of this object from the database.
-    # The optional options argument is passed to find when reloading so you
-    # may do e.g. record.reload(lock: true) to reload the same record with
-    # an exclusive row lock.
+    # Reloads the record from the database.
+    #
+    # This method modifies the receiver in-place. Attributes are updated, and
+    # caches busted, in particular the associations cache.
+    #
+    # If the record no longer exists in the database <tt>ActiveRecord::RecordNotFound</tt>
+    # is raised. Otherwise, in addition to the in-place modification the method
+    # returns +self+ for convenience.
+    #
+    # The optional <tt>:lock</tt> flag option allows you to lock the reloaded record:
+    #
+    #   reload(lock: true) # reload with pessimistic locking
+    #
+    # Reloading is commonly used in test suites to test something is actually
+    # written to the database, or when some action modifies the corresponding
+    # row in the database but not the object in memory:
+    #
+    #   assert account.deposit!(25)
+    #   assert_equal 25, account.credit        # check it is updated in memory
+    #   assert_equal 25, account.reload.credit # check it is also persisted
+    #
+    # Another commom use case is optimistic locking handling:
+    #
+    #   def with_optimistic_retry
+    #     begin
+    #       yield
+    #     rescue ActiveRecord::StaleObjectError
+    #       begin
+    #         # Reload lock_version in particular.
+    #         reload
+    #       rescue ActiveRecord::RecordNotFound
+    #         # If the record is gone there is nothing to do.
+    #       else
+    #         retry
+    #       end
+    #     end
+    #   end
+    #
     def reload(options = nil)
       clear_aggregation_cache
       clear_association_cache
