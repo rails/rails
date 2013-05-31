@@ -140,8 +140,8 @@ module ActionView
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
       instrument("!render_template") do
-        compiled_template = compile!
-        compiled_view = compiled_template.new(view, locals)
+        @compiled_template ||= compile!
+        compiled_view = @compiled_template.new(view, locals)
         compiled_view.render(buffer, &block)
       end
     rescue Exception => e
@@ -230,9 +230,11 @@ module ActionView
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile! #:nodoc:
-        encode!
         instrument("!compile_template") do
-          Compiler.compile_template(self)
+          encode!
+          compiled_template = Compiler.compile_template(self)
+          @source = nil if @virtual_path
+          compiled_template
         end
       end
 
