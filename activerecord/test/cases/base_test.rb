@@ -581,12 +581,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed", post.body
   end
 
-  def test_attr_readonly_is_class_level_setting
-    post = ReadonlyTitlePost.new
-    assert_raise(NoMethodError) { post._attr_readonly = [:title] }
-    assert_deprecated { post._attr_readonly }
-  end
-
   def test_non_valid_identifier_column_name
     weird = Weird.create('a$b' => 'value')
     weird.reload
