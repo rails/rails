@@ -1747,12 +1747,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
   end
 
-  test "sum calculation with block for array compatibility is deprecated" do
-    assert_deprecated do
-      posts(:welcome).comments.sum { |c| c.id }
-    end
-  end
-
   test "has many associations on new records use null relations" do
     post = Post.new
 
