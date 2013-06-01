@@ -56,15 +56,7 @@ module ActiveRecord
     #
     #   Person.sum(:age) # => 4562
     def sum(*args)
-      if block_given?
-        ActiveSupport::Deprecation.warn(
-          "Calling #sum with a block is deprecated and will be removed in Rails 4.1. " \
-          "If you want to perform sum calculation over the array of elements, use `to_a.sum(&block)`."
-        )
-        self.to_a.sum(*args) {|*block_args| yield(*block_args)}
-      else
-        calculate(:sum, *args)
-      end
+      calculate(:sum, *args)
     end
 
     # This calculates aggregate values in the given column. Methods for count, sum, average,
