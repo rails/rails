@@ -154,34 +154,58 @@ module ActiveRecord
       first || new(attributes, &block)
     end
 
-    # Finds the first record with the given attributes, or creates a record with the attributes
-    # if one is not found.
+    # Finds the first record with the given attributes, or creates a record
+    # with the attributes if one is not found:
     #
-    # ==== Examples
-    #   # Find the first user named Penélope or create a new one.
+    #   # Find the first user named "Penélope" or create a new one.
     #   User.find_or_create_by(first_name: 'Penélope')
-    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
     #
-    #   # Find the first user named Penélope or create a new one.
+    #   # Find the first user named "Penélope" or create a new one.
     #   # We already have one so the existing record will be returned.
     #   User.find_or_create_by(first_name: 'Penélope')
-    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
     #
-    #   # Find the first user named Scarlett or create a new one with a particular last name.
+    #   # Find the first user named "Scarlett" or create a new one with
+    #   # a particular last name.
     #   User.create_with(last_name: 'Johansson').find_or_create_by(first_name: 'Scarlett')
-    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
     #
-    #   # Find the first user named Scarlett or create a new one with a different last name.
-    #   # We already have one so the existing record will be returned.
+    # This method accepts a block, which is passed down to +create+. The last example
+    # above can be alternatively written this way:
+    #
+    #   # Find the first user named "Scarlett" or create a new one with a
+    #   # different last name.
     #   User.find_or_create_by(first_name: 'Scarlett') do |user|
-    #     user.last_name = "O'Hara"
+    #     user.last_name = 'Johansson'
     #   end
-    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
+    #
+    # This method always returns a record, but if creation was attempted and
+    # failed due to validation errors it won't be persisted, you get what
+    # +create+ returns in such situation.
+    #
+    # Please note *this method is not atomic*, it runs first a SELECT, and if
+    # there are no results an INSERT is attempted. If there are other threads
+    # or processes there is a race condition between both calls and it could
+    # be the case that you end up with two similar records.
+    #
+    # Whether that is a problem or not depends on the logic of the
+    # application, but in the particular case in which rows have a UNIQUE
+    # constraint an exception may be raised, just retry:
+    #
+    #  begin
+    #    CreditAccount.find_or_create_by(user_id: user.id)
+    #  rescue ActiveRecord::RecordNotUnique
+    #    retry
+    #  end
+    #
     def find_or_create_by(attributes, &block)
       find_by(attributes) || create(attributes, &block)
     end
 
-    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
+    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception
+    # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
       find_by(attributes) || create!(attributes, &block)
     end
