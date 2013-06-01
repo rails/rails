@@ -2,7 +2,6 @@
 
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/json/variable'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
