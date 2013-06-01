@@ -1228,38 +1228,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_no_queries { assert true }
   end
 
-  def test_silence_sets_log_level_to_error_in_block
-    original_logger = ActiveRecord::Base.logger
-
-    assert_deprecated do
-      log = StringIO.new
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-      ActiveRecord::Base.logger.level = Logger::DEBUG
-      ActiveRecord::Base.silence do
-        ActiveRecord::Base.logger.warn "warn"
-        ActiveRecord::Base.logger.error "error"
-      end
-      assert_equal "error\n", log.string
-    end
-  ensure
-    ActiveRecord::Base.logger = original_logger
-  end
-
-  def test_silence_sets_log_level_back_to_level_before_yield
-    original_logger = ActiveRecord::Base.logger
-
-    assert_deprecated do
-      log = StringIO.new
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-      ActiveRecord::Base.logger.level = Logger::WARN
-      ActiveRecord::Base.silence do
-      end
-      assert_equal Logger::WARN, ActiveRecord::Base.logger.level
-    end
-  ensure
-    ActiveRecord::Base.logger = original_logger
-  end
-
   def test_benchmark_with_log_level
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
