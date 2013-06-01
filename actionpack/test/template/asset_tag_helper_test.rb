@@ -298,13 +298,15 @@ class AssetTagHelperTest < ActionView::TestCase
     %(font_path("font.ttf?123")) => %(/fonts/font.ttf?123)
   }
 
-  def test_autodiscovery_link_tag_deprecated_types
-    result = nil
-    assert_deprecated do
-      result = auto_discovery_link_tag(:xml)
+  def test_autodiscovery_link_tag_with_unknown_type_but_not_pass_type_option_key
+    assert_raise(ArgumentError) do
+      auto_discovery_link_tag(:xml)
     end
+  end
 
-    expected = %(<link href="http://www.example.com" rel="alternate" title="XML" type="application/xml" />)
+  def test_autodiscovery_link_tag_with_unknown_type
+    result = auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')
+    expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
     assert_equal expected, result
   end
 
