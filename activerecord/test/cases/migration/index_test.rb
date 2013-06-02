@@ -109,16 +109,6 @@ module ActiveRecord
         end
       end
 
-      def test_deprecated_type_argument
-        message = "Passing a string as third argument of `add_index` is deprecated and will" +
-          " be removed in Rails 4.1." +
-          " Use add_index(:testings, [:foo, :bar], unique: true) instead"
-
-        assert_deprecated message do
-          connection.add_index :testings, [:foo, :bar], "UNIQUE"
-        end
-      end
-
       def test_unique_index_exists
         connection.add_index :testings, :foo, :unique => true
 
