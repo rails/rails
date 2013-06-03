@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*  Allow Date to be compared with Time (like it was possible to compare Time with Date).
+
+   *DHH*
+
 *  Deprecate multiple parameters support of `Object#in?`.
 
    *Brian Morearty + Carlos Antonio da Silva*

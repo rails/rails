@@ -48,6 +48,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_compare_to_time
+    assert Date.yesterday < Time.now
+  end
+
   def test_to_datetime
     assert_equal DateTime.civil(2005, 2, 21), Date.new(2005, 2, 21).to_datetime
     assert_equal 0, Date.new(2005, 2, 21).to_datetime.offset # use UTC offset
