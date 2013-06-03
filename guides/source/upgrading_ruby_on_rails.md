@@ -41,6 +41,24 @@ So, in Rails 4 both `PUT` and `PATCH` are routed to update. We recommend
 switching to `PATCH` as part of your upgrade process if possible, as it's more
 likely what you want.
 
+Note, when using `form_for` to update a resource in conjunction with a custom route,
+you'll need to update your route to explicity match the `patch` verb:
+
+```erb
+<%= form_for [ :update_name, @user ] do |f| %>
+  ...
+<% end %>
+```
+
+```ruby
+resources :users do
+  # Rails 3
+  put :update_name, on: :member
+  # Rails 4
+  patch :update_name, on: :member
+end
+```
+
 For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
