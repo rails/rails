@@ -91,7 +91,7 @@ module ActiveSupport
     #
     # This value can be later fetched using either +:key+ or +'key'+.
     def []=(key, value)
-      regular_writer(convert_key(key), convert_value(value))
+      regular_writer(convert_key(key), convert_value(value, for: :assignment))
     end
 
     alias_method :store, :[]=
@@ -231,7 +231,7 @@ module ActiveSupport
     def to_hash
       _new_hash= {}
       each do |key, value|
-        _new_hash[convert_key(key)] = convert_value(value, true)
+        _new_hash[convert_key(key)] = convert_value(value, for: :to_hash)
       end
       Hash.new(default).merge!(_new_hash)
     end
@@ -241,12 +241,18 @@ module ActiveSupport
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, _convert_for_to_hash = false)
+      def convert_value(value, options = {})
         if value.is_a? Hash
-          _convert_for_to_hash ? value.to_hash : value.nested_under_indifferent_access
+          if options[:for] == :to_hash
+            value.to_hash
+          else
+            value.nested_under_indifferent_access
+          end
         elsif value.is_a?(Array)
-          value = value.dup if value.frozen?
-          value.map! { |e| convert_value(e, _convert_for_to_hash) }
+          unless options[:for] == :assignment
+            value = value.dup
+          end
+          value.map! { |e| convert_value(e, options) }
         else
           value
         end
