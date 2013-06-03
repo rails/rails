@@ -503,6 +503,13 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal [1], hash[:a]
   end
 
+  def test_with_indifferent_access_has_no_side_effects_on_existing_hash
+    hash = {content: [{:foo => :bar, 'bar' => 'baz'}]}
+    hash.with_indifferent_access
+
+    assert_equal [:foo, "bar"], hash[:content].first.keys
+  end
+
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
