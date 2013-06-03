@@ -120,10 +120,10 @@ class Date
     )
   end
   
-  # Allow Dates to be compared with times. The Date will have its time set to 00:00:00 for the comparison.
+  # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
   def compare_with_coercion(other)
     if other.is_a?(Time)
-      self.to_time <=> other
+      self.to_datetime <=> other
     else
       compare_without_coercion(other)
     end
