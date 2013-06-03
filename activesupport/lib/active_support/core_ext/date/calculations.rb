@@ -119,4 +119,15 @@ class Date
       options.fetch(:day, day)
     )
   end
+  
+  # Allow Dates to be compared with times. The Date will have its time set to 00:00:00 for the comparison.
+  def compare_with_coercion(other)
+    if other.is_a?(Time)
+      self.to_time <=> other
+    else
+      compare_without_coercion(other)
+    end
+  end
+  alias_method :compare_without_coercion, :<=>
+  alias_method :<=>, :compare_with_coercion
 end
