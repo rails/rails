@@ -24,39 +24,62 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### HTTP PATCH
 
-Rails 4 now uses `PATCH` as the primary HTTP verb for updates. When a resource
-is declared in `config/routes.rb`:
+Rails 4 now uses `PATCH` as the primary HTTP verb for updates when a RESTful
+resource is declared in `config/routes.rb`. The `update` action is still used,
+and `PUT` requests will continue to be routed to the `update` action as well.
+So, if you're using only the standard RESTful routes, no changes need to be made:
 
 ```ruby
 resources :users
 ```
 
-the action in `UsersController` to update a user is still `update`.
-
-`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
-today.  So, if you have an API that gets real PUT requests it is going to work.
-The router also routes `PATCH` requests to `/users/:id` to the `update` action.
-
-So, in Rails 4 both `PUT` and `PATCH` are routed to update. We recommend
-switching to `PATCH` as part of your upgrade process if possible, as it's more
-likely what you want.
-
-Note, when using `form_for` to update a resource in conjunction with a custom route,
-you'll need to update your route to explicity match the `patch` verb:
-
 ```erb
-<%= form_for [ :update_name, @user ] do |f| %>
-  ...
-<% end %>
+<%= form_for @user do |f| %>
 ```
 
 ```ruby
-resources :users do
-  # Rails 3
+class UsersController < ApplicationController
+  def update
+    # No change needed; PATCH will be preferred, and PUT will still work.
+  end
+end
+```
+
+However, you will need to make a change if you are using `form_for` to update
+a resource in conjunction with a custom route using the `PUT` HTTP method:
+
+```ruby
+resources :users, do
   put :update_name, on: :member
-  # Rails 4
+end
+```
+
+```erb
+<%= form_for [ :update_name, @user ] do |f| %>
+```
+
+```ruby
+class UsersController < ApplicationController
+  def update_name
+    # Change needed; form_for will try to use a non-existant PATCH route.
+  end
+end
+```
+
+If the action is not being used in a public API and you are free to change the
+HTTP method, you can update your route to use `patch` instead of `put`:
+
+```ruby
+resources :users do
   patch :update_name, on: :member
 end
+```
+
+If the action is being used in a public API and you can't change to HTTP method
+being used, you can update your form to use the `PUT` method instead:
+
+```erb
+<%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
 For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
