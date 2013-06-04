@@ -217,7 +217,7 @@ module ApplicationTests
       end
 
       def middleware
-        AppTemplate::Application.middleware.map(&:klass).map(&:name)
+        app.middleware.map(&:klass).map(&:name)
       end
   end
 end
