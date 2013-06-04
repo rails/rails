@@ -158,12 +158,12 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.initialize!
+      assert Rails.application.initialize!
     end
 
     test "application is always added to eager_load namespaces" do
       require "#{app_path}/config/application"
-      assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
+      assert Rails.application, Rails.application.config.eager_load_namespaces
     end
 
     test "the application can be eager loaded even when there are no frameworks" do

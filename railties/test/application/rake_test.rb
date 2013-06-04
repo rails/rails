@@ -34,7 +34,7 @@ module ApplicationTests
           config.middleware.use SuperMiddleware
         end
 
-        AppTemplate::Application.initialize!
+        Rails.application.initialize!
       RUBY
 
       assert_match("SuperMiddleware", Dir.chdir(app_path){ `rake middleware` })
