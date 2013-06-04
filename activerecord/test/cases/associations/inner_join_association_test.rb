@@ -46,10 +46,10 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 2, authors.count
   end
 
-  def test_find_with_implicit_inner_joins_honors_readonly_without_select
-    authors = Author.joins(:posts).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| a.readonly? }, "expected all authors to be readonly"
+  def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly
+    authors = Author.joins(:posts)
+    assert_not authors.empty?, "expected authors to be non-empty"
+    assert authors.none? {|a| a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select

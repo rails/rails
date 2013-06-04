@@ -22,6 +22,7 @@ module ActionDispatch
     include ActionDispatch::Http::URL
 
     autoload :Session, 'action_dispatch/request/session'
+    autoload :Utils,   'action_dispatch/request/utils'
 
     LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
@@ -299,26 +300,10 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    # Remove nils from the params hash
-    def deep_munge(hash)
-      hash.each do |k, v|
-        case v
-        when Array
-          v.grep(Hash) { |x| deep_munge(x) }
-          v.compact!
-          hash[k] = nil if v.empty?
-        when Hash
-          deep_munge(v)
-        end
-      end
-
-      hash
-    end
-
     protected
 
     def parse_query(qs)
-      deep_munge(super)
+      Utils.deep_munge(super)
     end
 
     private

@@ -410,12 +410,6 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.where("credit_limit > 50").from('accounts').sum(:credit_limit)
   end
 
-  def test_sum_array_compatibility_deprecation
-    assert_deprecated do
-      assert_equal Account.sum(:credit_limit), Account.sum(&:credit_limit)
-    end
-  end
-
   def test_average_with_from_option
     assert_equal Account.average(:credit_limit), Account.from('accounts').average(:credit_limit)
     assert_equal Account.where("credit_limit > 50").average(:credit_limit),

@@ -48,7 +48,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "load config/environments/environment before Bootstrap initializers" do
     app_file "config/environments/development.rb", <<-RUBY
-      AppTemplate::Application.configure do
+      Rails.application.configure do
         config.development_environment_loaded = true
       end
     RUBY
@@ -60,7 +60,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     require "#{app_path}/config/environment"
-    assert ::AppTemplate::Application.config.loaded
+    assert ::Rails.application.config.loaded
   end
 
   test "descendants loaded after framework initialization are cleaned on each request without cache classes" do
@@ -75,7 +75,7 @@ class LoadingTest < ActiveSupport::TestCase
     MODEL
 
     app_file 'config/routes.rb', <<-RUBY
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get '/load',   to: lambda { |env| [200, {}, Post.all] }
         get '/unload', to: lambda { |env| [200, {}, []] }
       end
@@ -96,7 +96,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "initialize cant be called twice" do
     require "#{app_path}/config/environment"
-    assert_raise(RuntimeError) { ::AppTemplate::Application.initialize! }
+    assert_raise(RuntimeError) { Rails.application.initialize! }
   end
 
   test "reload constants on development" do
@@ -105,7 +105,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
     RUBY
@@ -144,7 +144,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
     RUBY
@@ -180,7 +180,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file 'config/routes.rb', <<-RUBY
       $counter = 0
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
@@ -211,7 +211,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get '/title', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
         get '/body',  to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
       end
@@ -270,7 +270,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get "/:controller(/:action)"
       end
     RUBY
@@ -288,10 +288,10 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{app_path}/config/application"
 
     assert !Rails.initialized?
-    assert !AppTemplate::Application.initialized?
+    assert !Rails.application.initialized?
     Rails.initialize!
     assert Rails.initialized?
-    assert AppTemplate::Application.initialized?
+    assert Rails.application.initialized?
   end
 
   protected

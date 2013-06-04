@@ -719,6 +719,32 @@ Engine model and controller classes can be extended by open classing them in the
 
 For simple class modifications use `Class#class_eval`, and for complex class modifications, consider using `ActiveSupport::Concern`.
 
+#### A note on Decorators and loading code
+
+Because these decorators are not referenced by your Rails application itself,
+Rails' autoloading system will not kick in and load your decorators. This
+means that you need to require them yourself.
+
+Here is some sample code to do this:
+
+```ruby
+# lib/blorgh/engine.rb
+module Blorgh
+  class Engine < ::Rails::Engine
+    isolate_namespace Blorgh
+
+    config.to_prepare do
+      Dir.glob(Rails.root + "app/decorators/**/*_decorator*.rb").each do |c|
+        require_dependency(c)
+      end
+    end
+  end
+end
+```
+
+This doesn't apply to just Decorators, but anything that you add in an engine
+that isn't referenced by your main application.
+
 #### Implementing Decorator Pattern Using Class#class_eval
 
 **Adding** `Post#time_since_created`,

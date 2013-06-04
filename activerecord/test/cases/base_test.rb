@@ -581,12 +581,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed", post.body
   end
 
-  def test_attr_readonly_is_class_level_setting
-    post = ReadonlyTitlePost.new
-    assert_raise(NoMethodError) { post._attr_readonly = [:title] }
-    assert_deprecated { post._attr_readonly }
-  end
-
   def test_non_valid_identifier_column_name
     weird = Weird.create('a$b' => 'value')
     weird.reload
@@ -1226,38 +1220,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_queries(2) { 2.times { query.call } }
     assert_queries 1, &query
     assert_no_queries { assert true }
-  end
-
-  def test_silence_sets_log_level_to_error_in_block
-    original_logger = ActiveRecord::Base.logger
-
-    assert_deprecated do
-      log = StringIO.new
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-      ActiveRecord::Base.logger.level = Logger::DEBUG
-      ActiveRecord::Base.silence do
-        ActiveRecord::Base.logger.warn "warn"
-        ActiveRecord::Base.logger.error "error"
-      end
-      assert_equal "error\n", log.string
-    end
-  ensure
-    ActiveRecord::Base.logger = original_logger
-  end
-
-  def test_silence_sets_log_level_back_to_level_before_yield
-    original_logger = ActiveRecord::Base.logger
-
-    assert_deprecated do
-      log = StringIO.new
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-      ActiveRecord::Base.logger.level = Logger::WARN
-      ActiveRecord::Base.silence do
-      end
-      assert_equal Logger::WARN, ActiveRecord::Base.logger.level
-    end
-  ensure
-    ActiveRecord::Base.logger = original_logger
   end
 
   def test_benchmark_with_log_level

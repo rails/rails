@@ -145,7 +145,7 @@ module ActiveSupport
             ncp << (HANGUL_TBASE + tindex) unless tindex == 0
             decomposed.concat ncp
           # if the codepoint is decomposable in with the current decomposition type
-          elsif (ncp = database.codepoints[cp].decomp_mapping) and (!database.codepoints[cp].decomp_type || type == :compatability)
+          elsif (ncp = database.codepoints[cp].decomp_mapping) and (!database.codepoints[cp].decomp_type || type == :compatibility)
             decomposed.concat decompose(type, ncp.dup)
           else
             decomposed << cp
@@ -263,9 +263,9 @@ module ActiveSupport
           when :c
             compose(reorder_characters(decompose(:canonical, codepoints)))
           when :kd
-            reorder_characters(decompose(:compatability, codepoints))
+            reorder_characters(decompose(:compatibility, codepoints))
           when :kc
-            compose(reorder_characters(decompose(:compatability, codepoints)))
+            compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
         end.pack('U*')
