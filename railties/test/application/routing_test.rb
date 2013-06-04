@@ -48,7 +48,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           root to: "foo#index"
         end
       RUBY
@@ -100,7 +100,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -111,7 +111,7 @@ module ApplicationTests
 
     test "mount rack app" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, at: "/blog"
           # The line below is required because mount sometimes
           # fails when a resource route is added.
@@ -141,7 +141,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -173,7 +173,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'admin/foo', to: 'admin/foo#index'
           get 'foo', to: 'foo#index'
         end
@@ -188,7 +188,7 @@ module ApplicationTests
 
     test "routes appending blocks" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller/:action'
         end
       RUBY
@@ -205,7 +205,7 @@ module ApplicationTests
       assert_equal 'WIN', last_response.body
 
       app_file 'config/routes.rb', <<-R
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'lol' => 'hello#index'
         end
       R
@@ -229,7 +229,7 @@ module ApplicationTests
         RUBY
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do
+          Rails.application.routes.draw do
             get 'foo', to: 'foo#bar'
           end
         RUBY
@@ -240,7 +240,7 @@ module ApplicationTests
         assert_equal 'bar', last_response.body
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do
+          Rails.application.routes.draw do
             get 'foo', to: 'foo#baz'
           end
         RUBY
@@ -261,7 +261,7 @@ module ApplicationTests
       end
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', to: ::InitializeRackApp
         end
       RUBY
@@ -289,7 +289,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', :to => 'foo#index'
           root :to => 'foo#index'
         end
@@ -321,7 +321,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', to: 'foo#index'
         end
       RUBY
@@ -337,7 +337,7 @@ module ApplicationTests
       end
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', to: 'foo#index'
           get 'bar', to: 'bar#index'
         end
@@ -354,7 +354,7 @@ module ApplicationTests
       assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', to: 'foo#index'
         end
       RUBY
@@ -380,7 +380,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           resources :yazilar
         end
       RUBY
