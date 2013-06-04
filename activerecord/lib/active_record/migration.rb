@@ -613,7 +613,7 @@ module ActiveRecord
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
-          unless arguments.empty? || method == :execute
+          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = Migrator.proper_table_name(arguments.first)
             arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
           end

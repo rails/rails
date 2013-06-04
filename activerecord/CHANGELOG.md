@@ -1,3 +1,8 @@
+*   Fix bug that added `table_name_prefix` and `table_name_suffix` to
+    extension names in PostgreSQL when migrating.
+
+    *Joao Carlos*
+
 *   Usage of `implicit_readonly` is being removed`. Please use `readonly` method
     explicitly to mark records as `readonly.
     Fixes #10615.
