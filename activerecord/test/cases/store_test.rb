@@ -21,6 +21,15 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'red', @john.color
     assert_equal '37signals.com', @john.homepage
   end
+      
+  test "boolean attribute is false when attribute is nil" do
+    @john.homepage = nil
+    assert_equal false, @john.homepage?
+  end  
+  
+  test "boolean attribute is true when attribute is set" do
+    assert_equal true, @john.color?
+  end
 
   test "accessing attributes not exposed by accessors" do
     @john.settings[:icecream] = 'graeters'

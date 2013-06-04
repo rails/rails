@@ -83,6 +83,10 @@ module ActiveRecord
             define_method(key) do
               read_store_attribute(store_attribute, key)
             end
+            
+            define_method("#{key}?") do
+              !!read_store_attribute(store_attribute, key)
+            end            
           end
         end
 
