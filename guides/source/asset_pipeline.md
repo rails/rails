@@ -419,17 +419,6 @@ The rake task is:
 $ RAILS_ENV=production bundle exec rake assets:precompile
 ```
 
-For faster asset precompiles, you can partially load your application by setting
-`config.assets.initialize_on_precompile` to false in `config/application.rb`, though in that case templates
-cannot see application objects or methods. **Heroku requires this to be false.**
-
-WARNING: If you set `config.assets.initialize_on_precompile` to false, be sure to
-test `rake assets:precompile` locally before deploying. It may expose bugs where
-your assets reference application objects or methods, since those are still
-in scope in development mode regardless of the value of this flag. Changing this flag also affects
-engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
-engines (or other gems) will not be loaded, which can cause missing assets.
-
 Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
 
 ```ruby
@@ -570,15 +559,7 @@ In `config/environments/development.rb`, place the following line:
 config.assets.prefix = "/dev-assets"
 ```
 
-You will also need this in application.rb:
-
-```ruby
-config.assets.initialize_on_precompile = false
-```
-
 The `prefix` change makes Rails use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to `/assets` in the production environment. Without this change, the application would serve the precompiled assets from `public/assets` in development, and you would not see any local changes until you compile assets again.
-
-The `initialize_on_precompile` change tells the precompile task to run without invoking Rails. This is because the precompile task runs in production mode by default, and will attempt to connect to your specified production database. Please note that you cannot have code in pipeline files that relies on Rails resources (such as the database) when compiling locally with this option.
 
 You will also need to ensure that any compressors or minifiers are available on your development system.
 
