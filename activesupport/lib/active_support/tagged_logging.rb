@@ -44,7 +44,17 @@ module ActiveSupport
     deprecate :silence
 
     def add(severity, message = nil, progname = nil, &block)
-      message = (block_given? ? block.call : progname) if message.nil?
+      return true if @logger.respond_to?(:level) && severity < @logger.level
+
+      if message.nil?
+        if block_given?
+          message = block.call
+        else
+          message = progname
+          progname = @logger.respond_to?(:progname) ? @logger.progname : nil
+        end
+      end
+
       @logger.add(severity, "#{tags_text}#{message}", progname)
     end
 
