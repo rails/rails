@@ -64,17 +64,13 @@ module ActionDispatch
         end
 
         new_hash = {}
-        params.each do |k, v|
-          new_key = k.is_a?(String) ? k.dup.force_encoding(Encoding::UTF_8).encode! : k
-          new_hash[new_key] =
-            case v
-            when Hash
-              normalize_encode_params(v)
-            when Array
-              v.map! {|el| normalize_encode_params(el) }
-            else
-              normalize_encode_params(v)
-            end
+        params.each do |key, val|
+          new_key = key.is_a?(String) ? key.dup.force_encoding(Encoding::UTF_8).encode! : key
+          new_hash[new_key] = if val.is_a?(Array)
+            val.map! { |el| normalize_encode_params(el) }
+          else
+            normalize_encode_params(val)
+          end
         end
         new_hash.with_indifferent_access
       end
