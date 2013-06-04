@@ -849,4 +849,13 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   ensure
     clear
   end
+
+  def test_check_pending_with_stdlib_logger
+    old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
+    quietly do
+      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({}) }
+    end
+  ensure
+    ActiveRecord::Base.logger = old
+  end
 end
