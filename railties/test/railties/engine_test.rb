@@ -270,7 +270,7 @@ module RailtiesTest
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', :to => 'foo#index'
         end
       RUBY
@@ -467,7 +467,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount(Bukkits::Engine => "/bukkits")
         end
       RUBY
@@ -602,7 +602,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/bar" => "bar#index", as: "bar"
           mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
@@ -720,7 +720,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
@@ -764,7 +764,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount Bukkits::Awesome::Engine => "/bukkits", :as => "bukkits"
         end
       RUBY
@@ -828,7 +828,7 @@ YAML
       add_to_config "isolate_namespace AppTemplate"
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do end
+        Rails.application.routes.draw do end
       RUBY
 
       boot_rails
@@ -1206,7 +1206,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/bar' => 'bar#index', :as => 'bar'
           mount Bukkits::Engine => "/bukkits", :as => "bukkits"
         end
