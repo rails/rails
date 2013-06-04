@@ -9,9 +9,18 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     end
   end
 
+  # Formatter which displays the progname if it's not blank and the message.
+  class MyFormatter < ::Logger::Formatter
+    # This method is invoked when a log event occurs
+    def call(severity, timestamp, progname, msg)
+      "#{progname.blank? ? "" : "[#{progname}] "}#{String === msg ? msg : msg.inspect}\n"
+    end
+  end
+
   setup do
     @output = StringIO.new
     @logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@output))
+    @logger.formatter = MyFormatter.new
   end
 
   test "tagged once" do
@@ -105,4 +114,45 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] Funky town\n", @output.string
   end
 
+  test "displays progname if not blank" do
+    @logger.progname = "PROG1"
+    @logger.tagged("BCX") do
+      @logger.info "Cool story bro"
+    end
+
+    @logger.tagged("BCX") do
+      @logger.info("PROG2") { "Funky time" }
+    end
+
+    assert_equal "[PROG1] [BCX] Cool story bro\n[PROG2] [BCX] Funky time\n", @output.string
+  end
+
+  test "does not display progname if blank" do
+    @logger.progname = nil
+    @logger.tagged("BCX") { @logger.info "Funky time" }
+
+    assert_equal "[BCX] Funky time\n", @output.string
+  end
+
+  test "evaluates the block if the severity is greater than or equal to logger's level" do
+    message = ""
+    @logger.level = MyLogger::INFO
+    @logger.tagged("BCX") do
+      @logger.info { message = "Funky time" }
+    end
+
+    assert_equal "Funky time", message
+    assert_equal "[BCX] Funky time\n", @output.string
+  end
+
+  test "does not evaluate the block if the severity is less than logger's level" do
+    message = ""
+    @logger.level = MyLogger::ERROR
+    @logger.tagged("BCX") do
+      @logger.info { message = "Funky time" }
+    end
+
+    assert_blank message
+    assert_blank @output.string
+  end
 end
