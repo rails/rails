@@ -1,4 +1,8 @@
 ## unreleased ##
+*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
+
+    *Adam Anderson*
+
 
 *   Fix pending migrations error when loading schema and `ActiveRecord::Base.table_name_prefix`
     is not blank.
