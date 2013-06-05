@@ -1,4 +1,8 @@
 ## unreleased ##
+*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
+
+    *Adam Anderson*
+
 
 *   Fix the `:primary_key` option for `has_many` associations.
     Fixes #10693.
