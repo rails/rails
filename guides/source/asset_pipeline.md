@@ -430,7 +430,7 @@ in scope in development mode regardless of the value of this flag. Changing this
 engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
 engines (or other gems) will not be loaded, which can cause missing assets.
 
-Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
+Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
 
 ```ruby
 load 'deploy/assets'
@@ -815,18 +815,16 @@ end
 If you use the `assets` group with Bundler, please make sure that your `config/application.rb` has the following Bundler require statement:
 
 ```ruby
-if defined?(Bundler)
-  # If you precompile assets before deploying to production, use this line
-  Bundler.require *Rails.groups(:assets => %w(development test))
-  # If you want your assets lazily compiled in production, use this line
-  # Bundler.require(:default, :assets, Rails.env)
-end
+# If you precompile assets before deploying to production, use this line
+Bundler.require *Rails.groups(:assets => %w(development test))
+# If you want your assets lazily compiled in production, use this line
+# Bundler.require(:default, :assets, Rails.env)
 ```
 
-Instead of the old Rails 3.0 version:
+Instead of the generated version:
 
 ```ruby
-# If you have a Gemfile, require the gems listed there, including any gems
+# Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env) if defined?(Bundler)
+Bundler.require(:default, Rails.env)
 ```

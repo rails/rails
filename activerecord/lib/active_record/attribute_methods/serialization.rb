@@ -50,13 +50,6 @@ module ActiveRecord
         end
       end
 
-      # *DEPRECATED*: Use ActiveRecord::AttributeMethods::Serialization::ClassMethods#serialized_attributes class level method instead.
-      def serialized_attributes
-        message = "Instance level serialized_attributes method is deprecated, please use class level method."
-        ActiveSupport::Deprecation.warn message
-        defined?(@serialized_attributes) ? @serialized_attributes : self.class.serialized_attributes
-      end
-
       class Type # :nodoc:
         def initialize(column)
           @column = column

@@ -1,3 +1,54 @@
+*   Usage of `implicit_readonly` is being removed`. Please use `readonly` method
+    explicitly to mark records as `readonly.
+    Fixes #10615.
+
+    Example:
+
+        user = User.joins(:todos).select("users.*, todos.title as todos_title").readonly(true).first
+        user.todos_title = 'clean pet'
+        user.save! # will raise error
+
+    *Yves Senn*
+
+*   Fix the `:primary_key` option for `has_many` associations.
+    Fixes #10693.
+
+    *Yves Senn*
+
+*   Fix bug where tiny types are incorectly coerced as booleand when the length is more than 1.
+
+    Fixes #10620.
+
+    *Aaron Peterson*
+
+*   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
+
+    *kennyj*
+
+*   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
+    as it is no longer used by internals.
+
+    *Ben Woosley#
+
+*   Fix pending migrations error when loading schema and `ActiveRecord::Base.table_name_prefix`
+    is not blank.
+
+    Call `assume_migrated_upto_version` on connection to prevent it from first
+    being picked up in `method_missing`.
+
+    In the base class, `Migration`, `method_missing` expects the argument to be a
+    table name, and calls `proper_table_name` on the arguments before sending to
+    `connection`. If `table_name_prefix` or `table_name_suffix` is used, the schema
+    version changes to `prefix_version_suffix`, breaking `rake test:prepare`.
+
+    Fixes #10411.
+
+    *Kyle Stevens*
+
+*   Method `read_attribute_before_type_cast` should accept input as symbol.
+
+    *Neeraj Singh*
+
 *   Confirm a record has not already been destroyed before decrementing counter cache.
 
     *Ben Tucker*

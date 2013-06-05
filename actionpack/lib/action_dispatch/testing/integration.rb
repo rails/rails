@@ -3,7 +3,7 @@ require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
-require 'minitest/unit'
+require 'minitest'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -60,12 +60,6 @@ module ActionDispatch
       # details.
       def head(path, parameters = nil, headers_or_env = nil)
         process :head, path, parameters, headers_or_env
-      end
-
-      # Performs a OPTIONS request with the given parameters. See +#get+ for
-      # more details.
-      def options(path, parameters = nil, headers_or_env = nil)
-        process :options, path, parameters, headers_or_env
       end
 
       # Performs an XMLHttpRequest request with the given parameters, mirroring
@@ -342,7 +336,7 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
-      %w(get post patch put head delete options cookies assigns
+      %w(get post patch put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session

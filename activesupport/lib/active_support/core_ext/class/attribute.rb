@@ -71,7 +71,7 @@ class Class
   def class_attribute(*attrs)
     options = attrs.extract_options!
     # double assignment is used to avoid "assigned but unused variable" warning
-    instance_reader = instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
+    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
     instance_predicate = options.fetch(:instance_predicate, true)
 

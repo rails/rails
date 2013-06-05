@@ -98,7 +98,7 @@ module ActiveModel
 
       private
         def model
-          assert @model.respond_to?(:to_model), "The object should respond_to to_model"
+          assert @model.respond_to?(:to_model), "The object should respond to to_model"
           @model.to_model
         end
 

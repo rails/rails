@@ -83,9 +83,10 @@ module ActiveModel
       #   end
       def validates_with(*args, &block)
         options = args.extract_options!
+        options[:class] = self
+
         args.each do |klass|
           validator = klass.new(options, &block)
-          validator.setup(self) if validator.respond_to?(:setup)
 
           if validator.respond_to?(:attributes) && !validator.attributes.empty?
             validator.attributes.each do |attribute|

@@ -235,7 +235,7 @@ module ActiveRecord
         end
       end
 
-      def test_keeping_default_and_notnull_constaint_on_change
+      def test_keeping_default_and_notnull_constraints_on_change
         connection.create_table :testings do |t|
           t.column :title, :string
         end

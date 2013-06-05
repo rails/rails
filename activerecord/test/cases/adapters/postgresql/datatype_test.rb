@@ -246,7 +246,7 @@ _SQL
     assert_equal 2...10, @second_range.int4_range
     assert_equal 2...Float::INFINITY, @third_range.int4_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.int4_range)
-    assert_equal nil, @empty_range.int4_range
+    assert_nil @empty_range.int4_range
   end
 
   def test_int8range_values
@@ -255,7 +255,7 @@ _SQL
     assert_equal 11...100, @second_range.int8_range
     assert_equal 11...Float::INFINITY, @third_range.int8_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.int8_range)
-    assert_equal nil, @empty_range.int8_range
+    assert_nil @empty_range.int8_range
   end
 
   def test_daterange_values
@@ -264,7 +264,7 @@ _SQL
     assert_equal Date.new(2012, 1, 3)...Date.new(2012, 1, 4), @second_range.date_range
     assert_equal Date.new(2012, 1, 3)...Float::INFINITY, @third_range.date_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.date_range)
-    assert_equal nil, @empty_range.date_range
+    assert_nil @empty_range.date_range
   end
 
   def test_numrange_values
@@ -273,7 +273,7 @@ _SQL
     assert_equal BigDecimal.new('0.1')...BigDecimal.new('0.2'), @second_range.num_range
     assert_equal BigDecimal.new('0.1')...BigDecimal.new('Infinity'), @third_range.num_range
     assert_equal BigDecimal.new('-Infinity')...BigDecimal.new('Infinity'), @fourth_range.num_range
-    assert_equal nil, @empty_range.num_range
+    assert_nil @empty_range.num_range
   end
 
   def test_tsrange_values
@@ -282,7 +282,7 @@ _SQL
     assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 0)..Time.send(tz, 2011, 1, 1, 14, 30, 0), @first_range.ts_range
     assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 1, 1, 14, 30, 0), @second_range.ts_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.ts_range)
-    assert_equal nil, @empty_range.ts_range
+    assert_nil @empty_range.ts_range
   end
 
   def test_tstzrange_values
@@ -290,7 +290,7 @@ _SQL
     assert_equal Time.parse('2010-01-01 09:30:00 UTC')..Time.parse('2011-01-01 17:30:00 UTC'), @first_range.tstz_range
     assert_equal Time.parse('2010-01-01 09:30:00 UTC')...Time.parse('2011-01-01 17:30:00 UTC'), @second_range.tstz_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.tstz_range)
-    assert_equal nil, @empty_range.tstz_range
+    assert_nil @empty_range.tstz_range
   end
 
   def test_money_values
@@ -314,11 +314,11 @@ _SQL
     assert @first_range.tstz_range = new_tstzrange
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.tstz_range, new_tstzrange
+    assert_equal new_tstzrange, @first_range.tstz_range
     assert @first_range.tstz_range = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2010-01-01 13:30:00 +0000')
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.tstz_range, nil
+    assert_nil @first_range.tstz_range
   end
 
   def test_create_tsrange
@@ -338,11 +338,11 @@ _SQL
     assert @first_range.ts_range = new_tsrange
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.ts_range, new_tsrange
+    assert_equal new_tsrange, @first_range.ts_range
     assert @first_range.ts_range = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0)
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.ts_range, nil
+    assert_nil @first_range.ts_range
   end
 
   def test_create_numrange
@@ -360,11 +360,11 @@ _SQL
     assert @first_range.num_range = new_numrange
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.num_range, new_numrange
+    assert_equal new_numrange, @first_range.num_range
     assert @first_range.num_range = BigDecimal.new('0.5')...BigDecimal.new('0.5')
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.num_range, nil
+    assert_nil @first_range.num_range
   end
 
   def test_create_daterange
@@ -382,11 +382,11 @@ _SQL
     assert @first_range.date_range = new_daterange
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.date_range, new_daterange
+    assert_equal new_daterange, @first_range.date_range
     assert @first_range.date_range = Date.new(2012, 2, 3)...Date.new(2012, 2, 3)
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.date_range, nil
+    assert_nil @first_range.date_range
   end
 
   def test_create_int4range
@@ -404,11 +404,11 @@ _SQL
     assert @first_range.int4_range = new_int4range
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.int4_range, new_int4range
+    assert_equal new_int4range, @first_range.int4_range
     assert @first_range.int4_range = 3...3
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.int4_range, nil
+    assert_nil @first_range.int4_range
   end
 
   def test_create_int8range
@@ -426,11 +426,11 @@ _SQL
     assert @first_range.int8_range = new_int8range
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.int8_range, new_int8range
+    assert_equal new_int8range, @first_range.int8_range
     assert @first_range.int8_range = 39999...39999
     assert @first_range.save
     assert @first_range.reload
-    assert_equal @first_range.int8_range, nil
+    assert_nil @first_range.int8_range
   end
 
   def test_update_tsvector
@@ -441,7 +441,7 @@ _SQL
     assert @first_tsvector.text_vector = new_text_vector
     assert @first_tsvector.save
     assert @first_tsvector.reload
-    assert_equal @first_tsvector.text_vector, new_text_vector
+    assert_equal new_text_vector, @first_tsvector.text_vector
   end
 
   def test_number_values
@@ -482,11 +482,11 @@ _SQL
     assert @first_array.commission_by_quarter = new_value
     assert @first_array.save
     assert @first_array.reload
-    assert_equal @first_array.commission_by_quarter, new_value
+    assert_equal new_value, @first_array.commission_by_quarter
     assert @first_array.commission_by_quarter = new_value
     assert @first_array.save
     assert @first_array.reload
-    assert_equal @first_array.commission_by_quarter, new_value
+    assert_equal new_value, @first_array.commission_by_quarter
   end
 
   def test_update_text_array
@@ -494,11 +494,11 @@ _SQL
     assert @first_array.nicknames = new_value
     assert @first_array.save
     assert @first_array.reload
-    assert_equal @first_array.nicknames, new_value
+    assert_equal new_value, @first_array.nicknames
     assert @first_array.nicknames = new_value
     assert @first_array.save
     assert @first_array.reload
-    assert_equal @first_array.nicknames, new_value
+    assert_equal new_value, @first_array.nicknames
   end
 
   def test_update_money
@@ -516,15 +516,15 @@ _SQL
     assert @first_number.double = new_double
     assert @first_number.save
     assert @first_number.reload
-    assert_equal @first_number.single, new_single
-    assert_equal @first_number.double, new_double
+    assert_equal new_single, @first_number.single
+    assert_equal new_double, @first_number.double
   end
 
   def test_update_time
     assert @first_time.time_interval = '2 years 3 minutes'
     assert @first_time.save
     assert @first_time.reload
-    assert_equal @first_time.time_interval, '2 years 00:03:00'
+    assert_equal '2 years 00:03:00', @first_time.time_interval
   end
 
   def test_update_network_address
@@ -548,10 +548,10 @@ _SQL
     assert @first_bit_string.bit_string_varying = new_bit_string_varying
     assert @first_bit_string.save
     assert @first_bit_string.reload
-    assert_equal @first_bit_string.bit_string, new_bit_string
+    assert_equal new_bit_string, @first_bit_string.bit_string
     assert_equal @first_bit_string.bit_string, @first_bit_string.bit_string_varying
   end
-	
+
   def test_invalid_hex_string
     new_bit_string = 'FF'
     @first_bit_string.bit_string = new_bit_string
@@ -563,7 +563,7 @@ _SQL
     assert @first_oid.obj_id = new_value
     assert @first_oid.save
     assert @first_oid.reload
-    assert_equal @first_oid.obj_id, new_value
+    assert_equal new_value, @first_oid.obj_id
   end
 
   def test_timestamp_with_zone_values_with_rails_time_zone_support

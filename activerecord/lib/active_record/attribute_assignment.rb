@@ -1,3 +1,4 @@
+require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
   module AttributeAssignment
@@ -44,7 +45,7 @@ module ActiveRecord
       if respond_to?("#{k}=")
         raise
       else
-        raise UnknownAttributeError, "unknown attribute: #{k}"
+        raise UnknownAttributeError.new(self, k)
       end
     end
 

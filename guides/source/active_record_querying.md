@@ -732,7 +732,7 @@ The `reorder` method overrides the default scope order. For example:
 class Post < ActiveRecord::Base
   ..
   ..
-  has_many :comments, order: 'posted_at DESC'
+  has_many :comments, -> { order('posted_at DESC') }
 end
 
 Post.find(10).comments.reorder('name')
@@ -1202,6 +1202,7 @@ class User < ActiveRecord::Base
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end
+```
 
 ```ruby
 User.active.inactive

@@ -2,7 +2,11 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'mocha', '~> 0.13.0', require: false
+# This needs to be with require false as it is
+# loaded after loading the test library to
+# ensure correct loading order
+gem 'mocha', '~> 0.14', require: false
+
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails', '~> 2.2.0'
@@ -59,11 +63,6 @@ end
 platforms :jruby do
   gem 'json'
   gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
-
-  # This is needed by now to let tests work on JRuby
-  # TODO: When the JRuby guys merge jruby-openssl in
-  # jruby this will be removed
-  gem 'jruby-openssl'
 
   group :db do
     gem 'activerecord-jdbcmysql-adapter', '>= 1.2.7'

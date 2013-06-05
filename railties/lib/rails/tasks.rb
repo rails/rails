@@ -1,6 +1,6 @@
 $VERBOSE = nil
 
-# Load Rails rakefile extensions
+# Load Rails Rakefile extensions
 %w(
   annotations
   documentation

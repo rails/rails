@@ -548,27 +548,9 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            disable_with = html_options.delete("disable_with")
-            confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            if confirm
-              message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
-                        "Use 'data: { confirm: \'Text\' }' instead."
-              ActiveSupport::Deprecation.warn message
-
-              html_options["data-confirm"] = confirm
-            end
-
             add_method_to_attributes!(html_options, method) if method
-
-            if disable_with
-              message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
-                        "Use 'data: { disable_with: \'Text\' }' instead."
-              ActiveSupport::Deprecation.warn message
-
-              html_options["data-disable-with"] = disable_with
-            end
 
             html_options
           else

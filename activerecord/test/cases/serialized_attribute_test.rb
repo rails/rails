@@ -19,12 +19,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal %w(content), Topic.serialized_attributes.keys
   end
 
-  def test_serialized_attributes_are_class_level_settings
-    topic = Topic.new
-    assert_raise(NoMethodError) { topic.serialized_attributes = [] }
-    assert_deprecated { topic.serialized_attributes }
-  end
-
   def test_serialized_attribute
     Topic.serialize("content", MyObject)
 

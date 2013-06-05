@@ -22,6 +22,100 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
+### HTTP PATCH
+
+Rails 4 now uses `PATCH` as the primary HTTP verb for updates when a RESTful
+resource is declared in `config/routes.rb`. The `update` action is still used,
+and `PUT` requests will continue to be routed to the `update` action as well.
+So, if you're using only the standard RESTful routes, no changes need to be made:
+
+```ruby
+resources :users
+```
+
+```erb
+<%= form_for @user do |f| %>
+```
+
+```ruby
+class UsersController < ApplicationController
+  def update
+    # No change needed; PATCH will be preferred, and PUT will still work.
+  end
+end
+```
+
+However, you will need to make a change if you are using `form_for` to update
+a resource in conjunction with a custom route using the `PUT` HTTP method:
+
+```ruby
+resources :users, do
+  put :update_name, on: :member
+end
+```
+
+```erb
+<%= form_for [ :update_name, @user ] do |f| %>
+```
+
+```ruby
+class UsersController < ApplicationController
+  def update_name
+    # Change needed; form_for will try to use a non-existant PATCH route.
+  end
+end
+```
+
+If the action is not being used in a public API and you are free to change the
+HTTP method, you can update your route to use `patch` instead of `put`:
+
+```ruby
+resources :users do
+  patch :update_name, on: :member
+end
+```
+
+If the action is being used in a public API and you can't change to HTTP method
+being used, you can update your form to use the `PUT` method instead:
+
+```erb
+<%= form_for [ :update_name, @user ], method: :put do |f| %>
+```
+
+For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+on the Rails blog.
+
+#### A note about media types
+
+The errata for the `PATCH` verb [specifies that a 'diff' media type should be
+used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
+such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
+does not support JSON Patch natively, it's easy enough to add support:
+
+```
+# in your controller
+def update
+  respond_to do |format|
+    format.json do
+      # perform a partial update
+      @post.update params[:post]
+    end
+
+    format.json_patch do
+      # perform sophisticated change
+    end
+  end
+end
+
+# In config/initializers/json_patch.rb:
+Mime::Type.register 'application/json-patch+json', :json_patch
+```
+
+As JSON Patch was only recently made into an RFC, there aren't a lot of great
+Ruby libraries yet. Aaron Patterson's
+[hana](https://github.com/tenderlove/hana) is one such gem, but doesn't have
+full support for the last few changes in the specification.
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
@@ -118,7 +212,7 @@ Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for d
 
 * Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
 
-* Rails 4.0 deprecates the `dom_id` and `dom_class` methods. You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
+* Rails 4.0 deprecates the `dom_id` and `dom_class` methods in controllers (they are fine in views). You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 

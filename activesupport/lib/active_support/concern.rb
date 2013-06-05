@@ -98,6 +98,12 @@ module ActiveSupport
   #     include Bar # works, Bar takes care now of its dependencies
   #   end
   module Concern
+    class MultipleIncludedBlocks < StandardError #:nodoc:
+      def initialize
+        super "Cannot define multiple 'included' blocks for a Concern"
+      end
+    end
+
     def self.extended(base) #:nodoc:
       base.instance_variable_set("@_dependencies", [])
     end
@@ -117,6 +123,8 @@ module ActiveSupport
 
     def included(base = nil, &block)
       if base.nil?
+        raise MultipleIncludedBlocks if instance_variable_defined?("@_included_block")
+
         @_included_block = block
       else
         super

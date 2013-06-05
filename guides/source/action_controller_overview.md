@@ -568,10 +568,10 @@ end
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
-Rendering xml and json data
+Rendering XML and JSON data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you've generated a controller using scaffolding, it would look something like this:
+ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController

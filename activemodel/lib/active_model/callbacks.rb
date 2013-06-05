@@ -100,7 +100,7 @@ module ActiveModel
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-        terminator: "result == false",
+        terminator: ->(_,result) { result == false },
         skip_after_callbacks_if_terminated: true,
         scope: [:kind, :name],
         only: [:before, :around, :after]

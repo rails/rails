@@ -606,7 +606,7 @@ module ActiveRecord
         index_options = options.delete(:index)
         add_column(table_name, "#{ref_name}_id", :integer, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
+        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
       alias :add_belongs_to :add_reference
 
@@ -706,12 +706,21 @@ module ActiveRecord
       end
 
       # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
-      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax.
       #
-      #   distinct("posts.id", "posts.created_at desc")
+      #   distinct("posts.id", ["posts.created_at desc"])
       #
       def distinct(columns, order_by)
-        "DISTINCT #{columns}"
+        ActiveSupport::Deprecation.warn("#distinct is deprecated and shall be removed from future releases.")
+        "DISTINCT #{columns_for_distinct(columns, order_by)}"
+      end
+
+      # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
+      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax - they
+      # require the order columns appear in the SELECT.
+      #
+      #   columns_for_distinct("posts.id", ["posts.created_at desc"])
+      def columns_for_distinct(columns, orders) # :nodoc:
+        columns
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to the named table.
@@ -766,37 +775,23 @@ module ActiveRecord
           column_names = Array(column_name)
           index_name   = index_name(table_name, column: column_names)
 
-          if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
 
-            index_type = options[:unique] ? "UNIQUE" : ""
-            index_type = options[:type].to_s if options.key?(:type)
-            index_name = options[:name].to_s if options.key?(:name)
-            max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
+          index_type = options[:unique] ? "UNIQUE" : ""
+          index_type = options[:type].to_s if options.key?(:type)
+          index_name = options[:name].to_s if options.key?(:name)
+          max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
-            if options.key?(:algorithm)
-              algorithm = index_algorithms.fetch(options[:algorithm]) {
-                raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
-              }
-            end
+          if options.key?(:algorithm)
+            algorithm = index_algorithms.fetch(options[:algorithm]) {
+              raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
+            }
+          end
 
-            using = "USING #{options[:using]}" if options[:using].present?
+          using = "USING #{options[:using]}" if options[:using].present?
 
-            if supports_partial_index?
-              index_options = options[:where] ? " WHERE #{options[:where]}" : ""
-            end
-          else
-            if options
-              message = "Passing a string as third argument of `add_index` is deprecated and will" +
-                " be removed in Rails 4.1." +
-                " Use add_index(#{table_name.inspect}, #{column_name.inspect}, unique: true) instead"
-
-              ActiveSupport::Deprecation.warn message
-            end
-
-            index_type = options
-            max_index_length = allowed_index_name_length
-            algorithm = using = nil
+          if supports_partial_index?
+            index_options = options[:where] ? " WHERE #{options[:where]}" : ""
           end
 
           if index_name.length > max_index_length

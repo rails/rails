@@ -338,7 +338,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     topic.replies.create!(:title => "re: 37s", :content => "rails")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_columns(content: "rails is wonderfull")
+    topic.update_columns(content: "rails is wonderful")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 

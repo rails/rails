@@ -1,6 +1,7 @@
+#encoding: us-ascii
+
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/json/variable'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
@@ -98,13 +99,18 @@ module ActiveSupport
         "\010" =>  '\b',
         "\f"   =>  '\f',
         "\n"   =>  '\n',
+        "\xe2\x80\xa8" => '\u2028',
+        "\xe2\x80\xa9" => '\u2029',
         "\r"   =>  '\r',
         "\t"   =>  '\t',
         '"'    =>  '\"',
         '\\'   =>  '\\\\',
         '>'    =>  '\u003E',
         '<'    =>  '\u003C',
-        '&'    =>  '\u0026' }
+        '&'    =>  '\u0026',
+        "#{0xe2.chr}#{0x80.chr}#{0xa8.chr}" => '\u2028',
+        "#{0xe2.chr}#{0x80.chr}#{0xa9.chr}" => '\u2029',
+        }
 
       class << self
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back
@@ -121,9 +127,9 @@ module ActiveSupport
         def escape_html_entities_in_json=(value)
           self.escape_regex = \
             if @escape_html_entities_in_json = value
-              /[\x00-\x1F"\\><&]/
+              /\xe2\x80\xa8|\xe2\x80\xa9|[\x00-\x1F"\\><&]/
             else
-              /[\x00-\x1F"\\]/
+              /\xe2\x80\xa8|\xe2\x80\xa9|[\x00-\x1F"\\]/
             end
         end
 

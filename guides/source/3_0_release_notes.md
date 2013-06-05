@@ -342,7 +342,7 @@ Helpers that do something else, like `cache` or `content_for`, are not affected 
 * Helpers now output HTML 5 by default.
 * Form label helper now pulls values from I18n with a single value, so `f.label :name` will pull the `:name` translation.
 * I18n select label on should now be :en.helpers.select instead of :en.support.select.
-* You no longer need to place a minus sign at the end of a ruby interpolation inside an ERb template to remove the trailing carriage return in the HTML output.
+* You no longer need to place a minus sign at the end of a Ruby interpolation inside an ERB template to remove the trailing carriage return in the HTML output.
 * Added `grouped_collection_select` helper to Action View.
 * `content_for?` has been added allowing you to check for the existence of content in a view before rendering.
 * passing `:value => nil` to form helpers will set the field's `value` attribute to nil as opposed to using the default value
@@ -611,4 +611,3 @@ Credits
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails 3. Kudos to all of them.
 
 Rails 3.0 Release Notes were compiled by [Mikel Lindsaar](http://lindsaar.net.)
-
