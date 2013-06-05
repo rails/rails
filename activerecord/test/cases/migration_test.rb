@@ -70,8 +70,29 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal false, ActiveRecord::Migrator.needs_migration?
 
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
+    ActiveRecord::Migrator.down(migrations_path)
     assert_equal 0, ActiveRecord::Migrator.current_version
+    assert_equal 3, ActiveRecord::Migrator.last_version
+    assert_equal true, ActiveRecord::Migrator.needs_migration?
+  end
+
+  def test_need_migration
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    ActiveRecord::Migrator.up migrations_path
+    assert_equal [1, 2, 3], ActiveRecord::Migrator.get_all_versions
+
+    Reminder.reset_column_information
+    assert Reminder.table_exists?
+
+    ActiveRecord::Migrator.run :down, migrations_path, 2
+    assert_equal [1, 3], ActiveRecord::Migrator.get_all_versions
+
+    Reminder.reset_column_information
+    assert !Reminder.table_exists?
+
+    assert_equal 3, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal true, ActiveRecord::Migrator.needs_migration?
   end
