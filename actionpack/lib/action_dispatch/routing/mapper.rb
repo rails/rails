@@ -125,9 +125,9 @@ module ActionDispatch
 
             if options[:format] == true
               @requirements[:format] ||= /.+/
-            elsif Regexp === options[:format]
+            elsif options[:format].is_a?(Regexp)
               @requirements[:format] = options[:format]
-            elsif String === options[:format]
+            elsif options[:format].is_a?(String)
               @requirements[:format] = Regexp.compile(options[:format])
             end
           end
@@ -147,20 +147,20 @@ module ActionDispatch
             @defaults.merge!(options[:defaults]) if options[:defaults]
 
             options.each do |key, default|
-              next if Regexp === default || IGNORE_OPTIONS.include?(key)
+              next if default.is_a?(Regexp) || IGNORE_OPTIONS.include?(key)
               @defaults[key] = default
             end
 
             if options[:constraints].is_a?(Hash)
               options[:constraints].each do |key, default|
-                next unless URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+                next unless URL_OPTIONS.include?(key) && (default.is_a?(String) || default.is_a?(Fixnum))
                 @defaults[key] ||= default
               end
             end
 
-            if Regexp === options[:format]
+            if options[:format].is_a?(Regexp)
               @defaults[:format] = nil
-            elsif String === options[:format]
+            elsif options[:format].is_a?(String)
               @defaults[:format] = options[:format]
             end
           end
@@ -176,7 +176,7 @@ module ActionDispatch
             @conditions[:required_defaults] = []
             options.each do |key, required_default|
               next if segment_keys.include?(key) || IGNORE_OPTIONS.include?(key)
-              next if Regexp === required_default
+              next if required_default.is_a?(Regexp)
               @conditions[:required_defaults] << key
             end
 
@@ -259,7 +259,7 @@ module ActionDispatch
               constraints.merge!(scope[:constraints]) if scope[:constraints]
 
               options.except(*IGNORE_OPTIONS).each do |key, option|
-                constraints[key] = option if Regexp === option
+                constraints[key] = option if option.is_a?(Regexp)
               end
 
               constraints.merge!(options[:constraints]) if options[:constraints].is_a?(Hash)
@@ -484,7 +484,7 @@ module ActionDispatch
           if options
             path = options.delete(:at)
           else
-            unless Hash === app
+            unless app.is_a?(Hash)
               raise ArgumentError, "must be called with mount point"
             end
 
@@ -1366,7 +1366,7 @@ module ActionDispatch
         # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest)
-          if rest.empty? && Hash === path
+          if rest.empty? && path.is_a?(Hash)
             options  = path
             path, to = options.find { |name, _value| name.is_a?(String) }
             options[:to] = to

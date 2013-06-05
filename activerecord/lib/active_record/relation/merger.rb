@@ -25,7 +25,7 @@ module ActiveRecord
         other = Relation.new(relation.klass, relation.table)
         hash.each { |k, v|
           if k == :joins
-            if Hash === v
+            if v.is_a?(Hash)
               other.joins!(v)
             else
               other.joins!(*v)

@@ -65,8 +65,8 @@ class AssertSelectTest < ActionController::TestCase
 
   def assert_failure(message, &block)
     e = assert_raise(Assertion, &block)
-    assert_match(message, e.message) if Regexp === message
-    assert_equal(message, e.message) if String === message
+    assert_match(message, e.message) if message.is_a?(Regexp)
+    assert_equal(message, e.message) if message.is_a?(String)
   end
 
   #

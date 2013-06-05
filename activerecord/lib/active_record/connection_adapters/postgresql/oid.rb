@@ -20,7 +20,7 @@ module ActiveRecord
 
         class Bit < Type
           def type_cast(value)
-            if String === value
+            if value.is_a?(String)
               ConnectionAdapters::PostgreSQLColumn.string_to_bit value
             else
               value
@@ -76,7 +76,7 @@ module ActiveRecord
 
         class Point < Type
           def type_cast(value)
-            if String === value
+            if value.is_a?(String)
               ConnectionAdapters::PostgreSQLColumn.string_to_point value
             else
               value
@@ -91,7 +91,7 @@ module ActiveRecord
           end
 
           def type_cast(value)
-            if String === value
+            if value.is_a?(String)
               ConnectionAdapters::PostgreSQLColumn.string_to_array value, @subtype
             else
               value

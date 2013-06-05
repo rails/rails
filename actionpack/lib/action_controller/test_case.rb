@@ -98,7 +98,7 @@ module ActionController
 
       case options
       when NilClass, Regexp, String, Symbol
-        options = options.to_s if Symbol === options
+        options = options.to_s if options.is_a?(Symbol)
         rendered = @_templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
@@ -441,7 +441,7 @@ module ActionController
 
         def determine_default_controller_class(name)
           determine_constant_from_test_name(name) do |constant|
-            Class === constant && constant < ActionController::Metal
+            constant.is_a?(Class) && constant < ActionController::Metal
           end
         end
 

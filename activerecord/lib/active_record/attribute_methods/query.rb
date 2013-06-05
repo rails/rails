@@ -16,7 +16,7 @@ module ActiveRecord
         else
           column = self.class.columns_hash[attr_name]
           if column.nil?
-            if Numeric === value || value !~ /[^0-9]/
+            if value.is_a?(Numeric) || value !~ /[^0-9]/
               !value.to_i.zero?
             else
               return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)

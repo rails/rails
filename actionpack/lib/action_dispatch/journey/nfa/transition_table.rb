@@ -148,7 +148,7 @@ module ActionDispatch
             @table.each { |to, hash|
               hash.each { |from, sym|
                 if sym
-                  sym = Nodes::Symbol === sym ? sym.regexp : sym.left
+                  sym = sym.is_a?(Nodes::Symbol) ? sym.regexp : sym.left
                 end
 
                 @inverted[from][sym] << to

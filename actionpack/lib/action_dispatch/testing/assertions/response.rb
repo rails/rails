@@ -22,7 +22,7 @@ module ActionDispatch
       def assert_response(type, message = nil)
         message ||= "Expected response to be a <#{type}>, but was <#{@response.response_code}>"
 
-        if Symbol === type
+        if type.is_a?(Symbol)
           if [:success, :missing, :redirect, :error].include?(type)
             assert @response.send("#{type}?"), message
           else

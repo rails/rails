@@ -41,7 +41,7 @@ module ActiveRecord
     def insert(values) # :nodoc:
       primary_key_value = nil
 
-      if primary_key && Hash === values
+      if primary_key && values.is_a?(Hash)
         primary_key_value = values[values.keys.find { |k|
           k.name == primary_key
         }]

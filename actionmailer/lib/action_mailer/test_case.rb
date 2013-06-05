@@ -44,7 +44,7 @@ module ActionMailer
 
         def determine_default_mailer(name)
           mailer = determine_constant_from_test_name(name) do |constant|
-            Class === constant && constant < ActionMailer::Base
+            constant.is_a?(Class) && constant < ActionMailer::Base
           end
           raise NonInferrableMailerError.new(name) if mailer.nil?
           mailer

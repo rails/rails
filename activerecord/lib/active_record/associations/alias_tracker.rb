@@ -49,7 +49,7 @@ module ActiveRecord
       private
 
         def initial_count_for(name)
-          return 0 if Arel::Table === table_joins
+          return 0 if table_joins.is_a?(Arel::Table)
 
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = connection.quote_table_name(name).downcase

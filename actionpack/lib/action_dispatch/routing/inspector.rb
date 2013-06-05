@@ -17,7 +17,7 @@ module ActionDispatch
           class_name = app.class.name.to_s
           if class_name == "ActionDispatch::Routing::Mapper::Constraints"
             rack_app(app.app)
-          elsif ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
+          elsif app.is_a?(ActionDispatch::Routing::Redirect) || class_name !~ /^ActionDispatch::Routing/
             app
           end
         end

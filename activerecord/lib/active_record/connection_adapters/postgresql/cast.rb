@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def string_to_time(string)
-          return string unless String === string
+          return string unless string.is_a?(String)
 
           case string
           when 'infinity'; 1.0 / 0.0
@@ -36,7 +36,7 @@ module ActiveRecord
         end
 
         def hstore_to_string(object)
-          if Hash === object
+          if object.is_a?(Hash)
             object.map { |k,v|
               "#{escape_hstore(k)}=>#{escape_hstore(v)}"
             }.join ','
@@ -48,7 +48,7 @@ module ActiveRecord
         def string_to_hstore(string)
           if string.nil?
             nil
-          elsif String === string
+          elsif string.is_a?(String)
             Hash[string.scan(HstorePair).map { |k,v|
               v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
               k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
@@ -60,7 +60,7 @@ module ActiveRecord
         end
 
         def json_to_string(object)
-          if Hash === object || Array === object
+          if object.is_a?(Hash) || object.is_a?(Array)
             ActiveSupport::JSON.encode(object)
           else
             object
@@ -69,7 +69,7 @@ module ActiveRecord
 
         def array_to_string(value, column, adapter, should_be_quoted = false)
           casted_values = value.map do |val|
-            if String === val
+            if val.is_a?(String)
               if val == "NULL"
                 "\"#{val}\""
               else
@@ -89,7 +89,7 @@ module ActiveRecord
         end
 
         def string_to_json(string)
-          if String === string
+          if string.is_a?(String)
             ActiveSupport::JSON.decode(string)
           else
             string
@@ -99,7 +99,7 @@ module ActiveRecord
         def string_to_cidr(string)
           if string.nil?
             nil
-          elsif String === string
+          elsif string.is_a?(String)
             IPAddr.new(string)
           else
             string
@@ -107,7 +107,7 @@ module ActiveRecord
         end
 
         def cidr_to_string(object)
-          if IPAddr === object
+          if object.is_a?(IPAddr)
             "#{object.to_s}/#{object.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
           else
             object

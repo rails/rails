@@ -255,8 +255,8 @@ module ActiveRecord
       end
 
       def type_cast(value, column) # :nodoc:
-        return value.to_f if BigDecimal === value
-        return super unless String === value
+        return value.to_f if value.is_a?(BigDecimal)
+        return super unless value.is_a?(String)
         return super unless column && value
 
         value = super

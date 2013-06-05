@@ -78,7 +78,7 @@ module ActiveRecord
 
         # FIXME: we should guarantee that all cached items are Result
         # objects.  Then we can avoid this conditional
-        if ActiveRecord::Result === result
+        if result.is_a?(ActiveRecord::Result)
           result.dup
         else
           result.collect { |row| row.dup }

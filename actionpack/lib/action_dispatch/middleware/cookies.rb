@@ -426,7 +426,7 @@ module ActionDispatch
       include ChainedCookieJars
 
       def initialize(parent_jar, key_generator, options = {})
-        if ActiveSupport::LegacyKeyGenerator === key_generator
+        if key_generator.is_a?(ActiveSupport::LegacyKeyGenerator)
           raise "You didn't set config.secret_key_base, which is required for this cookie jar. " +
             "Read the upgrade documentation to learn more about this new config option."
         end

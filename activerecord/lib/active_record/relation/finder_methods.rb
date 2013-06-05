@@ -157,7 +157,7 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     def exists?(conditions = :none)
-      conditions = conditions.id if Base === conditions
+      conditions = conditions.id if conditions.is_a?(Base)
       return false if !conditions
 
       join_dependency = construct_join_dependency
@@ -265,7 +265,7 @@ module ActiveRecord
     end
 
     def find_one(id)
-      id = id.id if ActiveRecord::Base === id
+      id = id.id if id.is_a?(ActiveRecord::Base)
 
       column = columns_hash[primary_key]
       substitute = connection.substitute_at(column, bind_values.length)

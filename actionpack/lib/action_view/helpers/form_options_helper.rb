@@ -336,7 +336,7 @@ module ActionView
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
-        return container if String === container
+        return container if container.is_a?(String)
 
         selected, disabled = extract_selected_and_disabled(selected).map do |r|
           Array(r).map { |item| item.to_s }
@@ -704,8 +704,8 @@ module ActionView
 
       private
         def option_html_attributes(element)
-          if Array === element
-            element.select { |e| Hash === e }.reduce({}, :merge!)
+          if element.is_a?(Array)
+            element.select { |e| e.is_a?(Hash) }.reduce({}, :merge!)
           else
             {}
           end
@@ -714,7 +714,7 @@ module ActionView
         def option_text_and_value(option)
           # Options are [text, value] pairs or strings used for both.
           if !option.is_a?(String) && option.respond_to?(:first) && option.respond_to?(:last)
-            option = option.reject { |e| Hash === e } if Array === option
+            option = option.reject { |e| e.is_a?(Hash) } if option.is_a?(Array)
             [option.first, option.last]
           else
             [option, option]
