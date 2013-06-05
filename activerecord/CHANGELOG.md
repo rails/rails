@@ -1,3 +1,7 @@
+*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
+
+    *Adam Anderson*
+
 *   Usage of `implicit_readonly` is being removed`. Please use `readonly` method
     explicitly to mark records as `readonly.
     Fixes #10615.
