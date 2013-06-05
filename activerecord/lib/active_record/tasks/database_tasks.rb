@@ -51,7 +51,6 @@ module ActiveRecord
       register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
 
       register_task(/firebird/,     ActiveRecord::Tasks::FirebirdDatabaseTasks)
-      register_task(/sqlserver/,    ActiveRecord::Tasks::SqlserverDatabaseTasks)
 
       def current_config(options = {})
         options.reverse_merge! :env => env
