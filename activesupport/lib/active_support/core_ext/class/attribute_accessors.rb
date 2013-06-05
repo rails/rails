@@ -29,6 +29,16 @@ class Class
   #   end
   #
   #   Person.new.hair_colors # => NoMethodError
+  #
+  # Also, you can pass a block to set up the attribute with a default value.
+  #
+  #   class Person
+  #     cattr_reader :hair_colors do
+  #       [:brown, :black, :blonde, :red]
+  #     end
+  #   end
+  #
+  #   Person.hair_colors # => [:brown, :black, :blonde, :red]
   def cattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
@@ -50,6 +60,7 @@ class Class
           end
         EOS
       end
+      class_variable_set("@@#{sym}", yield) if block_given?
     end
   end
 
