@@ -5,7 +5,7 @@ module HTML #:nodoc:
   class Conditions < Hash #:nodoc:
     def initialize(hash)
       super()
-      hash = { :content => hash } unless Hash === hash
+      hash = { :content => hash } unless hash.is_a?(Hash)
       hash = keys_to_symbols(hash)
       hash.each do |k,v|
         case k
@@ -113,7 +113,7 @@ module HTML #:nodoc:
     end
 
     def validate_conditions(conditions)
-      Conditions === conditions ? conditions : Conditions.new(conditions)
+      conditions.is_a?(Conditions) ? conditions : Conditions.new(conditions)
     end
 
     def ==(node)
@@ -317,7 +317,7 @@ module HTML #:nodoc:
         s = "<#{@name}"
         @attributes.each do |k,v|
           s << " #{k}"
-          s << "=\"#{v}\"" if String === v
+          s << "=\"#{v}\"" if v.is_a?(String)
         end
         s << " /" if @closing == :self
         s << ">"
@@ -463,7 +463,7 @@ module HTML #:nodoc:
           next if key == :only
           case key
             when :count
-              if Integer === value
+              if value.is_a?(Integer)
                 return false if matches.length != value
               else
                 return false unless value.include?(matches.length)

@@ -61,7 +61,7 @@ class Logger
   class SimpleFormatter < Logger::Formatter
     # This method is invoked when a log event occurs
     def call(severity, timestamp, progname, msg)
-      "#{String === msg ? msg : msg.inspect}\n"
+      "#{msg.is_a?(String) ? msg : msg.inspect}\n"
     end
   end
 end

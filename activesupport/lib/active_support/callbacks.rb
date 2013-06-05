@@ -708,7 +708,7 @@ module ActiveSupport
       #   would call <tt>Audit#save</tt>.
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
-        if config.key?(:terminator) && String === config[:terminator]
+        if config.key?(:terminator) && config[:terminator].is_a?(String)
           ActiveSupport::Deprecation.warn "String based terminators are deprecated, please use a lambda"
           value = config[:terminator]
           l = class_eval "lambda { |result| #{value} }", __FILE__, __LINE__

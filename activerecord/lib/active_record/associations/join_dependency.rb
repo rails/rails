@@ -159,7 +159,7 @@ module ActiveRecord
       end
 
       def find_join_association(name_or_reflection, parent)
-        if String === name_or_reflection
+        if name_or_reflection.is_a?(String)
           name_or_reflection = name_or_reflection.to_sym
         end
 

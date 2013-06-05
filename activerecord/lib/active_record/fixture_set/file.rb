@@ -43,11 +43,11 @@ module ActiveRecord
 
         # Validate our unmarshalled data.
         def validate(data)
-          unless Hash === data || YAML::Omap === data
+          unless data.is_a?(Hash) || data.is_a?(YAML::Omap)
             raise Fixture::FormatError, 'fixture is not a hash'
           end
 
-          raise Fixture::FormatError unless data.all? { |name, row| Hash === row }
+          raise Fixture::FormatError unless data.all? { |name, row| row.is_a?(Hash) }
           data
         end
     end

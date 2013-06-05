@@ -61,7 +61,7 @@ module ActionView
 
         def determine_default_helper_class(name)
           determine_constant_from_test_name(name) do |constant|
-            Module === constant && !(Class === constant)
+            constant.is_a?(Module) && !constant.is_a?(Class)
           end
         end
 

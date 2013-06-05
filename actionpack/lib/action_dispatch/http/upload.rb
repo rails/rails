@@ -78,7 +78,7 @@ module ActionDispatch
       # Replace file upload hash with UploadedFile objects
       # when normalize and encode parameters.
       def normalize_encode_params(value)
-        if Hash === value && value.has_key?(:tempfile)
+        if value.is_a?(Hash) && value.has_key?(:tempfile)
           UploadedFile.new(value)
         else
           super

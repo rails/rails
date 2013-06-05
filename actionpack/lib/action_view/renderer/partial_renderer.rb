@@ -331,7 +331,7 @@ module ActionView
 
       prepend_formats(options[:formats])
 
-      if String === partial
+      if partial.is_a?(String)
         @object     = options[:object]
         @path       = partial
         @collection = collection

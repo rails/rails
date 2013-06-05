@@ -99,7 +99,7 @@ module ActionDispatch
         record = extract_record(record_or_hash_or_array)
         record = convert_to_model(record)
 
-        args = Array === record_or_hash_or_array ?
+        args = record_or_hash_or_array.is_a?(Array) ?
           record_or_hash_or_array.dup :
           [ record_or_hash_or_array ]
 

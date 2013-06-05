@@ -137,7 +137,7 @@ module ActionDispatch
         path    = args.shift
 
         return OptionRedirect.new(status, options) if options.any?
-        return PathRedirect.new(status, path) if String === path
+        return PathRedirect.new(status, path) if path.is_a?(String)
 
         block = path if path.respond_to? :call
         raise ArgumentError, "redirection argument not supported" unless block

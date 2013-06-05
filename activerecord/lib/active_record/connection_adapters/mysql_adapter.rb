@@ -63,7 +63,7 @@ module ActiveRecord
 
       class Column < AbstractMysqlAdapter::Column #:nodoc:
         def self.string_to_time(value)
-          return super unless Mysql::Time === value
+          return super unless value.is_a?(Mysql::Time)
           new_time(
             value.year,
             value.month,
@@ -75,12 +75,12 @@ module ActiveRecord
         end
 
         def self.string_to_dummy_time(v)
-          return super unless Mysql::Time === v
+          return super unless v.is_a?(Mysql::Time)
           new_time(2000, 01, 01, v.hour, v.minute, v.second, v.second_part)
         end
 
         def self.string_to_date(v)
-          return super unless Mysql::Time === v
+          return super unless v.is_a?(Mysql::Time)
           new_date(v.year, v.month, v.day)
         end
 

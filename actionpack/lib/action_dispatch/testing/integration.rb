@@ -265,7 +265,7 @@ module ActionDispatch
         def process(method, path, parameters = nil, headers_or_env = nil)
           if path =~ %r{://}
             location = URI.parse(path)
-            https! URI::HTTPS === location if location.scheme
+            https! location.is_a?(URI::HTTPS) if location.scheme
             host! "#{location.host}:#{location.port}" if location.host
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end

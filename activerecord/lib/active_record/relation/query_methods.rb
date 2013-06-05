@@ -280,7 +280,7 @@ module ActiveRecord
       args.flatten!
       validate_order_args args
 
-      references = args.reject { |arg| Arel::Node === arg }
+      references = args.reject { |arg| arg.is_a?(Arel::Node) }
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
@@ -541,7 +541,7 @@ module ActiveRecord
       if opts == :chain
         WhereChain.new(self)
       else
-        references!(PredicateBuilder.references(opts)) if Hash === opts
+        references!(PredicateBuilder.references(opts)) if opts.is_a?(Hash)
 
         self.where_values += build_where(opts, rest)
         self
@@ -557,7 +557,7 @@ module ActiveRecord
     end
 
     def having!(opts, *rest) # :nodoc:
-      references!(PredicateBuilder.references(opts)) if Hash === opts
+      references!(PredicateBuilder.references(opts)) if opts.is_a?(Hash)
 
       self.having_values += build_where(opts, rest)
       self
@@ -881,7 +881,7 @@ module ActiveRecord
       arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
 
       (wheres - equalities).each do |where|
-        where = Arel.sql(where) if String === where
+        where = Arel.sql(where) if where.is_a?(String)
         arel.where(Arel::Nodes::Grouping.new(where))
       end
     end
