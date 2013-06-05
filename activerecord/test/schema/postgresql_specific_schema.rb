@@ -70,7 +70,9 @@ _SQL
   CREATE TABLE postgresql_uuids (
     id SERIAL PRIMARY KEY,
     guid uuid,
-    compact_guid uuid
+    compact_guid uuid,
+    v1_guid uuid default uuid_generate_v1(),
+    v4_guid uuid default uuid_generate_v4()
   );
 _SQL
 
