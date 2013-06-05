@@ -16,7 +16,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
 
   test 'sets logger.formatter if missing and extends it with a tagging API' do
     logger = Logger.new(StringIO.new)
-    assert_nil logger.formatter
+    logger.formatter = nil
     ActiveSupport::TaggedLogging.new(logger)
     assert_not_nil logger.formatter
     assert logger.formatter.respond_to?(:tagged)

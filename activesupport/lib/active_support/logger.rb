@@ -2,10 +2,19 @@ require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/logger_silence'
 require 'logger'
 
+class Logger
+  include LoggerSilence
+
+  # Overwrite initialize to set a default formatter.
+  alias :old_initialize :initialize
+  def initialize(*args)
+    old_initialize(*args)
+    self.formatter = ActiveSupport::Logger::SimpleFormatter.new
+  end
+end
+
 module ActiveSupport
   class Logger < ::Logger
-    include LoggerSilence
-
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
@@ -39,11 +48,6 @@ module ActiveSupport
           super(level)
         end
       end
-    end
-
-    def initialize(*args)
-      super
-      @formatter = SimpleFormatter.new
     end
 
     # Simple formatter which only displays the message.
