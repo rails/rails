@@ -722,8 +722,8 @@ module ActiveRecord
 
   end
 
-  class NullMigration < MigrationProxy
-    def initialize(name, version, filename, scope)
+  class NullMigration < MigrationProxy #:nodoc:
+    def initialize
       super(nil, 0, nil, nil)
     end
 
@@ -805,7 +805,7 @@ module ActiveRecord
         last_migration.version
       end
 
-      def last_migration # :nodoc:
+      def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
       end
 
