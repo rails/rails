@@ -357,10 +357,15 @@ module ActiveRecord
     class CheckPending
       def initialize(app)
         @app = app
+        @last_check = 0
       end
 
       def call(env)
-        ActiveRecord::Migration.check_pending!
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
+          ActiveRecord::Migration.check_pending!
+          @last_check = mtime
+        end
         @app.call(env)
       end
     end
@@ -697,6 +702,10 @@ module ActiveRecord
       File.basename(filename)
     end
 
+    def mtime
+      File.mtime filename
+    end
+
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
@@ -710,6 +719,16 @@ module ActiveRecord
         name.constantize.new
       end
 
+  end
+
+  class NullMigration < MigrationProxy
+    def initialize(name, version, filename, scope)
+      super(nil, 0, nil, nil)
+    end
+
+    def mtime
+      0
+    end
   end
 
   class Migrator#:nodoc:
@@ -782,7 +801,11 @@ module ActiveRecord
       end
 
       def last_version
-        migrations(migrations_paths).last.try(:version)||0
+        last_migration.version
+      end
+
+      def last_migration # :nodoc:
+        migrations(migrations_paths).last || NullMigration.new
       end
 
       def proper_table_name(name)
