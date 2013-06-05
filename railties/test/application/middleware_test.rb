@@ -80,7 +80,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { host: 'example.com' }"
       boot!
 
-      assert_equal AppTemplate::Application.middleware.first.args, [{host: 'example.com'}]
+      assert_equal app.middleware.first.args, [{host: 'example.com'}]
     end
 
     test "removing Active Record omits its middleware" do
@@ -217,7 +217,7 @@ module ApplicationTests
       end
 
       def middleware
-        AppTemplate::Application.middleware.map(&:klass).map(&:name)
+        app.middleware.map(&:klass).map(&:name)
       end
   end
 end

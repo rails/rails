@@ -75,7 +75,7 @@ module ApplicationTests
       $initialize_test_set_from_env = nil
       app_file "config/environments/development.rb", <<-RUBY
         $initialize_test_set_from_env = 'success'
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.cache_classes = true
           config.time_zone = "Brasilia"
         end
