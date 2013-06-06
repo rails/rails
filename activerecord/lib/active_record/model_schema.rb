@@ -231,6 +231,9 @@ module ActiveRecord
           if create_time_zone_conversion_attribute?(name, col)
             columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
           end
+          if col.try(:dirty?)
+            dirty_attribute_names << name
+          end
         end
 
         columns_hash

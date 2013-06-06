@@ -224,6 +224,8 @@ module ActiveRecord
         end
 
         class Hstore < Type
+          def dirty?; true; end
+
           def type_cast(value)
             return if value.nil?
 
