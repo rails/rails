@@ -81,6 +81,11 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized %(<a href="foo" onclick="bar"><script>baz</script></a>), %(<a href="foo"></a>)
   end
 
+  def test_video_poster_sanitization
+    assert_sanitized %(<video src="videofile.ogg" autoplay  poster="posterimage.jpg"></video>), %(<video src="videofile.ogg"></video>)
+    assert_sanitized %(<video src="videofile.ogg" poster=javascript:alert(1)></video>), %(<video src="videofile.ogg"></video>)
+  end
+
   # RFC 3986, sec 4.2
   def test_allow_colons_in_path_component
     assert_sanitized("<a href=\"./this:that\">foo</a>")
