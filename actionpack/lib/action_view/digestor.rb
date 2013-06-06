@@ -3,7 +3,7 @@ require 'action_view/dependency_tracker'
 
 module ActionView
   class Digestor
-    cattr_reader(:cache)
+    cattr_accessor(:cache)
     @@cache = ThreadSafe::Cache.new
 
     def self.digest(name, format, finder, options = {})

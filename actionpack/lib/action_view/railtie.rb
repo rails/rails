@@ -33,6 +33,9 @@ module ActionView
         if app.config.action_view.cache_template_loading.nil?
           ActionView::Resolver.caching = app.config.cache_classes
         end
+        unless ActionView::Base.cache_template_loading
+          ActionView::Digestor.cache = ActiveSupport::Cache::NullStore.new
+        end
       end
     end
   end
