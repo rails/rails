@@ -85,7 +85,8 @@ module Arel
 
           it 'creates a subquery when there is DISTINCT' do
             stmt = Nodes::SelectStatement.new
-            stmt.cores.first.projections << Nodes::SqlLiteral.new('DISTINCT id')
+            stmt.cores.first.set_quantifier = Arel::Nodes::Distinct.new
+            stmt.cores.first.projections << Nodes::SqlLiteral.new('id')
             stmt.limit = Arel::Nodes::Limit.new(10)
             sql = @visitor.accept stmt
             sql.must_be_like %{
