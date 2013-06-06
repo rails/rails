@@ -46,6 +46,7 @@ class ErbUtilTest < ActiveSupport::TestCase
 
   def test_html_escape_once
     assert_equal '1 &lt;&gt;&amp;&quot;&#39; 2 &amp; 3', html_escape_once('1 <>&"\' 2 &amp; 3')
+    assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", html_escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
   end
 
   def test_html_escape_once_returns_unsafe_strings_when_passed_unsafe_strings
