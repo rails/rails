@@ -83,7 +83,7 @@ module ActiveRecord
           when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
             $1
           # Character types
-          when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
+          when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text|name|"char")\z/m
             $1
           # Binary data types
           when /\A'(.*)'::bytea\z/m
@@ -186,6 +186,10 @@ module ActiveRecord
             :macaddr
           # Character types
           when /^(?:character varying|bpchar)(?:\(\d+\))?$/
+            :string
+          when 'name'
+            :string
+          when '"char"'
             :string
           # Binary data types
           when 'bytea'
