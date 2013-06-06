@@ -1,3 +1,10 @@
+*   When a named scope returns a scope that is associated with a different class,
+    it is merged into `all` to ensure the return value is associated with the correct class.
+
+    Fixes #10658.
+
+    *Lachlan Sylvester*
+
 *   Fix accessing of fixtures having non-string labels like Fixnum.
 
     *Prathamesh Sonpatki*
