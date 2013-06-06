@@ -678,7 +678,7 @@ module ActionView
 
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
-        @html_options = html_options.dup
+        @html_options = (@options.delete(:html) || {}).merge html_options
         @datetime     = datetime
         @options[:datetime_separator] ||= ' &mdash; '
         @options[:time_separator]     ||= ' : '

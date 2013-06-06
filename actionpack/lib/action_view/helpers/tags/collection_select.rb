@@ -6,7 +6,7 @@ module ActionView
           @collection   = collection
           @value_method = value_method
           @text_method  = text_method
-          @html_options = html_options
+          @html_options = (options.delete(:html) || {}).merge html_options
 
           super(object_name, method_name, template_object, options)
         end
