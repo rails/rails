@@ -64,7 +64,7 @@ Creating a New Rails Project
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
 literally follow along step by step. You can get the complete code
-[here](https://github.com/lifo/docrails/tree/master/guides/code/getting_started).
+[here](https://github.com/rails/docrails/tree/master/guides/code/getting_started).
 
 By following along with this guide, you'll create a Rails project called
 `blog`, a
