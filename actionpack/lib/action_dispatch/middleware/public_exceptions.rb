@@ -7,7 +7,6 @@ module ActionDispatch
     end
 
     def call(env)
-      exception    = env["action_dispatch.exception"]
       status       = env["PATH_INFO"][1..-1]
       request      = ActionDispatch::Request.new(env)
       content_type = request.formats.first
