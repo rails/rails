@@ -109,7 +109,7 @@ module ActiveModel
       #
       #     def attributes=(hash)
       #       hash.each do |key, value|
-      #         instance_variable_set("@#{key}", value)
+      #         send("#{key}=", value)
       #       end
       #     end
       #
