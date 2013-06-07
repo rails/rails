@@ -301,8 +301,6 @@ config.cache_store = :memory_store, :size => 64.megabytes
 
 If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then your Rails server process instances won't be able to share cache data with each other. This cache store is not appropriate for large application deployments, but can work well for small, low traffic sites with only a couple of server processes or for development and test environments.
 
-This is the default cache store implementation.
-
 h4. ActiveSupport::Cache::FileStore
 
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
@@ -314,6 +312,8 @@ config.cache_store = :file_store, "/path/to/cache/directory"
 With this cache store, multiple server processes on the same host can share a cache. Servers processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
 
 Note that the cache will grow until the disk is full unless you periodically clear out old entries.
+
+This is the default cache store if config.cache_store is not defined and tmp/cache is writable.
 
 h4. ActiveSupport::Cache::MemCacheStore
 
