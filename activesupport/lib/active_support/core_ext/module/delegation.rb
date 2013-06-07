@@ -164,7 +164,7 @@ class Module
       #
       # Reason is twofold: On one hand doing less calls is in general better.
       # On the other hand it could be that the target has side-effects,
-      # whereas conceptualy, from the user point of view, the delegator should
+      # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
       if allow_nil
         module_eval(<<-EOS, file, line - 3)
