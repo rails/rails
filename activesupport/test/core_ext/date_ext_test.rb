@@ -247,6 +247,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
   end
 
+  def test_middle_of_day
+    assert_equal Time.local(2005,2,21,12,0,0), Date.new(2005,2,21).middle_of_day
+  end
+
   def test_beginning_of_day_when_zone_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do

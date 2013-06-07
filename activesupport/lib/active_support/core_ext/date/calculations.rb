@@ -69,6 +69,16 @@ class Date
   alias :at_midnight :beginning_of_day
   alias :at_beginning_of_day :beginning_of_day
 
+  # Converts Date to a Time (or DateTime if necessary) with the time portion set to the middle of the day (12:00)
+  def middle_of_day
+    in_time_zone.middle_of_day
+  end
+  alias :midday :middle_of_day
+  alias :noon :middle_of_day
+  alias :at_midday :middle_of_day
+  alias :at_noon :middle_of_day
+  alias :at_middle_of_day :middle_of_day
+
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the end of the day (23:59:59)
   def end_of_day
     in_time_zone.end_of_day
@@ -119,7 +129,7 @@ class Date
       options.fetch(:day, day)
     )
   end
-  
+
   # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
   def compare_with_coercion(other)
     if other.is_a?(Time)
