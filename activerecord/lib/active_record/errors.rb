@@ -69,10 +69,6 @@ module ActiveRecord
     end
   end
 
-  # Raised when SQL statement is invalid and the application gets a blank result.
-  class ThrowResult < ActiveRecordError
-  end
-
   # Defunct wrapper class kept for compatibility.
   # +StatementInvalid+ wraps the original exception now.
   class WrappedDatabaseException < StatementInvalid
