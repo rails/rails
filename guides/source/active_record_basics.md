@@ -64,7 +64,7 @@ Rails, you'll need to write very little configuration (in some case no
 configuration at all) when creating Active Record models. The idea is that if
 you configure your applications in the very same way most of the time then this
 should be the default way. Thus, explicit configuration would be needed
-only in those cases where you can't follow the standar convention.
+only in those cases where you can't follow the standard convention.
 
 ### Naming Conventions
 
