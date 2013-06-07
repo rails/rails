@@ -1,6 +1,6 @@
 /*
   Fix a rendering issue affecting WebKits on Mac.
-  See https://github.com/lifo/docrails/issues#issue/16 for more information.
+  See https://github.com/rails/docrails/issues#issue/16 for more information.
 */
 .syntaxhighlighter a,
 .syntaxhighlighter div,
