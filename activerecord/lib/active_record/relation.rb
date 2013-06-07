@@ -21,6 +21,7 @@ module ActiveRecord
     alias :model :klass
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
+    alias :blank? :empty?
 
     def initialize(klass, table, values = {})
       @klass             = klass
@@ -573,11 +574,6 @@ module ActiveRecord
       else
         self
       end
-    end
-
-    # Returns true if relation is blank.
-    def blank?
-      to_a.blank?
     end
 
     def values
