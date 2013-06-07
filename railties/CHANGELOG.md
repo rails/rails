@@ -1,3 +1,7 @@
+*   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
+
+    *Xavier Noria*
+
 *   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
     Fixes #9525.
 
