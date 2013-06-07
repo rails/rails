@@ -721,6 +721,7 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
+* `create_association!(attributes = {})`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
@@ -737,6 +738,7 @@ customer
 customer=
 build_customer
 create_customer
+create_customer!
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -776,6 +778,10 @@ The `create_association` method returns a new object of the associated type. Thi
 @customer = @order.create_customer(customer_number: 123,
                                    customer_name: "John Doe")
 ```
+
+##### `create_association!(attributes = {})`
+
+Does the same as <tt>create_association</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
 
 
 #### Options for `belongs_to`
@@ -1019,6 +1025,7 @@ When you declare a `has_one` association, the declaring class automatically gain
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
+* `create_association!(attributes = {})`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
@@ -1035,6 +1042,7 @@ account
 account=
 build_account
 create_account
+create_account!
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -1072,6 +1080,10 @@ The `create_association` method returns a new object of the associated type. Thi
 ```ruby
 @account = @supplier.create_account(terms: "Net 30")
 ```
+
+##### `create_association!(attributes = {})`
+
+Does the same as <tt>create_association</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
 
 #### Options for `has_one`
 
@@ -1285,6 +1297,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection.exists?(...)`
 * `collection.build(attributes = {}, ...)`
 * `collection.create(attributes = {})`
+* `collection.create!(attributes = {})`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1312,6 +1325,7 @@ orders.where(...)
 orders.exists?(...)
 orders.build(attributes = {}, ...)
 orders.create(attributes = {})
+orders.create!(attributes = {})
 ```
 
 ##### `collection(force_reload = false)`
@@ -1426,6 +1440,10 @@ The `collection.create` method returns a new object of the associated type. This
 @order = @customer.orders.create(order_date: Time.now,
                                  order_number: "A12345")
 ```
+
+##### `collection.create!(attributes = {})`
+
+Does the same as <tt>collection.create</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
 
 #### Options for `has_many`
 
@@ -1768,6 +1786,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection.exists?(...)`
 * `collection.build(attributes = {})`
 * `collection.create(attributes = {})`
+* `collection.create!(attributes = {})`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1795,6 +1814,7 @@ assemblies.where(...)
 assemblies.exists?(...)
 assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
+assemblies.create!(attributes = {})
 ```
 
 ##### Additional Column Methods
@@ -1913,6 +1933,10 @@ The `collection.create` method returns a new object of the associated type. This
 ```ruby
 @assembly = @part.assemblies.create({assembly_name: "Transmission housing"})
 ```
+
+##### `collection.create!(attributes = {})`
+
+Does the same as <tt>collection.create</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
 
 #### Options for `has_and_belongs_to_many`
 
