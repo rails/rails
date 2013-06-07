@@ -11,7 +11,7 @@ module ActiveRecord
     # The #find_each method uses #find_in_batches with a batch size of 1000 (or as
     # specified by the +:batch_size+ option).
     #
-    #   Person.all.find_each do |person|
+    #   Person.find_each do |person|
     #     person.do_awesome_stuff
     #   end
     #
@@ -50,7 +50,7 @@ module ActiveRecord
     #   end
     #
     #   # Let's process the next 2000 records
-    #   Person.all.find_in_batches(start: 2000, batch_size: 2000) do |group|
+    #   Person.find_in_batches(start: 2000, batch_size: 2000) do |group|
     #     group.each { |person| person.party_all_night! }
     #   end
     def find_in_batches(options = {})
