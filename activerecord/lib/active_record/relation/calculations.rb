@@ -106,8 +106,6 @@ module ActiveRecord
       else
         relation.calculate(operation, column_name, options)
       end
-    rescue ThrowResult
-      0
     end
 
     # Use <tt>pluck</tt> as a shortcut to select one or more attributes without
