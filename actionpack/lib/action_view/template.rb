@@ -267,7 +267,7 @@ module ActionView
         method_name = self.method_name
         code = @handler.call(self)
 
-        # Make sure that the resulting String to be evalled is in the
+        # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
         source = <<-end_src
           def #{method_name}(local_assigns, output_buffer)
