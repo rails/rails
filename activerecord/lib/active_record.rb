@@ -84,6 +84,7 @@ module ActiveRecord
       autoload :QueryMethods
       autoload :FinderMethods
       autoload :Calculations
+      autoload :AlternativeBuilder
       autoload :PredicateBuilder
       autoload :SpawnMethods
       autoload :Batches
