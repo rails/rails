@@ -741,6 +741,28 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
   end
 
+  def test_at_with_datetime
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
+
+    # Only test this if the underlying Time.at raises a TypeError
+    begin
+      Time.at_without_coercion(Time.now, 0)
+    rescue TypeError
+      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0)) }
+    end
+  end
+
+  def test_at_with_time_with_zone
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']))
+
+    # Only test this if the underlying Time.at raises a TypeError
+    begin
+      Time.at_without_coercion(Time.now, 0)
+    rescue TypeError
+      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']), 0)) }
+    end
+  end
+
   def test_eql?
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']) )
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
