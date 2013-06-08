@@ -11,7 +11,9 @@ module ActiveRecord
     #   Person.find([1])     # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # Note that returned records may not be in the same order as the ids you
+    # NOTE: An RecordNotFound will be raised if one or more ids are not returned.
+    #
+    # NOTE: that returned records may not be in the same order as the ids you
     # provide since database rows are unordered. Give an explicit <tt>order</tt>
     # to ensure the results are sorted.
     #
@@ -28,6 +30,38 @@ module ActiveRecord
     #     person.visits += 1
     #     person.save!
     #   end
+    #
+    # ==== Variations of +find+
+    # 
+    #   Person.where(name: 'Spartacus', rating: 4)
+    #   # returns a chainable list (which can be empty)
+    #
+    #   Person.find_by(name: 'Spartacus', rating: 4)
+    #   # returns the first item or nil
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).first_or_initialize
+    #   # returns the first item or returns a new instance (requires you call .save to persist against the database)
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).first_or_create
+    #   # returns the first item or creates it and returns it, available since rails 3.2.1
+    #
+    #   
+    # ==== Alternatives for +find+
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
+    #   # returns true or false
+    #   
+    #   Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
+    #   # returns a chainable list of instances with only the mentioned fields
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).ids
+    #   # returns an Array of ids, available since rails 3.2.1
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
+    #   # returns an Array of the required fields, available since rails 3.1
+    #
+    #   Person.arel_table
+    #   # returns an instance of <tt>Arel::Table</tt>, which allows a comprehensive variety of filters
     def find(*args)
       if block_given?
         to_a.find { |*block_args| yield(*block_args) }
