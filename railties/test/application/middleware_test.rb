@@ -69,6 +69,14 @@ module ApplicationTests
       assert_equal "Rack::Cache", middleware.first
     end
 
+    test "ActiveRecord::Migration::CheckPending is present when active_record.migration_error is set to :page_load" do
+      add_to_config "config.active_record.migration_error = :page_load"
+
+      boot!
+
+      assert middleware.include?("ActiveRecord::Migration::CheckPending")
+    end
+
     test "ActionDispatch::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!
