@@ -79,6 +79,19 @@ module ActiveRecord
     #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
+    #
+    # ==== Rails 3
+    #
+    #   Person.first # SELECT "users".* FROM "users" LIMIT 1
+    #
+    # NOTE: Rails 3 may not +order+ this query by be the primary key.
+    # The order will depend on the database implementation.
+    # In order to ensure that behavior use <tt>User.order(:id).first</tt> instead.
+    #
+    # ==== Rails 4
+    #
+    #   Person.first # SELECT "users".* FROM "users" ORDER BY "users"."id" ASC LIMIT 1
+    #
     def first(limit = nil)
       if limit
         if order_values.empty? && primary_key
