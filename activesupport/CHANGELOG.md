@@ -1,3 +1,7 @@
+*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
+
+    *Andrew White*
+
 *   Prevent side effects to hashes inside arrays when
     `Hash#with_indifferent_access` is called.
     Fixes #10526
