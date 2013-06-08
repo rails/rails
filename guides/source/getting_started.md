@@ -551,7 +551,7 @@ database columns. In the first line we do just that (remember that
 Finally, we redirect the user to the `show` action,
 which we'll define later.
 
-TIP: Note that `def post_params` is private. This new approach prevents an attacker from setting the model’s attributes by manipulating the hash passed to the model. For more information, refer to [this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+TIP: Note that `def post_params` is private. This new approach prevents an attacker from setting the model's attributes by manipulating the hash passed to the model. For more information, refer to [this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 TIP: As we'll see later, `@post.save` returns a boolean indicating
 whether the model was saved or not.
