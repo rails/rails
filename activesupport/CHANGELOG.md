@@ -1,12 +1,14 @@
-## unreleased ##
+*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
 
-*  Allow Date to be compared with Time (like it was possible to compare Time with Date).
+    *Andrew White*
 
-   *DHH*
+*   Allow Date to be compared with Time (like it was possible to compare Time with Date).
 
-*  Deprecate multiple parameters support of `Object#in?`.
+    *DHH*
 
-   *Brian Morearty + Carlos Antonio da Silva*
+*   Deprecate multiple parameters support of `Object#in?`.
+
+    *Brian Morearty + Carlos Antonio da Silva*
 
 
 ## Rails 4.0.0.rc1 (April 29, 2013) ##
@@ -38,6 +40,7 @@
 *   Fix deletion of empty directories in `ActiveSupport::Cache::FileStore`.
 
     *Charles Jones*
+
 
 ## Rails 4.0.0.beta1 (February 25, 2013) ##
 
