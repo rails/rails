@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
+
+    *Andrew White*
+
 *   Revert the changes on unicode character encoding from `ActiveSupport::JSON.encode`.
     This was causing a regression where the resulting string is always returning UTF-8.
     Also it changes the behavior of this method on a stable release.
