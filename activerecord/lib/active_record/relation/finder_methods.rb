@@ -116,7 +116,7 @@ module ActiveRecord
     #
     # ==== Rails 3
     #
-    #   Person.first # SELECT "users".* FROM "users" LIMIT 1
+    #   Person.first # SELECT "people".* FROM "people" LIMIT 1
     #
     # NOTE: Rails 3 may not +order+ this query by be the primary key.
     # The order will depend on the database implementation.
@@ -124,7 +124,7 @@ module ActiveRecord
     #
     # ==== Rails 4
     #
-    #   Person.first # SELECT "users".* FROM "users" ORDER BY "users"."id" ASC LIMIT 1
+    #   Person.first # SELECT "people".* FROM "people" ORDER BY "people"."id" ASC LIMIT 1
     #
     def first(limit = nil)
       if limit
