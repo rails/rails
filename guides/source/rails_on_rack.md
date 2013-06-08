@@ -131,6 +131,7 @@ use ActionDispatch::DebugExceptions
 use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
+use ActiveRecord::Migration::CheckPending
 use ActiveRecord::ConnectionAdapters::ConnectionManagement
 use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
@@ -271,6 +272,11 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
  **`ActionDispatch::Callbacks`**
 
 * Runs the prepare callbacks before serving the request.
+
+
+ **`ActiveRecord::Migration::CheckPending`**
+
+* Checks pending migrations and raise an error if migrations are pending.
 
  **`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
 
