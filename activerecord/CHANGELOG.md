@@ -1,3 +1,24 @@
+*   Rails now automatically detects inverse associations. If you do not set the
+    `:inverse_of` option on the association, then Active Record will guess the
+    inverse association based on heuristics.
+
+    Note that automatic inverse detection only works on `has_many`, `has_one`,
+    and `belongs_to` associations. Extra options on the associations will
+    also prevent the association's inverse from being found automatically.
+
+    The automatic guessing of the inverse association uses a heuristic based
+    on the name of the class, so it may not work for all associations,
+    especially the ones with non-standard names.
+
+    You can turn off the automatic detection of inverse associations by setting
+    the `:inverse_of` option to `false` like so:
+
+      class Taggable < ActiveRecord::Base
+        belongs_to :tag, inverse_of: false
+      end
+
+    *John Wang*
+
 *   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
 
     *Adam Anderson*
