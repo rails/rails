@@ -313,8 +313,7 @@ module ActiveRecord
       # and prevents this object from finding the inverse association
       # automatically in the future.
       def remove_automatic_inverse_of!
-        @automatic_inverse_of = nil
-        options[:automatic_inverse_of] = false
+        @automatic_inverse_of = false
       end
 
       def polymorphic_inverse_of(associated_class)
@@ -449,15 +448,16 @@ module ActiveRecord
 
         # Checks to see if the reflection doesn't have any options that prevent
         # us from being able to guess the inverse automatically. First, the
-        # +automatic_inverse_of+ option cannot be set to false. Second, we must
-        # have +has_many+, +has_one+, +belongs_to+ associations. Third, we must
-        # not have options such as +:polymorphic+ or +:foreign_key+ which prevent us
-        # from correctly guessing the inverse association.
+        # <tt>inverse_of</tt> option cannot be set to false. Second, we must
+        # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
+        # Third, we must not have options such as <tt>:polymorphic</tt> or
+        # <tt>:foreign_key</tt> which prevent us from correctly guessing the
+        # inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an
         # inverse, so we exclude reflections with scopes.
         def can_find_inverse_of_automatically?(reflection)
-          reflection.options[:automatic_inverse_of] != false &&
+          reflection.options[:inverse_of] != false &&
             VALID_AUTOMATIC_INVERSE_MACROS.include?(reflection.macro) &&
             !INVALID_AUTOMATIC_INVERSE_OPTIONS.any? { |opt| reflection.options[opt] } &&
             !reflection.scope

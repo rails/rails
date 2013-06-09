@@ -586,9 +586,10 @@ module ActiveRecord
     #     belongs_to :tag, inverse_of: :taggings
     #   end
     #
-    # If you do not set the +:inverse_of+ record, the association will do its
-    # best to match itself up with the correct inverse. Automatic +:inverse_of+
-    # detection only works on +has_many+, +has_one+, and +belongs_to+ associations.
+    # If you do not set the <tt>:inverse_of</tt> record, the association will
+    # do its best to match itself up with the correct inverse. Automatic
+    # inverse detection only works on <tt>has_many</tt>, <tt>has_one</tt>, and
+    # <tt>belongs_to</tt> associations.
     #
     # Extra options on the associations, as defined in the
     # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt> constant, will
@@ -599,10 +600,10 @@ module ActiveRecord
     # especially the ones with non-standard names.
     #
     # You can turn off the automatic detection of inverse associations by setting
-    # the +:automatic_inverse_of+ option to +false+ like so:
+    # the <tt>:inverse_of</tt> option to <tt>false</tt> like so:
     #
     #   class Taggable < ActiveRecord::Base
-    #     belongs_to :tag, automatic_inverse_of: false
+    #     belongs_to :tag, inverse_of: false
     #   end
     #
     # == Nested \Associations
