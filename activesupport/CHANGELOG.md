@@ -1,4 +1,10 @@
 ## unreleased ##
+*   Fix `ActiveSupport::TaggedLogging` when using a formatter that displays `progname`.
+    Also, if the severity of the message is less than logger's level and a block is
+    given, the block will not be evaluated. This is useful if the block might slow
+    down the performance of the app.
+
+    *Ionut-Liviu Georgescu*
 
 *   Override `Time.at` to support the passing of Time-like values when called with a single argument.
 
