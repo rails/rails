@@ -1,3 +1,19 @@
+*   Remove column restrictions for `count`, let the database raise if the SQL is
+    invalid. The previos behavior was untested and surprising for the user.
+    Fixes #5554.
+
+    Example:
+
+        User.select("name, username").count
+        # Before => SELECT count(*) FROM users
+        # After => ActiveRecord::StatementInvalid
+
+        # you can still use `count(:all)` to perform a query unrelated to the
+        # selected columns
+        User.select("name, username").count(:all) # => SELECT count(*) FROM users
+
+    *Yves Senn*
+
 *   Rails now automatically detects inverse associations. If you do not set the
     `:inverse_of` option on the association, then Active Record will guess the
     inverse association based on heuristics.
