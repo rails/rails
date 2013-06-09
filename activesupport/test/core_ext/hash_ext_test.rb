@@ -36,6 +36,10 @@ class HashExtTest < ActiveSupport::TestCase
     @nested_illegal_symbols = { [] => { [] => 3} }
     @upcase_strings = { 'A' => 1, 'B' => 2 }
     @nested_upcase_strings = { 'A' => { 'B' => { 'C' => 3 } } }
+    @string_array_of_hashes = { 'a' => [ { 'b' => 2 }, { 'c' => 3 }, 4 ] }
+    @symbol_array_of_hashes = { :a => [ { :b => 2 }, { :c => 3 }, 4 ] }
+    @mixed_array_of_hashes = { :a => [ { :b => 2 }, { 'c' => 3 }, 4 ] }
+    @upcase_array_of_hashes = { 'A' => [ { 'B' => 2 }, { 'C' => 3 }, 4 ] }
   end
 
   def test_methods
@@ -72,6 +76,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_upcase_strings, @nested_symbols.deep_transform_keys{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_strings.deep_transform_keys{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_mixed.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
   end
 
   def test_deep_transform_keys_not_mutates
@@ -97,6 +104,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_upcase_strings, @nested_symbols.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_strings.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_mixed.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
   end
 
   def test_deep_transform_keys_with_bang_mutates
@@ -122,6 +132,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_symbols, @nested_symbols.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_strings.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_mixed.deep_symbolize_keys
+    assert_equal @symbol_array_of_hashes, @string_array_of_hashes.deep_symbolize_keys
+    assert_equal @symbol_array_of_hashes, @symbol_array_of_hashes.deep_symbolize_keys
+    assert_equal @symbol_array_of_hashes, @mixed_array_of_hashes.deep_symbolize_keys
   end
 
   def test_deep_symbolize_keys_not_mutates
@@ -147,6 +160,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_symbols, @nested_symbols.deep_dup.deep_symbolize_keys!
     assert_equal @nested_symbols, @nested_strings.deep_dup.deep_symbolize_keys!
     assert_equal @nested_symbols, @nested_mixed.deep_dup.deep_symbolize_keys!
+    assert_equal @symbol_array_of_hashes, @string_array_of_hashes.deep_dup.deep_symbolize_keys!
+    assert_equal @symbol_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_symbolize_keys!
+    assert_equal @symbol_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_symbolize_keys!
   end
 
   def test_deep_symbolize_keys_with_bang_mutates
@@ -192,6 +208,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_strings, @nested_symbols.deep_stringify_keys
     assert_equal @nested_strings, @nested_strings.deep_stringify_keys
     assert_equal @nested_strings, @nested_mixed.deep_stringify_keys
+    assert_equal @string_array_of_hashes, @string_array_of_hashes.deep_stringify_keys
+    assert_equal @string_array_of_hashes, @symbol_array_of_hashes.deep_stringify_keys
+    assert_equal @string_array_of_hashes, @mixed_array_of_hashes.deep_stringify_keys
   end
 
   def test_deep_stringify_keys_not_mutates
@@ -217,6 +236,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_strings, @nested_symbols.deep_dup.deep_stringify_keys!
     assert_equal @nested_strings, @nested_strings.deep_dup.deep_stringify_keys!
     assert_equal @nested_strings, @nested_mixed.deep_dup.deep_stringify_keys!
+    assert_equal @string_array_of_hashes, @string_array_of_hashes.deep_dup.deep_stringify_keys!
+    assert_equal @string_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_stringify_keys!
+    assert_equal @string_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_stringify_keys!
   end
 
   def test_deep_stringify_keys_with_bang_mutates
