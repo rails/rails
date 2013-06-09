@@ -1,5 +1,21 @@
 ## unreleased ##
 
+*   Remove column restrictions for `count`, let the database raise if the SQL is
+    invalid. The previos behavior was untested and surprising for the user.
+    Fixes #5554.
+
+    Example:
+
+        User.select("name, username").count
+        # Before => SELECT count(*) FROM users
+        # After => ActiveRecord::StatementInvalid
+
+        # you can still use `count(:all)` to perform a query unrelated to the
+        # selected columns
+        User.select("name, username").count(:all) # => SELECT count(*) FROM users
+
+    *Yves Senn*
+
 *   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
 
 *   Do not overwrite manually built records during one-to-one nested attribute assignment
