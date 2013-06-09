@@ -129,7 +129,7 @@ Note that the `params` hash is actually an instance of `ActiveSupport::HashWithI
 
 ### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
