@@ -81,11 +81,7 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
       if limit
-        if order_values.empty? && primary_key
-          order(arel_table[primary_key].asc).limit(limit).to_a
-        else
-          limit(limit).to_a
-        end
+        find_first_records(order_values, limit)
       else
         find_first
       end
@@ -307,12 +303,15 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||=
-          if with_default_scope.order_values.empty? && primary_key
-            order(arel_table[primary_key].asc).limit(1).to_a.first
-          else
-            limit(1).to_a.first
-          end
+        @first ||= find_first_records(with_default_scope.order_values, 1).first
+      end
+    end
+
+    def find_first_records(order_values, limit)
+      if order_values.empty? && primary_key
+        order(arel_table[primary_key].asc).limit(limit).to_a
+      else
+        limit(limit).to_a
       end
     end
 
