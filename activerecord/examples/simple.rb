@@ -8,7 +8,7 @@ class Person < ActiveRecord::Base
   end
 end
 
-bob = Person.create!(name:  'bob')
+bob = Person.create!(name: 'bob')
 puts Person.all.inspect
 bob.destroy
 puts Person.all.inspect

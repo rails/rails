@@ -5,7 +5,7 @@ require 'benchmark/ips'
 TIME    = (ENV['BENCHMARK_TIME'] || 20).to_i
 RECORDS = (ENV['BENCHMARK_RECORDS'] || TIME*1000).to_i
 
-conn = { adapter:  'sqlite3', database:  ':memory:' }
+conn = { adapter: 'sqlite3', database: ':memory:' }
 
 ActiveRecord::Base.establish_connection(conn)
 
@@ -77,28 +77,28 @@ today = Date.today
 puts "Inserting #{RECORDS} users and exhibits..."
 RECORDS.times do
   user = User.create(
-    created_at:  today,
-    name:        ActiveRecord::Faker.name,
-    email:       ActiveRecord::Faker.email
+    created_at: today,
+    name: ActiveRecord::Faker.name,
+    email: ActiveRecord::Faker.email
   )
 
   Exhibit.create(
     created_at:  today,
-    name:        ActiveRecord::Faker.name,
-    user:        user,
-    notes:       notes
+    name: ActiveRecord::Faker.name,
+    user: user,
+    notes: notes
   )
 end
 
 Benchmark.ips(TIME) do |x|
   ar_obj       = Exhibit.find(1)
-  attrs        = { name:  'sam' }
-  attrs_first  = { name:  'sam' }
-  attrs_second = { name:  'tom' }
+  attrs        = { name: 'sam' }
+  attrs_first  = { name: 'sam' }
+  attrs_second = { name: 'tom' }
   exhibit      = {
     name: ActiveRecord::Faker.name,
-    notes:       notes,
-    created_at:   Date.today
+    notes: notes,
+    created_at: Date.today
   }
 
   x.report("Model#id") do
