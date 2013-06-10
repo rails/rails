@@ -30,7 +30,7 @@ module ApplicationTests
       app_file "config/environment.rb", <<-RUBY
         SuperMiddleware = Struct.new(:app)
 
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.middleware.use SuperMiddleware
         end
 
@@ -142,7 +142,7 @@ module ApplicationTests
 
     def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
         end
       RUBY
@@ -153,7 +153,7 @@ module ApplicationTests
 
     def test_rake_routes_with_controller_environment
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
           get '/basketball', to: 'basketball#index'
         end
@@ -166,7 +166,7 @@ module ApplicationTests
 
     def test_rake_routes_displays_message_when_no_routes_are_defined
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
         end
       RUBY
 

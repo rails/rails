@@ -213,7 +213,7 @@ class LoadingTest < ActiveSupport::TestCase
     app_file 'config/routes.rb', <<-RUBY
       $counter ||= 1
       $counter  *= 2
-      AppTemplate::Application.routes.draw do
+      Rails.application.routes.draw do
         get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
