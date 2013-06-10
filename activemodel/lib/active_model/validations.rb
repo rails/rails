@@ -226,7 +226,6 @@ module ActiveModel
       #   Person.validators_on(:name)
       #   # => [
       #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
-      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={in:0..99}>
       #   #    ]
       def validators_on(*attributes)
         attributes.flat_map do |attribute|
