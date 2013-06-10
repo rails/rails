@@ -213,7 +213,7 @@ module ActiveSupport #:nodoc:
           yield
         end
       rescue Exception => exception  # errors from loading file
-        exception.blame_file! file
+        exception.blame_file! file if exception.respond_to? :blame_file!
         raise
       end
 
