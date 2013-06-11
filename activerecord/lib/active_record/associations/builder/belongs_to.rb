@@ -55,10 +55,10 @@ module ActiveRecord::Associations::Builder
 
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && Object.const_defined?(name.to_s.camelize)
-            model = name.to_s.camelize.constantize
+          elsif attribute_changed?(foreign_key) && !new_record? && association.constructable?
+            model           = reflection.klass
             foreign_key_was = attribute_was foreign_key
-            foreign_key = attribute foreign_key
+            foreign_key     = attribute foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
               model.increment_counter(cache_column, foreign_key)
