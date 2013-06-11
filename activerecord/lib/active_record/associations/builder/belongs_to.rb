@@ -25,18 +25,27 @@ module ActiveRecord::Associations::Builder
 
     private
 
+    def add_counter_cache_methods(mixin)
+      return if mixin.method_defined? :belongs_to_counter_cache_after_create
+
+      mixin.class_eval do
+        def belongs_to_counter_cache_after_create(association, reflection)
+          if record = send(association.name)
+            cache_column = reflection.counter_cache_column
+            record.class.increment_counter(cache_column, record.id)
+            @_after_create_counter_called = true
+          end
+        end
+      end
+    end
+
     def add_counter_cache_callbacks(reflection)
       cache_column = reflection.counter_cache_column
       foreign_key = reflection.foreign_key
 
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_counter_cache_after_create_for_#{name}
-          if record = #{name}
-            record.class.increment_counter(:#{cache_column}, record.id)
-            @_after_create_counter_called = true
-          end
-        end
+      add_counter_cache_methods mixin
 
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def belongs_to_counter_cache_before_destroy_for_#{name}
           unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == #{foreign_key.to_sym.inspect}
             record = #{name}
@@ -64,7 +73,12 @@ module ActiveRecord::Associations::Builder
         end
       CODE
 
-      model.after_create   "belongs_to_counter_cache_after_create_for_#{name}"
+      association = self
+
+      model.after_create lambda { |o|
+        o.belongs_to_counter_cache_after_create(association, reflection)
+      }
+
       model.before_destroy "belongs_to_counter_cache_before_destroy_for_#{name}"
       model.after_update   "belongs_to_counter_cache_after_update_for_#{name}"
 
