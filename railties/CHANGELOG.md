@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.0.rc2 (June 11, 2013) ##
 
 *   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
 

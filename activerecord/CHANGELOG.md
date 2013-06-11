@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.0.rc2 (June 11, 2013) ##
 
 *   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
 
