@@ -36,6 +36,17 @@ module ActiveRecord::Associations::Builder
             @_after_create_counter_called = true
           end
         end
+
+        def belongs_to_counter_cache_before_destroy(association, reflection)
+          foreign_key = reflection.foreign_key.to_sym
+          unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+            record = send association.name
+            if record && !self.destroyed?
+              cache_column = reflection.counter_cache_column
+              record.class.decrement_counter(cache_column, record.id)
+            end
+          end
+        end
       end
     end
 
@@ -46,15 +57,6 @@ module ActiveRecord::Associations::Builder
       add_counter_cache_methods mixin
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_counter_cache_before_destroy_for_#{name}
-          unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == #{foreign_key.to_sym.inspect}
-            record = #{name}
-            if record && !self.destroyed?
-              record.class.decrement_counter(:#{cache_column}, record.id)
-            end
-          end
-        end
-
         def belongs_to_counter_cache_after_update_for_#{name}
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
@@ -75,11 +77,14 @@ module ActiveRecord::Associations::Builder
 
       association = self
 
-      model.after_create lambda { |o|
-        o.belongs_to_counter_cache_after_create(association, reflection)
+      model.after_create lambda { |record|
+        record.belongs_to_counter_cache_after_create(association, reflection)
       }
 
-      model.before_destroy "belongs_to_counter_cache_before_destroy_for_#{name}"
+      model.before_destroy lambda { |record|
+        record.belongs_to_counter_cache_before_destroy(association, reflection)
+      }
+
       model.after_update   "belongs_to_counter_cache_after_update_for_#{name}"
 
       klass = reflection.class_name.safe_constantize
