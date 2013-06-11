@@ -242,7 +242,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     car = Car.create!
 
     assert_difference 'car.wheels.count'  do
-    	car.wheels << Wheel.create!
+      car.wheels << Wheel.create!
     end
     assert_difference 'car.wheels.count', -1  do
       car.destroy
