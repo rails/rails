@@ -94,6 +94,15 @@ module ActiveSupport
     def halted_callback_hook(filter)
     end
 
+    module Conditionals # :nodoc:
+      class Value
+        def initialize(&block)
+          @block = block
+        end
+        def call(target, value); @block.call(value); end
+      end
+    end
+
     module Filters
       Environment = Struct.new(:target, :halted, :value, :run_block)
 
@@ -415,6 +424,7 @@ module ActiveSupport
         when String
           l = eval "lambda { |value| #{filter} }"
           lambda { |target, value| target.instance_exec(value, &l) }
+        when Conditionals::Value then filter
         when ::Proc
           if filter.arity > 1
             return lambda { |target, _, &block|

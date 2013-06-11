@@ -135,7 +135,10 @@ module ActiveModel
       klass.define_singleton_method("after_#{callback}") do |*args, &block|
         options = args.extract_options!
         options[:prepend] = true
-        options[:if] = Array(options[:if]) << "value != false"
+        conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
+          v != false
+        }
+        options[:if] = Array(options[:if]) << conditional
         set_callback(:"#{callback}", :after, *(args << options), &block)
       end
     end
