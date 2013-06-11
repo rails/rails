@@ -83,7 +83,7 @@ RECORDS.times do
   )
 
   Exhibit.create(
-    created_at:  today,
+    created_at: today,
     name: ActiveRecord::Faker.name,
     user: user,
     notes: notes
