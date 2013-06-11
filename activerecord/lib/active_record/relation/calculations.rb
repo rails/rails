@@ -207,18 +207,15 @@ module ActiveRecord
       end
 
       if operation == "count"
-        if select_values.present?
-          column_name ||= select_values.join(", ")
-        else
-          column_name ||= :all
-        end
+        column_name ||= (select_for_count || :all)
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
         end
 
         column_name = primary_key if column_name == :all && distinct
-        distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
+
+        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
 
       if group_values.any?
@@ -377,6 +374,13 @@ module ActiveRecord
 
     def type_cast_using_column(value, column)
       column ? column.type_cast(value) : value
+    end
+
+    def select_for_count
+      if select_values.present?
+        select = select_values.join(", ")
+        select if select !~ /[,*]/
+      end
     end
 
     def build_count_subquery(relation, column_name, distinct)

@@ -162,15 +162,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_match(/OFFSET/, queries.first)
   end
 
-  def test_count_on_invalid_columns_raises
-    e = assert_raises(ActiveRecord::StatementInvalid) {
-      Account.select("credit_limit, firm_name").count
-    }
-
-    assert_match "accounts", e.message
-    assert_match "credit_limit, firm_name", e.message
-  end
-
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having('sum(credit_limit) > 50').sum(:credit_limit)
     assert_nil        c[1]
