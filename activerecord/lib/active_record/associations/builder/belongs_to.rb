@@ -50,7 +50,6 @@ module ActiveRecord::Associations::Builder
 
         def belongs_to_counter_cache_after_update(association, reflection)
           foreign_key  = reflection.foreign_key
-          name         = association.name
           cache_column = reflection.counter_cache_column
 
           if (@_after_create_counter_called ||= false)
