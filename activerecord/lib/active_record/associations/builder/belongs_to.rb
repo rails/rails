@@ -19,6 +19,12 @@ module ActiveRecord::Associations::Builder
       reflection
     end
 
+    def valid_dependent_options
+      [:destroy, :delete]
+    end
+
+    private
+
     def add_counter_cache_callbacks(reflection)
       cache_column = reflection.counter_cache_column
       foreign_key = reflection.foreign_key
@@ -91,10 +97,6 @@ module ActiveRecord::Associations::Builder
       model.after_save    "belongs_to_touch_after_save_or_destroy_for_#{name}"
       model.after_touch   "belongs_to_touch_after_save_or_destroy_for_#{name}"
       model.after_destroy "belongs_to_touch_after_save_or_destroy_for_#{name}"
-    end
-
-    def valid_dependent_options
-      [:destroy, :delete]
     end
   end
 end
