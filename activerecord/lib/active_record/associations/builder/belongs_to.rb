@@ -91,47 +91,39 @@ module ActiveRecord::Associations::Builder
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def add_touch_methods(mixin)
-      return if mixin.method_defined?  :belongs_to_touch_after_save_or_destroy
+    def self.touch_record(o, foreign_key, name, touch) # :nodoc:
+      old_foreign_id = o.attribute_was(foreign_key)
 
-      mixin.class_eval do
-        def belongs_to_touch_after_save_or_destroy(foreign_key, name, touch)
-          old_foreign_id    = attribute_was(foreign_key)
+      if old_foreign_id
+        klass      = o.association(name).klass
+        old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
-          if old_foreign_id
-            klass      = association(name).klass
-            old_record = klass.find_by(klass.primary_key => old_foreign_id)
-
-            if old_record
-              if touch != true
-                old_record.touch touch
-              else
-                old_record.touch
-              end
-            end
+        if old_record
+          if touch != true
+            old_record.touch touch
+          else
+            old_record.touch
           end
+        end
+      end
 
-          record = send name
-          unless record.nil? || record.new_record?
-            if touch != true
-              record.touch touch
-            else
-              record.touch
-            end
-          end
+      record = o.send name
+      unless record.nil? || record.new_record?
+        if touch != true
+          record.touch touch
+        else
+          record.touch
         end
       end
     end
 
     def add_touch_callbacks(reflection)
-      add_touch_methods(mixin)
-
       foreign_key = reflection.foreign_key
       n           = name
       touch       = options[:touch]
 
       callback = lambda { |record|
-        record.belongs_to_touch_after_save_or_destroy foreign_key, n, touch
+        BelongsTo.touch_record(record, foreign_key, n, touch)
       }
 
       model.after_save    callback
