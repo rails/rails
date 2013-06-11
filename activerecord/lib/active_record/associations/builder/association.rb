@@ -117,7 +117,8 @@ module ActiveRecord::Associations::Builder
         end
       CODE
 
-      model.before_destroy "#{macro}_dependent_for_#{name}"
+      method = "#{macro}_dependent_for_#{name}"
+      model.before_destroy lambda { |o| o.public_send method }
     end
 
     def valid_dependent_options
