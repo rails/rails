@@ -47,34 +47,33 @@ module ActiveRecord::Associations::Builder
             end
           end
         end
+
+        def belongs_to_counter_cache_after_update(association, reflection)
+          foreign_key  = reflection.foreign_key
+          name         = association.name
+          cache_column = reflection.counter_cache_column
+
+          if (@_after_create_counter_called ||= false)
+            @_after_create_counter_called = false
+          elsif self.send("#{foreign_key}_changed?") && !new_record? && Object.const_defined?(name.to_s.camelize)
+            model = name.to_s.camelize.constantize
+            foreign_key_was = self.send("#{foreign_key}_was")
+            foreign_key = self.send foreign_key
+
+            if foreign_key && model.respond_to?(:increment_counter)
+              model.increment_counter(cache_column, foreign_key)
+            end
+            if foreign_key_was && model.respond_to?(:decrement_counter)
+              model.decrement_counter(cache_column, foreign_key_was)
+            end
+          end
+        end
       end
     end
 
     def add_counter_cache_callbacks(reflection)
       cache_column = reflection.counter_cache_column
-      foreign_key = reflection.foreign_key
-
       add_counter_cache_methods mixin
-
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_counter_cache_after_update_for_#{name}
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif self.#{foreign_key}_changed? && !new_record? && defined?(#{name.to_s.camelize})
-            model = #{name.to_s.camelize}
-            foreign_key_was = self.#{foreign_key}_was
-            foreign_key = self.#{foreign_key}
-
-            if foreign_key && model.respond_to?(:increment_counter)
-              model.increment_counter(:#{cache_column}, foreign_key)
-            end
-            if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(:#{cache_column}, foreign_key_was)
-            end
-          end
-        end
-      CODE
-
       association = self
 
       model.after_create lambda { |record|
@@ -85,7 +84,9 @@ module ActiveRecord::Associations::Builder
         record.belongs_to_counter_cache_before_destroy(association, reflection)
       }
 
-      model.after_update   "belongs_to_counter_cache_after_update_for_#{name}"
+      model.after_update lambda { |record|
+        record.belongs_to_counter_cache_after_update(association, reflection)
+      }
 
       klass = reflection.class_name.safe_constantize
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
