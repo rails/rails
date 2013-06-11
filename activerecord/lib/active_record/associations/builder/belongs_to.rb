@@ -91,31 +91,52 @@ module ActiveRecord::Associations::Builder
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def add_touch_callbacks(reflection)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_touch_after_save_or_destroy_for_#{name}
-          foreign_key_field = #{reflection.foreign_key.inspect}
-          old_foreign_id    = attribute_was(foreign_key_field)
+    def add_touch_methods(mixin)
+      return if mixin.method_defined?  :belongs_to_touch_after_save_or_destroy
+
+      mixin.class_eval do
+        def belongs_to_touch_after_save_or_destroy(foreign_key, name, touch)
+          old_foreign_id    = attribute_was(foreign_key)
 
           if old_foreign_id
-            klass      = association(#{name.inspect}).klass
+            klass      = association(name).klass
             old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
             if old_record
-              old_record.touch #{options[:touch].inspect if options[:touch] != true}
+              if touch != true
+                old_record.touch touch
+              else
+                old_record.touch
+              end
             end
           end
 
-          record = #{name}
+          record = send name
           unless record.nil? || record.new_record?
-            record.touch #{options[:touch].inspect if options[:touch] != true}
+            if touch != true
+              record.touch touch
+            else
+              record.touch
+            end
           end
         end
-      CODE
+      end
+    end
 
-      model.after_save    "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      model.after_touch   "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      model.after_destroy "belongs_to_touch_after_save_or_destroy_for_#{name}"
+    def add_touch_callbacks(reflection)
+      add_touch_methods(mixin)
+
+      foreign_key = reflection.foreign_key
+      n           = name
+      touch       = options[:touch]
+
+      callback = lambda { |record|
+        record.belongs_to_touch_after_save_or_destroy foreign_key, n, touch
+      }
+
+      model.after_save    callback
+      model.after_touch   callback
+      model.after_destroy callback
     end
   end
 end
