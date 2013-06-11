@@ -111,14 +111,8 @@ module ActiveRecord::Associations::Builder
         )
       end
 
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{macro}_dependent_for_#{name}
-          association(:#{name}).handle_dependency
-        end
-      CODE
-
-      method = "#{macro}_dependent_for_#{name}"
-      model.before_destroy lambda { |o| o.public_send method }
+      n = name
+      model.before_destroy lambda { |o| o.association(n).handle_dependency }
     end
 
     def valid_dependent_options
