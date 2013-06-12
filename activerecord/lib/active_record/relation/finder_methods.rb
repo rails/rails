@@ -172,7 +172,8 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
-      connection.select_value(relation, "#{name} Exists", relation.bind_values)
+      relation = relation.with_default_scope
+      connection.select_value(relation.arel, "#{name} Exists", relation.bind_values)
     end
 
     # This method is called whenever no records are found with either a single
