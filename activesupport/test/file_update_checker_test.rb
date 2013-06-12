@@ -109,4 +109,81 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
 
     assert !test.alive?
   end
+
+  def test_filters_of_file_update_checker_when_listening
+    filter = /1\.txt/
+    checker = ActiveSupport::FileUpdateChecker.new(FILES, {}, {:filter => filter, :recurse => true})
+    assert !checker.updated?
+
+    sleep(1)
+    FileUtils.touch(FILES)
+
+    Thread.new do
+      checker.start_listening
+    end
+
+    start_time = Time.now
+    until !checker.changed_files.empty? || Time.now - start_time > 5
+      sleep 0.1
+    end
+
+    assert_equal 1, checker.changed_files.size
+  ensure
+    checker.stop_listening
+  end
+
+  def test_filters_of_file_update_checker_no_listening
+    i = 0
+    filter = /1\.txt/
+    checker = ActiveSupport::FileUpdateChecker.new(FILES, {}, {:filter => filter}) { i += 1 }
+    assert !checker.updated?
+
+    sleep(1)
+    FileUtils.touch(FILES)
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
+  def test_ignores_of_file_update_checker_no_listening
+    i = 0
+    ignore = /txt/
+    checker = ActiveSupport::FileUpdateChecker.new(FILES, {}, {:ignore => ignore}) { i += 1 }
+    assert !checker.updated?
+
+    sleep(1)
+    FileUtils.touch(FILES)
+
+    assert !checker.execute_if_updated
+    assert_equal 0, i
+  end
+
+  def test_no_recursion_when_recurse_is_set_to_false
+    i = 0
+    checker = ActiveSupport::FileUpdateChecker.new(FILES, {}, {:recurse => false}){ i += 1 }
+    assert !checker.updated?
+
+    sleep(1)
+    FileUtils.cd "tmp_watcher" do
+      FileUtils.touch(FILES)
+    end
+
+    assert !checker.execute_if_updated
+    assert_equal 0, i
+  end
+
+  def test_recursion_works_with_files_in_subdirectory
+    i = 0
+    checker = ActiveSupport::FileUpdateChecker.new(["tmp_watcher"], {}, {:recurse => true}){ i += 1 }
+    assert !checker.updated?
+
+    sleep(1)
+    FileUtils.cd "tmp_watcher" do
+      FileUtils.touch(FILES)
+    end
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+    assert_equal 3, checker.changed_files.size
+  end
 end
