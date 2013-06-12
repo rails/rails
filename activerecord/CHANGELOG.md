@@ -1,5 +1,5 @@
 *   Remove column restrictions for `count`, let the database raise if the SQL is
-    invalid. The previos behavior was untested and surprising for the user.
+    invalid. The previous behavior was untested and surprising for the user.
     Fixes #5554.
 
     Example:
@@ -56,7 +56,7 @@
 
     *Yves Senn*
 
-*   Fix bug where tiny types are incorectly coerced as booleand when the length is more than 1.
+*   Fix bug where tiny types are incorrectly coerced as boolean when the length is more than 1.
 
     Fixes #10620.
 
