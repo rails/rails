@@ -31,6 +31,14 @@ class EachTest < ActiveRecord::TestCase
     assert_kind_of Enumerable, result
   end
 
+  def test_each_has_enumerable_behavior
+    result = Post.find_each.map(&:title)
+    assert_equal Post.all.map(&:title), result
+
+    result = Post.find_each.inject(0) {|sum, post| sum + post.id}
+    assert_equal Post.sum(:id), result
+  end
+
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
       Post.select(:title).find_each(:batch_size => 1) { |post| post }

@@ -12,8 +12,7 @@ module ActiveRecord
     # specified by the +:batch_size+ option).
     #
     # If you do not provide a block to find_each, it will return an enumerator,
-    # suitable for chaining functions. If your ruby supports the #lazy method on
-    # Enumerable, that will be called as well.
+    # suitable for chaining functions. 
     #
     #   Person.all.find_each do |person|
     #     person.do_awesome_stuff
@@ -45,11 +44,6 @@ module ActiveRecord
           find_in_batches(options) do |records|
             records.each {|record| y << record}
           end
-        end
-        if e.respond_to?(:lazy)
-          e.lazy
-        else
-          e
         end
       end
     end

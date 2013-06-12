@@ -1,4 +1,4 @@
-*   Make `find_each` return a (possibly lazy) Enumerable, instead of
+*   Make `find_each` return an Enumerable, instead of
     requiring a block. The previous behavior did not lend itself to more
     functional styles of programming, where the full active record
     object was needed but the return value was the only data important
