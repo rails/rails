@@ -1,3 +1,20 @@
+*   Make `find_each` return a (possibly lazy) Enumerable, instead of
+    requiring a block. The previous behavior did not lend itself to more
+    functional styles of programming, where the full active record
+    object was needed but the return value was the only data important
+    enough to keep around between GC runs.
+
+    Example:
+        fancy_emails = User.find_each.map do |user|
+          user.fancy_email
+        end
+
+        fancy_emails.each do |email|
+          NewsLetter.deliver_to(email)
+        end
+
+    * Alex Bartlow *
+
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previos behavior was untested and surprising for the user.
     Fixes #5554.
