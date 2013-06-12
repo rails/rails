@@ -45,7 +45,7 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 end
 
-class ERBTrackerTest < MiniTest::Unit::TestCase
+class ERBTrackerTest < Minitest::Test
   def make_tracker(name, template)
     ActionView::DependencyTracker::ERBTracker.new(name, template)
   end
