@@ -66,8 +66,7 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflection = reflections[association]
-        reflection if reflection.is_a?(AssociationReflection)
+        reflections[association]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
