@@ -9,6 +9,9 @@ module ActionDispatch
   # by a firewall, load balancer, or the web server, or, if this header is not available, a random uuid. If the
   # header is accepted from the outside world, we sanitize it to a max of 255 chars and alphanumeric and dashes only.
   #
+  # The request id is also stored in the current thread, in the slot 'action_dispatch.request_id'.  This lets code that
+  # doesn't have explicit access to the request access its id.
+  #
   # The unique request id can be used to trace a request end-to-end and would typically end up being part of log files
   # from multiple pieces of the stack.
   class RequestId
@@ -18,6 +21,7 @@ module ActionDispatch
 
     def call(env)
       env["action_dispatch.request_id"] = external_request_id(env) || internal_request_id
+      Thread.current["action_dispatch.request_id"] = env["action_dispatch.request_id"]
       @app.call(env).tap { |_status, headers, _body| headers["X-Request-Id"] = env["action_dispatch.request_id"] }
     end
 
