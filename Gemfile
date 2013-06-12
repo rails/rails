@@ -2,6 +2,9 @@ source 'https://rubygems.org'
 
 gemspec
 
+# temporary gem while working on loofah integration
+gem 'loofah', '~> 1.2.1', github: 'kaspth/loofah'
+
 # This needs to be with require false as it is
 # loaded after loading the test library to
 # ensure correct loading order

@@ -1,5 +1,5 @@
 require 'active_support/core_ext/object/try'
-require 'action_view/vendor/html-scanner'
+require 'action_view/helpers/sanitize_helper/sanitizers'
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -65,9 +65,9 @@ module ActionView
         self.class.white_list_sanitizer.sanitize_css(style)
       end
 
-      # Strips all HTML tags from the +html+, including comments. This uses the
-      # html-scanner tokenizer and so its HTML parsing ability is limited by
-      # that of html-scanner.
+      # Strips all HTML tags from the +html+, including comments. This uses
+      # Nokogiri for tokenization (via Loofah) and so its HTML parsing ability
+      # is limited by that of Nokogiri.
       #
       #   strip_tags("Strip <i>these</i> tags!")
       #   # => Strip these tags!
@@ -134,11 +134,7 @@ module ActionView
           white_list_sanitizer.allowed_protocols
         end
 
-        def sanitized_protocol_separator=(value)
-          white_list_sanitizer.protocol_separator = value
-        end
-
-        # Gets the HTML::FullSanitizer instance used by +strip_tags+. Replace with
+        # Gets the ActionView::FullSanitizer instance used by +strip_tags+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -146,21 +142,21 @@ module ActionView
         #   end
         #
         def full_sanitizer
-          @full_sanitizer ||= HTML::FullSanitizer.new
+          @full_sanitizer ||= ActionView::FullSanitizer.new
         end
 
-        # Gets the HTML::LinkSanitizer instance used by +strip_links+. Replace with
-        # any object that responds to +sanitize+.
+        # Gets the ActionView::LinkSanitizer instance used by +strip_links+.
+        # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
         #     config.action_view.link_sanitizer = MySpecialSanitizer.new
         #   end
         #
         def link_sanitizer
-          @link_sanitizer ||= HTML::LinkSanitizer.new
+          @link_sanitizer ||= ActionView::LinkSanitizer.new
         end
 
-        # Gets the HTML::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
+        # Gets the ActionView::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -168,7 +164,12 @@ module ActionView
         #   end
         #
         def white_list_sanitizer
-          @white_list_sanitizer ||= HTML::WhiteListSanitizer.new
+          @white_list_sanitizer ||= ActionView::WhiteListSanitizer.new
+        end
+
+
+        def sanitized_protocol_separator=(value)
+          ActionView::WhiteListSanitizer.protocol_separator = value
         end
 
         # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
@@ -178,7 +179,7 @@ module ActionView
         #   end
         #
         def sanitized_uri_attributes=(attributes)
-          HTML::WhiteListSanitizer.uri_attributes.merge(attributes)
+          ActionView::WhiteListSanitizer.update_uri_attributes(attributes)
         end
 
         # Adds to the Set of 'bad' tags for the +sanitize+ helper.
@@ -188,7 +189,7 @@ module ActionView
         #   end
         #
         def sanitized_bad_tags=(attributes)
-          HTML::WhiteListSanitizer.bad_tags.merge(attributes)
+          ActionView::WhiteListSanitizer.bad_tags = attributes
         end
 
         # Adds to the Set of allowed tags for the +sanitize+ helper.
@@ -198,7 +199,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_tags=(attributes)
-          HTML::WhiteListSanitizer.allowed_tags.merge(attributes)
+          ActionView::WhiteListSanitizer.update_allowed_tags(attributes)
         end
 
         # Adds to the Set of allowed HTML attributes for the +sanitize+ helper.
@@ -208,7 +209,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_attributes=(attributes)
-          HTML::WhiteListSanitizer.allowed_attributes.merge(attributes)
+          ActionView::WhiteListSanitizer.update_allowed_attributes(attributes)
         end
 
         # Adds to the Set of allowed CSS properties for the #sanitize and +sanitize_css+ helpers.
@@ -218,7 +219,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_css_properties=(attributes)
-          HTML::WhiteListSanitizer.allowed_css_properties.merge(attributes)
+          ActionView::WhiteListSanitizer.update_allowed_css_properties(attributes)
         end
 
         # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
@@ -228,7 +229,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_css_keywords=(attributes)
-          HTML::WhiteListSanitizer.allowed_css_keywords.merge(attributes)
+          ActionView::WhiteListSanitizer.update_allowed_css_keywords(attributes)
         end
 
         # Adds to the Set of allowed shorthand CSS properties for the +sanitize+ and +sanitize_css+ helpers.
@@ -238,7 +239,7 @@ module ActionView
         #   end
         #
         def sanitized_shorthand_css_properties=(attributes)
-          HTML::WhiteListSanitizer.shorthand_css_properties.merge(attributes)
+          ActionView::WhiteListSanitizer.update_shorthand_css_properties(attributes)
         end
 
         # Adds to the Set of allowed protocols for the +sanitize+ helper.
@@ -248,7 +249,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_protocols=(attributes)
-          HTML::WhiteListSanitizer.allowed_protocols.merge(attributes)
+          ActionView::WhiteListSanitizer.update_allowed_protocols(attributes)
         end
       end
     end
