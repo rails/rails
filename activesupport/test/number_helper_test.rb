@@ -370,12 +370,6 @@ module ActiveSupport
         end
       end
 
-      def test_extending_or_including_number_helper_correctly_hides_private_methods
-        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert !number_helper.respond_to?(:valid_float?)
-          assert number_helper.respond_to?(:valid_float?, true)
-        end
-      end
     end
   end
 end
