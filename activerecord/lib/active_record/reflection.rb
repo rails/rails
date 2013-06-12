@@ -5,7 +5,9 @@ module ActiveRecord
 
     included do
       class_attribute :reflections
+      class_attribute :aggregate_reflections
       self.reflections = {}
+      self.aggregate_reflections = {}
     end
 
     # \Reflection enables to interrogate Active Record classes and objects
@@ -27,13 +29,18 @@ module ActiveRecord
 
         reflection = klass.new(macro, name, scope, options, active_record)
 
-        self.reflections = self.reflections.merge(name => reflection)
+        if klass == AggregateReflection
+          self.aggregate_reflections = self.aggregate_reflections.merge(name => reflection)
+        else
+          self.reflections = self.reflections.merge(name => reflection)
+        end
+
         reflection
       end
 
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
-        reflections.values.grep(AggregateReflection)
+        aggregate_reflections.values
       end
 
       # Returns the AggregateReflection object for the named +aggregation+ (use the symbol).
@@ -41,8 +48,7 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        reflection = reflections[aggregation]
-        reflection if reflection.is_a?(AggregateReflection)
+        aggregate_reflections[aggregation]
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -56,7 +62,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
       def reflect_on_all_associations(macro = nil)
-        association_reflections = reflections.values.grep(AssociationReflection)
+        association_reflections = reflections.values
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 
