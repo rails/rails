@@ -736,8 +736,8 @@ class Topic < ActiveRecord::Base
   validates :title, length: { is: 5 }, allow_blank: true
 end
 
-Topic.create("title" => "").valid?  # => true
-Topic.create("title" => nil).valid? # => true
+Topic.create(title: "").valid?  # => true
+Topic.create(title: nil).valid? # => true
 ```
 
 ### `:message`
