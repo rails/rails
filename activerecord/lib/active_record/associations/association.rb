@@ -96,9 +96,7 @@ module ActiveRecord
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
       def association_scope
-        if klass
-          @association_scope ||= AssociationScope.new(self).scope
-        end
+        @association_scope ||= AssociationScope.new(self).scope  if klass
       end
 
       def reset_scope
