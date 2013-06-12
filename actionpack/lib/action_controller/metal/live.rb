@@ -129,7 +129,7 @@ module ActionController
         locals.each { |k,v| t2[k] = v }
 
         begin
-          super(name)
+          super
         rescue => e
           begin
             @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html

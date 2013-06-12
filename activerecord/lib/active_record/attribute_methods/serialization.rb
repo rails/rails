@@ -92,7 +92,7 @@ module ActiveRecord
         module ClassMethods # :nodoc:
           def initialize_attributes(attributes, options = {})
             serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
-            super(attributes, options)
+            super
 
             serialized_attributes.each do |key, coder|
               if attributes.key?(key)

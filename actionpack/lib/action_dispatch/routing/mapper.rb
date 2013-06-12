@@ -17,7 +17,7 @@ module ActionDispatch
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
           if constraints.any?
-            super(app, constraints, request)
+            super
           else
             app
           end

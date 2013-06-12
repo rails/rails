@@ -685,7 +685,7 @@ module ActionController
           if request.remote_addr == "0.0.0.0"
             raise(e)
           else
-            super(e)
+            super
           end
         end
     end

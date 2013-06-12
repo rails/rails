@@ -37,7 +37,7 @@ module ActionController #:nodoc:
           flash.update(other_flashes)
         end
 
-        super(options, response_status_and_flash)
+        super
       end
   end
 end

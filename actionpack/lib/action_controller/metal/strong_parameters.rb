@@ -121,7 +121,7 @@ module ActionController
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(attributes = nil)
-      super(attributes)
+      super
       @permitted = self.class.permit_all_parameters
     end
 

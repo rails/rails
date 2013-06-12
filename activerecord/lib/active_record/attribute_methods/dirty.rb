@@ -67,7 +67,7 @@ module ActiveRecord
         end
 
         # Carry on.
-        super(attr, value)
+        super
       end
 
       def update_record(*)

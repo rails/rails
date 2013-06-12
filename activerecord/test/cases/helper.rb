@@ -129,7 +129,7 @@ module LogIntercepter
       @logged << [sql, name, binds]
       yield
     else
-      super(sql, name,binds, &block)
+      super
     end
   end
 end

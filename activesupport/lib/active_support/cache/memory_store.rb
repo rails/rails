@@ -18,7 +18,7 @@ module ActiveSupport
     class MemoryStore < Store
       def initialize(options = nil)
         options ||= {}
-        super(options)
+        super
         @data = {}
         @key_access = {}
         @max_size = options[:size] || 32.megabytes

@@ -201,7 +201,7 @@ module Rails
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
         options[:aliases] = default_aliases_for_option(name, options)
         options[:default] = default_value_for_option(name, options)
-        super(name, options)
+        super
       end
 
       # Returns the default source root for a given generator. This is used internally

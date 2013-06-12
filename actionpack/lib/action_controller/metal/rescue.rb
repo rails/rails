@@ -12,7 +12,7 @@ module ActionController #:nodoc:
           handler_for_rescue(orig_exception))
         exception = orig_exception
       end
-      super(exception)
+      super
     end
 
     # Override this method if you want to customize when detailed

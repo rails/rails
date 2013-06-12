@@ -131,7 +131,7 @@ module ActiveSupport #:nodoc:
 
     def concat(value)
       if !html_safe? || value.html_safe?
-        super(value)
+        super
       else
         super(ERB::Util.h(value))
       end
@@ -151,7 +151,7 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      self.class.new(super(args))
+      self.class.new(super)
     end
 
     def html_safe?

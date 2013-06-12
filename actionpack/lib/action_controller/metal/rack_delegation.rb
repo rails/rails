@@ -10,7 +10,7 @@ module ActionController
 
     def dispatch(action, request)
       set_response!(request)
-      super(action, request)
+      super
     end
 
     def response_body=(body)
