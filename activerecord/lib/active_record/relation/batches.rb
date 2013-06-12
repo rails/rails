@@ -11,6 +11,9 @@ module ActiveRecord
     # The #find_each method uses #find_in_batches with a batch size of 1000 (or as
     # specified by the +:batch_size+ option).
     #
+    # If you do not provide a block to find_each, it will return an enumerator,
+    # suitable for chaining functions. 
+    #
     #   Person.all.find_each do |person|
     #     person.do_awesome_stuff
     #   end
@@ -19,11 +22,29 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
+    #   partiers = Person.where("age > 21").find_each.map do |person|
+    #     if person.party_all_night!
+    #       person.name
+    #     else
+    #       nil
+    #     end
+    #   end
+    #
+    #   puts partiers.compact.join("\n") + "\n... all partied!"
+    #
     #  You can also pass the +:start+ option to specify
     #  an offset to control the starting point.
     def find_each(options = {})
-      find_in_batches(options) do |records|
-        records.each { |record| yield record }
+      if block_given?
+        find_in_batches(options) do |records|
+          records.each { |record| yield record }
+        end
+      else
+        e = Enumerator.new do |y|
+          find_in_batches(options) do |records|
+            records.each {|record| y << record}
+          end
+        end
       end
     end
 
