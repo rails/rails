@@ -416,7 +416,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              inverse_name
+              return inverse_name
             end
           end
 
