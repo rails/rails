@@ -420,32 +420,15 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implemention of `to_json` than the json gem ordinarily provides for Ruby objects.  This is because some classes, like Hash and OrderedHash, needs special handling in order to provide a proper JSON representation.
+Active Support provides a better implemention of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+ and +OrderedHash+ needs special handling in order to provide a proper JSON representation.
 
-Active Support also provides an implementation of `as_json` for the Process::Status class.
+Active Support also provides an implementation of `as_json` for the <tt>Process::Status</tt> class.
 
 NOTE: Defined in `active_support/core_ext/object/to_json.rb`.
 
 ### Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
-
-#### `instance_values`
-
-The method `instance_values` returns a hash that maps instance variable names without "@" to their
-corresponding values. Keys are strings:
-
-```ruby
-class C
-  def initialize(x, y)
-    @x, @y = x, y
-  end
-end
-
-C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
-```
-
-NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_values`
 
@@ -2053,6 +2036,7 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 Extensions to `BigDecimal`
 --------------------------
 ### `to_s`
+
 The method `to_s` is aliased to `to_formatted_s`. This provides a convenient way to display a BigDecimal value in floating-point notation:
 
 ```ruby
@@ -2060,6 +2044,7 @@ BigDecimal.new(5.00, 6).to_s  # => "5.0"
 ```
 
 ### `to_formatted_s`
+
 Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
