@@ -123,6 +123,11 @@ module ActiveRecord
                             name.to_s.pluralize : name.to_s
       end
 
+      def autosave=(autosave)
+        @automatic_inverse_of = false
+        @options[:autosave] = autosave
+      end
+
       # Returns the class for the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns the Money class
@@ -310,13 +315,6 @@ module ActiveRecord
       # +inverse_of+ will have to recompute the inverse.
       def clear_inverse_of_cache!
         @inverse_of = nil
-      end
-
-      # Removes the cached inverse association that was found automatically
-      # and prevents this object from finding the inverse association
-      # automatically in the future.
-      def remove_automatic_inverse_of!
-        @automatic_inverse_of = false
       end
 
       def polymorphic_inverse_of(associated_class)
