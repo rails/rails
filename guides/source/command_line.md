@@ -27,6 +27,8 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * `rails dbconsole`
 * `rails new app_name`
 
+All commands can run with ```-h or --help``` to list more information.
+
 Let's create a simple Rails application to step through each of these commands in context.
 
 ### `rails new`
@@ -348,6 +350,9 @@ Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'mak
 
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing `rake --tasks`. Each task has a description, and should help you find the thing you need.
 
+To get the full backtrace for running rake task you can pass the option
+```--trace``` to command line, for example ```rake db:create --trace```.
+
 ```bash
 $ rake --tasks
 rake about              # List versions of all Rails frameworks and the environment
@@ -361,6 +366,7 @@ rake middleware         # Prints out your Rack middleware stack
 rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)
 rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
 ```
+INFO: You can also use ```rake -T```  to get the list of tasks.
 
 ### `about`
 
