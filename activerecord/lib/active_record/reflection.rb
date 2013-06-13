@@ -206,7 +206,7 @@ module ActiveRecord
       end
 
       def table_name
-        @table_name ||= klass.table_name
+        klass.table_name
       end
 
       def quoted_table_name
