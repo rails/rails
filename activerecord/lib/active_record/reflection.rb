@@ -635,7 +635,7 @@ module ActiveRecord
       #   # => [:tag, :tags]
       #
       def source_reflection_names
-        @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
+        @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }.uniq
       end
 
       def source_options
