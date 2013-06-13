@@ -80,6 +80,16 @@ class DateTime
     seconds_since_unix_epoch.to_i
   end
 
+  # Returns the fraction of a second as microseconds
+  def usec
+    (sec_fraction * 1_000_000).to_i
+  end
+
+  # Returns the fraction of a second as nanoseconds
+  def nsec
+    (sec_fraction * 1_000_000_000).to_i
+  end
+
   private
 
   def offset_in_seconds
