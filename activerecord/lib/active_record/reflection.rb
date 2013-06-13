@@ -397,7 +397,7 @@ module ActiveRecord
             if @automatic_inverse_of == false
               nil
             else
-              @automatic_inverse_of = automatic_inverse_of
+              @automatic_inverse_of ||= automatic_inverse_of
             end
           end
         end
@@ -419,6 +419,8 @@ module ActiveRecord
               inverse_name
             end
           end
+
+          false
         end
 
         # Checks if the inverse reflection that is returned from the
