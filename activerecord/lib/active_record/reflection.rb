@@ -501,7 +501,7 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @source_reflection = nil
+        @source_reflection_name = options[:source]
       end
 
       # Returns the source of the through reflection. It checks both a singularized
@@ -522,27 +522,7 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
-        return @source_reflection if @source_reflection
-
-        reflections = source_reflection_names.collect { |name|
-          through_reflection.klass.reflect_on_association(name)
-        }.compact
-
-        if reflections.length > 1
-          example_options = options.dup
-          example_options[:source] = source_reflection_names.first
-          ActiveSupport::Deprecation.warn <<-eowarn
-Ambiguous source reflection for through association.  Please specify a :source
-directive on your declaration like:
-
-  class #{active_record.name} < ActiveRecord::Base
-    #{macro} :#{name}, #{example_options}
-  end
-
-          eowarn
-        end
-
-        @source_reflection = reflections.first
+        through_reflection.klass.reflect_on_association(source_reflection_name)
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
@@ -660,7 +640,32 @@ directive on your declaration like:
       #   # => [:tag, :tags]
       #
       def source_reflection_names
-        @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }.uniq
+        (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }.uniq
+      end
+
+      def source_reflection_name # :nodoc:
+        return @source_reflection_name if @source_reflection_name
+
+        names = [name.to_s.singularize, name].collect { |n| n.to_sym }.uniq
+        names = names.find_all { |n|
+          through_reflection.klass.reflect_on_association(n)
+        }
+
+        if names.length > 1
+          example_options = options.dup
+          example_options[:source] = source_reflection_names.first
+          ActiveSupport::Deprecation.warn <<-eowarn
+Ambiguous source reflection for through association.  Please specify a :source
+directive on your declaration like:
+
+  class #{active_record.name} < ActiveRecord::Base
+    #{macro} :#{name}, #{example_options}
+  end
+
+          eowarn
+        end
+
+        @source_reflection_name = names.first
       end
 
       def source_options
