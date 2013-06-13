@@ -376,18 +376,6 @@ module ApplicationTests
       assert_equal "Post;\n", File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
     end
 
-    test "assets can't access model information when precompiling if not initializing the app" do
-      app_file "app/models/post.rb", "class Post; end"
-      app_file "app/assets/javascripts/application.js", "//= require_tree ."
-      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= defined?(Post) || :NoPost %>"
-
-      add_to_config "config.assets.digest = false"
-      add_to_config "config.assets.initialize_on_precompile = false"
-
-      precompile!
-      assert_equal "NoPost;\n", File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
-    end
-
     test "initialization on the assets group should set assets_dir" do
       require "#{app_path}/config/application"
       Rails.application.initialize!(:assets)
