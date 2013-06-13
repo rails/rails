@@ -189,10 +189,14 @@ module ActiveRecord
         @klass ||= active_record.send(:compute_type, class_name)
       end
 
+      attr_reader :type, :foreign_type
+
       def initialize(*args)
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         @automatic_inverse_of = nil
+        @type         = options[:as] && "#{options[:as]}_type"
+        @foreign_type = options[:foreign_type] || "#{name}_type"
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
@@ -215,14 +219,6 @@ module ActiveRecord
 
       def foreign_key
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
-      end
-
-      def foreign_type
-        @foreign_type ||= options[:foreign_type] || "#{name}_type"
-      end
-
-      def type
-        @type ||= options[:as] && "#{options[:as]}_type"
       end
 
       def primary_key_column
