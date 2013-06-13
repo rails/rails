@@ -694,17 +694,6 @@ module ActiveRecord
         end
       end
 
-      def add_column_options!(sql, options) #:nodoc:
-        sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
-        # must explicitly check for :null to allow change_column to work on migrations
-        if options[:null] == false
-          sql << " NOT NULL"
-        end
-        if options[:auto_increment] == true
-          sql << " AUTO_INCREMENT"
-        end
-      end
-
       # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
       #
       #   distinct("posts.id", ["posts.created_at desc"])
