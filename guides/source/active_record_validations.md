@@ -357,7 +357,7 @@ given regular expression, which is specified using the `:with` option.
 ```ruby
 class Product < ActiveRecord::Base
   validates :legacy_code, format: { with: /\A[a-zA-Z]+\z/,
-    message: "Only letters allowed" }
+    message: "only allows letters" }
 end
 ```
 
