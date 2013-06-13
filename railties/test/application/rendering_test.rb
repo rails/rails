@@ -17,7 +17,7 @@ module ApplicationTests
 
     test "Unknown format falls back to HTML template" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'pages/:id', to: 'pages#show'
         end
       RUBY
