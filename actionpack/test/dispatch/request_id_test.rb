@@ -17,6 +17,15 @@ class RequestIdTest < ActiveSupport::TestCase
     assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.uuid)
   end
 
+  test "thread local slot is set" do
+    middleware = ActionDispatch::RequestId.new(lambda do |environment|
+      req = ActionDispatch::Request.new(environment)
+      assert_equal(Thread.current['action_dispatch.request_id'], req.uuid)
+      [ 200, environment, [] ]
+    end)
+    middleware.call({})
+  end
+
   private
 
   def stub_request(env = {})
