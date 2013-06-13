@@ -809,7 +809,7 @@ module NestedAttributesOnACollectionAssociationTests
       assert_no_difference ['Man.count', 'Interest.count'] do
         man = Man.create(:name => 'John',
                          :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
-        assert !man.errors[:"interests.man"].empty?
+        assert_not_predicate man.errors[:"interests.man"], :empty?
       end
     end
   ensure
