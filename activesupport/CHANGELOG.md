@@ -1,3 +1,9 @@
+*   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
+    sub-second resolution when wrapping a `DateTime` value.
+    Fixes #10855
+
+    *Andrew White*
+
 *   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
     `#blame_file!` on Exceptions that do not have the Blamable mixin
 
