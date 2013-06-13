@@ -540,10 +540,9 @@ directive on your declaration like:
   end
 
           eowarn
-          @source_reflection = reflections.first
-        else
-          @source_reflection = reflections.first
         end
+
+        @source_reflection = reflections.first
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
