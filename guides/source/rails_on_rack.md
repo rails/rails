@@ -273,10 +273,9 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Runs the prepare callbacks before serving the request.
 
-
  **`ActiveRecord::Migration::CheckPending`**
 
-* Checks pending migrations and raise an error if migrations are pending.
+* Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
 
  **`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
 

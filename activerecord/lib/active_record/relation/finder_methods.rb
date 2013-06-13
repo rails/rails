@@ -11,11 +11,11 @@ module ActiveRecord
     #   Person.find([1])     # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # NOTE: An RecordNotFound will be raised if one or more ids are not returned.
+    # <tt>ActiveRecord::RecordNotFound</tt> will be raised if one or more ids are not found.
     #
-    # NOTE: that returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. Give an explicit <tt>order</tt>
-    # to ensure the results are sorted.
+    # NOTE: The returned records may not be in the same order as the ids you
+    # provide since database rows are unordered. You'd need to provide an explicit <tt>order</tt>
+    # option if you want the results are sorted.
     #
     # ==== Find with lock
     #
@@ -34,34 +34,30 @@ module ActiveRecord
     # ==== Variations of +find+
     # 
     #   Person.where(name: 'Spartacus', rating: 4)
-    #   # returns a chainable list (which can be empty)
+    #   # returns a chainable list (which can be empty).
     #
     #   Person.find_by(name: 'Spartacus', rating: 4)
-    #   # returns the first item or nil
+    #   # returns the first item or nil.
     #
     #   Person.where(name: 'Spartacus', rating: 4).first_or_initialize
-    #   # returns the first item or returns a new instance (requires you call .save to persist against the database)
+    #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
     #
     #   Person.where(name: 'Spartacus', rating: 4).first_or_create
-    #   # returns the first item or creates it and returns it, available since rails 3.2.1
+    #   # returns the first item or creates it and returns it, available since Rails 3.2.1.
     #
-    #   
     # ==== Alternatives for +find+
     #
     #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
-    #   # returns true or false
+    #   # returns a boolean indicating if any record with the given conditions exist.
     #   
     #   Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
-    #   # returns a chainable list of instances with only the mentioned fields
+    #   # returns a chainable list of instances with only the mentioned fields.
     #
     #   Person.where(name: 'Spartacus', rating: 4).ids
-    #   # returns an Array of ids, available since rails 3.2.1
+    #   # returns an Array of ids, available since Rails 3.2.1.
     #
     #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
-    #   # returns an Array of the required fields, available since rails 3.1
-    #
-    #   Person.arel_table
-    #   # returns an instance of <tt>Arel::Table</tt>, which allows a comprehensive variety of filters
+    #   # returns an Array of the required fields, available since Rails 3.1.
     def find(*args)
       if block_given?
         to_a.find { |*block_args| yield(*block_args) }
@@ -118,9 +114,9 @@ module ActiveRecord
     #
     #   Person.first # SELECT "people".* FROM "people" LIMIT 1
     #
-    # NOTE: Rails 3 may not +order+ this query by be the primary key.
-    # The order will depend on the database implementation.
-    # In order to ensure that behavior use <tt>User.order(:id).first</tt> instead.
+    # NOTE: Rails 3 may not order this query by the primary key and the order
+    # will depend on the database implementation. In order to ensure that behavior,
+    # use <tt>User.order(:id).first</tt> instead.
     #
     # ==== Rails 4
     #

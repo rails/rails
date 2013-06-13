@@ -366,7 +366,15 @@ create_join_table :products, :categories
 
 which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
-`false` by default.
+`false` by default. This can be overridden by specifying the `:column_options`
+option.
+
+```ruby
+create_join_table :products, :categories, column_options: {null: true}
+```
+
+will create the `product_id` and `category_id` with the `:null` option as
+`true`.
 
 You can pass the option `:table_name` with you want to customize the table
 name. For example,
@@ -376,16 +384,6 @@ create_join_table :products, :categories, table_name: :categorization
 ```
 
 will create a `categorization` table.
-
-For the two table columns, you can override the default `:null` option, or add
-others, by specifying the `:column_options` option. For example,
-
-```ruby
-create_join_table :products, :categories, column_options: {null: true}
-```
-
-will create the `product_id` and `category_id` with the `:null` option as
-`true`.
 
 `create_join_table` also accepts a block, which you can use to add indices
 (which are not created by default) or additional columns:
