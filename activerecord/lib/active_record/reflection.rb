@@ -533,7 +533,7 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
       #
       def through_reflection
-        @through_reflection ||= active_record.reflect_on_association(options[:through])
+        active_record.reflect_on_association(options[:through])
       end
 
       # Returns an array of reflections which are involved in this association. Each item in the
