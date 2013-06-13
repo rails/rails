@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
+    sub-second resolution when wrapping a `DateTime` value.
+    Fixes #10855
+
+    *Andrew White*
+
 *   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
     Fixes #11350
