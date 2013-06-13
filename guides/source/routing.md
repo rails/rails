@@ -36,7 +36,7 @@ the request is dispatched to the `patients` controller's `show` action with `{ i
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs.  If the route above is modified to be:
+You can also generate paths and URLs. If the route above is modified to be:
 
 ```ruby
 get '/patients/:id', to: 'patients#show', as: 'patient'
@@ -803,7 +803,7 @@ You should put the `root` route at the top of the file, because it is the most p
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
-You can also use root inside namespaces and scopes as well.  For example:
+You can also use root inside namespaces and scopes as well. For example:
 
 ```ruby
 namespace :admin do

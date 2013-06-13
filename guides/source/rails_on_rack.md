@@ -82,7 +82,7 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 
 ```ruby
 # Rails.root/config.ru
-require ::File.expand_path('../config/environment',  __FILE__)
+require ::File.expand_path('../config/environment', __FILE__)
 
 use Rack::Debugger
 use Rack::ContentLength
@@ -131,6 +131,7 @@ use ActionDispatch::DebugExceptions
 use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
+use ActiveRecord::Migration::CheckPending
 use ActiveRecord::ConnectionAdapters::ConnectionManagement
 use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
@@ -271,6 +272,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
  **`ActionDispatch::Callbacks`**
 
 * Runs the prepare callbacks before serving the request.
+
+ **`ActiveRecord::Migration::CheckPending`**
+
+* Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
 
  **`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
 

@@ -568,7 +568,7 @@ NOTE: In many cases the built-in date pickers are clumsy as they do not aid the 
 
 ### Individual Components
 
-Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the  `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
+Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
 
 The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example
 
@@ -830,7 +830,7 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 
 ### Configuring the Model
 
-Active Record provides model level support  via the `accepts_nested_attributes_for` method:
+Active Record provides model level support via the `accepts_nested_attributes_for` method:
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -885,7 +885,7 @@ end
         :name => 'John Doe',
         :addresses_attributes => {
             '0' => {
-                :kind  => 'Home',
+                :kind => 'Home',
                 :street => '221b Baker Street',
             },
             '1' => {

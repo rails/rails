@@ -30,10 +30,10 @@ Configuring Rails Components
 
 In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file `config/application.rb` and environment-specific configuration files (such as `config/environments/production.rb`) allow you to specify the various settings that you want to pass down to all of the components.
 
-For example, the default `config/application.rb` file includes this setting:
+For example, the `config/application.rb` file includes this setting:
 
 ```ruby
-config.filter_parameters += [:password]
+config.autoload_paths += %W(#{config.root}/extras)
 ```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
@@ -97,7 +97,9 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.file_watcher` the class used to detect file updates in the filesystem when `config.reload_classes_only_on_change` is true. Must conform to `ActiveSupport::FileUpdateChecker` API.
 
-* `config.filter_parameters` used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
+* `config.filter_parameters` used for filtering out the parameters that
+you don't want shown in the logs, such as passwords or credit card
+numbers. New applications filter out passwords by adding the following `config.filter_parameters+=[:password]` in `config/initializers/filter_parameter_logging.rb`.
 
 * `config.force_ssl` forces all requests to be under HTTPS protocol by using `ActionDispatch::SSL` middleware.
 
@@ -131,7 +133,8 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 ### Configuring Assets
 
-* `config.assets.enabled` a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in `config/application.rb`.
+* `config.assets.enabled` a flag that controls whether the asset
+pipeline is enabled. It is set to true by default.
 
 * `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
 
@@ -421,13 +424,13 @@ There are a few configuration options available in Active Support:
 
 ### Configuring a Database
 
-Just about every Rails application will interact with a database. The database to use is specified in a configuration file called `config/database.yml`.  If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
+Just about every Rails application will interact with a database. The database to use is specified in a configuration file called `config/database.yml`. If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
 
 * The `development` environment is used on your development/local computer as you interact manually with the application.
 * The `test` environment is used when running automated tests.
 * The `production` environment is used when you deploy your application for the world to use.
 
-TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite.  Detailed examples of the common database connections are below.
+TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.
 
 #### Configuring an SQLite3 Database
 
@@ -527,7 +530,7 @@ By default Rails ships with three environments: "development", "test", and "prod
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server just by create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
-That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`,  `Rails.env.staging?` works, etc.
+That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`, `Rails.env.staging?` works, etc.
 
 
 Rails Environment Settings

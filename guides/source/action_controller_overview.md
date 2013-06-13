@@ -257,7 +257,7 @@ params.require(:log_entry).permit!
 ```
 
 This will mark the `:log_entry` parameters hash and any subhash of it
-permitted.  Extreme care should be taken when using `permit!` as it
+permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
 

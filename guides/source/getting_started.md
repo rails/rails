@@ -135,7 +135,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
-|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html)|
+|config/|Configure your application's runtime rules, routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
 |Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
@@ -264,7 +264,7 @@ Blog::Application.routes.draw do
 end
 ```
 
-If you run `rake routes`, you'll see that all the routes for the 
+If you run `rake routes`, you'll see that all the routes for the
 standard RESTful actions.
 
 ```bash
@@ -288,7 +288,7 @@ It will look a little basic for now, but that's ok. We'll look at improving the 
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`.  With the route already defined, requests can now be made to `/posts/new` in the application. Navigate to <http://localhost:3000/posts/new> and you'll see a routing error:
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. With the route already defined, requests can now be made to `/posts/new` in the application. Navigate to <http://localhost:3000/posts/new> and you'll see a routing error:
 
 ![Another routing error, uninitialized constant PostsController](images/getting_started/routing_error_no_controller.png)
 
@@ -560,14 +560,14 @@ whether the model was saved or not.
 
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
-`show` action before proceeding. 
+`show` action before proceeding.
 
 ```ruby
 post GET    /posts/:id(.:format)      posts#show
 ```
 
 The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the post. 
+parameter, which in our case will be the id of the post.
 
 As we did before, we need to add the `show` action in
 `app/controllers/posts_controller.rb` and its respective view.
@@ -628,7 +628,7 @@ Visit <http://localhost:3000/posts/new> and give it a try!
 
 ### Listing all posts
 
-We still need a way to list all our posts, so let's do that. 
+We still need a way to list all our posts, so let's do that.
 We'll use a specific route from `config/routes.rb`:
 
 ```ruby
@@ -749,7 +749,7 @@ end
 ```
 
 These changes will ensure that all posts have a title that is at least five
-characters long.  Rails can validate a variety of conditions in a model,
+characters long. Rails can validate a variety of conditions in a model,
 including the presence or uniqueness of columns, their format, and the
 existence of associated objects. Validations are covered in detail in [Active
 Record Validations](active_record_validations.html)
@@ -770,7 +770,7 @@ def create
   @post = Post.new(params[:post].permit(:title, :text))
 
   if @post.save
-    redirect_to @post 
+    redirect_to @post
   else
     render 'new'
   end
@@ -1091,7 +1091,7 @@ together.
 </table>
 ```
 
-Here we're using `link_to` in a different way. We pass the named route as the first argument, 
+Here we're using `link_to` in a different way. We pass the named route as the first argument,
 and then the final two keys as another argument. The `:method` and `:'data-confirm'`
 options are used as HTML5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the link with method `delete`.
@@ -1102,7 +1102,7 @@ generated the application. Without this file, the confirmation dialog box wouldn
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
 Congratulations, you can now create, show, list, update and destroy
-posts. 
+posts.
 
 TIP: In general, Rails encourages the use of resources objects in place
 of declaring routes manually.

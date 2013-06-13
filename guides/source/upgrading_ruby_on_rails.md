@@ -69,6 +69,10 @@ end
 If the action is not being used in a public API and you are free to change the
 HTTP method, you can update your route to use `patch` instead of `put`:
 
+`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
+today. So, if you have an API that gets real PUT requests it is going to work.
+The router also routes `PATCH` requests to `/users/:id` to the `update` action.
+
 ```ruby
 resources :users do
   patch :update_name, on: :member

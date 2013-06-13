@@ -5,7 +5,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      # Determine whether to store the full constant name including namespace when using STI
+      # Determines whether to store the full constant name including namespace when using STI.
       class_attribute :store_full_sti_class, instance_writer: false
       self.store_full_sti_class = true
     end
@@ -13,7 +13,7 @@ module ActiveRecord
     module ClassMethods
       # Determines if one of the attributes passed in is the inheritance column,
       # and if the inheritance column is attr accessible, it initializes an
-      # instance of the given subclass instead of the base class
+      # instance of the given subclass instead of the base class.
       def new(*args, &block)
         if abstract_class? || self == Base
           raise NotImplementedError, "#{self} is an abstract class and can not be instantiated."
@@ -27,7 +27,8 @@ module ActiveRecord
         super
       end
 
-      # True if this isn't a concrete subclass needing a STI type condition.
+      # Returns +true+ if this does not need STI type condition. Returns
+      # +false+ if STI type condition needs to be applied.
       def descends_from_active_record?
         if self == Base
           false
