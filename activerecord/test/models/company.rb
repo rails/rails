@@ -141,7 +141,7 @@ class Client < Company
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
   belongs_to :readonly_firm, -> { readonly }, :class_name => "Firm", :foreign_key => "firm_id"
   belongs_to :bob_firm, -> { where :name => "Bob" }, :class_name => "Firm", :foreign_key => "client_of"
-  has_many :accounts, :through => :firm
+  has_many :accounts, :through => :firm, :source => :accounts
   belongs_to :account
 
   class RaisedOnSave < RuntimeError; end

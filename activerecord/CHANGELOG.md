@@ -1,3 +1,34 @@
+*   Ambiguous reflections are on :through relationships are no longer supported.
+    For example, you need to change this:
+
+      class Author < ActiveRecord::Base
+        has_many :posts
+        has_many :taggings, :through => :posts
+      end
+      
+      class Post < ActiveRecord::Base
+        has_one :tagging
+        has_many :taggings
+      end
+      
+      class Tagging < ActiveRecord::Base
+      end
+
+    To this:
+
+      class Author < ActiveRecord::Base
+        has_many :posts
+        has_many :taggings, :through => :posts, :source => :tagging
+      end
+      
+      class Post < ActiveRecord::Base
+        has_one :tagging
+        has_many :taggings
+      end
+      
+      class Tagging < ActiveRecord::Base
+      end
+
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previous behavior was untested and surprising for the user.
     Fixes #5554.

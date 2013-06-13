@@ -499,6 +499,11 @@ module ActiveRecord
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
+      def initialize(macro, name, scope, options, active_record)
+        super
+        @source_reflection = nil
+      end
+
       # Returns the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
@@ -517,7 +522,28 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
-        @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
+        return @source_reflection if @source_reflection
+
+        reflections = source_reflection_names.collect { |name|
+          through_reflection.klass.reflect_on_association(name)
+        }.compact
+
+        if reflections.length > 1
+          example_options = options.dup
+          example_options[:source] = source_reflection_names.first
+          ActiveSupport::Deprecation.warn <<-eowarn
+Ambiguous source reflection for through association.  Please specify a :source
+directive on your declaration like:
+
+  class #{active_record.name} < ActiveRecord::Base
+    #{macro} :#{name}, #{example_options}
+  end
+
+          eowarn
+          @source_reflection = reflections.first
+        else
+          @source_reflection = reflections.first
+        end
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
