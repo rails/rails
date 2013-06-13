@@ -13,10 +13,10 @@ namespace :guides do
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/kindlepublishing"
     task :kindle do
-      unless `kindlerb -v 2> /dev/null` =~ /kindlerb 0.1.1/
+      unless `kindlerb -v 2> /dev/null` =~ /kindlerb 0.1.1/  
         abort "Please `gem install kindlerb`"
       end
-      unless `convert` =~ /convert/
+      unless `convert` =~ /convert/  
         abort "Please install ImageMagick`"
       end
       ENV['KINDLE'] = '1'
