@@ -210,7 +210,7 @@ module ActiveRecord
       end
 
       def quoted_table_name
-        @quoted_table_name ||= klass.quoted_table_name
+        klass.quoted_table_name
       end
 
       def join_table
