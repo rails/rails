@@ -325,31 +325,6 @@ You can also add bullet points:
 
 TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
-For example, to squash the previous three commits into one commit with a detailed commit message:
-
-```bash
-$ git rebase -i HEAD~3
-```
-
-Your editor will now open with the previous 3 commits listed:
-
-```
-pick 7ac1d4 description of first commit message
-pick 2b5aa3 description of second commit message
-pick da472c description of third commit message
-```
-
-Now squash the commits into the first commit
-
-```
-pick   7ac1d4 description of first commit message
-squash 2b5aa3 description of second commit message
-squash da472c description of third commit message
-```
-
-Ater saving and closing the editor, a new editor will open giving you the opportunity to write a detailed commit message for the newly squashed commit.
-
-
 ### Update Your Branch
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
