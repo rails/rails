@@ -250,14 +250,6 @@ module ActiveRecord
         end
       end
 
-      def columns(tbl_name)
-        @columns ||= klass.connection.columns(tbl_name)
-      end
-
-      def reset_column_information
-        @columns = nil
-      end
-
       def check_validity!
         check_validity_of_inverse!
 
