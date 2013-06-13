@@ -296,15 +296,13 @@ module ActiveRecord
       alias :source_macro :macro
 
       def has_inverse?
-        @options[:inverse_of] || find_inverse_of_automatically
+        inverse_name
       end
 
       def inverse_of
-        @inverse_of ||= if options[:inverse_of]
-          klass.reflect_on_association(options[:inverse_of])
-        else
-          find_inverse_of_automatically
-        end
+        return unless inverse_name
+
+        @inverse_of ||= klass.reflect_on_association inverse_name
       end
 
       # Clears the cached value of +@inverse_of+ on this object. This will
@@ -393,26 +391,21 @@ module ActiveRecord
       INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
 
       private
-        # Attempts to find the inverse association automatically.
-        # If it cannot find a suitable inverse association, it returns
+        # Attempts to find the inverse association name automatically.
+        # If it cannot find a suitable inverse association name, it returns
         # nil.
-        def find_inverse_of_automatically
-          if @automatic_inverse_of == false
-            nil
-          elsif @automatic_inverse_of.nil?
-            set_automatic_inverse_of
-          else
-            klass.reflect_on_association(@automatic_inverse_of)
+        def inverse_name
+          options.fetch(:inverse_of) do
+            if @automatic_inverse_of == false
+              nil
+            else
+              @automatic_inverse_of = automatic_inverse_of
+            end
           end
         end
 
-        # Sets the +@automatic_inverse_of+ instance variable, and returns
-        # either nil or the inverse association that it finds.
-        #
-        # This method caches the inverse association that is found so that
-        # future calls to +find_inverse_of_automatically+ have much less
-        # overhead.
-        def set_automatic_inverse_of
+        # returns either nil or the inverse association name that it finds.
+        def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = active_record.name.downcase.to_sym
 
@@ -425,15 +418,8 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              @automatic_inverse_of = inverse_name
-              reflection
-            else
-              @automatic_inverse_of = false
-              nil
+              inverse_name
             end
-          else
-            @automatic_inverse_of = false
-            nil
           end
         end
 
