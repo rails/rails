@@ -446,7 +446,7 @@ module ActiveRecord
         # from calling +klass+, +reflection+ will already be set to false.
         def valid_inverse_reflection?(reflection)
           reflection &&
-            klass.name == reflection.active_record.try(:name) &&
+            klass.name == reflection.active_record.name &&
             klass.primary_key == reflection.active_record_primary_key &&
             can_find_inverse_of_automatically?(reflection)
         end
