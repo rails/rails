@@ -226,7 +226,7 @@ module ActiveRecord
       end
 
       def primary_key_column
-        @primary_key_column ||= klass.columns.find { |c| c.name == klass.primary_key }
+        klass.columns_hash[klass.primary_key]
       end
 
       def association_foreign_key
