@@ -310,13 +310,6 @@ module ActiveRecord
         @inverse_of ||= klass.reflect_on_association inverse_name
       end
 
-      # Clears the cached value of +@inverse_of+ on this object. This will
-      # not remove the :inverse_of option however, so future calls on the
-      # +inverse_of+ will have to recompute the inverse.
-      def clear_inverse_of_cache!
-        @inverse_of = nil
-      end
-
       def polymorphic_inverse_of(associated_class)
         if has_inverse?
           if inverse_relationship = associated_class.reflect_on_association(options[:inverse_of])
