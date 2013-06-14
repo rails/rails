@@ -50,7 +50,15 @@ module ActiveRecord
     #   Post.order('id asc').except(:order)                  # discards the order condition
     #   Post.where('id > 10').order('id asc').except(:where) # discards the where condition but keeps the order
     def except(*skips)
-      relation_with values.except(*skips)
+      values_except_skips    = values.except(*skips)
+      relation               = relation_with(values_except_skips)
+      skips_in_default_scope = shared_values_in_default_scope(skips)
+
+      if skips_in_default_scope.any?
+        relation.unscope(skips_in_default_scope)
+      else
+        relation
+      end
     end
 
     # Removes any condition from the query other than the one(s) specified in +onlies+.
@@ -68,6 +76,14 @@ module ActiveRecord
         result.default_scoped = default_scoped
         result.extend(*extending_values) if extending_values.any?
         result
+      end
+
+      def shared_values_in_default_scope(values)
+        values.select { |value| in_default_scope?(value) }
+      end
+
+      def in_default_scope?(value)
+        default_scope_values.has_key?(value)
       end
   end
 end

@@ -1142,6 +1142,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.all, all_posts
   end
 
+  def test_except_on_default_scope
+    expected = Post.all.collect { |post| [post.title, post.id] }
+    received = PostWithDefaultScope.except(:order).collect { |post| [post.title, post.id] }
+    assert_equal expected, received
+  end
+
+  def test_except_only_removes_skipped_default_scopes
+    expected = Post.where(id: 1).except(:where).order(:title).collect { |post| [post.title, post.id] }
+    received = PostWithDefaultScope.where(id: 1).except(:where).collect { |post| [post.title, post.id] }
+    assert_equal expected, received
+  end
+
   def test_only
     relation = Post.where(:author_id => 1).order('id ASC').limit(1)
     assert_equal [posts(:welcome)], relation.to_a

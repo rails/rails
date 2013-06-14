@@ -136,6 +136,24 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_default_order
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = DeveloperOrderedBySalary.unscope(:order).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_default_limit
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = DeveloperLimitedByTwo.unscope(:limit).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_default_where
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = LazyBlockDeveloperCalledDavid.unscope(where: :name).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
   def test_unscope_with_grouping_attributes
     expected = Developer.order('salary DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.group(:name).unscope(:group).collect { |dev| dev.name }
@@ -149,12 +167,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscope_with_limit_in_query
     expected = Developer.order('salary DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.limit(1).unscope(:limit).collect { |dev| dev.name }
-    assert_equal expected, received
-  end
-
-  def test_order_to_unscope_reordering
-    expected = DeveloperOrderedBySalary.all.collect { |dev| [dev.name, dev.id] }
-    received = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order).collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
