@@ -1,4 +1,4 @@
-*   `HashWithIndifferentAccess#select working as intended` now returns a `HashWithIndifferentAccess`
+*   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
     instance instead of a `Hash` instance.
 
     Fixes #10723
