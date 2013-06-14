@@ -1,5 +1,13 @@
+*   `HashWithIndifferentAccess#select working as intended` now returns a `HashWithIndifferentAccess`
+    instance instead of a `Hash` instance.
+
+    Fixes #10723
+
+    *Albert Llop*
+
 *   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
     sub-second resolution when wrapping a `DateTime` value.
+
     Fixes #10855
 
     *Andrew White*
@@ -15,6 +23,7 @@
 
 *   Prevent side effects to hashes inside arrays when
     `Hash#with_indifferent_access` is called.
+
     Fixes #10526
 
     *Yves Senn*
