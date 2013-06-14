@@ -322,6 +322,9 @@ module ActiveSupport
     # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?
     def const_regexp(camel_cased_word) #:nodoc:
       parts = camel_cased_word.split("::")
+
+      return Regexp.escape(camel_cased_word) if parts.blank?
+
       last  = parts.pop
 
       parts.reverse.inject(last) do |acc, part|
