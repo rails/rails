@@ -324,7 +324,7 @@ db_namespace = namespace :db do
         ActiveRecord::Schema.verbose = false
         db_namespace["schema:load"].invoke
       ensure
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[Rails.env])
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[DatabaseTasks.env])
       end
     end
 
