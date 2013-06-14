@@ -371,6 +371,9 @@ module ActionMailer
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
 
+    # This will allow to include :all in helper
+    include ActionController::Helpers
+
     self.protected_instance_variables = [:@_action_has_layout]
 
     helper ActionMailer::MailHelper
