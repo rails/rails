@@ -1,3 +1,6 @@
+*   Add configuration option config.action_view.erb_implementation and
+    update docs.  *Rusty Burchfield*
+
 *   Fix an issue where partials with a number in the filename weren't being digested for cache dependencies.
 
     *Bryan Ricker*

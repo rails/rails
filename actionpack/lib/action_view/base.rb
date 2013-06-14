@@ -154,6 +154,7 @@ module ActionView #:nodoc:
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+      delegate :erb_implementation=, :to => 'ActionView::Template::Handlers::ERB'
 
       def cache_template_loading
         ActionView::Resolver.caching?
