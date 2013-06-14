@@ -233,6 +233,34 @@ module Rails
       config.helpers_paths
     end
 
+    def railties #:nodoc:
+      @railties ||= Rails::Railtie.subclasses.map(&:instance) +
+        Rails::Engine.subclasses.map(&:instance)
+    end
+
+    # Returns the ordered railties for this application considering railties_order.
+    def ordered_railties #:nodoc:
+      @ordered_railties ||= begin
+        order = config.railties_order.map do |railtie|
+          if railtie == :main_app
+            self
+          elsif railtie.respond_to?(:instance)
+            railtie.instance
+          else
+            railtie
+          end
+        end
+
+        all = (railties - order)
+        all.push(self)   unless (all + order).include?(self)
+        order.push(:all) unless order.include?(:all)
+
+        index = order.index(:all)
+        order[index] = all
+        order.reverse.flatten
+      end
+    end
+
   protected
 
     alias :build_middleware_stack :app
@@ -261,29 +289,6 @@ module Rails
     def run_console_blocks(app) #:nodoc:
       railties.each { |r| r.run_console_blocks(app) }
       super
-    end
-
-    # Returns the ordered railties for this application considering railties_order.
-    def ordered_railties #:nodoc:
-      @ordered_railties ||= begin
-        order = config.railties_order.map do |railtie|
-          if railtie == :main_app
-            self
-          elsif railtie.respond_to?(:instance)
-            railtie.instance
-          else
-            railtie
-          end
-        end
-
-        all = (railties - order)
-        all.push(self)   unless (all + order).include?(self)
-        order.push(:all) unless order.include?(:all)
-
-        index = order.index(:all)
-        order[index] = all
-        order.reverse.flatten
-      end
     end
 
     def railties_initializers(current) #:nodoc:
