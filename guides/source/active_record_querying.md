@@ -687,6 +687,10 @@ The SQL that would be executed:
 
 ```sql
 SELECT * FROM posts WHERE id > 10 LIMIT 20
+
+# Original query without `except`
+SELECT * FROM posts WHERE id > 10 ORDER BY id asc LIMIT 20
+
 ```
 
 ### `unscope`
@@ -722,6 +726,10 @@ The SQL that would be executed:
 
 ```sql
 SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+
+# Original query without `only`
+SELECT "posts".* FROM "posts" WHERE (id > 10) ORDER BY id desc LIMIT 20
+
 ```
 
 ### `reorder`
