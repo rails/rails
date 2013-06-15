@@ -208,7 +208,7 @@ class NokogiriEngineTest < ActiveSupport::TestCase
   private
     def assert_equal_rexml(xml)
       parsed_xml = XmlMini.parse(xml)
-      hash = XmlMini.with_backend('REXML') { parsed_xml }
+      hash = XmlMini.with_backend('REXML') { XmlMini.parse(parsed_xml) }
       assert_equal(hash, parsed_xml)
     end
 end
