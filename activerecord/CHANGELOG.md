@@ -1,3 +1,43 @@
+*   Allow unscoping methods to work on the default scope of associations.
+
+        class User
+          default_scope -> { where(enabled: true) }
+        end
+
+        class Project
+          belongs_to :user, -> { unscoped }
+        end
+
+    We expect .unscoped to remove the default scope of User when the scopes
+    are joined.
+
+        user    = User.create enabled: false
+        project = Project.create user_id: user.id
+        project.user
+        # => <User id: 1, enabled: false>
+
+    This also works with other unscoping methods. For example:
+
+        class Project
+          belongs_to :user, -> { unscope(where: :enabled) }
+        end
+
+    or
+
+        class Project
+          belongs_to :user, -> { except(:where) }
+        end
+
+    Those are particularly useful if there are many clauses on the default
+    scope of User and you want to remove just one of them in the association.
+
+    Before, unscoping methods would not act on the default scope of the
+    association.
+
+    Fixes #10643.
+
+    *Dave Jachimiak*
+
 *   `create_savepoint`, `rollback_to_savepoint` and `release_savepoint` accept
     a savepoint name.
 

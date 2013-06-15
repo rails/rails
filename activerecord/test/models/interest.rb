@@ -3,3 +3,8 @@ class Interest < ActiveRecord::Base
   belongs_to :polymorphic_man, :polymorphic => true, :inverse_of => :polymorphic_interests
   belongs_to :zine, :inverse_of => :interests
 end
+
+class InterestWithCodeScope < ActiveRecord::Base
+  self.table_name = 'interests'
+  default_scope -> { where(topic: 'code') }
+end

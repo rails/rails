@@ -730,6 +730,7 @@ ActiveRecord::Schema.define do
   # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
   create_table :men, :force => true do |t|
     t.string  :name
+    t.boolean :cool
   end
 
   create_table :faces, :force => true do |t|
@@ -744,6 +745,7 @@ ActiveRecord::Schema.define do
   create_table :interests, :force => true do |t|
     t.string :topic
     t.integer :man_id
+    t.integer :man_with_unscoped_interests_id
     t.integer :polymorphic_man_id
     t.string :polymorphic_man_type
     t.integer :zine_id
