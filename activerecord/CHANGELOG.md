@@ -1,3 +1,8 @@
+*   Fix mysql2 adapter raises the correct exception when executing a query on a
+    closed connection.
+
+    *Yves Senn*
+
 *   Ambiguous reflections are on :through relationships are no longer supported.
     For example, you need to change this:
 
