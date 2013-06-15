@@ -1662,7 +1662,7 @@ Two very common sources of data that are not UTF-8:
   in the browser. This also applies to your i18n translation files.
   Most editors that do not already default to UTF-8 (such as some versions of
   Dreamweaver) offer a way to change the default to UTF-8. Do so.
-* Your database. Rails defaults to converting data from your database into UTF-8 at
+* Your database: Rails defaults to converting data from your database into UTF-8 at
   the boundary. However, if your database is not using UTF-8 internally, it may not
   be able to store all characters that your users enter. For instance, if your database
   is using Latin-1 internally, and your user enters a Russian, Hebrew, or Japanese
