@@ -61,7 +61,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem 'json'
   gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   group :db do
