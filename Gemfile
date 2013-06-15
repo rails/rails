@@ -53,7 +53,7 @@ end
 
 platforms :ruby do
   gem 'yajl-ruby'
-  gem 'nokogiri', '>= 1.4.5'
+  gem 'nokogiri', '>= 1.4.5', '< 1.6'
 
   # AR
   gem 'sqlite3', '~> 1.3.5'
