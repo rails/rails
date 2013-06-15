@@ -1,3 +1,4 @@
+# encoding: utf-8
 class String
   # Returns the string, first removing all whitespace on both ends of
   # the string, and then changing remaining consecutive whitespace
@@ -51,5 +52,44 @@ class String
       end
 
     "#{self[0...stop]}#{options[:omission]}"
+  end
+  
+  # Mostly like <tt>truncate</tt>, but for longer text, and it truncate text with symbols like:
+  # <tt>.</tt>, <tt>,</tt>, <tt>\n</tt> and so on.
+  #    
+  #    "The Model layer represents your domain model (such as Account, Product, Person, Post, etc.) and encapsulates the business logic that is specific to your application. In Rails, database-backed model classes are derived from ActiveRecord::Base. Active Record allows you to present the data from database rows as objects and embellish these data objects with business logic methods. Although most Rails models are backed by a database, models can also be ordinary Ruby classes, or Ruby classes that implement a set of interfaces as provided by the Active Model module. You can read more about Active Record in its README.".content_truncate(180)
+  #    
+  #    # => "The Model layer represents your domain model (such as Account, Product, Person, Post, etc.) and encapsulates the business logic that is specific to your application."
+  #
+  # And The result is truncated as close as limit_length for the first match separator. 
+  #
+  # Actually, it use "<br/>", "\n", "。", ".", " " as separators to truncate text. 
+  #
+  # If you don't want to use the default separators,
+  # you can pass your favorite symbols with priority order as the <tt>:separators</tt>
+  #
+  def content_truncate limit_length, *separators
+    sub_string = self.dup
+    sep = separators.shift
+    if sep
+      sub_string.send(:smart_truncate, limit_length, sep, *separators)
+    else
+      sub_string.send(:smart_truncate, limit_length, "<br/>", "\n", "。", ".", " ")
+    end
+  end
+  
+  private
+  def smart_truncate limit_length, sep, *separators
+    while sep
+      position = self.index(sep)||limit_length+1
+      if position <= limit_length
+        while position && position <= limit_length
+          prev_index, position = position, self.index(sep, position+1)
+        end
+        return self[0...(prev_index+sep.length)].strip
+      end
+      sep = separators.shift
+    end
+    return self[0...limit_length].strip
   end
 end
