@@ -5,12 +5,12 @@
         has_many :posts
         has_many :taggings, :through => :posts
       end
-      
+
       class Post < ActiveRecord::Base
         has_one :tagging
         has_many :taggings
       end
-      
+
       class Tagging < ActiveRecord::Base
       end
 
@@ -20,12 +20,12 @@
         has_many :posts
         has_many :taggings, :through => :posts, :source => :tagging
       end
-      
+
       class Post < ActiveRecord::Base
         has_one :tagging
         has_many :taggings
       end
-      
+
       class Tagging < ActiveRecord::Base
       end
 
