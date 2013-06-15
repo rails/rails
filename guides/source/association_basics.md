@@ -781,7 +781,7 @@ The `create_association` method returns a new object of the associated type. Thi
 
 ##### `create_association!(attributes = {})`
 
-Does the same as <tt>create_association</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 
 #### Options for `belongs_to`
@@ -1083,7 +1083,7 @@ The `create_association` method returns a new object of the associated type. Thi
 
 ##### `create_association!(attributes = {})`
 
-Does the same as <tt>create_association</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_one`
 
@@ -1443,7 +1443,7 @@ The `collection.create` method returns a new object of the associated type. This
 
 ##### `collection.create!(attributes = {})`
 
-Does the same as <tt>collection.create</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_many`
 
@@ -1936,7 +1936,7 @@ The `collection.create` method returns a new object of the associated type. This
 
 ##### `collection.create!(attributes = {})`
 
-Does the same as <tt>collection.create</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_and_belongs_to_many`
 
