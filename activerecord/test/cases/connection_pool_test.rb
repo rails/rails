@@ -329,7 +329,7 @@ module ActiveRecord
       end
 
       # make sure exceptions are thrown when establish_connection
-      # is called with a anonymous class
+      # is called with an anonymous class
       def test_anonymous_class_exception
         anonymous = Class.new(ActiveRecord::Base)
         handler = ActiveRecord::Base.connection_handler
