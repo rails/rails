@@ -40,9 +40,9 @@ module ActiveRecord
           records.each { |record| yield record }
         end
       else
-        e = Enumerator.new do |y|
+        Enumerator.new do |enum|
           find_in_batches(options) do |records|
-            records.each {|record| y << record}
+            records.each {|record| enum << record}
           end
         end
       end
