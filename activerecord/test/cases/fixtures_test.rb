@@ -245,6 +245,22 @@ class FixturesTest < ActiveRecord::TestCase
   def test_serialized_fixtures
     assert_equal ["Green", "Red", "Orange"], traffic_lights(:uk).state
   end
+
+  def test_fixtures_are_set_up_with_database_env_variable
+    ENV.stubs(:[]).with("DATABASE_URL").returns("sqlite3:///:memory:")
+    ActiveRecord::Base.stubs(:configurations).returns({})
+    test_case = Class.new(ActiveRecord::TestCase) do
+      fixtures :accounts
+
+      def test_fixtures
+        assert accounts(:signals37)
+      end
+    end
+
+    result = test_case.new(:test_fixtures).run
+
+    assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
+  end
 end
 
 if Account.connection.respond_to?(:reset_pk_sequence!)

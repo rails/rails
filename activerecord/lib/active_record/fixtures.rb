@@ -841,8 +841,6 @@ module ActiveRecord
     end
 
     def setup_fixtures
-      return if ActiveRecord::Base.configurations.blank?
-
       if pre_loaded_fixtures && !use_transactional_fixtures
         raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'
       end
@@ -875,8 +873,6 @@ module ActiveRecord
     end
 
     def teardown_fixtures
-      return if ActiveRecord::Base.configurations.blank?
-
       # Rollback changes if a transaction is active.
       if run_in_transaction?
         @fixture_connections.each do |connection|

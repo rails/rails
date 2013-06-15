@@ -1,3 +1,8 @@
+*   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
+    This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
+
+    *Yves Senn*
+
 *   Fix mysql2 adapter raises the correct exception when executing a query on a
     closed connection.
 
