@@ -51,6 +51,11 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test 'reset counters returns true' do
+    Topic.increment_counter(:replies_count, @topic.id)
+    assert_equal true, Topic.reset_counters(@topic.id, :replies)
+  end
+
   test 'reset multiple association counters' do
     Topic.increment_counter(:replies_count, @topic.id)
     assert_difference '@topic.reload.replies_count', -1 do
