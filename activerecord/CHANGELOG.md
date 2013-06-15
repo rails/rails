@@ -1,4 +1,8 @@
 ## unreleased ##
+*   Fix mysql2 adapter raises the correct exception when executing a query on a
+    closed connection.
+
+    *Yves Senn*
 
 *   Fix the `:primary_key` option for `has_many` associations.
     Fixes #10693.
