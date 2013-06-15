@@ -64,7 +64,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
-=> Rails 3.2.3 application starting in development on http://0.0.0.0:3000
+=> Rails 4.0.0.beta application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2012-05-28 00:39:41] INFO  WEBrick 1.3.1
@@ -289,7 +289,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ rails console --sandbox
-Loading development environment in sandbox (Rails 3.2.3)
+Loading development environment in sandbox (Rails 4.0.0.beta)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
