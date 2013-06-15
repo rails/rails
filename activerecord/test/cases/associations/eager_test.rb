@@ -250,7 +250,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nil Post.all.merge!(:includes => :author).find(posts(:authorless).id).author
   end
 
-  def test_nested_loading_with_no_associations
+  # Regression test for 21c75e5
+  def test_nested_loading_does_not_raise_exception_when_association_does_not_exist
     assert_nothing_raised do
       Post.all.merge!(:includes => {:author => :author_addresss}).find(posts(:authorless).id)
     end
