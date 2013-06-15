@@ -1,4 +1,8 @@
 ## unreleased ##
+*   Fix mysql2 adapter raises the correct exception when executing a query on a
+    closed connection.
+
+    *Yves Senn*
 
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previos behavior was untested and surprising for the user.
