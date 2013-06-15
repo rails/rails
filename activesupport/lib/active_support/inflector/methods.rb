@@ -319,7 +319,9 @@ module ActiveSupport
     private
 
     # Mount a regular expression that will match part by part of the constant.
-    # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?
+    #
+    #   const_regexp("Foo::Bar::Baz") # => /Foo(::Bar(::Baz)?)?/
+    #   const_regexp("::")            # => /::/
     def const_regexp(camel_cased_word) #:nodoc:
       parts = camel_cased_word.split("::")
 
