@@ -1,3 +1,7 @@
+*   Fix uninitialized constant SchemaMigration when db/schema_cache.dump exists.
+
+    *Tomohiro Hashidate*
+
 *   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
