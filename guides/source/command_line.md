@@ -66,7 +66,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
-=> Rails 4.0.0.beta application starting in development on http://0.0.0.0:3000
+=> Rails 4.0.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2012-05-28 00:39:41] INFO  WEBrick 1.3.1
@@ -291,7 +291,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ rails console --sandbox
-Loading development environment in sandbox (Rails 4.0.0.beta)
+Loading development environment in sandbox (Rails 4.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -378,12 +378,12 @@ About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.0.0.beta
+Rails version             4.0.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.0.0.beta
-Action Pack version       4.0.0.beta
-Action Mailer version     4.0.0.beta
-Active Support version    4.0.0.beta
+Active Record version     4.0.0
+Action Pack version       4.0.0
+Action Mailer version     4.0.0
+Active Support version    4.0.0
 Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::EncryptedCookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
