@@ -74,6 +74,19 @@ module ActionDispatch
       # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
       #   Default is <tt>:url</tt>.
       #
+      # Also includes all the options from <tt>url_for</tt>. These include such
+      # things as <tt>:anchor</tt> or <tt>:trailing_slash</tt>. Example usage
+      # is given below:
+      #
+      #   polymorphic_url([blog, post], anchor: 'my_anchor')
+      #     # => "http://example.com/blogs/1/posts/1#my_anchor"
+      #   polymorphic_url([blog, post], anchor: 'my_anchor', script_name: "/my_app")
+      #     # => "http://example.com/my_app/blogs/1/posts/1#my_anchor"
+      #
+      # For all of these options, see the documentation for <tt>url_for</tt>.
+      #
+      # ==== Functionality
+      #
       #   # an Article record
       #   polymorphic_url(record)  # same as article_url(record)
       #
