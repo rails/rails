@@ -1,3 +1,8 @@
+*   Element of the `collection_check_boxes` and `collection_radio_buttons` can
+    optionally contain html attributes as the last element of the array.
+
+    *Vasiliy Ermolovich*
+
 *   Update the HTML `BOOLEAN_ATTRIBUTES` in `ActionView::Helpers::TagHelper`
     to conform to the latest HTML 5.1 spec. Add attributes `allowfullscreen`,
     `default`, `inert`, `sortable`, `truespeed`, `typemustmatch`. Fix attribute

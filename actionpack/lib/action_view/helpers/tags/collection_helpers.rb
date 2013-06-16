@@ -73,8 +73,9 @@ module ActionView
             value = value_for_collection(item, @value_method)
             text  = value_for_collection(item, @text_method)
             default_html_options = default_html_options_for_collection(item, value)
+            additional_html_options = option_html_attributes(item)
 
-            yield item, value, text, default_html_options
+            yield item, value, text, default_html_options.merge(additional_html_options)
           end.join.html_safe
         end
       end
