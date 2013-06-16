@@ -175,7 +175,7 @@ module Mime
       def parse(accept_header)
         if accept_header !~ /,/
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
-          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)]
+          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = AcceptList.new, 0
           accept_header.split(',').each do |header|
