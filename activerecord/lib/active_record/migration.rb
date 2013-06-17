@@ -789,6 +789,7 @@ module ActiveRecord
       end
 
       def current_version
+        require 'active_record/base'
         sm_table = schema_migrations_table_name
         if Base.connection.table_exists?(sm_table)
           get_all_versions.max || 0
