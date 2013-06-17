@@ -1,3 +1,24 @@
+*   Use a case insensitive URI Regexp for #asset_path.
+
+    This fix a problem where the same asset path using different case are generating
+    different URIs.
+
+    Before:
+
+        image_tag("HTTP://google.com")
+        # => "<img alt=\"Google\" src=\"/assets/HTTP://google.com\" />"
+        image_tag("http://google.com")
+        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+
+    After:
+
+        image_tag("HTTP://google.com")
+        # => "<img alt=\"Google\" src=\"HTTP://google.com\" />"
+        image_tag("http://google.com")
+        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+
+    *David Celis*
+
 *   Element of the `collection_check_boxes` and `collection_radio_buttons` can
     optionally contain html attributes as the last element of the array.
 
