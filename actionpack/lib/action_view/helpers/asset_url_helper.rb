@@ -105,7 +105,7 @@ module ActionView
     #   )
     #
     module AssetUrlHelper
-      URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}
+      URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
 
       # Computes the path to asset in public directory. If :type
       # options is set, a file extension will be appended and scoped
