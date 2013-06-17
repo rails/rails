@@ -278,9 +278,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 <b>Users</b>
 
 <ul id="users">
-<% @users.each do |user| %>
-  <%= render user %>
-<% end %>
+<%= render @users %>
 </ul>
 
 <br>
