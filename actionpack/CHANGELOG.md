@@ -1,5 +1,26 @@
 ## unreleased ##
 
+*   Use a case insensitive URI Regexp for #asset_path.
+
+    This fix a problem where the same asset path using different case are generating
+    different URIs.
+
+    Before:
+
+        image_tag("HTTP://google.com")
+        # => "<img alt=\"Google\" src=\"/assets/HTTP://google.com\" />"
+        image_tag("http://google.com")
+        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+
+    After:
+
+        image_tag("HTTP://google.com")
+        # => "<img alt=\"Google\" src=\"HTTP://google.com\" />"
+        image_tag("http://google.com")
+        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+
+    *David Celis + Rafael Mendonça França*
+
 *   Fix explicit names on multiple file fields. If a file field tag has
     the multiple option, it is turned into an array field (appending `[]`),
     but if an explicit name is passed to `file_field` the `[]` is not

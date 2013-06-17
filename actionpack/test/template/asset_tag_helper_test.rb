@@ -79,13 +79,17 @@ class AssetTagHelperTest < ActionView::TestCase
   JavascriptPathToTag = {
     %(javascript_path("xmlhr")) => %(/javascripts/xmlhr.js),
     %(javascript_path("super/xmlhr")) => %(/javascripts/super/xmlhr.js),
-    %(javascript_path("/super/xmlhr.js")) => %(/super/xmlhr.js)
+    %(javascript_path("/super/xmlhr.js")) => %(/super/xmlhr.js),
+    %(javascript_path("http://www.outside.com/foo.js")) => %(http://www.outside.com/foo.js),
+    %(javascript_path("HTTP://www.outside.com/foo.js")) => %(HTTP://www.outside.com/foo.js)
   }
 
   PathToJavascriptToTag = {
     %(path_to_javascript("xmlhr")) => %(/javascripts/xmlhr.js),
     %(path_to_javascript("super/xmlhr")) => %(/javascripts/super/xmlhr.js),
-    %(path_to_javascript("/super/xmlhr.js")) => %(/super/xmlhr.js)
+    %(path_to_javascript("/super/xmlhr.js")) => %(/super/xmlhr.js),
+    %(path_to_javascript("http://www.outside.com/foo.js")) => %(http://www.outside.com/foo.js),
+    %(path_to_javascript("HTTP://www.outside.com/foo.js")) => %(HTTP://www.outside.com/foo.js)
   }
 
   JavascriptIncludeToTag = {
@@ -109,14 +113,18 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_path("bank")) => %(/stylesheets/bank.css),
     %(stylesheet_path("bank.css")) => %(/stylesheets/bank.css),
     %(stylesheet_path('subdir/subdir')) => %(/stylesheets/subdir/subdir.css),
-    %(stylesheet_path('/subdir/subdir.css')) => %(/subdir/subdir.css)
+    %(stylesheet_path('/subdir/subdir.css')) => %(/subdir/subdir.css),
+    %(stylesheet_path("http://www.outside.com/foo.css")) => %(http://www.outside.com/foo.css),
+    %(stylesheet_path("HTTP://www.outside.com/foo.css")) => %(HTTP://www.outside.com/foo.css)
   }
 
   PathToStyleToTag = {
     %(path_to_stylesheet("style")) => %(/stylesheets/style.css),
     %(path_to_stylesheet("style.css")) => %(/stylesheets/style.css),
     %(path_to_stylesheet('dir/file')) => %(/stylesheets/dir/file.css),
-    %(path_to_stylesheet('/dir/file.rcss')) => %(/dir/file.rcss)
+    %(path_to_stylesheet('/dir/file.rcss')) => %(/dir/file.rcss),
+    %(path_to_stylesheet("http://www.outside.com/foo.css")) => %(http://www.outside.com/foo.css),
+    %(path_to_stylesheet("HTTP://www.outside.com/foo.css")) => %(HTTP://www.outside.com/foo.css)
   }
 
   StyleLinkToTag = {
@@ -139,14 +147,18 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_path("xml"))          => %(/images/xml),
     %(image_path("xml.png"))      => %(/images/xml.png),
     %(image_path("dir/xml.png"))  => %(/images/dir/xml.png),
-    %(image_path("/dir/xml.png")) => %(/dir/xml.png)
+    %(image_path("/dir/xml.png")) => %(/dir/xml.png),
+    %(image_path("http://www.outside.com/foo.png")) => %(http://www.outside.com/foo.png),
+    %(image_path("HTTP://www.outside.com/foo.png")) => %(HTTP://www.outside.com/foo.png)
   }
 
   PathToImageToTag = {
     %(path_to_image("xml"))          => %(/images/xml),
     %(path_to_image("xml.png"))      => %(/images/xml.png),
     %(path_to_image("dir/xml.png"))  => %(/images/dir/xml.png),
-    %(path_to_image("/dir/xml.png")) => %(/dir/xml.png)
+    %(path_to_image("/dir/xml.png")) => %(/dir/xml.png),
+    %(path_to_image("http://www.outside.com/foo.png")) => %(http://www.outside.com/foo.png),
+    %(path_to_image("HTTP://www.outside.com/foo.png")) => %(HTTP://www.outside.com/foo.png)
   }
 
   ImageLinkToTag = {
@@ -181,14 +193,18 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_path("xml"))          => %(/videos/xml),
     %(video_path("xml.ogg"))      => %(/videos/xml.ogg),
     %(video_path("dir/xml.ogg"))  => %(/videos/dir/xml.ogg),
-    %(video_path("/dir/xml.ogg")) => %(/dir/xml.ogg)
+    %(video_path("/dir/xml.ogg")) => %(/dir/xml.ogg),
+    %(video_path("http://www.outside.com/foo.ogg")) => %(http://www.outside.com/foo.ogg),
+    %(video_path("HTTP://www.outside.com/foo.ogg")) => %(HTTP://www.outside.com/foo.ogg)
   }
 
   PathToVideoToTag = {
     %(path_to_video("xml"))          => %(/videos/xml),
     %(path_to_video("xml.ogg"))      => %(/videos/xml.ogg),
     %(path_to_video("dir/xml.ogg"))  => %(/videos/dir/xml.ogg),
-    %(path_to_video("/dir/xml.ogg")) => %(/dir/xml.ogg)
+    %(path_to_video("/dir/xml.ogg")) => %(/dir/xml.ogg),
+    %(path_to_video("http://www.outside.com/foo.ogg")) => %(http://www.outside.com/foo.ogg),
+    %(path_to_video("HTTP://www.outside.com/foo.ogg")) => %(HTTP://www.outside.com/foo.ogg)
   }
 
   VideoLinkToTag = {
@@ -211,14 +227,18 @@ class AssetTagHelperTest < ActionView::TestCase
     %(audio_path("xml"))          => %(/audios/xml),
     %(audio_path("xml.wav"))      => %(/audios/xml.wav),
     %(audio_path("dir/xml.wav"))  => %(/audios/dir/xml.wav),
-    %(audio_path("/dir/xml.wav")) => %(/dir/xml.wav)
+    %(audio_path("/dir/xml.wav")) => %(/dir/xml.wav),
+    %(audio_path("http://www.outside.com/foo.wav")) => %(http://www.outside.com/foo.wav),
+    %(audio_path("HTTP://www.outside.com/foo.wav")) => %(HTTP://www.outside.com/foo.wav)
   }
 
   PathToAudioToTag = {
     %(path_to_audio("xml"))          => %(/audios/xml),
     %(path_to_audio("xml.wav"))      => %(/audios/xml.wav),
     %(path_to_audio("dir/xml.wav"))  => %(/audios/dir/xml.wav),
-    %(path_to_audio("/dir/xml.wav")) => %(/dir/xml.wav)
+    %(path_to_audio("/dir/xml.wav")) => %(/dir/xml.wav),
+    %(path_to_audio("http://www.outside.com/foo.wav")) => %(http://www.outside.com/foo.wav),
+    %(path_to_audio("HTTP://www.outside.com/foo.wav")) => %(HTTP://www.outside.com/foo.wav)
   }
 
   AudioLinkToTag = {
