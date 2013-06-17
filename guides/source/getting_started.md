@@ -932,8 +932,7 @@ appear next to the "Show" link:
   <tr>
     <th>Title</th>
     <th>Text</th>
-    <th></th>
-    <th></th>
+    <th colspan="2"></th>
   </tr>
 
 <% @posts.each do |post| %>
@@ -1073,9 +1072,7 @@ together.
   <tr>
     <th>Title</th>
     <th>Text</th>
-    <th></th>
-    <th></th>
-    <th></th>
+    <th colspan="3"></th>
   </tr>
 
 <% @posts.each do |post| %>
