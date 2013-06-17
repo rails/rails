@@ -10,9 +10,9 @@ module ActiveRecord
   #
   #   config.active_record.record_timestamps = false
   #
-  # Timestamps are in the local timezone by default but you can use UTC by setting:
+  # Timestamps are in UTC by default but you can use the local timezone by setting:
   #
-  #   config.active_record.default_timezone = :utc
+  #   config.active_record.default_timezone = :local
   #
   # == Time Zone aware attributes
   #
