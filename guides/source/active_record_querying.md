@@ -91,7 +91,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 
 ### Retrieving a Single Object
 
-Active Record provides five different ways of retrieving a single object.
+Active Record provides several different ways of retrieving a single object.
 
 #### Using a Primary Key
 
@@ -687,6 +687,10 @@ The SQL that would be executed:
 
 ```sql
 SELECT * FROM posts WHERE id > 10 LIMIT 20
+
+# Original query without `except`
+SELECT * FROM posts WHERE id > 10 ORDER BY id asc LIMIT 20
+
 ```
 
 ### `unscope`
@@ -722,6 +726,10 @@ The SQL that would be executed:
 
 ```sql
 SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+
+# Original query without `only`
+SELECT "posts".* FROM "posts" WHERE (id > 10) ORDER BY id desc LIMIT 20
+
 ```
 
 ### `reorder`
@@ -1230,7 +1238,7 @@ One important caveat is that `default_scope` will be overridden by
 
 ```ruby
 class User < ActiveRecord::Base
-  default_scope  { where state: 'pending' }
+  default_scope { where state: 'pending' }
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end

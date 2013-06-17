@@ -94,6 +94,15 @@ module ActiveSupport
     def halted_callback_hook(filter)
     end
 
+    module Conditionals # :nodoc:
+      class Value
+        def initialize(&block)
+          @block = block
+        end
+        def call(target, value); @block.call(value); end
+      end
+    end
+
     module Filters
       Environment = Struct.new(:target, :halted, :value, :run_block)
 
@@ -403,8 +412,8 @@ module ActiveSupport
       # the same after this point:
       #
       #   Symbols:: Already methods.
-      #   Strings:: class_eval'ed into methods.
-      #   Procs::   define_method'ed into methods.
+      #   Strings:: class_eval'd into methods.
+      #   Procs::   using define_method compiled into methods.
       #   Objects::
       #     a method is created that calls the before_foo method
       #     on the object.
@@ -415,6 +424,7 @@ module ActiveSupport
         when String
           l = eval "lambda { |value| #{filter} }"
           lambda { |target, value| target.instance_exec(value, &l) }
+        when Conditionals::Value then filter
         when ::Proc
           if filter.arity > 1
             return lambda { |target, _, &block|
@@ -648,7 +658,7 @@ module ActiveSupport
       #
       # * <tt>:terminator</tt> - Determines when a before filter will halt the
       #   callback chain, preventing following callbacks from being called and
-      #   the event from being triggered. This is a string to be eval'ed. The
+      #   the event from being triggered. This is a string to be eval'd. The
       #   result of the callback is available in the +result+ variable.
       #
       #     define_callbacks :validate, terminator: 'result == false'

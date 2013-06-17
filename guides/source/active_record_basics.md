@@ -62,9 +62,9 @@ may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
 Rails, you'll need to write very little configuration (in some case no
 configuration at all) when creating Active Record models. The idea is that if
-you configure your applications in the very same way most of the times then this
-should be the default way. In this cases, explicit configuration would be needed
-only in those cases where you can't follow the conventions for any reason.
+you configure your applications in the very same way most of the time then this
+should be the default way. Thus, explicit configuration would be needed
+only in those cases where you can't follow the standard convention.
 
 ### Naming Conventions
 

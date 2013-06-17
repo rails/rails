@@ -228,7 +228,7 @@ module ActiveSupport
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
-      # cache expires and due to heavy load seven different processes will try
+      # cache expires and due to heavy load several different processes will try
       # to read data natively and then they all will try to write to cache. To
       # avoid that case the first process to find an expired cache entry will
       # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.

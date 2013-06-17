@@ -1,5 +1,29 @@
+*   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
+    instance instead of a `Hash` instance.
+
+    Fixes #10723
+
+    *Albert Llop*
+
+*   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
+    sub-second resolution when wrapping a `DateTime` value.
+
+    Fixes #10855
+
+    *Andrew White*
+
+*   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
+    `#blame_file!` on Exceptions that do not have the Blamable mixin
+
+    *Andrew Kreiling*
+
+*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
+
+    *Andrew White*
+
 *   Prevent side effects to hashes inside arrays when
     `Hash#with_indifferent_access` is called.
+
     Fixes #10526
 
     *Yves Senn*

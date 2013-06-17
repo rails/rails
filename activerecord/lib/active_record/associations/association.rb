@@ -200,13 +200,14 @@ module ActiveRecord
           creation_attributes.each { |key, value| record[key] = value }
         end
 
-        # Should be true if there is a foreign key present on the owner which
+        # Returns true if there is a foreign key present on the owner which
         # references the target. This is used to determine whether we can load
         # the target if the owner is currently a new record (and therefore
-        # without a key).
+        # without a key). If the owner is a new record then foreign_key must
+        # be present in order to load target.
         #
         # Currently implemented by belongs_to (vanilla and polymorphic) and
-        # has_one/has_many :through associations which go through a belongs_to
+        # has_one/has_many :through associations which go through a belongs_to.
         def foreign_key_present?
           false
         end

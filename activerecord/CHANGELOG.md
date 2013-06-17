@@ -1,3 +1,81 @@
+*   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
+    This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
+
+    *Yves Senn*
+
+*   Fix mysql2 adapter raises the correct exception when executing a query on a
+    closed connection.
+
+    *Yves Senn*
+
+*   Ambiguous reflections are on :through relationships are no longer supported.
+    For example, you need to change this:
+
+      class Author < ActiveRecord::Base
+        has_many :posts
+        has_many :taggings, :through => :posts
+      end
+
+      class Post < ActiveRecord::Base
+        has_one :tagging
+        has_many :taggings
+      end
+
+      class Tagging < ActiveRecord::Base
+      end
+
+    To this:
+
+      class Author < ActiveRecord::Base
+        has_many :posts
+        has_many :taggings, :through => :posts, :source => :tagging
+      end
+
+      class Post < ActiveRecord::Base
+        has_one :tagging
+        has_many :taggings
+      end
+
+      class Tagging < ActiveRecord::Base
+      end
+
+*   Remove column restrictions for `count`, let the database raise if the SQL is
+    invalid. The previous behavior was untested and surprising for the user.
+    Fixes #5554.
+
+    Example:
+
+        User.select("name, username").count
+        # Before => SELECT count(*) FROM users
+        # After => ActiveRecord::StatementInvalid
+
+        # you can still use `count(:all)` to perform a query unrelated to the
+        # selected columns
+        User.select("name, username").count(:all) # => SELECT count(*) FROM users
+
+    *Yves Senn*
+
+*   Rails now automatically detects inverse associations. If you do not set the
+    `:inverse_of` option on the association, then Active Record will guess the
+    inverse association based on heuristics.
+
+    Note that automatic inverse detection only works on `has_many`, `has_one`,
+    and `belongs_to` associations. Extra options on the associations will
+    also prevent the association's inverse from being found automatically.
+
+    The automatic guessing of the inverse association uses a heuristic based
+    on the name of the class, so it may not work for all associations,
+    especially the ones with non-standard names.
+
+    You can turn off the automatic detection of inverse associations by setting
+    the `:inverse_of` option to `false` like so:
+
+      class Taggable < ActiveRecord::Base
+        belongs_to :tag, inverse_of: false
+      end
+
+    *John Wang*
+
 *   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
 
     *Adam Anderson*
@@ -19,7 +97,7 @@
 
     *Yves Senn*
 
-*   Fix bug where tiny types are incorectly coerced as booleand when the length is more than 1.
+*   Fix bug where tiny types are incorrectly coerced as boolean when the length is more than 1.
 
     Fixes #10620.
 
@@ -102,8 +180,8 @@
 
     *Olek Janiszewski*
 
-*   fixes bug introduced by #3329.  Now, when autosaving associations,
-    deletions happen before inserts and saves.  This prevents a 'duplicate
+*   fixes bug introduced by #3329. Now, when autosaving associations,
+    deletions happen before inserts and saves. This prevents a 'duplicate
     unique value' database error that would occur if a record being created had
     the same value on a unique indexed field as that of a record being destroyed.
 

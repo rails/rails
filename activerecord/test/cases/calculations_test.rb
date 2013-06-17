@@ -6,6 +6,7 @@ require 'models/edge'
 require 'models/organization'
 require 'models/possession'
 require 'models/topic'
+require 'models/reply'
 require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
@@ -164,6 +165,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_count_on_invalid_columns_raises
+    e = assert_raises(ActiveRecord::StatementInvalid) {
+      Account.select("credit_limit, firm_name").count
+    }
+
+    assert_match "accounts", e.message
+    assert_match "credit_limit, firm_name", e.message
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -472,6 +482,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_without_column_names
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
+      Company.order(:id).limit(1).pluck
+  end
+
   def test_pluck_type_cast
     topic = topics(:first)
     relation = Topic.where(:id => topic.id)
@@ -531,6 +546,11 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_plucks_with_ids
     assert_equal Company.all.map(&:id).sort, Company.ids.sort
+  end
+
+  def test_pluck_with_includes_limit_and_empty_result
+    assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
+    assert_equal [], Topic.includes(:replies).limit(1).where('0 = 1').pluck(:id)
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included

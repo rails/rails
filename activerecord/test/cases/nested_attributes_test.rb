@@ -797,26 +797,6 @@ module NestedAttributesOnACollectionAssociationTests
     end
   end
 
-  def test_validate_presence_of_parent_fails_without_inverse_of
-    Man.accepts_nested_attributes_for(:interests)
-    Man.reflect_on_association(:interests).options.delete(:inverse_of)
-    Man.reflect_on_association(:interests).clear_inverse_of_cache!
-    Interest.reflect_on_association(:man).options.delete(:inverse_of)
-    Interest.reflect_on_association(:man).clear_inverse_of_cache!
-
-    repair_validations(Interest) do
-      Interest.validates_presence_of(:man)
-      assert_no_difference ['Man.count', 'Interest.count'] do
-        man = Man.create(:name => 'John',
-                         :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
-        assert !man.errors[:"interests.man"].empty?
-      end
-    end
-  ensure
-    Man.reflect_on_association(:interests).options[:inverse_of] = :man
-    Interest.reflect_on_association(:man).options[:inverse_of]  = :interests
-  end
-
   def test_can_use_symbols_as_object_identifier
     @pirate.attributes = { :parrots_attributes => { :foo => { :name => 'Lovely Day' }, :bar => { :name => 'Blown Away' } } }
     assert_nothing_raised(NoMethodError) { @pirate.save! }
