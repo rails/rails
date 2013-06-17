@@ -56,7 +56,11 @@ module ActiveRecord
         end
 
         def type_cast(value)
-          value.unserialized_value @column.type_cast value.value
+          if value.state == :serialized
+            value.unserialized_value @column.type_cast value.value
+          else
+            value.unserialized_value
+          end
         end
 
         def type
