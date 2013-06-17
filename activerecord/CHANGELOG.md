@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Remove not needed bind variables. Port of commit #5082345. Fixes #10958.
+
+    *Neeraj Singh*
+
 *   Confirm a record has not already been destroyed before decrementing counter cache.
 
     *Ben Tucker*
