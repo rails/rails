@@ -1,4 +1,3 @@
-require 'action_dispatch/http/mime_type'
 require 'erubis'
 
 module ActionView
