@@ -13,4 +13,9 @@
 
     *John Wang*
 
+*   Changes repetitive th tags to use colspan attribute in
+    `generators/erb/scaffold/templates/index.html.erb` template.
+
+    *Sıtkı Bağdat*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for previous changes.
