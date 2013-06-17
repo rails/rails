@@ -8,20 +8,21 @@ module ActiveRecord
         def type_cast(s); "#{s}!"; end
       end
 
-      def test_type_cast_serialized_value
-        value = stub(state: :serialized, value: "Hello world")
-        value.expects(:unserialized_value).with("Hello world!")
+      class NullCoder
+        def load(v); v; end
+      end
 
+      def test_type_cast_serialized_value
+        value = Serialization::Attribute.new(NullCoder.new, "Hello world", :serialized)
         type = Serialization::Type.new(FakeColumn.new)
-        type.type_cast(value)
+        assert_equal "Hello world!", type.type_cast(value)
       end
 
       def test_type_cast_unserialized_value
-        value = stub(state: :unserialized, value: "Hello world")
-        value.expects(:unserialized_value).with()
-
+        value = Serialization::Attribute.new(nil, "Hello world", :unserialized)
         type = Serialization::Type.new(FakeColumn.new)
         type.type_cast(value)
+        assert_equal "Hello world", type.type_cast(value)
       end
     end
   end
