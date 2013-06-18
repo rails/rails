@@ -418,7 +418,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_ary = firm.clients_using_finder_sql.find("2", "3")
     assert_kind_of Array, client_ary
     assert_equal 2, client_ary.size
-    assert client_ary.include?(client)
+    assert_equal true, client_ary.include?(client)
   end
 
   def test_find_all
@@ -1220,14 +1220,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_included_in_collection
-    assert companies(:first_firm).clients.include?(Client.find(2))
+    assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
 
   def test_included_in_collection_for_new_records
     client = Client.create(:name => 'Persisted')
     assert_nil client.client_of
-    assert !Firm.new.clients_of_firm.include?(client),
-           'includes a client that does not belong to any firm'
+    assert_equal false, Firm.new.clients_of_firm.include?(client),
+     'includes a client that does not belong to any firm'
   end
 
   def test_adding_array_and_collection
@@ -1254,7 +1254,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert !firm.clients.include?(:first_client)
+    assert_equal false, firm.clients.include?(:first_client)
   end
 
   def test_replace_failure
@@ -1332,7 +1332,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.save!
 
     assert_equal 2, firm.clients(true).size
-    assert firm.clients.include?(companies(:second_client))
+    assert_equal true, firm.clients.include?(companies(:second_client))
   end
 
   def test_get_ids_for_through
@@ -1366,7 +1366,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert firm.clients.loaded?
-      assert firm.clients.include?(client)
+      assert_equal true, firm.clients.include?(client)
     end
   end
 
@@ -1377,7 +1377,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.reload
     assert ! firm.clients.loaded?
     assert_queries(1) do
-      assert firm.clients.include?(client)
+      assert_equal true, firm.clients.include?(client)
     end
     assert ! firm.clients.loaded?
   end
@@ -1388,7 +1388,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     firm.reload
     assert ! firm.clients_using_sql.loaded?
-    assert firm.clients_using_sql.include?(client)
+    assert_equal true, firm.clients_using_sql.include?(client)
     assert firm.clients_using_sql.loaded?
   end
 
@@ -1398,7 +1398,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = Client.create!(:name => 'Not Associated')
 
     assert ! firm.clients.loaded?
-    assert ! firm.clients.include?(client)
+    assert_equal false, firm.clients.include?(client)
   end
 
   def test_calling_first_or_last_on_association_should_not_load_association
@@ -1613,7 +1613,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_include_method_in_has_many_association_should_return_true_for_instance_added_with_build
     post = Post.new
     comment = post.comments.build
-    assert post.comments.include?(comment)
+    assert_equal true, post.comments.include?(comment)
   end
 
   def test_load_target_respects_protected_attributes
