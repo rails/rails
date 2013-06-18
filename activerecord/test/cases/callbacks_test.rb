@@ -43,7 +43,7 @@ class CallbackDeveloper < ActiveRecord::Base
 end
 
 class CallbackDeveloperWithFalseValidation < CallbackDeveloper
-  before_validation proc { |model| model.history << [:before_validation, :returning_false]; return false }
+  before_validation proc { |model| model.history << [:before_validation, :returning_false]; false }
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 

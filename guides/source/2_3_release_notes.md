@@ -40,7 +40,7 @@ Here's a summary of the rack-related changes:
 * `ActiveRecord::QueryCache` middleware is automatically inserted onto the middleware stack if `ActiveRecord` has been loaded. This middleware sets up and flushes the per-request Active Record query cache.
 * The Rails router and controller classes follow the Rack spec. You can call a controller directly with `SomeController.call(env)`. The router stores the routing parameters in `rack.routing_args`.
 * `ActionController::Request` inherits from `Rack::Request`.
-* Instead of `config.action_controller.session = { :session_key => 'foo', ...` use  `config.action_controller.session = { :key => 'foo', ...`.
+* Instead of `config.action_controller.session = { :session_key => 'foo', ...` use `config.action_controller.session = { :key => 'foo', ...`.
 * Using the `ParamsParser` middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any `Rack::Request` object after it.
 
 ### Renewed Support for Rails Engines
@@ -173,8 +173,8 @@ before_save :update_credit_rating, :if => :active,
 Rails now has a `:having` option on find (as well as on `has_many` and `has_and_belongs_to_many` associations) for filtering records in grouped finds. As those with heavy SQL backgrounds know, this allows filtering based on grouped results:
 
 ```ruby
-developers =  Developer.find(:all, :group => "salary",
-  :having => "sum(salary) >  10000", :select => "salary")
+developers = Developer.find(:all, :group => "salary",
+  :having => "sum(salary) > 10000", :select => "salary")
 ```
 
 * Lead Contributor: [Emilio Tagua](http://github.com/miloops)

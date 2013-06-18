@@ -106,12 +106,16 @@ module ActiveRecord
               ]
             end
 
-            scope_chain_items.each do |item|
+            constraint = scope_chain_items.inject(constraint) do |chain, item|
               unless item.is_a?(Relation)
                 item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
               end
 
-              constraint = constraint.and(item.arel.constraints) unless item.arel.constraints.empty?
+              if item.arel.constraints.empty?
+                chain
+              else
+                chain.and(item.arel.constraints)
+              end
             end
 
             manager.from(join(table, constraint))

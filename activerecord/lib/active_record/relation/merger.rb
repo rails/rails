@@ -94,15 +94,20 @@ module ActiveRecord
                                                                            [])
           relation.joins! rest
 
-          join_dependency.join_associations.each do |association|
-            @relation = association.join_relation(relation)
-          end
+          @relation = join_dependency.join_relation(relation)
         end
       end
 
       def merge_multi_values
-        relation.where_values = merged_wheres
-        relation.bind_values  = merged_binds
+        lhs_wheres = relation.where_values
+        rhs_wheres = values[:where] || []
+        lhs_binds  = relation.bind_values
+        rhs_binds  = values[:bind] || []
+
+        removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
+
+        relation.where_values = kept + rhs_wheres
+        relation.bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
 
         if values[:reordering]
           # override any order specified in the original relation
@@ -125,35 +130,28 @@ module ActiveRecord
         end
       end
 
-      def merged_binds
-        if values[:bind]
-          (relation.bind_values + values[:bind]).uniq(&:first)
-        else
-          relation.bind_values
-        end
+      def filter_binds(lhs_binds, removed_wheres)
+        return lhs_binds if removed_wheres.empty?
+
+        set = Set.new removed_wheres.map { |x| x.left.name }
+        lhs_binds.dup.delete_if { |col,_| set.include? col.name }
       end
 
-      def merged_wheres
-        values[:where] ||= []
+      # Remove equalities from the existing relation with a LHS which is
+      # present in the relation being merged in.
+      # returns [things_to_remove, things_to_keep]
+      def partition_overwrites(lhs_wheres, rhs_wheres)
+        if lhs_wheres.empty? || rhs_wheres.empty?
+          return [[], lhs_wheres]
+        end
 
-        if values[:where].empty? || relation.where_values.empty?
-          relation.where_values + values[:where]
-        else
-          # Remove equalities from the existing relation with a LHS which is
-          # present in the relation being merged in.
+        nodes = rhs_wheres.find_all do |w|
+          w.respond_to?(:operator) && w.operator == :==
+        end
+        seen = Set.new(nodes) { |node| node.left }
 
-          seen = Set.new
-          values[:where].each { |w|
-            if w.respond_to?(:operator) && w.operator == :==
-              seen << w.left
-            end
-          }
-
-          relation.where_values.reject { |w|
-            w.respond_to?(:operator) &&
-              w.operator == :== &&
-              seen.include?(w.left)
-          } + values[:where]
+        lhs_wheres.partition do |w|
+          w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
       end
     end

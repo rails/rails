@@ -2662,6 +2662,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ArgumentError) { routes.redirect Object.new }
   end
 
+  def test_named_route_check
+    before, after = nil
+
+    draw do
+      before = has_named_route?(:hello)
+      get "/hello", as: :hello, to: "hello#world"
+      after = has_named_route?(:hello)
+    end
+
+    assert !before, "expected to not have named route :hello before route definition"
+    assert after, "expected to have named route :hello after route definition"
+  end
+
   def test_explicitly_avoiding_the_named_route
     draw do
       scope :as => "routes" do

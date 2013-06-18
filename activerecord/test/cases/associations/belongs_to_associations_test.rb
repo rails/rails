@@ -338,7 +338,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     topic.replies.create!(:title => "re: 37s", :content => "rails")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_columns(content: "rails is wonderfull")
+    topic.update_columns(content: "rails is wonderful")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
@@ -412,6 +412,26 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     topic[:replies_count] = 15
     assert_equal 15, topic.replies.size
+  end
+
+  def test_counter_cache_double_destroy
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+
+    5.times do
+      topic.replies.create(:title => "re: zoom", :content => "speedy quick!")
+    end
+
+    assert_equal 5, topic.reload[:replies_count]
+    assert_equal 5, topic.replies.size
+
+    reply = topic.replies.first
+
+    reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+
+    reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+    assert_equal 4, topic.replies.size
   end
 
   def test_custom_counter_cache

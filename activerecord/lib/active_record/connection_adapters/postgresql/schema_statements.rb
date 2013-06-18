@@ -321,6 +321,7 @@ module ActiveRecord
             result = query(<<-end_sql, 'SCHEMA')[0]
               SELECT attr.attname,
                 CASE
+                  WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
                   WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
                     substr(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2),
                            strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
@@ -332,7 +333,7 @@ module ActiveRecord
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               WHERE t.oid = '#{quote_table_name(table)}'::regclass
                 AND cons.contype = 'p'
-                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval'
+                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
             end_sql
           end
 
@@ -466,22 +467,17 @@ module ActiveRecord
           end
         end
 
-        # Returns a SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
-        #
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
-        #
-        #   distinct("posts.id", ["posts.created_at desc"])
-        #   # => "DISTINCT posts.id, posts.created_at AS alias_0"
-        def distinct(columns, orders) #:nodoc:
-          order_columns = orders.map{ |s|
+        def columns_for_distinct(columns, orders) #:nodoc:
+          order_columns = orders.reject(&:blank?).map{ |s|
               # Convert Arel node to string
               s = s.to_sql unless s.is_a?(String)
               # Remove any ASC/DESC modifiers
               s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-          [super].concat(order_columns).join(', ')
+          [super, *order_columns].join(', ')
         end
       end
     end

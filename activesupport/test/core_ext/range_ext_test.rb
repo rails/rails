@@ -54,7 +54,7 @@ class RangeTest < ActiveSupport::TestCase
     assert((1...10) === (1...10))
   end
 
-  def test_should_compare_other_with_exlusive_end
+  def test_should_compare_other_with_exclusive_end
     assert((1..10) === (1...10))
   end
 

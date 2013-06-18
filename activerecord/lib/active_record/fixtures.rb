@@ -567,7 +567,7 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
-            row[key] = label if value == "$LABEL"
+            row[key] = label if "$LABEL" == value
           end
 
           # generate a primary key if necessary
@@ -841,8 +841,6 @@ module ActiveRecord
     end
 
     def setup_fixtures
-      return if ActiveRecord::Base.configurations.blank?
-
       if pre_loaded_fixtures && !use_transactional_fixtures
         raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'
       end
@@ -875,8 +873,6 @@ module ActiveRecord
     end
 
     def teardown_fixtures
-      return if ActiveRecord::Base.configurations.blank?
-
       # Rollback changes if a transaction is active.
       if run_in_transaction?
         @fixture_connections.each do |connection|

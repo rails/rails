@@ -25,6 +25,9 @@ module ActiveRecord
       end
     end
 
+    class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -65,8 +68,7 @@ module ActiveRecord
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, options = {})
-        options[:primary_key] = true
-        column(name, type, options)
+        column(name, type, options.merge(:primary_key => true))
       end
 
       # Returns a ColumnDefinition for the column with name +name+.
@@ -270,6 +272,7 @@ module ActiveRecord
         end
 
         column.limit       = limit
+        column.array       = options[:array] if column.respond_to?(:array)
         column.precision   = options[:precision]
         column.scale       = options[:scale]
         column.default     = options[:default]

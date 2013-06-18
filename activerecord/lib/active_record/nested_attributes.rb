@@ -230,6 +230,10 @@ module ActiveRecord
     #     validates_presence_of :member
     #   end
     #
+    # Note that if you do not specify the <tt>inverse_of</tt> option, then
+    # Active Record will try to automatically guess the inverse association
+    # based on heuristics.
+    #
     # For one-to-one nested associations, if you build the new (in-memory)
     # child object yourself before assignment, then this module will not
     # overwrite it, e.g.:
@@ -302,7 +306,7 @@ module ActiveRecord
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
-            reflection.options[:autosave] = true
+            reflection.autosave = true
             add_autosave_association_callbacks(reflection)
 
             nested_attributes_options = self.nested_attributes_options.dup

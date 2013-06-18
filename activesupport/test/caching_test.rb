@@ -257,6 +257,26 @@ module CacheStoreBehavior
     assert_equal({"fu" => "baz"}, @cache.read_multi('foo', 'fu'))
   end
 
+  def test_fetch_multi
+    @cache.write('foo', 'bar')
+    @cache.write('fud', 'biz')
+
+    values = @cache.fetch_multi('foo', 'fu', 'fud') {|value| value * 2 }
+
+    assert_equal(["bar", "fufu", "biz"], values)
+    assert_equal("fufu", @cache.read('fu'))
+  end
+
+  def test_multi_with_objects
+    foo = stub(:title => "FOO!", :cache_key => "foo")
+    bar = stub(:cache_key => "bar")
+
+    @cache.write('bar', "BAM!")
+
+    values = @cache.fetch_multi(foo, bar) {|object| object.title }
+    assert_equal(["FOO!", "BAM!"], values)
+  end
+
   def test_read_and_write_compressed_small_data
     @cache.write('foo', 'bar', :compress => true)
     assert_equal 'bar', @cache.read('foo')

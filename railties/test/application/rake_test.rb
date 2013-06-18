@@ -34,7 +34,7 @@ module ApplicationTests
           config.middleware.use SuperMiddleware
         end
 
-        AppTemplate::Application.initialize!
+        Rails.application.initialize!
       RUBY
 
       assert_match("SuperMiddleware", Dir.chdir(app_path){ `rake middleware` })
@@ -151,6 +151,19 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
     end
 
+    def test_rake_routes_with_controller_environment
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      ENV['CONTROLLER'] = 'cart'
+      output = Dir.chdir(app_path){ `rake routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
+    end
+
     def test_rake_routes_displays_message_when_no_routes_are_defined
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -214,7 +227,7 @@ module ApplicationTests
          bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -224,7 +237,7 @@ module ApplicationTests
          bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 

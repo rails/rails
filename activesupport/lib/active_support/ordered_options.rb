@@ -40,6 +40,14 @@ module ActiveSupport
     end
   end
 
+  # +InheritableOptions+ provides a constructor to build an +OrderedOptions+
+  # hash inherited from the another hash.
+  #
+  # Use this if you already have some hash and you want to create a new one based on it.
+  #
+  #   h = ActiveSupport::InheritableOptions.new({ girl: 'Mary', boy: 'John' })
+  #   h.girl # => 'Mary'
+  #   h.boy  # => 'John'
   class InheritableOptions < OrderedOptions
     def initialize(parent = nil)
       if parent.kind_of?(OrderedOptions)

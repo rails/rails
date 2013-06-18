@@ -60,15 +60,15 @@ Extraction of features to gems
 
 In Rails 4.0, several features have been extracted into gems. You can simply add the extracted gems to your `Gemfile` to bring the functionality back.
 
-* Hash-based & Dynamic finder methods ([Github](https://github.com/rails/activerecord-deprecated_finders))
-* Mass assignment protection in Active Record models ([Github](https://github.com/rails/protected_attributes), [Pull Request](https://github.com/rails/rails/pull/7251))
-* ActiveRecord::SessionStore ([Github](https://github.com/rails/activerecord-session_store), [Pull Request](https://github.com/rails/rails/pull/7436))
-* Active Record Observers ([Github](https://github.com/rails/rails-observers), [Commit](https://github.com/rails/rails/commit/39e85b3b90c58449164673909a6f1893cba290b2))
-* Active Resource ([Github](https://github.com/rails/activeresource), [Pull Request](https://github.com/rails/rails/pull/572), [Blog](http://yetimedia.tumblr.com/post/35233051627/activeresource-is-dead-long-live-activeresource))
-* Action Caching ([Github](https://github.com/rails/actionpack-action_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
-* Page Caching ([Github](https://github.com/rails/actionpack-page_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
-* Sprockets ([Github](https://github.com/rails/sprockets-rails))
-* Performance tests ([Github](https://github.com/rails/rails-perftest), [Pull Request](https://github.com/rails/rails/pull/8876))
+* Hash-based & Dynamic finder methods ([GitHub](https://github.com/rails/activerecord-deprecated_finders))
+* Mass assignment protection in Active Record models ([GitHub](https://github.com/rails/protected_attributes), [Pull Request](https://github.com/rails/rails/pull/7251))
+* ActiveRecord::SessionStore ([GitHub](https://github.com/rails/activerecord-session_store), [Pull Request](https://github.com/rails/rails/pull/7436))
+* Active Record Observers ([GitHub](https://github.com/rails/rails-observers), [Commit](https://github.com/rails/rails/commit/39e85b3b90c58449164673909a6f1893cba290b2))
+* Active Resource ([GitHub](https://github.com/rails/activeresource), [Pull Request](https://github.com/rails/rails/pull/572), [Blog](http://yetimedia.tumblr.com/post/35233051627/activeresource-is-dead-long-live-activeresource))
+* Action Caching ([GitHub](https://github.com/rails/actionpack-action_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
+* Page Caching ([GitHub](https://github.com/rails/actionpack-page_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
+* Sprockets ([GitHub](https://github.com/rails/sprockets-rails))
+* Performance tests ([GitHub](https://github.com/rails/rails-perftest), [Pull Request](https://github.com/rails/rails/pull/8876))
 
 Documentation
 -------------
@@ -84,9 +84,9 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 ### Notable changes
 
-*   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well. ([Pull Request](https://github.com/rails/rails/pull/7878))
+* New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well. ([Pull Request](https://github.com/rails/rails/pull/7878))
 
-* Your app's executables now live in the `bin/` dir. Run `rake rails:update:bin` to get `bin/bundle`, `bin/rails`, and `bin/rake`.
+* Your app's executables now live in the `bin/` directory. Run `rake rails:update:bin` to get `bin/bundle`, `bin/rails`, and `bin/rake`.
 
 * Threadsafe on by default
 
@@ -116,10 +116,9 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 ### Notable changes
 
-*   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to protect attributes from mass assignment when non-permitted attributes are passed.
+* Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to protect attributes from mass assignment when non-permitted attributes are passed.
 
-*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with
-    Action Pack out of box.
+* Added `ActiveModel::Model`, a mixin to make Ruby objects work with Action Pack out of box.
 
 ### Deprecations
 
@@ -130,27 +129,27 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 ### Notable changes
 
-*   Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore.
+* Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore.
 
-*   Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead.
+* Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead.
 
-*   Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument.
+* Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument.
 
-*   `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!`.
+* `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!`.
 
 ### Deprecations
 
-*   Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead.
+* Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead.
 
-*   ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of thread safety. It will be removed without replacement in Rails 4.1.
+* ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of thread safety. It will be removed without replacement in Rails 4.1.
 
-*   `ActiveSupport::JSON::Variable` is deprecated. Define your own `#as_json` and `#encode_json` methods for custom JSON string literals.
+* `ActiveSupport::JSON::Variable` is deprecated. Define your own `#as_json` and `#encode_json` methods for custom JSON string literals.
 
-*   Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
+* Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
 
-*   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby standard library.
+* BufferedLogger is deprecated. Use ActiveSupport::Logger, or the logger from Ruby standard library.
 
-*   Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
+* Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 
 Action Pack
 -----------
@@ -171,7 +170,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 ### Notable changes
 
-*   Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
+* Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
 
     * The methods `drop_table` and `remove_column` are now reversible, as long as the necessary information is given.
       The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not revertible).
@@ -184,36 +183,36 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
       If migrating down, the given migration / block is run normally.
       See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
 
-*   Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
+* Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 
-*   Add `Relation#load` to explicitly load the record and return `self`.
+* Add `Relation#load` to explicitly load the record and return `self`.
 
-*   `Model.all` now returns an `ActiveRecord::Relation`, rather than an array of records. Use `Relation#to_a` if you really want an array. In some specific cases, this may cause breakage when upgrading.
+* `Model.all` now returns an `ActiveRecord::Relation`, rather than an array of records. Use `Relation#to_a` if you really want an array. In some specific cases, this may cause breakage when upgrading.
 
-*   Added `ActiveRecord::Migration.check_pending!` that raises an error if migrations are pending.
+* Added `ActiveRecord::Migration.check_pending!` that raises an error if migrations are pending.
 
-*   Added custom coders support for `ActiveRecord::Store`. Now you can set your custom coder like this:
+* Added custom coders support for `ActiveRecord::Store`. Now you can set your custom coder like this:
 
         store :settings, accessors: [ :color, :homepage ], coder: JSON
 
-*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in your `database.yml`.
+* `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in your `database.yml`.
 
-*   Remove IdentityMap.
+* Remove IdentityMap.
 
-*   Remove automatic execution of EXPLAIN queries. The option `active_record.auto_explain_threshold_in_seconds` is no longer used and should be removed.
+* Remove automatic execution of EXPLAIN queries. The option `active_record.auto_explain_threshold_in_seconds` is no longer used and should be removed.
 
-*   Adds `ActiveRecord::NullRelation` and `ActiveRecord::Relation#none` implementing the null object pattern for the Relation class.
+* Adds `ActiveRecord::NullRelation` and `ActiveRecord::Relation#none` implementing the null object pattern for the Relation class.
 
-*   Added `create_join_table` migration helper to create HABTM join tables.
+* Added `create_join_table` migration helper to create HABTM join tables.
 
-*   Allows PostgreSQL hstore records to be created.
+* Allows PostgreSQL hstore records to be created.
 
 ### Deprecations
 
-*   Deprecated the old-style hash based finder API. This means that methods which previously accepted "finder options" no longer do.
+* Deprecated the old-style hash based finder API. This means that methods which previously accepted "finder options" no longer do.
 
-*   All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated. Here's
-    how you can rewrite the code:
+* All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated. Here's
+  how you can rewrite the code:
 
       * `find_all_by_...` can be rewritten using `where(...)`.
       * `find_last_by_...` can be rewritten using `where(...).last`.

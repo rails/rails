@@ -36,8 +36,8 @@ This file is as follows:
 
 ```ruby
 #!/usr/bin/env ruby
-APP_PATH = File.expand_path('../../config/application',  __FILE__)
-require File.expand_path('../../config/boot',  __FILE__)
+APP_PATH = File.expand_path('../../config/application', __FILE__)
+require File.expand_path('../../config/boot', __FILE__)
 require 'rails/commands'
 ```
 
@@ -114,7 +114,7 @@ If we used `s` rather than `server`, Rails will use the `aliases` defined in the
 
 ```ruby
 when 'server'
-  # Change to the application's path if there is no config.ru file in current dir.
+  # Change to the application's path if there is no config.ru file in current directory.
   # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
   Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
@@ -373,7 +373,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 ```ruby
 # This file is used by Rack-based servers to start the application.
 
-require ::File.expand_path('../config/environment',  __FILE__)
+require ::File.expand_path('../config/environment', __FILE__)
 run <%= app_const %>
 ```
 
@@ -388,7 +388,7 @@ app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
 The `initialize` method of `Rack::Builder` will take the block here and execute it within an instance of `Rack::Builder`. This is where the majority of the initialization process of Rails happens. The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
-require ::File.expand_path('../config/environment',  __FILE__)
+require ::File.expand_path('../config/environment', __FILE__)
 ```
 
 ### `config/environment.rb`
@@ -546,7 +546,7 @@ def self.run(app, options={})
   else
     server.register('/', Rack::Handler::Mongrel.new(app))
   end
-  yield server  if block_given?
+  yield server if block_given?
   server.run.join
 end
 ```

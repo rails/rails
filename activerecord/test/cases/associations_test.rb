@@ -18,6 +18,8 @@ require 'models/ship'
 require 'models/liquid'
 require 'models/molecule'
 require 'models/electron'
+require 'models/man'
+require 'models/interest'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -215,7 +217,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal post.body, "More cool stuff!"
   end
 
-  def test_reload_returns_assocition
+  def test_reload_returns_association
     david = developers(:david)
     assert_nothing_raised do
       assert_equal david.projects, david.projects.reload.reload
@@ -241,6 +243,17 @@ class AssociationProxyTest < ActiveRecord::TestCase
   test "proxy object is cached" do
     david = developers(:david)
     assert david.projects.equal?(david.projects)
+  end
+
+  test "inverses get set of subsets of the association" do
+    man = Man.create
+    man.interests.create
+
+    man = Man.find(man.id)
+
+    assert_queries(1) do
+      assert_equal man, man.interests.where("1=1").first.man
+    end
   end
 end
 

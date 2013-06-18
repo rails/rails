@@ -278,8 +278,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_null_relation_calculations_methods
     assert_no_queries do
-      assert_equal 0,     Developer.none.count
-      assert_equal nil,   Developer.none.calculate(:average, 'salary')
+      assert_equal 0, Developer.none.count
+      assert_equal 0, Developer.none.calculate(:count, nil, {})
+      assert_equal nil, Developer.none.calculate(:average, 'salary')
     end
   end
 
@@ -1545,5 +1546,27 @@ class RelationTest < ActiveRecord::TestCase
     assert !merged.to_sql.include?("omg")
     assert merged.to_sql.include?("wtf")
     assert merged.to_sql.include?("bbq")
+  end
+
+  def test_merging_removes_rhs_bind_parameters
+    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    column = Post.columns_hash['id']
+    left.bind_values += [[column, 20]]
+    right   = Post.where(id: 10)
+
+    merged = left.merge(right)
+    assert_equal [], merged.bind_values
+  end
+
+  def test_merging_keeps_lhs_bind_parameters
+    column = Post.columns_hash['id']
+    binds = [[column, 20]]
+
+    right  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    right.bind_values += binds
+    left   = Post.where(id: 10)
+
+    merged = left.merge(right)
+    assert_equal binds, merged.bind_values
   end
 end

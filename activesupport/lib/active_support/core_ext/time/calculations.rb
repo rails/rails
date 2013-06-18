@@ -65,6 +65,18 @@ class Time
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end
+
+    # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
+    # instances can be used when called with a single argument
+    def at_with_coercion(*args)
+      if args.size == 1 && args.first.acts_like?(:time)
+        at_without_coercion(args.first.to_i)
+      else
+        at_without_coercion(*args)
+      end
+    end
+    alias_method :at_without_coercion, :at
+    alias_method :at, :at_with_coercion
   end
 
   # Seconds since midnight: Time.now.seconds_since_midnight

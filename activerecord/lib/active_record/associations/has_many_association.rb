@@ -115,8 +115,7 @@ module ActiveRecord
             if records == :all
               scope = self.scope
             else
-              keys  = records.map { |r| r[reflection.association_primary_key] }
-              scope = self.scope.where(reflection.association_primary_key => keys)
+              scope = self.scope.where(reflection.klass.primary_key => records)
             end
 
             if method == :delete_all

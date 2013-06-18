@@ -219,7 +219,12 @@ module ActiveSupport
     # unknown.
     def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
-      names.shift if names.empty? || names.first.empty?
+
+      # Trigger a builtin NameError exception including the ill-formed constant in the message.
+      Object.const_get(camel_cased_word) if names.empty?
+
+      # Remove the first blank element in case of '::ClassName' notation.
+      names.shift if names.size > 1 && names.first.empty?
 
       names.inject(Object) do |constant, name|
         if constant == Object
@@ -314,9 +319,14 @@ module ActiveSupport
     private
 
     # Mount a regular expression that will match part by part of the constant.
-    # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?
+    #
+    #   const_regexp("Foo::Bar::Baz") # => /Foo(::Bar(::Baz)?)?/
+    #   const_regexp("::")            # => /::/
     def const_regexp(camel_cased_word) #:nodoc:
       parts = camel_cased_word.split("::")
+
+      return Regexp.escape(camel_cased_word) if parts.blank?
+
       last  = parts.pop
 
       parts.reverse.inject(last) do |acc, part|

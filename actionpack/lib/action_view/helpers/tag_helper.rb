@@ -12,8 +12,11 @@ module ActionView
 
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
-                           defer reversed ismap seemless muted required
-                           autofocus novalidate formnovalidate open pubdate itemscope).to_set
+                           defer reversed ismap seamless muted required
+                           autofocus novalidate formnovalidate open pubdate
+                           itemscope allowfullscreen default inert sortable
+                           truespeed typemustmatch).to_set
+
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
 
       PRE_CONTENT_STRINGS = {
@@ -148,7 +151,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort * ' '}".html_safe unless attrs.empty?
+          " #{attrs.sort! * ' '}".html_safe unless attrs.empty?
         end
 
         def data_tag_option(key, value, escape)

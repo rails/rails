@@ -366,7 +366,15 @@ create_join_table :products, :categories
 
 which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
-`false` by default.
+`false` by default. This can be overridden by specifying the `:column_options`
+option.
+
+```ruby
+create_join_table :products, :categories, column_options: {null: true}
+```
+
+will create the `product_id` and `category_id` with the `:null` option as
+`true`.
 
 You can pass the option `:table_name` with you want to customize the table
 name. For example,
@@ -376,16 +384,6 @@ create_join_table :products, :categories, table_name: :categorization
 ```
 
 will create a `categorization` table.
-
-By default, `create_join_table` will create two columns with no options, but
-you can specify these options using the `:column_options` option. For example,
-
-```ruby
-create_join_table :products, :categories, column_options: {null: true}
-```
-
-will create the `product_id` and `category_id` with the `:null` option as
-`true`.
 
 `create_join_table` also accepts a block, which you can use to add indices
 (which are not created by default) or additional columns:
@@ -448,7 +446,7 @@ definitions:
 * `create_table`
 * `create_join_table`
 * `drop_table` (must supply a block)
-* `drop_join_table`  (must supply a block)
+* `drop_join_table` (must supply a block)
 * `remove_timestamps`
 * `rename_column`
 * `rename_index`
@@ -852,7 +850,7 @@ end
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, presence: true
+  validates :flag, inclusion: { in: [true, false] }
 end
 ```
 
@@ -877,7 +875,8 @@ end
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :fuzz, presence: true
+  validates :flag, inclusion: { in: [true, false] }
+  validates :fuzz, presence: true
 end
 ```
 
@@ -1064,8 +1063,8 @@ with foreign key constraints in the database.
 
 Although Active Record does not provide any tools for working directly with
 such features, the `execute` method can be used to execute arbitrary SQL. You
-could also use some gem like
-[foreigner](https://github.com/matthuhiggins/foreigner) which add foreign key
+can also use a gem like
+[foreigner](https://github.com/matthuhiggins/foreigner) which adds foreign key
 support to Active Record (including support for dumping foreign keys in
 `db/schema.rb`).
 

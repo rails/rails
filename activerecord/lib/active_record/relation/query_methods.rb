@@ -340,6 +340,9 @@ module ActiveRecord
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
     #
+    # This method is applied before the default_scope is applied. So the conditions
+    # specified in default_scope will not be removed.
+    #
     # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
     # because #except will only affect a particular relation's values. It won't wipe
     # the order, grouping, etc. when that relation is merged. For example:
@@ -861,8 +864,6 @@ module ActiveRecord
 
       return [] if joins.empty?
 
-      @implicit_readonly = true
-
       joins.map do |join|
         case join
         when Array
@@ -944,8 +945,6 @@ module ActiveRecord
 
       join_dependency.graft(*stashed_association_joins)
 
-      @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
-
       # FIXME: refactor this to build an AST
       join_dependency.join_associations.each do |association|
         association.join_to(manager)
@@ -958,7 +957,6 @@ module ActiveRecord
 
     def build_select(arel, selects)
       unless selects.empty?
-        @implicit_readonly = false
         arel.project(*selects)
       else
         arel.project(@klass.arel_table[Arel.star])
@@ -1012,7 +1010,7 @@ module ActiveRecord
     end
 
     def validate_order_args(args)
-      args.select { |a| Hash === a  }.each do |h|
+      args.grep(Hash) do |h|
         unless (h.values - [:asc, :desc]).empty?
           raise ArgumentError, 'Direction should be :asc or :desc'
         end

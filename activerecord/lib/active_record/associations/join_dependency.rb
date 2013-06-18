@@ -48,11 +48,17 @@ module ActiveRecord
       end
 
       def join_associations
-        join_parts.last(join_parts.length - 1)
+        join_parts.drop 1
       end
 
       def join_base
         join_parts.first
+      end
+
+      def join_relation(relation)
+        join_associations.inject(relation) do |rel,association|
+          association.join_relation(rel)
+        end
       end
 
       def columns
@@ -125,8 +131,7 @@ module ActiveRecord
         ref[association.reflection.name] ||= {}
       end
 
-      def build(associations, parent = nil, join_type = Arel::InnerJoin)
-        parent ||= join_parts.last
+      def build(associations, parent = join_parts.last, join_type = Arel::InnerJoin)
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.intern] or

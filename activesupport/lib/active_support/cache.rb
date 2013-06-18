@@ -228,7 +228,7 @@ module ActiveSupport
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
-      # cache expires and due to heavy load seven different processes will try
+      # cache expires and due to heavy load several different processes will try
       # to read data natively and then they all will try to write to cache. To
       # avoid that case the first process to find an expired cache entry will
       # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.
@@ -350,6 +350,34 @@ module ActiveSupport
           end
         end
         results
+      end
+
+      # Fetches data from the cache, using the given keys. If there is data in
+      # the cache with the given keys, then that data is returned. Otherwise,
+      # the supplied block is called for each key for which there was no data,
+      # and the result will be written to the cache and returned.
+      #
+      # Options are passed to the underlying cache implementation.
+      #
+      # Returns an array with the data for each of the names. For example:
+      #
+      #   cache.write("bim", "bam")
+      #   cache.fetch_multi("bim", "boom") {|key| key * 2 }
+      #   #=> ["bam", "boomboom"]
+      #
+      def fetch_multi(*names)
+        options = names.extract_options!
+        options = merged_options(options)
+
+        results = read_multi(*names, options)
+
+        names.map do |name|
+          results.fetch(name) do
+            value = yield name
+            write(name, value, options)
+            value
+          end
+        end
       end
 
       # Writes the value to the cache, with the key.

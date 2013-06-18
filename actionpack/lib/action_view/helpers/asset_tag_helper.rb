@@ -127,11 +127,7 @@ module ActionView
       #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom) && tag_options[:type].blank?
-          message = "You have passed type other than :rss or :atom to auto_discovery_link_tag and haven't supplied " +
-                    "the :type option key. This behavior is deprecated and will be remove in Rails 4.1. You should pass " +
-                    ":type option explicitly if you want to use other types, for example: " +
-                    "auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')"
-          ActiveSupport::Deprecation.warn message
+          raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss or :atom.")
         end
 
         tag(
@@ -155,7 +151,7 @@ module ActionView
       # ==== Examples
       #
       #   favicon_link_tag '/myicon.ico'
-      #   # => <link href="/assets/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # Mobile Safari looks for a different <link> tag, pointing to an image that
       # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.

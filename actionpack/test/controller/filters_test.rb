@@ -10,7 +10,7 @@ class ActionController::Base
 
     def before_filters
       filters = _process_action_callbacks.select { |c| c.kind == :before }
-      filters.map! { |c| c.instance_variable_get(:@raw_filter) }
+      filters.map! { |c| c.raw_filter }
     end
   end
 
@@ -211,6 +211,14 @@ class FilterTest < ActionController::TestCase
   class ConditionalOptionsFilter < ConditionalFilterController
     before_filter :ensure_login, :if => Proc.new { |c| true }
     before_filter :clean_up_tmp, :if => Proc.new { |c| false }
+  end
+
+  class ConditionalOptionsSkipFilter < ConditionalFilterController
+    before_filter :ensure_login
+    before_filter :clean_up_tmp
+
+    skip_before_filter :ensure_login, if: -> { false }
+    skip_before_filter :clean_up_tmp, if: -> { true }
   end
 
   class PrependingController < TestController
@@ -590,6 +598,11 @@ class FilterTest < ActionController::TestCase
 
   def test_running_conditional_options
     test_process(ConditionalOptionsFilter)
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
+  end
+
+  def test_running_conditional_skip_options
+    test_process(ConditionalOptionsSkipFilter)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
   end
 

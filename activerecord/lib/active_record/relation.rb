@@ -17,7 +17,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :default_scoped, :proxy_association
+    attr_accessor :default_scoped
     alias :model :klass
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
@@ -26,7 +26,6 @@ module ActiveRecord
       @klass             = klass
       @table             = table
       @values            = values
-      @implicit_readonly = nil
       @loaded            = false
       @default_scoped    = false
     end
@@ -76,10 +75,10 @@ module ActiveRecord
     def update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
       um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes)
-      
+
       @klass.connection.update(
-        um, 
-        'SQL', 
+        um,
+        'SQL',
         binds)
     end
 
@@ -94,7 +93,7 @@ module ActiveRecord
       end
 
       [substitutes, binds]
-    end 
+    end
 
     # Initializes new record from relation while maintaining the current
     # scope.
@@ -155,34 +154,58 @@ module ActiveRecord
       first || new(attributes, &block)
     end
 
-    # Finds the first record with the given attributes, or creates a record with the attributes
-    # if one is not found.
+    # Finds the first record with the given attributes, or creates a record
+    # with the attributes if one is not found:
     #
-    # ==== Examples
-    #   # Find the first user named Penélope or create a new one.
+    #   # Find the first user named "Penélope" or create a new one.
     #   User.find_or_create_by(first_name: 'Penélope')
-    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
     #
-    #   # Find the first user named Penélope or create a new one.
+    #   # Find the first user named "Penélope" or create a new one.
     #   # We already have one so the existing record will be returned.
     #   User.find_or_create_by(first_name: 'Penélope')
-    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
     #
-    #   # Find the first user named Scarlett or create a new one with a particular last name.
+    #   # Find the first user named "Scarlett" or create a new one with
+    #   # a particular last name.
     #   User.create_with(last_name: 'Johansson').find_or_create_by(first_name: 'Scarlett')
-    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
     #
-    #   # Find the first user named Scarlett or create a new one with a different last name.
-    #   # We already have one so the existing record will be returned.
+    # This method accepts a block, which is passed down to +create+. The last example
+    # above can be alternatively written this way:
+    #
+    #   # Find the first user named "Scarlett" or create a new one with a
+    #   # different last name.
     #   User.find_or_create_by(first_name: 'Scarlett') do |user|
-    #     user.last_name = "O'Hara"
+    #     user.last_name = 'Johansson'
     #   end
-    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
+    #
+    # This method always returns a record, but if creation was attempted and
+    # failed due to validation errors it won't be persisted, you get what
+    # +create+ returns in such situation.
+    #
+    # Please note *this method is not atomic*, it runs first a SELECT, and if
+    # there are no results an INSERT is attempted. If there are other threads
+    # or processes there is a race condition between both calls and it could
+    # be the case that you end up with two similar records.
+    #
+    # Whether that is a problem or not depends on the logic of the
+    # application, but in the particular case in which rows have a UNIQUE
+    # constraint an exception may be raised, just retry:
+    #
+    #  begin
+    #    CreditAccount.find_or_create_by(user_id: user.id)
+    #  rescue ActiveRecord::RecordNotUnique
+    #    retry
+    #  end
+    #
     def find_or_create_by(attributes, &block)
       find_by(attributes) || create(attributes, &block)
     end
 
-    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
+    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception
+    # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
       find_by(attributes) || create!(attributes, &block)
     end
@@ -224,7 +247,7 @@ module ActiveRecord
     def empty?
       return @records.empty? if loaded?
 
-      c = count
+      c = count(:all)
       c.respond_to?(:zero?) ? c.zero? : c.empty?
     end
 
@@ -489,11 +512,13 @@ module ActiveRecord
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
     def where_values_hash
-      equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
+      scope = with_default_scope
+      equalities = scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
         node.left.relation.name == table_name
       }
 
-      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+      binds = Hash[scope.bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+      binds.merge!(Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }])
 
       Hash[equalities.map { |where|
         name = where.left.name
@@ -580,10 +605,7 @@ module ActiveRecord
           ActiveRecord::Associations::Preloader.new(@records, associations).run
         end
 
-        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
-        # are JOINS and no explicit SELECT.
-        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
-        @records.each { |record| record.readonly! } if readonly
+        @records.each { |record| record.readonly! } if readonly_value
       else
         @records = default_scoped.to_a
       end

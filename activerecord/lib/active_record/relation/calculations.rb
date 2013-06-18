@@ -56,15 +56,7 @@ module ActiveRecord
     #
     #   Person.sum(:age) # => 4562
     def sum(*args)
-      if block_given?
-        ActiveSupport::Deprecation.warn(
-          "Calling #sum with a block is deprecated and will be removed in Rails 4.1. " \
-          "If you want to perform sum calculation over the array of elements, use `to_a.sum(&block)`."
-        )
-        self.to_a.sum(*args) {|*block_args| yield(*block_args)}
-      else
-        calculate(:sum, *args)
-      end
+      calculate(:sum, *args)
     end
 
     # This calculates aggregate values in the given column. Methods for count, sum, average,
@@ -114,8 +106,6 @@ module ActiveRecord
       else
         relation.calculate(operation, column_name, options)
       end
-    rescue ThrowResult
-      0
     end
 
     # Use <tt>pluck</tt> as a shortcut to select one or more attributes without
@@ -217,15 +207,18 @@ module ActiveRecord
       end
 
       if operation == "count"
-        column_name ||= (select_for_count || :all)
+        if select_values.present?
+          column_name ||= select_values.join(", ")
+        else
+          column_name ||= :all
+        end
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
         end
 
         column_name = primary_key if column_name == :all && distinct
-
-        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
+        distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
       end
 
       if group_values.any?
@@ -384,13 +377,6 @@ module ActiveRecord
 
     def type_cast_using_column(value, column)
       column ? column.type_cast(value) : value
-    end
-
-    def select_for_count
-      if select_values.present?
-        select = select_values.join(", ")
-        select if select !~ /[,*]/
-      end
     end
 
     def build_count_subquery(relation, column_name, distinct)

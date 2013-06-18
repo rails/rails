@@ -39,7 +39,7 @@ module ActionView
         render\s*                     # render, followed by optional whitespace
         \(?                           # start an optional parenthesis for the render call
         (partial:|:partial\s+=>)?\s*  # naming the partial, used with collection -- 1st capture
-        ([@a-z"'][@a-z_\/\."']+)      # the template name itself -- 2nd capture
+        ([@a-z"'][@\w\/\."']+)        # the template name itself -- 2nd capture
       /x
 
       def self.call(name, template)
@@ -74,7 +74,7 @@ module ActionView
             # render(@topic)         => render("topics/topic")
             # render(topics)         => render("topics/topic")
             # render(message.topics) => render("topics/topic")
-            collect { |name| name.sub(/\A@?([a-z]+\.)*([a-z_]+)\z/) { "#{$2.pluralize}/#{$2.singularize}" } }.
+            collect { |name| name.sub(/\A@?([a-z_]+\.)*([a-z_]+)\z/) { "#{$2.pluralize}/#{$2.singularize}" } }.
 
             # render("headline") => render("message/headline")
             collect { |name| name.include?("/") ? name : "#{directory}/#{name}" }.

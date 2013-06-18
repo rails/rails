@@ -138,18 +138,12 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
-      ActiveSupport::Notifications.instrument("!render_template.action_view", virtual_path: @virtual_path, identifier: @identifier) do
+      instrument("!render_template") do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)
-    end
-
-    def mime_type
-      message = 'Template#mime_type is deprecated and will be removed in Rails 4.1. Please use type method instead.'
-      ActiveSupport::Deprecation.warn message
-      @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
     end
 
     def type
@@ -245,7 +239,9 @@ module ActionView
             mod = view.singleton_class
           end
 
-          compile(view, mod)
+          instrument("!compile_template") do
+            compile(view, mod)
+          end
 
           # Just discard the source if we have a virtual path. This
           # means we can get the template back.
@@ -271,7 +267,7 @@ module ActionView
         method_name = self.method_name
         code = @handler.call(self)
 
-        # Make sure that the resulting String to be evalled is in the
+        # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
         source = <<-end_src
           def #{method_name}(local_assigns, output_buffer)
@@ -334,6 +330,11 @@ module ActionView
 
       def identifier_method_name #:nodoc:
         inspect.gsub(/[^a-z_]/, '_')
+      end
+
+      def instrument(action, &block)
+        payload = { virtual_path: @virtual_path, identifier: @identifier }
+        ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
       end
   end
 end

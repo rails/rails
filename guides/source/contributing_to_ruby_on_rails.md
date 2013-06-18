@@ -182,9 +182,9 @@ Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: the guides help you in learning about Ruby on Rails, and the API is a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/lifo/docrails/translating-rails-guides).
+You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
-If you're confident about your changes, you can push them directly yourself via [docrails](https://github.com/lifo/docrails). Docrails is a branch with an **open commit policy** and public write access. Commits to docrails are still reviewed, but this happens after they are pushed. Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+If you're confident about your changes, you can push them directly yourself via [docrails](https://github.com/rails/docrails). Docrails is a branch with an **open commit policy** and public write access. Commits to docrails are still reviewed, but this happens after they are pushed. Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
 If you are unsure of the documentation changes, you can create an issue in the [Rails](https://github.com/rails/rails/issues) issues tracker on GitHub.
 

@@ -48,6 +48,9 @@ class AssetTagHelperTest < ActionView::TestCase
     %(asset_path("style.min"))        => %(/style.min),
     %(asset_path("style.min.css"))    => %(/style.min.css),
 
+    %(asset_path("http://www.outside.com/image.jpg")) => %(http://www.outside.com/image.jpg),
+    %(asset_path("HTTP://www.outside.com/image.jpg")) => %(HTTP://www.outside.com/image.jpg),
+
     %(asset_path("style", type: :stylesheet)) => %(/stylesheets/style.css),
     %(asset_path("xmlhr", type: :javascript)) => %(/javascripts/xmlhr.js),
     %(asset_path("xml.png", type: :image))    => %(/images/xml.png)
@@ -298,13 +301,15 @@ class AssetTagHelperTest < ActionView::TestCase
     %(font_path("font.ttf?123")) => %(/fonts/font.ttf?123)
   }
 
-  def test_autodiscovery_link_tag_deprecated_types
-    result = nil
-    assert_deprecated do
-      result = auto_discovery_link_tag(:xml)
+  def test_autodiscovery_link_tag_with_unknown_type_but_not_pass_type_option_key
+    assert_raise(ArgumentError) do
+      auto_discovery_link_tag(:xml)
     end
+  end
 
-    expected = %(<link href="http://www.example.com" rel="alternate" title="XML" type="application/xml" />)
+  def test_autodiscovery_link_tag_with_unknown_type
+    result = auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')
+    expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
     assert_equal expected, result
   end
 
@@ -443,8 +448,8 @@ class AssetTagHelperTest < ActionView::TestCase
     [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
       assert_equal 'Rails', image_alt("#{prefix}rails.png")
       assert_equal 'Rails', image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
-      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png") 
-      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")  
+      assert_equal 'Long file name with hyphens', image_alt("#{prefix}long-file-name-with-hyphens.png")
+      assert_equal 'Long file name with underscores', image_alt("#{prefix}long_file_name_with_underscores.png")
     end
   end
 
@@ -528,6 +533,17 @@ class AssetTagHelperTest < ActionView::TestCase
     copy = source.dup
     image_tag(source)
     assert_equal copy, source
+  end
+
+  def test_image_path_with_asset_host_proc_returning_nil
+    @controller.config.asset_host = Proc.new do |source|
+      unless source.end_with?("tiff")
+        "cdn.example.com"
+      end
+    end
+
+    assert_equal "/images/file.tiff", image_path("file.tiff")
+    assert_equal "http://cdn.example.com/images/file.png", image_path("file.png")
   end
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request

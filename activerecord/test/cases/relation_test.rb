@@ -12,10 +12,7 @@ module ActiveRecord
     end
 
     def test_construction
-      relation = nil
-      assert_nothing_raised do
-        relation = Relation.new FakeKlass, :b
-      end
+      relation = Relation.new FakeKlass, :b
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
       assert !relation.loaded, 'relation is not loaded'
@@ -189,7 +186,7 @@ module ActiveRecord
       post = Post.select(:title).first
       assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
 
-      post = Post.select("'title' as post_title").first
+      silence_warnings { post = Post.select("'title' as post_title").first }
       assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
     end
 

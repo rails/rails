@@ -83,6 +83,12 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_logging_of_missing_template_ending_with_number
+    assert_logged "Couldn't find template for digesting: messages/something_missing_1.html" do
+      digest("messages/show")
+    end
+  end
+
   def test_nested_template_directory
     assert_digest_difference("messages/show") do
       change_template("messages/actions/_move")

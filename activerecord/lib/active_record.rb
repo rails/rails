@@ -76,6 +76,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
 
     autoload :Relation
+    autoload :AssociationRelation
     autoload :NullRelation
 
     autoload_under 'relation' do

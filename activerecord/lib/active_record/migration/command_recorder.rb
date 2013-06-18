@@ -144,7 +144,10 @@ module ActiveRecord
 
       def invert_remove_index(args)
         table, options = *args
-        raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option." unless options && options[:column]
+
+        unless options && options.is_a?(Hash) && options[:column]
+          raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
+        end
 
         options = options.dup
         [:add_index, [table, options.delete(:column), options]]

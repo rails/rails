@@ -426,22 +426,6 @@ module ActionView
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
-        if disable_with = options.delete("disable_with")
-          message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
-                    "Use 'data: { disable_with: \'Text\' }' instead."
-          ActiveSupport::Deprecation.warn message
-
-          options["data-disable-with"] = disable_with
-        end
-
-        if confirm = options.delete("confirm")
-          message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
-                    "Use 'data: { confirm: \'Text\' }' instead'."
-          ActiveSupport::Deprecation.warn message
-
-          options["data-confirm"] = confirm
-        end
-
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
       end
 
@@ -488,22 +472,6 @@ module ActionView
         options ||= {}
         options = options.stringify_keys
 
-        if disable_with = options.delete("disable_with")
-          message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
-                    "Use 'data: { disable_with: \'Text\' }' instead."
-          ActiveSupport::Deprecation.warn message
-
-          options["data-disable-with"] = disable_with
-        end
-
-        if confirm = options.delete("confirm")
-          message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
-                    "Use 'data: { confirm: \'Text\' }' instead'."
-          ActiveSupport::Deprecation.warn message
-
-          options["data-confirm"] = confirm
-        end
-
         options.reverse_merge! 'name' => 'button', 'type' => 'submit'
 
         content_tag :button, content_or_options || 'Button', options, &block
@@ -541,15 +509,6 @@ module ActionView
       #   # => <input alt="Save" src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
-
-        if confirm = options.delete("confirm")
-          message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
-                    "Use 'data: { confirm: \'Text\' }' instead'."
-          ActiveSupport::Deprecation.warn message
-
-          options["data-confirm"] = confirm
-        end
-
         tag :input, { "alt" => image_alt(source), "type" => "image", "src" => path_to_image(source) }.update(options)
       end
 
