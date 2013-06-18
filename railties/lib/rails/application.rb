@@ -119,32 +119,9 @@ module Rails
 
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
-    # Currently stores:
-    #
-    #   * "action_dispatch.parameter_filter"             => config.filter_parameters
-    #   * "action_dispatch.redirect_filter"              => config.filter_redirect
-    #   * "action_dispatch.secret_token"                 => config.secret_token
-    #   * "action_dispatch.secret_key_base"              => config.secret_key_base
-    #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
-    #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
-    #   * "action_dispatch.logger"                       => Rails.logger
-    #   * "action_dispatch.backtrace_cleaner"            => Rails.backtrace_cleaner
-    #   * "action_dispatch.key_generator"                => key_generator
-    #   * "action_dispatch.http_auth_salt"               => config.action_dispatch.http_auth_salt
-    #   * "action_dispatch.signed_cookie_salt"           => config.action_dispatch.signed_cookie_salt
-    #   * "action_dispatch.encrypted_cookie_salt"        => config.action_dispatch.encrypted_cookie_salt
-    #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
-    #
     def env_config
       @app_env_config ||= begin
-        if config.secret_key_base.blank?
-          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
-            "Read the upgrade documentation to learn more about this new config option."
-
-          if config.secret_token.blank?
-            raise "You must set config.secret_key_base in your app's config."
-          end
-        end
+        validate_secret_key_config!
 
         super.merge({
           "action_dispatch.parameter_filter" => config.filter_parameters,
@@ -312,6 +289,12 @@ module Rails
         "#{script_name}#{path_info}?#{query_string}"
       else
         "#{script_name}#{path_info}"
+      end
+    end
+
+    def validate_secret_key_config! #:nodoc:
+      if config.secret_key_base.blank? && config.secret_token.blank?
+        raise "You must set config.secret_key_base in your app's config."
       end
     end
   end
