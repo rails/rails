@@ -634,7 +634,7 @@ module ActiveSupport #:nodoc:
         when String then desc.sub(/^::/, '')
         when Symbol then desc.to_s
         when Module
-          desc.name.presence ||
+          desc.name ||
             raise(ArgumentError, "Anonymous modules have no name to be referenced by")
         else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
