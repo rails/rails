@@ -53,11 +53,12 @@ module Rails
   #   11) Run config.after_initialize callbacks
   #
   class Application < Engine
-    autoload :Bootstrap,      'rails/application/bootstrap'
-    autoload :Configuration,  'rails/application/configuration'
-    autoload :Finisher,       'rails/application/finisher'
-    autoload :Railties,       'rails/engine/railties'
-    autoload :RoutesReloader, 'rails/application/routes_reloader'
+    autoload :Bootstrap,              'rails/application/bootstrap'
+    autoload :Configuration,          'rails/application/configuration'
+    autoload :DefaultMiddlewareStack, 'rails/application/default_middleware_stack'
+    autoload :Finisher,               'rails/application/finisher'
+    autoload :Railties,               'rails/engine/railties'
+    autoload :RoutesReloader,         'rails/application/routes_reloader'
 
     class << self
       def inherited(base)
@@ -105,7 +106,6 @@ module Rails
       routes_reloader.reload!
     end
 
-
     # Return the application's KeyGenerator
     def key_generator
       # number of iterations selected based on consultation with the google security
@@ -122,32 +122,9 @@ module Rails
 
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
-    # Currently stores:
-    #
-    #   * "action_dispatch.parameter_filter"             => config.filter_parameters
-    #   * "action_dispatch.redirect_filter"              => config.filter_redirect
-    #   * "action_dispatch.secret_token"                 => config.secret_token
-    #   * "action_dispatch.secret_key_base"              => config.secret_key_base
-    #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
-    #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
-    #   * "action_dispatch.logger"                       => Rails.logger
-    #   * "action_dispatch.backtrace_cleaner"            => Rails.backtrace_cleaner
-    #   * "action_dispatch.key_generator"                => key_generator
-    #   * "action_dispatch.http_auth_salt"               => config.action_dispatch.http_auth_salt
-    #   * "action_dispatch.signed_cookie_salt"           => config.action_dispatch.signed_cookie_salt
-    #   * "action_dispatch.encrypted_cookie_salt"        => config.action_dispatch.encrypted_cookie_salt
-    #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
-    #
     def env_config
       @app_env_config ||= begin
-        if config.secret_key_base.blank?
-          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
-            "Read the upgrade documentation to learn more about this new config option."
-
-          if config.secret_token.blank?
-            raise "You must set config.secret_key_base in your app's config."
-          end
-        end
+        validate_secret_token_config!
 
         super.merge({
           "action_dispatch.parameter_filter" => config.filter_parameters,
@@ -305,96 +282,9 @@ module Rails
       initializers
     end
 
-    def reload_dependencies? #:nodoc:
-      config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
-    end
-
     def default_middleware_stack #:nodoc:
-      ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        app = self
-
-        if rack_cache = load_rack_cache
-          require "action_dispatch/http/rack_cache"
-          middleware.use ::Rack::Cache, rack_cache
-        end
-
-        if config.force_ssl
-          middleware.use ::ActionDispatch::SSL, config.ssl_options
-        end
-
-        if config.action_dispatch.x_sendfile_header.present?
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        end
-
-        if config.serve_static_assets
-          middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
-        end
-
-        middleware.use ::Rack::Lock unless allow_concurrency?
-        middleware.use ::Rack::Runtime
-        middleware.use ::Rack::MethodOverride
-        middleware.use ::ActionDispatch::RequestId
-
-        # Must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::Rails::Rack::Logger, config.log_tags
-        middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
-        middleware.use ::ActionDispatch::DebugExceptions, app
-        middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-
-        unless config.cache_classes
-          middleware.use ::ActionDispatch::Reloader, lambda { app.reload_dependencies? }
-        end
-
-        middleware.use ::ActionDispatch::Callbacks
-        middleware.use ::ActionDispatch::Cookies
-
-        if config.session_store
-          if config.force_ssl && !config.session_options.key?(:secure)
-            config.session_options[:secure] = true
-          end
-          middleware.use config.session_store, config.session_options
-          middleware.use ::ActionDispatch::Flash
-        end
-
-        middleware.use ::ActionDispatch::ParamsParser
-        middleware.use ::Rack::Head
-        middleware.use ::Rack::ConditionalGet
-        middleware.use ::Rack::ETag, "no-cache"
-      end
-    end
-
-    def allow_concurrency?
-      if config.allow_concurrency.nil?
-        config.cache_classes
-      else
-        config.allow_concurrency
-      end
-    end
-
-    def load_rack_cache
-      rack_cache = config.action_dispatch.rack_cache
-      return unless rack_cache
-
-      begin
-        require 'rack/cache'
-      rescue LoadError => error
-        error.message << ' Be sure to add rack-cache to your Gemfile'
-        raise
-      end
-
-      if rack_cache == true
-        {
-          metastore: "rails:/",
-          entitystore: "rails:/",
-          verbose: false
-        }
-      else
-        rack_cache
-      end
-    end
-
-    def show_exceptions_app
-      config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
+      default_stack = DefaultMiddlewareStack.new(self, config, paths)
+      default_stack.build_stack
     end
 
     def build_original_fullpath(env) #:nodoc:
@@ -406,6 +296,12 @@ module Rails
         "#{script_name}#{path_info}?#{query_string}"
       else
         "#{script_name}#{path_info}"
+      end
+    end
+
+    def validate_secret_token_config! #:nodoc:
+      if config.secret_token.blank?
+        raise "You must set config.secret_key_base in your app's config."
       end
     end
   end
