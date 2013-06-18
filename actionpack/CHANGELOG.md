@@ -1,3 +1,7 @@
+*   Fix `Mime::Type.parse` when bad accepts header is looked up.
+
+    *Becker* 
+   
 *   Element of the `collection_check_boxes` and `collection_radio_buttons` can
     optionally contain html attributes as the last element of the array.
 
