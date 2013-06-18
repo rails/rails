@@ -401,6 +401,14 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
   end
 
+  def test_find_on_child_instance_with_id_should_not_load_all_child_records
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    man.interests.find(interest.id)
+    refute man.interests.loaded?
+  end
+
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
     man = Man.create!
 
