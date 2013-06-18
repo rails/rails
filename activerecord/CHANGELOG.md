@@ -39,6 +39,8 @@
         class Tagging < ActiveRecord::Base
         end
 
+    *Aaron Peterson*
+
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previous behavior was untested and surprising for the user.
     Fixes #5554.
@@ -110,7 +112,7 @@
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 
-    *Ben Woosley#
+    *Ben Woosley*
 
 *   Fix pending migrations error when loading schema and `ActiveRecord::Base.table_name_prefix`
     is not blank.
