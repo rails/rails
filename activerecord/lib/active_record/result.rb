@@ -18,7 +18,11 @@ module ActiveRecord
     end
 
     def each
-      hash_rows.each { |row| yield row }
+      if block_given?
+        hash_rows.each { |row| yield row }
+      else
+        hash_rows.to_enum
+      end
     end
 
     def to_hash

@@ -1,3 +1,8 @@
+*   `ActiveRecord::Result.each` now returns an `Enumerator` when called without
+     a block, so that it can be chained with other `Enumerable` methods.
+
+    *Ben Woosley*
+
 *   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
