@@ -640,6 +640,8 @@ module ActiveRecord
 
       # Specifies whether the records should be unique or not.
       #
+      #   Returns an array, only loads the targets if necessary.
+      #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
       #   end
@@ -650,12 +652,19 @@ module ActiveRecord
       #   #      #<Pet name: "Fancy-Fancy">
       #   #    ]
       #
-      #   person.pets.select(:name).distinct
+      #   person.pets.select(:name).uniq
       #   # => [#<Pet name: "Fancy-Fancy">]
+      def uniq
+        @association.uniq
+      end
+
+      # Specifies whether the records should be unique or not.
+      #
+      #   Returns an relation, executes a separate query.
+      #
       def distinct
         @association.distinct
       end
-      alias uniq distinct
 
       # Count all records using SQL.
       #
