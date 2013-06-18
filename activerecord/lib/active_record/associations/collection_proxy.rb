@@ -830,7 +830,7 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(20)) # => true
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
-        @association.include?(record)
+        !!@association.include?(record)
       end
 
       def proxy_association
