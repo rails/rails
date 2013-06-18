@@ -70,6 +70,12 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal post.association(:comments), post.comments.where('1=1').the_association
   end
 
+  def test_proxy_association_after_lambda_scoped
+    post = posts(:welcome)
+    assert_equal post.association(:comments), post.comments.the_association
+    assert_equal post.association(:comments), post.comments.limit_by(3).the_association
+  end
+
   private
 
     def extension_name(model)
