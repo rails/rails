@@ -39,4 +39,14 @@ class Rails::ServerTest < ActiveSupport::TestCase
       assert_equal 'production', server.options[:environment]
     end
   end
+
+  def test_log_stdout
+    args    = ["-e", "development"]
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal true, options[:log_stdout]
+
+    args    = ["-e", "production"]
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal false, options[:log_stdout]
+  end
 end
