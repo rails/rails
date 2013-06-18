@@ -416,7 +416,7 @@ module ActiveSupport #:nodoc:
     def load_file(path, const_paths = loadable_constants_for_path(path))
       log_call path, const_paths
       const_paths = [const_paths].compact unless const_paths.is_a? Array
-      parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || :Object }
+      parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || ::Object }
 
       result = nil
       newly_defined_paths = new_constants_in(*parent_paths) do
