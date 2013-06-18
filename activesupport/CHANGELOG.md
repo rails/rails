@@ -1,9 +1,28 @@
+*   Module#delegate support for delegation with aliasing.
+
+        class Someone
+          # You can use either `[:method, :delegated_as_name]` or a hash
+          # `{method: :delegated_as}`. Both of those form will delegate the
+          # method under different name.
+          delegate [:foo, :quux], {full_name: :name}, to: :class
+
+          def self.full_name
+            'some_table'
+          end
+
+          def self.foo
+            'quux'
+          end
+        end
+
+    *Genadi Samokovarov*
+
 *   `require_dependency` accepts objects that respond to `to_path`, in
     particular `Pathname` instances.
 
     *Benjamin Fleischer*
 
-*   Disable the ability to iterate over Range of AS::TimeWithZone 
+*   Disable the ability to iterate over Range of AS::TimeWithZone
     due to significant performance issues.
 
     *Bogdan Gusiev*

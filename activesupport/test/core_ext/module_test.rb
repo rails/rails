@@ -35,10 +35,15 @@ class Someone < Struct.new(:name, :place)
   delegate :name=, :to => :place, :prefix => true
   delegate :upcase, :to => "place.city"
   delegate :table_name, :to => :class
+  delegate [:foo, :quux], {:table_name => :table}, :to => :class
   delegate :table_name, :to => :class, :prefix => true
 
   def self.table_name
     'some_table'
+  end
+
+  def self.foo
+    'quux'
   end
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
@@ -152,6 +157,11 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_class_method
     assert_equal 'some_table', @david.table_name
     assert_equal 'some_table', @david.class_table_name
+  end
+
+  def test_delegation_aliasing
+    assert_equal 'some_table', @david.table
+    assert_equal 'quux', @david.quux
   end
 
   def test_missing_delegation_target
