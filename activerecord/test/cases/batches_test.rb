@@ -26,6 +26,24 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_each_should_return_an_enumerator_if_no_block_is_present
+    assert_queries(1) do
+      Post.find_each(:batch_size => 100000).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
+  def test_each_enumerator_should_execute_one_query_per_batch
+    assert_queries(@total + 1) do
+      Post.find_each(:batch_size => 1).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
       Post.select(:title).find_each(:batch_size => 1) { |post| post }

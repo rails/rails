@@ -40,8 +40,12 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_each(options = {})
-      find_in_batches(options) do |records|
-        records.each { |record| yield record }
+      if block_given?
+        find_in_batches(options) do |records|
+          records.each { |record| yield record }
+        end
+      else
+        enum_for :find_each, options
       end
     end
 
