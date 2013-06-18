@@ -19,6 +19,13 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
+    # If you do not provide a block to #find_each, it will return an Enumerator
+    # for chaining with other methods:
+    #
+    #   Person.find_each.with_index do |person, index|
+    #     person.award_trophy(index + 1)
+    #   end
+    #
     # ==== Options
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the starting point for the batch processing.
@@ -40,8 +47,12 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_each(options = {})
-      find_in_batches(options) do |records|
-        records.each { |record| yield record }
+      if block_given?
+        find_in_batches(options) do |records|
+          records.each { |record| yield record }
+        end
+      else
+        enum_for :find_each, options
       end
     end
 
