@@ -97,8 +97,12 @@ module ActionController #:nodoc:
   #
   # This will return status 201 if the task was saved successfully. If not,
   # it will simply ignore the given options and return status 422 and the
-  # resource errors. To customize the failure scenario, you can pass a
-  # a block to <code>respond_with</code>:
+  # resource errors. You can also override the location to redirect to:
+  #
+  #   respond_with(@project, location: root_path)
+  #
+  # To customize the failure scenario, you can pass a a block to
+  # <code>respond_with</code>:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
