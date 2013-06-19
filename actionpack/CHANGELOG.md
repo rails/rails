@@ -35,4 +35,8 @@
 
     *Bryan Ricker*
 
+*  Fix `Mime::Type.parse` when bad accepts header is looked up.
+
+   *Becker* 
+   
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.
