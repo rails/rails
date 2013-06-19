@@ -320,6 +320,15 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("foo=1/fu=2")
   end
 
+  def test_read_nil_cache_key
+    assert_nil @cache.read(nil)
+  end
+
+  def test_write_nil_cache_key
+    @cache.write(nil, "bar")
+    assert_nil @cache.read(nil)
+  end
+
   def test_keys_are_case_sensitive
     @cache.write("foo", "bar")
     assert_nil @cache.read("FOO")
