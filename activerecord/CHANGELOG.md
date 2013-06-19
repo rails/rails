@@ -1,5 +1,16 @@
 ## unreleased ##
 
+*   `inspect` on Active Record model classes does not initiate a
+    new connection. This means that calling `inspect`, when the
+    database is missing, will no longer raise an exception.
+    Fixes #10936.
+
+    Example:
+
+        Author.inspect # => "Author(no database connection)"
+
+    *Yves Senn*
+
 *   Fix mysql2 adapter raises the correct exception when executing a query on a
     closed connection.
 
