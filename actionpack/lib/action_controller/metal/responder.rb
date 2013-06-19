@@ -101,7 +101,7 @@ module ActionController #:nodoc:
   #
   #   respond_with(@project, location: root_path)
   #
-  # To customize the failure scenario, you can pass a a block to
+  # To customize the failure scenario, you can pass a block to
   # <code>respond_with</code>:
   #
   #   def create
