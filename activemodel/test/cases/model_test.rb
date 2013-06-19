@@ -4,6 +4,10 @@ class ModelTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 
   module DefaultValue
+    def self.included(klass)
+      klass.class_eval { attr_accessor :hello }
+    end
+
     def initialize(*args)
       @attr ||= 'default value'
     end
@@ -13,6 +17,10 @@ class ModelTest < ActiveModel::TestCase
     include DefaultValue
     include ActiveModel::Model
     attr_accessor :attr
+  end
+
+  class SimpleModel
+    include ActiveModel::Model
   end
 
   def setup
@@ -40,5 +48,19 @@ class ModelTest < ActiveModel::TestCase
   def test_mixin_inclusion_chain
     object = BasicModel.new
     assert_equal object.attr, 'default value'
+  end
+
+  def test_mixin_initializer_args
+    object = BasicModel.new(hello: 'world')
+    assert_equal object.hello, 'world'
+  end
+
+  def test_mixin_initializer_args_2
+    assert_raises(NoMethodError) { SimpleModel.new(hello: 'world') }
+  end
+
+  def test_mixin_when_no_ancestors
+    object = SimpleModel.new
+    assert object
   end
 end

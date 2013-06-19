@@ -80,7 +80,7 @@ module ActiveModel
         self.public_send("#{attr}=", value)
       end if params
 
-      super
+      super(*params)
     end
 
     # Indicates if the model is persisted. Default is +false+.
