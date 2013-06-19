@@ -1,3 +1,14 @@
+*   Log the sql that is actually sent to the database.
+
+    If I have a query that produces sql
+    `WHERE "users"."name" = 'a         b'` then in the log all the
+    whitespace is being squeezed. So the sql that is printed in the
+    log is `WHERE "users"."name" = 'a b'`.
+
+    Do not squeeze whitespace out of sql queries. Fixes #10982.
+
+    *Neeraj Singh*
+
 *   Do not load all child records for inverse case.
 
     currently `post.comments.find(Comment.first.id)` would load all
