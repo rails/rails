@@ -81,7 +81,7 @@ module ActiveRecord
         else
           if options[:finder_sql]
             find_by_scan(*args)
-          elsif options[:inverse_of] && loaded?
+          elsif options[:inverse_of]
             args = args.flatten
             raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args.blank?
 
