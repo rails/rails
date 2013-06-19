@@ -29,7 +29,7 @@ class ModelTest < ActiveModel::TestCase
 
   def test_initialize_with_params
     object = BasicModel.new(attr: "value")
-    assert_equal object.attr, "value"
+    assert_equal "value", object.attr
   end
 
   def test_initialize_with_nil_or_empty_hash_params_does_not_explode
@@ -47,12 +47,12 @@ class ModelTest < ActiveModel::TestCase
 
   def test_mixin_inclusion_chain
     object = BasicModel.new
-    assert_equal object.attr, 'default value'
+    assert_equal 'default value', object.attr
   end
 
   def test_mixin_initializer_args
     object = BasicModel.new(hello: 'world')
-    assert_equal object.hello, 'world'
+    assert_equal 'world', object.hello
   end
 
   def test_mixin_initializer_args_2
