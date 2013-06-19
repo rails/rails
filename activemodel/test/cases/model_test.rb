@@ -3,7 +3,14 @@ require 'cases/helper'
 class ModelTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 
+  module DefaultValue
+    def initialize(*args)
+      @attr ||= 'default value'
+    end
+  end
+
   class BasicModel
+    include DefaultValue
     include ActiveModel::Model
     attr_accessor :attr
   end
@@ -28,5 +35,10 @@ class ModelTest < ActiveModel::TestCase
   def test_persisted_is_always_false
     object = BasicModel.new(attr: "value")
     assert object.persisted? == false
+  end
+
+  def test_mixin_inclusion_chain
+    object = BasicModel.new
+    assert_equal object.attr, 'default value'
   end
 end
