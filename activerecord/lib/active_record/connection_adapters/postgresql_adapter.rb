@@ -84,7 +84,7 @@ module ActiveRecord
             $1
           # Character types
           when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
-            $1
+            $1.gsub(/''/, "'")
           # Binary data types
           when /\A'(.*)'::bytea\z/m
             $1
