@@ -60,7 +60,6 @@ class ModelTest < ActiveModel::TestCase
   end
 
   def test_mixin_when_no_ancestors
-    object = SimpleModel.new
-    assert object
+    assert SimpleModel.new
   end
 end
