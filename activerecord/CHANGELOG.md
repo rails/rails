@@ -1,3 +1,8 @@
+*   Handle single quotes in PostgreSQL default column values.
+    Fixes #10881.
+
+    *Dylan Markow*
+
 *   Log the sql that is actually sent to the database.
 
     If I have a query that produces sql
