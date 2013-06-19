@@ -50,12 +50,12 @@ class ModelTest < ActiveModel::TestCase
     assert_equal 'default value', object.attr
   end
 
-  def test_mixin_initializer_args
+  def test_mixin_initializer_when_args_exist
     object = BasicModel.new(hello: 'world')
     assert_equal 'world', object.hello
   end
 
-  def test_mixin_initializer_args_2
+  def test_mixin_initializer_when_args_dont_exist
     assert_raises(NoMethodError) { SimpleModel.new(hello: 'world') }
   end
 
