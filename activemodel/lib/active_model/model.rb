@@ -79,6 +79,8 @@ module ActiveModel
       params.each do |attr, value|
         self.public_send("#{attr}=", value)
       end if params
+
+      super
     end
 
     # Indicates if the model is persisted. Default is +false+.
