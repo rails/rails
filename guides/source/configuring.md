@@ -477,6 +477,7 @@ development:
   pool: 5
   username: blog
   password:
+  host: localhost
 ```
 
 Prepared Statements can be disabled thus:
