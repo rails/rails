@@ -1,3 +1,10 @@
+*   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
+    with multiple silencers.
+
+    Fixes #11030
+
+    *Mark J. Titorenko*
+
 *   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
     instance instead of a `Hash` instance.
 
