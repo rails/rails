@@ -1,0 +1,31 @@
+= Action View
+
+
+
+== Download and installation
+
+The latest version of Action View can be installed with RubyGems:
+
+  % [sudo] gem install actionview
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/actionview
+
+
+== License
+
+Action View is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
+
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.org
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
