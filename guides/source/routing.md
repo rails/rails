@@ -173,7 +173,7 @@ As with plural resources, the same helpers ending in `_url` will also include th
 
 WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) prevents `form_for` from working automatically with singular resources. As a workaround, specify the URL for the form directly, like so:
 
-```
+```ruby
 form_for @geocoder, url: geocoder_path do |f|
 ```
 
