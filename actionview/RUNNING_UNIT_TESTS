@@ -20,8 +20,8 @@ which can be further narrowed down to one test:
 
 Test cases in the test/active_record/ directory depend on having
 activerecord and sqlite installed. If Active Record is not in
-actionpack/../activerecord directory, or the sqlite rubygem is not installed,
+actionview/../activerecord directory, or the sqlite rubygem is not installed,
 these tests are skipped.
 
-Other tests are runnable from a fresh copy of actionpack without any configuration.
+Other tests are runnable from a fresh copy of actionview without any configuration.
 
