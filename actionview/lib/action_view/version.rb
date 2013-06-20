@@ -1,11 +1,11 @@
-module ActionPack
+module ActionView
   # Returns the version of the currently loaded ActionView as a Gem::Version
   def self.version
-    Gem::Version.new "4.0.0.beta1"
+    Gem::Version.new "4.1.0.beta"
   end
 
   module VERSION #:nodoc:
-    MAJOR, MINOR, TINY, PRE = ActionPack.version.segments
-    STRING = ActionPack.version.to_s
+    MAJOR, MINOR, TINY, PRE = ActionView.version.segments
+    STRING = ActionView.version.to_s
   end
 end
