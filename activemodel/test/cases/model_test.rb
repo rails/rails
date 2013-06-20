@@ -10,6 +10,7 @@ class ModelTest < ActiveModel::TestCase
 
     def initialize(*args)
       @attr ||= 'default value'
+      super
     end
   end
 
@@ -19,8 +20,15 @@ class ModelTest < ActiveModel::TestCase
     attr_accessor :attr
   end
 
+  class BasicModelWithReversedMixins
+    include ActiveModel::Model
+    include DefaultValue
+    attr_accessor :attr
+  end
+
   class SimpleModel
     include ActiveModel::Model
+    attr_accessor :attr
   end
 
   def setup
@@ -32,11 +40,17 @@ class ModelTest < ActiveModel::TestCase
     assert_equal "value", object.attr
   end
 
+  def test_initialize_with_params_and_mixins_reversed
+    object = BasicModelWithReversedMixins.new(attr: "value")
+    assert_equal "value", object.attr
+  end
+
   def test_initialize_with_nil_or_empty_hash_params_does_not_explode
     assert_nothing_raised do
       BasicModel.new()
-      BasicModel.new nil
+      BasicModel.new(nil)
       BasicModel.new({})
+      SimpleModel.new(attr: 'value')
     end
   end
 
@@ -57,9 +71,5 @@ class ModelTest < ActiveModel::TestCase
 
   def test_mixin_initializer_when_args_dont_exist
     assert_raises(NoMethodError) { SimpleModel.new(hello: 'world') }
-  end
-
-  def test_mixin_when_no_ancestors
-    assert SimpleModel.new
   end
 end
