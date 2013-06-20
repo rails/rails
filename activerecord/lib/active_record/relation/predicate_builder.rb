@@ -36,26 +36,6 @@ module ActiveRecord
       queries
     end
 
-    def self.expand(klass, table, column, value)
-      queries = []
-
-      # Find the foreign key when using queries such as:
-      # Post.where(author: author)
-      #
-      # For polymorphic relationships, find the foreign key and type:
-      # PriceEstimate.where(estimate_of: treasure)
-      if klass && value.class < Base && reflection = klass.reflect_on_association(column.to_sym)
-        if reflection.polymorphic?
-          queries << build(table[reflection.foreign_type], value.class.base_class)
-        end
-
-        column = reflection.foreign_key
-      end
-
-      queries << build(table[column], value)
-      queries
-    end
-
     def self.references(attributes)
       attributes.map do |key, value|
         if value.is_a?(Hash)
@@ -105,6 +85,26 @@ module ActiveRecord
         else
           attribute.eq(value)
         end
+      end
+
+      def self.expand(klass, table, column, value)
+        queries = []
+
+        # Find the foreign key when using queries such as:
+        # Post.where(author: author)
+        #
+        # For polymorphic relationships, find the foreign key and type:
+        # PriceEstimate.where(estimate_of: treasure)
+        if klass && value.class < Base && reflection = klass.reflect_on_association(column.to_sym)
+          if reflection.polymorphic?
+            queries << build(table[reflection.foreign_type], value.class.base_class)
+          end
+
+          column = reflection.foreign_key
+        end
+
+        queries << build(table[column], value)
+        queries
       end
   end
 end
