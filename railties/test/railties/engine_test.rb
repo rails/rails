@@ -345,7 +345,7 @@ YAML
         #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
-        #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/actionview/lib/action_view/locale/en.yml
         #{@plugin.path}/config/locales/en.yml
         #{app_path}/config/locales/en.yml
         #{app_path}/app/locales/en.yml
