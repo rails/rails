@@ -1,3 +1,14 @@
+*   `inspect` on Active Record model classes does not initiate a
+    new connection. This means that calling `inspect`, when the
+    database is missing, will no longer raise an exception.
+    Fixes #10936.
+
+    Example:
+
+        Author.inspect # => "Author(no database connection)"
+
+    *Yves Senn*
+
 *   Handle single quotes in PostgreSQL default column values.
     Fixes #10881.
 
