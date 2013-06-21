@@ -165,6 +165,29 @@ module ApplicationTests
       assert_file_exists("#{app_path}/public/assets/something-*.js")
     end
 
+    test 'precompile use assets defined in app env config' do
+      add_to_env_config 'production', 'config.assets.precompile = [ "something.js" ]'
+
+      app_file 'app/assets/javascripts/something.js.erb', 'alert();'
+
+      precompile! 'RAILS_ENV=production'
+
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
+    end
+
+    test 'precompile use assets defined in app config and reassigned in app env config' do
+      add_to_config 'config.assets.precompile = [ "something.js" ]'
+      add_to_env_config 'production', 'config.assets.precompile += [ "another.js" ]'
+
+      app_file 'app/assets/javascripts/something.js.erb', 'alert();'
+      app_file 'app/assets/javascripts/another.js.erb', 'alert();'
+
+      precompile! 'RAILS_ENV=production'
+
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
+      assert_file_exists("#{app_path}/public/assets/another-*.js")
+    end
+
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
       add_to_config "config.assets.digest = true"
       add_to_config "config.action_controller.perform_caching = false"
