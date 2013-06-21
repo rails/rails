@@ -37,16 +37,20 @@ module ActiveRecord
     rake_tasks do
       require "active_record/base"
 
-      ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
-      ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
-      ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
-      ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
-      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
-      ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
+      namespace :db do
+        task :load_config do
+          ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
+          ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
+          ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
+          ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
+          ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
+          ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
 
-      if defined?(APP_RAKEFILE) && engine = Rails::Engine.find(find_engine_path(APP_RAKEFILE))
-        if engine.paths['db/migrate'].existent
-          ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+          if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
+            if engine.paths['db/migrate'].existent
+              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+            end
+          end
         end
       end
 
