@@ -1,4 +1,4 @@
-equire 'active_model'
+require 'active_model'
 
 class Person
   include ActiveModel::Conversion
