@@ -1,3 +1,7 @@
+*   Json and html posts are decoded to the same params in the case of empty array
+
+    *Angelo Capilleri*
+
 *   ActionView extracted from ActionPack
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
