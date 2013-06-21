@@ -1228,6 +1228,4 @@
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
 
-*   Fix removing trailing slash for mounted apps #3215 *Piotr Sarnacki*
-
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/actionpack/CHANGELOG.md) for previous changes.

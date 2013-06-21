@@ -33,11 +33,6 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     Router
   end
 
-  def test_trailing_slash_is_not_removed_from_path_info
-    get "/sprockets/omg/"
-    assert_equal "/sprockets -- /omg/", response.body
-  end
-
   def test_mounting_sets_script_name
     get "/sprockets/omg"
     assert_equal "/sprockets -- /omg", response.body
