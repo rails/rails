@@ -1,3 +1,10 @@
+*   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
+    with multiple silencers.
+
+    Fixes #11030
+
+    *Mark J. Titorenko*
+
 *   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
     `#blame_file!` on Exceptions that do not have the Blamable mixin
 
