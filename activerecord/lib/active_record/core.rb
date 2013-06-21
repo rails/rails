@@ -123,6 +123,8 @@ module ActiveRecord
           super
         elsif abstract_class?
           "#{super}(abstract)"
+        elsif !connected?
+          "#{super}(no database connection)"
         elsif table_exists?
           attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
           "#{super}(#{attr_list})"
