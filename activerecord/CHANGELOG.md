@@ -4,6 +4,12 @@
 
     *Yves Senn*
 
+*   Prevent query with NULL foreign key value on CollectionAssociation#ids_reader
+    for non-persisted records. Fixes bug where Company.new.contract_ids would
+    incorrectly load all non-associated Contracts.
+
+    *Jared Armstrong*
+
 *   Fix the `:primary_key` option for `has_many` associations.
     Fixes #10693.
 
