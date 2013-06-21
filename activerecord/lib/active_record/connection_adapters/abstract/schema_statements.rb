@@ -214,8 +214,8 @@ module ActiveRecord
       # its block form to do so yourself:
       #
       #   create_join_table :products, :categories do |t|
-      #     t.index :products
-      #     t.index :categories
+      #     t.index :product_id
+      #     t.index :category_id
       #   end
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
