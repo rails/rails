@@ -25,7 +25,7 @@ Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-desc "Release to gemcutter"
+desc "Release to rubygems"
 task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define
