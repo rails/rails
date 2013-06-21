@@ -390,8 +390,8 @@ will create a `categorization` table.
 
 ```ruby
 create_join_table :products, :categories do |t|
-  t.index :products
-  t.index :categories
+  t.index :product_id
+  t.index :category_id
 end
 ```
 
