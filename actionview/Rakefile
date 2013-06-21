@@ -39,6 +39,8 @@ desc 'ActiveRecord Integration Tests'
 Rake::TestTask.new(:test_active_record_integration) do |t|
   t.libs << 'test'
   t.test_files = Dir.glob("test/activerecord/*_test.rb")
+  t.warning = true
+  t.verbose = true
 end
 
 spec = eval(File.read('actionview.gemspec'))
