@@ -842,7 +842,7 @@ module ActiveRecord
       # method, which gets the current scope, which is this object, which
       # delegates to @association, and so on.
       def scoping
-        @association.scope.scoping { yield }
+        scope.scoping { yield }
       end
 
       # Returns a <tt>Relation</tt> object for the records in this association
