@@ -176,6 +176,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Account") }
   end
 
+  test "building the association with an array" do
+    speedometer = Speedometer.new(speedometer_id: "a")
+    data = [{name: "first"}, {name: "second"}]
+    speedometer.minivans.build(data)
+
+    assert_equal 2, speedometer.minivans.size
+    assert speedometer.save
+    assert_equal ["first", "second"], speedometer.reload.minivans.map(&:name)
+  end
+
   def test_association_keys_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
