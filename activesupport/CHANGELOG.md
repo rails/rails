@@ -1,3 +1,8 @@
+*   Add `Hash#extract`. The method return a hash to include only the given keys.
+    If key has no present in hash, it will be set to nil.
+
+    *Kirill Mokevnin*
+
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 

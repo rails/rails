@@ -37,4 +37,17 @@ class Hash
   def extract!(*keys)
     keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
   end
+
+  # Return a hash to include only the given keys.
+  # If key has no present in hash, it will be set to nil.
+  #
+  #   { a: 1, b: 2, c: 3, d: 4 }.extract(:a, :z) # => {:a=>1, :z=>nil}
+  #
+  # This is usefull for activerecord query builder:
+  #   
+  #   User.where(params.extract(:id, :confirmation_token).first!
+  def extract(*keys)
+    keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
+    keys.each_with_object(self.class.new) { |k, hash| hash[k] = self[k] }
+  end
 end
