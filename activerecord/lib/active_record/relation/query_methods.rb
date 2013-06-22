@@ -802,7 +802,7 @@ module ActiveRecord
     def build_arel
       arel = Arel::SelectManager.new(table.engine, table)
 
-      build_joins(arel, joins_values) unless joins_values.empty?
+      build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
       collapse_wheres(arel, (where_values - ['']).uniq)
 

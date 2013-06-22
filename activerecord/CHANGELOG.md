@@ -1,3 +1,13 @@
+*   Flatten merged join_values before building the joins.
+   
+    While joining_values special treatment is given to string values.
+    By flattening the array it ensures that string values are detected
+    as strings and not arrays.
+
+    Fixes #10669.
+
+    *Neeraj Singh and iwiznia*
+
 *   Do not load all child records for inverse case.
 
     currently `post.comments.find(Comment.first.id)` would load all
