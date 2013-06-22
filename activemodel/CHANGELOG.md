@@ -1,3 +1,10 @@
+*   Fix regression in has_secure_password: When a password is set, but the
+    confirmation is nil, it would raise validation errors. According to the
+    documentation, the confirmation validations should be bypassed if the
+    confirmation is nil.
+
+    *Michi Huber*
+
 *   Fix regression in has_secure_password. When a password is set, but a
     confirmation is an empty string, it would incorrectly save.
 

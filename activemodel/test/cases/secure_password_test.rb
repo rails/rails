@@ -103,4 +103,10 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = "password"
     assert @user.valid?(:create)
   end
+
+  test "confirmation isn't validated if nil" do
+    @user.password = "password"
+    @user.password_confirmation = nil
+    assert @user.valid?(:create)
+  end
 end

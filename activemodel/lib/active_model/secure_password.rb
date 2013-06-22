@@ -56,9 +56,13 @@ module ActiveModel
         include InstanceMethodsOnActivation
 
         if options.fetch(:validations, true)
-          validates_confirmation_of :password, if: lambda { |m| m.password.present? }
+          password_present_and_confirmed = lambda do |m|
+            m.password.present? && !m.password_confirmation.nil?
+          end
+
+          validates_confirmation_of :password, if: password_present_and_confirmed
           validates_presence_of     :password, on: :create
-          validates_presence_of     :password_confirmation, if: lambda { |m| m.password.present? }
+          validates_presence_of     :password_confirmation, if: password_present_and_confirmed
 
           before_create { raise "Password digest missing on new record" if password_digest.blank? }
         end
