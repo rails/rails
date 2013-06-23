@@ -474,12 +474,13 @@ Rails comes with a test suite called `Test::Unit`. Rails owes its stability to t
 
 The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
 
-The `tmp:` namespaced tasks will help you clear the `Rails.root/tmp` directory:
+The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 
 * `rake tmp:cache:clear` clears `tmp/cache`.
 * `rake tmp:sessions:clear` clears `tmp/sessions`.
 * `rake tmp:sockets:clear` clears `tmp/sockets`.
 * `rake tmp:clear` clears all the three: cache, sessions and sockets.
+* `rake tmp:create` creates tmp directories for sessions, cache, sockets, and pids.
 
 ### Miscellaneous
 
