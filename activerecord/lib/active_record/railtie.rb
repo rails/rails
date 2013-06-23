@@ -37,11 +37,12 @@ module ActiveRecord
     rake_tasks do
       require "active_record/base"
 
+      ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
+      ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
+
       namespace :db do
         task :load_config do
-          ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
           ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
-          ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
           ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
           ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
