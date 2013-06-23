@@ -782,6 +782,15 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_extract
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :a => 'x', :b => 'y', :x => nil }
+
+    # Should return a new hash with only the given keys.
+    assert_equal expected, original.extract(:a, :b, :x)
+    assert_not_equal expected, original
+  end
+
+  def test_extract_inplace
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}
     remaining = {:c => 3, :d => 4}
@@ -790,7 +799,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal remaining, original
   end
 
-  def test_extract_nils
+  def test_extract_inplace_nils
     original = {:a => nil, :b => nil}
     expected = {:a => nil}
     extracted = original.extract!(:a, :x)
@@ -800,7 +809,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal nil, extracted[:x]
   end
 
-  def test_indifferent_extract
+  def test_indifferent_extract_inplace
     original = {:a => 1, 'b' => 2, :c => 3, 'd' => 4}.with_indifferent_access
     expected = {:a => 1, :b => 2}.with_indifferent_access
     remaining = {:c => 3, :d => 4}.with_indifferent_access
