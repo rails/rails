@@ -48,7 +48,7 @@
       <ul class="nav">
         <li><a class="nav-item" href="index.html">Home</a></li>
         <li class="guides-index guides-index-large">
-          <a href="index.html" onclick="guideMenu(); return false;" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
             <% ['L', 'R'].each do |position| %>
@@ -141,7 +141,7 @@
   <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
   <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
   <script type="text/javascript">
-    SyntaxHighlighter.all()
+    SyntaxHighlighter.all();
     $(guidesIndex.bind);
   </script>
 </body>
