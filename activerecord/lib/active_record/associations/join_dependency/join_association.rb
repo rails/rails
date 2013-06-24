@@ -111,6 +111,8 @@ module ActiveRecord
                 item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
               end
 
+              item.order_values.each { |o| manager.order o }
+
               if item.arel.constraints.empty?
                 chain
               else
