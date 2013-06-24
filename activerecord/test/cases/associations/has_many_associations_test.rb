@@ -1336,6 +1336,33 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [companies(:second_client).id, companies(:first_client).id], companies(:first_firm).clients_ordered_by_name_ids
   end
 
+  def test_get_ids_for_association_on_new_record_does_not_try_to_find_records
+    Company.columns  # Load schema information so we don't query below
+    Contract.columns # if running just this test.
+
+    company = Company.new
+    assert_queries(0) do
+      company.contract_ids
+    end
+
+    assert_equal [], company.contract_ids
+  end
+
+  def test_set_ids_for_association_on_new_record_applies_association_correctly
+    contract_a = Contract.create!
+    contract_b = Contract.create!
+    another_contract = Contract.create!
+    company = Company.new(:name => "Some Company")
+
+    company.contract_ids = [contract_a.id, contract_b.id]
+    assert_equal [contract_a.id, contract_b.id], company.contract_ids
+    assert_equal [contract_a, contract_b], company.contracts
+
+    company.save!
+    assert_equal company, contract_a.reload.company
+    assert_equal company, contract_b.reload.company
+  end
+
   def test_assign_ids_ignoring_blanks
     firm = Firm.create!(:name => 'Apple')
     firm.client_ids = [companies(:first_client).id, nil, companies(:second_client).id, '']
