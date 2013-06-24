@@ -1,3 +1,17 @@
+*   Always escape the result of `link_to_unless` method.
+
+    Before:
+
+        link_to_unless(true, '<b>Showing</b>', 'github.com')
+        # => "<b>Showing</b>"
+
+    After:
+
+        link_to_unless(true, '<b>Showing</b>', 'github.com')
+        # => "&lt;b&gt;Showing&lt;/b&gt;"
+
+    *dtaniwaki*
+
 *   Use a case insensitive URI Regexp for #asset_path.
 
     This fix a problem where the same asset path using different case are generating
