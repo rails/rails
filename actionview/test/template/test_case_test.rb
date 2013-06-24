@@ -330,7 +330,7 @@ module ActionView
 
     test 'raises descriptive error message when template was not rendered' do
       controller.controller_path = "test"
-      render(template: "test/hello_world_with_partial")
+      render(template: "/test/hello_world_with_partial")
       e = assert_raise ActiveSupport::TestCase::Assertion do
         assert_template partial: 'i_was_never_rendered', locals: { 'did_not' => 'happen' }
       end
@@ -341,13 +341,13 @@ module ActionView
     test 'specifying locals works when the partial is inside a directory with underline prefix' do
       controller.controller_path = "test"
       render(template: 'test/render_partial_inside_directory')
-      assert_template partial: 'test/_directory/_partial_with_locales', locals: { 'name' => 'Jane' }
+      assert_template partial: '_directory/_partial_with_locales', locals: { 'name' => 'Jane' }
     end
 
     test 'specifying locals works when the partial is inside a directory without underline prefix' do
       controller.controller_path = "test"
       render(template: 'test/render_partial_inside_directory')
-      assert_template partial: 'test/_directory/partial_with_locales', locals: { 'name' => 'Jane' }
+      assert_template partial: '_directory/partial_with_locales', locals: { 'name' => 'Jane' }
     end
   end
 
