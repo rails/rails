@@ -1,3 +1,10 @@
+*   `content_tag` will now parse style attribute passed as a Hash
+
+        content_tag('p', "test", style: { color: "red", :font_size => "10px" })
+        # => "<p style=\"color: red; font-size: 10px;\" >test</p>"
+
+    *Dmitry Filimonov*
+
 *   Use a case insensitive URI Regexp for #asset_path.
 
     This fix a problem where the same asset path using different case are generating
