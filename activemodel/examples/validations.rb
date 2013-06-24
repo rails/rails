@@ -4,7 +4,7 @@ class Person
   include ActiveModel::Conversion
   include ActiveModel::Validations
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   attr_accessor :name
 
