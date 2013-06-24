@@ -1351,7 +1351,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_set_ids_for_association_on_new_record_applies_association_correctly
     contract_a = Contract.create!
     contract_b = Contract.create!
-    another_contract = Contract.create!
+    Contract.create! # another contract
     company = Company.new(:name => "Some Company")
 
     company.contract_ids = [contract_a.id, contract_b.id]
