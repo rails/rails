@@ -479,16 +479,11 @@ module ActiveRecord
       private
 
       def exec_stmt(sql, name, binds)
-        cache = {}
         log(sql, name, binds) do
-          if binds.empty?
-            stmt = @connection.prepare(sql)
-          else
-            cache = @statements[sql] ||= {
+          cache = @statements[sql] ||= {
               :stmt => @connection.prepare(sql)
-            }
-            stmt = cache[:stmt]
-          end
+          }
+          stmt = cache[:stmt]
 
           begin
             stmt.execute(*binds.map { |col, val| type_cast(val, col) })
