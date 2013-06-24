@@ -57,7 +57,7 @@ module ActionDispatch
           cookies = cookies.split("\n")
 
           headers['Set-Cookie'] = cookies.map { |cookie|
-            if cookie !~ /;\s+secure(;|$)/
+            if cookie !~ /;\s+secure(;|$)/i
               "#{cookie}; secure"
             else
               cookie
