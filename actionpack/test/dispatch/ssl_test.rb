@@ -37,6 +37,11 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Strict-Transport-Security']
   end
 
+  def test_no_hsts_with_insecure_connection
+    get "http://example.org/"
+    assert_not response.headers['Strict-Transport-Security']
+  end
+
   def test_hsts_header
     self.app = ActionDispatch::SSL.new(default_app, :hsts => true)
     get "https://example.org/"
