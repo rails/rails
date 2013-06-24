@@ -92,6 +92,11 @@ class TagHelperTest < ActionView::TestCase
       content_tag('p', "limelight", data: { number: 1, string: 'hello', string_with_quotes: 'double"quote"party"' })
   end
 
+  def test_content_tag_with_style_attributes
+    assert_dom_equal '<p style="color: red; font-size: 10px;" >limelight</p>',
+      content_tag('p', "limelight", style: { color: "red", :font_size => "10px"  })
+  end
+
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end

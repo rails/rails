@@ -145,6 +145,8 @@ module ActionView
               value.each_pair do |k, v|
                 attrs << data_tag_option(k, v, escape)
               end
+            elsif key.to_s == 'style' && value.is_a?(Hash)
+              attrs << style_tag_option(key, value, escape)
             elsif BOOLEAN_ATTRIBUTES.include?(key)
               attrs << boolean_tag_option(key) if value
             elsif !value.nil?
@@ -160,6 +162,13 @@ module ActionView
             value = value.to_json
           end
           tag_option(key, value, escape)
+        end
+
+        def style_tag_option(key, value, escape)
+          value = value.map do |k, v|
+            "#{k.to_s.dasherize}: #{v};"
+          end.join(" ")
+          tag_option("style", value, escape)
         end
 
         def boolean_tag_option(key)
