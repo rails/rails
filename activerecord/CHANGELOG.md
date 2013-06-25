@@ -1,5 +1,5 @@
 *   Flatten merged join_values before building the joins.
-   
+
     While joining_values special treatment is given to string values.
     By flattening the array it ensures that string values are detected
     as strings and not arrays.
