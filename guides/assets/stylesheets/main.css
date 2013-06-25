@@ -244,7 +244,7 @@ body {
 #subCol {
   position: absolute;
   z-index: 0;
-  top: 0;
+  top: 21px;
   right: 0;
   background: #FFF;
   padding: 1em 1.5em 1em 1.25em;
