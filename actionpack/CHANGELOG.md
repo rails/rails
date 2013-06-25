@@ -1,5 +1,14 @@
 ## unreleased ##
 
+*   Merge `:action` from routing scope and assign endpoint if both `:controller`
+    and `:action` are present. The endpoint assignment only occurs if there is
+    no `:to` present in the options hash so should only affect routes using the
+    shorthand syntax (i.e. endpoint is inferred from the the path).
+
+    Fixes #9856
+
+    *Yves Senn*, *Andrew White*
+
 *   Use a case insensitive URI Regexp for #asset_path.
 
     This fix a problem where the same asset path using different case are generating
