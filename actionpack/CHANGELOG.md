@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   Fix `Mime::Type.parse` when bad accepts header is looked up. Previously it
+    was setting `request.formats` with an array containing a `nil` value, which
+    raised an error when setting the controller formats.
+
+    Fixes #10965
+
+    *Becker*
+
 *   Always escape the result of `link_to_unless` method.
 
     Before:
