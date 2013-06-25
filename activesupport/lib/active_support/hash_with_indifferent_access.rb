@@ -72,7 +72,7 @@ module ActiveSupport
     end
 
     def self.new_from_hash_copying_default(hash)
-      new(hash).tap do |new_hash|
+      HashWithIndifferentAccess.new(hash).tap do |new_hash|
         new_hash.default = hash.default
       end
     end
