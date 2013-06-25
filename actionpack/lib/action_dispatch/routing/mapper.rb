@@ -11,8 +11,8 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
       SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
-                       :controller, :path_names, :constraints, :defaults,
-                       :shallow, :blocks, :options]
+                       :controller, :action, :path_names, :constraints,
+                       :shallow, :blocks, :defaults, :options]
 
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
@@ -874,6 +874,10 @@ module ActionDispatch
             child
           end
 
+          def merge_action_scope(parent, child) #:nodoc:
+            child
+          end
+
           def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
@@ -1381,6 +1385,10 @@ module ActionDispatch
 
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+          end
+
+          if @scope[:controller] && @scope[:action]
+            options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
           end
 
           paths.each do |_path|
