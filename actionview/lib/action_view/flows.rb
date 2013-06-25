@@ -36,7 +36,7 @@ module ActionView
       @root    = Fiber.current.object_id
     end
 
-    # Try to get an stored content. If the content
+    # Try to get stored content. If the content
     # is not available and we are inside the layout
     # fiber, we set that we are waiting for the given
     # key and yield.
