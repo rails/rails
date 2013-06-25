@@ -779,6 +779,10 @@ module ActionDispatch
             child
           end
 
+          def merge_action_scope(parent, child) #:nodoc:
+            child
+          end
+
           def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
@@ -1251,6 +1255,10 @@ module ActionDispatch
           else
             options = rest.pop || {}
             paths = [path] + rest
+          end
+
+          if @scope[:controller] && @scope[:action]
+            options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
           end
 
           path_without_format = path.to_s.sub(/\(\.:format\)$/, '')
