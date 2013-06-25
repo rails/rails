@@ -48,7 +48,8 @@ module ActiveRecord
           else
             unless reflection_scope.where_values.empty?
               scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
-              scope.where_values    = reflection_scope.values[:where]
+              base_wheres           = reflection.klass.unscoped.values[:where] || []
+              scope.where_values    = reflection_scope.values[:where] - base_wheres
             end
 
             scope.references! reflection_scope.values[:references]

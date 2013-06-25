@@ -1,3 +1,9 @@
+*   Fix `#includes` on has_many :through association in combination with
+    STI models.
+    Fixes #11078.
+
+    *Yves Senn*
+
 *   Remove implicit join references that were deprecated in 4.0.
 
     Example:
