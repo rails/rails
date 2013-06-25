@@ -110,6 +110,11 @@ class DeveloperFilteredOnJoins < ActiveRecord::Base
   end
 end
 
+class DeveloperLimitedByTwo < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope { limit(2) }
+end
+
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope { order('salary DESC') }

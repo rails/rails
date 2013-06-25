@@ -340,9 +340,6 @@ module ActiveRecord
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
     #
-    # This method is applied before the default_scope is applied. So the conditions
-    # specified in default_scope will not be removed.
-    #
     # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
     # because #except will only affect a particular relation's values. It won't wipe
     # the order, grouping, etc. when that relation is merged. For example:
@@ -356,20 +353,22 @@ module ActiveRecord
     end
 
     def unscope!(*args) # :nodoc:
+      scope = with_default_scope
+
       args.flatten!
 
-      args.each do |scope|
-        case scope
+      args.each do |arg|
+        case arg
         when Symbol
-          symbol_unscoping(scope)
+          symbol_unscoping(arg, scope)
         when Hash
-          scope.each do |key, target_value|
+          arg.each do |key, target_value|
             if key != :where
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
             Array(target_value).each do |val|
-              where_unscoping(val)
+              where_unscoping(val, scope)
             end
           end
         else
@@ -377,7 +376,7 @@ module ActiveRecord
         end
       end
 
-      self
+      scope
     end
 
     # Performs a joins on +args+:
@@ -826,29 +825,29 @@ module ActiveRecord
 
     private
 
-    def symbol_unscoping(scope)
-      if !VALID_UNSCOPING_VALUES.include?(scope)
-        raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
+    def symbol_unscoping(clause, scope)
+      if !VALID_UNSCOPING_VALUES.include?(clause)
+        raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{clause}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
       end
 
-      single_val_method = Relation::SINGLE_VALUE_METHODS.include?(scope)
-      unscope_code = :"#{scope}_value#{'s' unless single_val_method}="
+      single_val_method = Relation::SINGLE_VALUE_METHODS.include?(clause)
+      unscope_code = :"#{clause}_value#{'s' unless single_val_method}="
 
-      case scope
+      case clause
       when :order
-        self.send(:reverse_order_value=, false)
+        scope.send(:reverse_order_value=, false)
         result = []
       else
         result = [] unless single_val_method
       end
 
-      self.send(unscope_code, result)
+      scope.send(unscope_code, result)
     end
 
-    def where_unscoping(target_value)
+    def where_unscoping(target_value, scope)
       target_value_sym = target_value.to_sym
 
-      where_values.reject! do |rel|
+      scope.where_values.reject! do |rel|
         case rel
         when Arel::Nodes::In, Arel::Nodes::Equality
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)

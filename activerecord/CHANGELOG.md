@@ -1,3 +1,16 @@
+*   .unscope and .except now act on the default scope. For example:
+
+      class Project < ActiveRecord::Base
+        default_scope -> { where trashed: false }
+      end
+
+      Project.unscope(where: :trashed).to_sql
+      #=> "SELECT \"projects\".* FROM \"projects\""
+      Project.except(:where).to_sql
+      #=> "SELECT \"projects\".* FROM \"projects\""
+
+    *Dave Jachimiak*
+
 *   Flatten merged join_values before building the joins.
 
     While joining_values special treatment is given to string values.

@@ -44,6 +44,11 @@ module ActiveRecord
           self.current_scope = nil
         end
 
+        def default_scope_values #:nodoc:
+          return {} unless default_scopes.first.respond_to?(:call)
+          default_scopes.first.call.values
+        end
+
         protected
 
         # Use this macro in your model to set a default scope for all operations on
