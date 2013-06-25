@@ -1,3 +1,7 @@
+*   Remove Oracle / Sqlserver / Firebird database tasks that were deprecated in 4.0.
+
+    *kennyj*
+
 *   `find_each` now returns an `Enumerator` when called without a block, so that it
     can be chained with other `Enumerable` methods.
 
