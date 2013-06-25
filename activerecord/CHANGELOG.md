@@ -4,6 +4,21 @@
 
     *Yves Senn*
 
+*   Fixes bug where `Company.new.contract_ids` would incorrectly load
+    all non-associated contracts.
+
+    Example:
+
+        company = Company.new # Company has many :contracts
+
+        # before
+        company.contract_ids # => SELECT ... WHERE `contracts`.`company_id` IS NULL
+
+        # after
+        company.contract_ids # => []
+
+    *Jared Armstrong*
+
 *   Fix the `:primary_key` option for `has_many` associations.
     Fixes #10693.
 
