@@ -319,13 +319,16 @@ module ActiveRecord
         end
       end
 
-      def distinct
+      def uniq
         seen = {}
         load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
-      alias uniq distinct
+
+      def distinct
+        scope.distinct
+      end
 
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
