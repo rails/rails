@@ -1,3 +1,11 @@
+*   Fix `Mime::Type.parse` when bad accepts header is looked up. Previously it
+    was setting `request.formats` with an array containing a `nil` value, which
+    raised an error when setting the controller formats.
+
+    Fixes #10965
+
+    *Becker*
+
 *   Merge `:action` from routing scope and assign endpoint if both `:controller`
     and `:action` are present. The endpoint assignment only occurs if there is
     no `:to` present in the options hash so should only affect routes using the
