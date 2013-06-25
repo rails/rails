@@ -1,11 +1,8 @@
-## Rails 4.0.0.rc2 (June 11, 2013) ##
+## Rails 4.0.0 (June 25, 2013) ##
 
 *   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
 
     *Xavier Noria*
-
-
-## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Move rails.png into a data-uri. One less file to get generated into a new
     application. This is also consistent with the removal of index.html.
@@ -66,9 +63,6 @@
 *   Improve service pages with new layout (404, etc).
 
     *Stanislav Sobolev*
-
-
-## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Improve `rake stats` for JavaScript and CoffeeScript: ignore block comments
     and calculates number of functions.

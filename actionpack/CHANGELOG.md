@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.0 (June 25, 2013) ##
 
 *   Merge `:action` from routing scope and assign endpoint if both `:controller`
     and `:action` are present. The endpoint assignment only occurs if there is
@@ -30,15 +30,9 @@
 
     *David Celis*
 
-
-## Rails 4.0.0.rc2 (June 11, 2013) ##
-
 *   Fix an issue where partials with a number in the filename weren't being digested for cache dependencies.
 
     *Bryan Ricker*
-
-
-## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Add support for passing custom url options other than `:host` and custom
     status and flash options to `force_ssl`.
@@ -220,9 +214,6 @@
 *   Make `ActionDispatch::Journey::Path::Pattern#new` raise more meaningful exception message.
 
     *Thierry Zires*
-
-
-## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
 

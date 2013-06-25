@@ -1,4 +1,4 @@
-## Rails 4.0.0.rc2 (June 11, 2013) ##
+## Rails 4.0.0 (June 25, 2013) ##
 
 *   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
 
@@ -49,9 +49,6 @@
 *   Mute `psql` output when running rake db:schema:load.
 
     *Godfrey Chan*
-
-
-## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
 
@@ -592,9 +589,6 @@
 
         # This will expand the order :name to "authors".name.
         Author.joins(:books).where('books.published = 1').order(:name)
-
-
-## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Fix overriding of attributes by `default_scope` on `ActiveRecord::Base#dup`.
 
