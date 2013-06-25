@@ -1,3 +1,8 @@
+*   `find_each` now returns an `Enumerator` when called without a block, so that it
+    can be chained with other `Enumerable` methods.
+
+    *Ben Woosley*
+
 *   `ActiveRecord::Result.each` now returns an `Enumerator` when called without
      a block, so that it can be chained with other `Enumerable` methods.
 
