@@ -66,22 +66,6 @@ class TrueClass
   end
 end
 
-class Array
-  # An array is blank if it's empty:
-  #
-  #   [].blank?      # => true
-  #   [1,2,3].blank? # => false
-  alias_method :blank?, :empty?
-end
-
-class Hash
-  # A hash is blank if it's empty:
-  #
-  #   {}.blank?                # => true
-  #   { key: 'value' }.blank?  # => false
-  alias_method :blank?, :empty?
-end
-
 class String
   # A string is blank if it's empty or contains whitespaces only:
   #
