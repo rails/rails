@@ -530,8 +530,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      scope '/job', controller: 'job' do
-        scope ':id', action: 'manage_applicant' do
+      scope '/job', :controller => 'job' do
+        scope ':id', :action => 'manage_applicant' do
           get "/active"
         end
       end
