@@ -513,20 +513,13 @@ module ActionView
       #
       #   current_page?(controller: 'library', action: 'checkout')
       #   # => false
-      #
-      # Let's say we're in the <tt>http://www.example.com/products</tt> action with method POST in case of invalid product.
-      #
-      #   current_page?(controller: 'product', action: 'index')
-      #   # => false
-      #
+
       def current_page?(options)
         unless request
           raise "You cannot use helpers that need to determine the current " \
                 "page unless your view context provides a Request object " \
                 "in a #request method"
         end
-
-        return false unless request.get? || request.head?
 
         url_string = url_for(options)
 
