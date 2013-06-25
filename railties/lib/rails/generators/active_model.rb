@@ -34,7 +34,7 @@ module Rails
 
       # GET index
       def self.all(klass)
-        "#{klass}.all"
+        "#{klass}.all.to_a"
       end
 
       # GET show
