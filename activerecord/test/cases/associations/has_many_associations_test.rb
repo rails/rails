@@ -378,6 +378,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, Firm.find(4).clients_using_sql.count
   end
 
+  def test_update_all
+    firm = Firm.new(name: 'Firm')
+    firm.clients << Client.first
+    firm.save!
+    assert firm.persisted?
+    assert_equal 1, firm.clients.count
+    assert_equal firm.clients.scope.bind_values, firm.clients.bind_values
+    assert_equal 1, firm.clients.update_all(description: 'Great!')
+  end
+
   def test_belongs_to_sanity
     c = Client.new
     assert_nil c.firm
