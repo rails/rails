@@ -34,7 +34,7 @@ module Rails
 
       # GET index
       def self.all(klass)
-        "#{klass}.all.to_a"
+        "#{klass}.scoped.to_a"
       end
 
       # GET show
