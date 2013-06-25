@@ -795,7 +795,7 @@ something went wrong. To do that, you'll modify
 ```html+erb
 <%= form_for :post, url: posts_path do |f| %>
   <% if @post.errors.any? %>
-  <div id="errorExplanation">
+  <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
@@ -865,7 +865,7 @@ it look as follows:
 <%= form_for :post, url: post_path(@post.id) },
 method: :patch do |f| %>
   <% if @post.errors.any? %>
-  <div id="errorExplanation">
+  <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
@@ -981,7 +981,7 @@ content:
 ```html+erb
 <%= form_for @post do |f| %>
   <% if @post.errors.any? %>
-  <div id="errorExplanation">
+  <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
