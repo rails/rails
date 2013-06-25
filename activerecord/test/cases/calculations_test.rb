@@ -25,8 +25,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_average_field
-    value = Account.average(:credit_limit)
-    assert_equal 53.0, value
+    assert_equal 53.0, Account.average(:credit_limit)
   end
 
   def test_should_resolve_aliased_attributes
@@ -34,15 +33,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_return_decimal_average_of_integer_field
-    value = Account.average(:id)
-    assert_equal 3.5, value
+    assert_equal 3.5, Account.average(:id)
   end
 
   def test_should_return_integer_average_if_db_returns_such
     ShipPart.delete_all
     ShipPart.create!(:id => 3, :name => 'foo')
-    value = ShipPart.average(:id)
-    assert_equal 3, value
+    assert_equal 3, ShipPart.average(:id)
   end
 
   def test_should_return_nil_as_average
