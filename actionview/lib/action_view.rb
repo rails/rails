@@ -38,6 +38,7 @@ module ActionView
     autoload :RecordIdentifier
     autoload :RoutingUrlFor
     autoload :Template
+    autoload :ViewPaths
 
     autoload_under "renderer" do
       autoload :Renderer

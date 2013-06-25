@@ -16,6 +16,5 @@ module AbstractController
   autoload :Rendering
   autoload :Translation
   autoload :AssetPaths
-  autoload :ViewPaths
   autoload :UrlFor
 end
