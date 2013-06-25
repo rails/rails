@@ -1,3 +1,63 @@
+*   Add possibility to render partial from subfolder with inheritance.
+
+    Partial started with `/` will be found as absolute path. Allow to template inheritance to render partial inside subfolders. Partials with slash in path name can be found only from views root folder.
+
+
+    Before:
+
+    If path will be as `/controller_name/head/menu`, it can be found only in `#{Rails.root}/app/views/controller_name/head/_menu.html.erb`
+    Thus the code `render :partial => "/head/menu"`, obviously raise an exception:
+
+        Missing partial /head/menu with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
+        * "/path/to/project/app/views"
+
+    Meantime if partial path starts without any slashes (`render :partial => "menu"`), a partial status can be found in several pathes: `#{Rails.root}/app/views/controller_name/_menu.html` or `#{Rails.root}/app/views/controller_name/_menu.html`
+
+    And not possible to set inheritance partial in subfolder.
+
+    After:
+
+    When path is prepended with leading slash, it should be handled 'as is' and calculate from view_path root.
+
+        # For Admin::AccountsController < Admin::BaseController < ApplicationController
+
+        # in view
+        render '/users/account/sidebar' # renders app/views/users/account/_sidebar.html.erb
+
+        # in controller
+        def show
+          render '/something/custom_show' # renders app/views/something/custom_show.html.erb
+        end
+
+        # in controller
+        layout '/socials/facebook' # renders layout from app/views/layouts/socials/facebook.html.erb
+
+    When path is not prepended with leading slash, it should be handled with controller path_prefixes.
+
+        # For Admin::AccountsController < Admin::BaseController < ApplicationController
+
+        # in view
+        render 'users/account/sidebar'
+        # tries app/views/admin/accounts/users/account/_sidebar.html.erb
+        # then app/views/admin/base/users/account/_sidebar.html.erb
+        # then app/views/application/users/account/_sidebar.html.erb
+
+        # in controller
+        def show
+          render 'something/custom_show'
+          # tries app/views/admin/accounts/something/custom_show.html.erb
+          # then app/views/admin/base/something/custom_show.html.erb
+          # then app/views/application/something/custom_show.html.erb
+        end
+
+        # in controller
+        layout 'socials/facebook'
+        # tries layout app/views/layouts/admin/accounts/socials/facebook.html.erb
+        # then layout app/views/layouts/admin/base/socials/facebook.html.erb
+        # then layout app/views/layouts/application/socials/facebook.html.erb
+
+    *Alexey Osipenko*
+
 *   Always escape the result of `link_to_unless` method.
 
     Before:

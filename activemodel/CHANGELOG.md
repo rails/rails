@@ -1,3 +1,9 @@
+*   Add possibility to render partial from subfolder with inheritance.
+
+    Partial started with `/` will be found as absolute path. Allow to template inheritance to render partial inside subfolders. Partials with slash in path name can be found only from views root folder. To be sure that `to_partial_path` will return path prepended with leading slash. Thus behaviour of rendering model has been not changed.
+
+    *Alexey Osipenko*
+
 *   `inclusion` / `exclusion` validations with ranges will only use the faster
     `Range#cover` for numerical ranges, and the more accurate `Range#include?`
     for non-numerical ones.
