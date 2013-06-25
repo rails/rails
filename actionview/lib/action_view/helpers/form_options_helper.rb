@@ -653,7 +653,7 @@ module ActionView
       #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
-      #     has_and_belongs_to_many :author
+      #     has_and_belongs_to_many :authors
       #   end
       #   class Author < ActiveRecord::Base
       #     has_and_belongs_to_many :posts
