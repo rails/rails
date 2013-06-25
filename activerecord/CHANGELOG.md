@@ -1,3 +1,8 @@
+*   `ActiveRecord::Result.each` now returns an `Enumerator` when called without
+     a block, so that it can be chained with other `Enumerable` methods.
+
+    *Ben Woosley*
+
 *   Flatten merged join_values before building the joins.
 
     While joining_values special treatment is given to string values.
