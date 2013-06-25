@@ -767,11 +767,11 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/posts/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the params and the request object:
+You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|params, req| "/posts/#{params[:name].pluralize}" }
-get '/stories', to: redirect {|p, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect {|path_params, req| "/posts/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect {|path_params, req| "/posts/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
