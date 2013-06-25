@@ -347,7 +347,7 @@ module ActionView
       end
 
       if as = options[:as]
-        raise_invalid_identifier(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        raise_invalid_option_as(as) unless as.to_s =~ /\A[a-z_]\w*\z/
         as = as.to_sym
       end
 
@@ -482,11 +482,19 @@ module ActionView
     end
 
     IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
-                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "make sure your partial name starts with underscore, " +
+                               "and is followed by any combination of letters, numbers and underscores."
+
+    OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " +
+                               "make sure it starts with lowercase letter, " +
                                "and is followed by any combination of letters, numbers and underscores."
 
     def raise_invalid_identifier(path)
       raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path))
+    end
+
+    def raise_invalid_option_as(as)
+      raise ArgumentError.new(OPTION_AS_ERROR_MESSAGE % (as))
     end
   end
 end

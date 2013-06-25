@@ -1,3 +1,10 @@
+*   Updated IDENTIFIER_ERROR_MESSAGE and added raise_invalid_option_as 
+    for unvalid charter in the value of option as.
+    Before when you use unvalid partial name or unvalid as option value
+    the same exception message was raised.
+    
+    *Angelo Capilleri*
+
 *   Always escape the result of `link_to_unless` method.
 
     Before:
