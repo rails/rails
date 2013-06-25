@@ -50,10 +50,6 @@ module ActiveRecord
       register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
       register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
 
-      register_task(/firebird/,     ActiveRecord::Tasks::FirebirdDatabaseTasks)
-      register_task(/sqlserver/,    ActiveRecord::Tasks::SqlserverDatabaseTasks)
-      register_task(/(oci|oracle)/, ActiveRecord::Tasks::OracleDatabaseTasks)
-
       def current_config(options = {})
         options.reverse_merge! :env => env
         if options.has_key?(:config)
