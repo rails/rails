@@ -1,3 +1,8 @@
+*   Added an explicit error message, in `ActionView::PartialRenderer`
+    for partial `rendering`, when the value of option `as` has invalid charters.
+
+    *Angelo Capilleri*
+
 *   Always escape the result of `link_to_unless` method.
 
     Before:
