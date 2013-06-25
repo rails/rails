@@ -45,6 +45,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "empyt array are not evaluated as nil" do
+    assert_parses(
+          {"person" => [{"name" => "Angelo", "posts" =>[]}]} ,
+          "{\"person\":[{\"name\": \"Angelo\", \"posts\":[]}] }", { 'CONTENT_TYPE' => 'application/json' }
+        )
+  end
+
   test "logs error if parsing unsuccessful" do
     with_test_routing do
       output = StringIO.new
