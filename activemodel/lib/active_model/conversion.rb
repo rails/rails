@@ -73,7 +73,7 @@ module ActiveModel
     #   end
     #
     #   person = Person.new
-    #   person.to_partial_path # => "people/person"
+    #   person.to_partial_path # => "/people/person"
     def to_partial_path
       self.class._to_partial_path
     end

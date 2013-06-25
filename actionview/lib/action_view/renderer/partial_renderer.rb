@@ -22,8 +22,8 @@ module ActionView
   #     <%= render partial: "ad", locals: { ad: ad } %>
   #   <% end %>
   #
-  # This would first render "advertiser/_account.html.erb" with @buyer passed in as the local variable +account+, then
-  # render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display.
+  # This would first render "/advertiser/_account.html.erb" with @buyer passed in as the local variable +account+, then
+  # render "/advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display.
   #
   # == The :as and :object options
   #
@@ -55,14 +55,14 @@ module ActionView
   #
   #   <%= render partial: "ad", collection: @advertisements %>
   #
-  # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
+  # This will render "/advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
   # iteration counter will automatically be made available to the template with a name of the form
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
   #
   # The <tt>:as</tt> option may be used when rendering partials.
   #
   # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
-  # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
+  # The following example will render <tt>/advertiser/_ad_divider.html.erb</tt> between each ad partial:
   #
   #   <%= render partial: "ad", collection: @advertisements, spacer_template: "ad_divider" %>
   #
@@ -78,7 +78,7 @@ module ActionView
   #
   # Two controllers can share a set of partials and render them like this:
   #
-  #   <%= render partial: "advertisement/ad", locals: { ad: @advertisement } %>
+  #   <%= render partial: "/advertisement/ad", locals: { ad: @advertisement } %>
   #
   # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
@@ -87,13 +87,13 @@ module ActionView
   # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
   # and pick the proper path by checking `to_partial_path` method.
   #
-  #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
-  #  # <%= render partial: "accounts/account", locals: { account: @account} %>
+  #  # @account.to_partial_path returns '/accounts/account', so it can be used to replace:
+  #  # <%= render partial: "/accounts/account", locals: { account: @account} %>
   #  <%= render partial: @account %>
   #
   #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
   #  # that's why we can replace:
-  #  # <%= render partial: "posts/post", collection: @posts %>
+  #  # <%= render partial: "/posts/post", collection: @posts %>
   #  <%= render partial: @posts %>
   #
   # == Rendering the default case
@@ -107,13 +107,13 @@ module ActionView
   #  # Instead of <%= render partial: "account", locals: { account: @buyer } %>
   #  <%= render "account", account: @buyer %>
   #
-  #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
-  #  # <%= render partial: "accounts/account", locals: { account: @account} %>
+  #  # @account.to_partial_path returns '/accounts/account', so it can be used to replace:
+  #  # <%= render partial: "/accounts/account", locals: { account: @account} %>
   #  <%= render @account %>
   #
   #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
   #  # that's why we can replace:
-  #  # <%= render partial: "posts/post", collection: @posts %>
+  #  # <%= render partial: "/posts/post", collection: @posts %>
   #  <%= render @posts %>
   #
   # == Rendering partials with layouts
