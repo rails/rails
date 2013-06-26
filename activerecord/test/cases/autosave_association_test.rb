@@ -342,9 +342,9 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_association_is_not_overwitten_on_autosave
-    firm_1 = Firm.create!(name: 'Apple')
-    firm_2 = Firm.create!(name: 'Microsoft')
-    client = Client.create!(firm: firm_1, name: 'Business')
+    firm_1 = Firm.create!(:name => 'Apple')
+    firm_2 = Firm.create!(:name => 'Microsoft')
+    client = Client.create!(:firm => firm_1, :name => 'Business')
     assert_equal firm_1.id, client.client_of
 
     client.client_of = firm_2.id
