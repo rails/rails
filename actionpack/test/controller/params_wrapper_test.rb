@@ -155,8 +155,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
-    User.expects(:respond_to?).with(:attribute_names).returns(true)
-    User.expects(:attribute_names).twice.returns(["username"])
+    User.expects(:respond_to?).with(:attribute_method_names).returns(true)
+    User.expects(:attribute_method_names).twice.returns(["username"])
 
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -167,8 +167,8 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_derived_wrapped_keys_from_specified_model
     with_default_wrapper_options do
-      Person.expects(:respond_to?).with(:attribute_names).returns(true)
-      Person.expects(:attribute_names).twice.returns(["username"])
+      Person.expects(:respond_to?).with(:attribute_method_names).returns(true)
+      Person.expects(:attribute_method_names).twice.returns(["username"])
 
       UsersController.wrap_parameters Person
 
@@ -179,8 +179,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_not_wrapping_abstract_model
-    User.expects(:respond_to?).with(:attribute_names).returns(true)
-    User.expects(:attribute_names).returns([])
+    User.expects(:respond_to?).with(:attribute_method_names).returns(true)
+    User.expects(:attribute_method_names).returns([])
 
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -209,13 +209,13 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
   end
 
   class SampleOne
-    def self.attribute_names
+    def self.attribute_method_names
       ["username"]
     end
   end
 
   class SampleTwo
-    def self.attribute_names
+    def self.attribute_method_names
       ["title"]
     end
   end
@@ -298,7 +298,7 @@ class IrregularInflectionParamsWrapperTest < ActionController::TestCase
   include ParamsWrapperTestHelp
 
   class ParamswrappernewsItem
-    def self.attribute_names
+    def self.attribute_method_names
       ['test_attr']
     end
   end

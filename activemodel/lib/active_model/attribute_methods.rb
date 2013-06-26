@@ -72,9 +72,10 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
-      class_attribute :attribute_aliases, :attribute_method_matchers, instance_writer: false
+      class_attribute :attribute_aliases, :attribute_method_matchers, :defined_attribute_names, instance_writer: false
       self.attribute_aliases = {}
       self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
+      self.defined_attribute_names = []
     end
 
     module ClassMethods
@@ -276,6 +277,10 @@ module ActiveModel
       #   person.name        # => "Bob"
       #   person.name_short? # => true
       def define_attribute_method(attr_name)
+        attr_name = attr_name.to_s
+
+        self.defined_attribute_names << attr_name unless defined_attribute_names.include?(attr_name)
+
         attribute_method_matchers.each do |matcher|
           method_name = matcher.method_name(attr_name)
 
@@ -285,10 +290,11 @@ module ActiveModel
             if respond_to?(generate_method, true)
               send(generate_method, attr_name)
             else
-              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
+              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name
             end
           end
         end
+
         attribute_method_matchers_cache.clear
       end
 
@@ -320,6 +326,22 @@ module ActiveModel
           instance_methods.each { |m| undef_method(m) }
         end
         attribute_method_matchers_cache.clear
+      end
+
+      # Returns an array of attribute names and aliases as strings.
+      #
+      #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
+      #     define_attribute_method :name
+      #
+      #     alias_attribute :nickname, :name
+      #   end
+      #
+      #   Person.attribute_method_names
+      #   # => ["name", "nickname"]
+      def attribute_method_names
+        defined_attribute_names + attribute_aliases.keys
       end
 
       # Returns true if the attribute methods defined have been generated.

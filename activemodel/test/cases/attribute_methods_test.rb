@@ -186,6 +186,15 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal "value of end", ModelWithRubyKeywordNamedAttributes.new.to
   end
 
+  test '#attribute_method_names returns attribute names and attribute aliases' do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :foo
+      alias_attribute :bar, :foo
+    end
+
+    assert_equal ["foo", "bar"], klass.attribute_method_names
+  end
+
   test '#undefine_attribute_methods removes attribute methods' do
     ModelWithAttributes.define_attribute_methods(:foo)
     ModelWithAttributes.undefine_attribute_methods

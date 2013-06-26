@@ -23,4 +23,8 @@
 
     *Piotr Sarnacki*
 
+*   Add support for wrapping parameters matching aliased attribute names.
+
+    *Patrick Van Stee*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.
