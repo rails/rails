@@ -13,7 +13,6 @@ module AbstractController
   autoload :Helpers
   autoload :Layouts
   autoload :Logger
-  autoload :Rendering
   autoload :Translation
   autoload :AssetPaths
   autoload :UrlFor

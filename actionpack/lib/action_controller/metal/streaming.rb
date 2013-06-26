@@ -193,7 +193,7 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    include AbstractController::Rendering
+    include ActionView::Rendering
 
     protected
 
