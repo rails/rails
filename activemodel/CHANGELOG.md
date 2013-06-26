@@ -1,3 +1,14 @@
+## unreleased ##
+
+*   `inclusion` / `exclusion` validations with ranges will only use the faster
+    `Range#cover` for numerical ranges, and the more accurate `Range#include?`
+    for non-numerical ones.
+
+    Fixes range validations like `:a..:f` that used to pass with values like `:be`.
+    Fixes #10593
+
+    *Charles Bergeron*
+
 ## Rails 4.0.0 (June 25, 2013) ##
 
 *   Fix regression in has_secure_password. When a password is set, but a
