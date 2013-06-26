@@ -31,6 +31,10 @@ module ActiveRecord
         @state == :rolledback
       end
 
+      def complete?
+        committed? || rolledback?
+      end
+
       def set_state(state)
         if !VALID_STATES.include?(state)
           raise ArgumentError, "Invalid transaction state: #{state}"
@@ -143,6 +147,7 @@ module ActiveRecord
             record.committed!
           rescue => e
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
+            raise
           end
         end
       end

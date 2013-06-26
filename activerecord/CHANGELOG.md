@@ -329,6 +329,10 @@
 
     *Vipul A M*
 
+*   Exceptions from `after_commit` callbacks are no longer rescued
+
+    *Vipul A M*
+
 *   `change_column` for PostgreSQL adapter respects the `:array` option.
 
     *Yves Senn*
