@@ -301,6 +301,20 @@ task default: :test
         @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
+      def author
+        @author ||= begin
+          git_user_name = `git config user.name`.chomp rescue ''
+          git_user_name.empty? ? "TODO: Write your name" : git_user_name
+        end
+      end
+
+      def email
+        @email ||= begin
+          git_user_email = `git config user.email`.chomp rescue ''
+          git_user_email.empty? ? "TODO: Write your email address" : git_user_email
+        end
+      end
+
       def valid_const?
         if original_name =~ /[^0-9a-zA-Z_]+/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which use only alphabetic or numeric or \"_\" characters."
