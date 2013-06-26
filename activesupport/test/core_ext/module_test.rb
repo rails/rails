@@ -207,7 +207,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_without_allow_nil_and_nil_value
     david = Someone.new("David")
-    assert_raise(RuntimeError) { david.street }
+    assert_raise(DelegationError) { david.street }
   end
 
   def test_delegation_to_method_that_exists_on_nil
