@@ -1,5 +1,7 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   class Name
