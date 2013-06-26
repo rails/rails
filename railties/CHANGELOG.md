@@ -1,3 +1,9 @@
+*   Removed deprecated rake tasks. You will no longer be able to use the following
+    commands: `rake test:uncommitted` and `rake test:recent`. Also removed are
+    the tests for these rake tasks.
+
+    *John Wang*
+
 *   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
 
     *Xavier Noria*
