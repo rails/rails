@@ -5,6 +5,11 @@
 
     *Janko Marohnić*
 
+*   Fix a bug that prevented the use of the default STI inheritance column
+    (ActiveRecord::Base.inheritance_column = 'some_column'.)
+
+    *chapmajs + Takehiro Adachi*
+
 *   Fix mysql2 adapter raises the correct exception when executing a query on a
     closed connection.
 

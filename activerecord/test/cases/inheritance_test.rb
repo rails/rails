@@ -290,3 +290,26 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = true
   end
 end
+
+
+class GlobalInheritanceColumnTest < ActiveRecord::TestCase
+  fixtures :companies
+
+  setup do
+    @inheritance_column = ActiveRecord::Base.inheritance_column
+  end
+
+  teardown do
+    ActiveRecord::Base.inheritance_column = @inheritance_column
+  end
+
+  def test_changing_global_inheritance_column
+    ActiveRecord::Base.inheritance_column = 'ruby_type'
+
+    firm = Firm.create('name' => 'FirmWithAltInheritanceColumn')
+    assert_equal 'Firm', firm.ruby_type
+
+    assert_equal 'ruby_type', Company.inheritance_column
+    assert_equal 'ruby_type', Firm.inheritance_column
+  end
+end
