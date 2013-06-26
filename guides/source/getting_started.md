@@ -252,8 +252,8 @@ Now that you've seen how to create a controller, an action and a view, let's cre
 
 In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-Rails provides a `resources` method which can be used to declare a
-standard REST resource. Here's how `config/routes.rb` will look like.
+Rails provides a `resources` method which can be used to declare a standard REST resource.
+Here's what `config/routes.rb` should look like after the _post resource_ is declared.
 
 ```ruby
 Blog::Application.routes.draw do
