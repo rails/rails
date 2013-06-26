@@ -14,6 +14,7 @@ class InclusionValidationTest < ActiveModel::TestCase
     Topic.validates_inclusion_of(:title, in: 'aaa'..'bbb')
     assert Topic.new("title" => "bbc", "content" => "abc").invalid?
     assert Topic.new("title" => "aa", "content" => "abc").invalid?
+    assert Topic.new("title" => "aaab", "content" => "abc").invalid?
     assert Topic.new("title" => "aaa", "content" => "abc").valid?
     assert Topic.new("title" => "abc", "content" => "abc").valid?
     assert Topic.new("title" => "bbb", "content" => "abc").valid?
