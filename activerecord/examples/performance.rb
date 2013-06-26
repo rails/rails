@@ -98,7 +98,7 @@ Benchmark.ips(TIME) do |x|
   exhibit      = {
     name: ActiveRecord::Faker.name,
     notes: notes,
-    :created_at: Date.today
+    created_at: Date.today
   }
 
   x.report("Model#id") do
