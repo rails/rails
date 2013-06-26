@@ -30,7 +30,7 @@
 
     Fixes #10620.
 
-    *Aaron Peterson*
+    *Aaron Patterson*
 
 *   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
@@ -2121,7 +2121,7 @@
 *   The primary key is always initialized in the @attributes hash to `nil` (unless
     another value has been specified).
 
-    *Aaron Paterson*
+    *Aaron Patterson*
 
 *   In previous releases, the following would generate a single query with
     an `OUTER JOIN comments`, rather than two separate queries:
