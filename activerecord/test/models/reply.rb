@@ -1,14 +1,13 @@
 require 'models/topic'
 
 class Reply < Topic
-  scope :base, -> { scoped }
-
   belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
   belongs_to :topic_with_primary_key, :class_name => "Topic", :primary_key => "title", :foreign_key => "parent_title", :counter_cache => "replies_count"
   has_many :replies, :class_name => "SillyReply", :dependent => :destroy, :foreign_key => "parent_id"
 end
 
 class UniqueReply < Reply
+  belongs_to :topic, :foreign_key => 'parent_id', :counter_cache => true
   validates_uniqueness_of :content, :scope => 'parent_id'
 end
 

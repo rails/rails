@@ -6,9 +6,9 @@ gem 'sqlite3', '~> 1.3.6'
 require 'sqlite3'
 
 module ActiveRecord
-  module ConnectionHandling
+  module ConnectionHandling # :nodoc:
     # sqlite3 adapter reuses sqlite_connection.
-    def sqlite3_connection(config) # :nodoc:
+    def sqlite3_connection(config)
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -26,7 +26,7 @@ module ActiveRecord
         :results_as_hash => true
       )
 
-      db.busy_timeout(config[:timeout]) if config[:timeout]
+      db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     end
@@ -107,13 +107,13 @@ module ActiveRecord
 
         @active     = nil
         @statements = StatementPool.new(@connection,
-                                        config.fetch(:statement_limit) { 1000 })
+                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
-        if config.fetch(:prepared_statements) { true }
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @visitor = Arel::Visitors::SQLite.new self
         else
-          @visitor = BindSubstitution.new self
+          @visitor = unprepared_visitor
         end
       end
 
@@ -187,6 +187,13 @@ module ActiveRecord
         true
       end
 
+      # Returns 62. SQLite supports index names up to 64
+      # characters. The rest is used by rails internally to perform
+      # temporary rename operations
+      def allowed_index_name_length
+        index_name_length - 2
+      end
+
       def native_database_types #:nodoc:
         {
           :primary_key => default_primary_key_type,
@@ -227,6 +234,10 @@ module ActiveRecord
 
       def quote_string(s) #:nodoc:
         @connection.class.quote(s)
+      end
+
+      def quote_table_name_for_assignment(table, attr)
+        quote_column_name(attr)
       end
 
       def quote_column_name(name) #:nodoc:
@@ -424,8 +435,9 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(name, new_name)
-        exec_query "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+      def rename_table(table_name, new_name)
+        exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
+        rename_table_indexes(table_name, new_name)
       end
 
       # See: http://www.sqlite.org/lang_altertable.html
@@ -444,15 +456,11 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, *column_names) #:nodoc:
-        raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.empty?
-        column_names.each do |column_name|
-          alter_table(table_name) do |definition|
-            definition.columns.delete(definition[column_name])
-          end
+      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+        alter_table(table_name) do |definition|
+          definition.remove_column column_name
         end
       end
-      alias :remove_columns :remove_column
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         alter_table(table_name) do |definition|
@@ -488,6 +496,7 @@ module ActiveRecord
           raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
         end
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
+        rename_column_indexes(table_name, column_name, new_column_name)
       end
 
       protected
@@ -502,7 +511,7 @@ module ActiveRecord
         end
 
         def alter_table(table_name, options = {}) #:nodoc:
-          altered_table_name = "altered_#{table_name}"
+          altered_table_name = "a#{table_name}"
           caller = lambda {|definition| yield definition if block_given?}
 
           transaction do
@@ -537,7 +546,6 @@ module ActiveRecord
             end
             yield @definition if block_given?
           end
-
           copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
             @definition.columns.map {|column| column.name},
@@ -547,10 +555,10 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {}) #:nodoc:
           indexes(from).each do |index|
             name = index.name
-            if to == "altered_#{from}"
-              name = "temp_#{name}"
-            elsif from == "altered_#{to}"
-              name = name[5..-1]
+            if to == "a#{from}"
+              name = "t#{name}"
+            elsif from == "a#{to}"
+              name = name[1..-1]
             end
 
             to_column_names = columns(to).map { |c| c.name }
@@ -560,7 +568,7 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
+              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
               add_index(to, columns, opts)
             end
@@ -575,9 +583,17 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
           quoted_to = quote_table_name(to)
+
+          raw_column_mappings = Hash[columns(from).map { |c| [c.name, c] }]
+
           exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
             sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
-            sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
+
+            column_values = columns.map do |col|
+              quote(row[column_mappings[col]], raw_column_mappings[col])
+            end
+
+            sql << column_values * ', '
             sql << ')'
             exec_query sql
           end
@@ -603,7 +619,6 @@ module ActiveRecord
             super
           end
         end
-
     end
   end
 end

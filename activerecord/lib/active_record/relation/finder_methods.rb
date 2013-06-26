@@ -11,9 +11,11 @@ module ActiveRecord
     #   Person.find([1])     # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # Note that returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. Give an explicit <tt>order</tt>
-    # to ensure the results are sorted.
+    # <tt>ActiveRecord::RecordNotFound</tt> will be raised if one or more ids are not found.
+    #
+    # NOTE: The returned records may not be in the same order as the ids you
+    # provide since database rows are unordered. You'd need to provide an explicit <tt>order</tt>
+    # option if you want the results are sorted.
     #
     # ==== Find with lock
     #
@@ -28,6 +30,34 @@ module ActiveRecord
     #     person.visits += 1
     #     person.save!
     #   end
+    #
+    # ==== Variations of +find+
+    # 
+    #   Person.where(name: 'Spartacus', rating: 4)
+    #   # returns a chainable list (which can be empty).
+    #
+    #   Person.find_by(name: 'Spartacus', rating: 4)
+    #   # returns the first item or nil.
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).first_or_initialize
+    #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).first_or_create
+    #   # returns the first item or creates it and returns it, available since Rails 3.2.1.
+    #
+    # ==== Alternatives for +find+
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
+    #   # returns a boolean indicating if any record with the given conditions exist.
+    #   
+    #   Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
+    #   # returns a chainable list of instances with only the mentioned fields.
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).ids
+    #   # returns an Array of ids, available since Rails 3.2.1.
+    #
+    #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
+    #   # returns an Array of the required fields, available since Rails 3.1.
     def find(*args)
       if block_given?
         to_a.find { |*block_args| yield(*block_args) }
@@ -37,7 +67,7 @@ module ActiveRecord
     end
 
     # Finds the first record matching the specified conditions. There
-    # is no implied ording so if order matters, you should specify it
+    # is no implied ordering so if order matters, you should specify it
     # yourself.
     #
     # If no record is found, returns <tt>nil</tt>.
@@ -58,7 +88,7 @@ module ActiveRecord
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.
     #
-    #   Person.take # returns an object fetched by SELECT * FROM people
+    #   Person.take # returns an object fetched by SELECT * FROM people LIMIT 1
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
     #   Person.where(["name LIKE '%?'", name]).take
     def take(limit = nil)
@@ -79,13 +109,22 @@ module ActiveRecord
     #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
+    #
+    # ==== Rails 3
+    #
+    #   Person.first # SELECT "people".* FROM "people" LIMIT 1
+    #
+    # NOTE: Rails 3 may not order this query by the primary key and the order
+    # will depend on the database implementation. In order to ensure that behavior,
+    # use <tt>User.order(:id).first</tt> instead.
+    #
+    # ==== Rails 4
+    #
+    #   Person.first # SELECT "people".* FROM "people" ORDER BY "people"."id" ASC LIMIT 1
+    #
     def first(limit = nil)
       if limit
-        if order_values.empty? && primary_key
-          order(arel_table[primary_key].asc).limit(limit).to_a
-        else
-          limit(limit).to_a
-        end
+        find_first_with_limit(order_values, limit)
       else
         find_first
       end
@@ -130,8 +169,8 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Returns +true+ if a record exists in the table that matches the +id+ or
-    # conditions given, or +false+ otherwise. The argument can take six forms:
+    # Returns truthy if a record exists in the table that matches the +id+ or
+    # conditions given, or falsy otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
@@ -160,8 +199,9 @@ module ActiveRecord
       conditions = conditions.id if Base === conditions
       return false if !conditions
 
-      join_dependency = construct_join_dependency_for_association_find
-      relation = construct_relation_for_association_find(join_dependency)
+      relation = construct_relation_for_association_find(construct_join_dependency)
+      return false if ActiveRecord::NullRelation === relation
+
       relation = relation.except(:select, :order).select("1 AS one").limit(1)
 
       case conditions
@@ -171,66 +211,82 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
-      connection.select_value(relation, "#{name} Exists", relation.bind_values)
-    rescue ThrowResult
-      false
+      relation = relation.with_default_scope
+      connection.select_value(relation.arel, "#{name} Exists", relation.bind_values)
+    end
+
+    # This method is called whenever no records are found with either a single
+    # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
+    #
+    # The error message is different depending on whether a single id or
+    # multiple ids are provided. If multiple ids are provided, then the number
+    # of results obtained should be provided in the +result_size+ argument and
+    # the expected number of results should be provided in the +expected_size+
+    # argument.
+    def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
+      conditions = arel.where_sql
+      conditions = " [#{conditions}]" if conditions
+
+      if Array(ids).size == 1
+        error = "Couldn't find #{@klass.name} with #{primary_key}=#{ids}#{conditions}"
+      else
+        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
+        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
+      end
+
+      raise RecordNotFound, error
     end
 
     protected
 
     def find_with_associations
-      join_dependency = construct_join_dependency_for_association_find
+      join_dependency = construct_join_dependency
       relation = construct_relation_for_association_find(join_dependency)
-      rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
-      join_dependency.instantiate(rows)
-    rescue ThrowResult
-      []
+      if ActiveRecord::NullRelation === relation
+        []
+      else
+        rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
+        join_dependency.instantiate(rows)
+      end
     end
 
-    def construct_join_dependency_for_association_find
+    def construct_join_dependency(joins = [])
       including = (eager_load_values + includes_values).uniq
-      ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
+      ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
     end
 
     def construct_relation_for_association_calculations
-      including = (eager_load_values + includes_values).uniq
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
-      relation = except(:includes, :eager_load, :preload)
-      apply_join_dependency(relation, join_dependency)
+      apply_join_dependency(self, construct_join_dependency(arel.froms.first))
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns)
+      relation = except(:select).select(join_dependency.columns)
       apply_join_dependency(relation, join_dependency)
     end
 
     def apply_join_dependency(relation, join_dependency)
-      join_dependency.join_associations.each do |association|
-        relation = association.join_relation(relation)
+      relation = relation.except(:includes, :eager_load, :preload)
+      relation = join_dependency.join_relation(relation)
+
+      if using_limitable_reflections?(join_dependency.reflections)
+        relation
+      else
+        if relation.limit_value
+          limited_ids = limited_ids_for(relation)
+          limited_ids.empty? ? relation.none! : relation.where!(table[primary_key].in(limited_ids))
+        end
+        relation.except(:limit, :offset)
       end
-
-      limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
-
-      if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
-        relation = relation.where(limited_id_condition)
-      end
-
-      relation = relation.except(:limit, :offset) unless limitable_reflections
-
-      relation
     end
 
-    def construct_limited_ids_condition(relation)
-      orders = relation.order_values.map { |val| val.presence }.compact
-      values = @klass.connection.distinct("#{quoted_table_name}.#{primary_key}", orders)
+    def limited_ids_for(relation)
+      values = @klass.connection.columns_for_distinct(
+        "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
-      relation = relation.dup.select(values)
+      relation = relation.except(:select).select(values).distinct!
 
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
-      ids_array = id_rows.map {|row| row[primary_key]}
-
-      ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
+      id_rows.map {|row| row[primary_key]}
     end
 
     def find_with_ids(*ids)
@@ -259,11 +315,7 @@ module ActiveRecord
       relation.bind_values += [[column, id]]
       record = relation.take
 
-      unless record
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{primary_key}=#{id}#{conditions}"
-      end
+      raise_record_not_found_exception!(id, 0, 1) unless record
 
       record
     end
@@ -286,12 +338,7 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-
-        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
-        raise RecordNotFound, error
+        raise_record_not_found_exception!(ids, result.size, expected_size)
       end
     end
 
@@ -307,12 +354,15 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||=
-          if with_default_scope.order_values.empty? && primary_key
-            order(arel_table[primary_key].asc).limit(1).to_a.first
-          else
-            limit(1).to_a.first
-          end
+        @first ||= find_first_with_limit(with_default_scope.order_values, 1).first
+      end
+    end
+
+    def find_first_with_limit(order_values, limit)
+      if order_values.empty? && primary_key
+        order(arel_table[primary_key].asc).limit(limit).to_a
+      else
+        limit(limit).to_a
       end
     end
 

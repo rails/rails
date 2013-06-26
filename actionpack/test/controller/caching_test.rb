@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'abstract_unit'
-require 'active_record_unit'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -293,6 +292,24 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     assert_nothing_raised do
       cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
     end
+  end
+end
+
+class ViewCacheDependencyTest < ActionController::TestCase
+  class NoDependenciesController < ActionController::Base
+  end
+
+  class HasDependenciesController < ActionController::Base
+    view_cache_dependency { "trombone" }
+    view_cache_dependency { "flute" }
+  end
+
+  def test_view_cache_dependencies_are_empty_by_default
+    assert NoDependenciesController.new.view_cache_dependencies.empty?
+  end
+
+  def test_view_cache_dependencies_are_listed_in_declaration_order
+    assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
   end
 end
 

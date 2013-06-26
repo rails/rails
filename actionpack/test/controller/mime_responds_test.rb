@@ -80,6 +80,13 @@ class RespondToController < ActionController::Base
     respond_to(:html, :xml)
   end
 
+  def using_defaults_with_all
+    respond_to do |type|
+      type.html
+      type.all{ render text: "ALL" }
+    end
+  end
+
   def made_for_content_type
     respond_to do |type|
       type.rss  { render :text => "RSS"  }
@@ -299,6 +306,20 @@ class RespondToControllerTest < ActionController::TestCase
     get :using_defaults
     assert_equal "application/xml", @response.content_type
     assert_equal "<p>Hello world!</p>\n", @response.body
+  end
+
+  def test_using_defaults_with_all
+    @request.accept = "*/*"
+    get :using_defaults_with_all
+    assert_equal "HTML!", @response.body.strip
+
+    @request.accept = "text/html"
+    get :using_defaults_with_all
+    assert_equal "HTML!", @response.body.strip
+
+    @request.accept = "application/json"
+    get :using_defaults_with_all
+    assert_equal "ALL", @response.body
   end
 
   def test_using_defaults_with_type_list

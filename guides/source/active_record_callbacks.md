@@ -150,16 +150,16 @@ The following methods trigger callbacks:
 * `create!`
 * `decrement!`
 * `destroy`
+* `destroy!`
 * `destroy_all`
 * `increment!`
 * `save`
 * `save!`
 * `save(validate: false)`
 * `toggle!`
-* `update`
 * `update_attribute`
-* `update_attributes`
-* `update_attributes!`
+* `update`
+* `update!`
 * `valid?`
 
 Additionally, the `after_find` callback is triggered by the following finder methods:
@@ -167,7 +167,6 @@ Additionally, the `after_find` callback is triggered by the following finder met
 * `all`
 * `first`
 * `find`
-* `find_all_by_*`
 * `find_by_*`
 * `find_by_*!`
 * `find_by_sql`
@@ -175,7 +174,7 @@ Additionally, the `after_find` callback is triggered by the following finder met
 
 The `after_initialize` callback is triggered every time a new object of the class is initialized.
 
-NOTE: The `find_all_by_*`, `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them at the [Dynamic finders section](active_record_querying.html#dynamic-finders)
+NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them at the [Dynamic finders section](active_record_querying.html#dynamic-finders)
 
 Skipping Callbacks
 ------------------
@@ -343,19 +342,17 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ActiveRecord::Base
-  attr_accessor :delete_file
+  after_commit :delete_picture_file_from_disk, :on => [:destroy]
 
-  after_destroy do |picture_file|
-    picture_file.delete_file = picture_file.filepath
-  end
-
-  after_commit do |picture_file|
-    if picture_file.delete_file && File.exist?(picture_file.delete_file)
-      File.delete(picture_file.delete_file)
-      picture_file.delete_file = nil
+  def delete_picture_file_from_disk
+    if File.exist?(filepath)
+      File.delete(filepath)
     end
   end
 end
 ```
+
+NOTE: the `:on` option specifies when a callback will be fired. If you
+don't supply the `:on` option the callback will fire for every action.
 
 The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.

@@ -36,7 +36,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   end
 
   test "should update <%= singular_table_name %>" do
-    put :update, id: <%= "@#{singular_table_name}" %>, <%= "#{singular_table_name}: { #{attributes_hash} }" %>
+    patch :update, id: <%= "@#{singular_table_name}" %>, <%= "#{singular_table_name}: { #{attributes_hash} }" %>
     assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
   end
 

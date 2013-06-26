@@ -10,9 +10,9 @@ module ActiveRecord
   #
   #   config.active_record.record_timestamps = false
   #
-  # Timestamps are in the local timezone by default but you can use UTC by setting:
+  # Timestamps are in UTC by default but you can use the local timezone by setting:
   #
-  #   config.active_record.default_timezone = :utc
+  #   config.active_record.default_timezone = :local
   #
   # == Time Zone aware attributes
   #
@@ -43,7 +43,7 @@ module ActiveRecord
 
   private
 
-    def create
+    def create_record
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
@@ -57,7 +57,7 @@ module ActiveRecord
       super
     end
 
-    def update(*args)
+    def update_record(*args)
       if should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -96,6 +96,12 @@ module ActiveRecord
 
     def all_timestamp_attributes
       timestamp_attributes_for_create + timestamp_attributes_for_update
+    end
+
+    def max_updated_column_timestamp
+      if (timestamps = timestamp_attributes_for_update.map { |attr| self[attr] }.compact).present?
+        timestamps.map { |ts| ts.to_time }.max
+      end
     end
 
     def current_time_from_proper_timezone

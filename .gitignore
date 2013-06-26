@@ -1,13 +1,12 @@
 # Don't put *.swp, *.bak, etc here; those belong in a global ~/.gitignore.
-# Check out http://help.github.com/ignore-files/ for how to set that up.
+# Check out https://help.github.com/articles/ignoring-files for how to set that up.
 
 debug.log
 .Gemfile
 /.bundle
-/.rbenv-version
-/.rvmrc
+/.ruby-version
 /Gemfile.lock
-/pkg
+pkg
 /dist
 /doc/rdoc
 /*/doc
@@ -21,4 +20,3 @@ debug.log
 /railties/doc
 /railties/tmp
 /guides/output
-/RDOC_MAIN.rdoc

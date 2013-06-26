@@ -83,7 +83,7 @@ module ActiveRecord
   #
   # In that case, <tt>Reply#destroy</tt> would only run +destroy_readers+ and _not_ +destroy_author+.
   # So, use the callback macros when you want to ensure that a certain callback is called for the entire
-  # hierarchy, and use the regular overwriteable methods when you want to leave it up to each descendant
+  # hierarchy, and use the regular overwritable methods when you want to leave it up to each descendant
   # to decide whether they want to call +super+ and trigger the inherited callbacks.
   #
   # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the
@@ -299,11 +299,11 @@ module ActiveRecord
       run_callbacks(:save) { super }
     end
 
-    def create #:nodoc:
+    def create_record #:nodoc:
       run_callbacks(:create) { super }
     end
 
-    def update(*) #:nodoc:
+    def update_record(*) #:nodoc:
       run_callbacks(:update) { super }
     end
   end

@@ -44,7 +44,7 @@ module Rails
 
         find_cmd_and_exec(['mysql', 'mysql5'], *args)
 
-      when "postgresql", "postgres"
+      when "postgresql", "postgres", "postgis"
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
@@ -136,10 +136,18 @@ module Rails
 
       if arguments.first && arguments.first[0] != '-'
         env = arguments.first
-        options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        if available_environments.include? env
+          options[:environment] = env
+        else
+          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+        end
       end
 
       options
+    end
+
+    def available_environments
+      Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
     end
 
     def find_cmd_and_exec(commands, *args)

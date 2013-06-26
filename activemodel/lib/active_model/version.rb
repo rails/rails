@@ -1,10 +1,11 @@
 module ActiveModel
-  module VERSION #:nodoc:
-    MAJOR = 4
-    MINOR = 0
-    TINY  = 0
-    PRE   = "beta"
+  # Returns the version of the currently loaded ActiveModel as a Gem::Version
+  def self.version
+    Gem::Version.new "4.1.0.beta"
+  end
 
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+  module VERSION #:nodoc:
+    MAJOR, MINOR, TINY, PRE = ActiveModel.version.segments
+    STRING = ActiveModel.version.to_s
   end
 end

@@ -13,7 +13,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   def test_no_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.new(:author_name => "Plutarch")
+    t = Topic.new(author_name: "Plutarch")
     assert t.valid?
 
     t.title_confirmation = "Parallel Lives"
@@ -57,8 +57,8 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations('en', {
-      :errors => {:messages => {:confirmation => "doesn't match %{attribute}"}},
-      :activemodel => {:attributes => {:topic => {:title => 'Test Title'}}}
+      errors: { messages: { confirmation: "doesn't match %{attribute}" } },
+      activemodel: { attributes: { topic: { title: 'Test Title'} } }
     })
 
     Topic.validates_confirmation_of(:title)
@@ -71,4 +71,35 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     I18n.backend = @old_backend
   end
 
+  test "does not override confirmation reader if present" do
+    klass = Class.new do
+      include ActiveModel::Validations
+
+      def title_confirmation
+        "expected title"
+      end
+
+      validates_confirmation_of :title
+    end
+
+    assert_equal "expected title", klass.new.title_confirmation,
+     "confirmation validation should not override the reader"
+  end
+
+  test "does not override confirmation writer if present" do
+    klass = Class.new do
+      include ActiveModel::Validations
+
+      def title_confirmation=(value)
+        @title_confirmation = "expected title"
+      end
+
+      validates_confirmation_of :title
+    end
+
+    model = klass.new
+    model.title_confirmation = "new title"
+    assert_equal "expected title", model.title_confirmation,
+     "confirmation validation should not override the writer"
+  end
 end

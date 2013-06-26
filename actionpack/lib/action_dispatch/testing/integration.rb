@@ -3,7 +3,7 @@ require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
-require 'minitest/unit'
+require 'minitest'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -17,7 +17,7 @@ module ActionDispatch
       #   a Hash, or a String that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or
       #   <tt>multipart/form-data</tt>).
-      # - +headers+: Additional headers to pass, as a Hash. The headers will be
+      # - +headers_or_env+: Additional headers to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
       #
       # This method returns a Response object, which one can use to
@@ -28,44 +28,38 @@ module ActionDispatch
       #
       # You can also perform POST, PATCH, PUT, DELETE, and HEAD requests with
       # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
-      def get(path, parameters = nil, headers = nil)
-        process :get, path, parameters, headers
+      def get(path, parameters = nil, headers_or_env = nil)
+        process :get, path, parameters, headers_or_env
       end
 
       # Performs a POST request with the given parameters. See +#get+ for more
       # details.
-      def post(path, parameters = nil, headers = nil)
-        process :post, path, parameters, headers
+      def post(path, parameters = nil, headers_or_env = nil)
+        process :post, path, parameters, headers_or_env
       end
 
       # Performs a PATCH request with the given parameters. See +#get+ for more
       # details.
-      def patch(path, parameters = nil, headers = nil)
-        process :patch, path, parameters, headers
+      def patch(path, parameters = nil, headers_or_env = nil)
+        process :patch, path, parameters, headers_or_env
       end
 
       # Performs a PUT request with the given parameters. See +#get+ for more
       # details.
-      def put(path, parameters = nil, headers = nil)
-        process :put, path, parameters, headers
+      def put(path, parameters = nil, headers_or_env = nil)
+        process :put, path, parameters, headers_or_env
       end
 
       # Performs a DELETE request with the given parameters. See +#get+ for
       # more details.
-      def delete(path, parameters = nil, headers = nil)
-        process :delete, path, parameters, headers
+      def delete(path, parameters = nil, headers_or_env = nil)
+        process :delete, path, parameters, headers_or_env
       end
 
       # Performs a HEAD request with the given parameters. See +#get+ for more
       # details.
-      def head(path, parameters = nil, headers = nil)
-        process :head, path, parameters, headers
-      end
-
-      # Performs a OPTIONS request with the given parameters. See +#get+ for
-      # more details.
-      def options(path, parameters = nil, headers = nil)
-        process :options, path, parameters, headers
+      def head(path, parameters = nil, headers_or_env = nil)
+        process :head, path, parameters, headers_or_env
       end
 
       # Performs an XMLHttpRequest request with the given parameters, mirroring
@@ -74,11 +68,11 @@ module ActionDispatch
       # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
       # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
       # string; the headers are a hash.
-      def xml_http_request(request_method, path, parameters = nil, headers = nil)
-        headers ||= {}
-        headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-        process(request_method, path, parameters, headers)
+      def xml_http_request(request_method, path, parameters = nil, headers_or_env = nil)
+        headers_or_env ||= {}
+        headers_or_env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        headers_or_env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        process(request_method, path, parameters, headers_or_env)
       end
       alias xhr :xml_http_request
 
@@ -95,40 +89,40 @@ module ActionDispatch
       # redirect. Note that the redirects are followed until the response is
       # not a redirect--this means you may run into an infinite loop if your
       # redirect loops back to itself.
-      def request_via_redirect(http_method, path, parameters = nil, headers = nil)
-        process(http_method, path, parameters, headers)
+      def request_via_redirect(http_method, path, parameters = nil, headers_or_env = nil)
+        process(http_method, path, parameters, headers_or_env)
         follow_redirect! while redirect?
         status
       end
 
       # Performs a GET request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def get_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:get, path, parameters, headers)
+      def get_via_redirect(path, parameters = nil, headers_or_env = nil)
+        request_via_redirect(:get, path, parameters, headers_or_env)
       end
 
       # Performs a POST request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def post_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:post, path, parameters, headers)
+      def post_via_redirect(path, parameters = nil, headers_or_env = nil)
+        request_via_redirect(:post, path, parameters, headers_or_env)
       end
 
       # Performs a PATCH request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def patch_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:patch, path, parameters, headers)
+      def patch_via_redirect(path, parameters = nil, headers_or_env = nil)
+        request_via_redirect(:patch, path, parameters, headers_or_env)
       end
 
       # Performs a PUT request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def put_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:put, path, parameters, headers)
+      def put_via_redirect(path, parameters = nil, headers_or_env = nil)
+        request_via_redirect(:put, path, parameters, headers_or_env)
       end
 
       # Performs a DELETE request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def delete_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:delete, path, parameters, headers)
+      def delete_via_redirect(path, parameters = nil, headers_or_env = nil)
+        request_via_redirect(:delete, path, parameters, headers_or_env)
       end
     end
 
@@ -268,12 +262,11 @@ module ActionDispatch
         end
 
         # Performs the actual request.
-        def process(method, path, parameters = nil, rack_env = nil)
-          rack_env ||= {}
+        def process(method, path, parameters = nil, headers_or_env = nil)
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
-            host! location.host if location.host
+            host! "#{location.host}:#{location.port}" if location.host
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
@@ -300,10 +293,12 @@ module ActionDispatch
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
           }
+          # this modifies the passed env directly
+          Http::Headers.new(env).merge!(headers_or_env || {})
 
           session = Rack::Test::Session.new(_mock_session)
 
-          env.merge!(rack_env)
+          env.merge!(env)
 
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
@@ -341,7 +336,7 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
-      %w(get post patch put head delete options cookies assigns
+      %w(get post patch put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session
@@ -490,9 +485,6 @@ module ActionDispatch
     include Integration::Runner
     include ActionController::TemplateAssertions
     include ActionDispatch::Routing::UrlFor
-
-    # Use AD::IntegrationTest for acceptance tests
-    register_spec_type(/(Acceptance|Integration) ?Test\z/i, self)
 
     @@app = nil
 

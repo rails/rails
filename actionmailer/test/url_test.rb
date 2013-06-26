@@ -41,16 +41,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
   end
 
   def setup
-    set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
-    ActiveSupport::Deprecation.silenced = false
-
     @recipient = 'test@localhost'
-  end
-
-  def teardown
-    restore_delivery_method
   end
 
   def test_signed_up_with_url

@@ -73,6 +73,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_with_order
+    authors = Author.includes(:favorite_authors).to_a
+    assert_no_queries { authors.map(&:favorite_authors) }
+  end
+
   def test_with_two_tables_in_from_without_getting_double_quoted
     posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
@@ -93,31 +98,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.all.merge!(:includes=>:comments).to_a
     assert_equal 11, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.all.merge!(:includes=>:comments).to_a
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.all.merge!(:includes=>:categories).to_a
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.all.merge!(:includes=>:categories).to_a
     assert_equal 11, posts.size
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
-    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
 
     post = posts(:welcome)
     assert_queries(2) do
@@ -126,7 +131,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_several_queries_when_many_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(1)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(1)
 
     post1, post2 = posts(:welcome), posts(:thinking)
     assert_queries(3) do
@@ -135,7 +140,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(3)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(3)
 
     post = posts(:welcome)
     assert_queries(2) do
@@ -188,7 +193,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_finding_with_includes_on_has_one_assocation_with_same_include_includes_only_once
+  def test_finding_with_includes_on_has_one_association_with_same_include_includes_only_once
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
@@ -212,8 +217,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_finding_with_includes_on_null_belongs_to_association_with_same_include_includes_only_once
     post = posts(:welcome)
-    post.update_attributes!(:author => nil)
-    post = assert_queries(1) { Post.all.merge!(:includes => {:author_with_address => :author_address}).find(post.id) } # find the post, then find the author which is null so no query for the author or address
+    post.update!(author: nil)
+    post = assert_queries(1) { Post.all.merge!(includes: {author_with_address: :author_address}).find(post.id) }
+    # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_equal nil, post.author_with_address
     end
@@ -221,7 +227,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_finding_with_includes_on_null_belongs_to_polymorphic_association
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
-    sponsor.update_attributes!(:sponsorable => nil)
+    sponsor.update!(sponsorable: nil)
     sponsor = assert_queries(1) { Sponsor.all.merge!(:includes => :sponsorable).find(sponsor.id) }
     assert_no_queries do
       assert_equal nil, sponsor.sponsorable
@@ -244,7 +250,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nil Post.all.merge!(:includes => :author).find(posts(:authorless).id).author
   end
 
-  def test_nested_loading_with_no_associations
+  # Regression test for 21c75e5
+  def test_nested_loading_does_not_raise_exception_when_association_does_not_exist
     assert_nothing_raised do
       Post.all.merge!(:includes => {:author => :author_addresss}).find(posts(:authorless).id)
     end
@@ -296,7 +303,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_foreign_keys
     pets = Pet.all.merge!(:includes => :owner).to_a
-    assert_equal 3, pets.length
+    assert_equal 4, pets.length
   end
 
   def test_eager_association_loading_with_belongs_to
@@ -461,7 +468,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts_with_comments = people(:michael).posts.merge(:includes => :comments, :order => 'posts.id').to_a
     posts_with_author = people(:michael).posts.merge(:includes => :author, :order => 'posts.id').to_a
     posts_with_comments_and_author = people(:michael).posts.merge(:includes => [ :comments, :author ], :order => 'posts.id').to_a
-    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum + post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
   end
@@ -517,7 +524,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit
     posts = Post.all.merge!(:order => 'posts.id asc', :includes => [ :author, :comments ], :limit => 2).to_a
     assert_equal 2, posts.size
-    assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal 3, posts.inject(0) { |sum, post| sum + post.comments.size }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
@@ -1160,5 +1167,23 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Comment.find(1).post,
       Post.where('1 = 0').scoping { Comment.preload(:post).find(1).post }
     )
+  end
+
+  test "preloading does not cache has many association subset when preloaded with a through association" do
+    author = Author.includes(:comments_with_order_and_conditions, :posts).first
+    assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
+    assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
+  end
+
+  test "preloading a through association twice does not reset it" do
+    members = Member.includes(current_membership: :club).includes(:club).to_a
+    assert_no_queries {
+      assert_equal 3, members.map(&:current_membership).map(&:club).size
+    }
+  end
+
+  test "works in combination with order(:symbol)" do
+    author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
+    assert_equal authors(:bob), author
   end
 end

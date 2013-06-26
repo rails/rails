@@ -9,6 +9,10 @@
   name: Models
   documents:
     -
+      name: Active Record Basics
+      url: active_record_basics.html
+      description: This guide will get you started with models, persistence to database and the Active Record pattern and library.
+    -
       name: Rails Database Migrations
       url: migrations.html
       description: This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
@@ -31,6 +35,11 @@
 -
   name: Views
   documents:
+    -
+      name: Action View Overview
+      url: action_view_overview.html
+      description: This guide provides an introduction to Action View and introduces a few of the more common view helpers.
+      work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
@@ -64,7 +73,6 @@
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
-      work_in_progress: true
       description: This guide describes how to use Action Mailer to send and receive emails.
     -
       name: Testing Rails Applications
@@ -79,10 +87,6 @@
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
       description: This guide describes how to debug Rails applications. It covers the different ways of achieving this and how to understand what is happening "behind the scenes" of your code.
-    -
-      name: Performance Testing Rails Applications
-      url: performance_testing.html
-      description: This guide covers the various ways of performance testing a Ruby on Rails application.
     -
       name: Configuring Rails Applications
       url: configuring.html
@@ -102,7 +106,6 @@
       description: This guide documents the asset pipeline.
     -
       name: Working with JavaScript in Rails
-      work_in_progress: true
       url: working_with_javascript_in_rails.html
       description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
     -

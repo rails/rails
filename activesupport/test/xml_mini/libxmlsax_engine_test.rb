@@ -1,12 +1,11 @@
-require 'abstract_unit'
-require 'active_support/xml_mini'
-require 'active_support/core_ext/hash/conversions'
-
 begin
   require 'libxml'
 rescue LoadError
   # Skip libxml tests
 else
+require 'abstract_unit'
+require 'active_support/xml_mini'
+require 'active_support/core_ext/hash/conversions'
 
 class LibXMLSAXEngineTest < ActiveSupport::TestCase
   include ActiveSupport
@@ -142,7 +141,7 @@ class LibXMLSAXEngineTest < ActiveSupport::TestCase
       morning
     </root>
     eoxml
-    XmlMini.parse(io)
+    assert_equal_rexml(io)
   end
 
   def test_children_with_simple_cdata
@@ -185,10 +184,12 @@ class LibXMLSAXEngineTest < ActiveSupport::TestCase
   end
 
   private
-  def assert_equal_rexml(xml)
-    hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
-    assert_equal(hash, XmlMini.parse(xml))
-  end
+    def assert_equal_rexml(xml)
+      parsed_xml = XmlMini.parse(xml)
+      xml.rewind if xml.respond_to?(:rewind)
+      hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
+      assert_equal(hash, parsed_xml)
+    end
 end
 
 end

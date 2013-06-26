@@ -18,20 +18,20 @@ class ValidationsContextTest < ActiveModel::TestCase
     end
   end
 
-  test "with a class that adds errors on update and validating a new model with no arguments" do
-    Topic.validates_with(ValidatorThatAddsErrors, :on => :create)
+  test "with a class that adds errors on create and validating a new model with no arguments" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
-    assert topic.valid?, "Validation doesn't run on create if 'on' is set to update"
+    assert topic.valid?, "Validation doesn't run on valid? if 'on' is set to create"
   end
 
   test "with a class that adds errors on update and validating a new model" do
-    Topic.validates_with(ValidatorThatAddsErrors, :on => :update)
+    Topic.validates_with(ValidatorThatAddsErrors, on: :update)
     topic = Topic.new
     assert topic.valid?(:create), "Validation doesn't run on create if 'on' is set to update"
   end
 
   test "with a class that adds errors on create and validating a new model" do
-    Topic.validates_with(ValidatorThatAddsErrors, :on => :create)
+    Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
     assert topic.errors[:base].include?(ERROR_MESSAGE)

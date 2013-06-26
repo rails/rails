@@ -159,9 +159,9 @@ module ActiveModel
         when Hash
           options
         when Range, Array
-          { :in => options }
+          { in: options }
         else
-          { :with => options }
+          { with: options }
         end
       end
     end

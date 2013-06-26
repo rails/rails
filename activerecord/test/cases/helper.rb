@@ -2,8 +2,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
-gem 'minitest'
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'stringio'
 
 require 'active_record'
@@ -15,6 +14,8 @@ require 'support/config'
 require 'support/connection'
 
 # TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
+
+Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

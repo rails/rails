@@ -3,13 +3,11 @@ require 'abstract_unit'
 require 'set'
 
 require 'action_dispatch'
-require 'active_support/queueing'
 require 'active_support/time'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
-require 'mailers/async_mailer'
 
 class BaseTest < ActiveSupport::TestCase
   def teardown
@@ -209,6 +207,12 @@ class BaseTest < ActiveSupport::TestCase
     I18n.backend.store_translations('en', base_mailer: {welcome: {subject: "New Subject!"}})
     email = BaseMailer.welcome(subject: nil)
     assert_equal "New Subject!", email.subject
+  end
+
+  test 'default subject can have interpolations' do
+    I18n.backend.store_translations('en', base_mailer: {with_subject_interpolations: {subject: 'Will the real %{rapper_or_impersonator} please stand up?'}})
+    email = BaseMailer.with_subject_interpolations
+    assert_equal 'Will the real Slim Shady please stand up?', email.subject
   end
 
   test "translations are scoped properly" do
@@ -422,17 +426,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
-  test "delivering message asynchronously" do
-    AsyncMailer.delivery_method = :test
-    AsyncMailer.deliveries.clear
-
-    AsyncMailer.welcome.deliver
-    assert_equal 0, AsyncMailer.deliveries.length
-
-    AsyncMailer.queue.drain
-    assert_equal 1, AsyncMailer.deliveries.length
-  end
-
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
     mail = Mail::Message.new
     mail.expects(:do_delivery).once
@@ -502,6 +495,12 @@ class BaseTest < ActiveSupport::TestCase
   test 'the view is not rendered when mail was never called' do
     mail = BaseMailer.without_mail_call
     assert_equal('', mail.body.to_s.strip)
+    mail.deliver
+  end
+
+  test 'the return value of mailer methods is not relevant' do
+    mail = BaseMailer.with_nil_as_return_value
+    assert_equal('Welcome', mail.body.to_s.strip)
     mail.deliver
   end
 

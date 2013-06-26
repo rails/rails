@@ -5,8 +5,6 @@ require 'active_support/dependencies'
 require 'active_record/fixture_set/file'
 require 'active_record/errors'
 
-require 'active_support/deprecation' # temporary
-
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
   end
@@ -365,11 +363,11 @@ module ActiveRecord
   #
   #   first:
   #     name: Smurf
-  #     *DEFAULTS
+  #     <<: *DEFAULTS
   #
   #   second:
   #     name: Fraggle
-  #     *DEFAULTS
+  #     <<: *DEFAULTS
   #
   # Any fixture labeled "DEFAULTS" is safely ignored.
   class FixtureSet
@@ -569,7 +567,7 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
-            row[key] = label if value == "$LABEL"
+            row[key] = label if "$LABEL" == value
           end
 
           # generate a primary key if necessary
@@ -710,11 +708,18 @@ module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
 
-    included do
-      setup :setup_fixtures
-      teardown :teardown_fixtures
+    def before_setup
+      setup_fixtures
+      super
+    end
 
-      class_attribute :fixture_path
+    def after_teardown
+      super
+      teardown_fixtures
+    end
+
+    included do
+      class_attribute :fixture_path, :instance_writer => false
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_fixtures
@@ -753,9 +758,8 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          fixture_set_names = Dir["#{fixture_path}/**/*.yml"].map { |f|
-            File.basename f, '.yml'
-          }
+          fixture_set_names = Dir["#{fixture_path}/**/*.{yml}"]
+          fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
           fixture_set_names = fixture_set_names.flatten.map { |n| n.to_s }
         end
@@ -768,8 +772,7 @@ module ActiveRecord
       def try_to_load_dependency(file_name)
         require_dependency file_name
       rescue LoadError => e
-        # Let's hope the developer has included it himself
-
+        # Let's hope the developer has included it
         # Let's warn in case this is a subdependency, otherwise
         # subdependency error messages are totally cryptic
         if ActiveRecord::Base.logger
@@ -838,8 +841,6 @@ module ActiveRecord
     end
 
     def setup_fixtures
-      return if ActiveRecord::Base.configurations.blank?
-
       if pre_loaded_fixtures && !use_transactional_fixtures
         raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'
       end
@@ -872,8 +873,6 @@ module ActiveRecord
     end
 
     def teardown_fixtures
-      return if ActiveRecord::Base.configurations.blank?
-
       # Rollback changes if a transaction is active.
       if run_in_transaction?
         @fixture_connections.each do |connection|

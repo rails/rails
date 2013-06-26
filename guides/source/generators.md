@@ -176,7 +176,8 @@ $ rails generate scaffold User name:string
       invoke    test_unit
       create      test/models/user_test.rb
       create      test/fixtures/users.yml
-       route  resources :users
+      invoke  resource_route
+       route    resources :users
       invoke  scaffold_controller
       create    app/controllers/users_controller.rb
       invoke    erb
@@ -192,8 +193,13 @@ $ rails generate scaffold User name:string
       create      app/helpers/users_helper.rb
       invoke      test_unit
       create        test/helpers/users_helper_test.rb
-      invoke  stylesheets
-      create    app/assets/stylesheets/scaffold.css
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/users.js.coffee
+      invoke    scss
+      create      app/assets/stylesheets/users.css.scss
+      invoke  scss
+      create    app/assets/stylesheets/scaffolds.css.scss
 ```
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
@@ -304,7 +310,7 @@ In Rails 3.0 and above, generators don't just look in the source root for templa
 
 ```erb
 module <%= class_name %>Helper
-  attr_reader :<%= plural_name %>, <%= plural_name.singularize %>
+  attr_reader :<%= plural_name %>, :<%= plural_name.singularize %>
 end
 ```
 
@@ -350,6 +356,7 @@ $ rails generate scaffold Comment body:text
       invoke    shoulda
       create      test/models/comment_test.rb
       create      test/fixtures/comments.yml
+      invoke  resource_route
        route    resources :comments
       invoke  scaffold_controller
       create    app/controllers/comments_controller.rb
@@ -360,13 +367,16 @@ $ rails generate scaffold Comment body:text
       create      app/views/comments/show.html.erb
       create      app/views/comments/new.html.erb
       create      app/views/comments/_form.html.erb
-      create      app/views/layouts/comments.html.erb
       invoke    shoulda
       create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
       invoke      shoulda
       create        test/helpers/comments_helper_test.rb
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/comments.js.coffee
+      invoke    scss
 ```
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
@@ -402,7 +412,7 @@ This command will generate the `Thud` application, and then apply the template t
 Templates don't have to be stored on the local system, the `-m` option also supports online templates:
 
 ```bash
-$ rails new thud -m https://gist.github.com/722911.txt
+$ rails new thud -m https://gist.github.com/radar/722911/raw/
 ```
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
@@ -579,11 +589,11 @@ Creates an initializer in the `config/initializers` directory of the application
 initializer "begin.rb", "puts 'this is the beginning'"
 ```
 
-This method also takes a block:
+This method also takes a block, expected to return a string:
 
 ```ruby
 initializer "begin.rb" do
-  puts "Almost done!"
+  "puts 'this is the beginning'"
 end
 ```
 

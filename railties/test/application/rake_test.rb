@@ -1,5 +1,6 @@
 # coding:utf-8
 require "isolation/abstract_unit"
+require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   class RakeTest < ActiveSupport::TestCase
@@ -29,11 +30,11 @@ module ApplicationTests
       app_file "config/environment.rb", <<-RUBY
         SuperMiddleware = Struct.new(:app)
 
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.middleware.use SuperMiddleware
         end
 
-        AppTemplate::Application.initialize!
+        Rails.application.initialize!
       RUBY
 
       assert_match("SuperMiddleware", Dir.chdir(app_path){ `rake middleware` })
@@ -78,35 +79,30 @@ module ApplicationTests
       assert_match "Hello world", output
     end
 
+    def test_should_not_eager_load_model_path_for_rake
+      add_to_config <<-RUBY
+        config.eager_load = true
+
+        rake_tasks do
+          task do_nothing: :environment do
+          end
+        end
+      RUBY
+
+      app_file "app/models/hello.rb", <<-RUBY
+      raise 'should not be pre-required for rake even `eager_load=true`'
+      RUBY
+
+      Dir.chdir(app_path){ `rake do_nothing` }
+    end
+
     def test_code_statistics_sanity
       assert_match "Code LOC: 5     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path){ `rake stats` }
     end
 
-    def test_rake_test_error_output
-      Dir.chdir(app_path){ `rake db:migrate` }
-
-      app_file "test/models/one_model_test.rb", <<-RUBY
-        raise 'models'
-      RUBY
-
-      app_file "test/controllers/one_controller_test.rb", <<-RUBY
-        raise 'controllers'
-      RUBY
-
-      app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise 'integration'
-      RUBY
-
-      silence_stderr do
-        output = Dir.chdir(app_path) { `rake test 2>&1` }
-        assert_match 'models', output
-        assert_match 'controllers', output
-        assert_match 'integration', output
-      end
-    end
-
     def test_rake_test_uncommitted_always_find_git_in_parent_dir
+      return "FIXME :'("
       app_name = File.basename(app_path)
       app_dir = File.dirname(app_path)
       moved_app_name = app_name + '_moved'
@@ -134,13 +130,53 @@ module ApplicationTests
       end
     end
 
+    def test_rake_test_deprecation_messages
+      Dir.chdir(app_path){ `rails generate scaffold user name:string` }
+      Dir.chdir(app_path){ `rake db:migrate` }
+
+      %w(recent uncommitted).each do |test_suit_name|
+        output = Dir.chdir(app_path) { `rake test:#{test_suit_name} 2>&1` }
+        assert_match(/DEPRECATION WARNING: `rake test:#{test_suit_name}` is deprecated/, output)
+      end
+    end
+
     def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
         end
       RUBY
-      assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
+
+      output = Dir.chdir(app_path){ `rake routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_controller_environment
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      ENV['CONTROLLER'] = 'cart'
+      output = Dir.chdir(app_path){ `rake routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_displays_message_when_no_routes_are_defined
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+
+      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `rake routes` }
+        You don't have any routes defined!
+
+        Please add some routes in config/routes.rb.
+
+        For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
+      MESSAGE
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
@@ -191,7 +227,17 @@ module ApplicationTests
          bundle exec rake db:migrate db:test:clone test`
       end
 
-      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
+    def test_scaffold_with_references_columns_tests_pass_by_default
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold LineItems product:references cart:belongs_to;
+         bundle exec rake db:migrate db:test:clone test`
+      end
+
+      assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 

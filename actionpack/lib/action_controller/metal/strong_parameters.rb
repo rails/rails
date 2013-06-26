@@ -1,6 +1,8 @@
-require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
+require 'action_dispatch/http/upload'
+require 'stringio'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -16,6 +18,20 @@ module ActionController
     def initialize(param) # :nodoc:
       @param = param
       super("param not found: #{param}")
+    end
+  end
+
+  # Raised when a supplied parameter is not expected.
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => ActionController::UnpermittedParameters: found unexpected keys: a, b
+  class UnpermittedParameters < IndexError
+    attr_reader :params # :nodoc:
+
+    def initialize(params) # :nodoc:
+      @params = params
+      super("found unpermitted parameters: #{params.join(", ")}")
     end
   end
 
@@ -40,13 +56,20 @@ module ActionController
   #   permitted.class      # => ActionController::Parameters
   #   permitted.permitted? # => true
   #
-  #   Person.first.update_attributes!(permitted)
+  #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides a +permit_all_parameters+ option that controls the top-level
-  # behaviour of new instances. If it's +true+, all the parameters will be
-  # permitted by default. The default value for +permit_all_parameters+
-  # option is +false+.
+  # It provides two options that controls the top-level behavior of new instances:
+  #
+  # * +permit_all_parameters+ - If it's +true+, all the parameters will be
+  #   permitted by default. The default is +false+.
+  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
+  #   that are not explicitly permitted are found. The values can be <tt>:log</tt> to
+  #   write a message on the logger or <tt>:raise</tt> to raise
+  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
+  #   in test and development environments, +false+ otherwise.
+  #
+  # Examples:
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => false
@@ -55,6 +78,16 @@ module ActionController
   #
   #   params = ActionController::Parameters.new
   #   params.permitted? # => true
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => {}
+  #
+  #   ActionController::Parameters.action_on_unpermitted_parameters = :raise
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.permit(:c)
+  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
   # <tt>ActionController::Parameters</tt> is inherited from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
@@ -65,6 +98,11 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
+    cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
+
+    # Never raise an UnpermittedParameters exception because of these params
+    # are present. They are added by Rails and it's of no concern.
+    NEVER_UNPERMITTED_PARAMS = %w( controller action )
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -150,6 +188,21 @@ module ActionController
     #   permitted.has_key?(:age)  # => true
     #   permitted.has_key?(:role) # => false
     #
+    # Only permitted scalars pass the filter. For example, given
+    #
+    #   params.permit(:name)
+    #
+    # +:name+ passes it is a key of +params+ whose associated value is of type
+    # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
+    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+,
+    # +ActionDispatch::Http::UploadedFile+ or +Rack::Test::UploadedFile+.
+    # Otherwise, the key +:name+ is filtered out.
+    #
+    # You may declare that the parameter should be an array of permitted scalars
+    # by mapping it to an empty array:
+    #
+    #   params.permit(tags: [])
+    #
     # You can also use +permit+ on nested parameters, like:
     #
     #   params = ActionController::Parameters.new({
@@ -177,7 +230,7 @@ module ActionController
     #   params = ActionController::Parameters.new({
     #     person: {
     #       contact: {
-    #         email: 'none@test.com'
+    #         email: 'none@test.com',
     #         phone: '555-1234'
     #       }
     #     }
@@ -196,31 +249,14 @@ module ActionController
 
       filters.flatten.each do |filter|
         case filter
-        when Symbol, String then
-          if has_key?(filter)
-            _value = self[filter]
-            params[filter] = _value unless Hash === _value
-          end
-          keys.grep(/\A#{Regexp.escape(filter)}\(\d+[if]?\)\z/) { |key| params[key] = self[key] }
+        when Symbol, String
+          permitted_scalar_filter(params, filter)
         when Hash then
-          filter = filter.with_indifferent_access
-
-          self.slice(*filter.keys).each do |key, values|
-            return unless values
-
-            key = key.to_sym
-
-            params[key] = each_element(values) do |value|
-              # filters are a Hash, so we expect value to be a Hash too
-              next if filter.is_a?(Hash) && !value.is_a?(Hash)
-
-              value = self.class.new(value) if !value.respond_to?(:permit)
-
-              value.permit(*Array.wrap(filter[key]))
-            end
-          end
+          hash_filter(params, filter)
         end
       end
+
+      unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
 
       params.permit!
     end
@@ -300,6 +336,101 @@ module ActionController
           yield object
         end
       end
+
+      def unpermitted_parameters!(params)
+        unpermitted_keys = unpermitted_keys(params)
+        if unpermitted_keys.any?
+          case self.class.action_on_unpermitted_parameters
+          when :log
+            name = "unpermitted_parameters.action_controller"
+            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
+          when :raise
+            raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+          end
+        end
+      end
+
+      def unpermitted_keys(params)
+        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
+      end
+
+      #
+      # --- Filtering ----------------------------------------------------------
+      #
+
+      # This is a white list of permitted scalar types that includes the ones
+      # supported in XML and JSON requests.
+      #
+      # This list is in particular used to filter ordinary requests, String goes
+      # as first element to quickly short-circuit the common case.
+      #
+      # If you modify this collection please update the API of +permit+ above.
+      PERMITTED_SCALAR_TYPES = [
+        String,
+        Symbol,
+        NilClass,
+        Numeric,
+        TrueClass,
+        FalseClass,
+        Date,
+        Time,
+        # DateTimes are Dates, we document the type but avoid the redundant check.
+        StringIO,
+        IO,
+        ActionDispatch::Http::UploadedFile,
+        Rack::Test::UploadedFile,
+      ]
+
+      def permitted_scalar?(value)
+        PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
+      end
+
+      def permitted_scalar_filter(params, key)
+        if has_key?(key) && permitted_scalar?(self[key])
+          params[key] = self[key]
+        end
+
+        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/) do |k|
+          if permitted_scalar?(self[k])
+            params[k] = self[k]
+          end
+        end
+      end
+
+      def array_of_permitted_scalars?(value)
+        if value.is_a?(Array)
+          value.all? {|element| permitted_scalar?(element)}
+        end
+      end
+
+      def array_of_permitted_scalars_filter(params, key)
+        if has_key?(key) && array_of_permitted_scalars?(self[key])
+          params[key] = self[key]
+        end
+      end
+
+      EMPTY_ARRAY = []
+      def hash_filter(params, filter)
+        filter = filter.with_indifferent_access
+
+        # Slicing filters out non-declared keys.
+        slice(*filter.keys).each do |key, value|
+          return unless value
+
+          if filter[key] == EMPTY_ARRAY
+            # Declaration { comment_ids: [] }.
+            array_of_permitted_scalars_filter(params, key)
+          else
+            # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
+            params[key] = each_element(value) do |element|
+              if element.is_a?(Hash)
+                element = self.class.new(element) unless element.respond_to?(:permit)
+                element.permit(*Array.wrap(filter[key]))
+              end
+            end
+          end
+        end
+      end
   end
 
   # == Strong \Parameters
@@ -328,7 +459,7 @@ module ActionController
   #     # into a 400 Bad Request reply.
   #     def update
   #       redirect_to current_account.people.find(params[:id]).tap { |person|
-  #         person.update_attributes!(person_params)
+  #         person.update!(person_params)
   #       }
   #     end
   #
@@ -372,12 +503,6 @@ module ActionController
   module StrongParameters
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
-
-    included do
-      rescue_from(ActionController::ParameterMissing) do |parameter_missing_exception|
-        render text: "Required parameter missing: #{parameter_missing_exception.param}", status: :bad_request
-      end
-    end
 
     # Returns a new ActionController::Parameters object that
     # has been instantiated with the <tt>request.parameters</tt>.

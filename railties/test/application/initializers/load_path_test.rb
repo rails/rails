@@ -23,7 +23,7 @@ module ApplicationTests
       assert $:.include?("#{app_path}/app/models")
     end
 
-    test "initializing an application allows to load code on lib path inside application class definitation" do
+    test "initializing an application allows to load code on lib path inside application class definition" do
       app_file "lib/foo.rb", <<-RUBY
         module Foo; end
       RUBY
@@ -72,9 +72,10 @@ module ApplicationTests
     end
 
     test "load environment with global" do
+      $initialize_test_set_from_env = nil
       app_file "config/environments/development.rb", <<-RUBY
         $initialize_test_set_from_env = 'success'
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.cache_classes = true
           config.time_zone = "Brasilia"
         end
@@ -88,8 +89,8 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert_equal "success", $initialize_test_set_from_env
-      assert AppTemplate::Application.config.cache_classes
-      assert_equal "Brasilia", AppTemplate::Application.config.time_zone
+      assert Rails.application.config.cache_classes
+      assert_equal "Brasilia", Rails.application.config.time_zone
     end
   end
 end

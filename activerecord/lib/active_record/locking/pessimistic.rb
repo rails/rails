@@ -26,7 +26,7 @@ module ActiveRecord
     #
     #   Account.transaction do
     #     # select * from accounts where ...
-    #     accounts = Account.where(...).all
+    #     accounts = Account.where(...)
     #     account1 = accounts.detect { |account| ... }
     #     account2 = accounts.detect { |account| ... }
     #     # select * from accounts where id=? for update
@@ -64,7 +64,7 @@ module ActiveRecord
       end
 
       # Wraps the passed block in a transaction, locking the object
-      # before yielding. You pass can the SQL locking clause
+      # before yielding. You can pass the SQL locking clause
       # as argument (see <tt>lock!</tt>).
       def with_lock(lock = true)
         transaction do

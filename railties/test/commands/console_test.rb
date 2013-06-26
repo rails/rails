@@ -58,10 +58,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_console_defaults_to_IRB
-    config = mock("config", console: nil)
-    app = mock("app", config: config)
-    app.expects(:load_console).returns(nil)
-
+    app = build_app(console: nil)
     assert_equal IRB, Rails::Console.new(app).console
   end
 
@@ -111,9 +108,16 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/\sdevelopment\s/, output)
   end
 
-  private
+  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
+    Rails::Console.stubs(:available_environments).returns(['dev'])
+    options = Rails::Console.parse_arguments(['dev'])
+    assert_match('dev', options[:environment])
+  end
 
   attr_reader :output
+  private :output
+
+  private
 
   def start(argv = [])
     rails_console = Rails::Console.new(app, parse_arguments(argv))
@@ -121,13 +125,15 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def app
-    @app ||= begin
-      config = mock("config", console: FakeConsole)
-      app = mock("app", config: config)
-      app.stubs(:sandbox=).returns(nil)
-      app.expects(:load_console)
-      app
-    end
+    @app ||= build_app(console: FakeConsole)
+  end
+
+  def build_app(config)
+    config = mock("config", config)
+    app = mock("app", config: config)
+    app.stubs(:sandbox=).returns(nil)
+    app.expects(:load_console)
+    app
   end
 
   def parse_arguments(args)

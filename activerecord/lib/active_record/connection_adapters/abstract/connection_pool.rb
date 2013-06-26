@@ -1,7 +1,7 @@
 require 'thread'
+require 'thread_safe'
 require 'monitor'
 require 'set'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -236,29 +236,21 @@ module ActiveRecord
 
         @spec = spec
 
-        # The cache of reserved connections mapped to threads
-        @reserved_connections = {}
-
         @checkout_timeout = spec.config[:checkout_timeout] || 5
-        @dead_connection_timeout = spec.config[:dead_connection_timeout]
+        @dead_connection_timeout = spec.config[:dead_connection_timeout] || 5
         @reaper  = Reaper.new self, spec.config[:reaping_frequency]
         @reaper.run
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
+        # The cache of reserved connections mapped to threads
+        @reserved_connections = ThreadSafe::Cache.new(:initial_capacity => @size)
+
         @connections         = []
         @automatic_reconnect = true
 
         @available = Queue.new self
-      end
-
-      # Hack for tests to be able to add connections.  Do not call outside of tests
-      def insert_connection_for_test!(c) #:nodoc:
-        synchronize do
-          @connections << c
-          @available.add c
-        end
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -267,7 +259,9 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        synchronize do
+        # this is correctly done double-checked locking
+        # (ThreadSafe::Cache's lookups have volatile semantics)
+        @reserved_connections[current_connection_id] || synchronize do
           @reserved_connections[current_connection_id] ||= checkout
         end
       end
@@ -310,7 +304,7 @@ module ActiveRecord
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
         synchronize do
-          @reserved_connections = {}
+          @reserved_connections.clear
           @connections.each do |conn|
             checkin conn
             conn.disconnect!
@@ -323,7 +317,7 @@ module ActiveRecord
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
         synchronize do
-          @reserved_connections = {}
+          @reserved_connections.clear
           @connections.each do |conn|
             checkin conn
             conn.disconnect! if conn.requires_reloading?
@@ -404,7 +398,9 @@ module ActiveRecord
         synchronize do
           stale = Time.now - @dead_connection_timeout
           connections.dup.each do |conn|
-            remove conn if conn.in_use? && stale > conn.last_use && !conn.active?
+            if conn.in_use? && stale > conn.last_use && !conn.active?
+              remove conn
+            end
           end
         end
       end
@@ -490,11 +486,15 @@ module ActiveRecord
     # determine the connection pool that they should use.
     class ConnectionHandler
       def initialize
-        # These hashes are keyed by klass.name, NOT klass. Keying them by klass
+        # These caches are keyed by klass.name, NOT klass. Keying them by klass
         # alone would lead to memory leaks in development mode as all previous
         # instances of the class would stay in memory.
-        @owner_to_pool = Hash.new { |h,k| h[k] = {} }
-        @class_to_pool = Hash.new { |h,k| h[k] = {} }
+        @owner_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
+          h[k] = ThreadSafe::Cache.new(:initial_capacity => 2)
+        end
+        @class_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
+          h[k] = ThreadSafe::Cache.new
+        end
       end
 
       def connection_pool_list
@@ -511,6 +511,7 @@ module ActiveRecord
 
       def establish_connection(owner, spec)
         @class_to_pool.clear
+        raise RuntimeError, "Anonymous class is not allowed." unless owner.name
         owner_to_pool[owner.name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
@@ -570,10 +571,10 @@ module ActiveRecord
       # When a connection is established or removed, we invalidate the cache.
       #
       # Ideally we would use #fetch here, as class_to_pool[klass] may sometimes be nil.
-      # However, benchmarking (https://gist.github.com/3552829) showed that #fetch is
-      # significantly slower than #[]. So in the nil case, no caching will take place,
-      # but that's ok since the nil case is not the common one that we wish to optimise
-      # for.
+      # However, benchmarking (https://gist.github.com/jonleighton/3552829) showed that
+      # #fetch is significantly slower than #[]. So in the nil case, no caching will
+      # take place, but that's ok since the nil case is not the common one that we wish
+      # to optimise for.
       def retrieve_connection_pool(klass)
         class_to_pool[klass.name] ||= begin
           until pool = pool_for(klass)

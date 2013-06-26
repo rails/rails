@@ -8,44 +8,31 @@ module ActiveRecord
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where) #:nodoc:
+    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using) #:nodoc:
     end
 
     # Abstract representation of a column definition. Instances of this type
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
-
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
       def string_to_binary(value)
         value
       end
 
-      def sql_type
-        base.type_to_sql(type.to_sym, limit, precision, scale)
+      def primary_key?
+        primary_key || type.to_sym == :primary_key
       end
+    end
 
-      def to_sql
-        column_sql = "#{base.quote_column_name(name)} #{sql_type}"
-        column_options = {}
-        column_options[:null] = null unless null.nil?
-        column_options[:default] = default unless default.nil?
-        add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
-        column_sql
-      end
-
-      private
-
-        def add_column_options!(sql, options)
-          base.add_column_options!(sql, options.merge(:column => self))
-        end
+    class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
-    # Inside migration files, the +t+ object in +create_table+ and
-    # +change_table+ is actually of this type:
+    # Inside migration files, the +t+ object in +create_table+
+    # is actually of this type:
     #
     #   class SomeMigration < ActiveRecord::Migration
     #     def up
@@ -64,28 +51,24 @@ module ActiveRecord
     class TableDefinition
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
-      attr_accessor :columns, :indexes
+      attr_accessor :indexes
+      attr_reader :name, :temporary, :options
 
-      def initialize(base)
-        @columns = []
+      def initialize(types, name, temporary, options)
         @columns_hash = {}
         @indexes = {}
-        @base = base
+        @native = types
+        @temporary = temporary
+        @options = options
+        @name = name
       end
 
-      def xml(*args)
-        raise NotImplementedError unless %w{
-          sqlite mysql mysql2
-        }.include? @base.adapter_name.downcase
-
-        options = args.extract_options!
-        column(args[0], :text, options)
-      end
+      def columns; @columns_hash.values; end
 
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
-      def primary_key(name)
-        column(name, :primary_key)
+      def primary_key(name, type = :primary_key, options = {})
+        column(name, type, options.merge(:primary_key => true))
       end
 
       # Returns a ColumnDefinition for the column with name +name+.
@@ -238,29 +221,20 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
-        column = self[name] || new_column_definition(@base, name, type)
-
-        limit = options.fetch(:limit) do
-          native[type][:limit] if native[type].is_a?(Hash)
-        end
-
-        column.limit     = limit
-        column.precision = options[:precision]
-        column.scale     = options[:scale]
-        column.default   = options[:default]
-        column.null      = options[:null]
+        @columns_hash[name] = new_column_definition(name, type, options)
         self
       end
 
-      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
-        class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{column_type}(*args)                                   # def string(*args)
-            options = args.extract_options!                           #   options = args.extract_options!
-            column_names = args                                       #   column_names = args
-            type = :'#{column_type}'                                  #   type = :string
-            column_names.each { |name| column(name, type, options) }  #   column_names.each { |name| column(name, type, options) }
-          end                                                         # end
-        EOV
+      def remove_column(name)
+        @columns_hash.delete name.to_s
+      end
+
+      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+        define_method column_type do |*args|
+          options = args.extract_options!
+          column_names = args
+          column_names.each { |name| column(name, column_type, options) }
+        end
       end
 
       # Adds index options to the indexes hash, keyed by column name
@@ -286,33 +260,58 @@ module ActiveRecord
         args.each do |col|
           column("#{col}_id", :integer, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-          index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
+          index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
         end
       end
       alias :belongs_to :references
 
-      # Returns a String whose contents are the column definitions
-      # concatenated together. This string can then be prepended and appended to
-      # to generate the final SQL to create the table.
-      def to_sql
-        @columns.map { |c| c.to_sql } * ', '
+      def new_column_definition(name, type, options) # :nodoc:
+        column = create_column_definition name, type
+        limit = options.fetch(:limit) do
+          native[type][:limit] if native[type].is_a?(Hash)
+        end
+
+        column.limit       = limit
+        column.array       = options[:array] if column.respond_to?(:array)
+        column.precision   = options[:precision]
+        column.scale       = options[:scale]
+        column.default     = options[:default]
+        column.null        = options[:null]
+        column.first       = options[:first]
+        column.after       = options[:after]
+        column.primary_key = type == :primary_key || options[:primary_key]
+        column
       end
 
       private
-      def new_column_definition(base, name, type)
-        definition = ColumnDefinition.new base, name, type
-        @columns << definition
-        @columns_hash[name] = definition
-        definition
+      def create_column_definition(name, type)
+        ColumnDefinition.new name, type
       end
 
       def primary_key_column_name
-        primary_key_column = columns.detect { |c| c.type == :primary_key }
+        primary_key_column = columns.detect { |c| c.primary_key? }
         primary_key_column && primary_key_column.name
       end
 
       def native
-        @base.native_database_types
+        @native
+      end
+    end
+
+    class AlterTable # :nodoc:
+      attr_reader :adds
+
+      def initialize(td)
+        @td   = td
+        @adds = []
+      end
+
+      def name; @td.name; end
+
+      def add_column(name, type, options)
+        name = name.to_s
+        type = type.to_sym
+        @adds << @td.new_column_definition(name, type, options)
       end
     end
 
@@ -423,7 +422,7 @@ module ActiveRecord
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
       def remove(*column_names)
-        @base.remove_column(@table_name, *column_names)
+        @base.remove_columns(@table_name, *column_names)
       end
 
       # Removes the given index from the table.
@@ -486,27 +485,13 @@ module ActiveRecord
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
-      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
-        class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{column_type}(*args)                                          # def string(*args)
-            options = args.extract_options!                                  #   options = args.extract_options!
-            column_names = args                                              #   column_names = args
-            type = :'#{column_type}'                                         #   type = :string
-            column_names.each do |name|                                      #   column_names.each do |name|
-              column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
-              if options[:limit]                                             #     if options[:limit]
-                column.limit = options[:limit]                               #       column.limit = options[:limit]
-              elsif native[type].is_a?(Hash)                                 #     elsif native[type].is_a?(Hash)
-                column.limit = native[type][:limit]                          #       column.limit = native[type][:limit]
-              end                                                            #     end
-              column.precision = options[:precision]                         #     column.precision = options[:precision]
-              column.scale = options[:scale]                                 #     column.scale = options[:scale]
-              column.default = options[:default]                             #     column.default = options[:default]
-              column.null = options[:null]                                   #     column.null = options[:null]
-              @base.add_column(@table_name, name, column.sql_type, options)  #     @base.add_column(@table_name, name, column.sql_type, options)
-            end                                                              #   end
-          end                                                                # end
-        EOV
+      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+        define_method column_type do |*args|
+          options = args.extract_options!
+          args.each do |name|
+            @base.add_column(@table_name, name, column_type, options)
+          end
+        end
       end
 
       private

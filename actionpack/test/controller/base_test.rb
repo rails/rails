@@ -61,11 +61,14 @@ class UrlOptionsController < ActionController::Base
   end
 end
 
-class RecordIdentifierController < ActionController::Base
+class RecordIdentifierIncludedController < ActionController::Base
+  include ActionView::RecordIdentifier
 end
 
-class RecordIdentifierWithoutDeprecationController < ActionController::Base
-  include ActionView::RecordIdentifier
+class ActionMissingController < ActionController::Base
+  def action_missing(action)
+    render :text => "Response for #{action}"
+  end
 end
 
 class ControllerClassTests < ActiveSupport::TestCase
@@ -82,43 +85,20 @@ class ControllerClassTests < ActiveSupport::TestCase
     assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
   end
 
-  def test_record_identifier
-    assert_respond_to RecordIdentifierController.new, :dom_id
-    assert_respond_to RecordIdentifierController.new, :dom_class
-  end
-
-  def test_record_identifier_is_deprecated
-    record = Comment.new
-    record.save
-
-    dom_id = nil
-    assert_deprecated 'dom_id method will no longer' do
-      dom_id = RecordIdentifierController.new.dom_id(record)
-    end
-
-    assert_equal 'comment_1', dom_id
-
-    dom_class = nil
-    assert_deprecated 'dom_class method will no longer' do
-      dom_class = RecordIdentifierController.new.dom_class(record)
-    end
-    assert_equal 'comment', dom_class
-  end
-
   def test_no_deprecation_when_action_view_record_identifier_is_included
     record = Comment.new
     record.save
 
     dom_id = nil
     assert_not_deprecated do
-      dom_id = RecordIdentifierWithoutDeprecationController.new.dom_id(record)
+      dom_id = RecordIdentifierIncludedController.new.dom_id(record)
     end
 
     assert_equal 'comment_1', dom_id
 
     dom_class = nil
     assert_not_deprecated do
-      dom_class = RecordIdentifierWithoutDeprecationController.new.dom_class(record)
+      dom_class = RecordIdentifierIncludedController.new.dom_class(record)
     end
     assert_equal 'comment', dom_class
   end
@@ -185,6 +165,12 @@ class PerformActionTest < ActionController::TestCase
     use_controller NonEmptyController
     assert_raise(AbstractController::ActionNotFound) { get :hidden_action }
     assert_raise(AbstractController::ActionNotFound) { get :another_hidden_action }
+  end
+
+  def test_action_missing_should_work
+    use_controller ActionMissingController
+    get :arbitrary_action
+    assert_equal "Response for arbitrary_action", @response.body
   end
 end
 

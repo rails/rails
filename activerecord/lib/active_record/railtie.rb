@@ -36,6 +36,25 @@ module ActiveRecord
 
     rake_tasks do
       require "active_record/base"
+
+      ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
+      ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
+
+      namespace :db do
+        task :load_config do
+          ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
+          ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
+          ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
+          ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
+
+          if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
+            if engine.paths['db/migrate'].existent
+              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+            end
+          end
+        end
+      end
+
       load "active_record/railties/databases.rake"
     end
 
@@ -49,7 +68,7 @@ module ActiveRecord
       Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
-    runner do |app|
+    runner do
       require "active_record/base"
     end
 
@@ -64,7 +83,7 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
-    initializer "active_record.migration_error" do |app|
+    initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after "::ActionDispatch::Callbacks",
           "ActiveRecord::Migration::CheckPending"
@@ -112,7 +131,18 @@ module ActiveRecord
               `config/application.rb` file and any `mass_assignment_sanitizer` options
               from your `config/environments/*.rb` files.
 
-              See http://edgeguides.rubyonrails.org/security.html#mass-assignment for more information
+              See http://guides.rubyonrails.org/security.html#mass-assignment for more information.
+            EOF
+          end
+
+          unless app.config.active_record.delete(:auto_explain_threshold_in_seconds).nil?
+            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
+              The Active Record auto explain feature has been removed.
+
+              To disable this message remove the `active_record.auto_explain_threshold_in_seconds`
+              option from the `config/environments/*.rb` config file.
+
+              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
             EOF
           end
 
@@ -124,7 +154,7 @@ module ActiveRecord
               To disable this message remove the `observers` option from your
               `config/application.rb` or from your initializers.
 
-              See http://edgeguides.rubyonrails.org/4_0_release_notes.html for more information
+              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
             EOF
           end
         ensure
@@ -141,22 +171,13 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-        unless ENV['DATABASE_URL']
-          self.configurations = app.config.database_configuration
-        end
+        self.configurations = app.config.database_configuration || {}
         establish_connection
       end
     end
 
-    initializer "active_record.validate_explain_support" do |app|
-      if app.config.active_record[:auto_explain_threshold_in_seconds] &&
-        !ActiveRecord::Base.connection.supports_explain?
-        warn "auto_explain_threshold_in_seconds is set but will be ignored because your adapter does not support this feature. Please unset the configuration to avoid this warning."
-      end
-    end
-
     # Expose database runtime to controller for logging.
-    initializer "active_record.log_runtime" do |app|
+    initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime

@@ -29,9 +29,9 @@ class Class
   #
   #   class Foo; end
   #   class Bar < Foo; end
-  #   class Baz < Foo; end
+  #   class Baz < Bar; end
   #
-  #   Foo.subclasses # => [Baz, Bar]
+  #   Foo.subclasses # => [Bar]
   def subclasses
     subclasses, chain = [], descendants
     chain.each do |k|

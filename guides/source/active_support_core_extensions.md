@@ -10,7 +10,7 @@ After reading this guide, you will know:
 * What Core Extensions are.
 * How to load all extensions.
 * How to cherry-pick just the extensions you want.
-* What extensions ActiveSupport provides.
+* What extensions Active Support provides.
 
 --------------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -418,27 +418,17 @@ TIP: Since `with_options` forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
+### JSON support
+
+Active Support provides a better implemention of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+ and +OrderedHash+ needs special handling in order to provide a proper JSON representation.
+
+Active Support also provides an implementation of `as_json` for the <tt>Process::Status</tt> class.
+
+NOTE: Defined in `active_support/core_ext/object/to_json.rb`.
+
 ### Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
-
-#### `instance_variable_names`
-
-Ruby 1.8 and 1.9 have a method called `instance_variables` that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines `instance_variable_names` as a portable way to obtain them as strings:
-
-```ruby
-class C
-  def initialize(x, y)
-    @x, @y = x, y
-  end
-end
-
-C.new(0, 1).instance_variable_names # => ["@y", "@x"]
-```
-
-WARNING: The order in which the names are returned is unspecified, and it indeed depends on the version of the interpreter.
-
-NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_values`
 
@@ -453,6 +443,22 @@ class C
 end
 
 C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
+```
+
+NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
+
+#### `instance_variable_names`
+
+The method `instance_variable_names` returns an array.  Each name includes the "@" sign.
+
+```ruby
+class C
+  def initialize(x, y)
+    @x, @y = x, y
+  end
+end
+
+C.new(0, 1).instance_variable_names # => ["@x", "@y"]
 ```
 
 NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
@@ -494,12 +500,11 @@ NOTE: Defined in `active_support/core_ext/kernel/reporting.rb`.
 
 ### `in?`
 
-The predicate `in?` tests if an object is included in another object or a list of objects. An `ArgumentError` exception will be raised if a single argument is passed and it does not respond to `include?`.
+The predicate `in?` tests if an object is included in another object. An `ArgumentError` exception will be raised if the argument passed does not respond to `include?`.
 
 Examples of `in?`:
 
 ```ruby
-1.in?(1,2)          # => true
 1.in?([1,2])        # => true
 "lo".in?("hello")   # => true
 25.in?(30..50)      # => false
@@ -920,7 +925,7 @@ When interpolated into a string, the `:to` option should become an expression th
 delegate :logger, to: :Rails
 
 # delegates to the receiver's class
-delegate :table_name, to: 'self.class'
+delegate :table_name, to: :class
 ```
 
 WARNING: If the `:prefix` option is `true` this is less generic, see below.
@@ -1056,6 +1061,8 @@ A.new.x = 1 # NoMethodError
 For convenience `class_attribute` also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called `x?`.
 
 When `:instance_reader` is `false`, the instance predicate returns a `NoMethodError` just like the reader method.
+
+If you do not want the instance predicate, pass `instance_predicate: false` and it will not be defined.
 
 NOTE: Defined in `active_support/core_ext/class/attribute.rb`
 
@@ -1251,6 +1258,8 @@ The method `squish` strips leading and trailing whitespace, and substitutes runs
 
 There's also the destructive version `String#squish!`.
 
+Note that it handles both ASCII and Unicode whitespace like mongolian vowel separator (U+180E).
+
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 ### `truncate`
@@ -1360,7 +1369,7 @@ The second argument, `indent_string`, specifies which indent string to use. The 
 "foo".indent(2, "\t")    # => "\t\tfoo"
 ```
 
-While `indent_string` is tipically one space or tab, it may be any string.
+While `indent_string` is typically one space or tab, it may be any string.
 
 The third argument, `indent_empty_lines`, is a flag that says whether empty lines should be indented. Default is false.
 
@@ -1438,7 +1447,7 @@ The method `pluralize` returns the plural of its receiver:
 
 As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Built-in rules can be extended in `config/initializers/inflections.rb`. That file is generated by the `rails` command and has instructions in comments.
 
-`pluralize` can also take an optional `count` parameter.  If `count == 1` the singular form will be returned.  For any other value of `count` the plural form will be returned:
+`pluralize` can also take an optional `count` parameter. If `count == 1` the singular form will be returned. For any other value of `count` the plural form will be returned:
 
 ```ruby
 "dude".pluralize(0) # => "dudes"
@@ -1449,11 +1458,10 @@ As the previous example shows, Active Support knows some irregular plurals and u
 Active Record uses this method to compute the default table name that corresponds to a model:
 
 ```ruby
-# active_record/base.rb
+# active_record/model_schema.rb
 def undecorated_table_name(class_name = base_class.name)
   table_name = class_name.to_s.demodulize.underscore
-  table_name = table_name.pluralize if pluralize_table_names
-  table_name
+  pluralize_table_names ? table_name.pluralize : table_name
 end
 ```
 
@@ -2027,8 +2035,33 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
 Extensions to `BigDecimal`
 --------------------------
+### `to_s`
 
-...
+The method `to_s` is aliased to `to_formatted_s`. This provides a convenient way to display a BigDecimal value in floating-point notation:
+
+```ruby
+BigDecimal.new(5.00, 6).to_s  # => "5.0"
+```
+
+### `to_formatted_s`
+
+Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
+
+```ruby
+BigDecimal.new(5.00, 6).to_formatted_s  # => "5.0"
+```
+
+and that symbol specifiers are also supported:
+
+```ruby
+BigDecimal.new(5.00, 6).to_formatted_s(:db)  # => "5.0"
+```
+
+Engineering notation is still supported:
+
+```ruby
+BigDecimal.new(5.00, 6).to_formatted_s("e")  # => "0.5E1"
+```
 
 Extensions to `Enumerable`
 --------------------------
@@ -2215,7 +2248,7 @@ This method accepts three options:
 * `:words_connector`: What is used to join the elements of arrays with 3 or more elements, except for the last two. Default is ", ".
 * `:last_word_connector`: What is used to join the last items of an array with 3 or more elements. Default is ", and ".
 
-The defaults for these options can be localised, their keys are:
+The defaults for these options can be localized, their keys are:
 
 | Option                 | I18n key                            |
 | ---------------------- | ----------------------------------- |
@@ -2231,7 +2264,9 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 The method `to_formatted_s` acts like `to_s` by default.
 
-If the array contains items that respond to `id`, however, it may be passed the symbol `:db` as argument. That's typically used with collections of ARs. Returned strings are:
+If the array contains items that respond to `id`, however, the symbol
+`:db` may be passed as argument. That's typically used with
+collections of Active Record objects. Returned strings are:
 
 ```ruby
 [].to_formatted_s(:db)            # => "null"
@@ -2387,7 +2422,8 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 ### Duplicating
 
-The method `Array.deep_dup` duplicates itself and all objects inside recursively with ActiveSupport method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
+The method `Array.deep_dup` duplicates itself and all objects inside
+recursively with Active Support method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
 
 ```ruby
 array = [1, [2, 3]]
@@ -2413,9 +2449,9 @@ or yields them in turn if a block is passed:
 ```html+erb
 <% sample.in_groups_of(3) do |a, b, c| %>
   <tr>
-    <td><%=h a %></td>
-    <td><%=h b %></td>
-    <td><%=h c %></td>
+    <td><%= a %></td>
+    <td><%= b %></td>
+    <td><%= c %></td>
   </tr>
 <% end %>
 ```
@@ -2608,7 +2644,8 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 
 ### Deep duplicating
 
-The method `Hash.deep_dup` duplicates itself and all keys and values inside recursively with ActiveSupport method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
+The method `Hash.deep_dup` duplicates itself and all keys and values
+inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
 
 ```ruby
 hash = { a: 1, b: { c: 2, d: [3, 4] } }
@@ -2676,13 +2713,6 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 ```ruby
 {a: 1}.with_indifferent_access.except(:a)  # => {}
 {a: 1}.with_indifferent_access.except("a") # => {}
-```
-
-The method `except` may come in handy for example when you want to protect some parameter that can't be globally protected with `attr_protected`:
-
-```ruby
-params[:account] = params[:account].except(:plan_id) unless admin?
-@account.update_attributes(params[:account])
 ```
 
 There's also the bang variant `except!` that removes keys in the very receiver.
@@ -3344,7 +3374,25 @@ date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
 
 `beginning_of_hour` is aliased to `at_beginning_of_hour`.
 
-INFO: `beginning_of_hour` and `end_of_hour` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour on a `Date` instance.
+##### `beginning_of_minute`, `end_of_minute`
+
+The method `beginning_of_minute` returns a timestamp at the beginning of the minute (hh:mm:00):
+
+```ruby
+date = DateTime.new(2010, 6, 7, 19, 55, 25)
+date.beginning_of_minute # => Mon Jun 07 19:55:00 +0200 2010
+```
+
+The method `end_of_minute` returns a timestamp at the end of the minute (hh:mm:59):
+
+```ruby
+date = DateTime.new(2010, 6, 7, 19, 55, 25)
+date.end_of_minute # => Mon Jun 07 19:55:59 +0200 2010
+```
+
+`beginning_of_minute` is aliased to `at_beginning_of_minute`.
+
+INFO: `beginning_of_hour`, `end_of_hour`, `beginning_of_minute` and `end_of_minute` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour or minute on a `Date` instance.
 
 ##### `ago`, `since`
 
@@ -3599,7 +3647,7 @@ Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
 # In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
-t = Time.local_time(2010, 3, 28, 1, 59, 59)
+t = Time.local(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
@@ -3654,26 +3702,6 @@ Time.current
 
 Analogously to `DateTime`, the predicates `past?`, and `future?` are relative to `Time.current`.
 
-Use the `local_time` class method to create time objects honoring the user time zone:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.local_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 +0200 2010
-```
-
-The `utc_time` class method returns a time in UTC:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.utc_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 UTC 2010
-```
-
-Both `local_time` and `utc_time` accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
-
 If the time to be constructed lies beyond the range supported by `Time` in the runtime platform, usecs are discarded and a `DateTime` object is returned instead.
 
 #### Durations
@@ -3692,7 +3720,7 @@ now - 1.week
 They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
 
 ```ruby
-Time.utc_time(1582, 10, 3) + 5.days
+Time.utc(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 

@@ -41,7 +41,7 @@ class String
   #
   # If the optional parameter +locale+ is specified,
   # the word will be singularized as a word of that language.
-  # By default, this paramter is set to <tt>:en</tt>.
+  # By default, this parameter is set to <tt>:en</tt>.
   # You must define your own inflection rules for languages other than English.
   #
   #   'posts'.singularize            # => "post"
@@ -185,7 +185,7 @@ class String
   #
   # Singular names are not handled correctly.
   #
-  #   'business'.classify # => "Busines"
+  #   'business'.classify # => "Business"
   def classify
     ActiveSupport::Inflector.classify(self)
   end
@@ -193,8 +193,8 @@ class String
   # Capitalizes the first word, turns underscores into spaces, and strips '_id'.
   # Like +titleize+, this is meant for creating pretty output.
   #
-  #   'employee_salary' # => "Employee salary"
-  #   'author_id'       # => "Author"
+  #   'employee_salary'.humanize # => "Employee salary"
+  #   'author_id'.humanize       # => "Author"
   def humanize
     ActiveSupport::Inflector.humanize(self)
   end

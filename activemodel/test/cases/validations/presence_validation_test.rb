@@ -41,7 +41,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_acceptance_of_with_custom_error_using_quotes
-    Person.validates_presence_of :karma, :message => "This string contains 'single' and \"double\" quotes"
+    Person.validates_presence_of :karma, message: "This string contains 'single' and \"double\" quotes"
     p = Person.new
     assert p.invalid?
     assert_equal "This string contains 'single' and \"double\" quotes", p.errors[:karma].last
@@ -69,5 +69,39 @@ class PresenceValidationTest < ActiveModel::TestCase
 
     p[:karma] = "Cold"
     assert p.valid?
+  end
+
+  def test_validates_presence_of_with_allow_nil_option
+    Topic.validates_presence_of(:title, allow_nil: true)
+
+    t = Topic.new(title: "something")
+    assert t.valid?, t.errors.full_messages
+
+    t.title = ""
+    assert t.invalid?
+    assert_equal ["can't be blank"], t.errors[:title]
+
+    t.title = "  "
+    assert t.invalid?, t.errors.full_messages
+    assert_equal ["can't be blank"], t.errors[:title]
+
+    t.title = nil
+    assert t.valid?, t.errors.full_messages
+  end
+
+  def test_validates_presence_of_with_allow_blank_option
+    Topic.validates_presence_of(:title, allow_blank: true)
+
+    t = Topic.new(title: "something")
+    assert t.valid?, t.errors.full_messages
+
+    t.title = ""
+    assert t.valid?, t.errors.full_messages
+
+    t.title = "  "
+    assert t.valid?, t.errors.full_messages
+
+    t.title = nil
+    assert t.valid?, t.errors.full_messages
   end
 end

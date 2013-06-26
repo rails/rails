@@ -50,14 +50,12 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_argument_error
-    begin
-      1.second.ago('')
-      flunk("no exception was raised")
-    rescue ArgumentError => e
-      assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
-    rescue Exception => e
-      flunk("ArgumentError should be raised, but we got #{e.class} instead")
-    end
+    1.second.ago('')
+    flunk("no exception was raised")
+  rescue ArgumentError => e
+    assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
+  rescue Exception => e
+    flunk("ArgumentError should be raised, but we got #{e.class} instead")
   end
 
   def test_fractional_weeks

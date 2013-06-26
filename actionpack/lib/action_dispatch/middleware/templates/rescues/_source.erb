@@ -1,0 +1,25 @@
+<% if @source_extract %>
+<div class="source">
+<div class="info">
+  Extracted source (around line <strong>#<%= @line_number %></strong>):
+</div>
+<div class="data">
+  <table cellpadding="0" cellspacing="0" class="lines">
+      <tr>
+        <td>
+          <pre class="line_numbers">
+            <% @source_extract.keys.each do |line_number| %>
+<span><%= line_number -%></span>
+            <% end %>
+          </pre>
+        </td>
+<td width="100%">
+<pre>
+<% @source_extract.each do |line, source| -%><div class="line<%= " active" if line == @line_number -%>"><%= source -%></div><% end -%>
+</pre>
+</td>
+    </tr>
+  </table>
+</div>
+</div>
+<% end %>

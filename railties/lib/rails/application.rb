@@ -1,6 +1,5 @@
 require 'fileutils'
-require 'active_support/queueing'
-# FIXME remove DummyKeyGenerator and this require in 4.1
+require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
 require 'rails/engine'
 
@@ -47,16 +46,18 @@ module Rails
   #   6)  Run config.before_initialize callbacks
   #   7)  Run Railtie#initializer defined by railties, engines and application.
   #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
-  #   9)  Custom Railtie#initializers added by railties, engines and applications are executed
-  #   10) Build the middleware stack and run to_prepare callbacks
-  #   11) Run config.before_eager_load and eager_load! if eager_load is true
-  #   12) Run config.after_initialize callbacks
+  #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
+  #   9)  Build the middleware stack and run to_prepare callbacks
+  #   10) Run config.before_eager_load and eager_load! if eager_load is true
+  #   11) Run config.after_initialize callbacks
   #
   class Application < Engine
-    autoload :Bootstrap,      'rails/application/bootstrap'
-    autoload :Configuration,  'rails/application/configuration'
-    autoload :Finisher,       'rails/application/finisher'
-    autoload :RoutesReloader, 'rails/application/routes_reloader'
+    autoload :Bootstrap,              'rails/application/bootstrap'
+    autoload :Configuration,          'rails/application/configuration'
+    autoload :DefaultMiddlewareStack, 'rails/application/default_middleware_stack'
+    autoload :Finisher,               'rails/application/finisher'
+    autoload :Railties,               'rails/engine/railties'
+    autoload :RoutesReloader,         'rails/application/routes_reloader'
 
     class << self
       def inherited(base)
@@ -68,10 +69,9 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox, :queue_consumer
+    attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
-    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -80,10 +80,9 @@ module Rails
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
-      @env_config       = nil
+      @app_env_config   = nil
       @ordered_railties = nil
       @railties         = nil
-      @queue            = nil
     end
 
     # Returns true if the application is initialized.
@@ -95,6 +94,7 @@ module Rails
     # dispatches the request to the underlying middleware stack.
     def call(env)
       env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
+      env["ORIGINAL_SCRIPT_NAME"] = env["SCRIPT_NAME"]
       super(env)
     end
 
@@ -102,7 +102,6 @@ module Rails
     def reload_routes!
       routes_reloader.reload!
     end
-
 
     # Return the application's KeyGenerator
     def key_generator
@@ -113,45 +112,22 @@ module Rails
           key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
-          ActiveSupport::DummyKeyGenerator.new(config.secret_token)
+          ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
       end
     end
 
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
-    # Currently stores:
-    #
-    #   * "action_dispatch.parameter_filter"             => config.filter_parameters
-    #   * "action_dispatch.redirect_filter"              => config.filter_redirect
-    #   * "action_dispatch.secret_token"                 => config.secret_token,
-    #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
-    #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
-    #   * "action_dispatch.logger"                       => Rails.logger
-    #   * "action_dispatch.backtrace_cleaner"            => Rails.backtrace_cleaner
-    #   * "action_dispatch.key_generator"                => key_generator
-    #   * "action_dispatch.http_auth_salt"               => config.action_dispatch.http_auth_salt
-    #   * "action_dispatch.signed_cookie_salt"           => config.action_dispatch.signed_cookie_salt
-    #   * "action_dispatch.encrypted_cookie_salt"        => config.action_dispatch.encrypted_cookie_salt
-    #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
-    #
-    # These parameters will be used by middlewares and engines to configure themselves
-    #
     def env_config
-      @env_config ||= begin
-        if config.secret_key_base.nil?
-          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
-            "This should be used instead of the old deprecated config.secret_token. " +
-            "Set config.secret_key_base instead of config.secret_token in config/initializers/secret_token.rb"
-          if config.secret_token.blank?
-            raise "You must set config.secret_key_base in your app's config"
-          end
-        end
+      @app_env_config ||= begin
+        validate_secret_key_config!
 
         super.merge({
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.secret_key_base" => config.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,
@@ -208,9 +184,7 @@ module Rails
     end
 
     # Initialize the application passing the given group. By default, the
-    # group is :default but sprockets precompilation passes group equals
-    # to assets if initialize_on_precompile is false to avoid booting the
-    # whole app.
+    # group is :default
     def initialize!(group=:default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
@@ -228,21 +202,12 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
-    def queue #:nodoc:
-      @queue ||= config.queue || ActiveSupport::Queue.new
-    end
-
     def to_app #:nodoc:
       self
     end
 
     def helpers_paths #:nodoc:
       config.helpers_paths
-    end
-
-    def railties #:nodoc:
-      @railties ||= Rails::Railtie.subclasses.map(&:instance) +
-        Rails::Engine.subclasses.map(&:instance)
     end
 
   protected
@@ -310,78 +275,9 @@ module Rails
       initializers
     end
 
-    def reload_dependencies? #:nodoc:
-      config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
-    end
-
     def default_middleware_stack #:nodoc:
-      ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        app = self
-        if rack_cache = config.action_dispatch.rack_cache
-          begin
-            require 'rack/cache'
-          rescue LoadError => error
-            error.message << ' Be sure to add rack-cache to your Gemfile'
-            raise
-          end
-
-          if rack_cache == true
-            rack_cache = {
-              metastore: "rails:/",
-              entitystore: "rails:/",
-              verbose: false
-            }
-          end
-
-          require "action_dispatch/http/rack_cache"
-          middleware.use ::Rack::Cache, rack_cache
-        end
-
-        if config.force_ssl
-          middleware.use ::ActionDispatch::SSL, config.ssl_options
-        end
-
-        if config.action_dispatch.x_sendfile_header.present?
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        end
-
-        if config.serve_static_assets
-          middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
-        end
-
-        middleware.use ::Rack::Lock unless config.cache_classes
-        middleware.use ::Rack::Runtime
-        middleware.use ::Rack::MethodOverride
-        middleware.use ::ActionDispatch::RequestId
-        middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
-        middleware.use ::ActionDispatch::DebugExceptions, app
-        middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-
-        unless config.cache_classes
-          middleware.use ::ActionDispatch::Reloader, lambda { app.reload_dependencies? }
-        end
-
-        middleware.use ::ActionDispatch::Callbacks
-        middleware.use ::ActionDispatch::Cookies
-
-        if config.session_store
-          if config.force_ssl && !config.session_options.key?(:secure)
-            config.session_options[:secure] = true
-          end
-          middleware.use config.session_store, config.session_options
-          middleware.use ::ActionDispatch::Flash
-        end
-
-        middleware.use ::ActionDispatch::ParamsParser
-        middleware.use ::Rack::Head
-        middleware.use ::Rack::ConditionalGet
-        middleware.use ::Rack::ETag, "no-cache"
-
-        if config.action_dispatch.best_standards_support
-          middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
-        end
-      end
+      default_stack = DefaultMiddlewareStack.new(self, config, paths)
+      default_stack.build_stack
     end
 
     def build_original_fullpath(env) #:nodoc:
@@ -393,6 +289,12 @@ module Rails
         "#{script_name}#{path_info}?#{query_string}"
       else
         "#{script_name}#{path_info}"
+      end
+    end
+
+    def validate_secret_key_config! #:nodoc:
+      if config.secret_key_base.blank? && config.secret_token.blank?
+        raise "You must set config.secret_key_base in your app's config."
       end
     end
   end

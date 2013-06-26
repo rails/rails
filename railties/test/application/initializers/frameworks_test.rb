@@ -41,7 +41,7 @@ module ApplicationTests
 
     test "allows me to configure default url options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
         end
       RUBY
@@ -50,25 +50,9 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "uses the default queue for ActionMailer" do
-      require "#{app_path}/config/environment"
-      assert_kind_of ActiveSupport::Queue, ActionMailer::Base.queue
-    end
-
-    test "allows me to configure queue for ActionMailer" do
-      app_file "config/environments/development.rb", <<-RUBY
-        AppTemplate::Application.configure do
-          config.action_mailer.queue = ActiveSupport::TestQueue.new
-        end
-      RUBY
-
-      require "#{app_path}/config/environment"
-      assert_kind_of ActiveSupport::TestQueue, ActionMailer::Base.queue
-    end
-
     test "does not include url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
         end
       RUBY
@@ -131,7 +115,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/:controller(/:action)"
         end
       RUBY

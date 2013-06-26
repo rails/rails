@@ -18,8 +18,19 @@ module ActiveRecord
           end
         end
 
+        class Bit < Type
+          def type_cast(value)
+            if String === value
+              ConnectionAdapters::PostgreSQLColumn.string_to_bit value
+            else
+              value
+            end
+          end
+        end
+
         class Bytea < Type
           def type_cast(value)
+            return if value.nil?
             PGconn.unescape_bytea value
           end
         end
@@ -63,6 +74,16 @@ module ActiveRecord
           end
         end
 
+        class Point < Type
+          def type_cast(value)
+            if String === value
+              ConnectionAdapters::PostgreSQLColumn.string_to_point value
+            else
+              value
+            end
+          end
+        end
+
         class Array < Type
           attr_reader :subtype
           def initialize(subtype)
@@ -78,11 +99,69 @@ module ActiveRecord
           end
         end
 
+        class Range < Type
+          attr_reader :subtype
+          def initialize(subtype)
+            @subtype = subtype
+          end
+
+          def extract_bounds(value)
+            from, to = value[1..-2].split(',')
+            {
+              from:          (value[1] == ',' || from == '-infinity') ? infinity(:negative => true) : from,
+              to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
+              exclude_start: (value[0] == '('),
+              exclude_end:   (value[-1] == ')')
+            }
+          end
+
+          def infinity(options = {})
+            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
+          end
+
+          def to_integer(value)
+            infinity?(value) ? value : value.to_i
+          end
+
+          def type_cast(value)
+            return if value.nil? || value == 'empty'
+            return value if value.is_a?(::Range)
+
+            extracted = extract_bounds(value)
+
+            case @subtype
+            when :date
+              from  = ConnectionAdapters::Column.value_to_date(extracted[:from])
+              from -= 1.day if extracted[:exclude_start]
+              to    = ConnectionAdapters::Column.value_to_date(extracted[:to])
+            when :decimal
+              from  = BigDecimal.new(extracted[:from].to_s)
+              # FIXME: add exclude start for ::Range, same for timestamp ranges
+              to    = BigDecimal.new(extracted[:to].to_s)
+            when :time
+              from = ConnectionAdapters::Column.string_to_time(extracted[:from])
+              to   = ConnectionAdapters::Column.string_to_time(extracted[:to])
+            when :integer
+              from = to_integer(extracted[:from]) rescue value ? 1 : 0
+              from -= 1 if extracted[:exclude_start]
+              to   = to_integer(extracted[:to]) rescue value ? 1 : 0
+            else
+              return value
+            end
+
+            ::Range.new(from, to, extracted[:exclude_end])
+          end
+        end
+
         class Integer < Type
           def type_cast(value)
             return if value.nil?
 
-            value.to_i rescue value ? 1 : 0
+            ConnectionAdapters::Column.value_to_integer value
           end
         end
 
@@ -181,6 +260,10 @@ module ActiveRecord
             @mapping[oid]
           end
 
+          def clear
+            @mapping.clear
+          end
+
           def key?(oid)
             @mapping.key? oid
           end
@@ -233,6 +316,13 @@ module ActiveRecord
         alias_type    'int8', 'int2'
         alias_type    'oid',  'int2'
 
+        register_type 'daterange', OID::Range.new(:date)
+        register_type 'numrange', OID::Range.new(:decimal)
+        register_type 'tsrange', OID::Range.new(:time)
+        register_type 'int4range', OID::Range.new(:integer)
+        alias_type    'tstzrange', 'tsrange'
+        alias_type    'int8range', 'int4range'
+
         register_type 'numeric', OID::Decimal.new
         register_type 'text', OID::Identity.new
         alias_type 'varchar', 'text'
@@ -243,31 +333,30 @@ module ActiveRecord
         # FIXME: why are we keeping these types as strings?
         alias_type 'tsvector', 'text'
         alias_type 'interval', 'text'
-        alias_type 'bit',      'text'
-        alias_type 'varbit',   'text'
         alias_type 'macaddr',  'text'
         alias_type 'uuid',     'text'
-
-        # FIXME: I don't think this is correct. We should probably be returning a parsed date,
-        # but the tests pass with a string returned.
-        register_type 'timestamptz', OID::Identity.new
 
         register_type 'money', OID::Money.new
         register_type 'bytea', OID::Bytea.new
         register_type 'bool', OID::Boolean.new
+        register_type 'bit', OID::Bit.new
+        register_type 'varbit', OID::Bit.new
 
         register_type 'float4', OID::Float.new
         alias_type 'float8', 'float4'
 
         register_type 'timestamp', OID::Timestamp.new
+        register_type 'timestamptz', OID::Timestamp.new
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
 
         register_type 'path', OID::Identity.new
+        register_type 'point', OID::Point.new
         register_type 'polygon', OID::Identity.new
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'ltree', OID::Identity.new
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'

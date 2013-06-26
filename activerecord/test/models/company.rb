@@ -141,7 +141,7 @@ class Client < Company
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
   belongs_to :readonly_firm, -> { readonly }, :class_name => "Firm", :foreign_key => "firm_id"
   belongs_to :bob_firm, -> { where :name => "Bob" }, :class_name => "Firm", :foreign_key => "client_of"
-  has_many :accounts, :through => :firm
+  has_many :accounts, :through => :firm, :source => :accounts
   belongs_to :account
 
   class RaisedOnSave < RuntimeError; end
@@ -205,6 +205,8 @@ end
 class Account < ActiveRecord::Base
   belongs_to :firm, :class_name => 'Company'
   belongs_to :unautosaved_firm, :foreign_key => "firm_id", :class_name => "Firm", :autosave => false
+
+  alias_attribute :available_credit, :credit_limit
 
   def self.destroyed_account_ids
     @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }

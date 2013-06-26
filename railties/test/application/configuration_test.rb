@@ -1,5 +1,6 @@
 require "isolation/abstract_unit"
 require 'rack/test'
+require 'env_helpers'
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -17,6 +18,7 @@ module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
+    include EnvHelpers
 
     def new_app
       File.expand_path("#{app_path}/../new_app")
@@ -41,6 +43,16 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
+      require "rails"
+
+      switch_env "RAILS_ENV", nil do
+        Rails.env = "development"
+        assert_equal "development", Rails.env
+        assert_nil ENV['RAILS_ENV']
+      end
+    end
+
     test "a renders exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
@@ -50,6 +62,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+      ActiveRecord::NullMigration.any_instance.stubs(:mtime).returns(1)
 
       get "/foo"
       assert_equal 500, last_response.status
@@ -146,12 +159,12 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.initialize!
+      assert Rails.application.initialize!
     end
 
     test "application is always added to eager_load namespaces" do
       require "#{app_path}/config/application"
-      assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
+      assert Rails.application, Rails.application.config.eager_load_namespaces
     end
 
     test "the application can be eager loaded even when there are no frameworks" do
@@ -178,6 +191,16 @@ module ApplicationTests
       assert_nothing_raised do
         require "#{app_path}/config/application"
       end
+    end
+
+    test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      app_file 'config/initializers/filter_parameters_logging.rb', <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal [:password, :foo, 'bar'], Rails.application.env_config['action_dispatch.parameter_filter']
     end
 
     test "config.to_prepare is forwarded to ActionDispatch" do
@@ -543,6 +566,54 @@ module ApplicationTests
 
       post "/posts", {post: {"title" =>"zomg"}}
       assert_equal 'permitted', last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters = :raise" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render text: params.require(:post).permit(:name)
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", {post: {"title" =>"zomg"}}
+      assert_match "We're sorry, but something went wrong", last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
+      ENV["RAILS_ENV"] = "development"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
+      ENV["RAILS_ENV"] = "test"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
+      ENV["RAILS_ENV"] = "production"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_dispatch.ignore_accept_header" do

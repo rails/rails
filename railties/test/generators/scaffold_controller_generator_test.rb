@@ -31,16 +31,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@user = User\.new\(user_params\)/, m)
         assert_match(/@user\.save/, m)
-        assert_match(/@user\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@user\.update_attributes\(user_params\)/, m)
-        assert_match(/@user\.errors/, m)
+        assert_match(/@user\.update\(user_params\)/, m)
       end
 
       assert_instance_method :destroy, content do |m|
         assert_match(/@user\.destroy/, m)
+        assert_match(/User was successfully destroyed/, m)
       end
 
       assert_instance_method :set_user, content do |m|
@@ -49,6 +48,33 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
       assert_match(/def user_params/, content)
       assert_match(/params\.require\(:user\)\.permit\(:name, :age\)/, content)
+    end
+  end
+
+  def test_dont_use_require_or_permit_if_there_are_no_attributes
+    run_generator ["User"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match(/def user_params/, content)
+      assert_match(/params\[:user\]/, content)
+    end
+  end
+
+  def test_controller_permit_references_attributes
+    run_generator ["LineItem", "product:references", "cart:belongs_to"]
+
+    assert_file "app/controllers/line_items_controller.rb" do |content|
+      assert_match(/def line_item_params/, content)
+      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :cart_id\)/, content)
+    end
+  end
+
+  def test_controller_permit_polymorphic_references_attributes
+    run_generator ["LineItem", "product:references{polymorphic}"]
+
+    assert_file "app/controllers/line_items_controller.rb" do |content|
+      assert_match(/def line_item_params/, content)
+      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
     end
   end
 
@@ -68,13 +94,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_functional_tests
-    run_generator
+    run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}"]
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, user: \{ age: @user.age, name: @user.name \}/, content)
-      assert_match(/put :update, id: @user, user: \{ age: @user.age, name: @user.name \}/, content)
+      assert_match(/post :create, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \}/, content)
+      assert_match(/patch :update, id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \}/, content)
     end
   end
 
@@ -85,7 +111,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, user: \{  \}/, content)
-      assert_match(/put :update, id: @user, user: \{  \}/, content)
+      assert_match(/patch :update, id: @user, user: \{  \}/, content)
     end
   end
 
@@ -137,7 +163,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/\{ render action: "new" \}/, content)
+      assert_match(/render action: 'new'/, content)
     end
   end
 end

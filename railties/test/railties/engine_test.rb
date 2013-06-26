@@ -105,7 +105,7 @@ module RailtiesTest
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `bundle exec rake railties:install:migrations`
+        `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
       end
@@ -187,7 +187,7 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
-    test "adds its views to view paths with lower proriority than app ones" do
+    test "adds its views to view paths with lower priority than app ones" do
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
           def index
@@ -270,7 +270,7 @@ module RailtiesTest
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', :to => 'foo#index'
         end
       RUBY
@@ -345,7 +345,7 @@ YAML
         #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
-        #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/actionview/lib/action_view/locale/en.yml
         #{@plugin.path}/config/locales/en.yml
         #{app_path}/config/locales/en.yml
         #{app_path}/app/locales/en.yml
@@ -416,11 +416,6 @@ YAML
       boot_rails
     end
 
-    test "Rails::Engine itself does not respond to config" do
-      boot_rails
-      assert !Rails::Engine.respond_to?(:config)
-    end
-
     test "initializers are executed after application configuration initializers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
@@ -472,7 +467,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount(Bukkits::Engine => "/bukkits")
         end
       RUBY
@@ -568,7 +563,7 @@ YAML
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
-            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'hello'] }
+            endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['hello']] }
           end
         end
       RUBY
@@ -607,7 +602,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/bar" => "bar#index", as: "bar"
           mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
@@ -725,7 +720,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
@@ -769,7 +764,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount Bukkits::Awesome::Engine => "/bukkits", :as => "bukkits"
         end
       RUBY
@@ -833,7 +828,7 @@ YAML
       add_to_config "isolate_namespace AppTemplate"
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do end
+        Rails.application.routes.draw do end
       RUBY
 
       boot_rails
@@ -1211,7 +1206,7 @@ YAML
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/bar' => 'bar#index', :as => 'bar'
           mount Bukkits::Engine => "/bukkits", :as => "bukkits"
         end
@@ -1239,6 +1234,12 @@ YAML
 
       get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
       assert_equal '/foo/bukkits/bukkit', last_response.body
+    end
+
+    test "engines method is properly deprecated" do
+      boot_rails
+
+      assert_deprecated { app.railties.engines }
     end
 
   private

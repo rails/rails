@@ -24,7 +24,7 @@ ARGV.clone.options do |opts|
 
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
-    opts.separator "You can also use runner as a shebang line for your scripts like this:"
+    opts.separator "You can also use runner as a shebang line for your executables:"
     opts.separator "-------------------------------------------------------------"
     opts.separator "#!/usr/bin/env #{File.expand_path($0)} runner"
     opts.separator ""
@@ -48,7 +48,7 @@ if code_or_file.nil?
   exit 1
 elsif File.exist?(code_or_file)
   $0 = code_or_file
-  eval(File.read(code_or_file), nil, code_or_file)
+  Kernel.load code_or_file
 else
   eval(code_or_file)
 end

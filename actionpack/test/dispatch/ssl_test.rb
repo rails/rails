@@ -37,6 +37,11 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Strict-Transport-Security']
   end
 
+  def test_no_hsts_with_insecure_connection
+    get "http://example.org/"
+    assert_not response.headers['Strict-Transport-Security']
+  end
+
   def test_hsts_header
     self.app = ActionDispatch::SSL.new(default_app, :hsts => true)
     get "https://example.org/"
@@ -47,13 +52,20 @@ class SSLTest < ActionDispatch::IntegrationTest
   def test_disable_hsts_header
     self.app = ActionDispatch::SSL.new(default_app, :hsts => false)
     get "https://example.org/"
-    refute response.headers['Strict-Transport-Security']
+    assert_not response.headers['Strict-Transport-Security']
   end
 
   def test_hsts_expires
     self.app = ActionDispatch::SSL.new(default_app, :hsts => { :expires => 500 })
     get "https://example.org/"
     assert_equal "max-age=500",
+      response.headers['Strict-Transport-Security']
+  end
+
+  def test_hsts_expires_with_duration
+    self.app = ActionDispatch::SSL.new(default_app, :hsts => { :expires => 1.year })
+    get "https://example.org/"
+    assert_equal "max-age=31557600",
       response.headers['Strict-Transport-Security']
   end
 
@@ -109,6 +121,20 @@ class SSLTest < ActionDispatch::IntegrationTest
 
     get "https://example.org/"
     assert_equal ["problem=def; path=/; secure;  HttpOnly"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
+  def test_flag_cookies_as_secure_with_ignore_case
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; Secure; HttpOnly"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; Secure; HttpOnly"],
       response.headers['Set-Cookie'].split("\n")
   end
 

@@ -278,8 +278,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_null_relation_calculations_methods
     assert_no_queries do
-      assert_equal 0,     Developer.none.count
-      assert_equal nil,   Developer.none.calculate(:average, 'salary')
+      assert_equal 0, Developer.none.count
+      assert_equal 0, Developer.none.calculate(:count, nil, {})
+      assert_equal nil, Developer.none.calculate(:average, 'salary')
     end
   end
 
@@ -319,6 +320,22 @@ class RelationTest < ActiveRecord::TestCase
       ]
     ).to_a
     assert_equal 1, person_with_reader_and_post.size
+  end
+
+  def test_no_arguments_to_query_methods_raise_errors
+    assert_raises(ArgumentError) { Topic.references() }
+    assert_raises(ArgumentError) { Topic.includes() }
+    assert_raises(ArgumentError) { Topic.preload() }
+    assert_raises(ArgumentError) { Topic.group() }
+    assert_raises(ArgumentError) { Topic.reorder() }
+  end
+
+  def test_blank_like_arguments_to_query_methods_dont_raise_errors
+    assert_nothing_raised { Topic.references([]) }
+    assert_nothing_raised { Topic.includes([]) }
+    assert_nothing_raised { Topic.preload([]) }
+    assert_nothing_raised { Topic.group([]) }
+    assert_nothing_raised { Topic.reorder([]) }
   end
 
   def test_scoped_responds_to_delegated_methods
@@ -404,6 +421,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_applies_to_all_chained_preloaded_scopes
+    assert_queries(3) do
+      post = Post.with_comments.with_tags.first
+      assert post
+    end
+  end
+
   def test_find_with_included_associations
     assert_queries(2) do
       posts = Post.includes(:comments).order('posts.id')
@@ -469,6 +493,7 @@ class RelationTest < ActiveRecord::TestCase
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
     assert_no_queries do
+      assert_equal expected_taggings, author.taggings.distinct.sort_by { |t| t.id }
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
     end
 
@@ -509,7 +534,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_in_empty_array
     authors = Author.all.where(:id => [])
-    assert_blank authors.to_a
+    assert authors.to_a.blank?
   end
 
   def test_where_with_ar_object
@@ -691,6 +716,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
+  def test_relation_to_sql
+    sql = Post.connection.unprepared_statement do
+      Post.first.comments.to_sql
+    end
+    assert_no_match(/\?/, sql)
+  end
+
   def test_relation_merging_with_arel_equalities_keeps_last_equality
     devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
       Developer.where(Developer.arel_table[:salary].eq(9000))
@@ -723,7 +755,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert_present devs.locked
+    assert devs.locked.present?
   end
 
   def test_relation_merging_with_preload
@@ -759,11 +791,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_count_with_distinct
     posts = Post.all
 
-    assert_equal 3, posts.count(:comments_count, :distinct => true)
-    assert_equal 11, posts.count(:comments_count, :distinct => false)
+    assert_equal 3, posts.distinct(true).count(:comments_count)
+    assert_equal 11, posts.distinct(false).count(:comments_count)
 
-    assert_equal 3, posts.select(:comments_count).count(:distinct => true)
-    assert_equal 11, posts.select(:comments_count).count(:distinct => false)
+    assert_equal 3, posts.distinct(true).select(:comments_count).count
+    assert_equal 11, posts.distinct(false).select(:comments_count).count
   end
 
   def test_count_explicit_columns
@@ -1193,6 +1225,16 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_turn_off_eager_loading_with_conditions_on_joins
+    original_value = ActiveRecord::Base.disable_implicit_join_references
+    ActiveRecord::Base.disable_implicit_join_references = true
+
+    scope = Topic.where(author_email_address: 'my.example@gmail.com').includes(:replies)
+    assert_not scope.eager_loading?
+  ensure
+    ActiveRecord::Base.disable_implicit_join_references = original_value
+  end
+
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
@@ -1239,7 +1281,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome),  comments(:greetings).post
   end
 
-  def test_uniq
+  def test_distinct
     tag1 = Tag.create(:name => 'Foo')
     tag2 = Tag.create(:name => 'Foo')
 
@@ -1247,12 +1289,23 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal ['Foo', 'Foo'], query.map(&:name)
     assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.distinct.map(&:name)
       assert_equal ['Foo'], query.uniq.map(&:name)
     end
     assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.distinct(true).map(&:name)
       assert_equal ['Foo'], query.uniq(true).map(&:name)
     end
+    assert_equal ['Foo', 'Foo'], query.distinct(true).distinct(false).map(&:name)
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
+  end
+
+  def test_doesnt_add_having_values_if_options_are_blank
+    scope = Post.having('')
+    assert_equal [], scope.having_values
+
+    scope = Post.having([])
+    assert_equal [], scope.having_values
   end
 
   def test_references_triggers_eager_loading
@@ -1480,5 +1533,40 @@ class RelationTest < ActiveRecord::TestCase
     ensure
       Array.send(:remove_method, :__omg__)
     end
+  end
+
+  test "merge collapses wheres from the LHS only" do
+    left  = Post.where(title: "omg").where(comments_count: 1)
+    right = Post.where(title: "wtf").where(title: "bbq")
+
+    expected = [left.where_values[1]] + right.where_values
+    merged   = left.merge(right)
+
+    assert_equal expected, merged.where_values
+    assert !merged.to_sql.include?("omg")
+    assert merged.to_sql.include?("wtf")
+    assert merged.to_sql.include?("bbq")
+  end
+
+  def test_merging_removes_rhs_bind_parameters
+    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    column = Post.columns_hash['id']
+    left.bind_values += [[column, 20]]
+    right   = Post.where(id: 10)
+
+    merged = left.merge(right)
+    assert_equal [], merged.bind_values
+  end
+
+  def test_merging_keeps_lhs_bind_parameters
+    column = Post.columns_hash['id']
+    binds = [[column, 20]]
+
+    right  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    right.bind_values += binds
+    left   = Post.where(id: 10)
+
+    merged = left.merge(right)
+    assert_equal binds, merged.bind_values
   end
 end

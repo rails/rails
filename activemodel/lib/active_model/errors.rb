@@ -12,7 +12,6 @@ module ActiveModel
   # A minimal implementation could be:
   #
   #   class Person
-  #
   #     # Required dependency for ActiveModel::Errors
   #     extend ActiveModel::Naming
   #
@@ -40,7 +39,6 @@ module ActiveModel
   #     def Person.lookup_ancestors
   #       [self]
   #     end
-  #
   #   end
   #
   # The last three methods are required in your object for Errors to be
@@ -233,7 +231,7 @@ module ActiveModel
     #   #    <error>name must be specified</error>
     #   #  </errors>
     def to_xml(options={})
-      to_a.to_xml({ :root => "errors", :skip_types => true }.merge!(options))
+      to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
     end
 
     # Returns a Hash that can be used as the JSON representation for this
@@ -352,17 +350,31 @@ module ActiveModel
       map { |attribute, message| full_message(attribute, message) }
     end
 
+    # Returns all the full error messages for a given attribute in an array.
+    #
+    #   class Person
+    #     validates_presence_of :name, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create()
+    #   person.errors.full_messages_for(:name)
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
+    def full_messages_for(attribute)
+      (get(attribute) || []).map { |message| full_message(attribute, message) }
+    end
+
     # Returns a full message for a given attribute.
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
       return message if attribute == :base
       attr_name = attribute.to_s.tr('.', '_').humanize
-      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
       I18n.t(:"errors.format", {
-        :default   => "%{attribute} %{message}",
-        :attribute => attr_name,
-        :message   => message
+        default:  "%{attribute} %{message}",
+        attribute: attr_name,
+        message:   message
       })
     end
 
@@ -414,10 +426,10 @@ module ActiveModel
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {
-        :default => defaults,
-        :model => @base.class.model_name.human,
-        :attribute => @base.class.human_attribute_name(attribute),
-        :value => value
+        default: defaults,
+        model: @base.class.model_name.human,
+        attribute: @base.class.human_attribute_name(attribute),
+        value: value
       }.merge!(options)
 
       I18n.translate(key, options)

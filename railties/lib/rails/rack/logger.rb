@@ -1,19 +1,24 @@
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/object/blank'
+require 'active_support/log_subscriber'
+require 'action_dispatch/http/request'
+require 'rack/body_proxy'
 
 module Rails
   module Rack
     # Sets log tags, logs the request, calls the app, and flushes the logs.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
-        @app, @taggers = app, taggers || []
+        @app          = app
+        @taggers      = taggers || []
+        @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        if Rails.logger.respond_to?(:tagged)
-          Rails.logger.tagged(compute_tags(request)) { call_app(request, env) }
+        if logger.respond_to?(:tagged)
+          logger.tagged(compute_tags(request)) { call_app(request, env) }
         else
           call_app(request, env)
         end
@@ -23,13 +28,19 @@ module Rails
 
       def call_app(request, env)
         # Put some space between requests in development logs.
-        if Rails.env.development?
-          Rails.logger.debug ''
-          Rails.logger.debug ''
+        if development?
+          logger.debug ''
+          logger.debug ''
         end
 
-        Rails.logger.info started_request_message(request)
-        @app.call(env)
+        @instrumenter.start 'action_dispatch.request', request: request
+        logger.info started_request_message(request)
+        resp = @app.call(env)
+        resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
+        resp
+      rescue
+        finish(request)
+        raise
       ensure
         ActiveSupport::LogSubscriber.flush_all!
       end
@@ -54,6 +65,20 @@ module Rails
             tag
           end
         end
+      end
+
+      private
+
+      def finish(request)
+        @instrumenter.finish 'action_dispatch.request', request: request
+      end
+
+      def development?
+        Rails.env.development?
+      end
+
+      def logger
+        Rails.logger
       end
     end
   end

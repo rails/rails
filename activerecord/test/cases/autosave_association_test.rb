@@ -161,16 +161,16 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_callbacks_firing_order_on_update
-    eye = Eye.create(:iris_attributes => {:color => 'honey'})
-    eye.update_attributes(:iris_attributes => {:color => 'green'})
+    eye = Eye.create(iris_attributes: {color: 'honey'})
+    eye.update(iris_attributes: {color: 'green'})
     assert_equal [true, false], eye.after_update_callbacks_stack
   end
 
   def test_callbacks_firing_order_on_save
-    eye = Eye.create(:iris_attributes => {:color => 'honey'})
+    eye = Eye.create(iris_attributes: {color: 'honey'})
     assert_equal [false, false], eye.after_save_callbacks_stack
 
-    eye.update_attributes(:iris_attributes => {:color => 'blue'})
+    eye.update(iris_attributes: {color: 'blue'})
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
   end
 end
@@ -439,7 +439,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_assign_ids_for_through_a_belongs_to
-    post = Post.new(:title => "Assigning IDs works!", :body => "You heared it here first, folks!")
+    post = Post.new(:title => "Assigning IDs works!", :body => "You heard it here first, folks!")
     post.person_ids = [people(:david).id, people(:michael).id]
     post.save
     post.reload
@@ -566,7 +566,7 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 end
 
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_fixtures = false
 
   def setup
     super
@@ -764,6 +764,20 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_equal 2, @pirate.birds.reload.length
   end
 
+  def test_should_save_new_record_that_has_same_value_as_existing_record_marked_for_destruction_on_field_that_has_unique_index
+    Bird.connection.add_index :birds, :name, unique: true
+
+    3.times { |i| @pirate.birds.create(name: "unique_birds_#{i}") }
+
+    @pirate.birds[0].mark_for_destruction
+    @pirate.birds.build(name: @pirate.birds[0].name)
+    @pirate.save!
+
+    assert_equal 3, @pirate.birds.reload.length
+  ensure
+    Bird.connection.remove_index :birds, column: :name
+  end
+
   # Add and remove callbacks tests for association collections.
   %w{ method proc }.each do |callback_type|
     define_method("test_should_run_add_callback_#{callback_type}s_for_has_many") do
@@ -846,8 +860,10 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
     assert @pirate.save
 
-    assert_queries(0) do
-      assert @pirate.save
+    Pirate.transaction do
+      assert_queries(0) do
+        assert @pirate.save
+      end
     end
   end
 
@@ -1335,7 +1351,7 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
     assert !@pirate.valid?
   end
 
-  test "should not automatically asd validate associations without :validate => true" do
+  test "should not automatically add validate associations without :validate => true" do
     assert @pirate.valid?
     @pirate.non_validated_ship.name = ''
     assert @pirate.valid?

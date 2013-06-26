@@ -120,4 +120,14 @@ class LoggerTest < ActiveSupport::TestCase
     byte_string.force_encoding("ASCII-8BIT")
     assert byte_string.include?(BYTE_STRING)
   end
+  
+  def test_silencing_everything_but_errors
+    @logger.silence do
+      @logger.debug "NOT THERE"
+      @logger.error "THIS IS HERE"
+    end
+    
+    assert !@output.string.include?("NOT THERE")
+    assert @output.string.include?("THIS IS HERE")
+  end
 end

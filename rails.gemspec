@@ -16,16 +16,15 @@ Gem::Specification.new do |s|
   s.email    = 'david@loudthinking.com'
   s.homepage = 'http://www.rubyonrails.org'
 
-  s.bindir      = 'bin'
-  s.executables = []
-  s.files       = Dir['guides/**/*'].select { |path| File.file? path }
+  s.files = ['README.md'] + Dir['guides/**/*']
 
   s.add_dependency 'activesupport', version
   s.add_dependency 'actionpack',    version
+  s.add_dependency 'actionview',    version
   s.add_dependency 'activerecord',  version
   s.add_dependency 'actionmailer',  version
   s.add_dependency 'railties',      version
 
-  s.add_dependency 'bundler',         '>= 1.2.2', '< 2.0'
-  s.add_dependency 'sprockets-rails', '~> 2.0.0.rc1'
+  s.add_dependency 'bundler',         '>= 1.3.0', '< 2.0'
+  s.add_dependency 'sprockets-rails', '~> 2.0.0'
 end

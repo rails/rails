@@ -58,7 +58,7 @@ module ActiveRecord
     # It also allows you to update the avatar through the member:
     #
     #   params = { member: { avatar_attributes: { id: '2', icon: 'sad' } } }
-    #   member.update_attributes params[:member]
+    #   member.update params[:member]
     #   member.avatar.icon # => 'sad'
     #
     # By default you will only be able to set and update attributes on the
@@ -90,8 +90,9 @@ module ActiveRecord
     #     accepts_nested_attributes_for :posts
     #   end
     #
-    # You can now set or update attributes on an associated post model through
-    # the attribute hash.
+    # You can now set or update attributes on the associated posts through
+    # an attribute hash for a member: include the key +:posts_attributes+
+    # with an array of hashes of post attributes as a value.
     #
     # For each hash that does _not_ have an <tt>id</tt> key a new record will
     # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
@@ -114,10 +115,10 @@ module ActiveRecord
     # hashes if they fail to pass your criteria. For example, the previous
     # example could be rewritten as:
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
-    #    end
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: proc { |attributes| attributes['title'].blank? }
+    #   end
     #
     #   params = { member: {
     #     name: 'joe', posts_attributes: [
@@ -134,19 +135,19 @@ module ActiveRecord
     #
     # Alternatively, :reject_if also accepts a symbol for using methods:
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: :new_record?
-    #    end
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: :new_record?
+    #   end
     #
-    #    class Member < ActiveRecord::Base
-    #      has_many :posts
-    #      accepts_nested_attributes_for :posts, reject_if: :reject_posts
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts, reject_if: :reject_posts
     #
-    #      def reject_posts(attributed)
-    #        attributed['title'].blank?
-    #      end
-    #    end
+    #     def reject_posts(attributed)
+    #       attributed['title'].blank?
+    #     end
+    #   end
     #
     # If the hash contains an <tt>id</tt> key that matches an already
     # associated record, the matching record will be modified:
@@ -183,6 +184,29 @@ module ActiveRecord
     #   member.save
     #   member.reload.posts.length # => 1
     #
+    # Nested attributes for an associated collection can also be passed in
+    # the form of a hash of hashes instead of an array of hashes:
+    #
+    #   Member.create(name:             'joe',
+    #                 posts_attributes: { first:  { title: 'Foo' },
+    #                                     second: { title: 'Bar' } })
+    #
+    # has the same effect as
+    #
+    #   Member.create(name:             'joe',
+    #                 posts_attributes: [ { title: 'Foo' },
+    #                                     { title: 'Bar' } ])
+    #
+    # The keys of the hash which is the value for +:posts_attributes+ are
+    # ignored in this case.
+    # However, it is not allowed to use +'id'+ or +:id+ for one of
+    # such keys, otherwise the hash will be wrapped in an array and
+    # interpreted as an attribute hash for a single post.
+    #
+    # Passing attributes for an associated collection in the form of a hash
+    # of hashes can be used with hashes generated from HTTP/HTML parameters,
+    # where there maybe no natural way to submit an array of hashes.
+    #
     # === Saving
     #
     # All changes to models, including the destruction of those marked for
@@ -205,6 +229,27 @@ module ActiveRecord
     #     belongs_to :member, inverse_of: :posts
     #     validates_presence_of :member
     #   end
+    #
+    # Note that if you do not specify the <tt>inverse_of</tt> option, then
+    # Active Record will try to automatically guess the inverse association
+    # based on heuristics.
+    #
+    # For one-to-one nested associations, if you build the new (in-memory)
+    # child object yourself before assignment, then this module will not
+    # overwrite it, e.g.:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_one :avatar
+    #     accepts_nested_attributes_for :avatar
+    #
+    #     def avatar
+    #       super || build_avatar(width: 200)
+    #     end
+    #   end
+    #
+    #   member = Member.new
+    #   member.avatar_attributes = {icon: 'sad'}
+    #   member.avatar.width # => 200
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
 
@@ -261,7 +306,7 @@ module ActiveRecord
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
-            reflection.options[:autosave] = true
+            reflection.autosave = true
             add_autosave_association_callbacks(reflection)
 
             nested_attributes_options = self.nested_attributes_options.dup
@@ -269,22 +314,35 @@ module ActiveRecord
             self.nested_attributes_options = nested_attributes_options
 
             type = (reflection.collection? ? :collection : :one_to_one)
-
-            # def pirate_attributes=(attributes)
-            #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes, mass_assignment_options)
-            # end
-            generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
-              if method_defined?(:#{association_name}_attributes=)
-                remove_method(:#{association_name}_attributes=)
-              end
-              def #{association_name}_attributes=(attributes)
-                assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
-              end
-            eoruby
+            generate_association_writer(association_name, type)
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
           end
         end
+      end
+
+      private
+
+      # Generates a writer method for this association. Serves as a point for
+      # accessing the objects in the association. For example, this method
+      # could generate the following:
+      #
+      #   def pirate_attributes=(attributes)
+      #     assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
+      #   end
+      #
+      # This redirects the attempts to write objects in an association through
+      # the helper methods defined below. Makes it seem like the nested
+      # associations are just regular associations.
+      def generate_association_writer(association_name, type)
+        generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
+          if method_defined?(:#{association_name}_attributes=)
+            remove_method(:#{association_name}_attributes=)
+          end
+          def #{association_name}_attributes=(attributes)
+            assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
+          end
+        eoruby
       end
     end
 
@@ -319,20 +377,28 @@ module ActiveRecord
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
+      existing_record = send(association_name)
 
-      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
-          (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
+      if (options[:update_only] || !attributes['id'].blank?) && existing_record &&
+          (options[:update_only] || existing_record.id.to_s == attributes['id'].to_s)
+        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
       elsif attributes['id'].present?
-        raise_nested_attributes_record_not_found(association_name, attributes['id'])
+        raise_nested_attributes_record_not_found!(association_name, attributes['id'])
 
       elsif !reject_new_record?(association_name, attributes)
-        method = "build_#{association_name}"
-        if respond_to?(method)
-          send(method, attributes.except(*UNASSIGNABLE_KEYS))
+        assignable_attributes = attributes.except(*UNASSIGNABLE_KEYS)
+
+        if existing_record && existing_record.new_record?
+          existing_record.assign_attributes(assignable_attributes)
+          association(association_name).initialize_attributes(existing_record)
         else
-          raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+          method = "build_#{association_name}"
+          if respond_to?(method)
+            send(method, assignable_attributes)
+          else
+            raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+          end
         end
       end
     end
@@ -371,20 +437,7 @@ module ActiveRecord
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
       end
 
-      if limit = options[:limit]
-        limit = case limit
-        when Symbol
-          send(limit)
-        when Proc
-          limit.call
-        else
-          limit
-        end
-
-        if limit && attributes_collection.size > limit
-          raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
-        end
-      end
+      check_record_limit!(options[:limit], attributes_collection)
 
       if attributes_collection.is_a? Hash
         keys = attributes_collection.keys
@@ -428,7 +481,30 @@ module ActiveRecord
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else
-          raise_nested_attributes_record_not_found(association_name, attributes['id'])
+          raise_nested_attributes_record_not_found!(association_name, attributes['id'])
+        end
+      end
+    end
+
+    # Takes in a limit and checks if the attributes_collection has too many
+    # records. The method will take limits in the form of symbols, procs, and
+    # number-like objects (anything that can be compared with an integer).
+    #
+    # Will raise an TooManyRecords error if the attributes_collection is
+    # larger than the limit.
+    def check_record_limit!(limit, attributes_collection)
+      if limit
+        limit = case limit
+        when Symbol
+          send(limit)
+        when Proc
+          limit.call
+        else
+          limit
+        end
+
+        if limit && attributes_collection.size > limit
+          raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
         end
       end
     end
@@ -452,6 +528,11 @@ module ActiveRecord
       has_destroy_flag?(attributes) || call_reject_if(association_name, attributes)
     end
 
+    # Determines if a record with the particular +attributes+ should be
+    # rejected by calling the reject_if Symbol or Proc (if defined).
+    # The reject_if option is defined by +accepts_nested_attributes_for+.
+    #
+    # Returns false if there is a +destroy_flag+ on the attributes.
     def call_reject_if(association_name, attributes)
       return false if has_destroy_flag?(attributes)
       case callback = self.nested_attributes_options[association_name][:reject_if]
@@ -462,7 +543,7 @@ module ActiveRecord
       end
     end
 
-    def raise_nested_attributes_record_not_found(association_name, record_id)
+    def raise_nested_attributes_record_not_found!(association_name, record_id)
       raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
     end
   end

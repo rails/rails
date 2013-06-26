@@ -134,16 +134,14 @@ module ActiveRecord
         #     end
         #
         #     def self.titles
-        #       map(&:title)
+        #       pluck(:title)
         #     end
-        #
         #   end
         #
         # We are able to call the methods like this:
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
-
         def scope(name, body, &block)
           extension = Module.new(&block) if block
 
@@ -161,10 +159,14 @@ module ActiveRecord
           end
 
           singleton_class.send(:define_method, name) do |*args|
-            options  = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
-            relation = all.merge(options)
+            if body.respond_to?(:call)
+              scope = all.scoping { body.call(*args) }
+              scope = scope.extending(extension) if extension
+            else
+              scope = body
+            end
 
-            extension ? relation.extending(extension) : relation
+            scope || all
           end
         end
       end

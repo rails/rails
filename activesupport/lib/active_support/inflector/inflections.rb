@@ -1,3 +1,4 @@
+require 'thread_safe'
 require 'active_support/core_ext/array/prepend_and_append'
 require 'active_support/i18n'
 
@@ -24,9 +25,10 @@ module ActiveSupport
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
     class Inflections
+      @__instance__ = ThreadSafe::Cache.new
+
       def self.instance(locale = :en)
-        @__instance__ ||= Hash.new { |h, k| h[k] = new }
-        @__instance__[locale]
+        @__instance__[locale] ||= new
       end
 
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
@@ -126,17 +128,29 @@ module ActiveSupport
       def irregular(singular, plural)
         @uncountables.delete(singular)
         @uncountables.delete(plural)
-        if singular[0,1].upcase == plural[0,1].upcase
-          plural(Regexp.new("(#{singular[0,1]})#{singular[1..-1]}$", "i"), '\1' + plural[1..-1])
-          plural(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + plural[1..-1])
-          singular(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + singular[1..-1])
+
+        s0 = singular[0]
+        srest = singular[1..-1]
+
+        p0 = plural[0]
+        prest = plural[1..-1]
+
+        if s0.upcase == p0.upcase
+          plural(/(#{s0})#{srest}$/i, '\1' + prest)
+          plural(/(#{p0})#{prest}$/i, '\1' + prest)
+
+          singular(/(#{s0})#{srest}$/i, '\1' + srest)
+          singular(/(#{p0})#{prest}$/i, '\1' + srest)
         else
-          plural(Regexp.new("#{singular[0,1].upcase}(?i)#{singular[1..-1]}$"), plural[0,1].upcase + plural[1..-1])
-          plural(Regexp.new("#{singular[0,1].downcase}(?i)#{singular[1..-1]}$"), plural[0,1].downcase + plural[1..-1])
-          plural(Regexp.new("#{plural[0,1].upcase}(?i)#{plural[1..-1]}$"), plural[0,1].upcase + plural[1..-1])
-          plural(Regexp.new("#{plural[0,1].downcase}(?i)#{plural[1..-1]}$"), plural[0,1].downcase + plural[1..-1])
-          singular(Regexp.new("#{plural[0,1].upcase}(?i)#{plural[1..-1]}$"), singular[0,1].upcase + singular[1..-1])
-          singular(Regexp.new("#{plural[0,1].downcase}(?i)#{plural[1..-1]}$"), singular[0,1].downcase + singular[1..-1])
+          plural(/#{s0.upcase}(?i)#{srest}$/,   p0.upcase   + prest)
+          plural(/#{s0.downcase}(?i)#{srest}$/, p0.downcase + prest)
+          plural(/#{p0.upcase}(?i)#{prest}$/,   p0.upcase   + prest)
+          plural(/#{p0.downcase}(?i)#{prest}$/, p0.downcase + prest)
+
+          singular(/#{s0.upcase}(?i)#{srest}$/,   s0.upcase   + srest)
+          singular(/#{s0.downcase}(?i)#{srest}$/, s0.downcase + srest)
+          singular(/#{p0.upcase}(?i)#{prest}$/,   s0.upcase   + srest)
+          singular(/#{p0.downcase}(?i)#{prest}$/, s0.downcase + srest)
         end
       end
 

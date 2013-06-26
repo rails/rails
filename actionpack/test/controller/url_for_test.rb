@@ -2,7 +2,6 @@ require 'abstract_unit'
 
 module AbstractController
   module Testing
-
     class UrlForTest < ActionController::TestCase
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { get ':controller(/:action(/:id(.:format)))' } }.url_helpers
@@ -87,6 +86,13 @@ module AbstractController
         add_host!
         assert_equal('http://basecamphq.com/c/a/i',
           W.new.url_for(:subdomain => false, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_subdomain_may_be_removed_with_blank_string
+        W.default_url_options[:host] = 'api.basecamphq.com'
+        assert_equal('http://basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => '', :controller => 'c', :action => 'a', :id => 'i')
         )
       end
 
@@ -350,10 +356,10 @@ module AbstractController
       def test_with_hash_with_indifferent_access
         W.default_url_options[:controller] = 'd'
         W.default_url_options[:only_path]  = false
-        assert_equal("/c", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'only_path' => true)))
+        assert_equal("/c", W.new.url_for(ActiveSupport::HashWithIndifferentAccess.new('controller' => 'c', 'only_path' => true)))
 
         W.default_url_options[:action] = 'b'
-        assert_equal("/c/a", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
+        assert_equal("/c/a", W.new.url_for(ActiveSupport::HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
       end
 
       def test_url_params_with_nil_to_param_are_not_in_url

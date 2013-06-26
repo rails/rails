@@ -13,7 +13,7 @@ Today is mostly coordination tasks.  Here are the things you must do today:
 
 Do not release with a Red CI.  You can find the CI status here:
 
-  http://travis-ci.org/#!/rails/rails
+  http://travis-ci.org/rails/rails
 
 === Is Sam Ruby happy?  If not, make him happy.
 
@@ -41,6 +41,9 @@ addressed, and that can impact your release date.
 
 Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
+
+This only needs done for major and minor releases, bugfix releases aren't a
+big enough deal, and are supposed to be backwards compatible.
 
 Send an email just giving a heads up about the upcoming release to these
 lists:

@@ -9,7 +9,7 @@ class Contact
   end
 
   def network
-    {:git => :github}
+    { git: :github }
   end
 
   def initialize(options = {})

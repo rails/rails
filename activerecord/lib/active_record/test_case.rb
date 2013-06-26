@@ -35,8 +35,7 @@ module ActiveRecord
     def assert_queries(num = 1, options = {})
       ignore_none = options.fetch(:ignore_none) { num == :any }
       SQLCounter.clear_log
-      yield
-    ensure
+      x = yield
       the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
       if num == :any
         assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
@@ -44,6 +43,7 @@ module ActiveRecord
         mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
         assert_equal num, the_log.size, mesg
       end
+      x
     end
 
     def assert_no_queries(&block)
@@ -60,16 +60,17 @@ module ActiveRecord
 
     self.clear_log
 
-    self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
+    self.ignored_sql = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
 
     # FIXME: this needs to be refactored so specific database can add their own
     # ignored SQL, or better yet, use a different notification for the queries
     # instead examining the SQL content.
     oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
     mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/]
-    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im]
+    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im, /^SHOW search_path/i]
+    sqlite3_ignored =    [/^\s*SELECT name\b.*\bFROM sqlite_master/im]
 
-    [oracle_ignored, mysql_ignored, postgresql_ignored].each do |db_ignored_sql|
+    [oracle_ignored, mysql_ignored, postgresql_ignored, sqlite3_ignored].each do |db_ignored_sql|
       ignored_sql.concat db_ignored_sql
     end
 

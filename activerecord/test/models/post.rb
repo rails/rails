@@ -5,16 +5,18 @@ class Post < ActiveRecord::Base
     end
   end
 
+  module NamedExtension2
+    def greeting
+      "hello"
+    end
+  end
+
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
   scope :limit_by, lambda {|l| limit(l) }
 
-  belongs_to :author do
-    def greeting
-      "hello"
-    end
-  end
+  belongs_to :author
 
   belongs_to :author_with_posts, -> { includes(:posts) }, :class_name => "Author", :foreign_key => :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, :class_name => "Author", :foreign_key => :author_id
@@ -29,6 +31,9 @@ class Post < ActiveRecord::Base
   scope :with_very_special_comments, -> { joins(:comments).where(:comments => {:type => 'VerySpecialComment'}) }
   scope :with_post, ->(post_id) { joins(:comments).where(:comments => { :post_id => post_id }) }
 
+  scope :with_comments, -> { preload(:comments) }
+  scope :with_tags, -> { preload(:taggings) }
+
   has_many   :comments do
     def find_most_recent
       order("id DESC").first
@@ -42,6 +47,14 @@ class Post < ActiveRecord::Base
       proxy_association
     end
   end
+
+  has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do
+    def greeting
+      "hello"
+    end
+  end
+
+  has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, :through => :author
   has_many :author_categorizations, :through => :author, :source => :categorizations
@@ -151,18 +164,6 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
-ActiveSupport::Deprecation.silence do
-  class DeprecatedPostWithComment < ActiveRecord::Base
-    self.table_name = 'posts'
-    default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
-  end
-end
-
-class PostForAuthor < ActiveRecord::Base
-  self.table_name = 'posts'
-  cattr_accessor :selected_author
-end
-
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => 1) }
@@ -175,6 +176,11 @@ class PostWithDefaultInclude < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { includes(:comments) }
   has_many :comments, :foreign_key => :post_id
+end
+
+class PostWithSpecialCategorization < Post
+  has_many :categorizations, :foreign_key => :post_id
+  default_scope { where(:type => 'PostWithSpecialCategorization').joins(:categorizations).where(:categorizations => { :special => true }) }
 end
 
 class PostWithDefaultScope < ActiveRecord::Base

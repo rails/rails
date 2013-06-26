@@ -15,15 +15,15 @@ module ActiveRecord
     # Example for SQLite database:
     #
     #   ActiveRecord::Base.establish_connection(
-    #     adapter: "sqlite",
-    #     database:  "path/to/dbfile"
+    #     adapter:  "sqlite",
+    #     database: "path/to/dbfile"
     #   )
     #
     # Also accepts keys as strings (for parsing from YAML for example):
     #
     #   ActiveRecord::Base.establish_connection(
-    #     "adapter" => "sqlite",
-    #     "database"  => "path/to/dbfile"
+    #     "adapter"  => "sqlite",
+    #     "database" => "path/to/dbfile"
     #   )
     #
     # Or a URL:
@@ -54,11 +54,11 @@ module ActiveRecord
     end
 
     def connection_id
-      Thread.current['ActiveRecord::Base.connection_id']
+      ActiveRecord::RuntimeRegistry.connection_id
     end
 
     def connection_id=(connection_id)
-      Thread.current['ActiveRecord::Base.connection_id'] = connection_id
+      ActiveRecord::RuntimeRegistry.connection_id = connection_id
     end
 
     # Returns the configuration of the associated connection as a hash:
@@ -79,7 +79,7 @@ module ActiveRecord
       connection_handler.retrieve_connection(self)
     end
 
-    # Returns true if Active Record is connected.
+    # Returns +true+ if Active Record is connected.
     def connected?
       connection_handler.connected?(self)
     end

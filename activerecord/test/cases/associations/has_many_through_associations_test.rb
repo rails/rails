@@ -330,6 +330,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_counter_caches_on_replace_association
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+    tag.tagged_posts << posts(:thinking)
+
+    tag.tagged_posts = []
+    post.reload
+
+    assert_equal(post.taggings.count, post.taggings_count)
+  end
+
   def test_replace_association
     assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people(true)}
 
@@ -572,7 +583,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
-    assert_equal 1, owners(:blackbeard).toys.count
+    assert_equal 2, owners(:blackbeard).toys.count
   end
 
   def test_find_on_has_many_association_collection_with_include_and_conditions
@@ -695,7 +706,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_can_update_through_association
     assert_nothing_raised do
-      people(:michael).posts.first.update_attributes!(:title => "Can write")
+      people(:michael).posts.first.update!(title: "Can write")
     end
   end
 
@@ -871,6 +882,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [tags(:general)], post.reload.tags
   end
 
+  def test_has_many_through_obeys_order_on_through_association
+    owner = owners(:blackbeard)
+    assert owner.toys.to_sql.include?("pets.name desc")
+    assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
+  end
+
   test "has many through associations on new records use null relations" do
     person = Person.new
 
@@ -883,4 +900,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  test "has many through with default scope on the target" do
+    person = people(:michael)
+    assert_equal [posts(:thinking)], person.first_posts
+
+    readers(:michael_authorless).update(first_post_id: 1)
+    assert_equal [posts(:thinking)], person.reload.first_posts
+  end
 end

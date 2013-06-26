@@ -15,11 +15,13 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'empty_bool'
 
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
+
+Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

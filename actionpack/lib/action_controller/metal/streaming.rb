@@ -26,7 +26,7 @@ module ActionController #:nodoc:
   #
   #   class PostsController
   #     def index
-  #       @posts = Post.scoped
+  #       @posts = Post.all
   #       render stream: true
   #     end
   #   end
@@ -51,9 +51,9 @@ module ActionController #:nodoc:
   #
   #   def dashboard
   #     # Allow lazy execution of the queries
-  #     @posts = Post.scoped
-  #     @pages = Page.scoped
-  #     @articles = Article.scoped
+  #     @posts = Post.all
+  #     @pages = Page.all
+  #     @articles = Article.all
   #     render stream: true
   #   end
   #

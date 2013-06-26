@@ -38,6 +38,18 @@ class KernelTest < ActiveSupport::TestCase
     # Skip if we can't STDERR.tell
   end
 
+  def test_quietly
+    old_stdout_position, old_stderr_position = STDOUT.tell, STDERR.tell
+    quietly do
+      puts 'see me, feel me'
+      STDERR.puts 'touch me, heal me'
+    end
+    assert_equal old_stdout_position, STDOUT.tell
+    assert_equal old_stderr_position, STDERR.tell
+  rescue Errno::ESPIPE
+    # Skip if we can't STDERR.tell
+  end
+
   def test_silence_stderr_with_return_value
     assert_equal 1, silence_stderr { 1 }
   end

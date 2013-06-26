@@ -53,13 +53,11 @@ module Rails
       template "lib/%name%.rb"
       template "lib/tasks/%name%_tasks.rake"
       template "lib/%name%/version.rb"
-      if full?
-        template "lib/%name%/engine.rb"
-      end
+      template "lib/%name%/engine.rb" if engine?
     end
 
     def config
-      template "config/routes.rb" if full?
+      template "config/routes.rb" if engine?
     end
 
     def test
@@ -70,7 +68,7 @@ module Rails
 
 task default: :test
       EOF
-      if full?
+      if engine?
         template "test/integration/navigation_test.rb"
       end
     end
@@ -96,6 +94,11 @@ task default: :test
       end
     end
 
+    def test_dummy_assets
+      template "rails/javascripts.js",  "#{dummy_path}/app/assets/javascripts/application.js", force: true
+      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+    end
+
     def test_dummy_clean
       inside dummy_path do
         remove_file ".gitignore"
@@ -103,8 +106,6 @@ task default: :test
         remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
-        remove_file "app/assets/images/rails.png"
-        remove_file "public/index.html"
         remove_file "public/robots.txt"
         remove_file "README"
         remove_file "test"
@@ -114,7 +115,7 @@ task default: :test
 
     def stylesheets
       if mountable?
-        copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
+        copy_file "rails/stylesheets.css",
                   "app/assets/stylesheets/#{name}/application.css"
       elsif full?
         empty_directory_with_keep_file "app/assets/stylesheets/#{name}"
@@ -125,20 +126,20 @@ task default: :test
       return if options.skip_javascript?
 
       if mountable?
-        template "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
-                  "app/assets/javascripts/#{name}/application.js"
+        template "rails/javascripts.js",
+                 "app/assets/javascripts/#{name}/application.js"
       elsif full?
         empty_directory_with_keep_file "app/assets/javascripts/#{name}"
       end
     end
 
-    def script(force = false)
-      return unless full?
+    def bin(force = false)
+      return unless engine?
 
-      directory "script", force: force do |content|
+      directory "bin", force: force do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, verbose: false
+      chmod "bin", 0755, verbose: false
     end
 
     def gemfile_entry
@@ -175,7 +176,7 @@ task default: :test
                                                  "skip adding entry to Gemfile"
 
       def initialize(*args)
-        raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
+        raise Error, "Options should be given after the plugin name. For details run: rails plugin new --help" if args[0].blank?
 
         @dummy_path = nil
         super
@@ -216,8 +217,8 @@ task default: :test
         build(:images)
       end
 
-      def create_script_files
-        build(:script)
+      def create_bin_files
+        build(:bin)
       end
 
       def create_test_files
@@ -265,14 +266,19 @@ task default: :test
           build(:generate_test_dummy)
           store_application_definition!
           build(:test_dummy_config)
+          build(:test_dummy_assets)
           build(:test_dummy_clean)
-          # ensure that script/rails has proper dummy_path
-          build(:script, true)
+          # ensure that bin/rails has proper dummy_path
+          build(:bin, true)
         end
       end
 
+      def engine?
+        full? || mountable?
+      end
+
       def full?
-        options[:full] || options[:mountable]
+        options[:full]
       end
 
       def mountable?

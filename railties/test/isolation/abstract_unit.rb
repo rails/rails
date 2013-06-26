@@ -9,7 +9,7 @@
 require 'fileutils'
 
 require 'bundler/setup' unless defined?(Bundler)
-require 'minitest/autorun'
+require 'active_support/testing/autorun'
 require 'active_support/test_case'
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -163,7 +163,7 @@ module TestHelpers
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -206,7 +206,7 @@ module TestHelpers
 
     def script(script)
       Dir.chdir(app_path) do
-        `#{Gem.ruby} #{app_path}/script/rails #{script}`
+        `#{Gem.ruby} #{app_path}/bin/rails #{script}`
       end
     end
 
@@ -279,7 +279,7 @@ Module.new do
   environment = File.expand_path('../../../../load_paths', __FILE__)
   require_environment = "-r #{environment}"
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path} --skip-gemfile`
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path} --skip-gemfile --no-rc`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"

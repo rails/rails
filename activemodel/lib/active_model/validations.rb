@@ -46,7 +46,7 @@ module ActiveModel
       include HelperMethods
 
       attr_accessor :validation_context
-      define_callbacks :validate, :scope => :name
+      define_callbacks :validate, scope: :name
 
       class_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
@@ -142,7 +142,9 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:if] = Array(options[:if])
-          options[:if].unshift("validation_context == :#{options[:on]}")
+          options[:if].unshift lambda { |o|
+            o.validation_context == options[:on]
+          }
         end
         args << options
         set_callback(:validate, *args, &block)
@@ -169,6 +171,49 @@ module ActiveModel
         _validators.values.flatten.uniq
       end
 
+      # Clears all of the validators and validations.
+      #
+      # Note that this will clear anything that is being used to validate
+      # the model for both the +validates_with+ and +validate+ methods.
+      # It clears the validators that are created with an invocation of
+      # +validates_with+ and the callbacks that are set by an invocation
+      # of +validate+.
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     validates_with MyValidator
+      #     validates_with OtherValidator, on: :create
+      #     validates_with StrictValidator, strict: true
+      #     validate :cannot_be_robot
+      #
+      #     def cannot_be_robot
+      #       errors.add(:base, 'A person cannot be a robot') if person_is_robot
+      #     end
+      #   end
+      #
+      #   Person.validators
+      #   # => [
+      #   #      #<MyValidator:0x007fbff403e808 @options={}>,
+      #   #      #<OtherValidator:0x007fbff403d930 @options={on: :create}>,
+      #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
+      #   #    ]
+      #
+      # If one runs Person.clear_validators! and then checks to see what
+      # validators this class has, you would obtain:
+      #
+      #   Person.validators # => []
+      #
+      # Also, the callback set by +validate :cannot_be_robot+ will be erased
+      # so that:
+      #
+      #   Person._validate_callbacks.empty?  # => true
+      #
+      def clear_validators!
+        reset_callbacks(:validate)
+        _validators.clear
+      end
+
       # List all validators that are being used to validate a specific attribute.
       #
       #   class Person
@@ -183,7 +228,6 @@ module ActiveModel
       #   Person.validators_on(:name)
       #   # => [
       #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
-      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={in:0..99}>
       #   #    ]
       def validators_on(*attributes)
         attributes.flat_map do |attribute|
@@ -333,7 +377,4 @@ module ActiveModel
   end
 end
 
-Dir[File.dirname(__FILE__) + "/validations/*.rb"].sort.each do |path|
-  filename = File.basename(path)
-  require "active_model/validations/#{filename}"
-end
+Dir[File.dirname(__FILE__) + "/validations/*.rb"].each { |file| require file }

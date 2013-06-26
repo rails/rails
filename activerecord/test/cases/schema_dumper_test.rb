@@ -17,15 +17,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.reverse.each do |v|
-      ActiveRecord::SchemaMigration.create!(
-        :version => v, :migrated_at => Time.now,
-        :fingerprint => "123456789012345678901234567890ab", :name => "anon")
+      ActiveRecord::SchemaMigration.create!(:version => v)
     end
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
-    target_line = %q{INSERT INTO schema_migrations (version, migrated_at, fingerprint, name) VALUES ('20100101010101',CURRENT_TIMESTAMP,'123456789012345678901234567890ab','anon');}
-    assert_match target_line, schema_info
   end
 
   def test_magic_comment
@@ -37,16 +33,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
-  end
-
-  def test_schema_dump_includes_migrations
-    ActiveRecord::SchemaMigration.delete_all
-    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/always_safe")
-
-    output = standard_dump
-    assert_match %r{migrations do}, output, "Missing migrations block"
-    assert_match %r{migration 1001, "[0-9a-f]{32}", "always_safe"}, output, "Missing migration line"
-    assert_match %r{migration 1002, "[0-9a-f]{32}", "still_safe"},  output, "Missing migration line"
   end
 
   def test_schema_dump_excludes_sqlite_sequence
@@ -125,7 +111,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*limit:}, output
-    elsif current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
@@ -191,13 +177,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
-    assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
+    if current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter) || current_adapter?(:PostgreSQLAdapter)
+      assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
+    else
+      assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
+    end
   end
 
   def test_schema_dumps_partial_indices
     index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
+      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
+    elsif current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index"', index_definition
     end
@@ -210,7 +202,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
       assert_match %r{t.text\s+"body",\s+null: false$}, output
@@ -233,6 +225,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.text\s+"medium_text",\s+limit: 16777215$}, output
       assert_match %r{t.text\s+"long_text",\s+limit: 2147483647$}, output
     end
+
+    def test_schema_dumps_index_type
+      output = standard_dump
+      assert_match %r{add_index "key_tests", \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
+      assert_match %r{add_index "key_tests", \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
+    end
   end
 
   def test_schema_dump_includes_decimal_options
@@ -244,6 +242,26 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   if current_adapter?(:PostgreSQLAdapter)
+    def test_schema_dump_includes_bigint_default
+      output = standard_dump
+      assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
+    end
+
+    def test_schema_dump_includes_extensions
+      connection = ActiveRecord::Base.connection
+      skip unless connection.supports_extensions?
+
+      connection.stubs(:extensions).returns(['hstore'])
+      output = standard_dump
+      assert_match "# These are extensions that must be enabled", output
+      assert_match %r{enable_extension "hstore"}, output
+
+      connection.stubs(:extensions).returns([])
+      output = standard_dump
+      assert_no_match "# These are extensions that must be enabled", output
+      assert_no_match %r{enable_extension}, output
+    end
+
     def test_schema_dump_includes_xml_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_xml_data_type"} =~ output
@@ -260,22 +278,22 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_inet_shorthand_definition
       output = standard_dump
-      if %r{create_table "postgresql_network_address"} =~ output
-        assert_match %r{t.inet "inet_address"}, output
+      if %r{create_table "postgresql_network_addresses"} =~ output
+        assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1"}, output
       end
     end
 
     def test_schema_dump_includes_cidr_shorthand_definition
       output = standard_dump
-      if %r{create_table "postgresql_network_address"} =~ output
-        assert_match %r{t.cidr "cidr_address"}, output
+      if %r{create_table "postgresql_network_addresses"} =~ output
+        assert_match %r{t.cidr\s+"cidr_address",\s+default: "192.168.1.0/24"}, output
       end
     end
 
     def test_schema_dump_includes_macaddr_shorthand_definition
       output = standard_dump
-      if %r{create_table "postgresql_network_address"} =~ output
-        assert_match %r{t.macaddr "macaddr_address"}, output
+      if %r{create_table "postgresql_network_addresses"} =~ output
+        assert_match %r{t.macaddr\s+"mac_address",\s+default: "ff:ff:ff:ff:ff:ff"}, output
       end
     end
 
@@ -290,6 +308,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_hstores"} =~ output
         assert_match %r[t.hstore "hash_store", default: {}], output
+      end
+    end
+
+    def test_schema_dump_includes_ltrees_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_ltrees"} =~ output
+        assert_match %r[t.ltree "path"], output
       end
     end
 

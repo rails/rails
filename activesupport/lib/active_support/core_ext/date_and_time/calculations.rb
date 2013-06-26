@@ -93,7 +93,7 @@ module DateAndTime
 
     # Returns a new date/time at the end of the quarter.
     # Example: 31st March, 30th June, 30th September.
-    # DateTIme objects will have a time set to 23:59:59.
+    # DateTime objects will have a time set to 23:59:59.
     def end_of_quarter
       last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
       beginning_of_month.change(:month => last_quarter_month).end_of_month
@@ -109,11 +109,11 @@ module DateAndTime
     alias :at_beginning_of_year :beginning_of_year
 
     # Returns a new date/time representing the given day in the next week.
-    # Week is assumed to start on +start_day+, default is
-    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
-    # DateTime objects have their time set to 0:00.
-    def next_week(start_day = Date.beginning_of_week)
-      first_hour{ weeks_since(1).beginning_of_week.days_since(days_span(start_day)) }
+    # The +given_day_in_next_week+ defaults to the beginning of the week
+    # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
+    # when set. +DateTime+ objects have their time set to 0:00.
+    def next_week(given_day_in_next_week = Date.beginning_of_week)
+      first_hour{ weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)) }
     end
 
     # Short-hand for months_since(1).

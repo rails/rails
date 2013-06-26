@@ -51,7 +51,7 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(record, column_types = {})
         klass = discriminate_class_for_record(record)
-        column_types = klass.decorate_columns(column_types)
+        column_types = klass.decorate_columns(column_types.dup)
         klass.allocate.init_with('attributes' => record, 'column_types' => column_types)
       end
 
@@ -69,11 +69,13 @@ module ActiveRecord
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the data store yet; otherwise, returns false.
     def new_record?
+      sync_with_transaction_state
       @new_record
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
+      sync_with_transaction_state
       @destroyed
     end
 
@@ -97,6 +99,9 @@ module ActiveRecord
     # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
+    #
+    # Attributes marked as readonly are silently ignored if the record is
+    # being updated.
     def save(*)
       create_or_update
     rescue ActiveRecord::RecordInvalid
@@ -116,6 +121,9 @@ module ActiveRecord
     # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
     # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
     # ActiveRecord::Callbacks for further details.
+    #
+    # Attributes marked as readonly are silently ignored if the record is
+    # being updated.
     def save!(*)
       create_or_update || raise(RecordNotSaved)
     end
@@ -202,6 +210,8 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
+    # This method raises an +ActiveRecord::ActiveRecordError+  if the
+    # attribute is marked as readonly.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
@@ -212,7 +222,7 @@ module ActiveRecord
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    def update_attributes(attributes)
+    def update(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
@@ -221,9 +231,11 @@ module ActiveRecord
       end
     end
 
-    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    alias update_attributes update
+
+    # Updates its receiver just like +update+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
-    def update_attributes!(attributes)
+    def update!(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
@@ -232,26 +244,28 @@ module ActiveRecord
       end
     end
 
-    # Updates a single attribute of an object, without having to explicitly call save on that object.
-    #
-    # * Validation is skipped.
-    # * Callbacks are skipped.
-    # * updated_at/updated_on column is not updated if that column is available.
-    #
-    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
-    # attribute is marked as readonly.
+    alias update_attributes! update!
+
+    # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)
       update_columns(name => value)
     end
 
-    # Updates the attributes from the passed-in hash, without having to explicitly call save on that object.
+    # Updates the attributes directly in the database issuing an UPDATE SQL
+    # statement and sets them in the receiver:
     #
-    # * Validation is skipped.
+    #   user.update_columns(last_request_at: Time.current)
+    #
+    # This is the fastest way to update attributes because it goes straight to
+    # the database, but take into account that in consequence the regular update
+    # procedures are totally bypassed. In particular:
+    #
+    # * Validations are skipped.
     # * Callbacks are skipped.
-    # * updated_at/updated_on column is not updated if that column is available.
+    # * +updated_at+/+updated_on+ are not updated.
     #
-    # Raises an +ActiveRecordError+ when called on new objects, or when at least
-    # one of the attributes is marked as readonly.
+    # This method raises an +ActiveRecord::ActiveRecordError+ when called on new
+    # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
 
@@ -319,10 +333,44 @@ module ActiveRecord
       toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
-    # Reloads the attributes of this object from the database.
-    # The optional options argument is passed to find when reloading so you
-    # may do e.g. record.reload(lock: true) to reload the same record with
-    # an exclusive row lock.
+    # Reloads the record from the database.
+    #
+    # This method modifies the receiver in-place. Attributes are updated, and
+    # caches busted, in particular the associations cache.
+    #
+    # If the record no longer exists in the database <tt>ActiveRecord::RecordNotFound</tt>
+    # is raised. Otherwise, in addition to the in-place modification the method
+    # returns +self+ for convenience.
+    #
+    # The optional <tt>:lock</tt> flag option allows you to lock the reloaded record:
+    #
+    #   reload(lock: true) # reload with pessimistic locking
+    #
+    # Reloading is commonly used in test suites to test something is actually
+    # written to the database, or when some action modifies the corresponding
+    # row in the database but not the object in memory:
+    #
+    #   assert account.deposit!(25)
+    #   assert_equal 25, account.credit        # check it is updated in memory
+    #   assert_equal 25, account.reload.credit # check it is also persisted
+    #
+    # Another commom use case is optimistic locking handling:
+    #
+    #   def with_optimistic_retry
+    #     begin
+    #       yield
+    #     rescue ActiveRecord::StaleObjectError
+    #       begin
+    #         # Reload lock_version in particular.
+    #         reload
+    #       rescue ActiveRecord::RecordNotFound
+    #         # If the record is gone there is nothing to do.
+    #       else
+    #         retry
+    #       end
+    #     end
+    #   end
+    #
     def reload(options = nil)
       clear_aggregation_cache
       clear_association_cache
@@ -361,7 +409,16 @@ module ActiveRecord
     #
     #   # triggers @brake.car.touch and @brake.car.corporation.touch
     #   @brake.touch
+    #
+    # Note that +touch+ must be used on a persisted object, or else an
+    # ActiveRecordError will be thrown. For example:
+    #
+    #   ball = Ball.new
+    #   ball.touch(:updated_at)   # => raises ActiveRecordError
+    #
     def touch(name = nil)
+      raise ActiveRecordError, "can not touch on a new record object" unless persisted?
+
       attributes = timestamp_attributes_for_update_in_model
       attributes << name if name
 
@@ -395,7 +452,7 @@ module ActiveRecord
     def relation_for_destroy
       pk         = self.class.primary_key
       column     = self.class.columns_hash[pk]
-      substitute = connection.substitute_at(column, 0)
+      substitute = self.class.connection.substitute_at(column, 0)
 
       relation = self.class.unscoped.where(
         self.class.arel_table[pk].eq(substitute))
@@ -406,27 +463,24 @@ module ActiveRecord
 
     def create_or_update
       raise ReadOnlyRecord if readonly?
-      result = new_record? ? create : update
+      result = new_record? ? create_record : update_record
       result != false
     end
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def update(attribute_names = @attributes.keys)
-      attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
-
-      if attributes_with_values.empty?
+    def update_record(attribute_names = @attributes.keys)
+      attributes_values = arel_attributes_with_values_for_update(attribute_names)
+      if attributes_values.empty?
         0
       else
-        klass = self.class
-        stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
-        klass.connection.update stmt
+        self.class.unscoped.update_record attributes_values, id, id_was
       end
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create(attribute_names = @attributes.keys)
+    def create_record(attribute_names = @attributes.keys)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values

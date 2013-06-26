@@ -1,5 +1,6 @@
 require 'active_support/notifications/instrumenter'
 require 'active_support/notifications/fanout'
+require 'active_support/per_thread_registry'
 
 module ActiveSupport
   # = Notifications
@@ -142,8 +143,8 @@ module ActiveSupport
   #
   # == Default Queue
   #
-  # Notifications ships with a queue implementation that consumes and publish events
-  # to log subscribers in a thread. You can use any queue implementation you want.
+  # Notifications ships with a queue implementation that consumes and publishes events
+  # to all log subscribers. You can use any queue implementation you want.
   #
   module Notifications
     class << self
@@ -177,7 +178,27 @@ module ActiveSupport
       end
 
       def instrumenter
-        Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
+        InstrumentationRegistry.instrumenter_for(notifier)
+      end
+    end
+
+    # This class is a registry which holds all of the +Instrumenter+ objects
+    # in a particular thread local. To access the +Instrumenter+ object for a
+    # particular +notifier+, you can call the following method:
+    #
+    #   InstrumentationRegistry.instrumenter_for(notifier)
+    #
+    # The instrumenters for multiple notifiers are held in a single instance of
+    # this class.
+    class InstrumentationRegistry # :nodoc:
+      extend ActiveSupport::PerThreadRegistry
+
+      def initialize
+        @registry = {}
+      end
+
+      def instrumenter_for(notifier)
+        @registry[notifier] ||= Instrumenter.new(notifier)
       end
     end
 

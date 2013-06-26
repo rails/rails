@@ -56,25 +56,44 @@ Before this migration is run, there will be no table. After, the table will
 exist. Active Record knows how to reverse this migration as well: if we roll
 this migration back, it will remove the table.
 
-On databases that support transactions with statements that change the schema ,
+On databases that support transactions with statements that change the schema,
 migrations are wrapped in a transaction. If the database does not support this
 then when a migration fails the parts of it that succeeded will not be rolled
 back. You will have to rollback the changes that were made by hand.
 
+NOTE: There are certain queries that can't run inside a transaction. If your
+adapter supports DDL transactions you can use `disable_ddl_transaction!` to
+disable them for a single migration.
+
 If you wish for a migration to do something that Active Record doesn't know how
-to reverse, you can use `up` and `down` instead of `change`:
+to reverse, you can use `reversible`:
+
+```ruby
+class ChangeProductsPrice < ActiveRecord::Migration
+  def change
+    reversible do |dir|
+      change_table :products do |t|
+        dir.up   { t.change :price, :string }
+        dir.down { t.change :price, :integer }
+      end
+    end
+  end
+end
+```
+
+Alternatively, you can use `up` and `down` instead of `change`:
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration
   def up
     change_table :products do |t|
-      t.string :price, null: false
+      t.change :price, :string
     end
   end
- 
+
   def down
     change_table :products do |t|
-      t.integer :price, null: false
+      t.change :price, :integer
     end
   end
 end
@@ -93,7 +112,9 @@ of the migration. The name of the migration class (CamelCased version)
 should match the latter part of the file name. For example
 `20080906120000_create_products.rb` should define class `CreateProducts` and
 `20080906120001_add_details_to_products.rb` should define
-`AddDetailsToProducts`. 
+`AddDetailsToProducts`. Rails uses this timestamp to determine which migration
+should be run and in what order, so if you're copying a migration from another
+application or generate a file yourself, be aware of its position in the order.
 
 Of course, calculating timestamps is no fun, so Active Record provides a
 generator to handle making it for you:
@@ -129,7 +150,25 @@ class AddPartNumberToProducts < ActiveRecord::Migration
 end
 ```
 
-Similarly,
+If you'd like to add an index on the new column, you can do that as well:
+
+```bash
+$ rails generate migration AddPartNumberToProducts part_number:string:index
+```
+
+will generate
+
+```ruby
+class AddPartNumberToProducts < ActiveRecord::Migration
+  def change
+    add_column :products, :part_number, :string
+    add_index :products, :part_number
+  end
+end
+```
+
+
+Similarly, you can generate a migration to remove a column from the command line:
 
 ```bash
 $ rails generate migration RemovePartNumberFromProducts part_number:string
@@ -139,12 +178,8 @@ generates
 
 ```ruby
 class RemovePartNumberFromProducts < ActiveRecord::Migration
-  def up
-    remove_column :products, :part_number
-  end
-
-  def down
-    add_column :products, :part_number, :string
+  def change
+    remove_column :products, :part_number, :string
   end
 end
 ```
@@ -166,13 +201,30 @@ class AddDetailsToProducts < ActiveRecord::Migration
 end
 ```
 
+If the migration name is of the form "CreateXXX" and is
+followed by a list of column names and types then a migration creating the table
+XXX with the columns listed will be generated. For example:
+
+```bash
+$ rails generate migration CreateProducts name:string part_number:string
+```
+
+generates
+
+```ruby
+class CreateProducts < ActiveRecord::Migration
+  def change
+    create_table :products do |t|
+      t.string :name
+      t.string :part_number
+    end
+  end
+end
+```
+
 As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
-
-NOTE: The generated migration file for destructive migrations will still be
-old-style using the `up` and `down` methods. This is because Rails needs to
-know the original data types defined when you made the original changes.
 
 Also, the generator accepts column type as `references`(also available as
 `belongs_to`). For instance
@@ -192,6 +244,25 @@ end
 ```
 
 This migration will create a `user_id` column and appropriate index.
+
+There is also a generator which will produce join tables if `JoinTable` is part of the name:
+
+```bash
+rails g migration CreateJoinTableCustomerProduct customer product
+```
+
+will produce the following migration:
+
+```ruby
+class CreateJoinTableCustomerProduct < ActiveRecord::Migration
+  def change
+    create_join_table :customers, :products do |t|
+      # t.index [:customer_id, :product_id]
+      # t.index [:product_id, :customer_id]
+    end
+  end
+end
+```
 
 ### Model Generators
 
@@ -295,7 +366,15 @@ create_join_table :products, :categories
 
 which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
-`false` by default.
+`false` by default. This can be overridden by specifying the `:column_options`
+option.
+
+```ruby
+create_join_table :products, :categories, column_options: {null: true}
+```
+
+will create the `product_id` and `category_id` with the `:null` option as
+`true`.
 
 You can pass the option `:table_name` with you want to customize the table
 name. For example,
@@ -306,15 +385,15 @@ create_join_table :products, :categories, table_name: :categorization
 
 will create a `categorization` table.
 
-By default, `create_join_table` will create two columns with no options, but
-you can specify these options using the `:column_options` option. For example,
+`create_join_table` also accepts a block, which you can use to add indices
+(which are not created by default) or additional columns:
 
 ```ruby
-create_join_table :products, :categories, column_options: {null: true}
+create_join_table :products, :categories do |t|
+  t.index :product_id
+  t.index :category_id
+end
 ```
-
-will create the `product_id` and `category_id` with the `:null` option as
-`true`.
 
 ### Changing Tables
 
@@ -346,7 +425,7 @@ Products.connection.execute('UPDATE `products` SET `price`=`free` WHERE 1')
 For more details and examples of individual methods, check the API documentation.
 In particular the documentation for
 [`ActiveRecord::ConnectionAdapters::SchemaStatements`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
-(which provides the methods available in the `up` and `down` methods),
+(which provides the methods available in the `change`, `up` and `down` methods),
 [`ActiveRecord::ConnectionAdapters::TableDefinition`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html)
 (which provides the methods available on the object yielded by `create_table`)
 and
@@ -362,25 +441,82 @@ definitions:
 
 * `add_column`
 * `add_index`
+* `add_reference`
 * `add_timestamps`
 * `create_table`
+* `create_join_table`
+* `drop_table` (must supply a block)
+* `drop_join_table` (must supply a block)
 * `remove_timestamps`
 * `rename_column`
 * `rename_index`
+* `remove_reference`
 * `rename_table`
 
-If you're going to need to use any other methods, you'll have to write the
-`up` and `down` methods instead of using the `change` method.
+`change_table` is also reversible, as long as the block does not call `change`,
+`change_default` or `remove`.
+
+If you're going to need to use any other methods, you should use `reversible`
+or write the `up` and `down` methods instead of using the `change` method.
+
+### Using `reversible`
+
+Complex migrations may require processing that Active Record doesn't know how
+to reverse. You can use `reversible` to specify what to do when running a
+migration what else to do when reverting it. For example,
+
+```ruby
+class ExampleMigration < ActiveRecord::Migration
+  def change
+    create_table :products do |t|
+      t.references :category
+    end
+
+    reversible do |dir|
+      dir.up do
+        #add a foreign key
+        execute <<-SQL
+          ALTER TABLE products
+            ADD CONSTRAINT fk_products_categories
+            FOREIGN KEY (category_id)
+            REFERENCES categories(id)
+        SQL
+      end
+      dir.down do
+        execute <<-SQL
+          ALTER TABLE products
+            DROP FOREIGN KEY fk_products_categories
+        SQL
+      end
+    end
+
+    add_column :users, :home_page_url, :string
+    rename_column :users, :email, :email_address
+  end
+```
+
+Using `reversible` will ensure that the instructions are executed in the
+right order too. If the previous example migration is reverted,
+the `down` block will be run after the `home_page_url` column is removed and
+right before the table `products` is dropped.
+
+Sometimes your migration will do something which is just plain irreversible; for
+example, it might destroy some data. In such cases, you can raise
+`ActiveRecord::IrreversibleMigration` in your `down` block. If someone tries
+to revert your migration, an error message will be displayed saying that it
+can't be done.
 
 ### Using the `up`/`down` Methods
 
+You can also use the old style of migration using `up` and `down` methods
+instead of the `change` method.
 The `up` method should describe the transformation you'd like to make to your
 schema, and the `down` method of your migration should revert the
 transformations done by the `up` method. In other words, the database schema
 should be unchanged if you do an `up` followed by a `down`. For example, if you
 create a table in the `up` method, you should drop it in the `down` method. It
 is wise to reverse the transformations in precisely the reverse order they were
-made in the `up` method. For example,
+made in the `up` method. The example in the `reversible` section is equivalent to:
 
 ```ruby
 class ExampleMigration < ActiveRecord::Migration
@@ -389,7 +525,7 @@ class ExampleMigration < ActiveRecord::Migration
       t.references :category
     end
 
-    #add a foreign key
+    # add a foreign key
     execute <<-SQL
       ALTER TABLE products
         ADD CONSTRAINT fk_products_categories
@@ -415,11 +551,84 @@ class ExampleMigration < ActiveRecord::Migration
 end
 ```
 
-Sometimes your migration will do something which is just plain irreversible; for
-example, it might destroy some data. In such cases, you can raise
+If your migration is irreversible, you should raise
 `ActiveRecord::IrreversibleMigration` from your `down` method. If someone tries
 to revert your migration, an error message will be displayed saying that it
 can't be done.
+
+### Reverting Previous Migrations
+
+You can use Active Record's ability to rollback migrations using the `revert` method:
+
+```ruby
+require_relative '2012121212_example_migration'
+
+class FixupExampleMigration < ActiveRecord::Migration
+  def change
+    revert ExampleMigration
+
+    create_table(:apples) do |t|
+      t.string :variety
+    end
+  end
+end
+```
+
+The `revert` method also accepts a block of instructions to reverse.
+This could be useful to revert selected parts of previous migrations.
+For example, let's imagine that `ExampleMigration` is committed and it
+is later decided it would be best to serialize the product list instead.
+One could write:
+
+```ruby
+class SerializeProductListMigration < ActiveRecord::Migration
+  def change
+    add_column :categories, :product_list
+
+    reversible do |dir|
+      dir.up do
+        # transfer data from Products to Category#product_list
+      end
+      dir.down do
+        # create Products from Category#product_list
+      end
+    end
+
+    revert do
+      # copy-pasted code from ExampleMigration
+      create_table :products do |t|
+        t.references :category
+      end
+
+      reversible do |dir|
+        dir.up do
+          #add a foreign key
+          execute <<-SQL
+            ALTER TABLE products
+              ADD CONSTRAINT fk_products_categories
+              FOREIGN KEY (category_id)
+              REFERENCES categories(id)
+          SQL
+        end
+        dir.down do
+          execute <<-SQL
+            ALTER TABLE products
+              DROP FOREIGN KEY fk_products_categories
+          SQL
+        end
+      end
+
+      # The rest of the migration was ok
+    end
+  end
+end
+```
+
+The same migration could also have been written without using `revert`
+but this would have involved a few more steps: reversing the order
+of `create_table` and `reversible`, replacing `create_table`
+by `drop_table`, and finally replacing `up` by `down` and vice-versa.
+This is all taken care of by `revert`.
 
 Running Migrations
 ------------------
@@ -427,7 +636,7 @@ Running Migrations
 Rails provides a set of Rake tasks to run certain sets of migrations.
 
 The very first migration related Rake task you will use will probably be
-`rake db:migrate`. In its most basic form it just runs the `up` or `change`
+`rake db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
@@ -436,7 +645,7 @@ Note that running the `db:migrate` also invokes the `db:schema:dump` task, which
 will update your `db/schema.rb` file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations
-(up, down or change) until it has reached the specified version. The version
+(change, up, down) until it has reached the specified version. The version
 is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run
 
@@ -445,7 +654,8 @@ $ rake db:migrate VERSION=20080906120000
 ```
 
 If version 20080906120000 is greater than the current version (i.e., it is
-migrating upwards), this will run the `up` method on all migrations up to and
+migrating upwards), this will run the `change` (or `up`) method
+on all migrations up to and
 including 20080906120000, and will not execute any later migrations. If
 migrating downwards, this will run the `down` method on all the migrations
 down to, but not including, 20080906120000.
@@ -460,14 +670,15 @@ number associated with the previous migration you can run
 $ rake db:rollback
 ```
 
-This will run the `down` method from the latest migration. If you need to undo
+This will rollback the latest migration, either by reverting the `change`
+method or by running the `down` method. If you need to undo
 several migrations you can provide a `STEP` parameter:
 
 ```bash
 $ rake db:rollback STEP=3
 ```
 
-will run the `down` method from the last 3 migrations.
+will revert the last 3 migrations.
 
 The `db:migrate:redo` task is a shortcut for doing a rollback and then migrating
 back up again. As with the `db:rollback` task, you can use the `STEP` parameter
@@ -495,14 +706,15 @@ contents of the current schema.rb file. If a migration can't be rolled back,
 
 If you need to run a specific migration up or down, the `db:migrate:up` and
 `db:migrate:down` tasks will do that. Just specify the appropriate version and
-the corresponding migration will have its `up` or `down` method invoked, for
-example,
+the corresponding migration will have its `change`, `up` or `down` method
+invoked, for example,
 
 ```bash
 $ rake db:migrate:up VERSION=20080906120000
 ```
 
-will run the `up` method from the 20080906120000 migration. This task will
+will run the 20080906120000 migration by running the `change` method (or the
+`up` method). This task will
 first check whether the migration is already performed and will do nothing if
 Active Record believes that it has already been run.
 
@@ -596,6 +808,10 @@ you require. Editing a freshly generated migration that has not yet been
 committed to source control (or, more generally, which has not been propagated
 beyond your development machine) is relatively harmless.
 
+The `revert` method can be helpful when writing a new migration to undo
+previous migrations in whole or in part
+(see [Reverting Previous Migrations](#reverting-previous-migrations) above).
+
 Using Models in Your Migrations
 -------------------------------
 
@@ -622,16 +838,19 @@ column.
 class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
+    reversible do |dir|
+      dir.up { Product.update_all flag: false }
+    end
     Product.update_all flag: false
   end
 end
 ```
 
 ```ruby
-# app/model/product.rb
+# app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, presence: true
+  validates :flag, inclusion: { in: [true, false] }
 end
 ```
 
@@ -645,16 +864,19 @@ column.
 class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
-    Product.update_all fuzz: 'fuzzy'
+    reversible do |dir|
+      dir.up { Product.update_all fuzz: 'fuzzy' }
+    end
   end
 end
 ```
 
 ```ruby
-# app/model/product.rb
+# app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :fuzz, presence: true
+  validates :flag, inclusion: { in: [true, false] }
+  validates :fuzz, presence: true
 end
 ```
 
@@ -697,7 +919,9 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.reset_column_information
-    Product.update_all flag: false
+    reversible do |dir|
+      dir.up { Product.update_all flag: false }
+    end
   end
 end
 ```
@@ -712,7 +936,9 @@ class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
     Product.reset_column_information
-    Product.update_all fuzz: 'fuzzy'
+    reversible do |dir|
+      dir.up { Product.update_all fuzz: 'fuzzy' }
+    end
   end
 end
 ```
@@ -810,9 +1036,9 @@ Rake task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
 utility is used. For MySQL, this file will contain the output of `SHOW CREATE
 TABLE` for the various tables.
 
-Loading these schemas is simply a question of executing the SQL statements they 
-contain. By definition, this will create a perfect copy of the database's 
-structure. Using the `:sql` schema format will, however, prevent loading the 
+Loading these schemas is simply a question of executing the SQL statements they
+contain. By definition, this will create a perfect copy of the database's
+structure. Using the `:sql` schema format will, however, prevent loading the
 schema into a RDBMS other than the one used to create it.
 
 ### Schema Dumps and Source Control
@@ -837,8 +1063,8 @@ with foreign key constraints in the database.
 
 Although Active Record does not provide any tools for working directly with
 such features, the `execute` method can be used to execute arbitrary SQL. You
-could also use some plugin like
-[foreigner](https://github.com/matthuhiggins/foreigner) which add foreign key
+can also use a gem like
+[foreigner](https://github.com/matthuhiggins/foreigner) which adds foreign key
 support to Active Record (including support for dumping foreign keys in
 `db/schema.rb`).
 

@@ -164,7 +164,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     Rails::Generators.invoke "super_shoulda:model", ["Account"]
   end
 
-  def test_developer_options_are_overwriten_by_user_options
+  def test_developer_options_are_overwritten_by_user_options
     Rails::Generators.options[:with_options] = { generate: false }
 
     self.class.class_eval(<<-end_eval, __FILE__, __LINE__ + 1)

@@ -1,3 +1,4 @@
+require 'date'
 require 'active_support/inflector/methods'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/calculations'
@@ -77,6 +78,16 @@ class DateTime
   # Converts +self+ to an integer number of seconds since the Unix epoch.
   def to_i
     seconds_since_unix_epoch.to_i
+  end
+
+  # Returns the fraction of a second as microseconds
+  def usec
+    (sec_fraction * 1_000_000).to_i
+  end
+
+  # Returns the fraction of a second as nanoseconds
+  def nsec
+    (sec_fraction * 1_000_000_000).to_i
   end
 
   private

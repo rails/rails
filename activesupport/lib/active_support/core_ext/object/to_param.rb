@@ -53,6 +53,6 @@ class Hash
   def to_param(namespace = nil)
     collect do |key, value|
       value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-    end.sort * '&'
+    end.sort! * '&'
   end
 end

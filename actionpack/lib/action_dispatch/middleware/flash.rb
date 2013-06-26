@@ -59,12 +59,12 @@ module ActionDispatch
         @flash[k]
       end
 
-      # Convenience accessor for flash.now[:alert]=
+      # Convenience accessor for <tt>flash.now[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash.now[:notice]=
+      # Convenience accessor for <tt>flash.now[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
@@ -82,7 +82,7 @@ module ActionDispatch
                 else
                   new
                 end
-        
+
         flash.tap(&:sweep)
       end
 
@@ -169,6 +169,14 @@ module ActionDispatch
       # vanish when the current action is done.
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
+      #
+      # Also, brings two convenience accessors:
+      #
+      #   flash.now.alert = "Beware now!"
+      #   # Equivalent to flash.now[:alert] = "Beware now!"
+      #
+      #   flash.now.notice = "Good luck now!"
+      #   # Equivalent to flash.now[:notice] = "Good luck now!"
       def now
         @now ||= FlashNow.new(self)
       end
@@ -199,22 +207,22 @@ module ActionDispatch
         @discard.replace @flashes.keys
       end
 
-      # Convenience accessor for flash[:alert]
+      # Convenience accessor for <tt>flash[:alert]</tt>.
       def alert
         self[:alert]
       end
 
-      # Convenience accessor for flash[:alert]=
+      # Convenience accessor for <tt>flash[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash[:notice]
+      # Convenience accessor for <tt>flash[:notice]</tt>.
       def notice
         self[:notice]
       end
 
-      # Convenience accessor for flash[:notice]=
+      # Convenience accessor for <tt>flash[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
@@ -235,19 +243,13 @@ module ActionDispatch
       session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
-      if flash_hash
-        if !flash_hash.empty? || session.key?('flash')
-          session["flash"] = flash_hash.to_session_value
-          new_hash = flash_hash.dup
-        else
-          new_hash = flash_hash
-        end
-
-        env[KEY] = new_hash
+      if flash_hash && (flash_hash.present? || session.key?('flash'))
+        session["flash"] = flash_hash.to_session_value
+        env[KEY] = flash_hash.dup
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-         session.key?('flash') && session['flash'].nil?
+        session.key?('flash') && session['flash'].nil?
         session.delete('flash')
       end
     end

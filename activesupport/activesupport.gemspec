@@ -15,13 +15,14 @@ Gem::Specification.new do |s|
   s.email    = 'david@loudthinking.com'
   s.homepage = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*'].select { |path| File.file? path }
+  s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
   s.rdoc_options.concat ['--encoding',  'UTF-8']
 
-  s.add_dependency 'i18n',       '~> 0.6'
-  s.add_dependency 'multi_json', '~> 1.3'
-  s.add_dependency 'tzinfo',     '~> 0.3.33'
-  s.add_dependency 'minitest',   '~> 4.1'
+  s.add_dependency('i18n',       '~> 0.6', '>= 0.6.4')
+  s.add_dependency 'json',       '~> 1.7'
+  s.add_dependency 'tzinfo',     '~> 0.3.37'
+  s.add_dependency 'minitest',   '~> 5.0'
+  s.add_dependency 'thread_safe','~> 0.1'
 end

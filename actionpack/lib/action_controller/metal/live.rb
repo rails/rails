@@ -14,6 +14,7 @@ module ActionController
   #         response.stream.write "hello world\n"
   #         sleep 1
   #       }
+  #     ensure
   #       response.stream.close
   #     end
   #   end
@@ -33,6 +34,7 @@ module ActionController
   module Live
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       def initialize(response)
+        @error_callback = nil
         super(response, SizedQueue.new(10))
       end
 
@@ -54,6 +56,14 @@ module ActionController
       def close
         super
         @buf.push nil
+      end
+
+      def on_error(&block)
+        @error_callback = block
+      end
+
+      def call_on_error
+        @error_callback.call
       end
     end
 
@@ -97,6 +107,10 @@ module ActionController
       def merge_default_headers(original, default)
         Header.new self, super
       end
+
+      def handle_conditional_get!
+        super unless committed?
+      end
     end
 
     def process(name)
@@ -116,12 +130,32 @@ module ActionController
 
         begin
           super(name)
+        rescue => e
+          begin
+            @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+            @_response.stream.call_on_error
+          rescue => exception
+            log_error(exception)
+          ensure
+            log_error(e)
+            @_response.stream.close
+          end
         ensure
           @_response.commit!
         end
       }
 
       @_response.await_commit
+    end
+
+    def log_error(exception)
+      logger = ActionController::Base.logger
+      return unless logger
+
+      message = "\n#{exception.class} (#{exception.message}):\n"
+      message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+      message << "  " << exception.backtrace.join("\n  ")
+      logger.fatal("#{message}\n\n")
     end
 
     def response_body=(body)

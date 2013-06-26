@@ -43,7 +43,7 @@ class CallbackDeveloper < ActiveRecord::Base
 end
 
 class CallbackDeveloperWithFalseValidation < CallbackDeveloper
-  before_validation proc { |model| model.history << [:before_validation, :returning_false]; return false }
+  before_validation proc { |model| model.history << [:before_validation, :returning_false]; false }
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 
@@ -520,7 +520,7 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_inheritence_of_callbacks
+  def test_inheritance_of_callbacks
     parent = ParentDeveloper.new
     assert !parent.after_save_called
     parent.save

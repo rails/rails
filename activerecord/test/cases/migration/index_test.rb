@@ -35,7 +35,7 @@ module ActiveRecord
         connection.rename_index(table_name, 'old_idx', 'new_idx')
 
         # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-        refute connection.index_name_exists?(table_name, 'old_idx', false)
+        assert_not connection.index_name_exists?(table_name, 'old_idx', false)
         assert connection.index_name_exists?(table_name, 'new_idx', true)
       end
 
@@ -55,19 +55,31 @@ module ActiveRecord
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
 
-      def test_add_index_name_length_limit
-        good_index_name = 'x' * connection.index_name_length
-        too_long_index_name = good_index_name + 'x'
-
-        assert_raises(ArgumentError) {
-          connection.add_index(table_name, "foo", :name => too_long_index_name)
-        }
-
-        refute connection.index_name_exists?(table_name, too_long_index_name, false)
-        connection.add_index(table_name, "foo", :name => good_index_name)
+      def test_add_index_works_with_long_index_names
+        connection.add_index(table_name, "foo", name: good_index_name)
 
         assert connection.index_name_exists?(table_name, good_index_name, false)
-        connection.remove_index(table_name, :name => good_index_name)
+        connection.remove_index(table_name, name: good_index_name)
+      end
+
+      def test_add_index_does_not_accept_too_long_index_names
+        too_long_index_name = good_index_name + 'x'
+
+        e = assert_raises(ArgumentError) {
+          connection.add_index(table_name, "foo", name: too_long_index_name)
+        }
+        assert_match(/too long; the limit is #{connection.allowed_index_name_length} characters/, e.message)
+
+        assert_not connection.index_name_exists?(table_name, too_long_index_name, false)
+        connection.add_index(table_name, "foo", :name => good_index_name)
+      end
+
+      def test_internal_index_with_name_matching_database_limit
+        good_index_name = 'x' * connection.index_name_length
+        connection.add_index(table_name, "foo", name: good_index_name, internal: true)
+
+        assert connection.index_name_exists?(table_name, good_index_name, false)
+        connection.remove_index(table_name, name: good_index_name)
       end
 
       def test_index_symbol_names
@@ -75,7 +87,7 @@ module ActiveRecord
         assert connection.index_exists?(table_name, :foo, :name => :symbol_index_name)
 
         connection.remove_index table_name, :name => :symbol_index_name
-        refute connection.index_exists?(table_name, :foo, :name => :symbol_index_name)
+        assert_not connection.index_exists?(table_name, :foo, :name => :symbol_index_name)
       end
 
       def test_index_exists
@@ -94,16 +106,6 @@ module ActiveRecord
       def test_valid_index_options
         assert_raise ArgumentError do
           connection.add_index :testings, :foo, unqiue: true
-        end
-      end
-
-      def test_deprecated_type_argument
-        message = "Passing a string as third argument of `add_index` is deprecated and will" +
-          " be removed in Rails 4.1." +
-          " Use add_index(:testings, [:foo, :bar], unique: true) instead"
-
-        assert_deprecated message do
-          connection.add_index :testings, [:foo, :bar], "UNIQUE"
         end
       end
 
@@ -196,6 +198,12 @@ module ActiveRecord
         connection.remove_index("testings", "last_name")
         assert !connection.index_exists?("testings", "last_name")
       end
+
+      private
+        def good_index_name
+          'x' * connection.allowed_index_name_length
+        end
+
     end
   end
 end

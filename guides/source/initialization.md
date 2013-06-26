@@ -26,128 +26,18 @@ quickly.
 Launch!
 -------
 
-A Rails application is usually started with the command `rails server`.
+Now we finally boot and initialize the app. It all starts with your app's
+`bin/rails` executable. A Rails application is usually started by running
+`rails console` or `rails server`.
 
 ### `bin/rails`
-
-The actual `rails` command is kept in _bin/rails_:
-
-```ruby
-#!/usr/bin/env ruby
-
-if File.exists?(File.join(File.expand_path('../../..', __FILE__), '.git'))
-  railties_path = File.expand_path('../../lib', __FILE__)
-  $:.unshift(railties_path)
-end
-require "rails/cli"
-```
-
-This file will first attempt to push the `railties/lib` directory if
-present, and then requires `rails/cli`.
-
-### `railties/lib/rails/cli.rb`
-
-This file looks like this:
-
-```ruby
-require 'rbconfig'
-require 'rails/script_rails_loader'
-
-# If we are inside a Rails application this method performs an exec and thus
-# the rest of this script is not run.
-Rails::ScriptRailsLoader.exec_script_rails!
-
-require 'rails/ruby_version_check'
-Signal.trap("INT") { puts; exit(1) }
-
-if ARGV.first == 'plugin'
-  ARGV.shift
-  require 'rails/commands/plugin_new'
-else
-  require 'rails/commands/application'
-end
-```
-
-The `rbconfig` file from the Ruby standard library provides us with the `RbConfig` class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see this in use in `railties/lib/rails/script_rails_loader`.
-
-```ruby
-require 'pathname'
-
-module Rails
-  module ScriptRailsLoader
-    RUBY = File.join(*RbConfig::CONFIG.values_at("bindir", "ruby_install_name")) + RbConfig::CONFIG["EXEEXT"]
-    SCRIPT_RAILS = File.join('script', 'rails')
-    ...
-
-  end
-end
-```
-
-The `rails/script_rails_loader` file uses `RbConfig::Config` to obtain the `bin_dir` and `ruby_install_name` values for the configuration which together form the path to the Ruby interpreter. The `RbConfig::CONFIG["EXEEXT"]` will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in `exec_script_rails!`. As for the `SCRIPT_RAILS` constant, we'll see that when we get to the `in_rails_application?` method.
-
-Back in `rails/cli`, the next line is this:
-
-```ruby
-Rails::ScriptRailsLoader.exec_script_rails!
-```
-
-This method is defined in `rails/script_rails_loader`:
-
-```ruby
-def self.exec_script_rails!
-  cwd = Dir.pwd
-  return unless in_rails_application? || in_rails_application_subdirectory?
-  exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
-  Dir.chdir("..") do
-    # Recurse in a chdir block: if the search fails we want to be sure
-    # the application is generated in the original working directory.
-    exec_script_rails! unless cwd == Dir.pwd
-  end
-rescue SystemCallError
-  # could not chdir, no problem just return
-end
-```
-
-This method will first check if the current working directory (`cwd`) is a Rails application or a subdirectory of one. This is determined by the `in_rails_application?` method:
-
-```ruby
-def self.in_rails_application?
-  File.exists?(SCRIPT_RAILS)
-end
-```
-
-The `SCRIPT_RAILS` constant defined earlier is used here, with `File.exists?` checking for its presence in the current directory. If this method returns `false` then `in_rails_application_subdirectory?` will be used:
-
-```ruby
-def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
-  File.exists?(File.join(path, SCRIPT_RAILS)) || !path.root? && in_rails_application_subdirectory?(path.parent)
-end
-```
-
-This climbs the directory tree until it reaches a path which contains a `script/rails` file. If a directory containing this file is reached then this line will run:
-
-```ruby
-exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
-```
-
-This is effectively the same as running `ruby script/rails [arguments]`, where `[arguments]` at this point in time is simply "server".
-
-Rails Initialization
---------------------
-
-Only now we finally start the real initialization process, beginning
-with `script/rails`.
-
-TIP: If you execute `script/rails` directly from your Rails app you will
-skip executing all the code that we've just described.
-
-### `script/rails`
 
 This file is as follows:
 
 ```ruby
-APP_PATH = File.expand_path('../../config/application',  __FILE__)
-require File.expand_path('../../config/boot',  __FILE__)
+#!/usr/bin/env ruby
+APP_PATH = File.expand_path('../../config/application', __FILE__)
+require File.expand_path('../../config/boot', __FILE__)
 require 'rails/commands'
 ```
 
@@ -169,35 +59,33 @@ dependencies of the application. `config/boot.rb` sets
 `ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
 exists, `bundler/setup` is then required.
 
-The gems that a Rails 4 application depends on are as follows:
+A standard Rails application depends on several gems, specifically:
 
-TODO: change these when the Rails 4 release is near.
-
-* abstract (1.0.0)
-* actionmailer (4.0.0.beta)
-* actionpack (4.0.0.beta)
-* activemodel (4.0.0.beta)
-* activerecord (4.0.0.beta)
-* activesupport (4.0.0.beta)
-* arel (2.0.7)
-* builder (3.0.0)
-* bundler (1.0.6)
-* erubis (2.6.6)
-* i18n (0.5.0)
-* mail (2.2.12)
-* mime-types (1.16)
-* polyglot (0.3.1)
-* rack (1.2.1)
-* rack-cache (0.5.3)
-* rack-mount (0.6.13)
-* rack-test (0.5.6)
-* rails (4.0.0.beta)
-* railties (4.0.0.beta)
-* rake (0.8.7)
-* sqlite3-ruby (1.3.2)
-* thor (0.14.6)
-* treetop (1.4.9)
-* tzinfo (0.3.23)
+* abstract
+* actionmailer
+* actionpack
+* activemodel
+* activerecord
+* activesupport
+* arel
+* builder
+* bundler
+* erubis
+* i18n
+* mail
+* mime-types
+* polyglot
+* rack
+* rack-cache
+* rack-mount
+* rack-test
+* rails
+* railties
+* rake
+* sqlite3-ruby
+* thor
+* treetop
+* tzinfo
 
 ### `rails/commands.rb`
 
@@ -226,22 +114,22 @@ If we used `s` rather than `server`, Rails will use the `aliases` defined in the
 
 ```ruby
 when 'server'
-  # Change to the application's path if there is no config.ru file in current dir.
-  # This allows us to run script/rails server from other directories, but still get
+  # Change to the application's path if there is no config.ru file in current directory.
+  # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
   Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
 
   require 'rails/commands/server'
-  Rails::Server.new.tap { |server|
+  Rails::Server.new.tap do |server|
     # We need to require application after the server sets environment,
     # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
-  }
+  end
 ```
 
-This file will change into the root of the directory (a path two directories back from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
+This file will change into the Rails root directory (a path two directories up from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
 
 ```ruby
 require 'fileutils'
@@ -257,11 +145,11 @@ module Rails
 ### `actionpack/lib/action_dispatch.rb`
 
 Action Dispatch is the routing component of the Rails framework.
-It adds functionalities like routing, session, and common middlewares.
+It adds functionality like routing, session, and common middlewares.
 
 ### `rails/commands/server.rb`
 
-The `Rails::Server` class is defined in this file as inheriting from `Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize` method in `rails/commands/server.rb`:
+The `Rails::Server` class is defined in this file by inheriting from `Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize` method in `rails/commands/server.rb`:
 
 ```ruby
 def initialize(*)
@@ -376,7 +264,7 @@ def start
   url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
   puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
   puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-  puts "=> Call with -d to detach" unless options[:daemonize]
+  puts "=> Run `rails server -h` for more startup options"
   trap(:INT) { exit }
   puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 
@@ -485,7 +373,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 ```ruby
 # This file is used by Rack-based servers to start the application.
 
-require ::File.expand_path('../config/environment',  __FILE__)
+require ::File.expand_path('../config/environment', __FILE__)
 run <%= app_const %>
 ```
 
@@ -500,7 +388,7 @@ app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
 The `initialize` method of `Rack::Builder` will take the block here and execute it within an instance of `Rack::Builder`. This is where the majority of the initialization process of Rails happens. The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
-require ::File.expand_path('../config/environment',  __FILE__)
+require ::File.expand_path('../config/environment', __FILE__)
 ```
 
 ### `config/environment.rb`
@@ -551,14 +439,14 @@ inside each of those frameworks, but you're encouraged to try and
 explore them on your own.
 
 For now, just keep in mind that common functionality like Rails engines,
-I18n and Rails configuration is all being defined here.
+I18n and Rails configuration are all being defined here.
 
 ### Back to `config/environment.rb`
 
 When `config/application.rb` has finished loading Rails, and defined
-your application namespace, you go back to `config/environment.rb`,
-where your application is initialized. For example, if you application was called
-`Blog`, here you would find `Blog::Application.initialize!`, which is
+the application namespace, we go back to `config/environment.rb`,
+where the application is initialized. For example, if the application was called
+`Blog`, here we would find `Blog::Application.initialize!`, which is
 defined in `rails/application.rb`
 
 ### `railties/lib/rails/application.rb`
@@ -658,7 +546,7 @@ def self.run(app, options={})
   else
     server.register('/', Rack::Handler::Mongrel.new(app))
   end
-  yield server  if block_given?
+  yield server if block_given?
   server.run.join
 end
 ```

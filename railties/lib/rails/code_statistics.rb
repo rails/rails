@@ -1,3 +1,5 @@
+require 'rails/code_statistics_calculator'
+
 class CodeStatistics #:nodoc:
 
   TEST_TYPES = ['Controller tests',
@@ -33,64 +35,38 @@ class CodeStatistics #:nodoc:
     end
 
     def calculate_directory_statistics(directory, pattern = /.*\.(rb|js|coffee)$/)
-      stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
+      stats = CodeStatisticsCalculator.new
 
       Dir.foreach(directory) do |file_name|
-        if File.directory?(directory + "/" + file_name) and (/^\./ !~ file_name)
-          newstats = calculate_directory_statistics(directory + "/" + file_name, pattern)
-          stats.each { |k, v| stats[k] += newstats[k] }
+        path = "#{directory}/#{file_name}"
+
+        if File.directory?(path) && (/^\./ !~ file_name)
+          stats.add(calculate_directory_statistics(path, pattern))
         end
 
         next unless file_name =~ pattern
 
-        comment_started = false
-        
-        case file_name
-        when /.*\.js$/
-          comment_pattern = /^\s*\/\//
-        else
-          comment_pattern = /^\s*#/
-        end
-
-        File.open(directory + "/" + file_name) do |f|
-          while line = f.gets
-            stats["lines"]     += 1
-            if(comment_started)
-              if line =~ /^=end/
-                comment_started = false
-              end
-              next
-            else
-              if line =~ /^=begin/
-                comment_started = true
-                next
-              end
-            end
-            stats["classes"]   += 1 if line =~ /^\s*class\s+[_A-Z]/
-            stats["methods"]   += 1 if line =~ /^\s*def\s+[_a-z]/
-            stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ comment_pattern
-          end
-        end
+        stats.add_by_file_path(path)
       end
 
       stats
     end
 
     def calculate_total
-      total = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
-      @statistics.each_value { |pair| pair.each { |k, v| total[k] += v } }
-      total
+      @statistics.each_with_object(CodeStatisticsCalculator.new) do |pair, total|
+        total.add(pair.last)
+      end
     end
 
     def calculate_code
       code_loc = 0
-      @statistics.each { |k, v| code_loc += v['codelines'] unless TEST_TYPES.include? k }
+      @statistics.each { |k, v| code_loc += v.code_lines unless TEST_TYPES.include? k }
       code_loc
     end
 
     def calculate_tests
       test_loc = 0
-      @statistics.each { |k, v| test_loc += v['codelines'] if TEST_TYPES.include? k }
+      @statistics.each { |k, v| test_loc += v.code_lines if TEST_TYPES.include? k }
       test_loc
     end
 
@@ -105,15 +81,15 @@ class CodeStatistics #:nodoc:
     end
 
     def print_line(name, statistics)
-      m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
-      loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
+      m_over_c   = (statistics.methods / statistics.classes) rescue m_over_c = 0
+      loc_over_m = (statistics.code_lines / statistics.methods) - 2 rescue loc_over_m = 0
 
-      puts "| #{name.ljust(20)} " +
-           "| #{statistics["lines"].to_s.rjust(5)} " +
-           "| #{statistics["codelines"].to_s.rjust(5)} " +
-           "| #{statistics["classes"].to_s.rjust(7)} " +
-           "| #{statistics["methods"].to_s.rjust(7)} " +
-           "| #{m_over_c.to_s.rjust(3)} " +
+      puts "| #{name.ljust(20)} " \
+           "| #{statistics.lines.to_s.rjust(5)} " \
+           "| #{statistics.code_lines.to_s.rjust(5)} " \
+           "| #{statistics.classes.to_s.rjust(7)} " \
+           "| #{statistics.methods.to_s.rjust(7)} " \
+           "| #{m_over_c.to_s.rjust(3)} " \
            "| #{loc_over_m.to_s.rjust(5)} |"
     end
 

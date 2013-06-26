@@ -37,9 +37,9 @@ You should use the defaults for all new applications unless you have a specific 
 
 ### Main Features
 
-The first feature of the pipeline is to concatenate assets. This is important in a production environment, because it can reduce the number of requests that a browser must make to render a web page. Web browsers are limited in the number of requests that they can make in parallel, so fewer requests can mean faster loading for your application.
+The first feature of the pipeline is to concatenate assets. This is important in a production environment, because it can reduce the number of requests that a browser makes to render a web page. Web browsers are limited in the number of requests that they can make in parallel, so fewer requests can mean faster loading for your application.
 
-Rails 2.x introduced the ability to concatenate JavaScript and CSS assets by placing `:cache => true` at the end of the `javascript_include_tag` and `stylesheet_link_tag` methods. But this technique has some limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
+Rails 2.x introduced the ability to concatenate JavaScript and CSS assets by placing `cache: true` at the end of the `javascript_include_tag` and `stylesheet_link_tag` methods. But this technique has some limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
 
 Starting with version 3.1, Rails defaults to concatenating all JavaScript files into one master `.js` file and all CSS files into one master `.css` file. As you'll learn later in this guide, you can customize this strategy to group files any way you like. In production, Rails inserts an MD5 fingerprint into each filename so that the file is cached by the web browser. You can invalidate the cache by altering this fingerprint, which happens automatically whenever you change the file contents.
 
@@ -75,7 +75,7 @@ The query string strategy has several disadvantages:
 2. **The file name can change between nodes in multi-server environments.**<br />
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
 3. **Too much cache invalidation**<br />
-    When static assets are deployed with each new release of code, the mtime of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
+    When static assets are deployed with each new release of code, the mtime(time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring that filenames are consistent based on their content.
 
@@ -96,28 +96,25 @@ Assets can still be placed in the `public` hierarchy. Any assets under `public` 
 
 In production, Rails precompiles these files to `public/assets` by default. The precompiled copies are then served as static assets by the web server. The files in `app/assets` are never served directly in production.
 
+### Controller Specific Assets
+
 When you generate a scaffold or a controller, Rails also generates a JavaScript file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`) for that controller.
 
-For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`. Note that you have to set `config.assets.precompile` in `config/environments/production.rb` if you want to precomepile them and use in production mode. You can append them one by one or do something like this:
+For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. By default these files will be ready to use by your application immediately using the `require_tree` directive. See [Manifest Files and Directives](#manifest-files-and-directives) for more details on require_tree.
 
-    # config/environments/production.rb
-    config.assets.precompile << Proc.new { |path|
-      if path =~ /\.(css|js)\z/
-        full_path = Rails.application.assets.resolve(path).to_path
-        app_assets_path = Rails.root.join('app', 'assets').to_path
-        if full_path.starts_with? app_assets_path
-          puts "including asset: " + full_path
-          true
-        else
-          puts "excluding asset: " + full_path
-          false
-        end
-      else
-        false
-      end
-    }
+You can also opt to include controller specific stylesheets and JavaScript files only in their respective controllers using the following: `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`. Ensure that you are not using the `require_tree` directive though, as this will result in your assets being included more than once.
 
-NOTE: You must have an [ExecJS](https://github.com/sstephenson/execjs#readme) supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
+WARNING: When using asset precompilation (the production default), you will need to ensure that your controller assets will be precompiled when loading them on a per page basis. By default .coffee and .scss files will not be precompiled on their own. This will result in false positives during development as these files will work just fine since assets will be compiled on the fly. When running in production however, you will see 500 errors since live compilation is turned off by default. See [Precompiling Assets](#precompiling-assets) for more information on how precompiling works.
+
+NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
+
+You can also disable the generation of asset files when generating a controller by adding the following to your `config/application.rb` configuration:
+
+```ruby
+config.generators do |g|
+  g.assets false
+end
+```
 
 ### Asset Organization
 
@@ -272,7 +269,8 @@ $('#logo').attr src: "<%= asset_path('logo.png') %>"
 
 ### Manifest Files and Directives
 
-Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ — instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if `Rails.application.config.assets.compress` is true). By serving one file rather than many, the load time of pages can be greatly reduced because the browser makes fewer requests.
+Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ — instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if `Rails.application.config.assets.compress` is true). By serving one file rather than many, the load time of pages can be greatly reduced because the browser makes fewer requests. Compression also reduces the file size enabling the browser to download it faster.
+
 
 For example, a new Rails application includes a default `app/assets/javascripts/application.js` file which contains the following lines:
 
@@ -371,8 +369,8 @@ If any of the files in the manifest have changed between requests, the server re
 Debug mode can also be enabled in the Rails helper methods:
 
 ```erb
-<%= stylesheet_link_tag "application", :debug => true %>
-<%= javascript_include_tag "application", :debug => true %>
+<%= stylesheet_link_tag "application", debug: true %>
+<%= javascript_include_tag "application", debug: true %>
 ```
 
 The `:debug` option is redundant if debug mode is on.
@@ -418,21 +416,10 @@ You can call this task on the server during deployment to create compiled versio
 The rake task is:
 
 ```bash
-$ bundle exec rake assets:precompile
+$ RAILS_ENV=production bundle exec rake assets:precompile
 ```
 
-For faster asset precompiles, you can partially load your application by setting
-`config.assets.initialize_on_precompile` to false in `config/application.rb`, though in that case templates
-cannot see application objects or methods. **Heroku requires this to be false.**
-
-WARNING: If you set `config.assets.initialize_on_precompile` to false, be sure to
-test `rake assets:precompile` locally before deploying. It may expose bugs where
-your assets reference application objects or methods, since those are still
-in scope in development mode regardless of the value of this flag. Changing this flag also affects
-engines. Engines can define assets for precompilation as well. Since the complete environment is not loaded,
-engines (or other gems) will not be loaded, which can cause missing assets.
-
-Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
+Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
 
 ```ruby
 load 'deploy/assets'
@@ -447,15 +434,36 @@ NOTE. If you are precompiling your assets locally, you can use `bundle install -
 The default matcher for compiling files includes `application.js`, `application.css` and all non-JS/CSS files (this will include all image assets automatically):
 
 ```ruby
-[ Proc.new{ |path| !%w(.js .css).include?(File.extname(path)) }, /application.(css|js)$/ ]
+[ Proc.new { |path| !%w(.js .css).include?(File.extname(path)) }, /application.(css|js)$/ ]
 ```
 
 NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are **not** automatically included as they compile to JS/CSS.
 
-If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array:
+If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array in `config/application.rb`:
 
 ```ruby
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
+```
+
+Or you can opt to precompile all assets with something like this:
+
+```ruby
+# config/application.rb
+config.assets.precompile << Proc.new do |path|
+  if path =~ /\.(css|js)\z/
+    full_path = Rails.application.assets.resolve(path).to_path
+    app_assets_path = Rails.root.join('app', 'assets').to_path
+    if full_path.starts_with? app_assets_path
+      puts "including asset: " + full_path
+      true
+    else
+      puts "excluding asset: " + full_path
+      false
+    end
+  else
+    false
+  end
+end
 ```
 
 NOTE. Always specify an expected compiled filename that ends with js or css, even if you want to add Sass or CoffeeScript files to the precompile array.
@@ -483,14 +491,14 @@ For Apache:
 
 ```apache
 # The Expires* directives requires the Apache module `mod_expires` to be enabled.
-<LocationMatch "^/assets/.*$">
+<Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag
   FileETag None
   # RFC says only cache for 1 year
   ExpiresActive On
   ExpiresDefault "access plus 1 year"
-</LocationMatch>
+</Location>
 ```
 
 For nginx:
@@ -551,15 +559,7 @@ In `config/environments/development.rb`, place the following line:
 config.assets.prefix = "/dev-assets"
 ```
 
-You will also need this in application.rb:
-
-```ruby
-config.assets.initialize_on_precompile = false
-```
-
 The `prefix` change makes Rails use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to `/assets` in the production environment. Without this change, the application would serve the precompiled assets from `public/assets` in development, and you would not see any local changes until you compile assets again.
-
-The `initialize_on_precompile` change tells the precompile task to run without invoking Rails. This is because the precompile task runs in production mode by default, and will attempt to connect to your specified production database. Please note that you cannot have code in pipeline files that relies on Rails resources (such as the database) when compiling locally with this option.
 
 You will also need to ensure that any compressors or minifiers are available on your development system.
 
@@ -644,7 +644,7 @@ class Transformer
 end
 ```
 
-To enable this, pass a `new` object to the config option in `application.rb`:
+To enable this, pass a new object to the config option in `application.rb`:
 
 ```ruby
 config.assets.css_compressor = Transformer.new
@@ -688,7 +688,7 @@ config.assets.cache_store = :memory_store
 The options accepted by the assets cache store are the same as the application's cache store.
 
 ```ruby
-config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+config.assets.cache_store = :memory_store, { size: 32.megabytes }
 ```
 
 Adding Assets to Your Gems
@@ -701,7 +701,31 @@ A good example of this is the `jquery-rails` gem which comes with Rails as the s
 Making Your Library or Gem a Pre-Processor
 ------------------------------------------
 
-TODO: Registering gems on [Tilt](https://github.com/rtomayko/tilt) enabling Sprockets to find them.
+As Sprockets uses [Tilt](https://github.com/rtomayko/tilt) as a generic
+interface to different templating engines, your gem should just
+implement the Tilt template protocol. Normally, you would subclass
+`Tilt::Template` and reimplement `evaluate` method to return final
+output. Template source is stored at `@code`. Have a look at
+[`Tilt::Template`](https://github.com/rtomayko/tilt/blob/master/lib/tilt/template.rb)
+sources to learn more.
+
+```ruby
+module BangBang
+  class Template < ::Tilt::Template
+    # Adds a "!" to original template.
+    def evaluate(scope, locals, &block)
+      "#{@code}!"
+    end
+  end
+end
+```
+
+Now that you have a `Template` class, it's time to associate it with an
+extension for template files:
+
+```ruby
+Sprockets.register_engine '.bang', BangBang::Template
+```
 
 Upgrading from Old Versions of Rails
 ------------------------------------
@@ -772,18 +796,16 @@ end
 If you use the `assets` group with Bundler, please make sure that your `config/application.rb` has the following Bundler require statement:
 
 ```ruby
-if defined?(Bundler)
-  # If you precompile assets before deploying to production, use this line
-  Bundler.require *Rails.groups(:assets => %w(development test))
-  # If you want your assets lazily compiled in production, use this line
-  # Bundler.require(:default, :assets, Rails.env)
-end
+# If you precompile assets before deploying to production, use this line
+Bundler.require *Rails.groups(:assets => %w(development test))
+# If you want your assets lazily compiled in production, use this line
+# Bundler.require(:default, :assets, Rails.env)
 ```
 
-Instead of the old Rails 3.0 version:
+Instead of the generated version:
 
 ```ruby
-# If you have a Gemfile, require the gems listed there, including any gems
+# Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env) if defined?(Bundler)
+Bundler.require(:default, Rails.env)
 ```

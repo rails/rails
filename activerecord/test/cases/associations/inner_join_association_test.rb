@@ -46,10 +46,10 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 2, authors.count
   end
 
-  def test_find_with_implicit_inner_joins_honors_readonly_without_select
-    authors = Author.joins(:posts).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| a.readonly? }, "expected all authors to be readonly"
+  def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly
+    authors = Author.joins(:posts)
+    assert_not authors.empty?, "expected authors to be non-empty"
+    assert authors.none? {|a| a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
@@ -82,7 +82,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_calculate_honors_implicit_inner_joins_and_distinct_and_conditions
     real_count = Author.all.to_a.select {|a| a.posts.any? {|p| p.title =~ /^Welcome/} }.length
-    authors_with_welcoming_post_titles = Author.all.merge!(:joins => :posts, :where => "posts.title like 'Welcome%'").calculate(:count, 'authors.id', :distinct => true)
+    authors_with_welcoming_post_titles = Author.all.merge!(joins: :posts, where: "posts.title like 'Welcome%'").distinct.calculate(:count, 'authors.id')
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
   end
 

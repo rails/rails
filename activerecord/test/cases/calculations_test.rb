@@ -6,8 +6,10 @@ require 'models/edge'
 require 'models/organization'
 require 'models/possession'
 require 'models/topic'
+require 'models/reply'
 require 'models/minivan'
 require 'models/speedometer'
+require 'models/ship_part'
 
 Company.has_many :accounts
 
@@ -27,14 +29,19 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_resolve_aliased_attributes
+    assert_equal 318, Account.sum(:available_credit)
+  end
+
   def test_should_return_decimal_average_of_integer_field
     value = Account.average(:id)
     assert_equal 3.5, value
   end
 
   def test_should_return_integer_average_if_db_returns_such
-    Account.connection.stubs :select_value => 3
-    value = Account.average(:id)
+    ShipPart.delete_all
+    ShipPart.create!(:id => 3, :name => 'foo')
+    value = ShipPart.average(:id)
     assert_equal 3, value
   end
 
@@ -94,25 +101,24 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_order_by_grouped_field
-    c = Account.all.merge!(:group => :firm_id, :order => "firm_id").sum(:credit_limit)
+    c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
   end
 
   def test_should_order_by_calculation
-    c = Account.all.merge!(:group => :firm_id, :order => "sum_credit_limit desc, firm_id").sum(:credit_limit)
+    c = Account.group(:firm_id).order("sum_credit_limit desc, firm_id").sum(:credit_limit)
     assert_equal [105, 60, 53, 50, 50], c.keys.collect { |k| c[k] }
     assert_equal [6, 2, 9, 1], c.keys.compact
   end
 
   def test_should_limit_calculation
-    c = Account.all.merge!(:where => "firm_id IS NOT NULL",
-                       :group => :firm_id, :order => "firm_id", :limit => 2).sum(:credit_limit)
+    c = Account.where("firm_id IS NOT NULL").group(:firm_id).order("firm_id").limit(2).sum(:credit_limit)
     assert_equal [1, 2], c.keys.compact
   end
 
   def test_should_limit_calculation_with_offset
-    c = Account.all.merge!(:where => "firm_id IS NOT NULL", :group => :firm_id,
-                       :order => "firm_id", :limit => 2, :offset => 1).sum(:credit_limit)
+    c = Account.where("firm_id IS NOT NULL").group(:firm_id).order("firm_id").
+     limit(2).offset(1).sum(:credit_limit)
     assert_equal [2, 6], c.keys.compact
   end
 
@@ -161,9 +167,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_match(/OFFSET/, queries.first)
   end
 
+  def test_count_on_invalid_columns_raises
+    e = assert_raises(ActiveRecord::StatementInvalid) {
+      Account.select("credit_limit, firm_name").count
+    }
+
+    assert_match "accounts", e.message
+    assert_match "credit_limit, firm_name", e.message
+  end
+
   def test_should_group_by_summed_field_having_condition
-    c = Account.all.merge!(:group => :firm_id,
-                       :having => 'sum(credit_limit) > 50').sum(:credit_limit)
+    c = Account.group(:firm_id).having('sum(credit_limit) > 50').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
@@ -198,17 +212,15 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_with_conditions
-    c = Account.all.merge!(:where => 'firm_id > 1',
-                       :group => :firm_id).sum(:credit_limit)
+    c = Account.where('firm_id > 1').group(:firm_id).sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
   end
 
   def test_should_group_by_summed_field_with_conditions_and_having
-    c = Account.all.merge!(:where => 'firm_id > 1',
-                       :group => :firm_id,
-                       :having => 'sum(credit_limit) > 60').sum(:credit_limit)
+    c = Account.where('firm_id > 1').group(:firm_id).
+     having('sum(credit_limit) > 60').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_nil        c[2]
@@ -303,8 +315,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_selected_field_with_include
-    assert_equal 6, Account.includes(:firm).count(:distinct => true)
-    assert_equal 4, Account.includes(:firm).select(:credit_limit).count(:distinct => true)
+    assert_equal 6, Account.includes(:firm).distinct.count
+    assert_equal 4, Account.includes(:firm).distinct.select(:credit_limit).count
   end
 
   def test_should_not_perform_joined_include_by_default
@@ -320,7 +332,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_scoped_select
     Account.update_all("credit_limit = NULL")
-    assert_equal 0, Account.all.merge!(:select => "credit_limit").count
+    assert_equal 0, Account.select("credit_limit").count
   end
 
   def test_should_count_scoped_select_with_options
@@ -328,15 +340,34 @@ class CalculationsTest < ActiveRecord::TestCase
     Account.last.update_columns('credit_limit' => 49)
     Account.first.update_columns('credit_limit' => 51)
 
-    assert_equal 1, Account.all.merge!(:select => "credit_limit").where('credit_limit >= 50').count
+    assert_equal 1, Account.select("credit_limit").where('credit_limit >= 50').count
   end
 
   def test_should_count_manual_select_with_include
-    assert_equal 6, Account.all.merge!(:select => "DISTINCT accounts.id", :includes => :firm).count
+    assert_equal 6, Account.select("DISTINCT accounts.id").includes(:firm).count
   end
 
   def test_count_with_column_parameter
     assert_equal 5, Account.count(:firm_id)
+  end
+
+  def test_count_distinct_option_is_deprecated
+    assert_deprecated do
+      assert_equal 4, Account.select(:credit_limit).count(distinct: true)
+    end
+
+    assert_deprecated do
+      assert_equal 6, Account.select(:credit_limit).count(distinct: false)
+    end
+  end
+
+  def test_count_with_distinct
+    assert_equal 4, Account.select(:credit_limit).distinct.count
+    assert_equal 4, Account.select(:credit_limit).uniq.count
+  end
+
+  def test_count_with_aliased_attribute
+    assert_equal 6, Account.count(:available_credit)
   end
 
   def test_count_with_column_and_options_parameter
@@ -345,11 +376,11 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_field_in_joined_table
     assert_equal 5, Account.joins(:firm).count('companies.id')
-    assert_equal 4, Account.joins(:firm).count('companies.id', :distinct => true)
+    assert_equal 4, Account.joins(:firm).distinct.count('companies.id')
   end
 
   def test_should_count_field_in_joined_table_with_group_by
-    c = Account.all.merge!(:group => 'accounts.firm_id', :joins => :firm).count('companies.id')
+    c = Account.group('accounts.firm_id').joins(:firm).count('companies.id')
 
     [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
   end
@@ -389,12 +420,6 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.where("credit_limit > 50").from('accounts').sum(:credit_limit)
   end
 
-  def test_sum_array_compatibility_deprecation
-    assert_deprecated do
-      assert_equal Account.sum(:credit_limit), Account.sum(&:credit_limit)
-    end
-  end
-
   def test_average_with_from_option
     assert_equal Account.average(:credit_limit), Account.from('accounts').average(:credit_limit)
     assert_equal Account.where("credit_limit > 50").average(:credit_limit),
@@ -416,34 +441,19 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
-    # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:MysqlAdapter)
-      assert_equal "7", Company.includes(:contracts).maximum(:developer_id)
-    else
-      assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
-    end
+    assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
   end
 
   def test_minimum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
-    # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:MysqlAdapter)
-      assert_equal "7", Company.includes(:contracts).minimum(:developer_id)
-    else
-      assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
-    end
+    assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
   end
 
   def test_sum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
-    # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:MysqlAdapter) || current_adapter?(:PostgreSQLAdapter)
-      assert_equal "7", Company.includes(:contracts).sum(:developer_id)
-    else
-      assert_equal 7, Company.includes(:contracts).sum(:developer_id)
-    end
+    assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
 
@@ -464,12 +474,17 @@ class CalculationsTest < ActiveRecord::TestCase
     approved_topics_count = Topic.group(:approved).count(:author_name)[true]
     assert_equal approved_topics_count, 3
     # Count the number of distinct authors for approved Topics
-    distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
+    distinct_authors_for_approved_count = Topic.group(:approved).distinct.count(:author_name)[true]
     assert_equal distinct_authors_for_approved_count, 2
   end
 
   def test_pluck
     assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
+  end
+
+  def test_pluck_without_column_names
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
+      Company.order(:id).limit(1).pluck
   end
 
   def test_pluck_type_cast
@@ -488,6 +503,10 @@ class CalculationsTest < ActiveRecord::TestCase
     company = Company.first
     contract = company.contracts.create!
     assert_equal [contract.id], company.contracts.pluck(:id)
+  end
+
+  def test_pluck_on_aliased_attribute
+    assert_equal 'The First Topic', Topic.order(:id).pluck(:heading).first
   end
 
   def test_pluck_with_serialization
@@ -527,6 +546,11 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_plucks_with_ids
     assert_equal Company.all.map(&:id).sort, Company.ids.sort
+  end
+
+  def test_pluck_with_includes_limit_and_empty_result
+    assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
+    assert_equal [], Topic.includes(:replies).limit(1).where('0 = 1').pluck(:id)
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included

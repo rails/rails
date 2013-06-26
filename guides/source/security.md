@@ -1,4 +1,4 @@
-Ruby On Rails Security Guide
+Ruby on Rails Security Guide
 ============================
 
 This manual describes common security problems in web applications and how to avoid them with Rails.
@@ -9,7 +9,6 @@ After reading this guide, you will know:
 * The concept of sessions in Rails, what to put in there and popular attack methods.
 * How just visiting a site can be a security problem (with CSRF).
 * What you have to pay attention to when working with files or providing an administration interface.
-* The Rails-specific mass assignment problem.
 * How to manage users: Logging in and out and attack methods on all layers.
 * And the most popular injection attack methods.
 
@@ -59,7 +58,7 @@ WARNING: _Stealing a user's session id lets an attacker use the web application 
 
 Many web applications have an authentication system: a user provides a user name and password, the web application checks them and stores the corresponding user id in the session hash. From now on, the session is valid. On every request the application will load the user, identified by the user id in the session, without the need for new authentication. The session id in the cookie identifies the session.
 
-Hence, the cookie serves as temporary authentication for the web application. Everyone who seizes a cookie from someone else, may use the web application as this user – with possibly severe consequences. Here are some ways to hijack a session, and their countermeasures:
+Hence, the cookie serves as temporary authentication for the web application. Anyone who seizes a cookie from someone else, may use the web application as this user – with possibly severe consequences. Here are some ways to hijack a session, and their countermeasures:
 
 * Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. This is one more reason not to work from a coffee shop. For the web application builder this means to _provide a secure connection over SSL_. In Rails 3.1 and later, this could be accomplished by always forcing SSL connection in your application config file:
 
@@ -94,16 +93,15 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 * The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret and inserted into the end of the cookie.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_. Put the secret in your environment.rb:
+That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_.
 
-```ruby
-config.action_dispatch.session = {
-  key:    '_app_session',
-  secret: '0x0dkfj3927dkc7djdh36rkckdfzsg...'
-}
-```
+`config.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`, e.g.:
 
-There are, however, derivatives of CookieStore which encrypt the session hash, so the client cannot see it.
+    YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+
+Older versions of Rails use CookieStore, which uses `secret_token` instead of `secret_key_base` that is used by EncryptedCookieStore. Read the upgrade documentation for more information.
+
+If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
 
 ### Replay Attacks for CookieStore Sessions
 
@@ -211,7 +209,7 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The interaction _changes the state_ of the resource in a way that the user would perceive (e.g., a subscription to a service), or
 * The user is _held accountable for the results_ of the interaction.
 
-If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today's web browsers, however do not support them - only GET and POST. Rails uses a hidden `_method` field to handle this barrier.
+If your web application is RESTful, you might be used to additional HTTP verbs, such as PATCH, PUT or DELETE. Most of today's web browsers, however do not support them - only GET and POST. Rails uses a hidden `_method` field to handle this barrier.
 
 _POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
@@ -270,7 +268,7 @@ def legacy
 end
 ```
 
-This will redirect the user to the main action if he tried to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can exploited by an attacker if he includes a host key in the URL:
+This will redirect the user to the main action if he tried to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can be exploited by an attacker if he includes a host key in the URL:
 
 ```
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
@@ -348,13 +346,13 @@ Intranet and administration interfaces are popular attack targets, because they 
 
 In 2007 there was the first tailor-made trojan which stole information from an Intranet, namely the "Monster for employers" web site of Monster.com, an online recruitment web application. Tailor-made Trojans are very rare, so far, and the risk is quite low, but it is certainly a possibility and an example of how the security of the client host is important, too. However, the highest threat to Intranet and Admin applications are XSS and CSRF. 
 
-**XSS**  If your application re-displays malicious user input from the extranet, the application will be vulnerable to XSS. User names, comments, spam reports, order addresses are just a few uncommon examples, where there can be XSS.
+**XSS** If your application re-displays malicious user input from the extranet, the application will be vulnerable to XSS. User names, comments, spam reports, order addresses are just a few uncommon examples, where there can be XSS.
 
 Having one single place in the admin interface or Intranet, where the input has not been sanitized, makes the entire application vulnerable. Possible exploits include stealing the privileged administrator's cookie, injecting an iframe to steal the administrator's password or installing malicious software through browser security holes to take over the administrator's computer.
 
 Refer to the Injection section for countermeasures against XSS. It is _recommended to use the SafeErb plugin_ also in an Intranet or administration interface.
 
-**CSRF**  Cross-Site Reference Forgery (CSRF) is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
+**CSRF** Cross-Site Reference Forgery (CSRF) is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
 
 A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/Symantec-reports-first-active-attack-on-a-DSL-router--/news/102352). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for them, but it also contained an image tag that resulted in a HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake web site and had his credentials stolen.
 
@@ -373,141 +371,6 @@ The common admin interface works like this: it's located at www.example.com/admi
 * Does the admin really have to access the interface from everywhere in the world? Think about _limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
 
 * _Put the admin interface to a special sub-domain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
-
-Mass Assignment
----------------
-
-WARNING: _Without any precautions `Model.new(params[:model]`) allows attackers to set
-any database column's value._
-
-The mass-assignment feature may become a problem, as it allows an attacker to set
-any model's attributes by manipulating the hash passed to a model's `new()` method:
-
-```ruby
-def signup
-  params[:user] # => {name:"ow3ned", admin:true}
-  @user = User.new(params[:user])
-end
-```
-
-Mass-assignment saves you much work, because you don't have to set each value
-individually. Simply pass a hash to the `new` method, or `assign_attributes=`
-a hash value, to set the model's attributes to the values in the hash. The
-problem is that it is often used in conjunction with the parameters (params)
-hash available in the controller, which may be manipulated by an attacker.
-He may do so by changing the URL like this:
-
-```
-http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
-```
-
-This will set the following parameters in the controller:
-
-```ruby
-params[:user] # => {name:"ow3ned", admin:true}
-```
-
-So if you create a new user using mass-assignment, it may be too easy to become
-an administrator.
-
-Note that this vulnerability is not restricted to database columns. Any setter
-method, unless explicitly protected, is accessible via the `attributes=` method.
-In fact, this vulnerability is extended even further with the introduction of
-nested mass assignment (and nested object forms) in Rails 2.3. The
-`accepts_nested_attributes_for` declaration provides us the ability to extend
-mass assignment to model associations (`has_many`, `has_one`,
-`has_and_belongs_to_many`). For example:
-
-```ruby
-  class Person < ActiveRecord::Base
-    has_many :children
-
-    accepts_nested_attributes_for :children
-  end
-
-  class Child < ActiveRecord::Base
-    belongs_to :person
-  end
-```
-
-As a result, the vulnerability is extended beyond simply exposing column
-assignment, allowing attackers the ability to create entirely new records
-in referenced tables (children in this case).
-
-### Countermeasures
-
-To avoid this, Rails provides an interface for protecting attributes from
-end-user assignment called Strong Parameters. This makes Action Controller
-parameters forbidden until they have been whitelisted, so you will have to
-make a conscious choice about which attributes to allow for mass assignment
-and thus prevent accidentally exposing that which shouldn’t be exposed.
-
-NOTE. Before Strong Parameters arrived, mass-assignment protection was a
-model's task provided by Active Model. This has been extracted to the
-[ProtectedAttributes](https://github.com/rails/protected_attributes)
-gem. In order to use `attr_accessible` and `attr_protected` helpers in
-your models, you should add `protected_attributes` to your Gemfile.
-
-Why we moved mass-assignment protection out of the model and into
-the controller? The whole point of the controller is to control the
-flow between user and application, including authentication, authorization,
-and, as part of that, access control.
-
-Strong Parameters provides two methods to the `params` hash to control
-access to your attributes: `require` and `permit`. The former is used
-to mark parameters as required and the latter limits which attributes
-should be allowed for mass updating using the slice pattern. For example:
-
-```ruby
-def signup
-  params[:user]
-  # => {name:"ow3ned", admin:true}
-  permitted_params = params.require(:user).permit(:name)
-  # => {name:"ow3ned"}
-
-  @user = User.new(permitted_params)
-end
-```
-
-In the example above, `require` is checking whether a `user` key is present or not
-in the parameters, if it's not present, it'll raise an `ActionController::MissingParameter`
-exception, which will be caught by `ActionController::Base` and turned into a
-400 Bad Request reply. Then `permit` whitelists the attributes that should be
-allowed for mass assignment.
-
-A good pattern to encapsulate the permissible parameters is to use a private method
-since you'll be able to reuse the same permit list between different actions.
-
-```ruby
-def signup
-  @user = User.new(user_params)
-  # ...
-end
-
-def update
-  @user = User.find(params[:id]
-  @user.update_attributes!(user_params)
-  # ...
-end
-
-private
-  def user_params
-    params.require(:user).permit(:name)
-  end
-```
-
-Also, you can specialize this method with per-user checking of permissible
-attributes.
-
-```ruby
-def user_params
-  if current_user.admin?
-    params.require(:user).permit(:name, :admin)
-  else
-    params.require(:user).permit(:name)
-  end
-end
-```
 
 User Management
 ---------------
@@ -569,7 +432,7 @@ Depending on your web application, there may be more ways to hijack the user's a
 
 INFO: _A CAPTCHA is a challenge-response test to determine that the response is not generated by a computer. It is often used to protect comment forms from automatic spam bots by asking the user to type the letters of a distorted image. The idea of a negative CAPTCHA is not for a user to prove that he is human, but reveal that a robot is a robot._
 
-But not only spam robots (bots) are a problem, but also automatic login bots. A popular CAPTCHA API is [reCAPTCHA](http://recaptcha.net/) which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. [ReCAPTCHA](http://ambethia.com/recaptcha/) is also a Rails plug-in with the same name as the API.
+But not only spam robots (bots) are a problem, but also automatic login bots. A popular CAPTCHA API is [reCAPTCHA](http://recaptcha.net/) which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. [ReCAPTCHA](https://github.com/ambethia/recaptcha/) is also a Rails plug-in with the same name as the API.
 
 You will get two keys from the API, a public and a private key, which you have to put into your Rails environment. After that you can use the recaptcha_tags method in the view, and the verify_recaptcha method in the controller. Verify_recaptcha will return false if the validation fails.
 The problem with CAPTCHAs is, they are annoying. Additionally, some visually impaired users have found certain kinds of distorted CAPTCHAs difficult to read. The idea of negative CAPTCHAs is not to ask a user to proof that he is human, but reveal that a spam robot is a bot.
@@ -689,7 +552,6 @@ NOTE: _When sanitizing, protecting or verifying something, whitelists over black
 A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
 
 * Use before_action only: [...] instead of except: [...]. This way you don't forget to turn it off for newly added actions.
-* Use attr_accessible instead of attr_protected. See the mass-assignment section for details
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
 * Don't try to correct user input by blacklists:
     * This will make the attack work: "&lt;sc&lt;script&gt;ript&gt;".gsub("&lt;script&gt;", "")
@@ -1080,7 +942,7 @@ Or you can remove them.
 config.action_dispatch.default_headers.clear
 ```
 
-Here is the list of common headers:
+Here is a list of common headers:
 
 * X-Frame-Options
 _'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or 'ALLOWALL' if you want to allow framing for all website.
@@ -1094,6 +956,11 @@ _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type 
 Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * Strict-Transport-Security
 [Used to control if the browser is allowed to only access a site over a secure connection](http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+
+Environmental Security
+----------------------
+
+It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/initializers/secret_token.rb`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
 Additional Resources
 --------------------

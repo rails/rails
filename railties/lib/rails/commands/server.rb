@@ -42,8 +42,12 @@ module Rails
       set_environment
     end
 
+    # TODO: this is no longer required but we keep it for the moment to support older config.ru files.
     def app
-      @app ||= super.respond_to?(:to_app) ? super.to_app : super
+      @app ||= begin
+        app = super
+        app.respond_to?(:to_app) ? app.to_app : app
+      end
     end
 
     def opt_parser
@@ -58,7 +62,10 @@ module Rails
       url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
       puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-      puts "=> Call with -d to detach" unless options[:daemonize]
+      puts "=> Run `rails server -h` for more startup options"
+      if options[:Host].to_s.match(/0\.0\.0\.0/)
+        puts "=> Notice: server is listening on all interfaces (#{options[:Host]}). Consider using 127.0.0.1 (--binding option)"
+      end
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 

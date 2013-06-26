@@ -59,10 +59,9 @@ module Kernel
   #
   #   puts 'This code gets executed and nothing related to ZeroDivisionError was seen'
   def suppress(*exception_classes)
-    begin yield
-    rescue Exception => e
-      raise unless exception_classes.any? { |cls| e.kind_of?(cls) }
-    end
+    yield
+  rescue Exception => e
+    raise unless exception_classes.any? { |cls| e.kind_of?(cls) }
   end
 
   # Captures the given stream and returns it:

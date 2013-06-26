@@ -35,7 +35,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   def test_response_body_encoding
-    body = ["hello".encode('utf-8')]
+    body = ["hello".encode(Encoding::UTF_8)]
     response = ActionDispatch::Response.new 200, {}, body
     assert_equal Encoding::UTF_8, response.body.encoding
   end
@@ -129,7 +129,7 @@ class ResponseTest < ActiveSupport::TestCase
 
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     status, headers, body = @response.to_a
-    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
+    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
 
     @response.delete_cookie("login")

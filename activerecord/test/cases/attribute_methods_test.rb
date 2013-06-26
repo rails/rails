@@ -27,6 +27,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
+  def test_attribute_for_inspect
+    t = topics(:first)
+    t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
+
+    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And M..."', t.attribute_for_inspect(:title)
+  end
+
   def test_attribute_present
     t = Topic.new
     t.title = "hello there!"
@@ -69,7 +77,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_attributes
-    assert ! Topic.find(1).approved?
+    assert !Topic.find(1).approved?
     assert Topic.find(2).approved?
   end
 
@@ -130,6 +138,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal '10', keyboard.id_before_type_cast
     assert_equal nil, keyboard.read_attribute_before_type_cast('id')
     assert_equal '10', keyboard.read_attribute_before_type_cast('key_number')
+    assert_equal '10', keyboard.read_attribute_before_type_cast(:key_number)
   end
 
   # Syck calls respond_to? before actually calling initialize
@@ -141,13 +150,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, :title
   end
 
-  # IRB inspects the return value of "MyModel.allocate"
-  # by inspecting it.
+  # IRB inspects the return value of "MyModel.allocate".
   def test_allocated_object_can_be_inspected
     topic = Topic.allocate
-    topic.instance_eval { @attributes = nil }
-    assert_nothing_raised { topic.inspect }
-    assert topic.inspect, "#<Topic not initialized>"
+    assert_equal "#<Topic not initialized>", topic.inspect
   end
 
   def test_array_content
@@ -159,8 +165,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_attributes_before_type_cast
-    category = Category.new({:name=>"Test categoty", :type => nil})
-    category_attrs = {"name"=>"Test categoty", "id" => nil, "type" => nil, "categorizations_count" => nil}
+    category = Category.new({:name=>"Test category", :type => nil})
+    category_attrs = {"name"=>"Test category", "id" => nil, "type" => nil, "categorizations_count" => nil}
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
@@ -711,6 +717,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
+  end
+
+  def test_bulk_update_raise_unknown_attribute_errro
+    error = assert_raises(ActiveRecord::UnknownAttributeError) {
+      @target.new(:hello => "world")
+    }
+    assert @target, error.record
+    assert "hello", error.attribute
+    assert "unknown attribute: hello", error.message
   end
 
   def test_read_attribute_overwrites_private_method_not_considered_implemented

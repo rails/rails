@@ -14,7 +14,7 @@ module ApplicationTests
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/posts', to: "posts#index"
         end
       RUBY
@@ -48,7 +48,7 @@ module ApplicationTests
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
-    test "assets aren't concatened when compile is true is on and debug_assets params is true" do
+    test "assets aren't concatenated when compile is true is on and debug_assets params is true" do
       add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"

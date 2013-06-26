@@ -78,6 +78,48 @@ module ActiveRecord
 
         assert_equal [%w(artist_id music_id)], connection.indexes(:artists_musics).map(&:columns)
       end
+
+      def test_drop_join_table
+        connection.create_join_table :artists, :musics
+        connection.drop_join_table :artists, :musics
+
+        assert !connection.tables.include?('artists_musics')
+      end
+
+      def test_drop_join_table_with_strings
+        connection.create_join_table :artists, :musics
+        connection.drop_join_table 'artists', 'musics'
+
+        assert !connection.tables.include?('artists_musics')
+      end
+
+      def test_drop_join_table_with_the_proper_order
+        connection.create_join_table :videos, :musics
+        connection.drop_join_table :videos, :musics
+
+        assert !connection.tables.include?('musics_videos')
+      end
+
+      def test_drop_join_table_with_the_table_name
+        connection.create_join_table :artists, :musics, table_name: :catalog
+        connection.drop_join_table :artists, :musics, table_name: :catalog
+
+        assert !connection.tables.include?('catalog')
+      end
+
+      def test_drop_join_table_with_the_table_name_as_string
+        connection.create_join_table :artists, :musics, table_name: 'catalog'
+        connection.drop_join_table :artists, :musics, table_name: 'catalog'
+
+        assert !connection.tables.include?('catalog')
+      end
+
+      def test_drop_join_table_with_column_options
+        connection.create_join_table :artists, :musics, column_options: {null: true}
+        connection.drop_join_table :artists, :musics, column_options: {null: true}
+
+        assert !connection.tables.include?('artists_musics')
+      end
     end
   end
 end

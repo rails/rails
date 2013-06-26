@@ -11,7 +11,7 @@ class Reference < ActiveRecord::Base
 
   def make_comments
     if self.class.make_comments
-      person.update_attributes :comments => "Reference destroyed"
+      person.update comments: "Reference destroyed"
     end
   end
 end

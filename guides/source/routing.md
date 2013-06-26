@@ -36,7 +36,7 @@ the request is dispatched to the `patients` controller's `show` action with `{ i
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs.  If the route above is modified to be:
+You can also generate paths and URLs. If the route above is modified to be:
 
 ```ruby
 get '/patients/:id', to: 'patients#show', as: 'patient'
@@ -138,6 +138,12 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
+Passing a `String` to `match` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
+
+```ruby
+get 'profile', to: :show
+```
+
 This resourceful route:
 
 ```ruby
@@ -155,7 +161,7 @@ creates six different routes in your application, all mapping to the `Geocoders`
 | PATCH/PUT | /geocoder      | update  | update the one and only geocoder resource     |
 | DELETE    | /geocoder      | destroy | delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers.
+NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`).
 
 A singular resourceful route generates these helpers:
 
@@ -471,7 +477,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use `get`, `patch`, `put`, `post`, or `delete` here. If you don't have multiple `member` routes, you can also pass `:on` to a route, eliminating the block:
 
@@ -480,6 +486,8 @@ resources :photos do
   get 'preview', on: :member
 end
 ```
+
+You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`.
 
 #### Adding Collection Routes
 
@@ -528,7 +536,7 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 
 ### Bound Parameters
 
-When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider one of the default Rails routes:
+When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider this route:
 
 ```ruby
 get ':controller(/:action(/:id))'
@@ -759,11 +767,11 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/posts/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the params and the request object:
+You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|params, req| "/posts/#{params[:name].pluralize}" }
-get '/stories', to: redirect {|p, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect {|path_params, req| "/posts/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect {|path_params, req| "/posts/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
@@ -791,9 +799,19 @@ root to: 'pages#main'
 root 'pages#main' # shortcut for the above
 ```
 
-You should put the `root` route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the `public/index.html` file for the root route to take effect.
+You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
+
+You can also use root inside namespaces and scopes as well. For example:
+
+```ruby
+namespace :admin do
+  root to: "admin#index"
+end
+
+root to: "home#index"
+```
 
 ### Unicode character routes
 
@@ -829,6 +847,19 @@ will recognize incoming paths beginning with `/photos` but route to the `Images`
 | DELETE    | /photos/:id      | destroy | photo_path(:id)      |
 
 NOTE: Use `photos_path`, `new_photo_path`, etc. to generate paths for this resource.
+
+For namespaced controllers you can use the directory notation. For example:
+
+```ruby
+resources :user_permissions, controller: 'admin/user_permissions'
+```
+
+This will route to the `Admin::UserPermissions` controller.
+
+NOTE: Only the directory notation is supported. Specifying the
+controller with Ruby constant notation (eg. `:controller =>
+'Admin::UserPermissions'`) can lead to routing problems and results in
+a warning.
 
 ### Specifying Constraints
 

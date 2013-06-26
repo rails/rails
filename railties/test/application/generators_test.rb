@@ -30,7 +30,7 @@ module ApplicationTests
     end
 
     test "allow running plugin new generator inside Rails app directory" do
-      FileUtils.cd(rails_root){ `ruby script/rails plugin new vendor/plugins/bukkits` }
+      FileUtils.cd(rails_root){ `ruby bin/rails plugin new vendor/plugins/bukkits` }
       assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
     end
 

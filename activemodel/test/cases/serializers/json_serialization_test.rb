@@ -91,7 +91,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should allow attribute filtering with only" do
-    json = @contact.to_json(:only => [:name, :age])
+    json = @contact.to_json(only: [:name, :age])
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json

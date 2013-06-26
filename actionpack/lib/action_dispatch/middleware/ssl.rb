@@ -36,8 +36,7 @@ module ActionDispatch
         url.scheme = "https"
         url.host   = @host if @host
         url.port   = @port if @port
-        headers    = hsts_headers.merge('Content-Type' => 'text/html',
-                                        'Location'     => url.to_s)
+        headers    = { 'Content-Type' => 'text/html', 'Location' => url.to_s }
 
         [301, headers, []]
       end
@@ -45,7 +44,7 @@ module ActionDispatch
       # http://tools.ietf.org/html/draft-hodges-strict-transport-sec-02
       def hsts_headers
         if @hsts
-          value = "max-age=#{@hsts[:expires]}"
+          value = "max-age=#{@hsts[:expires].to_i}"
           value += "; includeSubDomains" if @hsts[:subdomains]
           { 'Strict-Transport-Security' => value }
         else
@@ -58,7 +57,7 @@ module ActionDispatch
           cookies = cookies.split("\n")
 
           headers['Set-Cookie'] = cookies.map { |cookie|
-            if cookie !~ /;\s+secure(;|$)/
+            if cookie !~ /;\s+secure(;|$)/i
               "#{cookie}; secure"
             else
               cookie

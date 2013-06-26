@@ -8,11 +8,11 @@ class Array
   # Converts the array to a comma-separated sentence where the last element is
   # joined by the connector word.
   #
-  # You can pass the following options to change the default behaviour. If you
+  # You can pass the following options to change the default behavior. If you
   # pass an option key that doesn't exist in the list below, it will raise an
   # <tt>ArgumentError</tt>.
   #
-  # Options:
+  # ==== Options
   #
   # * <tt>:words_connector</tt> - The sign or word used to join the elements
   #   in arrays with two or more elements (default: ", ").
@@ -23,6 +23,8 @@ class Array
   # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
+  #
+  # ==== Examples
   #
   #   [].to_sentence                      # => ""
   #   ['one'].to_sentence                 # => "one"
@@ -38,10 +40,10 @@ class Array
   #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
   #   # => "one or two or at least three"
   #
-  # Examples using <tt>:locale</tt> option:
+  # Using <tt>:locale</tt> option:
   #
   #   # Given this locale dictionary:
-  #   # 
+  #   #
   #   #   es:
   #   #     support:
   #   #       array:

@@ -1,6 +1,9 @@
 require "cases/helper"
 
 class MysqlConnectionTest < ActiveRecord::TestCase
+  class Klass < ActiveRecord::Base
+  end
+
   def setup
     super
     @connection = ActiveRecord::Base.connection
@@ -14,12 +17,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_connect_with_url
-    run_without_connection do |orig|
+    run_without_connection do
       ar_config = ARTest.connection_config['arunit']
+
+      skip "This test doesn't work with custom socket location" if ar_config['socket']
+
       url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
-      klass = Class.new(ActiveRecord::Base)
-      klass.establish_connection(url)
-      assert_equal ar_config['database'], klass.connection.current_database
+      Klass.establish_connection(url)
+      assert_equal ar_config['database'], Klass.connection.current_database
     end
   end
 

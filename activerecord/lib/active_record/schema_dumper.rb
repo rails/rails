@@ -24,7 +24,7 @@ module ActiveRecord
 
     def dump(stream)
       header(stream)
-      migrations(stream)
+      extensions(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -39,11 +39,13 @@ module ActiveRecord
       end
 
       def header(stream)
+        define_params = @version ? "version: #{@version}" : ""
+
         if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
 
-        header_text = <<HEADER_RUBY
+        stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -56,24 +58,24 @@ module ActiveRecord
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define do
+ActiveRecord::Schema.define(#{define_params}) do
 
-HEADER_RUBY
-        stream.puts header_text
+HEADER
       end
 
       def trailer(stream)
         stream.puts "end"
       end
 
-      def migrations(stream)
-        all_migrations = ActiveRecord::SchemaMigration.all.to_a
-        if all_migrations.any?
-          stream.puts("  migrations do")
-          all_migrations.each do |migration|
-            stream.puts(migration.schema_line("    "))
+      def extensions(stream)
+        return unless @connection.supports_extensions?
+        extensions = @connection.extensions
+        if extensions.any?
+          stream.puts "  # These are extensions that must be enabled in order to support this database"
+          extensions.each do |extension|
+            stream.puts "  enable_extension #{extension.inspect}"
           end
-          stream.puts("  end\n\n")
+          stream.puts
         end
       end
 
@@ -104,9 +106,12 @@ HEADER_RUBY
           end
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
-          if columns.detect { |c| c.name == pk }
+          pkcol = columns.detect { |c| c.name == pk }
+          if pkcol
             if pk != 'id'
               tbl.print %Q(, primary_key: "#{pk}")
+            elsif pkcol.sql_type == 'uuid'
+              tbl.print ", id: :uuid"
             end
           else
             tbl.print ", id: false"
@@ -116,7 +121,7 @@ HEADER_RUBY
 
           # then dump all non-primary key columns
           column_specs = columns.map do |column|
-            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
+            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
             @connection.column_spec(column, @types)
           end.compact
@@ -182,6 +187,10 @@ HEADER_RUBY
             statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
 
             statement_parts << ('where: ' + index.where.inspect) if index.where
+
+            statement_parts << ('using: ' + index.using.inspect) if index.using
+
+            statement_parts << ('type: ' + index.type.inspect) if index.type
 
             '  ' + statement_parts.join(', ')
           end

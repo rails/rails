@@ -11,7 +11,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to reset a counter on.
-      # * +counters+ - One or more counter names to reset
+      # * +counters+ - One or more association counters to reset
       #
       # ==== Examples
       #
@@ -21,6 +21,7 @@ module ActiveRecord
         object = find(id)
         counters.each do |association|
           has_many_association = reflect_on_association(association.to_sym)
+          raise ArgumentError, "'#{self.name}' has no association called '#{association}'" unless has_many_association
 
           if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
             has_many_association = has_many_association.through_reflection
@@ -49,7 +50,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
-      # * +counters+ - An Array of Hashes containing the names of the fields
+      # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       #
       # ==== Examples

@@ -8,6 +8,13 @@ module Rails
 
       class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
+      class_option :assets, type: :boolean
+      class_option :resource_route, type: :boolean
+
+      def handle_skip
+        @options = @options.merge(stylesheets: false) unless options[:assets]
+        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
+      end
 
       hook_for :scaffold_controller, required: true
 
@@ -16,7 +23,9 @@ module Rails
       end
 
       hook_for :stylesheet_engine do |stylesheet_engine|
-        invoke stylesheet_engine, [controller_name] if options[:stylesheets] && behavior == :invoke
+        if behavior == :invoke
+          invoke stylesheet_engine, [controller_name]
+        end
       end
     end
   end

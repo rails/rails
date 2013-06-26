@@ -31,6 +31,21 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal :json, @column.type
   end
 
+  def test_change_table_supports_json
+    @connection.transaction do
+      @connection.change_table('json_data_type') do |t|
+        t.json 'users', default: '{}'
+      end
+      JsonDataType.reset_column_information
+      column = JsonDataType.columns.find { |c| c.name == 'users' }
+      assert_equal :json, column.type
+
+      raise ActiveRecord::Rollback # reset the schema change
+    end
+  ensure
+    JsonDataType.reset_column_information
+  end
+
   def test_type_cast_json
     assert @column
 
@@ -68,4 +83,18 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     x = JsonDataType.first
     assert_equal(nil, x.payload)
   end
+
+  def test_select_array_json_value
+    @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
+    x = JsonDataType.first
+    assert_equal(['v0', {'k1' => 'v1'}], x.payload)
+  end
+
+  def test_rewrite_array_json_value
+    @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
+    x = JsonDataType.first
+    x.payload = ['v1', {'k2' => 'v2'}, 'v3']
+    assert x.save!
+  end
+
 end

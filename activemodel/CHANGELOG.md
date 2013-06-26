@@ -1,104 +1,19 @@
-## Rails 4.0.0 (unreleased) ##
+*   `inclusion` / `exclusion` validations with ranges will only use the faster
+    `Range#cover` for numerical ranges, and the more accurate `Range#include?`
+    for non-numerical ones.
 
-*   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`
+    Fixes range validations like `:a..:f` that used to pass with values like `:be`.
+    Fixes #10593
 
-    *Renato Mascarenhas*
+    *Charles Bergeron*
 
-*   Observers was extracted from Active Model as `rails-observers` gem.
+*   Fix regression in has_secure_password. When a password is set, but a
+    confirmation is an empty string, it would incorrectly save.
 
-    *Rafael Mendonça França*
+    *Steve Klabnik* and *Phillip Calvin*
 
-*   Specify type of singular association during serialization *Steve Klabnik*
+*   Deprecate `Validator#setup`. This should be done manually now in the validator's constructor.
 
-*   Fixed length validator to correctly handle nil values. Fixes #7180.
+    *Nick Sutterer*
 
-    *Michal Zima*
-
-*   Removed dispensable `require` statements. Make sure to require `active_model` before requiring
-    individual parts of the framework.
-
-    *Yves Senn*
-
-*   Use BCrypt's MIN_COST in the test environment for speedier tests when using `has_secure_pasword`.
-
-    *Brian Cardarella + Jeremy Kemper + Trevor Turk*
-
-*   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
-    protect attributes from mass assignment when non-permitted attributes are passed.
-
-    *DHH + Guillermo Iguaran*
-
-*   `ActiveModel::MassAssignmentSecurity` has been extracted from Active Model and the
-    `protected_attributes` gem should be added to Gemfile in order to use
-    `attr_accessible` and `attr_protected` macros in your models.
-
-    *Guillermo Iguaran*
-
-*   Due to a change in builder, nil values and empty strings now generates
-    closed tags, so instead of this:
-
-        <pseudonyms nil=\"true\"></pseudonyms>
-
-    It generates this:
-
-        <pseudonyms nil=\"true\"/>
-
-    *Carlos Antonio da Silva*
-
-*   Changed inclusion and exclusion validators to accept a symbol for `:in` option.
-
-    This allows to use dynamic inclusion/exclusion values using methods, besides the current lambda/proc support.
-
-    *Gabriel Sobrinho*
-
-*   `AM::Validation#validates` ability to pass custom exception to `:strict` option.
-
-    *Bogdan Gusiev*
-
-*   Changed `ActiveModel::Serializers::Xml::Serializer#add_associations` to by default
-    propagate `:skip_types, :dasherize, :camelize` keys to included associations.
-    It can be overriden on each association by explicitly specifying the option on one
-    or more associations
-
-    *Anthony Alberto*
-
-*   Changed `AM::Serializers::JSON.include_root_in_json' default value to false.
-    Now, AM Serializers and AR objects have the same default behaviour. Fixes #6578.
-
-        class User < ActiveRecord::Base; end
-
-        class Person
-          include ActiveModel::Model
-          include ActiveModel::AttributeMethods
-          include ActiveModel::Serializers::JSON
-
-          attr_accessor :name, :age
-
-          def attributes
-            instance_values
-          end
-        end
-
-        user.as_json
-        => {"id"=>1, "name"=>"Konata Izumi", "age"=>16, "awesome"=>true}
-        # root is not included
-
-        person.as_json
-        => {"name"=>"Francesco", "age"=>22}
-        # root is not included
-
-    *Francesco Rodriguez*
-
-*   Passing false hash values to `validates` will no longer enable the corresponding validators *Steve Purcell*
-
-*   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
-
-*   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
-
-*   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
-
-*   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
-
-*   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide *Jan Berdajs + Egor Homakov*
-
-Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for previous changes.

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/keys'
+require "set"
 
 module ActiveRecord
   class Relation
@@ -38,7 +39,7 @@ module ActiveRecord
     end
 
     class Merger # :nodoc:
-      attr_reader :relation, :values
+      attr_reader :relation, :values, :other
 
       def initialize(relation, other)
         if other.default_scoped? && other.klass != relation.klass
@@ -47,11 +48,12 @@ module ActiveRecord
 
         @relation = relation
         @values   = other.values
+        @other    = other
       end
 
       NORMAL_VALUES = Relation::SINGLE_VALUE_METHODS +
                       Relation::MULTI_VALUE_METHODS -
-                      [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
+                      [:joins, :where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -65,15 +67,47 @@ module ActiveRecord
 
         merge_multi_values
         merge_single_values
+        merge_joins
 
         relation
       end
 
       private
 
+      def merge_joins
+        return if values[:joins].blank?
+
+        if other.klass == relation.klass
+          relation.joins!(*values[:joins])
+        else
+          joins_dependency, rest = values[:joins].partition do |join|
+            case join
+            when Hash, Symbol, Array
+              true
+            else
+              false
+            end
+          end
+
+          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
+                                                                           joins_dependency,
+                                                                           [])
+          relation.joins! rest
+
+          @relation = join_dependency.join_relation(relation)
+        end
+      end
+
       def merge_multi_values
-        relation.where_values = merged_wheres
-        relation.bind_values  = merged_binds
+        lhs_wheres = relation.where_values
+        rhs_wheres = values[:where] || []
+        lhs_binds  = relation.bind_values
+        rhs_binds  = values[:bind] || []
+
+        removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
+
+        relation.where_values = kept + rhs_wheres
+        relation.bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
 
         if values[:reordering]
           # override any order specified in the original relation
@@ -96,34 +130,28 @@ module ActiveRecord
         end
       end
 
-      def merged_binds
-        if values[:bind]
-          (relation.bind_values + values[:bind]).uniq(&:first)
-        else
-          relation.bind_values
-        end
+      def filter_binds(lhs_binds, removed_wheres)
+        return lhs_binds if removed_wheres.empty?
+
+        set = Set.new removed_wheres.map { |x| x.left.name }
+        lhs_binds.dup.delete_if { |col,_| set.include? col.name }
       end
 
-      def merged_wheres
-        if values[:where]
-          merged_wheres = relation.where_values + values[:where]
+      # Remove equalities from the existing relation with a LHS which is
+      # present in the relation being merged in.
+      # returns [things_to_remove, things_to_keep]
+      def partition_overwrites(lhs_wheres, rhs_wheres)
+        if lhs_wheres.empty? || rhs_wheres.empty?
+          return [[], lhs_wheres]
+        end
 
-          unless relation.where_values.empty?
-            # Remove equalities with duplicated left-hand. Last one wins.
-            seen = {}
-            merged_wheres = merged_wheres.reverse.reject { |w|
-              nuke = false
-              if w.respond_to?(:operator) && w.operator == :==
-                nuke         = seen[w.left]
-                seen[w.left] = true
-              end
-              nuke
-            }.reverse
-          end
+        nodes = rhs_wheres.find_all do |w|
+          w.respond_to?(:operator) && w.operator == :==
+        end
+        seen = Set.new(nodes) { |node| node.left }
 
-          merged_wheres
-        else
-          relation.where_values
+        lhs_wheres.partition do |w|
+          w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
       end
     end

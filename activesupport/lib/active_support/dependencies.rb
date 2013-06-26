@@ -1,5 +1,6 @@
 require 'set'
 require 'thread'
+require 'thread_safe'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -212,7 +213,7 @@ module ActiveSupport #:nodoc:
           yield
         end
       rescue Exception => exception  # errors from loading file
-        exception.blame_file! file
+        exception.blame_file! file if exception.respond_to? :blame_file!
         raise
       end
 
@@ -415,7 +416,7 @@ module ActiveSupport #:nodoc:
     def load_file(path, const_paths = loadable_constants_for_path(path))
       log_call path, const_paths
       const_paths = [const_paths].compact unless const_paths.is_a? Array
-      parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || :Object }
+      parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || ::Object }
 
       result = nil
       newly_defined_paths = new_constants_in(*parent_paths) do
@@ -517,7 +518,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = Hash.new
+        @store = ThreadSafe::Cache.new
       end
 
       def empty?
@@ -633,7 +634,7 @@ module ActiveSupport #:nodoc:
         when String then desc.sub(/^::/, '')
         when Symbol then desc.to_s
         when Module
-          desc.name.presence ||
+          desc.name ||
             raise(ArgumentError, "Anonymous modules have no name to be referenced by")
         else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end

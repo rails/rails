@@ -3,7 +3,9 @@ require 'rails/ruby_version_check'
 require 'pathname'
 
 require 'active_support'
+require 'active_support/dependencies/autoload'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/array/extract_options'
 
 require 'rails/application'
@@ -20,42 +22,20 @@ silence_warnings do
 end
 
 module Rails
-  autoload :Info, 'rails/info'
-  autoload :InfoController, 'rails/info_controller'
+  extend ActiveSupport::Autoload
+
+  autoload :Info
+  autoload :InfoController
+  autoload :WelcomeController
 
   class << self
     attr_accessor :application, :cache, :logger
 
+    delegate :initialize!, :initialized?, to: :application
+
     # The Configuration instance used to configure the Rails environment
     def configuration
       application.config
-    end
-
-    # Rails.queue is the application's queue. You can push a job onto
-    # the queue by:
-    #
-    #   Rails.queue.push job
-    #
-    # A job is an object that responds to +run+. Queue consumers will
-    # pop jobs off of the queue and invoke the queue's +run+ method.
-    #
-    # Note that depending on your queue implementation, jobs may not
-    # be executed in the same process as they were created in, and
-    # are never executed in the same thread as they were created in.
-    #
-    # If necessary, a queue implementation may need to serialize your
-    # job for distribution to another process. The documentation of
-    # your queue will specify the requirements for that serialization.
-    def queue
-      application.queue
-    end
-
-    def initialize!
-      application.initialize!
-    end
-
-    def initialized?
-      application.initialized?
     end
 
     def backtrace_cleaner
@@ -71,10 +51,7 @@ module Rails
     end
 
     def env
-      @_env ||= begin
-        ENV["RAILS_ENV"] ||= ENV["RACK_ENV"] || "development"
-        ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"])
-      end
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
     def env=(environment)
@@ -97,7 +74,7 @@ module Rails
       env = Rails.env
       groups.unshift(:default, env)
       groups.concat ENV["RAILS_GROUPS"].to_s.split(",")
-      groups.concat hash.map { |k,v| k if v.map(&:to_s).include?(env) }
+      groups.concat hash.map { |k, v| k if v.map(&:to_s).include?(env) }
       groups.compact!
       groups.uniq!
       groups

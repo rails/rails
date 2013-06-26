@@ -5,10 +5,24 @@ require 'models/treasure'
 require 'models/post'
 require 'models/comment'
 require 'models/edge'
+require 'models/topic'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges
+    fixtures :posts, :edges, :authors
+
+    def test_where_copies_bind_params
+      author = authors(:david)
+      posts  = author.posts.where('posts.id != 1')
+      joined = Post.where(id: posts)
+
+      assert_operator joined.length, :>, 0
+
+      joined.each { |post|
+        assert_equal author, post.author
+        assert_not_equal 1, post.id
+      }
+    end
 
     def test_belongs_to_shallow_where
       author = Author.new
@@ -67,6 +81,13 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_aliased_attribute
+      expected = Topic.where(heading: 'The First Topic')
+      actual   = Topic.where(title: 'The First Topic')
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
     def test_where_error
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.where(:id => { 'posts.author_id' => 10 }).first
@@ -80,6 +101,10 @@ module ActiveRecord
 
     def test_where_with_table_name_and_empty_hash
       assert_equal 0, Post.where(:posts => {}).count
+    end
+
+    def test_where_with_table_name_and_empty_array
+      assert_equal 0, Post.where(:id => []).count
     end
 
     def test_where_with_empty_hash_and_no_foreign_key

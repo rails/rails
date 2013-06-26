@@ -8,15 +8,15 @@ class DateTimeTest < ActiveRecord::TestCase
       with_active_record_default_timezone :utc do
         time_values = [1807, 2, 10, 15, 30, 45]
         # create DateTime value with local time zone offset
-        local_offset = Rational(Time.local_time(*time_values).utc_offset, 86400)
+        local_offset = Rational(Time.local(*time_values).utc_offset, 86400)
         now = DateTime.civil(*(time_values + [local_offset]))
 
         task = Task.new
         task.starting = now
         task.save!
 
-        # check against Time.local_time, since some platforms will return a Time instead of a DateTime
-        assert_equal Time.local_time(*time_values), Task.find(task.id).starting
+        # check against Time.local, since some platforms will return a Time instead of a DateTime
+        assert_equal Time.local(*time_values), Task.find(task.id).starting
       end
     end
   end

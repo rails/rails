@@ -6,13 +6,17 @@ module ActiveRecord
       attributes.each do |column, value|
         table = default_table
 
-        if value.is_a?(Hash)
-          table       = Arel::Table.new(column, default_table.engine)
-          association = klass.reflect_on_association(column.to_sym)
+        if column.is_a?(Symbol) && klass.attribute_aliases.key?(column.to_s)
+          column = klass.attribute_aliases[column.to_s]
+        end
 
+        if value.is_a?(Hash)
           if value.empty?
-            queries.concat ['1 = 2']
+            queries << '1=0'
           else
+            table       = Arel::Table.new(column, default_table.engine)
+            association = klass.reflect_on_association(column.to_sym)
+
             value.each do |k, v|
               queries.concat expand(association && association.klass, table, k, v)
             end
@@ -48,7 +52,7 @@ module ActiveRecord
         column = reflection.foreign_key
       end
 
-      queries << build(table[column.to_sym], value)
+      queries << build(table[column], value)
       queries
     end
 
@@ -58,7 +62,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split('.').first.to_sym if key.include?('.')
+          key.split('.').first if key.include?('.')
         end
       end.compact
     end
@@ -66,7 +70,7 @@ module ActiveRecord
     private
       def self.build(attribute, value)
         case value
-        when Array, ActiveRecord::Associations::CollectionProxy
+        when Array
           values = value.to_a.map {|x| x.is_a?(Base) ? x.id : x}
           ranges, values = values.partition {|v| v.is_a?(Range)}
 

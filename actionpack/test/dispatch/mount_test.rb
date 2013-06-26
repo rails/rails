@@ -21,7 +21,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     mount SprocketsApp, :at => "/sprockets"
     mount SprocketsApp => "/shorthand"
 
-    mount FakeEngine, :at => "/fakeengine"
+    mount FakeEngine, :at => "/fakeengine", :as => :fake
     mount FakeEngine, :at => "/getfake", :via => :get
 
     scope "/its_a" do
@@ -31,6 +31,11 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
 
   def app
     Router
+  end
+
+  def test_trailing_slash_is_not_removed_from_path_info
+    get "/sprockets/omg/"
+    assert_equal "/sprockets -- /omg/", response.body
   end
 
   def test_mounting_sets_script_name

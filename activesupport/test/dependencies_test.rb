@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'pp'
 require 'active_support/dependencies'
-require 'dependecies_test_helpers'
+require 'dependencies_test_helpers'
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -20,7 +20,7 @@ class DependenciesTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
   end
 
-  include DependeciesTestHelpers
+  include DependenciesTestHelpers
 
   def test_depend_on_path
     skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
@@ -73,6 +73,14 @@ class DependenciesTest < ActiveSupport::TestCase
         assert !ActiveSupport::Dependencies.loaded.include?(filename)
         assert !ActiveSupport::Dependencies.history.include?(filename)
       end
+    end
+  end
+
+  def test_dependency_which_raises_doesnt_blindly_call_blame_file!
+    with_loading do
+      filename = 'dependencies/raises_exception_without_blame_file'
+
+      assert_raises(Exception) { require_dependency filename }
     end
   end
 
@@ -363,12 +371,10 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_smart_name_error_strings
-    begin
-      Object.module_eval "ImaginaryObject"
-      flunk "No raise!!"
-    rescue NameError => e
-      assert e.message.include?("uninitialized constant ImaginaryObject")
-    end
+    Object.module_eval "ImaginaryObject"
+    flunk "No raise!!"
+  rescue NameError => e
+    assert e.message.include?("uninitialized constant ImaginaryObject")
   end
 
   def test_loadable_constants_for_path_should_handle_empty_autoloads
@@ -528,7 +534,6 @@ class DependenciesTest < ActiveSupport::TestCase
     m = Module.new
     m.module_eval "def a() CountingLoader; end"
     extend m
-    kls = nil
     with_autoloading_fixtures do
       kls = nil
       assert_nothing_raised { kls = a }
@@ -880,7 +885,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_autoload_doesnt_shadow_name_error
     with_autoloading_fixtures do
       Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
-      2.times do |i|
+      2.times do
         begin
           ::RaisesNameError::FooBarBaz.object_id
           flunk 'should have raised NameError when autoloaded file referenced FooBarBaz'
@@ -923,10 +928,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_remove_constant_does_not_autoload_already_removed_parents_as_a_side_effect
     with_autoloading_fixtures do
-      silence_warnings do
-        ::A
-        ::A::B
-      end
+      _ = ::A    # assignment to silence parse-time warning "possibly useless use of :: in void context"
+      _ = ::A::B # assignment to silence parse-time warning "possibly useless use of :: in void context"
       ActiveSupport::Dependencies.remove_constant('A')
       ActiveSupport::Dependencies.remove_constant('A::B')
       assert !defined?(A)
@@ -936,9 +939,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_load_once_constants_should_not_be_unloaded
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths
-      silence_warnings do
-        ::A
-      end
+      _ = ::A # assignment to silence parse-time warning "possibly useless use of :: in void context"
       assert defined?(A)
       ActiveSupport::Dependencies.clear
       assert defined?(A)

@@ -29,7 +29,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate
@@ -228,7 +228,7 @@ module ActionController
       end
 
       def decode_credentials(header)
-        HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
+        ActiveSupport::HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/, '').split(',').map do |pair|
           key, value = pair.split('=', 2)
           [key.strip, value.to_s.gsub(/^"|"$/,'').delete('\'')]
         end]
@@ -299,6 +299,7 @@ module ActionController
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
+        return false if value.nil?
         t = ::Base64.decode64(value).split(":").first.to_i
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
@@ -344,7 +345,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate
@@ -384,6 +385,8 @@ module ActionController
     #
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
+      TOKEN_REGEX = /^Token /
+      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
 
       module ControllerMethods
@@ -431,18 +434,32 @@ module ActionController
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.
       def token_and_options(request)
-        if request.authorization.to_s[/^Token (.*)/]
-          values = Hash[$1.split(',').map do |value|
-            value.strip!                      # remove any spaces between commas and values
-            key, value = value.split(/\=\"?/) # split key=value pairs
-            if value
-              value.chomp!('"')                 # chomp trailing " in value
-              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-              [key, value]
-            end
-          end.compact]
-          [values.delete("token"), values.with_indifferent_access]
+        authorization_request = request.authorization.to_s
+        if authorization_request[TOKEN_REGEX]
+          params = token_params_from authorization_request
+          [params.shift.last, Hash[params].with_indifferent_access]
         end
+      end
+
+      def token_params_from(auth)
+        rewrite_param_values params_array_from raw_params auth
+      end
+
+      # Takes raw_params and turns it into an array of parameters
+      def params_array_from(raw_params)
+        raw_params.map { |param| param.split %r/=(.+)?/ }
+      end
+
+      # This removes the `"` characters wrapping the value.
+      def rewrite_param_values(array_params)
+        array_params.each { |param| param.last.gsub! %r/^"|"$/, '' }
+      end
+
+      # This method takes an authorization body and splits up the key-value
+      # pairs by the standardized `:`, `;`, or `\t` delimiters defined in
+      # `AUTHN_PAIR_DELIMITERS`.
+      def raw_params(auth)
+        auth.sub(TOKEN_REGEX, '').split(/"\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
       end
 
       # Encodes the given token and options into an Authorization header value.

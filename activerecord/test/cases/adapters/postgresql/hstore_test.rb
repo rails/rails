@@ -11,14 +11,22 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    begin
-      @connection.transaction do
-        @connection.create_table('hstores') do |t|
-          t.hstore 'tags', :default => ''
-        end
-      end
-    rescue ActiveRecord::StatementInvalid
+
+    unless @connection.supports_extensions?
       return skip "do not test on PG without hstore"
+    end
+
+    unless @connection.extension_enabled?('hstore')
+      @connection.enable_extension 'hstore'
+      @connection.commit_db_transaction
+    end
+
+    @connection.reconnect!
+
+    @connection.transaction do
+      @connection.create_table('hstores') do |t|
+        t.hstore 'tags', :default => ''
+      end
     end
     @column = Hstore.columns.find { |c| c.name == 'tags' }
   end
@@ -27,8 +35,39 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     @connection.execute 'drop table if exists hstores'
   end
 
+  def test_hstore_included_in_extensions
+    assert @connection.respond_to?(:extensions), "connection should have a list of extensions"
+    assert @connection.extensions.include?('hstore'), "extension list should include hstore"
+  end
+
+  def test_disable_enable_hstore
+    assert @connection.extension_enabled?('hstore')
+    @connection.disable_extension 'hstore'
+    assert_not @connection.extension_enabled?('hstore')
+    @connection.enable_extension 'hstore'
+    assert @connection.extension_enabled?('hstore')
+  ensure
+    # Restore column(s) dropped by `drop extension hstore cascade;`
+    load_schema
+  end
+
   def test_column
     assert_equal :hstore, @column.type
+  end
+
+  def test_change_table_supports_hstore
+    @connection.transaction do
+      @connection.change_table('hstores') do |t|
+        t.hstore 'users', default: ''
+      end
+      Hstore.reset_column_information
+      column = Hstore.columns.find { |c| c.name == 'users' }
+      assert_equal :hstore, column.type
+
+      raise ActiveRecord::Rollback # reset the schema change
+    end
+  ensure
+    Hstore.reset_column_information
   end
 
   def test_type_cast_hstore
@@ -138,6 +177,10 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
   def test_quoting_special_characters
     assert_cycle('ca' => 'cà', 'ac' => 'àc')
+  end
+
+  def test_multiline
+    assert_cycle("a\nb" => "c\nd")
   end
 
   private

@@ -6,6 +6,7 @@ In this guide you will learn how controllers work and how they fit into the requ
 After reading this guide, you will know:
 
 * How to follow the flow of a request through a controller.
+* How to restrict parameters passed to your controller.
 * Why and how to store data in the session or cookies.
 * How to work with filters to execute code during request processing.
 * How to use Action Controller's built-in HTTP authentication.
@@ -26,6 +27,16 @@ A controller can thus be thought of as a middle man between models and views. It
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
+Controller Naming Convention
+----------------------------
+
+The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
+
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+
+NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+
+
 Methods and Actions
 -------------------
 
@@ -38,7 +49,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above could work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
 
 ```ruby
 def new
@@ -58,7 +69,7 @@ Parameters
 You will probably want to access data sent in by the user or other parameters in your controller actions. There are two kinds of parameters possible in a web application. The first are parameters that are sent as part of the URL, called query string parameters. The query string is everything after "?" in the URL. The second type of parameter is usually referred to as POST data. This information usually comes from an HTML form which has been filled in by the user. It's called POST data because it can only be sent as part of an HTTP POST request. Rails does not make any distinction between query string parameters and POST parameters, and both are available in the `params` hash in your controller:
 
 ```ruby
-class ClientsController < ActionController::Base
+class ClientsController < ApplicationController
   # This action uses query string parameters because it gets run
   # by an HTTP GET request, but this does not make any difference
   # to the way in which the parameters are accessed. The URL for
@@ -112,23 +123,23 @@ To send a hash you include the key name inside the brackets:
 </form>
 ```
 
-When this form is submitted, the value of `params[:client]` will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
+When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `HashWithIndifferentAccess` from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
+Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash but lets you use symbols and strings interchangeably as keys.
 
-### JSON/XML parameters
+### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON or XML format. Rails will automatically convert your parameters into `params` hash, which you'll be able to access like you would normally do with form data.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
 
-So for example, if you are sending this JSON parameter:
+So for example, if you are sending this JSON content:
 
 ```json
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot Street" }`.
+You'll get `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
@@ -137,17 +148,19 @@ Also, if you've turned on `config.wrap_parameters` in your initializer or callin
 And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
 
 ```ruby
-{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
+{ name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+
+NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
 
 ### Routing Parameters
 
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', foo: "bar"
+match '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -168,16 +181,168 @@ These options will be used as a starting point when generating URLs, so it's pos
 
 If you define `default_url_options` in `ApplicationController`, as in the example above, it would be used for all URL generation. The method can also be defined in one specific controller, in which case it only affects URLs generated there.
 
+### Strong Parameters
+
+With strong parameters, Action Controller parameters are forbidden to
+be used in Active Model mass assignments until they have been
+whitelisted. This means you'll have to make a conscious choice about
+which attributes to allow for mass updating and thus prevent
+accidentally exposing that which shouldn't be exposed.
+
+In addition, parameters can be marked as required and flow through a
+predefined raise/rescue flow to end up as a 400 Bad Request with no
+effort.
+
+```ruby
+class PeopleController < ActionController::Base
+  # This will raise an ActiveModel::ForbiddenAttributes exception
+  # because it's using mass assignment without an explicit permit
+  # step.
+  def create
+    Person.create(params[:person])
+  end
+
+  # This will pass with flying colors as long as there's a person key
+  # in the parameters, otherwise it'll raise a
+  # ActionController::ParameterMissing exception, which will get
+  # caught by ActionController::Base and turned into that 400 Bad
+  # Request reply.
+  def update
+    person = current_account.people.find(params[:id])
+    person.update_attributes!(person_params)
+    redirect_to person
+  end
+
+  private
+    # Using a private method to encapsulate the permissible parameters
+    # is just a good pattern since you'll be able to reuse the same
+    # permit list between create and update. Also, you can specialize
+    # this method with per-user checking of permissible attributes.
+    def person_params
+      params.require(:person).permit(:name, :age)
+    end
+end
+```
+
+#### Permitted Scalar Values
+
+Given
+
+```ruby
+params.permit(:id)
+```
+
+the key `:id` will pass the whitelisting if it appears in `params` and
+it has a permitted scalar value associated. Otherwise the key is going
+to be filtered out, so arrays, hashes, or any other objects cannot be
+injected.
+
+The permitted scalar types are `String`, `Symbol`, `NilClass`,
+`Numeric`, `TrueClass`, `FalseClass`, `Date`, `Time`, `DateTime`,
+`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile` and
+`Rack::Test::UploadedFile`.
+
+To declare that the value in `params` must be an array of permitted
+scalar values map the key to an empty array:
+
+```ruby
+params.permit(id: [])
+```
+
+To whitelist an entire hash of parameters, the `permit!` method can be
+used:
+
+```ruby
+params.require(:log_entry).permit!
+```
+
+This will mark the `:log_entry` parameters hash and any subhash of it
+permitted. Extreme care should be taken when using `permit!` as it
+will allow all current and future model attributes to be
+mass-assigned.
+
+#### Nested Parameters
+
+You can also use permit on nested parameters, like:
+
+```ruby
+params.permit(:name, { emails: [] },
+              friends: [ :name,
+                         { family: [ :name ], hobbies: [] }])
+```
+
+This declaration whitelists the `name`, `emails` and `friends`
+attributes. It is expected that `emails` will be an array of permitted
+scalar values and that `friends` will be an array of resources with
+specific attributes : they should have a `name` attribute (any
+permitted scalar values allowed), a `hobbies` attribute as an array of
+permitted scalar values, and a `family` attribute which is restricted
+to having a `name` (any permitted scalar values allowed, too).
+
+#### More Examples
+
+You want to also use the permitted attributes in the `new`
+action. This raises the problem that you can't use `require` on the
+root key because normally it does not exist when calling `new`:
+
+```ruby
+# using `fetch` you can supply a default and use
+# the Strong Parameters API from there.
+params.fetch(:blog, {}).permit(:title, :author)
+```
+
+`accepts_nested_attributes_for` allows you to update and destroy
+associated records. This is based on the `id` and `_destroy`
+parameters:
+
+```ruby
+# permit :id and :_destroy
+params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
+```
+
+Hashes with integer keys are treated differently and you can declare
+the attributes as if they were direct children. You get these kinds of
+parameters when you use `accepts_nested_attributes_for` in combination
+with a `has_many` association:
+
+```ruby
+# To whitelist the following data:
+# {"book" => {"title" => "Some Book",
+#             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
+#                                        "2" => {"title" => "Second Chapter"}}}}
+
+params.require(:book).permit(:title, chapters_attributes: [:title])
+```
+
+#### Outside the Scope of Strong Parameters
+
+The strong parameter API was designed with the most common use cases
+in mind. It is not meant as a silver bullet to handle all your
+whitelisting problems. However you can easily mix the API with your
+own code to adapt to your situation.
+
+Imagine a scenario where you want to whitelist an attribute
+containing a hash with any keys. Using strong parameters you can't
+allow a hash with any keys but you can use a simple assignment to get
+the job done:
+
+```ruby
+def product_params
+  params.require(:product).permit(:name).tap do |whitelisted|
+    whitelisted[:data] = params[:product][:data]
+  end
+end
+```
 
 Session
 -------
 
 Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
-* ActionDispatch::Session::CookieStore - Stores everything on the client.
-* ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
-* @ActionDispatch::Session::ActiveRecordStore@ - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
-* @ActionDispatch::Session::MemCacheStore@ - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
+* `ActionDispatch::Session::CookieStore` - Stores everything on the client.
+* `ActionDispatch::Session::CacheStore` - Stores the data in the Rails cache.
+* `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
+* `ActionDispatch::Session::MemCacheStore` - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
@@ -194,7 +359,7 @@ If you need a different session storage mechanism, you can change it in the `con
 ```ruby
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
-# (create the session table with "script/rails g active_record:session_migration")
+# (create the session table with "rails g active_record:session_migration")
 # YourApp::Application.config.session_store :active_record_store
 ```
 
@@ -403,10 +568,10 @@ end
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
-Rendering xml and json data
+Rendering XML and JSON data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffolding then it would look something like this:
+ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -421,7 +586,7 @@ class UsersController < ApplicationController
 end
 ```
 
-Notice that in the above case code is `render xml: @users` and not `render xml: @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
+You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
 Filters
 -------
@@ -443,15 +608,6 @@ class ApplicationController < ActionController::Base
       flash[:error] = "You must be logged in to access this section"
       redirect_to new_login_url # halts request cycle
     end
-  end
-
-  # The logged_in? method simply returns true if the user is logged
-  # in and false otherwise. It does this by "booleanizing" the
-  # current_user method we created previously using a double ! operator.
-  # Note that this is not common in Ruby and is discouraged unless you
-  # really mean to convert something into true or false.
-  def logged_in?
-    !!current_user
   end
 end
 ```
@@ -479,7 +635,7 @@ In addition to "before" filters, you can also run filters after an action has be
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
 ```ruby
-class ChangesController < ActionController::Base
+class ChangesController < ApplicationController
   around_action :wrap_in_transaction, only: :show
 
   private
@@ -633,7 +789,7 @@ Rails comes with two built-in HTTP authentication mechanisms:
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, `http_basic_authenticate_with`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 ```
@@ -645,7 +801,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, `authenticate_or_request_with_http_digest`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   USERS = { "lifo" => "world" }
 
   before_action :authenticate

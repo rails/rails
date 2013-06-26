@@ -2,9 +2,9 @@ module ActiveModel
 
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
-      CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
-                 :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
-                 :odd => :odd?, :even => :even?, :other_than => :!= }.freeze
+      CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
+                 equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
+                 odd: :odd?, even: :even?, other_than: :!= }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
@@ -17,9 +17,9 @@ module ActiveModel
       end
 
       def validate_each(record, attr_name, value)
-        before_type_cast = "#{attr_name}_before_type_cast"
+        before_type_cast = :"#{attr_name}_before_type_cast"
 
-        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast.to_sym)
+        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast)
         raw_value ||= value
 
         return if options[:allow_nil] && raw_value.nil?
@@ -47,7 +47,7 @@ module ActiveModel
             option_value = record.send(option_value) if option_value.is_a?(Symbol)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge(:count => option_value))
+              record.errors.add(attr_name, option, filtered_options(value).merge(count: option_value))
             end
           end
         end
@@ -73,7 +73,7 @@ module ActiveModel
       end
 
       def filtered_options(value)
-        options.except(*RESERVED_OPTIONS).merge!(:value => value)
+        options.except(*RESERVED_OPTIONS).merge!(value: value)
       end
     end
 

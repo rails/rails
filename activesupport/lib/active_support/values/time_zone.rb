@@ -5,7 +5,7 @@ module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 142
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 146
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
@@ -62,6 +62,7 @@ module ActiveSupport
       "Newfoundland"                 => "America/St_Johns",
       "Brasilia"                     => "America/Sao_Paulo",
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
+      "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
@@ -150,7 +151,7 @@ module ActiveSupport
       "Taipei"                       => "Asia/Taipei",
       "Perth"                        => "Australia/Perth",
       "Irkutsk"                      => "Asia/Irkutsk",
-      "Ulaan Bataar"                 => "Asia/Ulaanbaatar",
+      "Ulaanbaatar"                  => "Asia/Ulaanbaatar",
       "Seoul"                        => "Asia/Seoul",
       "Osaka"                        => "Asia/Tokyo",
       "Sapporo"                      => "Asia/Tokyo",
@@ -176,6 +177,7 @@ module ActiveSupport
       "Wellington"                   => "Pacific/Auckland",
       "Nuku'alofa"                   => "Pacific/Tongatapu",
       "Tokelau Is."                  => "Pacific/Fakaofo",
+      "Chatham Is."                  => "Pacific/Chatham",
       "Samoa"                        => "Pacific/Apia"
     }
 
@@ -238,7 +240,7 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      return true if name =~ re || MAPPING[name] =~ re
+      re === name || re === MAPPING[name]
     end
 
     # Returns a textual representation of this time zone.
@@ -252,7 +254,7 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'                    # => "Hawaii"
     #   Time.zone.local(2007, 2, 1, 15, 30, 45) # => Thu, 01 Feb 2007 15:30:45 HST -10:00
     def local(*args)
-      time = Time.utc_time(*args)
+      time = Time.utc(*args)
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 

@@ -18,6 +18,8 @@ module Rails
         parse_attributes! if respond_to?(:attributes)
       end
 
+      # Defines the template that would be used for the migration file.
+      # The arguments include the source template file, the migration filename etc.
       no_tasks do
         def template(source, *args, &block)
           inside_template do
@@ -40,7 +42,7 @@ module Rails
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content = content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
+          content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)
@@ -157,6 +159,14 @@ module Rails
         def parse_attributes! #:nodoc:
           self.attributes = (attributes || []).map do |attr|
             Rails::Generators::GeneratedAttribute.parse(attr)
+          end
+        end
+
+        def attributes_names
+          @attributes_names ||= attributes.each_with_object([]) do |a, names|
+            names << a.column_name
+            names << 'password_confirmation' if a.password_digest?
+            names << "#{a.name}_type" if a.polymorphic?
           end
         end
 

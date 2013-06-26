@@ -6,4 +6,4 @@
   Routes match in priority from top to bottom
 </p>
 
-<p><pre><%= @info %></pre></p>
+<%= @routes_inspector.format(ActionDispatch::Routing::HtmlTableFormatter.new(self)) %>

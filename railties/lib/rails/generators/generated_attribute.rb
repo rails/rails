@@ -99,11 +99,15 @@ module Rails
       end
 
       def index_name
-        @index_name ||= if reference?
-          polymorphic? ? %w(id type).map { |t| "#{name}_#{t}" } : "#{name}_id"
+        @index_name ||= if polymorphic?
+          %w(id type).map { |t| "#{name}_#{t}" }
         else
-          name
+          column_name
         end
+      end
+
+      def column_name
+        @column_name ||= reference? ? "#{name}_id" : name
       end
 
       def foreign_key?
@@ -124,6 +128,10 @@ module Rails
 
       def has_uniq_index?
         @has_uniq_index
+      end
+
+      def password_digest?
+        name == 'password' && type == :digest 
       end
 
       def inject_options

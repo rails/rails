@@ -15,6 +15,12 @@ module ApplicationTests
       teardown_app
     end
 
+    test "rails/welcome in development" do
+      app("development")
+      get "/"
+      assert_equal 200, last_response.status
+    end
+
     test "rails/info/routes in development" do
       app("development")
       get "/rails/info/routes"
@@ -25,6 +31,36 @@ module ApplicationTests
       app("development")
       get "/rails/info/properties"
       assert_equal 200, last_response.status
+    end
+
+    test "root takes precedence over internal welcome controller" do
+      app("development")
+
+      get '/'
+      assert_match %r{<h1>Getting started</h1>} , last_response.body
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render text: "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          root to: "foo#index"
+        end
+      RUBY
+
+      get '/'
+      assert_equal 'foo', last_response.body
+    end
+
+    test "rails/welcome in production" do
+      app("production")
+      get "/"
+      assert_equal 404, last_response.status
     end
 
     test "rails/info/routes in production" do
@@ -64,7 +100,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -75,7 +111,7 @@ module ApplicationTests
 
     test "mount rack app" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, at: "/blog"
           # The line below is required because mount sometimes
           # fails when a resource route is added.
@@ -105,7 +141,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -137,7 +173,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'admin/foo', to: 'admin/foo#index'
           get 'foo', to: 'foo#index'
         end
@@ -152,7 +188,7 @@ module ApplicationTests
 
     test "routes appending blocks" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller/:action'
         end
       RUBY
@@ -169,7 +205,7 @@ module ApplicationTests
       assert_equal 'WIN', last_response.body
 
       app_file 'config/routes.rb', <<-R
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'lol' => 'hello#index'
         end
       R
@@ -193,7 +229,7 @@ module ApplicationTests
         RUBY
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do
+          Rails.application.routes.draw do
             get 'foo', to: 'foo#bar'
           end
         RUBY
@@ -204,7 +240,7 @@ module ApplicationTests
         assert_equal 'bar', last_response.body
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do
+          Rails.application.routes.draw do
             get 'foo', to: 'foo#baz'
           end
         RUBY
@@ -225,7 +261,7 @@ module ApplicationTests
       end
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get 'foo', to: ::InitializeRackApp
         end
       RUBY
@@ -241,6 +277,101 @@ module ApplicationTests
       end
     end
 
+    def test_root_path
+      app('development')
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render :text => "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get 'foo', :to => 'foo#index'
+          root :to => 'foo#index'
+        end
+      RUBY
+
+      remove_file 'public/index.html'
+
+      get '/'
+      assert_equal 'foo', last_response.body
+    end
+
+    test 'routes are added and removed when reloading' do
+      app('development')
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render text: "foo"
+          end
+        end
+      RUBY
+
+      controller :bar, <<-RUBY
+        class BarController < ApplicationController
+          def index
+            render text: "bar"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get 'foo', to: 'foo#index'
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+      assert_equal '/foo', Rails.application.routes.url_helpers.foo_path
+
+      get '/bar'
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
+      end
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get 'foo', to: 'foo#index'
+          get 'bar', to: 'bar#index'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+      assert_equal '/foo', Rails.application.routes.url_helpers.foo_path
+
+      get '/bar'
+      assert_equal 'bar', last_response.body
+      assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get 'foo', to: 'foo#index'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+      assert_equal '/foo', Rails.application.routes.url_helpers.foo_path
+
+      get '/bar'
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
+      end
+    end
+
     test 'resource routing with irregular inflection' do
       app_file 'config/initializers/inflection.rb', <<-RUBY
         ActiveSupport::Inflector.inflections do |inflect|
@@ -249,7 +380,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           resources :yazilar
         end
       RUBY

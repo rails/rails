@@ -1,4 +1,4 @@
-<%= app_const %>.configure do
+Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Code is not reloaded between requests.
@@ -24,14 +24,17 @@
 
   <%- unless options.skip_sprockets? -%>
   # Compress JavaScripts and CSS.
-  config.assets.js_compressor  = :uglifier
+  config.assets.js_compressor = :uglifier
   # config.assets.css_compressor = :sass
 
-  # Whether to fallback to assets pipeline if a precompiled asset is missed.
+  # Do not fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
 
   # Generate digests for assets URLs.
   config.assets.digest = true
+
+  # Version of your assets, change this if you want to expire all your assets.
+  config.assets.version = '1.0'
   <%- end -%>
 
   # Specifies the header that your server uses for sending files.
@@ -73,19 +76,9 @@
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
 
-  <%- unless options.skip_active_record? -%>
-  # Log the query plan for queries taking more than this (works
-  # with SQLite, MySQL, and PostgreSQL).
-  # config.active_record.auto_explain_threshold_in_seconds = 0.5
-  <%- end -%>
-
   # Disable automatic flushing of the log to improve performance.
   # config.autoflush_log = false
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
-
-  # Default the production mode queue to an synchronous queue. You will probably
-  # want to replace this with an out-of-process queueing solution.
-  # config.queue = ActiveSupport::SynchronousQueue.new
 end

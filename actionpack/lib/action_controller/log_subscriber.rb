@@ -33,7 +33,7 @@ module ActionController
     end
 
     def halted_callback(event)
-      info("Filter chain halted as #{event.payload[:filter]} rendered or redirected")
+      info("Filter chain halted as #{event.payload[:filter].inspect} rendered or redirected")
     end
 
     def send_file(event)
@@ -46,6 +46,11 @@ module ActionController
 
     def send_data(event)
       info("Sent data #{event.payload[:filename]} (#{event.duration.round(1)}ms)")
+    end
+
+    def unpermitted_parameters(event)
+      unpermitted_keys = event.payload[:keys]
+      debug("Unpermitted parameters: #{unpermitted_keys.join(", ")}")
     end
 
     %w(write_fragment read_fragment exist_fragment?

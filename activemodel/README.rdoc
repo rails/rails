@@ -1,8 +1,8 @@
 = Active Model -- model interfaces for Rails
 
 Active Model provides a known set of interfaces for usage in model classes.
-They allow for Action Pack helpers to interact with non-ActiveRecord models,
-for example. Active Model also helps building custom ORMs for use outside of
+They allow for Action Pack helpers to interact with non-Active Record models,
+for example. Active Model also helps with building custom ORMs for use outside of
 the Rails framework.
 
 Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
@@ -11,7 +11,7 @@ code from Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
 in code duplication and fragile applications that broke on upgrades. Active
 Model solves this by defining an explicit API. You can read more about the
-API in ActiveModel::Lint::Tests.
+API in <tt>ActiveModel::Lint::Tests</tt>.
 
 Active Model provides a default module that implements the basic API required
 to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
@@ -24,8 +24,8 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
     end
 
     person = Person.new(name: 'bob', age: '18')
-    person.name # => 'bob'
-    person.age # => '18'
+    person.name   # => 'bob'
+    person.age    # => '18'
     person.valid? # => true
 
 It includes model name introspections, conversions, translations and
@@ -82,12 +82,12 @@ behavior out of the box:
     end
 
     person = Person.new
-    person.name # => nil
-    person.changed? # => false
+    person.name             # => nil
+    person.changed?         # => false
     person.name = 'bob'
-    person.changed? # => true
-    person.changed # => ['name']
-    person.changes # => { 'name' => [nil, 'bob'] }
+    person.changed?         # => true
+    person.changed          # => ['name']
+    person.changes          # => { 'name' => [nil, 'bob'] }
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
@@ -132,24 +132,6 @@ behavior out of the box:
     NamedPerson.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
-
-* Observer support
-
-  ActiveModel::Observers allows your object to implement the Observer
-  pattern in a Rails App and take advantage of all the standard observer
-  functions.
-
-    class PersonObserver < ActiveModel::Observer
-      def after_create(person)
-        person.logger.info("New person added!")
-      end
-
-      def after_destroy(person)
-        person.logger.warn("Person with an id of #{person.id} was destroyed!")
-      end
-    end
-
-  {Learn more}[link:classes/ActiveModel/Observer.html]
 
 * Making objects serializable
 

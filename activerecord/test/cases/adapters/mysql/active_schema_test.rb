@@ -2,47 +2,68 @@ require "cases/helper"
 
 class ActiveSchemaTest < ActiveRecord::TestCase
   def setup
-    ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+    @connection = ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.establish_connection(@connection)
+
+    ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
-      remove_method :execute
       def execute(sql, name = nil) return sql end
     end
   end
 
   def teardown
-    ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
-      remove_method :execute
-      alias_method :execute, :execute_without_stub
-    end
+    ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.establish_connection(@connection)
   end
 
   def test_add_index
     # add_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:define_method, :index_name_exists?) do |*|
-      false
-    end
-    expected = "CREATE  INDEX `index_people_on_last_name` ON `people` (`last_name`)"
+    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
+
+    expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
     assert_equal expected, add_index(:people, :last_name, :length => nil)
 
-    expected = "CREATE  INDEX `index_people_on_last_name` ON `people` (`last_name`(10))"
+    expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`(10)) "
     assert_equal expected, add_index(:people, :last_name, :length => 10)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(15))"
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(15)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`)"
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15})
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(10))"
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(10)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15, :first_name => 10})
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:remove_method, :index_name_exists?)
+
+    %w(SPATIAL FULLTEXT UNIQUE).each do |type|
+      expected = "CREATE #{type} INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
+      assert_equal expected, add_index(:people, :last_name, :type => type)
+    end
+
+    %w(btree hash).each do |using|
+      expected = "CREATE  INDEX `index_people_on_last_name` USING #{using} ON `people` (`last_name`) "
+      assert_equal expected, add_index(:people, :last_name, :using => using)
+    end
+
+    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) "
+    assert_equal expected, add_index(:people, :last_name, :length => 10, :using => :btree)
+
+    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = COPY"
+    assert_equal expected, add_index(:people, :last_name, :length => 10, using: :btree, algorithm: :copy)
+
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, algorithm: :coyp)
+    end
+
+    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15)) "
+    assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :using => :btree)
   end
 
   def test_drop_table
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
-  if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_create_mysql_database_with_encoding
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
       assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})
@@ -70,8 +91,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   def test_add_timestamps
     with_real_execute do
       begin
-        ActiveRecord::Base.connection.create_table :delete_me do |t|
-        end
+        ActiveRecord::Base.connection.create_table :delete_me
         ActiveRecord::Base.connection.add_timestamps :delete_me
         assert column_present?('delete_me', 'updated_at', 'datetime')
         assert column_present?('delete_me', 'created_at', 'datetime')
@@ -98,21 +118,19 @@ class ActiveSchemaTest < ActiveRecord::TestCase
 
   private
     def with_real_execute
-      #we need to actually modify some data, so we make execute point to the original method
-      ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+      ActiveRecord::Base.connection.singleton_class.class_eval do
         alias_method :execute_with_stub, :execute
         remove_method :execute
         alias_method :execute, :execute_without_stub
       end
+
       yield
     ensure
-      #before finishing, we restore the alias to the mock-up method
-      ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+      ActiveRecord::Base.connection.singleton_class.class_eval do
         remove_method :execute
         alias_method :execute, :execute_with_stub
       end
     end
-
 
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)

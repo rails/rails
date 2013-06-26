@@ -41,12 +41,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@product_line = ProductLine\.new\(product_line_params\)/, m)
         assert_match(/@product_line\.save/, m)
-        assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@product_line\.update_attributes\(product_line_params\)/, m)
-        assert_match(/@product_line\.errors/, m)
+        assert_match(/@product_line\.update\(product_line_params\)/, m)
       end
 
       assert_instance_method :destroy, content do |m|
@@ -60,8 +58,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
-      assert_match(/post :create, product_line: \{ title: @product_line.title \}/, test)
-      assert_match(/put :update, id: @product_line, product_line: \{ title: @product_line.title \}/, test)
+      assert_match(/post :create, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
+      assert_match(/patch :update, id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
     end
 
     # Views
@@ -87,7 +85,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, product_line: \{  \}/, content)
-      assert_match(/put :update, id: @product_line, product_line: \{  \}/, content)
+      assert_match(/patch :update, id: @product_line, product_line: \{  \}/, content)
     end
   end
 
@@ -158,12 +156,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@admin_role = Admin::Role\.new\(admin_role_params\)/, m)
         assert_match(/@admin_role\.save/, m)
-        assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@admin_role\.update_attributes\(admin_role_params\)/, m)
-        assert_match(/@admin_role\.errors/, m)
+        assert_match(/@admin_role\.update\(admin_role_params\)/, m)
       end
 
       assert_instance_method :destroy, content do |m|
@@ -199,7 +195,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator [ "admin/role" ], :behavior => :revoke
 
     # Model
-    assert_file "app/models/admin.rb"	# ( should not be remove )
+    assert_file "app/models/admin.rb" # ( should not be remove )
     assert_no_file "app/models/admin/role.rb"
     assert_no_file "test/models/admin/role_test.rb"
     assert_no_file "test/fixtures/admin/roles.yml"
@@ -243,11 +239,25 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end
 
-  def test_scaffold_generator_no_assets
+  def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
-    assert_file "app/assets/stylesheets/scaffold.css"
+    assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
+  end
+
+  def test_scaffold_generator_no_assets_with_switch_assets_false
+    run_generator [ "posts", "--assets=false" ]
+    assert_no_file "app/assets/stylesheets/scaffold.css"
+    assert_no_file "app/assets/javascripts/posts.js"
+    assert_no_file "app/assets/stylesheets/posts.css"
+  end
+
+  def test_scaffold_generator_no_assets_with_switch_resource_route_false
+    run_generator [ "posts", "--resource-route=false" ]
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/resources :posts$/, route)
+    end
   end
 
   def test_scaffold_generator_no_stylesheets
@@ -273,6 +283,47 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/t\.text :body/, up)
         assert_match(/t\.string :author/, up)
       end
+    end
+  end
+
+  def test_scaffold_generator_password_digest
+    run_generator ["user", "name", "password:digest"]
+
+    assert_file "app/models/user.rb", /has_secure_password/
+
+    assert_migration "db/migrate/create_users.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.string :password_digest/, up)
+      end
+    end
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_instance_method :user_params, content do |m|
+        assert_match(/permit\(:name, :password, :password_confirmation\)/, m)
+      end
+    end
+
+    assert_file "app/views/users/_form.html.erb" do |content|
+      assert_match(/<%= f\.password_field :password %>/, content)
+      assert_match(/<%= f\.password_field :password_confirmation %>/, content)
+    end
+
+    assert_file "app/views/users/index.html.erb" do |content|
+      assert_no_match(/password/, content)
+    end
+
+    assert_file "app/views/users/show.html.erb" do |content|
+      assert_no_match(/password/, content)
+    end
+
+    assert_file "test/controllers/users_controller_test.rb" do |content|
+      assert_match(/password: 'secret'/, content)
+      assert_match(/password_confirmation: 'secret'/, content)
+    end
+
+    assert_file "test/fixtures/users.yml" do |content|
+      assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
     end
   end
 end

@@ -38,7 +38,7 @@ module Rails
     end
 
     def readme
-      copy_file "README", "README.rdoc"
+      copy_file "README.rdoc", "README.rdoc"
     end
 
     def gemfile
@@ -55,8 +55,20 @@ module Rails
 
     def app
       directory 'app'
+
+      keep_file  'app/assets/images'
       keep_file  'app/mailers'
       keep_file  'app/models'
+
+      keep_file  'app/controllers/concerns'
+      keep_file  'app/models/concerns'
+    end
+
+    def bin
+      directory "bin" do |content|
+        "#{shebang}\n" + content
+      end
+      chmod "bin", 0755, verbose: false
     end
 
     def config
@@ -81,10 +93,6 @@ module Rails
       directory "db"
     end
 
-    def doc
-      directory "doc"
-    end
-
     def lib
       empty_directory 'lib'
       empty_directory_with_keep_file 'lib/tasks'
@@ -97,18 +105,6 @@ module Rails
 
     def public_directory
       directory "public", "public", recursive: false
-      if options[:skip_index_html]
-        remove_file "public/index.html"
-        remove_file 'app/assets/images/rails.png'
-        keep_file 'app/assets/images'
-      end
-    end
-
-    def script
-      directory "script" do |content|
-        "#{shebang}\n" + content
-      end
-      chmod "script", 0755, verbose: false
     end
 
     def test
@@ -119,7 +115,6 @@ module Rails
       empty_directory_with_keep_file 'test/helpers'
       empty_directory_with_keep_file 'test/integration'
 
-      template 'test/performance/browsing_test.rb'
       template 'test/test_helper.rb'
     end
 
@@ -146,7 +141,7 @@ module Rails
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
-    RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
+    RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
       add_shared_options_for "application"
@@ -156,7 +151,15 @@ module Rails
                              desc: "Show Rails version number and quit"
 
       def initialize(*args)
-        raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
+        if args[0].blank?
+          if args[1].blank?
+            # rails new
+            raise Error, "Application name should be provided in arguments. For details run: rails --help"
+          else
+            # rails new --skip-bundle my_new_application
+            raise Error, "Options should be given after the application name. For details run: rails --help"
+          end
+        end
 
         super
 
@@ -179,6 +182,10 @@ module Rails
         build(:app)
       end
 
+      def create_bin_files
+        build(:bin)
+      end
+
       def create_config_files
         build(:config)
       end
@@ -196,10 +203,6 @@ module Rails
         build(:db)
       end
 
-      def create_doc_files
-        build(:doc)
-      end
-
       def create_lib_files
         build(:lib)
       end
@@ -210,10 +213,6 @@ module Rails
 
       def create_public_files
         build(:public_directory)
-      end
-
-      def create_script_files
-        build(:script)
       end
 
       def create_test_files
@@ -246,7 +245,7 @@ module Rails
       end
 
       def app_name
-        @app_name ||= defined_app_const_base? ? defined_app_name : File.basename(destination_root)
+        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr(".", "_")
       end
 
       def defined_app_name

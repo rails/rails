@@ -1,12 +1,11 @@
 require 'abstract_unit'
 require 'stringio'
-# FIXME remove DummyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 
 class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
-  Generator = ActiveSupport::DummyKeyGenerator.new(SessionSecret)
+  Generator = ActiveSupport::LegacyKeyGenerator.new(SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'SHA1')
   SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
@@ -276,7 +275,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       # First request accesses the session
       time = Time.local(2008, 4, 24)
       Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
       cookies[SessionKey] = SignedBar
 
@@ -290,7 +289,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       # Second request does not access the session
       time = Time.local(2008, 4, 25)
       Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
       get '/no_session_access'
       assert_response :success

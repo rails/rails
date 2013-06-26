@@ -30,7 +30,7 @@ class AcceptanceValidationTest < ActiveModel::TestCase
   end
 
   def test_eula
-    Topic.validates_acceptance_of(:eula, :message => "must be abided")
+    Topic.validates_acceptance_of(:eula, message: "must be abided")
 
     t = Topic.new("title" => "We should be confirmed","eula" => "")
     assert t.invalid?
@@ -41,7 +41,7 @@ class AcceptanceValidationTest < ActiveModel::TestCase
   end
 
   def test_terms_of_service_agreement_with_accept_value
-    Topic.validates_acceptance_of(:terms_of_service, :accept => "I agree.")
+    Topic.validates_acceptance_of(:terms_of_service, accept: "I agree.")
 
     t = Topic.new("title" => "We should be confirmed", "terms_of_service" => "")
     assert t.invalid?

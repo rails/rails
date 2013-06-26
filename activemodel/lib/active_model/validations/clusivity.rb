@@ -3,7 +3,7 @@ require 'active_support/core_ext/range'
 module ActiveModel
   module Validations
     module Clusivity #:nodoc:
-      ERROR_MESSAGE = "An object with the method #include? or a proc, lambda or symbol is required, " <<
+      ERROR_MESSAGE = "An object with the method #include? or a proc, lambda or symbol is required, " \
                       "and must be supplied as the :in (or :within) option of the configuration hash"
 
       def check_validity!
@@ -31,10 +31,11 @@ module ActiveModel
       end
 
       # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
-      # range for equality, so it may be slow for large ranges. The new <tt>Range#cover?</tt>
-      # uses the previous logic of comparing a value with the range endpoints.
+      # range for equality, which is slower but more accurate. <tt>Range#cover?</tt> uses
+      # the previous logic of comparing a value with the range endpoints, which is fast
+      # but is only accurate on numeric ranges.
       def inclusion_method(enumerable)
-        enumerable.is_a?(Range) ? :cover? : :include?
+        (enumerable.is_a?(Range) && enumerable.first.is_a?(Numeric)) ? :cover? : :include?
       end
     end
   end

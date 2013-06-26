@@ -29,7 +29,7 @@ module Rails
       def framework_version(framework)
         if Object.const_defined?(framework.classify)
           require "#{framework}/version"
-          "#{framework.classify}::VERSION::STRING".constantize
+          framework.classify.constantize.version.to_s
         end
       end
 
@@ -46,7 +46,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        (table = '<table>').tap do
+        '<table>'.tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
@@ -75,7 +75,7 @@ module Rails
 
     # The Rails version.
     property 'Rails version' do
-      Rails::VERSION::STRING
+      Rails.version.to_s
     end
 
     property 'JavaScript Runtime' do

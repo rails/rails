@@ -7,11 +7,10 @@ module ActiveRecord
       self.use_transactional_fixtures = false
 
       Migration = Struct.new(:name, :version) do
+        def disable_ddl_transaction; false end
         def migrate direction
           # do nothing
         end
-        def filename; "anon.rb"; end
-        def fingerprint; "123456789012345678901234567890ab"; end
       end
 
       def setup
@@ -36,4 +35,3 @@ module ActiveRecord
     end
   end
 end
-

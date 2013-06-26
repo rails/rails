@@ -20,7 +20,7 @@ module ActionDispatch
       def assert_dom_not_equal(expected, actual, message = "")
         expected_dom = HTML::Document.new(expected).root
         actual_dom   = HTML::Document.new(actual).root
-        refute_equal expected_dom, actual_dom
+        assert_not_equal expected_dom, actual_dom
       end
     end
   end

@@ -62,7 +62,7 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_date_order
-    assert_equal [:year, :month, :day], I18n.translate(:'date.order')
+    assert_equal %w(year month day), I18n.translate(:'date.order')
   end
 
   def test_time_am

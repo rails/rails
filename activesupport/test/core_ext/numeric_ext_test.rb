@@ -77,7 +77,7 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal @dtnow.advance(:days => 1).advance(:months => 2), @dtnow + 1.day + 2.months
   end
 
-  def test_duration_after_convertion_is_no_longer_accurate
+  def test_duration_after_conversion_is_no_longer_accurate
     assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
     assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
     assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)
@@ -153,22 +153,16 @@ end
 
 class NumericExtSizeTest < ActiveSupport::TestCase
   def test_unit_in_terms_of_another
-    relationships = {
-        1024.bytes     =>   1.kilobyte,
-        1024.kilobytes =>   1.megabyte,
-      3584.0.kilobytes => 3.5.megabytes,
-      3584.0.megabytes => 3.5.gigabytes,
-      1.kilobyte ** 4  =>   1.terabyte,
-      1024.kilobytes + 2.megabytes =>   3.megabytes,
-                   2.gigabytes / 4 => 512.megabytes,
-      256.megabytes * 20 + 5.gigabytes => 10.gigabytes,
-      1.kilobyte ** 5 => 1.petabyte,
-      1.kilobyte ** 6 => 1.exabyte
-    }
-
-    relationships.each do |left, right|
-      assert_equal right, left
-    end
+    assert_equal 1024.bytes, 1.kilobyte
+    assert_equal 1024.kilobytes, 1.megabyte
+    assert_equal 3584.0.kilobytes, 3.5.megabytes
+    assert_equal 3584.0.megabytes, 3.5.gigabytes
+    assert_equal 1.kilobyte ** 4, 1.terabyte
+    assert_equal 1024.kilobytes + 2.megabytes, 3.megabytes
+    assert_equal 2.gigabytes / 4, 512.megabytes
+    assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
+    assert_equal 1.kilobyte ** 5, 1.petabyte
+    assert_equal 1.kilobyte ** 6, 1.exabyte
   end
 
   def test_units_as_bytes_independently
@@ -203,7 +197,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def terabytes(number)
     gigabytes(number) * 1024
   end
-  
+
   def test_to_s__phone
     assert_equal("555-1234", 5551234.to_s(:phone))
     assert_equal("800-555-1212", 8005551212.to_s(:phone))
@@ -217,7 +211,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("22-555-1212", 225551212.to_s(:phone))
     assert_equal("+45-22-555-1212", 225551212.to_s(:phone, :country_code => 45))
   end
-  
+
   def test_to_s__currency
     assert_equal("$1,234,567,890.50", 1234567890.50.to_s(:currency))
     assert_equal("$1,234,567,890.51", 1234567890.506.to_s(:currency))
@@ -228,8 +222,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("$1,234,567,890.5", 1234567890.50.to_s(:currency, :precision => 1))
     assert_equal("&pound;1234567890,50", 1234567890.50.to_s(:currency, :unit => "&pound;", :separator => ",", :delimiter => ""))
   end
-  
-  
+
+
   def test_to_s__rounded
     assert_equal("-111.235", -111.2346.to_s(:rounded))
     assert_equal("111.235", 111.2346.to_s(:rounded))
@@ -246,7 +240,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("11.00", 10.995.to_s(:rounded, :precision => 2))
     assert_equal("0.00", -0.001.to_s(:rounded, :precision => 2))
   end
-  
+
   def test_to_s__percentage
     assert_equal("100.000%", 100.to_s(:percentage))
     assert_equal("100%", 100.to_s(:percentage, :precision => 0))
@@ -274,7 +268,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '12.345.678,05', 12345678.05.to_s(:delimited, :separator => ',', :delimiter => '.')
     assert_equal '12.345.678,05', 12345678.05.to_s(:delimited, :delimiter => '.', :separator => ',')
   end
-  
+
 
   def test_to_s__rounded_with_custom_delimiter_and_separator
     assert_equal '31,83',       31.825.to_s(:rounded, :precision => 2, :separator => ',')
@@ -350,7 +344,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
     assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
   end
-  
+
   def test_to_s__human_size_with_options_hash
     assert_equal '1.2 MB',   1234567.to_s(:human_size, :precision => 2)
     assert_equal '3 Bytes',  3.14159265.to_s(:human_size, :precision => 4)
@@ -366,13 +360,13 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.012 KB', kilobytes(1.0123).to_s(:human_size, :precision => 3, :significant => false)
     assert_equal '1 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 0, :significant => true) #ignores significant it precision is 0
   end
-  
+
   def test_to_s__human_size_with_custom_delimiter_and_separator
     assert_equal '1,01 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 3, :separator => ',')
     assert_equal '1,01 KB',     kilobytes(1.0100).to_s(:human_size, :precision => 4, :separator => ',')
     assert_equal '1.000,1 TB',  terabytes(1000.1).to_s(:human_size, :precision => 5, :delimiter => '.', :separator => ',')
   end
-    
+
   def test_number_to_human
     assert_equal '-123', -123.to_s(:human)
     assert_equal '-0.5', -0.5.to_s(:human)
@@ -436,7 +430,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def test_to_s__injected_on_proper_types
     assert_equal Fixnum, 1230.class
     assert_equal '1.23 Thousand', 1230.to_s(:human)
-    
+
     assert_equal Float, Float(1230).class
     assert_equal '1.23 Thousand', Float(1230).to_s(:human)
 

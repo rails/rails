@@ -30,7 +30,7 @@ module ActiveRecord
         reset_scope
       end
 
-      # Returns the name of the table of the related class:
+      # Returns the name of the table of the associated class:
       #
       #   post.comments.aliased_table_name # => "comments"
       #
@@ -92,7 +92,7 @@ module ActiveRecord
       # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
-      # scoped method is called. This is because at that point the call may be surrounded
+      # scope method is called. This is because at that point the call may be surrounded
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
       def association_scope
@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      # This class of the target. belongs_to polymorphic overrides this to look at the
+      # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
@@ -122,7 +122,11 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        klass.all
+        all = klass.all
+        scope = AssociationRelation.new(klass, klass.arel_table, self)
+        scope.merge! all
+        scope.default_scoped = all.default_scoped?
+        scope
       end
 
       # Loads the \target if needed and returns it.
@@ -146,7 +150,7 @@ module ActiveRecord
 
       def interpolate(sql, record = nil)
         if sql.respond_to?(:to_proc)
-          owner.send(:instance_exec, record, &sql)
+          owner.instance_exec(record, &sql)
         else
           sql
         end
@@ -162,6 +166,13 @@ module ActiveRecord
         reflection_name, ivars = data
         ivars.each { |name, val| instance_variable_set(name, val) }
         @reflection = @owner.class.reflect_on_association(reflection_name)
+      end
+
+      def initialize_attributes(record) #:nodoc:
+        skip_assign = [reflection.foreign_key, reflection.type].compact
+        attributes = create_scope.except(*(record.changed - skip_assign))
+        record.assign_attributes(attributes)
+        set_inverse_instance(record)
       end
 
       private
@@ -189,13 +200,14 @@ module ActiveRecord
           creation_attributes.each { |key, value| record[key] = value }
         end
 
-        # Should be true if there is a foreign key present on the owner which
+        # Returns true if there is a foreign key present on the owner which
         # references the target. This is used to determine whether we can load
         # the target if the owner is currently a new record (and therefore
-        # without a key).
+        # without a key). If the owner is a new record then foreign_key must
+        # be present in order to load target.
         #
         # Currently implemented by belongs_to (vanilla and polymorphic) and
-        # has_one/has_many :through associations which go through a belongs_to
+        # has_one/has_many :through associations which go through a belongs_to.
         def foreign_key_present?
           false
         end
@@ -203,7 +215,7 @@ module ActiveRecord
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
         # a sanity check when you are about to assign an associated record.
-        def raise_on_type_mismatch(record)
+        def raise_on_type_mismatch!(record)
           unless record.is_a?(reflection.klass) || record.is_a?(reflection.class_name.constantize)
             message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
             raise ActiveRecord::AssociationTypeMismatch, message
@@ -217,7 +229,8 @@ module ActiveRecord
           reflection.inverse_of
         end
 
-        # Is this association invertible? Can be redefined by subclasses.
+        # Returns true if inverse association on the given record needs to be set.
+        # This method is redefined by subclasses.
         def invertible_for?(record)
           inverse_reflection_for(record)
         end
@@ -232,9 +245,7 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            skip_assign = [reflection.foreign_key, reflection.type].compact
-            attributes = create_scope.except(*(record.changed - skip_assign))
-            record.assign_attributes(attributes)
+            initialize_attributes(record)
           end
         end
     end

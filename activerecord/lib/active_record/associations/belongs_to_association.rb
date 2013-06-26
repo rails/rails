@@ -1,5 +1,5 @@
 module ActiveRecord
-  # = Active Record Belongs To Associations
+  # = Active Record Belongs To Association
   module Associations
     class BelongsToAssociation < SingularAssociation #:nodoc:
 
@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def replace(record)
-        raise_on_type_mismatch(record) if record
+        raise_on_type_mismatch!(record) if record
 
         update_counters(record)
         replace_keys(record)
@@ -50,8 +50,11 @@ module ActiveRecord
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.nil? && owner[reflection.foreign_key] ||
-          record && record.id != owner[reflection.foreign_key]
+          if record.nil? 
+            owner[reflection.foreign_key] 
+          else
+            record.id != owner[reflection.foreign_key]
+          end
         end
 
         def replace_keys(record)

@@ -1,5 +1,7 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/object/blank'
+require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
 module ActionDispatch
@@ -15,7 +17,7 @@ module ActionDispatch
   # being written will be sent out with the response. Reading a cookie does not get
   # the cookie object itself back, just the value it holds.
   #
-  # Examples for writing:
+  # Examples of writing:
   #
   #   # Sets a simple session cookie.
   #   # This cookie will be deleted when the user's browser is closed.
@@ -29,7 +31,7 @@ module ActionDispatch
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
   #   # The cookie is signed by your app's <tt>config.secret_key_base</tt> value.
-  #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
+  #   # It can be read using the signed method <tt>cookies.signed[:name]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets a "permanent" cookie (which expires in 20 years from now).
@@ -38,7 +40,7 @@ module ActionDispatch
   #   # You can also chain these methods:
   #   cookies.permanent.signed[:login] = "XJ-122"
   #
-  # Examples for reading:
+  # Examples of reading:
   #
   #   cookies[:user_name]    # => "david"
   #   cookies.size           # => 2
@@ -51,13 +53,13 @@ module ActionDispatch
   #
   # Please note that if you specify a :domain when setting a cookie, you must also specify the domain when deleting the cookie:
   #
-  #  cookies[:key] = {
+  #  cookies[:name] = {
   #    value: 'a yummy cookie',
   #    expires: 1.year.from_now,
   #    domain: 'domain.com'
   #  }
   #
-  #  cookies.delete(:key, domain: 'domain.com')
+  #  cookies.delete(:name, domain: 'domain.com')
   #
   # The option symbols for setting cookies are:
   #
@@ -68,14 +70,14 @@ module ActionDispatch
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
   #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
-  #   <tt>:all</tt> again when deleting keys.
+  #   <tt>:all</tt> again when deleting cookies.
   #
   #     domain: nil  # Does not sets cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                       domain and subdomains.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
-  # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
+  # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
@@ -85,13 +87,108 @@ module ActionDispatch
     SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
-    TOKEN_KEY   = "action_dispatch.secret_token".freeze
+    SECRET_TOKEN = "action_dispatch.secret_token".freeze
+    SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
+
+    # Cookies can typically store 4096 bytes.
+    MAX_COOKIE_SIZE = 4096
 
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
+    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed
+    module ChainedCookieJars
+      # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
+      #
+      #   cookies.permanent[:prefers_open_id] = true
+      #   # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      #
+      # This jar is only meant for writing. You'll read permanent cookies through the regular accessor.
+      #
+      # This jar allows chaining with the signed jar as well, so you can set permanent, signed cookies. Examples:
+      #
+      #   cookies.permanent.signed[:remember_me] = current_user.id
+      #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      def permanent
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+      end
+
+      # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
+      # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
+      # cookie was tampered with by the user (or a 3rd party), nil will be returned.
+      #
+      # If +config.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
+      # legacy cookies signed with the old key generator will be transparently upgraded.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      #
+      # Example:
+      #
+      #   cookies.signed[:discount] = 45
+      #   # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
+      #
+      #   cookies.signed[:discount] # => 45
+      def signed
+        @signed ||=
+          if @options[:upgrade_legacy_signed_cookies]
+            UpgradeLegacySignedCookieJar.new(self, @key_generator, @options)
+          else
+            SignedCookieJar.new(self, @key_generator, @options)
+          end
+      end
+
+      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
+      # If the cookie was tampered with by the user (or a 3rd party), nil will be returned.
+      #
+      # If +config.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
+      # legacy cookies signed with the old key generator will be transparently upgraded.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      #
+      # Example:
+      #
+      #   cookies.encrypted[:discount] = 45
+      #   # => Set-Cookie: discount=ZS9ZZ1R4cG1pcUJ1bm80anhQang3dz09LS1mbDZDSU5scGdOT3ltQ2dTdlhSdWpRPT0%3D--ab54663c9f4e3bc340c790d6d2b71e92f5b60315; path=/
+      #
+      #   cookies.encrypted[:discount] # => 45
+      def encrypted
+        @encrypted ||=
+          if @options[:upgrade_legacy_signed_cookies]
+            UpgradeLegacyEncryptedCookieJar.new(self, @key_generator, @options)
+          else
+            EncryptedCookieJar.new(self, @key_generator, @options)
+          end
+      end
+
+      # Returns the +signed+ or +encrypted jar, preferring +encrypted+ if +secret_key_base+ is set.
+      # Used by ActionDispatch::Session::CookieStore to avoid the need to introduce new cookie stores.
+      def signed_or_encrypted
+        @signed_or_encrypted ||=
+          if @options[:secret_key_base].present?
+            encrypted
+          else
+            signed
+          end
+      end
+    end
+
+    module VerifyAndUpgradeLegacySignedMessage
+      def initialize(*args)
+        super
+        @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token])
+      end
+
+      def verify_and_upgrade_legacy_signed_message(name, signed_message)
+        @legacy_verifier.verify(signed_message).tap do |value|
+          self[name] = value
+        end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil
+      end
+    end
+
     class CookieJar #:nodoc:
-      include Enumerable
+      include Enumerable, ChainedCookieJars
 
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
@@ -107,13 +204,20 @@ module ActionDispatch
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
+      def self.options_for_env(env) #:nodoc:
+        { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
+          encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
+          encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
+          secret_token: env[SECRET_TOKEN],
+          secret_key_base: env[SECRET_KEY_BASE],
+          upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?
+        }
+      end
+
       def self.build(request)
         env = request.env
         key_generator = env[GENERATOR_KEY]
-        options = { signed_cookie_salt: env[SIGNED_COOKIE_SALT],
-                    encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT],
-                    encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT],
-                    token_key: env[TOKEN_KEY] }
+        options = options_for_env env
 
         host = request.host
         secure = request.ssl?
@@ -140,6 +244,10 @@ module ActionDispatch
       # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
       def [](name)
         @cookies[name.to_s]
+      end
+
+      def fetch(name, *args, &block)
+        @cookies.fetch(name.to_s, *args, &block)
       end
 
       def key?(name)
@@ -172,7 +280,7 @@ module ActionDispatch
 
       # Sets the cookie named +name+. The second argument may be the very cookie
       # value, or a hash of options as documented above.
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
           value = options[:value]
@@ -183,94 +291,41 @@ module ActionDispatch
 
         handle_options(options)
 
-        if @cookies[key.to_s] != value or options[:expires]
-          @cookies[key.to_s] = value
-          @set_cookies[key.to_s] = options
-          @delete_cookies.delete(key.to_s)
+        if @cookies[name.to_s] != value or options[:expires]
+          @cookies[name.to_s] = value
+          @set_cookies[name.to_s] = options
+          @delete_cookies.delete(name.to_s)
         end
 
         value
       end
 
       # Removes the cookie on the client machine by setting the value to an empty string
-      # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
+      # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
-      def delete(key, options = {})
-        return unless @cookies.has_key? key.to_s
+      def delete(name, options = {})
+        return unless @cookies.has_key? name.to_s
 
         options.symbolize_keys!
         handle_options(options)
 
-        value = @cookies.delete(key.to_s)
-        @delete_cookies[key.to_s] = options
+        value = @cookies.delete(name.to_s)
+        @delete_cookies[name.to_s] = options
         value
       end
 
       # Whether the given cookie is to be deleted by this CookieJar.
       # Like <tt>[]=</tt>, you can pass in an options hash to test if a
       # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
-      def deleted?(key, options = {})
+      def deleted?(name, options = {})
         options.symbolize_keys!
         handle_options(options)
-        @delete_cookies[key.to_s] == options
+        @delete_cookies[name.to_s] == options
       end
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
       def clear(options = {})
         @cookies.each_key{ |k| delete(k, options) }
-      end
-
-      # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
-      #
-      #   cookies.permanent[:prefers_open_id] = true
-      #   # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
-      #
-      # This jar is only meant for writing. You'll read permanent cookies through the regular accessor.
-      #
-      # This jar allows chaining with the signed jar as well, so you can set permanent, signed cookies. Examples:
-      #
-      #   cookies.permanent.signed[:remember_me] = current_user.id
-      #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
-      def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
-      end
-
-      # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
-      # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
-      # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
-      # be raised.
-      #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
-      #
-      # Example:
-      #
-      #   cookies.signed[:discount] = 45
-      #   # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
-      #
-      #   cookies.signed[:discount] # => 45
-      def signed
-        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
-      end
-
-      # Only needed for supporting the +UpgradeSignatureToEncryptionCookieStore+, users and plugin authors should not use this
-      def signed_using_old_secret #:nodoc:
-        @signed_using_old_secret ||= SignedCookieJar.new(self, ActiveSupport::DummyKeyGenerator.new(@options[:token_key]), @options)
-      end
-
-      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
-      # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
-      # will be raised.
-      #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
-      #
-      # Example:
-      #
-      #   cookies.encrypted[:discount] = 45
-      #   # => Set-Cookie: discount=ZS9ZZ1R4cG1pcUJ1bm80anhQang3dz09LS1mbDZDSU5scGdOT3ltQ2dTdlhSdWpRPT0%3D--ab54663c9f4e3bc340c790d6d2b71e92f5b60315; path=/
-      #
-      #   cookies.encrypted[:discount] # => 45
-      def encrypted
-        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
       end
 
       def write(headers)
@@ -287,20 +342,25 @@ module ActionDispatch
       self.always_write_cookie = false
 
       private
-
         def write_cookie?(cookie)
           @secure || !cookie[:secure] || always_write_cookie
         end
     end
 
-    class PermanentCookieJar < CookieJar #:nodoc:
+    class PermanentCookieJar #:nodoc:
+      include ChainedCookieJars
+
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @key_generator = key_generator
         @options = options
       end
 
-      def []=(key, options)
+      def [](name)
+        @parent_jar[name.to_s]
+      end
+
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -308,16 +368,12 @@ module ActionDispatch
         end
 
         options[:expires] = 20.years.from_now
-        @parent_jar[key] = options
-      end
-
-      def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
+        @parent_jar[name] = options
       end
     end
 
-    class SignedCookieJar < CookieJar #:nodoc:
-      MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
+    class SignedCookieJar #:nodoc:
+      include ChainedCookieJars
 
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
@@ -328,13 +384,11 @@ module ActionDispatch
 
       def [](name)
         if signed_message = @parent_jar[name]
-          @verifier.verify(signed_message)
+          verify(signed_message)
         end
-      rescue ActiveSupport::MessageVerifier::InvalidSignature
-        nil
       end
 
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
           options[:value] = @verifier.generate(options[:value])
@@ -343,19 +397,38 @@ module ActionDispatch
         end
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
-        @parent_jar[key] = options
+        @parent_jar[name] = options
       end
 
-      def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
+      private
+        def verify(signed_message)
+          @verifier.verify(signed_message)
+        rescue ActiveSupport::MessageVerifier::InvalidSignature
+          nil
+        end
+    end
+
+    # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
+    # config.secret_token and config.secret_key_base are both set. It reads
+    # legacy cookies signed with the old dummy key generator and re-saves
+    # them using the new key generator to provide a smooth upgrade path.
+    class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
+      include VerifyAndUpgradeLegacySignedMessage
+
+      def [](name)
+        if signed_message = @parent_jar[name]
+          verify(signed_message) || verify_and_upgrade_legacy_signed_message(name, signed_message)
+        end
       end
     end
 
-    class EncryptedCookieJar < SignedCookieJar #:nodoc:
+    class EncryptedCookieJar #:nodoc:
+      include ChainedCookieJars
+
       def initialize(parent_jar, key_generator, options = {})
-        if ActiveSupport::DummyKeyGenerator === key_generator
-          raise "Encrypted Cookies must be used in conjunction with config.secret_key_base." +
-                "Set config.secret_key_base in config/initializers/secret_token.rb"
+        if ActiveSupport::LegacyKeyGenerator === key_generator
+          raise "You didn't set config.secret_key_base, which is required for this cookie jar. " +
+            "Read the upgrade documentation to learn more about this new config option."
         end
 
         @parent_jar = parent_jar
@@ -367,14 +440,11 @@ module ActionDispatch
 
       def [](name)
         if encrypted_message = @parent_jar[name]
-          @encryptor.decrypt_and_verify(encrypted_message)
+          decrypt_and_verify(encrypted_message)
         end
-      rescue ActiveSupport::MessageVerifier::InvalidSignature,
-             ActiveSupport::MessageVerifier::InvalidMessage
-        nil
       end
 
-      def []=(key, options)
+      def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -383,7 +453,28 @@ module ActionDispatch
         options[:value] = @encryptor.encrypt_and_sign(options[:value])
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
-        @parent_jar[key] = options
+        @parent_jar[name] = options
+      end
+
+      private
+        def decrypt_and_verify(encrypted_message)
+          @encryptor.decrypt_and_verify(encrypted_message)
+        rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
+          nil
+        end
+    end
+
+    # UpgradeLegacyEncryptedCookieJar is used by ActionDispatch::Session::CookieStore
+    # instead of EncryptedCookieJar if config.secret_token and config.secret_key_base
+    # are both set. It reads legacy cookies signed with the old dummy key generator and
+    # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
+    class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:
+      include VerifyAndUpgradeLegacySignedMessage
+
+      def [](name)
+        if encrypted_or_signed_message = @parent_jar[name]
+          decrypt_and_verify(encrypted_or_signed_message) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
+        end
       end
     end
 
