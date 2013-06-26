@@ -176,7 +176,7 @@ class Module
           end                                                 # end
         EOS
       else
-        exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 2)
           def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
@@ -194,3 +194,5 @@ class Module
     end
   end
 end
+
+class DelegationError < StandardError ; end
