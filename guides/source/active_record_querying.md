@@ -58,6 +58,7 @@ The methods are:
 
 * `bind`
 * `create_with`
+* `distinct`
 * `eager_load`
 * `extending`
 * `from`
@@ -76,7 +77,6 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `distinct`
 * `uniq`
 * `where`
 

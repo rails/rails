@@ -781,7 +781,7 @@ The `create_association` method returns a new object of the associated type. Thi
 
 ##### `create_association!(attributes = {})`
 
-Does the same as <tt>create_association</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 
 #### Options for `belongs_to`
@@ -1083,7 +1083,7 @@ The `create_association` method returns a new object of the associated type. Thi
 
 ##### `create_association!(attributes = {})`
 
-Does the same as <tt>create_association</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_one`
 
@@ -1443,7 +1443,7 @@ The `collection.create` method returns a new object of the associated type. This
 
 ##### `collection.create!(attributes = {})`
 
-Does the same as <tt>collection.create</tt> above, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_many`
 
@@ -1736,15 +1736,15 @@ If you want to make sure that, upon insertion, all of the records in the
 persisted association are distinct (so that you can be sure that when you
 inspect the association that you will never find duplicate records), you should
 add a unique index on the table itself. For example, if you have a table named
-``person_posts`` and you want to make sure all the posts are unique, you could
+`person_posts` and you want to make sure all the posts are unique, you could
 add the following in a migration:
 
 ```ruby
-add_index :person_posts, :post, :unique => true
+add_index :person_posts, :post, unique: true
 ```
 
-Note that checking for uniqueness using something like ``include?`` is subject
-to race conditions. Do not attempt to use ``include?`` to enforce distinctness
+Note that checking for uniqueness using something like `include?` is subject
+to race conditions. Do not attempt to use `include?` to enforce distinctness
 in an association. For instance, using the post example from above, the
 following code would be racy because multiple users could be attempting this
 at the same time:
@@ -1936,7 +1936,7 @@ The `collection.create` method returns a new object of the associated type. This
 
 ##### `collection.create!(attributes = {})`
 
-Does the same as <tt>collection.create</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt> if the record is invalid.
+Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_and_belongs_to_many`
 

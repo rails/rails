@@ -61,7 +61,7 @@ end
 ```ruby
 class UsersController < ApplicationController
   def update_name
-    # Change needed; form_for will try to use a non-existant PATCH route.
+    # Change needed; form_for will try to use a non-existent PATCH route.
   end
 end
 ```

@@ -1230,6 +1230,14 @@ Return select and option tags for the given object and method, using `time_zone_
 time_zone_select( "user", "time_zone")
 ```
 
+#### date_field
+
+Returns an input tag of the "date" type tailored for accessing a specified attribute.
+
+```ruby
+date_field("user", "dob")
+```
+
 ### FormTagHelper
 
 Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
@@ -1362,6 +1370,15 @@ Creates a standard text field; use these text fields to input smaller chunks of 
 ```ruby
 text_field_tag 'name'
 # => <input id="name" name="name" type="text" />
+```
+
+#### date_field_tag
+
+Creates a standard input field of date type.
+
+```ruby
+date_field_tag "dob"
+# => <input id="dob" name="dob" type="date" />
 ```
 
 ### JavaScriptHelper

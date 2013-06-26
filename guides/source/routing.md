@@ -171,6 +171,12 @@ A singular resourceful route generates these helpers:
 
 As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
 
+WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) prevents `form_for` from working automatically with singular resources. As a workaround, specify the URL for the form directly, like so:
+
+```ruby
+form_for @geocoder, url: geocoder_path do |f|
+```
+
 ### Controller Namespaces and Routing
 
 You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an `Admin::` namespace. You would place these controllers under the `app/controllers/admin` directory, and you can group them together in your router:

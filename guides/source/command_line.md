@@ -27,6 +27,8 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * `rails dbconsole`
 * `rails new app_name`
 
+All commands can run with ```-h or --help``` to list more information.
+
 Let's create a simple Rails application to step through each of these commands in context.
 
 ### `rails new`
@@ -348,6 +350,9 @@ Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'mak
 
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing `rake --tasks`. Each task has a description, and should help you find the thing you need.
 
+To get the full backtrace for running rake task you can pass the option
+```--trace``` to command line, for example ```rake db:create --trace```.
+
 ```bash
 $ rake --tasks
 rake about              # List versions of all Rails frameworks and the environment
@@ -361,6 +366,7 @@ rake middleware         # Prints out your Rack middleware stack
 rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)
 rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
 ```
+INFO: You can also use ```rake -T```  to get the list of tasks.
 
 ### `about`
 
@@ -372,12 +378,12 @@ About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.0.0.beta
+Rails version             4.0.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.0.0.beta
-Action Pack version       4.0.0.beta
-Action Mailer version     4.0.0.beta
-Active Support version    4.0.0.beta
+Active Record version     4.0.0
+Action Pack version       4.0.0
+Action Mailer version     4.0.0
+Active Support version    4.0.0
 Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::EncryptedCookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
@@ -468,12 +474,13 @@ Rails comes with a test suite called `Test::Unit`. Rails owes its stability to t
 
 The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
 
-The `tmp:` namespaced tasks will help you clear the `Rails.root/tmp` directory:
+The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 
 * `rake tmp:cache:clear` clears `tmp/cache`.
 * `rake tmp:sessions:clear` clears `tmp/sessions`.
 * `rake tmp:sockets:clear` clears `tmp/sockets`.
 * `rake tmp:clear` clears all the three: cache, sessions and sockets.
+* `rake tmp:create` creates tmp directories for sessions, cache, sockets, and pids.
 
 ### Miscellaneous
 
