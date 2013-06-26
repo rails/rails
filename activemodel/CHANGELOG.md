@@ -1,11 +1,9 @@
-## unreleased ## 
+## Rails 4.0.0 (June 25, 2013) ##
 
 *   Fix regression in has_secure_password. When a password is set, but a
     confirmation is an empty string, it would incorrectly save.
 
     *Steve Klabnik* and *Phillip Calvin*
-
-## Rails 4.0.0.rc1 (April 29, 2013) ##
 
 *   Add `ActiveModel::Errors#full_messages_for`, to return all the error messages
     for a given attribute.
@@ -74,8 +72,6 @@
         end
 
     *Yves Senn*
-
-## Rails 4.0.0.beta1 (February 25, 2013) ##
 
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.

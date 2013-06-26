@@ -1,14 +1,4 @@
-## unreleased ##
-
-*   No changes.
-
-
-## Rails 4.0.0.rc1 (April 29, 2013) ##
-
-* No changes.
-
-
-## Rails 4.0.0.beta1 (February 25, 2013) ##
+## Rails 4.0.0 (June 25, 2013) ##
 
 *   Allow passing interpolations to `#default_i18n_subject`, e.g.:
 

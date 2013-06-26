@@ -532,7 +532,6 @@ and change the `create` action to look like this:
 ```ruby
 def create
   @post = Post.new(post_params)
-
   @post.save
   redirect_to @post
 end
