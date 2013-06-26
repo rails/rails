@@ -106,7 +106,7 @@
         class Tagging < ActiveRecord::Base
         end
 
-    *Aaron Peterson*
+    *Aaron Patterson*
 
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previous behavior was untested and surprising for the user.
@@ -170,7 +170,7 @@
 
     Fixes #10620.
 
-    *Aaron Peterson*
+    *Aaron Patterson*
 
 *   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
