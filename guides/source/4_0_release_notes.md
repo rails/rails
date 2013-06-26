@@ -52,7 +52,7 @@ Major Features
 
 TODO. Give a list and then talk about each of them briefly. We can point to relevant code commits or documentation from these sections.
 
-![Rails 4.0](images/rails4_features.png)
+[![Rails 4.0](images/rails4_features.png)](http://guides.rubyonrails.org/images/rails4_features.png)
 
 Extraction of features to gems
 ---------------------------
