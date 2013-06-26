@@ -23,6 +23,12 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
+  class HashExtWithInitializeTest < ActiveSupport::HashWithIndifferentAccess
+    def initialize(hash = {})
+      replace hash
+    end
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @nested_strings = { 'a' => { 'b' => { 'c' => 3 } } }
@@ -439,6 +445,23 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 12, hash[:b]
     assert_same hash, replaced
   end
+
+  def test_indifferent_replace_on_extended_class
+    other = { 'a' => 1, :b => 2 }
+
+    hash = HashExtWithInitializeTest.new(other)
+
+    assert hash.key?('b')
+    assert hash.key?(:a)
+    assert_equal 2, hash[:b]
+
+    replaced = hash.replace(b: 12)
+    assert hash.key?('b')
+    assert !hash.key?(:a)
+    assert_equal 12, hash[:b]
+    assert_same hash, replaced
+  end
+
 
   def test_indifferent_merging_with_block
     hash = HashWithIndifferentAccess.new
