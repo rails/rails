@@ -1,4 +1,10 @@
 ## unreleased ##
+
+*   Fix `ActiveRecord::Store` incorrectly tracking changes of its attributes.
+    Fixes #10373.
+
+    *Janko Marohnić*
+
 *   Fix mysql2 adapter raises the correct exception when executing a query on a
     closed connection.
 
@@ -110,11 +116,6 @@
     though later the code was looking for the related yaml file instead.
 
     *kennyj*
-
-*   Fix `ActiveRecord::Store` incorrectly tracking changes of its attributes.
-    Fixes #10373.
-
-    *Janko Marohnić*
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
