@@ -11,7 +11,6 @@ module AbstractController
   autoload :Callbacks
   autoload :Collector
   autoload :Helpers
-  autoload :Layouts
   autoload :Logger
   autoload :Translation
   autoload :AssetPaths
