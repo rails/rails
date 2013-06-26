@@ -1,6 +1,5 @@
-*   Removed deprecated rake tasks. You will no longer be able to use the following
-    commands: `rake test:uncommitted` and `rake test:recent`. Also removed are
-    the tests for these rake tasks.
+*   Removed deprecated rake tasks for running tests: `rake test:uncommitted` and
+    `rake test:recent`.
 
     *John Wang*
 
@@ -18,9 +17,9 @@
     moved to class methods in Railtie and the Railtie has been made abstract.
 
     *John Wang*
-    
+
 *   Changes repetitive th tags to use colspan attribute in `index.html.erb` template.
-    
+
     *Sıtkı Bağdat*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for previous changes.
