@@ -36,9 +36,13 @@ module ActionView
       end
     end
 
-    initializer "action_view.setup_action_controller" do |app|
+    initializer "action_view.setup_action_pack" do |app|
       ActiveSupport.on_load(:action_controller) do
         ActionController::Base.send(:include, ActionView::Layouts)
+      end
+
+      ActiveSupport.on_load(:abstract_controller) do
+        AbstractController::Base.send(:include, ActionView::Rendering)
       end
     end
   end

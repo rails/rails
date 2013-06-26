@@ -2,8 +2,6 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    include ActionView::Rendering
-
     # Before processing, set the request formats in current controller formats.
     def process_action(*) #:nodoc:
       self.formats = request.formats.map(&:ref).compact
