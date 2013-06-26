@@ -111,6 +111,11 @@
 
     *kennyj*
 
+*   Fix `ActiveRecord::Store` incorrectly tracking changes of its attributes.
+    Fixes #10373.
+
+    *Janko Marohnić*
+
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
 
