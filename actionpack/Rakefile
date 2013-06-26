@@ -5,11 +5,7 @@ desc "Default Task"
 task :default => :test
 
 # Run the unit tests
-
-desc "Run all unit tests"
-task :test => [:test_action_pack]
-
-Rake::TestTask.new(:test_action_pack) do |t|
+Rake::TestTask.new do |t|
   t.libs << 'test'
 
   # make sure we include the tests in alphabetical order as on some systems

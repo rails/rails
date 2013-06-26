@@ -12,11 +12,7 @@ task :test => [:test_action_view, :test_active_record_integration]
 
 Rake::TestTask.new(:test_action_view) do |t|
   t.libs << 'test'
-
-  # make sure we include the tests in alphabetical order as on some systems
-  # this will not happen automatically and the tests (as a whole) will error
   t.test_files = Dir.glob('test/template/**/*_test.rb').sort
-
   t.warning = true
   t.verbose = true
 end
