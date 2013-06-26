@@ -10,9 +10,13 @@ module TestUnit # :nodoc:
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
+      hook_for :fixture_replacement
+
       def create_test_files
-        template "functional_test.rb",
-                 File.join("test/controllers", controller_class_path, "#{controller_file_name}_controller_test.rb")
+        if options[:fixture] && options[:fixture_replacement].nil?
+          template "functional_test.rb",
+            File.join("test/controllers", controller_class_path, "#{controller_file_name}_controller_test.rb")
+        end
       end
 
       private
