@@ -272,6 +272,12 @@ module ActiveRecord
         QUOTED_FALSE
       end
 
+      def type_cast(value, column)
+        return super unless value == true || value == false
+
+        value ? 1 : 0
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity(&block) #:nodoc:
