@@ -89,6 +89,10 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 * Threadsafe on by default
 
+* Ability to use a custom builder by passing `--builder` (or `-b`) to
+  `rails new` has been removed. Consider using application templates
+  instead. ([Pull Request](https://github.com/rails/rails/pull/9401))
+
 ### Deprecations
 
 * `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded.
