@@ -1,4 +1,5 @@
 require 'mail'
+require 'action_view/base'
 require 'action_mailer/collector'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
@@ -361,11 +362,13 @@ module ActionMailer
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   class Base < AbstractController::Base
     include DeliveryMethods
+
     abstract!
 
+    include ActionView::Rendering
+    include ActionView::Layouts
+
     include AbstractController::Logger
-    include AbstractController::Rendering
-    include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
