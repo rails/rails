@@ -365,7 +365,6 @@ module ActionMailer
 
     abstract!
 
-    include ActionView::Rendering
     include ActionView::Layouts
 
     include AbstractController::Logger
