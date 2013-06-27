@@ -34,7 +34,7 @@ module ActionView
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
-    autoload :Layout
+    autoload :Layouts
     autoload :PathSet
     autoload :RecordIdentifier
     autoload :Rendering
