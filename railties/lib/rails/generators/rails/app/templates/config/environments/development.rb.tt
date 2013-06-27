@@ -20,7 +20,7 @@ Rails.application.configure do
   config.active_support.deprecation = :log
 
   <%- unless options.skip_active_record? -%>
-  # Raise an error on page load if there are pending migrations
+  # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
   <%- end -%>
 
