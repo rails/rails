@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fix bugs that crashed `rake test:benchmark`, `rails profiler` and
+    `rails benchmarker`.
+    Fixes #4938.
+
+    *Yves Senn*
+
 *   Add support for runner hook.
 
     Backport #7695.
@@ -21,6 +27,11 @@
 
 *   No changes.
 
+*   Fix launching performance tests through rake `test:benchmark`.
+    Fixes #4938.
+    Backport rails/rails-perftest#2.
+
+    *Dmitry Vorotilin + Yves Senn*
 
 ## Rails 3.2.11 (Jan 8, 2013) ##
 
