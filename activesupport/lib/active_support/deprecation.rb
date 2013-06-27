@@ -25,11 +25,11 @@ module ActiveSupport
     include Reporting
     include MethodWrapper
 
-    # The version the deprecated behavior will be removed, by default.
+    # The version number in which the deprecated behavior will be removed, by default.
     attr_accessor :deprecation_horizon
 
-    # It accepts two parameters on initialization. The first is an version of library
-    # and the second is an library name
+    # It accepts two parameters on initialization. The first is a version of library
+    # and the second is a library name
     #
     #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
     def initialize(deprecation_horizon = '4.1', gem_name = 'Rails')
