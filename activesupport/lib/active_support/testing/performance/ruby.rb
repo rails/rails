@@ -9,7 +9,7 @@ module ActiveSupport
   module Testing
     module Performance
       DEFAULTS.merge!(
-        if ARGV.include?('--benchmark')
+        if ENV["BENCHMARK_TESTS"]
           { :metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time] }
         else
           { :min_percent => 0.01,
