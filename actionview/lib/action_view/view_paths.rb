@@ -1,5 +1,4 @@
-require 'action_view/path_set'
-require 'action_view/lookup_context'
+require 'action_view/base'
 
 module ActionView
   module ViewPaths
