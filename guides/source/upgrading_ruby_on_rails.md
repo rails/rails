@@ -131,7 +131,15 @@ The following changes are meant for upgrading your application to Rails 4.0.
 
 ### Gemfile
 
-Rails 4.0 removed the `assets` group from Gemfile. You'd need to remove that line from your Gemfile when upgrading.
+Rails 4.0 removed the `assets` group from Gemfile. You'd need to remove that
+line from your Gemfile when upgrading. You should also update your application
+file (in `config/application.rb`):
+
+```ruby
+# Require the gems listed in Gemfile, including any gems
+# you've limited to :test, :development, or :production.
+Bundler.require(:default, Rails.env)
+```
 
 ### vendor/plugins
 
@@ -148,6 +156,9 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) to a smoothly upgrade path.
+
+* If you are not using Protected Attributes, you can remove any options related to
+this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 
 * Rails 4.0 requires that scopes use a callable object such as a Proc or lambda:
 
@@ -217,6 +228,11 @@ Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for d
 * Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
 
 * Rails 4.0 deprecates the `dom_id` and `dom_class` methods in controllers (they are fine in views). You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
+
+* Rails 4.0 deprecates the `:confirm` option for the `link_to` helper. You should
+instead rely on a data attribute (e.g. `data: { confirm: 'Are you sure?' }`).
+This deprecation also concerns the helpers based on this one (such as `link_to_if`
+or `link_to_unless`).
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
@@ -305,6 +321,12 @@ Active Record Observer and Action Controller Sweeper have been extracted to the 
 ### sprockets-rails
 
 * `assets:precompile:primary` has been removed. Use `assets:precompile` instead.
+* The `config.assets.compress` option should be changed to
+`config.assets.js_compressor` like so for instance:
+
+```ruby
+config.assets.js_compressor = :uglifier
+```
 
 ### sass-rails
 
