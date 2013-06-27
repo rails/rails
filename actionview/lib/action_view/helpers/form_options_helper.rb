@@ -510,15 +510,8 @@ module ActionView
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
       def grouped_options_for_select(grouped_options, selected_key = nil, options = {})
-        if options.is_a?(Hash)
-          prompt  = options[:prompt]
-          divider = options[:divider]
-        else
-          prompt  = options
-          message = "Passing the prompt to grouped_options_for_select as an argument is deprecated. " \
-                    "Please use an options hash like `{ prompt: #{prompt.inspect} }`."
-          ActiveSupport::Deprecation.warn message
-        end
+        prompt  = options[:prompt]
+        divider = options[:divider]
 
         body = "".html_safe
 
