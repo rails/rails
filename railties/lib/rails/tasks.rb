@@ -7,7 +7,6 @@
   middleware
   misc
   routes
-  statistics
   tmp
 ).each do |task|
   load "rails/tasks/#{task}.rake"
