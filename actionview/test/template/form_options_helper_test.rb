@@ -310,15 +310,6 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_grouped_options_for_select_with_selected_and_prompt_deprecated
-    assert_deprecated 'Passing the prompt to grouped_options_for_select as an argument is deprecated. Please use an options hash like `{ prompt: "Choose a product..." }`.' do
-      assert_dom_equal(
-        "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", "Choose a product...")
-      )
-    end
-  end
-
   def test_grouped_options_for_select_with_selected_and_prompt
     assert_dom_equal(
         "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
@@ -335,14 +326,6 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_grouped_options_for_select_returns_html_safe_string
     assert grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]]).html_safe?
-  end
-
-  def test_grouped_options_for_select_with_prompt_returns_html_escaped_string_deprecated
-    ActiveSupport::Deprecation.silence do
-      assert_dom_equal(
-        "<option value=\"\">&lt;Choose One&gt;</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, '<Choose One>'))
-    end
   end
 
   def test_grouped_options_for_select_with_prompt_returns_html_escaped_string
