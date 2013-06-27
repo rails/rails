@@ -280,13 +280,6 @@ XML
     assert_equal "/test_case_test/test/test_uri/7", @response.body
   end
 
-  def test_process_with_old_api
-    assert_deprecated do
-      process :test_uri, :id => 7
-      assert_equal "/test_case_test/test/test_uri/7", @response.body
-    end
-  end
-
   def test_process_with_request_uri_with_params_with_explicit_uri
     @request.env['PATH_INFO'] = "/explicit/uri"
     process :test_uri, "GET", :id => 7
