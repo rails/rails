@@ -1,3 +1,8 @@
+*   Remove passing the prompt to `grouped_options_for_select` as an argument, because
+    it was deprecated.
+
+    *kennyj*
+
 *   Always escape the result of `link_to_unless` method.
 
     Before:
