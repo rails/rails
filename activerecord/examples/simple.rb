@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
+require File.expand_path('../../../load_paths', __FILE__)
 require 'active_record'
 
 class Person < ActiveRecord::Base
