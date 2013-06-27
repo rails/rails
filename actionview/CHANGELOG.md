@@ -1,5 +1,5 @@
-*   Remove passing the prompt to `grouped_options_for_select` as an argument, because
-    it was deprecated.
+*   Remove the deprecated `prompt` argument from `grouped_options_for_select`,
+    pass in a `:prompt` hash option to use this feature.
 
     *kennyj*
 
