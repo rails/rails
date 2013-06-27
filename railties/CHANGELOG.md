@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fix bugs that crashed `rake test:benchmark`, `rails profiler` and
+    `rails benchmarker`.
+    Fixes #4938.
+
+    *Yves Senn*
+
 *   Add support for runner hook.
 
     Backport #7695.

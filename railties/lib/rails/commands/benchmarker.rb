@@ -30,4 +30,5 @@ class BenchmarkerTest < ActionDispatch::PerformanceTest #:nodoc:
       end
     RUBY
   end
+  ARGV.clear
 end
