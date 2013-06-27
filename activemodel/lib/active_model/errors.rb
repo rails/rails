@@ -289,7 +289,7 @@ module ActiveModel
     #   # => NameIsInvalid: name is invalid
     #
     #   person.errors.messages # => {}
-    def add(attribute, message = nil, options = {})
+    def add(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -331,7 +331,7 @@ module ActiveModel
     #
     #   person.errors.add :name, :blank
     #   person.errors.added? :name, :blank # => true
-    def added?(attribute, message = nil, options = {})
+    def added?(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
       self[attribute].include? message
     end
@@ -437,8 +437,6 @@ module ActiveModel
 
   private
     def normalize_message(attribute, message, options)
-      message ||= :invalid
-
       case message
       when Symbol
         generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
