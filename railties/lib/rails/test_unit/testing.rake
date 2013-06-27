@@ -3,19 +3,6 @@ require 'rake/testtask'
 require 'rails/test_unit/sub_test_task'
 require 'active_support/deprecation'
 
-# Recreated here from Active Support because :uncommitted needs it before Rails is available
-module Kernel
-  remove_method :silence_stderr # Removing old method to prevent method redefined warning
-  def silence_stderr
-    old_stderr = STDERR.dup
-    STDERR.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
-    STDERR.sync = true
-    yield
-  ensure
-    STDERR.reopen(old_stderr)
-  end
-end
-
 task default: :test
 
 desc 'Runs test:units, test:functionals, test:integration together'
@@ -50,11 +37,6 @@ namespace :test do
   namespace :all do
     desc "Run tests quickly, but also reset db"
     task :db => %w[db:test:prepare test:all]
-  end
-
-  # Display deprecation message
-  task :deprecated do
-    ActiveSupport::Deprecation.warn "`rake #{ARGV.first}` is deprecated with no replacement."
   end
 
   Rails::TestTask.new(single: "test:prepare")
