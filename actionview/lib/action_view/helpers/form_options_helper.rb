@@ -783,7 +783,7 @@ module ActionView
       # Wraps ActionView::Helpers::FormOptionsHelper#grouped_collection_select for form builders:
       #
       #   <%= form_for @city do |f| %>
-      #     <%= f.grouped_collection_select :country_id, :country_id, @continents, :countries, :name, :id, :name %>
+      #     <%= f.grouped_collection_select :country_id, @continents, :countries, :name, :id, :name %>
       #     <%= f.submit %>
       #   <% end %>
       #
