@@ -554,9 +554,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts.size
 
     count = ActiveSupport::Deprecation.silence do
-      Post.count(:include => [ :author, :comments ], :limit => 2, :conditions => [ "authors.name = ?", 'David' ])
+      Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", 'David').count
     end
-    assert_equal count, posts.size
+    assert_equal posts.size, count
   end
 
   def test_eager_with_has_many_and_limit_and_high_offset
