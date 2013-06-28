@@ -13,6 +13,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
       @connection.transaction do
         @connection.create_table('pg_arrays') do |t|
           t.string 'tags', :array => true
+          t.integer 'ints', :array => true
         end
       end
     @column = PgArray.columns.find { |c| c.name == 'tags' }
@@ -85,6 +86,19 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
     @connection.insert_fixture({"tags" => tag_values}, "pg_arrays" )
     assert_equal(PgArray.last.tags, tag_values)
+  end
+
+  def test_insert_fixture_int_array
+    int_values = [1,2,4,6]
+    @connection.insert_fixture({"ints" => int_values}, "pg_arrays" )
+    assert_equal(PgArray.last.ints, int_values)
+  end
+
+  def test_insert_fixture_int_array_from_strings
+    int_values = [1,2,4,6]
+    int_values_for_insert = ['1','2','4','6']
+    @connection.insert_fixture({"ints" => int_values_for_insert}, "pg_arrays" )
+    assert_equal(PgArray.last.ints, int_values)
   end
 
   private
