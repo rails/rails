@@ -624,6 +624,16 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
+  def test_seek_for_found_key
+    assert @nested_symbols.seek(:a)
+    assert_equal({:c => 3}, @nested_symbols.seek(:a, :b))
+    assert_equal 3, @nested_symbols.seek(:a, :b, :c)
+  end
+
+  def test_seek_for_missing
+    assert_equal nil, @nested_symbols.seek(:b, :c)
+  end
+
   def test_assorted_keys_not_stringified
     original = {Object.new => 2, 1 => 2, [] => true}
     indiff = original.with_indifferent_access
