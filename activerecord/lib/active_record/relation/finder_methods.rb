@@ -32,7 +32,7 @@ module ActiveRecord
     #   end
     #
     # ==== Variations of +find+
-    # 
+    #
     #   Person.where(name: 'Spartacus', rating: 4)
     #   # returns a chainable list (which can be empty).
     #
@@ -49,7 +49,7 @@ module ActiveRecord
     #
     #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
     #   # returns a boolean indicating if any record with the given conditions exist.
-    #   
+    #
     #   Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
     #   # returns a chainable list of instances with only the mentioned fields.
     #
@@ -124,7 +124,7 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_first_with_limit(order_values, limit)
+        find_first_with_limit(limit)
       else
         find_first
       end
@@ -353,11 +353,11 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||= find_first_with_limit(order_values, 1).first
+        @first ||= find_first_with_limit(1).first
       end
     end
 
-    def find_first_with_limit(order_values, limit)
+    def find_first_with_limit(limit)
       if order_values.empty? && primary_key
         order(arel_table[primary_key].asc).limit(limit).to_a
       else
