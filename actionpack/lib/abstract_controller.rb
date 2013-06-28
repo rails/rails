@@ -10,6 +10,7 @@ module AbstractController
   autoload :Base
   autoload :Callbacks
   autoload :Collector
+  autoload :DoubleRenderError, "abstract_controller/rendering.rb"
   autoload :Helpers
   autoload :Logger
   autoload :Translation

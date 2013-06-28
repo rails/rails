@@ -201,6 +201,7 @@ module ActionController
     end
 
     MODULES = [
+      ActionView::Layouts,
       AbstractController::Translation,
       AbstractController::AssetPaths,
 
