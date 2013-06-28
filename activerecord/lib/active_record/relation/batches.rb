@@ -78,8 +78,8 @@ module ActiveRecord
 
       relation = self
 
-      unless arel.orders.blank? && arel.taken.blank?
-        ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
+      if logger && (arel.orders.present? || arel.taken.present?)
+        logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
       start = options.delete(:start)

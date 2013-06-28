@@ -50,6 +50,16 @@ class EachTest < ActiveRecord::TestCase
     Post.order("title").find_each { |post| post }
   end
 
+  def test_logger_not_required
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = nil
+    assert_nothing_raised do
+      Post.limit(1).find_each { |post| post }
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
+  end
+
   def test_find_in_batches_should_return_batches
     assert_queries(@total + 1) do
       Post.find_in_batches(:batch_size => 1) do |batch|
