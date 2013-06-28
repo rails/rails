@@ -7,14 +7,17 @@ as of Rails 4. It is an extremely in-depth guide and recommended for advanced Ra
 After reading this guide, you will know:
 
 * How to use `rails server`.
+* The timeline of Rails' initialization sequence.
+* Where different files are required by the boot sequence.
+* How the Rails::Server interface is defined and used.
 
 --------------------------------------------------------------------------------
 
 This guide goes through every method call that is
 required to boot up the Ruby on Rails stack for a default Rails 4
 application, explaining each part in detail along the way. For this
-guide, we will be focusing on what happens when you execute +rails
-server+ to boot your app.
+guide, we will be focusing on what happens when you execute `rails server`
+to boot your app.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
@@ -26,7 +29,7 @@ quickly.
 Launch!
 -------
 
-Now we finally boot and initialize the app. It all starts with your app's
+Let's start to boot and initialize the app. It all begins with your app's
 `bin/rails` executable. A Rails application is usually started by running
 `rails console` or `rails server`.
 
@@ -57,7 +60,8 @@ require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 In a standard Rails application, there's a `Gemfile` which declares all
 dependencies of the application. `config/boot.rb` sets
 `ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
-exists, `bundler/setup` is then required.
+exists, then `bundler/setup` is required. The require is used by Bundler to
+configure the load path for your Gemfile's dependencies.
 
 A standard Rails application depends on several gems, specifically:
 
@@ -251,9 +255,9 @@ set earlier) is required.
 
 ### `config/application`
 
-When `require APP_PATH` is executed, `config/application.rb` is loaded.
-This file exists in your app and it's free for you to change based
-on your needs.
+When `require APP_PATH` is executed, `config/application.rb` is loaded (recall
+that `APP_PATH` is defined in `bin/rails`). This file exists in your application
+and it's free for you to change based on your needs.
 
 ### `Rails::Server#start`
 
@@ -443,7 +447,9 @@ I18n and Rails configuration are all being defined here.
 
 ### Back to `config/environment.rb`
 
-When `config/application.rb` has finished loading Rails, and defined
+The rest of `config/application.rb` defines the configuration for the
+`Rails::Application` which will be used once the application is fully 
+initialized. When `config/application.rb` has finished loading Rails and defined
 the application namespace, we go back to `config/environment.rb`,
 where the application is initialized. For example, if the application was called
 `Blog`, here we would find `Blog::Application.initialize!`, which is
@@ -470,6 +476,13 @@ The initializers code itself is tricky. What Rails is doing here is it
 traverses all the class ancestors looking for an `initializers` method,
 sorting them and running them. For example, the `Engine` class will make
 all the engines available by providing the `initializers` method.
+
+The `Rails::Application` class, as defined in `railties/lib/rails/application.rb`
+defines `bootstrap`, `railtie`, and `finisher` initializers. The `bootstrap` initializers
+prepare the application (like initializing the logger) while the `finisher`
+initializers (like building the middleware stack) are run last. The `railtie`
+initializers are the initializers which have been defined on the `Rails::Application`
+itself and are run between the `bootstrap` and `finishers`.
 
 After this is done we go back to `Rack::Server`
 
