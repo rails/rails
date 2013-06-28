@@ -1,3 +1,7 @@
+*   Remove `activerecord-deprecated_finders` as a dependency
+
+    *Łukasz Strzałkowski*
+
 *   Remove Oracle / Sqlserver / Firebird database tasks that were deprecated in 4.0.
 
     *kennyj*

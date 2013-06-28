@@ -368,7 +368,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_respond_to_dynamic_finders
     relation = Topic.all
 
-    ["find_by_title", "find_by_title_and_author_name", "find_or_create_by_title", "find_or_initialize_by_title_and_author_name"].each do |method|
+    ["find_by_title", "find_by_title_and_author_name"].each do |method|
       assert_respond_to relation, method, "Topic.all should respond to #{method.inspect}"
     end
   end
