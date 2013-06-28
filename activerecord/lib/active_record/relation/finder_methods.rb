@@ -211,7 +211,6 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
-      relation = relation.with_default_scope
       connection.select_value(relation.arel, "#{name} Exists", relation.bind_values)
     end
 
@@ -354,7 +353,7 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||= find_first_with_limit(with_default_scope.order_values, 1).first
+        @first ||= find_first_with_limit(order_values, 1).first
       end
     end
 

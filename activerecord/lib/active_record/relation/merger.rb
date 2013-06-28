@@ -42,10 +42,6 @@ module ActiveRecord
       attr_reader :relation, :values, :other
 
       def initialize(relation, other)
-        if other.default_scoped? && other.klass != relation.klass
-          other = other.with_default_scope
-        end
-
         @relation = relation
         @values   = other.values
         @other    = other

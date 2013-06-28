@@ -33,7 +33,6 @@ module ActiveRecord
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table
-        self.default_scoped = true
         merge! association.scope(nullify: false)
       end
 

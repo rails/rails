@@ -795,7 +795,7 @@ module ActiveRecord
 
     # Returns the Arel object associated with the relation.
     def arel
-      @arel ||= with_default_scope.build_arel
+      @arel ||= build_arel
     end
 
     # Like #arel, but ignores the default scope of the model.

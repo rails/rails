@@ -91,20 +91,14 @@ module ActiveRecord
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
-      relation = with_default_scope
-
       if column_name.is_a?(Symbol) && attribute_aliases.key?(column_name.to_s)
         column_name = attribute_aliases[column_name.to_s].to_sym
       end
 
-      if relation.equal?(self)
-        if has_include?(column_name)
-          construct_relation_for_association_calculations.calculate(operation, column_name, options)
-        else
-          perform_calculation(operation, column_name, options)
-        end
+      if has_include?(column_name)
+        construct_relation_for_association_calculations.calculate(operation, column_name, options)
       else
-        relation.calculate(operation, column_name, options)
+        perform_calculation(operation, column_name, options)
       end
     end
 

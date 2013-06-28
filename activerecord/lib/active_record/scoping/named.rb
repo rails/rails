@@ -25,22 +25,18 @@ module ActiveRecord
           if current_scope
             current_scope.clone
           else
-            scope = relation
-            scope.default_scoped = true
-            scope
+            default_scoped
           end
+        end
+
+        def default_scoped # :nodoc:
+          relation.merge(build_default_scope)
         end
 
         # Collects attributes from scopes that should be applied when creating
         # an AR instance for the particular class this is called on.
         def scope_attributes # :nodoc:
-          if current_scope
-            current_scope.scope_for_create
-          else
-            scope = relation
-            scope.default_scoped = true
-            scope.scope_for_create
-          end
+          all.scope_for_create
         end
 
         # Are there default attributes associated with this scope?
