@@ -156,6 +156,8 @@ module ActionDispatch
                 next unless URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
                 @defaults[key] ||= default
               end
+            elsif options[:constraints]
+              verify_callable_constraint(options[:constraints])
             end
 
             if Regexp === options[:format]
@@ -163,6 +165,11 @@ module ActionDispatch
             elsif String === options[:format]
               @defaults[:format] = options[:format]
             end
+          end
+
+          def verify_callable_constraint(callable_constraint)
+            return if callable_constraint.respond_to?(:call) || callable_constraint.respond_to?(:matches?)
+            raise ArgumentError, "Invalid constraint: #{callable_constraint.inspect} must respond to :call or :matches?"
           end
 
           def normalize_conditions!

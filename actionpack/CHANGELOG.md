@@ -1,3 +1,10 @@
+*   Added verification of route constraints given as a Proc or an object responding
+    to `:matches?`.  Previously, when given an non-complying object, it would just
+    silently fail to enforce the constraint.  It will now raise an ArgumentError
+    when setting up the routes.
+
+    *Xavier Defrang*
+
 *   Fix `Mime::Type.parse` when bad accepts header is looked up. Previously it
     was setting `request.formats` with an array containing a `nil` value, which
     raised an error when setting the controller formats.
