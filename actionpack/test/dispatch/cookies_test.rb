@@ -95,6 +95,32 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_signed_expires_cookie
+      cookies.signed.expires[:user_id] = {
+        :value   => 45,
+        :expires => Time.utc(2020, 1, 1)
+      }
+      head :ok
+    end
+
+    def set_signed_expires_cookie_in_the_past
+      cookies.signed.expires[:user_id] = {
+        :value   => 45,
+        :expires => Time.utc(2005, 1, 1)
+      }
+      head :ok
+    end
+
+    def set_signed_expires_cookie_without_date
+      cookies.signed.expires[:user_id] = 45
+      head :ok
+    end
+
+    def get_signed_expires_cookie
+      cookies.signed.expires[:user_id]
+      head :ok
+    end
+
     def raise_data_overflow
       cookies.signed[:foo] = 'bye!' * 1024
       head :ok
@@ -393,6 +419,26 @@ class CookiesTest < ActionController::TestCase
     get :set_permanent_signed_cookie
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
+  end
+
+  def test_signed_expires_cookie
+    get :set_signed_expires_cookie
+    # raw timestamped value
+    assert_equal [45, 1577836800], @controller.send(:cookies).signed[:user_id]
+    assert_equal 45, @controller.send(:cookies).signed.expires[:user_id]
+  end
+
+  def test_signed_expires_cookie_thats_expired
+    get :set_signed_expires_cookie_in_the_past
+    # raw timestamped value
+    assert_equal [45, 1104537600], @controller.send(:cookies).signed[:user_id]
+    assert_equal nil, @controller.send(:cookies).signed.expires[:user_id]
+  end
+
+  def test_signed_expires_cookie_without_date_raises_an_error
+    assert_raise(ArgumentError) do
+      get :set_signed_expires_cookie_without_date
+    end
   end
 
   def test_delete_and_set_cookie
