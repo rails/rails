@@ -1,3 +1,7 @@
+*   Omit turbolinks configuration completely on skip_javascript generator option.
+
+    *Nikita Fedyashev*
+
 *   Removed deprecated rake tasks for running tests: `rake test:uncommitted` and
     `rake test:recent`.
 
