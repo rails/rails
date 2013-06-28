@@ -155,7 +155,7 @@ module ActiveRecord
           else
             superclass.arel_engine
           end
-       end
+        end
       end
 
       private
