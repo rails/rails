@@ -1,3 +1,9 @@
+## unreleased ##
+
+*   Omit turbolinks configuration completely on skip_javascript generator option.
+
+    *Nikita Fedyashev*
+
 ## Rails 4.0.0 (June 25, 2013) ##
 
 *   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
