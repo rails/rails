@@ -155,11 +155,15 @@ class Module
     file, line = caller.first.split(':', 2)
     line = line.to_i
 
+    translations = {
+      'class' => 'self.class',
+      'block' => 'self.block',
+      'args' => 'self.args',
+      'arg' => 'self.arg'
+    }
+
     to = to.to_s
-    to = 'self.class' if to == 'class'
-    to = 'self.block' if to == 'block'
-    to = 'self.args' if to == 'args'
-    to = 'self.arg' if to == 'arg'
+    to = translations[to] || to
 
     methods.each do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
