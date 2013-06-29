@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Pick `DateField` `DateTimeField` and `ColorField` values from stringified options allowing use of symbol keys with helpers.
+
+    *Jon Rowe*
+
 *   Fix `Mime::Type.parse` when bad accepts header is looked up. Previously it
     was setting `request.formats` with an array containing a `nil` value, which
     raised an error when setting the controller formats.
