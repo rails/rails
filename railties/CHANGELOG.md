@@ -1,3 +1,7 @@
+*   Fix `rails plugin --help` command.
+
+    *Richard Schneeman*
+
 *   Omit turbolinks configuration completely on skip_javascript generator option.
 
     *Nikita Fedyashev*
