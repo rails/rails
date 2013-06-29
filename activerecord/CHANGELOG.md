@@ -1,3 +1,10 @@
+*   Delete in-memory association record when target record is deleted
+    for hm:t case.
+
+    Fixes #9548.
+
+    *Neeraj Singh*
+
 *   Apply default scope when joining associations. For example:
 
         class Post < ActiveRecord::Base
@@ -220,9 +227,9 @@
     *Kyle Stevens*
 
 *   Method `read_attribute_before_type_cast` should accept input as symbol.
-
+ 
     *Neeraj Singh*
-
+ 
 *   Confirm a record has not already been destroyed before decrementing counter cache.
 
     *Ben Tucker*

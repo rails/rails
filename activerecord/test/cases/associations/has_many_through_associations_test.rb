@@ -882,6 +882,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [tags(:general)], post.reload.tags
   end
 
+  def test_has_many_through_should_delete_in_memory_association_record
+    club = Club.new
+    member = Member.new
+
+    club.members << member
+    club.members.delete member
+
+    refute club.members.include?(member)
+  end
+
   def test_has_many_through_obeys_order_on_through_association
     owner = owners(:blackbeard)
     assert owner.toys.to_sql.include?("pets.name desc")
