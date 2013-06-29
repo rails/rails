@@ -157,6 +157,9 @@ class Module
 
     to = to.to_s
     to = 'self.class' if to == 'class'
+    to = 'self.block' if to == 'block'
+    to = 'self.args' if to == 'args'
+    to = 'self.arg' if to == 'arg'
 
     methods.each do |method|
       # Attribute writer methods only accept one argument. Makes sure []=

@@ -46,6 +46,33 @@ class Someone < Struct.new(:name, :place)
 
   FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, :to => :place, :allow_nil => true
+
+  delegate :from_block, :to => :block
+
+  def block
+    @block ||= Class.new do
+      def from_block
+        'from_block'
+      end
+    end.new
+  end
+
+  delegate :from_args, :to => :args
+
+  def args
+    @args ||= Class.new do
+      def from_args
+        'from_args'
+      end
+    end.new
+  end
+
+  delegate :setter=, :to => :arg
+  def arg
+    @arg ||= Class.new do
+      attr_writer :setter
+    end.new
+  end
 end
 
 Invoice   = Struct.new(:client) do
@@ -135,6 +162,12 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_class_method
     assert_equal 'some_table', @david.table_name
     assert_equal 'some_table', @david.class_table_name
+  end
+
+  def test_delegation_to_dynamic_method_arg_names
+    assert_equal 'from_block', @david.from_block
+    assert_equal 'from_args', @david.from_args
+    assert_equal 10, @david.setter = 10
   end
 
   def test_missing_delegation_target
