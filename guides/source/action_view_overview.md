@@ -1006,6 +1006,24 @@ text_field(:post, :title)
 # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" />
 ```
 
+#### email_field
+
+Returns an input tag of the "email" type tailored for accessing a specified attribute.
+
+```ruby
+email_field(:user, :email)
+# => <input type="email" id="user_email" name="user[email]" value="#{@user.email}" />
+```
+
+#### url_field
+
+Returns an input tag of the "url" type tailored for accessing a specified attribute.
+
+```ruby
+url_field(:user, :url)
+# => <input type="url" id="user_url" name="user[url]" value="#{@user.url}" />
+```
+
 ### FormOptionsHelper
 
 Provides a number of methods for turning different kinds of containers into a set of option tags.
@@ -1370,6 +1388,24 @@ Creates a standard text field; use these text fields to input smaller chunks of 
 ```ruby
 text_field_tag 'name'
 # => <input id="name" name="name" type="text" />
+```
+
+#### email_field_tag
+
+Creates a standard input field of email type.
+
+```ruby
+email_field_tag 'email'
+# => <input id="email" name="email" type="email" />
+```
+
+#### url_field_tag
+
+Creates a standard input field of url type.
+
+```ruby
+url_field_tag 'url'
+# => <input id="url" name="url" type="url" />
 ```
 
 #### date_field_tag
