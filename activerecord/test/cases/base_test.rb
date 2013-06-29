@@ -1,4 +1,5 @@
-require "cases/helper"
+require 'cases/helper'
+require 'support/helper'
 require 'models/post'
 require 'models/author'
 require 'models/topic'
