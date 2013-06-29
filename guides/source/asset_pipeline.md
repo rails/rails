@@ -26,39 +26,31 @@ The asset pipeline is no longer a core feature of Rails, it has been extracted o
 gem 'sprockets-rails', :require => 'sprockets/railtie'
 ```
 
-... and it also must be enabled in `config/application.rb` by putting this line inside the application class definition:
+Including this gem automatically enables the asset pipeline in your Rails 4 application.
 
-```ruby
-# Enable the asset pipeline.
-config.assets.enabled = true
-```
-
-Any asset type requiring compression must include the appropriate gem:
+Rails 4 also adds the 'sass-rails' and 'uglifier' gems to your Gemfile, which are both used by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails', '~> 4.0.0'
 gem 'uglifier', '>= 1.3.0'
 ```
 
-... and also set the appropriate configuration options in `production.rb`:
+You will have to add gems to support any other type of asset compression you may want to use.
 
-```ruby
-config.assets.css_compressor = :sass
-config.assets.js_compressor = :uglify
-```
-
-By default, `sass-rails` and `uglifier` are added to the Gemfile. To prevent them from inclusion, use the `--skip-sprockets` option:
+If you use the --skip-sprockets option when creating a new Rails 4 app, then those gems are not added to `Gemfile` and will have to be added if you later want to use the asset pipeline:
 
 ```bash
 rails new appname --skip-sprockets
 ```
 
-The `--skip-sprockets` option also adds `config.assets.enabled = false` to the application class definition in `config/application.rb`:
+To set asset compression methods, set the appropriate configuration options in `production.rb`:
 
 ```ruby
-# Disable the asset pipeline.
-config.assets.enabled = false
+config.assets.css_compressor = :yui
+config.assets.js_compressor = :uglify
 ```
+
+NOTE: The sass-rails gem is automatically used for CSS compression if the gem is included in Gemfile and no `config.assets.css_compressor` option is set.
 
 
 ### Main Features
@@ -214,7 +206,7 @@ In regular views you can access images in the `assets/images` directory like thi
 <%= image_tag "rails.png" %>
 ```
 
-Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at `public/assets/rails.png` it is served by the web server.
+Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at `/assets/rails.png` it is served by the web server.
 
 Alternatively, a request for a file with an MD5 hash such as `public/assets/rails-af27b6a414e6da00003503148be9b409.png` is treated the same way. How these hashes are generated is covered in the [In Production](#in-production) section later on in this guide.
 
@@ -422,7 +414,7 @@ NOTE: Under normal circumstances the default `config.assets.digest` option shoul
 
 Rails comes bundled with a rake task to compile the asset manifests and other files in the pipeline to the disk.
 
-Compiled assets are written to the location specified in `config.assets.prefix`. By default, this is the `public/assets` directory.
+Compiled assets are written to the location specified in `config.assets.prefix`. By default, this is the `/assets` directory.
 
 You can call this task on the server during deployment to create compiled versions of your assets directly on the server. See the next section for information on compiling locally.
 
@@ -488,7 +480,7 @@ The rake task also generates a `manifest-md5hash.json` that contains a list with
 
 ```
 
-The default location for the manifest is the root of the location specified in `config.assets.prefix` ('public/assets' by default).
+The default location for the manifest is the root of the location specified in `config.assets.prefix` ('/assets' by default).
 
 NOTE: If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
 
@@ -568,7 +560,7 @@ In `config/environments/development.rb`, place the following line:
 config.assets.prefix = "/dev-assets"
 ```
 
-The `prefix` change makes Sprockets use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to `/assets` in the production environment. Without this change, the application would serve the precompiled assets from `public/assets` in development, and you would not see any local changes until you compile assets again.
+The `prefix` change makes Sprockets use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to `/assets` in the production environment. Without this change, the application would serve the precompiled assets from `/assets` in development, and you would not see any local changes until you compile assets again.
 
 You will also need to ensure that any compressors or minifiers are available on your development system.
 
@@ -658,7 +650,7 @@ config.assets.css_compressor = Transformer.new
 
 ### Changing the _assets_ Path
 
-The public path that Sprockets uses by default is `public/assets`.
+The public path that Sprockets uses by default is `/assets`.
 
 This can be changed to something else:
 
@@ -751,7 +743,7 @@ config.assets.enabled = true
 config.assets.version = '1.0'
 
 # Change the path that assets are served from
-# config.assets.prefix = "public/assets"
+# config.assets.prefix = "/assets"
 ```
 
 In `development.rb`:
