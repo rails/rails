@@ -35,19 +35,17 @@ command = ARGV.shift
 command = aliases[command] || command
 
 case command
-when 'generate', 'destroy', 'plugin'
+when 'plugin'
+  require "rails/commands/plugin_new"
+when 'generate', 'destroy'
   require 'rails/generators'
 
-  if command == 'plugin' && ARGV.first == 'new'
-    require "rails/commands/plugin_new"
-  else
-    require APP_PATH
-    Rails.application.require_environment!
+  require APP_PATH
+  Rails.application.require_environment!
 
-    Rails.application.load_generators
+  Rails.application.load_generators
 
-    require "rails/commands/#{command}"
-  end
+  require "rails/commands/#{command}"
 
 when 'console'
   require 'rails/commands/console'
