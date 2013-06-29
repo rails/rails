@@ -1,3 +1,15 @@
+*   Remove implicit join references that were deprecated in 4.0.
+
+    Example:
+
+        # before with implicit joins
+        Comment.where('posts.author_id' => 7)
+
+        # after
+        Comment.references(:posts).where('posts.author_id' => 7)
+
+    *Yves Senn*
+
 *   Apply default scope when joining associations. For example:
 
         class Post < ActiveRecord::Base

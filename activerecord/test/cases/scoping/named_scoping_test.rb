@@ -60,11 +60,6 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert Topic.approved.respond_to?(:length)
   end
 
-  def test_respond_to_respects_include_private_parameter
-    assert !Topic.approved.respond_to?(:tables_in_string)
-    assert Topic.approved.respond_to?(:tables_in_string, true)
-  end
-
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
     assert !Topic.all.merge!(:where => {:approved => true}).to_a.empty?
 

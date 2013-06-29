@@ -596,9 +596,7 @@ module ActiveRecord
 
     def references_eager_loaded_tables?
       joined_tables = arel.join_sources.map do |join|
-        if join.is_a?(Arel::Nodes::StringJoin)
-          tables_in_string(join.left)
-        else
+        unless join.is_a?(Arel::Nodes::StringJoin)
           [join.left.table_name, join.left.table_alias]
         end
       end
@@ -607,41 +605,8 @@ module ActiveRecord
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
-      string_tables = tables_in_string(to_sql)
 
-      if (references_values - joined_tables).any?
-        true
-      elsif !ActiveRecord::Base.disable_implicit_join_references &&
-            (string_tables - joined_tables).any?
-        ActiveSupport::Deprecation.warn(
-          "It looks like you are eager loading table(s) (one of: #{string_tables.join(', ')}) " \
-          "that are referenced in a string SQL snippet. For example: \n" \
-          "\n" \
-          "    Post.includes(:comments).where(\"comments.title = 'foo'\")\n" \
-          "\n" \
-          "Currently, Active Record recognizes the table in the string, and knows to JOIN the " \
-          "comments table to the query, rather than loading comments in a separate query. " \
-          "However, doing this without writing a full-blown SQL parser is inherently flawed. " \
-          "Since we don't want to write an SQL parser, we are removing this functionality. " \
-          "From now on, you must explicitly tell Active Record when you are referencing a table " \
-          "from a string:\n" \
-          "\n" \
-          "    Post.includes(:comments).where(\"comments.title = 'foo'\").references(:comments)\n" \
-          "\n" \
-          "If you don't rely on implicit join references you can disable the feature entirely " \
-          "by setting `config.active_record.disable_implicit_join_references = true`."
-        )
-        true
-      else
-        false
-      end
-    end
-
-    def tables_in_string(string)
-      return [] if string.blank?
-      # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map{ |s| s.downcase }.uniq - ['raw_sql_']
+      (references_values - joined_tables).any?
     end
   end
 end
