@@ -69,13 +69,10 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
-      ##
-      # :singleton-method:
-      # Disable implicit join references. This feature was deprecated with Rails 4.
-      # If you don't make use of implicit references but still see deprecation warnings
-      # you can disable the feature entirely. This will be the default with Rails 4.1.
-      mattr_accessor :disable_implicit_join_references, instance_writer: false
-      self.disable_implicit_join_references = false
+      def self.disable_implicit_join_references=(value)
+        ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \
+                                        "Make sure to remove this configuration because it does nothing.")
+      end
 
       class_attribute :default_connection_handler, instance_writer: false
 
