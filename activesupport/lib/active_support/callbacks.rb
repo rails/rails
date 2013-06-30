@@ -658,10 +658,11 @@ module ActiveSupport
       #
       # * <tt>:terminator</tt> - Determines when a before filter will halt the
       #   callback chain, preventing following callbacks from being called and
-      #   the event from being triggered. This is a string to be eval'd. The
-      #   result of the callback is available in the +result+ variable.
+      #   the event from being triggered. This should be a lambda to be executed.
+      #   The current object and the return result of the callback will be called
+      #   with the lambda.
       #
-      #     define_callbacks :validate, terminator: 'result == false'
+      #     define_callbacks :validate, terminator: ->(target,result) { result == false },
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   other callbacks are not executed. Defaults to +false+, meaning no value
