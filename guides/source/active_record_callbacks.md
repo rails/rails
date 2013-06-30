@@ -167,6 +167,7 @@ Additionally, the `after_find` callback is triggered by the following finder met
 * `all`
 * `first`
 * `find`
+* `find_by`
 * `find_by_*`
 * `find_by_*!`
 * `find_by_sql`
