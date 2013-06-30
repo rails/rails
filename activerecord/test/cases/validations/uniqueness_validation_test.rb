@@ -5,6 +5,7 @@ require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
+require 'models/reference'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -291,6 +292,13 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")
       assert !t2.valid?
     end
+  end
+
+  def test_validates_uniqueness_respects_default_scoping
+    BadReference.validates_uniqueness_of(:lock_version)
+    BadReference.create(favourite: true, lock_version: 1234)
+    bad_reference = BadReference.new(favourite: false, lock_version: 1234)
+    assert bad_reference.valid?
   end
 
   def test_validate_uniqueness_with_columns_which_are_sql_keywords
