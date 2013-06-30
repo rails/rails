@@ -1062,7 +1062,7 @@ You can call `destroy` on Active Record objects when you want to delete
 them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the `index` action.
 
-Finally, add a 'destroy' link to your `index` action template
+Finally, add a 'Destroy' link to your `index` action template
 (`app/views/posts/index.html.erb`) to wrap everything
 together.
 
@@ -1088,8 +1088,8 @@ together.
 </table>
 ```
 
-Here we're using `link_to` in a different way. We pass the named route as the first argument,
-and then the final two keys as another argument. The `:method` and `:'data-confirm'`
+Here we're using `link_to` in a different way. We pass the named route as the second argument,
+and then the options as another argument. The `:method` and `:'data-confirm'`
 options are used as HTML5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the link with method `delete`.
 This is done via the JavaScript file `jquery_ujs` which is automatically included
