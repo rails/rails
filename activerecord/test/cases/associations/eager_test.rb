@@ -481,6 +481,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
   end
 
+  test "preloading has_many :through with association inheritance" do
+    authors = Author.includes(:very_special_comments).to_a
+    assert_no_queries do
+      special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size]}
+      assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
+    end
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
     author = Author.all.merge!(:includes => :special_nonexistant_post_comments, :order => 'authors.id').first
     assert_equal [], author.special_nonexistant_post_comments
