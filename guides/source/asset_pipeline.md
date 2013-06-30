@@ -20,14 +20,14 @@ The asset pipeline provides a framework to concatenate and minify or compress Ja
 
 The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets-rails](https://github.com/rails/sprockets-rails) gem. However, the sprockets-rails gem is included in the Rails 4 gemspec as a dependency, so the asset pipeline is included by default and you don't have to do anything to enable it.
 
-Rails 4 also automatically adds the 'sass-rails' and 'uglifier' gems to your Gemfile, which are both used by Sprockets for asset compression:
+Rails 4 also automatically adds the 'sass-rails' and 'uglifier' gems to your Gemfile, both of which are used by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails', '~> 4.0.0'
 gem 'uglifier', '>= 1.3.0'
 ```
 
-You will have to add gems to support any other type of asset compression you may want to use.
+Sprockets allows you to use alternative compression methods. You will have to add gems to support any other type of asset compression you may want to use.
 
 If you use the --skip-sprockets option when creating a new Rails 4 app, then those gems are not added to `Gemfile` and will have to be added if you later want to use the asset pipeline:
 
