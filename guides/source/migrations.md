@@ -314,7 +314,7 @@ will produce a migration that looks like this
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
     add_column :products, :price, precision: 5, scale: 2
-    add_reference :products, :user, polymorphic: true, index: true
+    add_reference :products, :supplier, polymorphic: true, index: true
   end
 end
 ```
