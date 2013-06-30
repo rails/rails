@@ -216,6 +216,11 @@ Action Mailer makes it very easy to add attachments.
     attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
     ```
 
+  When the `mail` method will be triggered, it will send a multipart email with
+  an attachment, properly nested with the top level being `multipart/mixed` and
+  the first part being a `multipart/alternative` containing the plain text and
+  HTML email messages.
+
 NOTE: Mail will automatically Base64 encode an attachment. If you want something
 different, encode your content and pass in the encoded content and encoding in a
 `Hash` to the `attachments` method.
@@ -450,26 +455,6 @@ with the HTML and text versions setup as different parts.
 
 The order of the parts getting inserted is determined by the `:parts_order`
 inside of the `ActionMailer::Base.default` method.
-
-### Sending Emails with Attachments
-
-Attachments can be added by using the `attachments` method:
-
-```ruby
-class UserMailer < ActionMailer::Base
-  def welcome_email(user)
-    @user = user
-    @url  = user_url(@user)
-    attachments['terms.pdf'] = File.read('/path/terms.pdf')
-    mail(to: @user.email,
-         subject: 'Please see the Terms and Conditions attached')
-  end
-end
-```
-
-The above will send a multipart email with an attachment, properly nested with
-the top level being `multipart/mixed` and the first part being a
-`multipart/alternative` containing the plain text and HTML email messages.
 
 ### Sending Emails with Dynamic Delivery Options
 
