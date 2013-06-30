@@ -12,6 +12,10 @@ require 'active_support/logger'
 
 require 'support/config'
 require 'support/connection'
+require 'support/helper'
+
+# Quote "type" if it's a reserved word for the current connection.
+QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods

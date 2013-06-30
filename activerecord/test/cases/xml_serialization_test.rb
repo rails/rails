@@ -251,7 +251,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert_equal "integer", xml.elements["//parent-id"].attributes['type']
     assert_equal "true", xml.elements["//parent-id"].attributes['nil']
 
-    if current_adapter?(:SybaseAdapter)
+    if ARTest.current_adapter?(:SybaseAdapter)
       assert_equal last_read_in_current_timezone, xml.elements["//last-read"].text
       assert_equal "dateTime" , xml.elements["//last-read"].attributes['type']
     else
@@ -261,7 +261,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     end
 
     # Oracle and DB2 don't have true boolean or time-only fields
-    unless current_adapter?(:OracleAdapter, :DB2Adapter)
+    unless ARTest.current_adapter?(:OracleAdapter, :DB2Adapter)
       assert_equal "false", xml.elements["//approved"].text
       assert_equal "boolean" , xml.elements["//approved"].attributes['type']
 

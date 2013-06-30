@@ -101,7 +101,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
     output = stream.string
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if ARTest.current_adapter?(:PostgreSQLAdapter)
       assert_match %r{c_int_1.*limit: 2}, output
       assert_match %r{c_int_2.*limit: 2}, output
 
@@ -111,14 +111,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*limit:}, output
-    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    elsif ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
 
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*:limit}, output
-    elsif current_adapter?(:SQLite3Adapter)
+    elsif ARTest.current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
@@ -127,12 +127,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{c_int_without_limit.*}, output
     assert_no_match %r{c_int_without_limit.*limit:}, output
 
-    if current_adapter?(:SQLite3Adapter)
+    if ARTest.current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_5.*limit: 5}, output
       assert_match %r{c_int_6.*limit: 6}, output
       assert_match %r{c_int_7.*limit: 7}, output
       assert_match %r{c_int_8.*limit: 8}, output
-    elsif current_adapter?(:OracleAdapter)
+    elsif ARTest.current_adapter?(:OracleAdapter)
       assert_match %r{c_int_5.*limit: 5}, output
       assert_match %r{c_int_6.*limit: 6}, output
       assert_match %r{c_int_7.*limit: 7}, output
@@ -177,7 +177,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
-    if current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter) || current_adapter?(:PostgreSQLAdapter)
+    if ARTest.current_adapter?(:MysqlAdapter) || ARTest.current_adapter?(:Mysql2Adapter) || ARTest.current_adapter?(:PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
@@ -186,9 +186,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_partial_indices
     index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter)
+    if ARTest.current_adapter?(:PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
-    elsif current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+    elsif ARTest.current_adapter?(:MysqlAdapter) || ARTest.current_adapter?(:Mysql2Adapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index"', index_definition
@@ -202,7 +202,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  if ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
       assert_match %r{t.text\s+"body",\s+null: false$}, output
@@ -241,7 +241,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2.78}, output
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
+  if ARTest.current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
       output = standard_dump
       assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
@@ -337,7 +337,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
     # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 38,\s+scale: 0}, output
     else
       assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 55,\s+scale: 0}, output

@@ -57,7 +57,7 @@ module ActiveRecord
           assert_equal %Q{title varchar(20) DEFAULT 'Hello' NOT NULL}, @viz.accept(column_def)
       end
 
-      if current_adapter?(:MysqlAdapter)
+      if ARTest.current_adapter?(:MysqlAdapter)
         def test_should_set_default_for_mysql_binary_data_types
           binary_column = MysqlAdapter::Column.new("title", "a", "binary(1)")
           assert_equal "a", binary_column.default
@@ -91,7 +91,7 @@ module ActiveRecord
         end
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if ARTest.current_adapter?(:Mysql2Adapter)
         def test_should_set_default_for_mysql_binary_data_types
           binary_column = Mysql2Adapter::Column.new("title", "a", "binary(1)")
           assert_equal "a", binary_column.default
@@ -125,7 +125,7 @@ module ActiveRecord
         end
       end
 
-      if current_adapter?(:PostgreSQLAdapter)
+      if ARTest.current_adapter?(:PostgreSQLAdapter)
         def test_bigint_column_should_map_to_integer
           oid = PostgreSQLAdapter::OID::Identity.new
           bigint_column = PostgreSQLColumn.new('number', nil, oid, "bigint")

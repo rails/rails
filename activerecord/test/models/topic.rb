@@ -46,7 +46,7 @@ class Topic < ActiveRecord::Base
 
   # Explicitly define as :date column so that returned Oracle DATE values would be typecasted to Date and not Time.
   # Some tests depend on assumption that this attribute will have Date values.
-  if current_adapter?(:OracleEnhancedAdapter)
+  if ARTest.current_adapter?(:OracleEnhancedAdapter)
     set_date_columns :last_read
   end
 

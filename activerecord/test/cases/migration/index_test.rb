@@ -28,7 +28,7 @@ module ActiveRecord
       end
 
       def test_rename_index
-        skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+        skip "not supported on openbase" if ARTest.current_adapter?(:OpenBaseAdapter)
 
         # keep the names short to make Oracle and similar behave
         connection.add_index(table_name, [:foo], :name => 'old_idx')
@@ -40,7 +40,7 @@ module ActiveRecord
       end
 
       def test_double_add_index
-        skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+        skip "not supported on openbase" if ARTest.current_adapter?(:OpenBaseAdapter)
 
         connection.add_index(table_name, [:foo], :name => 'some_idx')
         assert_raises(ArgumentError) {
@@ -49,7 +49,7 @@ module ActiveRecord
       end
 
       def test_remove_nonexistent_index
-        skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+        skip "not supported on openbase" if ARTest.current_adapter?(:OpenBaseAdapter)
 
         # we do this by name, so OpenBase is a wash as noted above
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
@@ -133,13 +133,13 @@ module ActiveRecord
 
         # Orcl nds shrt indx nms.  Sybs 2.
         # OpenBase does not have named indexes.  You must specify a single column name
-        unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+        unless ARTest.current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
           connection.add_index("testings", ["last_name", "first_name"])
           connection.remove_index("testings", :column => ["last_name", "first_name"])
 
           # Oracle adapter cannot have specified index name larger than 30 characters
           # Oracle adapter is shortening index name when just column list is given
-          unless current_adapter?(:OracleAdapter)
+          unless ARTest.current_adapter?(:OracleAdapter)
             connection.add_index("testings", ["last_name", "first_name"])
             connection.remove_index("testings", :name => :index_testings_on_last_name_and_first_name)
             connection.add_index("testings", ["last_name", "first_name"])
@@ -164,20 +164,20 @@ module ActiveRecord
         # quoting
         # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
         # OpenBase does not have named indexes.  You must specify a single column name
-        unless current_adapter?(:OpenBaseAdapter)
+        unless ARTest.current_adapter?(:OpenBaseAdapter)
           connection.add_index("testings", ["key"], :name => "key_idx", :unique => true)
           connection.remove_index("testings", :name => "key_idx", :unique => true)
         end
 
         # Sybase adapter does not support indexes on :boolean columns
         # OpenBase does not have named indexes.  You must specify a single column
-        unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+        unless ARTest.current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
           connection.add_index("testings", %w(last_name first_name administrator), :name => "named_admin")
           connection.remove_index("testings", :name => "named_admin")
         end
 
         # Selected adapters support index sort order
-        if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+        if ARTest.current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
           connection.add_index("testings", ["last_name"], :order => {:last_name => :desc})
           connection.remove_index("testings", ["last_name"])
           connection.add_index("testings", ["last_name", "first_name"], :order => {:last_name => :desc})
@@ -190,7 +190,7 @@ module ActiveRecord
       end
 
       def test_add_partial_index
-        skip 'only on pg' unless current_adapter?(:PostgreSQLAdapter)
+        skip 'only on pg' unless ARTest.current_adapter?(:PostgreSQLAdapter)
 
         connection.add_index("testings", "last_name", :where => "first_name = 'john doe'")
         assert connection.index_exists?("testings", "last_name")

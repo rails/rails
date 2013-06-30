@@ -159,7 +159,7 @@ ActiveRecord::Schema.define do
     t.integer :post_id, :null => false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       t.string  :body, :null => false, :limit => 4000
     else
       t.text    :body, :null => false
@@ -436,7 +436,7 @@ ActiveRecord::Schema.define do
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
     t.float   :temperature
     # Oracle/SQLServer supports precision up to 38
-    if current_adapter?(:OracleAdapter,:SQLServerAdapter)
+    if ARTest.current_adapter?(:OracleAdapter,:SQLServerAdapter)
       t.decimal :atoms_in_universe, :precision => 38, :scale => 0
     else
       t.decimal :atoms_in_universe, :precision => 55, :scale => 0
@@ -528,7 +528,7 @@ ActiveRecord::Schema.define do
     t.string  :title, :null => false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       t.string  :body, :null => false, :limit => 4000
     else
       t.text    :body, :null => false
@@ -666,7 +666,7 @@ ActiveRecord::Schema.define do
     t.date     :last_read
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       t.string   :content, :limit => 4000
       t.string   :important, :limit => 4000
     else

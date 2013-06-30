@@ -120,7 +120,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   def test_binary_data_is_not_logged
-    skip if current_adapter?(:Mysql2Adapter)
+    skip if ARTest.current_adapter?(:Mysql2Adapter)
 
     Binary.create(data: 'some binary data')
     wait

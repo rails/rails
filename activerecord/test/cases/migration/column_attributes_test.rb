@@ -45,7 +45,7 @@ module ActiveRecord
       end
 
       def test_unabstracted_database_dependent_types
-        skip "not supported" unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        skip "not supported" unless ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
         add_column :test_models, :intelligence_quotient, :tinyint
         TestModel.reset_column_information
@@ -61,11 +61,11 @@ module ActiveRecord
         connection.add_column "test_models", "wealth", :decimal, :precision => '30', :scale => '10'
 
         # Do a manual insertion
-        if current_adapter?(:OracleAdapter)
+        if ARTest.current_adapter?(:OracleAdapter)
           connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-        elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
+        elsif ARTest.current_adapter?(:OpenBaseAdapter) || (ARTest.current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
           connection.execute "insert into test_models (wealth) values ('12345678901234567890.0123456789')"
-        elsif current_adapter?(:PostgreSQLAdapter)
+        elsif ARTest.current_adapter?(:PostgreSQLAdapter)
           connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         else
           connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
@@ -76,7 +76,7 @@ module ActiveRecord
         assert_kind_of BigDecimal, row.wealth
 
         # If this assert fails, that means the SELECT is broken!
-        unless current_adapter?(:SQLite3Adapter)
+        unless ARTest.current_adapter?(:SQLite3Adapter)
           assert_equal correct_value, row.wealth
         end
 
@@ -91,7 +91,7 @@ module ActiveRecord
         assert_kind_of BigDecimal, row.wealth
 
         # If these asserts fail, that means the INSERT (create function, or cast to SQL) is broken!
-        unless current_adapter?(:SQLite3Adapter)
+        unless ARTest.current_adapter?(:SQLite3Adapter)
           assert_equal correct_value, row.wealth
         end
       end
@@ -105,7 +105,7 @@ module ActiveRecord
       end
 
       def test_change_column_preserve_other_column_precision_and_scale
-        skip "only on sqlite3" unless current_adapter?(:SQLite3Adapter)
+        skip "only on sqlite3" unless ARTest.current_adapter?(:SQLite3Adapter)
 
         connection.add_column 'test_models', 'last_name', :string
         connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
@@ -149,7 +149,7 @@ module ActiveRecord
         # Test for 30 significant digits (beyond the 16 of float), 10 of them
         # after the decimal place.
 
-        unless current_adapter?(:SQLite3Adapter)
+        unless ARTest.current_adapter?(:SQLite3Adapter)
           assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
         end
 
@@ -161,7 +161,7 @@ module ActiveRecord
         assert_equal Fixnum, bob.age.class
         assert_equal Time, bob.birthday.class
 
-        if current_adapter?(:OracleAdapter, :SybaseAdapter)
+        if ARTest.current_adapter?(:OracleAdapter, :SybaseAdapter)
           # Sybase, and Oracle don't differentiate between date/time
           assert_equal Time, bob.favorite_day.class
         else
@@ -170,12 +170,12 @@ module ActiveRecord
 
         # Oracle adapter stores Time or DateTime with timezone value already in _before_type_cast column
         # therefore no timezone change is done afterwards when default timezone is changed
-        unless current_adapter?(:OracleAdapter)
+        unless ARTest.current_adapter?(:OracleAdapter)
           # Test DateTime column and defaults, including timezone.
           # FIXME: moment of truth may be Time on 64-bit platforms.
           if bob.moment_of_truth.is_a?(DateTime)
 
-            with_env_tz 'US/Eastern' do
+            ARTest.with_env_tz 'US/Eastern' do
               bob.reload
               assert_equal DateTime.local_offset, bob.moment_of_truth.offset
               assert_not_equal 0, bob.moment_of_truth.offset
@@ -193,11 +193,11 @@ module ActiveRecord
       end
 
       def test_out_of_range_limit_should_raise
-        skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+        skip("MySQL and PostgreSQL only") unless ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
 
         assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
 
-        unless current_adapter?(:PostgreSQLAdapter)
+        unless ARTest.current_adapter?(:PostgreSQLAdapter)
           assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
         end
       end

@@ -50,7 +50,7 @@ module ActiveRecord
 
       def test_create_table_with_defaults
         # MySQL doesn't allow defaults on TEXT or BLOB columns.
-        mysql = current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        mysql = ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
         connection.create_table :testings do |t|
           t.column :one, :string, :default => "hello"
@@ -75,7 +75,7 @@ module ActiveRecord
       end
 
       def test_add_column_with_array
-        if current_adapter?(:PostgreSQLAdapter)
+        if ARTest.current_adapter?(:PostgreSQLAdapter)
           connection.create_table :testings
           connection.add_column :testings, :foo, :string, :array => true
 
@@ -89,7 +89,7 @@ module ActiveRecord
       end
 
       def test_create_table_with_array_column
-        if current_adapter?(:PostgreSQLAdapter)
+        if ARTest.current_adapter?(:PostgreSQLAdapter)
           connection.create_table :testings do |t|
             t.string :foo, :array => true
           end
@@ -123,17 +123,17 @@ module ActiveRecord
         four    = columns.detect { |c| c.name == "four_int"    }
         eight   = columns.detect { |c| c.name == "eight_int"   }
 
-        if current_adapter?(:PostgreSQLAdapter)
+        if ARTest.current_adapter?(:PostgreSQLAdapter)
           assert_equal 'integer', default.sql_type
           assert_equal 'smallint', one.sql_type
           assert_equal 'integer', four.sql_type
           assert_equal 'bigint', eight.sql_type
-        elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        elsif ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
           assert_match 'int(11)', default.sql_type
           assert_match 'tinyint', one.sql_type
           assert_match 'int', four.sql_type
           assert_match 'bigint', eight.sql_type
-        elsif current_adapter?(:OracleAdapter)
+        elsif ARTest.current_adapter?(:OracleAdapter)
           assert_equal 'NUMBER(38)', default.sql_type
           assert_equal 'NUMBER(1)', one.sql_type
           assert_equal 'NUMBER(4)', four.sql_type
@@ -214,7 +214,7 @@ module ActiveRecord
       def test_add_column_not_null_without_default
         # Sybase, and SQLite3 will not allow you to add a NOT NULL
         # column to a table without a default value.
-        if current_adapter?(:SybaseAdapter, :SQLite3Adapter)
+        if ARTest.current_adapter?(:SybaseAdapter, :SQLite3Adapter)
           skip "not supported on #{connection.class}"
         end
 
@@ -234,13 +234,13 @@ module ActiveRecord
         end
 
         con = connection
-        connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
+        connection.enable_identity_insert("testings", true) if ARTest.current_adapter?(:SybaseAdapter)
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
+        connection.enable_identity_insert("testings", false) if ARTest.current_adapter?(:SybaseAdapter)
         assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
         assert_raises(ActiveRecord::StatementInvalid) do
-          unless current_adapter?(:OpenBaseAdapter)
+          unless ARTest.current_adapter?(:OpenBaseAdapter)
             connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
           else
             connection.insert("INSERT INTO testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) VALUES (2, 'hello', NULL)",
@@ -257,7 +257,7 @@ module ActiveRecord
         connection.change_column :testings, :select, :string, :limit => 10
 
         # Oracle needs primary key value from sequence
-        if current_adapter?(:OracleAdapter)
+        if ARTest.current_adapter?(:OracleAdapter)
           connection.execute "insert into testings (id, #{connection.quote_column_name('select')}) values (testings_seq.nextval, '7 chars')"
         else
           connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
@@ -276,7 +276,7 @@ module ActiveRecord
         assert_equal 99, person_klass.columns_hash["wealth"].default
         assert_equal false, person_klass.columns_hash["wealth"].null
         # Oracle needs primary key value from sequence
-        if current_adapter?(:OracleAdapter)
+        if ARTest.current_adapter?(:OracleAdapter)
           assert_nothing_raised {person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')")}
         else
           assert_nothing_raised {person_klass.connection.execute("insert into testings (title) values ('tester')")}

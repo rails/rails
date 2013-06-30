@@ -350,7 +350,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_is_threadsafe
-    if in_memory_db?
+    if ARTest.in_memory_db?
       skip "in memory db can't share a db between threads"
     end
 

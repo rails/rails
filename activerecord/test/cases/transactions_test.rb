@@ -410,7 +410,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.destroyed?, 'not destroyed'
   end
 
-  if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
+  if ARTest.current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
     def test_outside_transaction_works
       assert assert_deprecated { Topic.connection.outside_transaction? }
       Topic.connection.begin_db_transaction
@@ -421,7 +421,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_sqlite_add_column_in_transaction
-    return true unless current_adapter?(:SQLite3Adapter)
+    return true unless ARTest.current_adapter?(:SQLite3Adapter)
 
     # Test first if column creation/deletion works correctly when no
     # transaction is in place.
@@ -531,7 +531,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if current_adapter?(:PostgreSQLAdapter)
+if ARTest.current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.

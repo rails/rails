@@ -62,7 +62,7 @@ module ActiveRecord
         assert_equal 70000, default_after
       end
 
-      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      if ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
           assert_equal "auto_increment", connection.columns("test_models").find { |c| c.name == "id_test" }.extra
@@ -70,7 +70,7 @@ module ActiveRecord
       end
 
       def test_rename_nonexistent_column
-        exception = if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+        exception = if ARTest.current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
                       ActiveRecord::StatementInvalid
                     else
                       ActiveRecord::ActiveRecordError
@@ -103,14 +103,14 @@ module ActiveRecord
         add_index "test_models", ["hat_style", "hat_size"], unique: true
 
         rename_column "test_models", "hat_size", 'size'
-        if current_adapter? :OracleAdapter
+        if ARTest.current_adapter? :OracleAdapter
           assert_equal ['i_test_models_hat_style_size'], connection.indexes('test_models').map(&:name)
         else
           assert_equal ['index_test_models_on_hat_style_and_size'], connection.indexes('test_models').map(&:name)
         end
 
         rename_column "test_models", "hat_style", 'style'
-        if current_adapter? :OracleAdapter
+        if ARTest.current_adapter? :OracleAdapter
           assert_equal ['i_test_models_style_size'], connection.indexes('test_models').map(&:name)
         else
           assert_equal ['index_test_models_on_style_and_size'], connection.indexes('test_models').map(&:name)
@@ -145,7 +145,7 @@ module ActiveRecord
 
         # Every database and/or database adapter has their own behavior
         # if it drops the multi-column index when any of the indexed columns dropped by remove_column.
-        if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+        if ARTest.current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
           assert_equal [], connection.indexes('test_models').map(&:name)
         else
           assert_equal ['index_test_models_on_hat_style_and_hat_size'], connection.indexes('test_models').map(&:name)

@@ -9,7 +9,7 @@ module ActiveRecord
       def setup
         super
 
-        unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        unless ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
           skip "not supported on #{connection.class}"
         end
 

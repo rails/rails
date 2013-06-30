@@ -67,7 +67,7 @@ module ActiveRecord
 
   class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
     def setup
-      unless current_adapter?(:MysqlAdapter)
+      unless ARTest.current_adapter?(:MysqlAdapter)
         return skip("only tested on mysql")
       end
 
