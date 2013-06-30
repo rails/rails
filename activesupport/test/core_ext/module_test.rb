@@ -59,9 +59,7 @@ class Someone < Struct.new(:name, :place)
 
   delegate :setter=, to: :arg
   def arg
-    @arg ||= Class.new do
-      attr_writer :setter
-    end.new
+    @arg ||= Struct.new(:setter).new
   end
 end
 
