@@ -982,7 +982,8 @@ module ActionDispatch
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit]
+            [:index, :create, :new, :show, :update, :destroy, :edit,
+              :create_many, :replace_all, :update_all, :destroy_all]
           end
 
           def actions
@@ -1264,8 +1265,12 @@ module ActionDispatch
             concerns(options[:concerns]) if options[:concerns]
 
             collection do
-              get  :index if parent_resource.actions.include?(:index)
-              post :create if parent_resource.actions.include?(:create)
+              get    :index if parent_resource.actions.include?(:index)
+              put    :replace_all if parent_resource.actions.include?(:replace_all)
+              post   :create if parent_resource.actions.include?(:create)
+              post   :create_many if parent_resource.actions.include?(:create_many)
+              patch  :update_all if parent_resource.actions.include?(:update_all)
+              delete :destroy_all if parent_resource.actions.include?(:replace_all)
             end
 
             new do
