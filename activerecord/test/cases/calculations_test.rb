@@ -136,7 +136,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_is_kept
-    return if current_adapter?(:OracleAdapter)
+    return if ARTest.current_adapter?(:OracleAdapter)
 
     queries = assert_sql { Account.limit(1).count }
     assert_equal 1, queries.length
@@ -144,7 +144,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
+    return if ARTest.current_adapter?(:OracleAdapter)
 
     queries = assert_sql { Account.offset(1).count }
     assert_equal 1, queries.length
@@ -152,7 +152,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_with_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
+    return if ARTest.current_adapter?(:OracleAdapter)
 
     queries = assert_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
@@ -395,7 +395,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_sum_expression
     # Oracle adapter returns floating point value 636.0 after SUM
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       assert_equal 636, Account.sum("2 * credit_limit")
     else
       assert_equal 636, Account.sum("2 * credit_limit").to_i

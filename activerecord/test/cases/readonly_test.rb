@@ -83,7 +83,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
-    unless current_adapter?(:OracleAdapter)
+    unless ARTest.current_adapter?(:OracleAdapter)
       Post.joins(', developers').scoping do
         assert_not Post.find(1).readonly?
         assert Post.readonly.find(1).readonly?

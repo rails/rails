@@ -4,7 +4,7 @@ require "cases/helper"
 # Without using prepared statements, it makes no sense to test
 # BLOB data with DB2 or Firebird, because the length of a statement
 # is limited to 32KB.
-unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
+unless ARTest.current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
   require 'models/binary'
 
   class BinaryTest < ActiveRecord::TestCase
@@ -22,7 +22,7 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
       name = binary.name
 
       # Mysql adapter doesn't properly encode things, so we have to do it
-      if current_adapter?(:MysqlAdapter)
+      if ARTest.current_adapter?(:MysqlAdapter)
         name.force_encoding(Encoding::UTF_8)
       end
       assert_equal 'いただきます！', name

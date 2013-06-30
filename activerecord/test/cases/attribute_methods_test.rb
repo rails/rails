@@ -170,7 +170,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
-  if current_adapter?(:MysqlAdapter)
+  if ARTest.current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Boolean.create({ "value" => false })
       if RUBY_PLATFORM =~ /java/
@@ -248,7 +248,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_case_sensitive_attributes_hash
     # DB2 is not case-sensitive
-    return true if current_adapter?(:DB2Adapter)
+    return true if ARTest.current_adapter?(:DB2Adapter)
 
     assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
@@ -486,7 +486,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_typecast_attribute_from_select_to_false
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(:select => "topics.*, 0 as is_test").first
     else
       topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
@@ -497,7 +497,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_typecast_attribute_from_select_to_true
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(:select => "topics.*, 1 as is_test").first
     else
       topic = Topic.all.merge!(:select => "topics.*, 2=2 as is_test").first

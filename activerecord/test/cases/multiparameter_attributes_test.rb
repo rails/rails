@@ -242,7 +242,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+  unless ARTest.current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_multiparameter_attributes_on_time_only_column_with_time_zone_aware_attributes_does_not_do_time_zone_conversion
       ActiveRecord::Base.time_zone_aware_attributes = true
       ActiveRecord::Base.default_timezone = :utc
@@ -269,7 +269,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
   end
 
   def test_multiparameter_attributes_setting_time_attribute
-    return skip "Oracle does not have TIME data type" if current_adapter? :OracleAdapter
+    return skip "Oracle does not have TIME data type" if ARTest.current_adapter? :OracleAdapter
 
     topic = Topic.new( "bonus_time(4i)"=> "01", "bonus_time(5i)" => "05" )
     assert_equal 1, topic.bonus_time.hour

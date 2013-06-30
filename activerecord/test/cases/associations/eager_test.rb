@@ -522,7 +522,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
-    if current_adapter?(:OpenBaseAdapter)
+    if ARTest.current_adapter?(:OpenBaseAdapter)
       posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "FETCHBLOB(posts.body) = 'hello'", :order => "posts.id").to_a
     else
       posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").to_a
@@ -532,7 +532,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array
-    if current_adapter?(:OpenBaseAdapter)
+    if ARTest.current_adapter?(:OpenBaseAdapter)
       posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "FETCHBLOB(posts.body) = ?", 'hello' ], :order => "posts.id").to_a
     else
       posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").to_a
@@ -922,9 +922,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_count_with_include
-    if current_adapter?(:SybaseAdapter)
+    if ARTest.current_adapter?(:SybaseAdapter)
       assert_equal 3, authors(:david).posts_with_comments.where("len(comments.body) > 15").references(:comments).count
-    elsif current_adapter?(:OpenBaseAdapter)
+    elsif ARTest.current_adapter?(:OpenBaseAdapter)
       assert_equal 3, authors(:david).posts_with_comments.where("length(FETCHBLOB(comments.body)) > 15").references(:comments).count
     else
       assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
@@ -1052,7 +1052,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_include_has_many_using_primary_key
     expected = Firm.find(1).clients_using_primary_key.sort_by(&:name)
     # Oracle adapter truncates alias to 30 characters
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       firm = Firm.all.merge!(:includes => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies'[0,30]+'.name').find(1)
     else
       firm = Firm.all.merge!(:includes => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name').find(1)

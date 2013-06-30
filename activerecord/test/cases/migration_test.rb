@@ -152,7 +152,7 @@ class MigrationTest < ActiveRecord::TestCase
     # This one is fun. The 'value_of_e' field is defined as 'DECIMAL' with
     # precision/scale explicitly left out.  By the SQL standard, numbers
     # assigned to this field should be truncated but that's seldom respected.
-    if current_adapter?(:PostgreSQLAdapter)
+    if ARTest.current_adapter?(:PostgreSQLAdapter)
       # - PostgreSQL changes the SQL spec on columns declared simply as
       # "decimal" to something more useful: instead of being given a scale
       # of 0, they take on the compile-time limit for precision and scale,
@@ -162,7 +162,7 @@ class MigrationTest < ActiveRecord::TestCase
       # so this happens there too
       assert_kind_of BigDecimal, b.value_of_e
       assert_equal BigDecimal("2.7182818284590452353602875"), b.value_of_e
-    elsif current_adapter?(:SQLite3Adapter)
+    elsif ARTest.current_adapter?(:SQLite3Adapter)
       # - SQLite3 stores a float, in violation of SQL
       assert_kind_of BigDecimal, b.value_of_e
       assert_in_delta BigDecimal("2.71828182845905"), b.value_of_e, 0.00000000000001
@@ -406,7 +406,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_custom_sequence_name
-    skip "not supported" unless current_adapter? :OracleAdapter
+    skip "not supported" unless ARTest.current_adapter? :OracleAdapter
 
     # table name is 29 chars, the standard sequence name will
     # be 33 chars and should be shortened
@@ -443,7 +443,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_out_of_range_limit_should_raise
-    skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+    skip("MySQL and PostgreSQL only") unless ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
 
     Person.connection.drop_table :test_limits rescue nil
     assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
@@ -452,7 +452,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless ARTest.current_adapter?(:PostgreSQLAdapter)
       assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
         Person.connection.create_table :test_text_limits, :force => true do |t|
           t.column :bigtext, :text, :limit => 0xfffffffff
@@ -462,14 +462,6 @@ class MigrationTest < ActiveRecord::TestCase
 
     Person.connection.drop_table :test_limits rescue nil
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class ReservedWordsMigrationTest < ActiveRecord::TestCase

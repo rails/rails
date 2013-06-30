@@ -5,7 +5,7 @@ require 'models/entrant'
 class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
     column_defaults =
-      if current_adapter?(:MysqlAdapter) && (Mysql.client_version < 50051 || (50100..50122).include?(Mysql.client_version))
+      if ARTest.current_adapter?(:MysqlAdapter) && (Mysql.client_version < 50051 || (50100..50122).include?(Mysql.client_version))
         { 'id' => nil, 'name' => '',  'course_id' => nil }
       else
         { 'id' => nil, 'name' => nil, 'course_id' => nil }
@@ -18,7 +18,7 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
+  if ARTest.current_adapter?(:PostgreSQLAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
     def test_default_integers
       default = Default.new
       assert_instance_of Fixnum, default.positive_integer
@@ -30,7 +30,7 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
+  if ARTest.current_adapter?(:PostgreSQLAdapter)
     def test_multiline_default_text
       # older postgres versions represent the default with escapes ("\\012" for a newline)
       assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
@@ -64,7 +64,7 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional fixtures mode, this will
@@ -173,7 +173,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
+if ARTest.current_adapter?(:PostgreSQLAdapter)
   class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
     def setup
       @connection = ActiveRecord::Base.connection

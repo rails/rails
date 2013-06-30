@@ -51,7 +51,7 @@ module ActiveRecord
       end
 
       def test_creates_polymorphic_index
-        return skip "Oracle Adapter does not support foreign keys if :polymorphic => true is used" if current_adapter? :OracleAdapter
+        return skip "Oracle Adapter does not support foreign keys if :polymorphic => true is used" if ARTest.current_adapter? :OracleAdapter
 
         connection.create_table table_name do |t|
           t.references :foo, :polymorphic => true, :index => true
@@ -88,7 +88,7 @@ module ActiveRecord
       end
 
       def test_creates_polymorphic_index_for_existing_table
-        return skip "Oracle Adapter does not support foreign keys if :polymorphic => true is used" if current_adapter? :OracleAdapter
+        return skip "Oracle Adapter does not support foreign keys if :polymorphic => true is used" if ARTest.current_adapter? :OracleAdapter
         connection.create_table table_name
         connection.change_table table_name do |t|
           t.references :foo, :polymorphic => true, :index => true
