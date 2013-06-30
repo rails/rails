@@ -253,7 +253,7 @@ user = User.first
 
 ```ruby
 # return the first user named David
-david = User.find_by_name('David')
+david = User.find_by(name: 'David')
 ```
 
 ```ruby
@@ -270,7 +270,7 @@ Once an Active Record object has been retrieved, its attributes can be modified
 and it can be saved to the database.
 
 ```ruby
-user = User.find_by_name('David')
+user = User.find_by(name: 'David')
 user.name = 'Dave'
 user.save
 ```
@@ -279,7 +279,7 @@ A shorthand for this is to use a hash mapping attribute names to the desired
 value, like so:
 
 ```ruby
-user = User.find_by_name('David')
+user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
@@ -297,7 +297,7 @@ Likewise, once retrieved an Active Record object can be destroyed which removes
 it from the database.
 
 ```ruby
-user = User.find_by_name('David')
+user = User.find_by(name: 'David')
 user.destroy
 ```
 
