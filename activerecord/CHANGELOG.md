@@ -1,3 +1,16 @@
+*   Do not invoke callbacks when `delete_all` is called on collection.
+ 
+    Method `delete_all` should not be invoking callbacks and this
+    feature was deprecated in Rails 4.0. This is being removed.
+    `delete_all` will continue to honor the `:dependent` option. However
+    if `:dependent` value is `:destroy` then the default deletion
+    strategy for that collection will be applied.
+
+    User can also force a deletion strategy by passing parameter to
+    `delete_all`. For example you can do `@post.comments.delete_all(:nullify)` .
+
+    *Neeraj Singh*
+
 *   Remove implicit join references that were deprecated in 4.0.
 
     Example:
