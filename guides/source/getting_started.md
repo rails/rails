@@ -531,27 +531,19 @@ and change the `create` action to look like this:
 
 ```ruby
 def create
-  @post = Post.new(post_params)
+  @post = Post.new(params[:post])
  
   @post.save
   redirect_to @post
 end
-
-private
-  def post_params
-    params.require(:post).permit(:title, :text)
-  end
 ```
 
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
-`post_params` contains the attributes we're interested in). Then,
-`@post.save` is responsible for saving the model in the database.
-Finally, we redirect the user to the `show` action,
-which we'll define later.
-
-TIP: Note that `def post_params` is private. This new approach prevents an attacker from setting the model's attributes by manipulating the hash passed to the model. For more information, refer to [this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+database columns. In the first line we do just that
+(remember that `params[:post]` contains the attributes we're interested in).
+Then, `@post.save` is responsible for saving the model in the database.
+Finally, we redirect the user to the `show` action, which we'll define later.
 
 TIP: As we'll see later, `@post.save` returns a boolean indicating
 whether the model was saved or not.
@@ -630,6 +622,11 @@ action. With this change, you should finally be able to create new `Post`s.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
+
+TIP: Note that `def post_params` is private. This new approach prevents an attacker from
+setting the model's attributes by manipulating the hash passed to the model.
+For more information, refer to
+[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Listing all posts
 
