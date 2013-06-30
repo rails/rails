@@ -18,7 +18,7 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
-The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets-rails](https://github.com/rails/sprockets-rails) gem. However, the sprockets-rails gem is included in the Rails 4 gemspec as a dependency, so you don't have to do anything to use asset pipelining in a Rails 4 application, it is included by default.
+The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets-rails](https://github.com/rails/sprockets-rails) gem. However, the sprockets-rails gem is included in the Rails 4 gemspec as a dependency, so the asset pipeline is included by default and you don't have to do anything to enable it.
 
 Rails 4 also automatically adds the 'sass-rails' and 'uglifier' gems to your Gemfile, which are both used by Sprockets for asset compression:
 
