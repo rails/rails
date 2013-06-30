@@ -1,3 +1,10 @@
+*   Both `cattr_*` and `mattr_*` method definitions now live in `active_support/core_ext/module/attribute_accessors`.
+
+    Requires to `active_support/core_ext/class/attribute_accessors` are
+    deprecated and will be removed in Ruby on Rails 4.2.
+
+    *Genadi Samokovarov*
+
 *   Deprecated `Numeric#{ago,until,since,from_now}`, the user is expected to explicitly
     convert the value into an AS::Duration, i.e. `5.ago` => `5.seconds.ago`
 
