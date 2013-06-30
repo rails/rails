@@ -1270,7 +1270,7 @@ module ActionDispatch
               post   :create if parent_resource.actions.include?(:create)
               post   :create_many if parent_resource.actions.include?(:create_many)
               patch  :update_all if parent_resource.actions.include?(:update_all)
-              delete :destroy_all if parent_resource.actions.include?(:replace_all)
+              delete :destroy_all if parent_resource.actions.include?(:destroy_all)
             end
 
             new do
