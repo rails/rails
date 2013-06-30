@@ -47,27 +47,17 @@ class Someone < Struct.new(:name, :place)
   FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, :to => :place, :allow_nil => true
 
-  delegate :from_block, :to => :block
-
+  delegate :from_block, to: :block
   def block
-    @block ||= Class.new do
-      def from_block
-        'from_block'
-      end
-    end.new
+    @block ||= Struct.new(:from_block).new('from_block')
   end
 
-  delegate :from_args, :to => :args
-
+  delegate :from_args, to: :args
   def args
-    @args ||= Class.new do
-      def from_args
-        'from_args'
-      end
-    end.new
+    @args ||= Struct.new(:from_args).new('from_args')
   end
 
-  delegate :setter=, :to => :arg
+  delegate :setter=, to: :arg
   def arg
     @arg ||= Class.new do
       attr_writer :setter
