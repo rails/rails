@@ -1,3 +1,7 @@
+*   Remove deprecation warning for `auto_explain_threshold_in_seconds`.
+
+    *Yves Senn*
+
 *   Remove deprecated `:distinct` option from `Relation#count`.
 
     *Yves Senn*
