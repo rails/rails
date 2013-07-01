@@ -218,6 +218,16 @@ module ActiveModel
         end
       end
 
+      # Is +new_name+ an alias?
+      def attribute_alias?(new_name)
+        attribute_aliases.key? new_name.to_s
+      end
+
+      # Returns the original name for the alias +name+
+      def attribute_alias(name)
+        attribute_aliases[name.to_s]
+      end
+
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #

@@ -6,8 +6,8 @@ module ActiveRecord
       attributes.each do |column, value|
         table = default_table
 
-        if column.is_a?(Symbol) && klass.attribute_aliases.key?(column.to_s)
-          column = klass.attribute_aliases[column.to_s]
+        if column.is_a?(Symbol) && klass.attribute_alias?(column)
+          column = klass.attribute_alias(column.to_s)
         end
 
         if value.is_a?(Hash)
