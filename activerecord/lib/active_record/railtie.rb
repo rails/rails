@@ -135,17 +135,6 @@ module ActiveRecord
             EOF
           end
 
-          unless app.config.active_record.delete(:auto_explain_threshold_in_seconds).nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              The Active Record auto explain feature has been removed.
-
-              To disable this message remove the `active_record.auto_explain_threshold_in_seconds`
-              option from the `config/environments/*.rb` config file.
-
-              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
-            EOF
-          end
-
           unless app.config.active_record.delete(:observers).nil?
             ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
               Active Record Observers has been extracted out of Rails into a gem.

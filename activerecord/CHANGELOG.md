@@ -1,3 +1,7 @@
+*   Remove deprecation warning for `auto_explain_threshold_in_seconds`.
+
+    *Yves Senn*
+
 *   Removed deprecated methods `partial_updates`, `partial_updates?` and
     `partial_updates=`.
 
