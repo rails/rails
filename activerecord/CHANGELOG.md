@@ -1,3 +1,7 @@
+*   Remove deprecated `:distinct` option from `Relation#count`.
+
+    *Yves Senn*
+
 *   Removed deprecated methods `partial_updates`, `partial_updates?` and
     `partial_updates=`.
 
