@@ -1,3 +1,7 @@
+*   Remove deprecated `assert_present` and `assert_blank` methods.
+
+    *Yves Senn*
+
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 
