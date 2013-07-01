@@ -351,16 +351,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 5, Account.count(:firm_id)
   end
 
-  def test_count_distinct_option_is_deprecated
-    assert_deprecated do
-      assert_equal 4, Account.select(:credit_limit).count(distinct: true)
-    end
-
-    assert_deprecated do
-      assert_equal 6, Account.select(:credit_limit).count(distinct: false)
-    end
-  end
-
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
     assert_equal 4, Account.select(:credit_limit).uniq.count

@@ -194,11 +194,6 @@ module ActiveRecord
 
       # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)
       distinct = self.distinct_value
-      if options.has_key?(:distinct)
-        ActiveSupport::Deprecation.warn "The :distinct option for `Relation#count` is deprecated. " \
-          "Please use `Relation#distinct` instead. (eg. `relation.distinct.count`)"
-        distinct = options[:distinct]
-      end
 
       if operation == "count"
         if select_values.present?
