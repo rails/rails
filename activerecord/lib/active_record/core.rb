@@ -337,14 +337,6 @@ module ActiveRecord
       @readonly = true
     end
 
-    # Returns the connection currently associated with the class. This can
-    # also be used to "borrow" the connection to do database work that isn't
-    # easily done without going straight to SQL.
-    def connection
-      ActiveSupport::Deprecation.warn("#connection is deprecated in favour of accessing it via the class")
-      self.class.connection
-    end
-
     def connection_handler
       self.class.connection_handler
     end

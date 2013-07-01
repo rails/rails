@@ -1,3 +1,8 @@
+*   Remove deprecated `ActiveRecord::Base#connection` method.
+    Make sure to access it via the class.
+
+    *Yves Senn*
+
 *   Remove deprecation warning for `auto_explain_threshold_in_seconds`.
 
     *Yves Senn*
