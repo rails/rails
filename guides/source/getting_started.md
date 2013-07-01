@@ -861,8 +861,7 @@ it look as follows:
 ```html+erb
 <h1>Editing post</h1>
 
-<%= form_for :post, url: post_path(@post.id) },
-method: :patch do |f| %>
+<%= form_for :post, url: post_path(@post.id), method: :patch do |f| %>
   <% if @post.errors.any? %>
   <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -942,7 +941,7 @@ appear next to the "Show" link:
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', post_path %></td>
+    <td><%= link_to 'Show', post_path(post) %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
   </tr>
 <% end %>
@@ -1084,7 +1083,7 @@ together.
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', post_path %></td>
+    <td><%= link_to 'Show', post_path(post) %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
     <td><%= link_to 'Destroy', post_path(post),
                     method: :delete, data: { confirm: 'Are you sure?' } %></td>
@@ -1157,19 +1156,17 @@ class CreateComments < ActiveRecord::Migration
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :post
+      t.references :post, index: true
 
       t.timestamps
     end
-
-    add_index :comments, :post_id
   end
 end
 ```
 
 The `t.references` line sets up a foreign key column for the association between
-the two models. And the `add_index` line sets up an index for this association
-column. Go ahead and run the migration:
+the two models. An index for this association is also created on this column.
+Go ahead and run the migration:
 
 ```bash
 $ rake db:migrate
@@ -1181,10 +1178,8 @@ run against the current database, so in this case you will just see:
 ```bash
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
-   -> 0.0008s
--- add_index(:comments, :post_id)
-   -> 0.0003s
-==  CreateComments: migrated (0.0012s) ========================================
+   -> 0.0115s
+==  CreateComments: migrated (0.0119s) ========================================
 ```
 
 ### Associating Models
