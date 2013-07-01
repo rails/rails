@@ -15,6 +15,10 @@
     Fixes #9678.
 
     *Andrew White*
+    
+*   Fix `ActiveSupport::TaggedLogging` incorrectly providing program name the same as log message even when block is not provided.
+
+    *Carson Reinke*
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
