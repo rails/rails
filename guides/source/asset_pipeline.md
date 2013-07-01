@@ -18,9 +18,9 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
-The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets-rails](https://github.com/rails/sprockets-rails) gem. However, the sprockets-rails gem is included in the Rails 4 gemspec as a dependency, so the asset pipeline is included by default and you don't have to do anything to enable it.
+The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets](https://github.com/rails/sprockets) gem. However, the sprockets gem is included in the Rails 4 gemspec as a dependency, so the asset pipeline is included by default and you don't have to do anything to enable it.
 
-Rails 4 also automatically adds the 'sass-rails' and 'uglifier' gems to your Gemfile, both of which are used by Sprockets for asset compression:
+Rails 4 also automatically adds the 'sass-rails', 'coffee-rails' and 'uglifier' gems to your Gemfile, both of which are used by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails', '~> 4.0.0'
@@ -49,7 +49,7 @@ NOTE: The sass-rails gem is automatically used for CSS compression if the gem is
 
 The first feature of the pipeline is to concatenate assets, which can reduce the number of requests that a browser makes to render a web page. Web browsers are limited in the number of requests that they can make in parallel, so fewer requests can mean faster loading for your application.
 
-`sprockets-rails` concatenates all JavaScript files into one master `.js` file and all CSS files into one master `.css` file. As you'll learn later in this guide, you can customize this strategy to group files any way you like. In production, Rails inserts an MD5 fingerprint into each filename so that the file is cached by the web browser. You can invalidate the cache by altering this fingerprint, which happens automatically whenever you change the file contents.
+`sprockets` concatenates all JavaScript files into one master `.js` file and all CSS files into one master `.css` file. As you'll learn later in this guide, you can customize this strategy to group files any way you like. In production, Rails inserts an MD5 fingerprint into each filename so that the file is cached by the web browser. You can invalidate the cache by altering this fingerprint, which happens automatically whenever you change the file contents.
 
 The second feature of the asset pipeline is asset minification or compression. For CSS files, this is done by removing whitespace and comments. For JavaScript, more complex processes can be applied. You can choose from a set of built in options or specify your own.
 
@@ -61,7 +61,7 @@ Fingerprinting is a technique that makes the name of a file dependent on the con
 
 When a filename is unique and based on its content, HTTP headers can be set to encourage caches everywhere (whether at CDNs, at ISPs, in networking equipment, or in web browsers) to keep their own copy of the content. When the content is updated, the fingerprint will change. This will cause the remote clients to request a new copy of the content. This is generally known as _cache busting_.
 
-The technique that sprockets-rails uses for fingerprinting is to insert a hash of the content into the name, usually at the end. For example a CSS file `global.css` could be renamed with an MD5 digest of its contents:
+The technique that sprockets uses for fingerprinting is to insert a hash of the content into the name, usually at the end. For example a CSS file `global.css` could be renamed with an MD5 digest of its contents:
 
 ```
 global-908e25f4bf641868d8683022a5b62f54.css
@@ -78,7 +78,7 @@ More reading:
 How to Use the Asset Pipeline
 -----------------------------
 
-In previous versions of Rails, all assets were located in subdirectories of `public` such as `images`, `javascripts` and `stylesheets`. With the asset pipeline, the preferred location for these assets is now the `app/assets` directory. Files in this directory are served by the Sprockets middleware included in the `sprockets-rails` gem.
+In previous versions of Rails, all assets were located in subdirectories of `public` such as `images`, `javascripts` and `stylesheets`. With the asset pipeline, the preferred location for these assets is now the `app/assets` directory. Files in this directory are served by the Sprockets middleware included in the `sprockets` gem.
 
 Assets can still be placed in the `public` hierarchy. Any assets under `public` will be served as static files by the application or web server. You should use `app/assets` for files that must undergo some pre-processing before they are served.
 
@@ -192,7 +192,7 @@ If using the turbolinks gem which is included by default in Rails 4, then includ
   <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
 ```
 
-In regular views you can access images in the `assets/images` directory like this:
+In regular views you can access images in the `public/assets/images` directory like this:
 
 ```erb
 <%= image_tag "rails.png" %>
@@ -577,7 +577,9 @@ This mode uses more memory, performs more poorly than the default and is not rec
 If you are deploying a production application to a system without any pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
 ```ruby
-gem 'therubyracer'
+group :production do
+  gem 'therubyracer'
+end
 ```
 
 ### CDNs
@@ -755,7 +757,7 @@ And in `production.rb`:
 # Don't fallback to assets pipeline if a precompiled asset is missed
 config.assets.compile = false
 
-# Generate digests for assets URLs. This is planned for deprication.
+# Generate digests for assets URLs. This is planned for deprecation.
 config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
