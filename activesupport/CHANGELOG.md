@@ -1,3 +1,7 @@
+*   Remove deprecated `BufferedLogger`.
+
+    *Yves Senn*
+
 *   Remove deprecated `assert_present` and `assert_blank` methods.
 
     *Yves Senn*
