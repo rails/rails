@@ -1,3 +1,7 @@
+*   Rename `commands/plugin_new.rb` to `commands/plugin.rb` and fix references
+
+    *Richard Schneeman*
+
 *   Fix `rails plugin --help` command.
 
     *Richard Schneeman*

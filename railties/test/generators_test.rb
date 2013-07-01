@@ -106,7 +106,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_rails_generators_help_does_not_include_app_nor_plugin_new
     output = capture(:stdout){ Rails::Generators.help }
     assert_no_match(/app/, output)
-    assert_no_match(/plugin_new/, output)
+    assert_no_match(/[^:]plugin/, output)
   end
 
   def test_rails_generators_with_others_information

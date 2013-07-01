@@ -154,7 +154,7 @@ task default: :test
   end
 
   module Generators
-    class PluginNewGenerator < AppBase # :nodoc:
+    class PluginGenerator < AppBase # :nodoc:
       add_shared_options_for "plugin"
 
       alias_method :plugin_path, :app_path
