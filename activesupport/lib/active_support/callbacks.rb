@@ -637,16 +637,16 @@ module ActiveSupport
       end
 
       # Remove all set callbacks for the given event.
-      def reset_callbacks(symbol)
-        callbacks = get_callbacks symbol
+      def reset_callbacks(name)
+        callbacks = get_callbacks name
 
         ActiveSupport::DescendantsTracker.descendants(self).each do |target|
-          chain = target.get_callbacks(symbol).dup
+          chain = target.get_callbacks(name).dup
           callbacks.each { |c| chain.delete(c) }
-          target.set_callbacks symbol, chain
+          target.set_callbacks name, chain
         end
 
-        self.set_callbacks symbol, callbacks.dup.clear
+        self.set_callbacks name, callbacks.dup.clear
       end
 
       # Define sets of events in the object lifecycle that support callbacks.
@@ -658,10 +658,11 @@ module ActiveSupport
       #
       # * <tt>:terminator</tt> - Determines when a before filter will halt the
       #   callback chain, preventing following callbacks from being called and
-      #   the event from being triggered. This is a string to be eval'd. The
-      #   result of the callback is available in the +result+ variable.
+      #   the event from being triggered. This should be a lambda to be executed.
+      #   The current object and the return result of the callback will be called
+      #   with the lambda.
       #
-      #     define_callbacks :validate, terminator: 'result == false'
+      #     define_callbacks :validate, terminator: ->(target,result) { result == false },
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   other callbacks are not executed. Defaults to +false+, meaning no value
@@ -716,8 +717,8 @@ module ActiveSupport
       #     define_callbacks :save, scope: [:name]
       #
       #   would call <tt>Audit#save</tt>.
-      def define_callbacks(*callbacks)
-        config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
+      def define_callbacks(*names)
+        config = names.last.is_a?(Hash) ? names.pop : {}
         if config.key?(:terminator) && String === config[:terminator]
           ActiveSupport::Deprecation.warn "String based terminators are deprecated, please use a lambda"
           value = config[:terminator]
@@ -725,9 +726,9 @@ module ActiveSupport
           config[:terminator] = lambda { |target, result| target.instance_exec(result, &l) }
         end
 
-        callbacks.each do |callback|
-          class_attribute "_#{callback}_callbacks"
-          set_callbacks callback, CallbackChain.new(callback, config)
+        names.each do |name|
+          class_attribute "_#{name}_callbacks"
+          set_callbacks name, CallbackChain.new(name, config)
         end
       end
 
