@@ -1237,11 +1237,7 @@ module ActionView
         self
       end
 
-      def initialize(object_name, object, template, options, block=nil)
-        if block
-          ActiveSupport::Deprecation.warn "Giving a block to FormBuilder is deprecated and has no effect anymore."
-        end
-
+      def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
         @default_options = @options ? @options.slice(:index, :namespace) : {}
