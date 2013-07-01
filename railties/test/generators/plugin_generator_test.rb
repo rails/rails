@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/plugin_new/plugin_new_generator'
+require 'rails/generators/rails/plugin/plugin_generator'
 require 'generators/shared_generator_tests'
 
 DEFAULT_PLUGIN_FILES = %w(
@@ -18,7 +18,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy
 )
 
-class PluginNewGeneratorTest < Rails::Generators::TestCase
+class PluginGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   destination File.join(Rails.root, "tmp/bukkits")
   arguments [destination_root]

@@ -36,7 +36,7 @@ command = aliases[command] || command
 
 case command
 when 'plugin'
-  require "rails/commands/plugin_new"
+  require "rails/commands/plugin"
 when 'generate', 'destroy'
   require 'rails/generators'
 
