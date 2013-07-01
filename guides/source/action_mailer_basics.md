@@ -517,7 +517,7 @@ method. Here's an example:
 ```ruby
 class UserMailer < ActionMailer::Base
   def receive(email)
-    page = Page.find_by_address(email.to.first)
+    page = Page.find_by(address: email.to.first)
     page.emails.create(
       subject: email.subject,
       body: email.body
