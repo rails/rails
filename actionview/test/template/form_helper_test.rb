@@ -2916,18 +2916,6 @@ class FormHelperTest < ActionView::TestCase
     assert_equal "fields", output
   end
 
-  def test_form_builder_block_argument_deprecation
-    builder_class = Class.new(ActionView::Helpers::FormBuilder) do
-      def initialize(object_name, object, template, options, block)
-        super
-      end
-    end
-
-    assert_deprecated(/Giving a block to FormBuilder is deprecated and has no effect anymore/) do
-      builder_class.new(:foo, nil, nil, {}, proc {})
-    end
-  end
-
   def test_form_for_only_instantiates_builder_once
     initialization_count = 0
     builder_class = Class.new(ActionView::Helpers::FormBuilder) do
