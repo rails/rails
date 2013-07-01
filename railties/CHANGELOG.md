@@ -1,3 +1,14 @@
+*   Add a generator for ActiveModel validators
+
+    Add a new command to generate ActiveModel validators. It will simply create
+    a file under `app/validators` and also a test file (under `test/validators`).
+    It's also possible to pass a `--each` option to generate an `EachValidator`
+    instead of a simple `Validator`.
+
+    Like any other generator, this command allows namespacing.
+
+    *Robin Dupret*
+
 *   Fix `rails plugin --help` command.
 
     *Richard Schneeman*

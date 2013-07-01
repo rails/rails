@@ -1,0 +1,19 @@
+Description:
+    Create a new ActiveModel validator. Pass the validator name
+    either CamelCased or under_scored.
+
+    You can also, optionally, pass a --each option to generate a new
+    ActiveModel::EachValidator instead of a simple validator.
+
+    If you pass a namespaced name (e.g. user/email or User::Email)
+    then the generator will put the generated file under a folder with
+    the namespace's name and put the validator class under a module.
+
+Example:
+    `rails generate validator Email`
+
+      With TestUnit as your testing framework, it will generate
+      the following files:
+
+        Validator:  app/validators/email_validator.rb
+        Test:       test/validators/email_validator_test.rb

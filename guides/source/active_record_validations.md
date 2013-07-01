@@ -890,7 +890,8 @@ write your own validators or validation methods as you prefer.
 
 Custom validators are classes that extend `ActiveModel::Validator`. These
 classes must implement a `validate` method which takes a record as an argument
-and performs the validation on it. The custom validator is called using the
+and performs the validation on it. You can generate a new validator invoking
+the `rails generate validator` command. The custom validator is called using the
 `validates_with` method.
 
 ```ruby

@@ -178,6 +178,7 @@ module Rails
           "#{test}:model",
           "#{test}:scaffold",
           "#{test}:view",
+          "#{test}:validator",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",
