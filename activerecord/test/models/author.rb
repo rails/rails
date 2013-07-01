@@ -84,6 +84,7 @@ class Author < ActiveRecord::Base
 
   has_many :author_favorites
   has_many :favorite_authors, -> { order('name') }, :through => :author_favorites
+  has_many :author_fans,      :dependent => :destroy, :class_name => "AuthorFavorite", :foreign_key => :favorite_author_id
 
   has_many :taggings,        :through => :posts, :source => :taggings
   has_many :taggings_2,      :through => :posts, :source => :tagging
@@ -187,6 +188,6 @@ class AuthorAddress < ActiveRecord::Base
 end
 
 class AuthorFavorite < ActiveRecord::Base
-  belongs_to :author
+  belongs_to :author, :counter_cache => "author_favorites_count"
   belongs_to :favorite_author, :class_name => "Author"
 end

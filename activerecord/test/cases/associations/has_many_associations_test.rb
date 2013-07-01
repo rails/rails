@@ -782,6 +782,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_deleting_updates_counter_cache_with_dependent_destroy_in_self_referential_association
+    david = authors(:david)
+    mary = authors(:mary)
+    david.author_favorites.create(:favorite_author_id => mary.id)
+
+    david.reload
+    assert_equal 1, david.author_favorites_count
+
+    mary.destroy
+
+    david.reload
+    assert_equal 0, david.author_favorites_count
+  end
+
   def test_deleting_updates_counter_cache_with_dependent_delete_all
     post = posts(:welcome)
     post.update_columns(taggings_with_delete_all_count: post.taggings_count)

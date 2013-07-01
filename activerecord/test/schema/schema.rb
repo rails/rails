@@ -62,6 +62,7 @@ ActiveRecord::Schema.define do
     t.integer :author_address_extra_id
     t.string :organization_id
     t.string :owned_essay_id
+    t.integer :author_favorites_count
   end
 
   create_table :author_addresses, :force => true do |t|
