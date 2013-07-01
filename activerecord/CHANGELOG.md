@@ -1,3 +1,7 @@
+*   Removed deprecated method `default_scopes?`
+
+    *Neeraj Singh*
+
 *   Remove implicit join references that were deprecated in 4.0.
 
     Example:
