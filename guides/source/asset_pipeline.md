@@ -18,31 +18,26 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
-The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets](https://github.com/rails/sprockets) gem. However, the sprockets gem is included in the Rails 4 gemspec as a dependency, so the asset pipeline is included by default and you don't have to do anything to enable it.
+The asset pipeline is technically no longer a core feature of Rails 4, it has been extracted out of the framework into the [sprockets-rails](https://github.com/rails/sprockets-rails) gem. However, the sprockets-rails gem is included in the Rails 4 gemspec as a dependency, so the asset pipeline is included by default and you don't have to do anything to enable it.
 
-Rails 4 also automatically adds the 'sass-rails', 'coffee-rails' and 'uglifier' gems to your Gemfile, both of which are used by Sprockets for asset compression:
+Rails 4 automatically adds the `sass-rails`, `coffee-rails` and `uglifier` gems to your Gemfile, which are used by Sprockets for asset compression:
 
 ```ruby
-gem 'sass-rails', '~> 4.0.0'
-gem 'uglifier', '>= 1.3.0'
+gem 'sass-rails'
+gem 'uglifier'
+gem 'coffee-rails'
 ```
 
-Sprockets allows you to use alternative compression methods. You will have to add gems to support any other type of asset compression you may want to use.
+If you use the --skip-sprockets option when creating a new Rails 4 app, then the sass-rails and uglifier gems are not added to `Gemfile` (and will have to be added if you later want to use the asset pipeline for compressing sass and uglifying javascript assets):
 
-If you use the --skip-sprockets option when creating a new Rails 4 app, then those gems are not added to `Gemfile` and will have to be added if you later want to use the asset pipeline:
-
-```bash
-rails new appname --skip-sprockets
-```
-
-To set asset compression methods, set the appropriate configuration options in `production.rb`:
+To set asset compression methods, set the appropriate configuration options in `production.rb` ('config.assets.css_compressor' for your CSS and 'config.assets.js_compressor' for your Javascript):
 
 ```ruby
 config.assets.css_compressor = :yui
 config.assets.js_compressor = :uglify
 ```
 
-NOTE: The sass-rails gem is automatically used for CSS compression if the gem is included in Gemfile and no `config.assets.css_compressor` option is set.
+NOTE: The `sass-rails` gem is automatically used for CSS compression if the gem is included in Gemfile and no `config.assets.css_compressor` option is set.
 
 
 ### Main Features
@@ -78,7 +73,7 @@ More reading:
 How to Use the Asset Pipeline
 -----------------------------
 
-In previous versions of Rails, all assets were located in subdirectories of `public` such as `images`, `javascripts` and `stylesheets`. With the asset pipeline, the preferred location for these assets is now the `app/assets` directory. Files in this directory are served by the Sprockets middleware included in the `sprockets` gem.
+In previous versions of Rails, all assets were located in subdirectories of `public` such as `images`, `javascripts` and `stylesheets`. With the asset pipeline, the preferred location for these assets is now the `app/assets` directory. Files in this directory are served by the Sprockets middleware.
 
 Assets can still be placed in the `public` hierarchy. Any assets under `public` will be served as static files by the application or web server. You should use `app/assets` for files that must undergo some pre-processing before they are served.
 
@@ -198,7 +193,7 @@ In regular views you can access images in the `public/assets/images` directory l
 <%= image_tag "rails.png" %>
 ```
 
-Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at `/assets/rails.png` it is served by the web server.
+Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at `public/assets/rails.png` it is served by the web server.
 
 Alternatively, a request for a file with an MD5 hash such as `public/assets/rails-af27b6a414e6da00003503148be9b409.png` is treated the same way. How these hashes are generated is covered in the [In Production](#in-production) section later on in this guide.
 
