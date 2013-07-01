@@ -1,3 +1,7 @@
+*   Removed deprecated method `scoped`
+
+    *Neeraj Singh*
+
 *   Removed deprecated method `default_scopes?`
 
     *Neeraj Singh*
