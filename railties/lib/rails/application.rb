@@ -51,6 +51,29 @@ module Rails
   #   10) Run config.before_eager_load and eager_load! if eager_load is true
   #   11) Run config.after_initialize callbacks
   #
+  # == Multiple Applications
+  #
+  # If you decide to define multiple applications, then the first application
+  # that is initialized will be set to +Rails.application+, unless you override
+  # it with a different application.
+  #
+  # To create a new application, you can instantiate a new instance of a class
+  # that has already been created:
+  #
+  #   class Application < Rails::Application
+  #   end
+  #
+  #   first_application  = Application.new
+  #   second_application = Application.new(config: first_application.config)
+  #
+  # In the above example, the configuration from the first application was used
+  # to initialize the second application. You can also use the +initialize_copy+
+  # on one of the applications to create a copy of the application which shares
+  # the configuration.
+  #
+  # If you decide to define rake tasks, runners, or initializers in an
+  # application other than +Rails.application+, then you must run those
+  # these manually.
   class Application < Engine
     autoload :Bootstrap,              'rails/application/bootstrap'
     autoload :Configuration,          'rails/application/configuration'
@@ -61,12 +84,16 @@ module Rails
 
     class << self
       def inherited(base)
-        raise "You cannot have more than one Rails::Application" if Rails.application
         super
-        Rails.application = base.instance
-        Rails.application.add_lib_to_load_path!
-        ActiveSupport.run_load_hooks(:before_configuration, base.instance)
+        Rails.application ||= base.instance
       end
+
+      # Makes the +new+ method public.
+      #
+      # Note that Rails::Application inherits from Rails::Engine, which
+      # inherits from Rails::Railtie and the +new+ method on Rails::Railtie is
+      # private
+      public :new
     end
 
     attr_accessor :assets, :sandbox
@@ -75,14 +102,28 @@ module Rails
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
-    def initialize
-      super
+    INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
+                         :routes, :helpers, :app_env_config] # :nodoc:
+
+    def initialize(initial_variable_values = {}, &block)
+      super()
       @initialized      = false
       @reloaders        = []
       @routes_reloader  = nil
       @app_env_config   = nil
       @ordered_railties = nil
       @railties         = nil
+
+      add_lib_to_load_path!
+      ActiveSupport.run_load_hooks(:before_configuration, self)
+
+      initial_variable_values.each do |variable_name, value|
+        if INITIAL_VARIABLES.include?(variable_name)
+          instance_variable_set("@#{variable_name}", value)
+        end
+      end
+
+      instance_eval(&block) if block_given?
     end
 
     # Returns true if the application is initialized.
@@ -141,6 +182,30 @@ module Rails
       end
     end
 
+    # If you try to define a set of rake tasks on the instance, these will get
+    # passed up to the rake tasks defined on the application's class.
+    def rake_tasks(&block)
+      self.class.rake_tasks(&block)
+    end
+
+    # Sends the initializers to the +initializer+ method defined in the
+    # Rails::Initializable module. Each Rails::Application class has its own
+    # set of initializers, as defined by the Initializable module.
+    def initializer(name, opts={}, &block)
+      self.class.initializer(name, opts, &block)
+    end
+
+    # Sends any runner called in the instance of a new application up
+    # to the +runner+ method defined in Rails::Railtie.
+    def runner(&blk)
+      self.class.runner(&blk)
+    end
+
+    # Sends the +isolate_namespace+ method up to the class method.
+    def isolate_namespace(mod)
+      self.class.isolate_namespace(mod)
+    end
+
     ## Rails internal API
 
     # This method is called just after an application inherits from Rails::Application,
@@ -158,7 +223,9 @@ module Rails
     # you need to load files in lib/ during the application configuration as well.
     def add_lib_to_load_path! #:nodoc:
       path = File.join config.root, 'lib'
-      $LOAD_PATH.unshift(path) if File.exists?(path)
+      if File.exists?(path) && !$LOAD_PATH.include?(path)
+        $LOAD_PATH.unshift(path)
+      end
     end
 
     def require_environment! #:nodoc:
@@ -200,6 +267,10 @@ module Rails
 
     def config #:nodoc:
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+    end
+
+    def config=(configuration) #:nodoc:
+      @config = configuration
     end
 
     def to_app #:nodoc:
