@@ -7,7 +7,7 @@ module ActiveRecord
         table = default_table
 
         if column.is_a?(Symbol) && klass.attribute_alias?(column)
-          column = klass.attribute_alias(column.to_s)
+          column = klass.attribute_alias(column)
         end
 
         if value.is_a?(Hash)
