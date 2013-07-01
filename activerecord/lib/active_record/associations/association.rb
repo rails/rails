@@ -84,11 +84,6 @@ module ActiveRecord
         target_scope.merge(association_scope)
       end
 
-      def scoped
-        ActiveSupport::Deprecation.warn "#scoped is deprecated. use #scope instead."
-        scope
-      end
-
       # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
