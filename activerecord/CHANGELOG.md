@@ -1,3 +1,8 @@
+*   Removed deprecated methods `partial_updates`, `partial_updates?` and
+    `partial_updates=`.
+
+    *Neeraj Singh*
+
 *   Removed deprecated method `scoped`
 
     *Neeraj Singh*

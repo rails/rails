@@ -14,17 +14,6 @@ module ActiveRecord
 
         class_attribute :partial_writes, instance_writer: false
         self.partial_writes = true
-
-        def self.partial_updates=(v); self.partial_writes = v; end
-        def self.partial_updates?; partial_writes?; end
-        def self.partial_updates; partial_writes; end
-
-        ActiveSupport::Deprecation.deprecate_methods(
-          singleton_class,
-          :partial_updates= => :partial_writes=,
-          :partial_updates? => :partial_writes?,
-          :partial_updates  => :partial_writes
-        )
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
