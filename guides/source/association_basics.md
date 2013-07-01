@@ -2171,7 +2171,7 @@ You're not limited to the functionality that Rails automatically builds into ass
 class Customer < ActiveRecord::Base
   has_many :orders do
     def find_by_order_prefix(order_number)
-      find_by_region_id(order_number[0..2])
+      find_by(region_id: order_number[0..2])
     end
   end
 end
