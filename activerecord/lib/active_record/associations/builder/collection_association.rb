@@ -20,7 +20,6 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
-      show_deprecation_warnings
       wrap_block_extension
       reflection = super
       CALLBACKS.each { |callback_name| define_callback(callback_name) }
@@ -29,14 +28,6 @@ module ActiveRecord::Associations::Builder
 
     def writable?
       true
-    end
-
-    def show_deprecation_warnings
-      [:finder_sql, :counter_sql].each do |name|
-        if options.include? name
-          ActiveSupport::Deprecation.warn("The :#{name} association option is deprecated. Please find an alternative (such as using scopes).")
-        end
-      end
     end
 
     def wrap_block_extension

@@ -1774,16 +1774,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test ":finder_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_many :foo, :finder_sql => 'lol' }
-  end
-
-  test ":counter_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
-  end
-
   test "has many associations on new records use null relations" do
     post = Post.new
 
