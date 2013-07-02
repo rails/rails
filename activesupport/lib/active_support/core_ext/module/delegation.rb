@@ -182,17 +182,23 @@ class Module
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
-        module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            _.#{method}(#{definition})                        #   _.name(*args, &block)
-          rescue NoMethodError                                # rescue NoMethodError
-            if _.nil?                                         #   if _.nil?
-              #{exception}                                    #     # add helpful message to the exception
-            else                                              #   else
-              raise                                           #     raise
-            end                                               #   end
-          end                                                 # end
+        module_eval(<<-EOS, file, line - 8)
+          def #{method_prefix}#{method}(#{definition})                       # def customer_name(*args, &block)
+            _ = #{to}                                                        #   _ = client
+            if _.is_a?(Hash) && !_.respond_to?(:#{method})                   #   if _.is_a?(Hash) && _.respond_to?(:name)
+              return ('#{definition}' == 'arg') ?                            #     return ('*args, &block' == 'arg') ?
+                _.[]=('#{method}'.chop.to_sym, arg)                          #       _.[]=('name='.chop.to_sym, arg)
+              :                                                              #     :
+                _.[](:#{method})                                             #       _.[](:name)
+            end                                                              #   end
+            _.#{method}(#{definition})                                       #   _.name(*args, &block)
+          rescue NoMethodError                                               # rescue NoMethodError
+            if _.nil?                                                        #   if _.nil?
+              #{exception}                                                   #     # add helpful message to the exception
+            else                                                             #   else
+              raise                                                          #     raise
+            end                                                              #   end
+          end                                                                # end
         EOS
       end
     end

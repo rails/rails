@@ -97,9 +97,15 @@ class SideEffect
   end
 end
 
+class HTTPClient < Struct.new(:host, :headers)
+  delegate :accept, :content_type, :to => :headers
+  delegate :origin=, :to => :headers, :prefix => true
+end
+
 class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+    @request = HTTPClient.new("rubyonrails.org", { accept: "text/plain", content_type: "application/x-www-form-urlencoded" })
   end
 
   def test_delegation_to_methods
@@ -107,9 +113,19 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "Chicago", @david.city
   end
 
+  def test_delegation_to_hash
+    assert_equal "text/plain", @request.accept
+    assert_equal "application/x-www-form-urlencoded", @request.content_type
+  end
+
   def test_delegation_to_assignment_method
     @david.place_name = "Fred"
     assert_equal "Fred", @david.place.name
+  end
+
+  def test_delegation_to_assignment_hash
+    @request.headers_origin = "rubyonrails.org"
+    assert_equal "rubyonrails.org", @request.headers[:origin]
   end
 
   def test_delegation_to_index_get_method
