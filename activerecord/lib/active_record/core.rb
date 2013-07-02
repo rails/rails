@@ -91,14 +91,8 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(child_class) #:nodoc:
-        child_class.initialize_generated_modules
-        super
-      end
-
       def initialize_generated_modules
-        @attribute_methods_mutex = Mutex.new
-
+        super
         # force attribute methods to be higher in inheritance hierarchy than other generated methods
         generated_attribute_methods.const_set(:AttrNames, Module.new {
           def self.const_missing(name)

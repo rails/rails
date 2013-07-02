@@ -1,4 +1,5 @@
 require 'thread_safe'
+require 'mutex_m'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -324,7 +325,9 @@ module ActiveModel
 
       # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        @generated_attribute_methods ||= Module.new {
+          extend Mutex_m
+        }.tap { |mod| include mod }
       end
 
       protected
