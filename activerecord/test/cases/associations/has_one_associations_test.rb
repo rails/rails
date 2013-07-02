@@ -158,22 +158,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { firm.destroy }
   end
 
-  def test_restrict
-    firm = RestrictedFirm.create!(:name => 'restrict')
-    firm.create_account(:credit_limit => 10)
-
-    assert_not_nil firm.account
-
-    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
-    assert RestrictedFirm.exists?(:name => 'restrict')
-    assert firm.account.present?
-  end
-
-  def test_restrict_is_deprecated
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_one :post, dependent: :restrict }
-  end
-
   def test_restrict_with_exception
     firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)

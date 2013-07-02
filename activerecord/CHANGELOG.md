@@ -1,3 +1,8 @@
+*   Removed support for deprecated option `:restrict` for `:dependent`
+    in associations.
+
+    *Neeraj Singh*
+
 *   Removed support for deprecated `delete_sql` in associations.
 
     *Neeraj Singh*

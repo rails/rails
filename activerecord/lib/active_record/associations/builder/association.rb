@@ -104,13 +104,6 @@ module ActiveRecord::Associations::Builder
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
       end
 
-      if options[:dependent] == :restrict
-        ActiveSupport::Deprecation.warn(
-          "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
-          "provides the same functionality."
-        )
-      end
-
       n = name
       model.before_destroy lambda { |o| o.association(n).handle_dependency }
     end
