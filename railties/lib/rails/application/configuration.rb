@@ -150,9 +150,6 @@ module Rails
         end
       end
 
-      def whiny_nils=(*)
-        ActiveSupport::Deprecation.warn "config.whiny_nils option is deprecated and no longer works"
-      end
     end
   end
 end

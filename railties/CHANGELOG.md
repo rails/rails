@@ -1,3 +1,7 @@
+*   Remove deprecated `config.whiny_nils` option
+
+    *Vipul A M*
+
 *   Rename `commands/plugin_new.rb` to `commands/plugin.rb` and fix references
 
     *Richard Schneeman*
