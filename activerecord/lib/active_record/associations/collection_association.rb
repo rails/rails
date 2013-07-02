@@ -200,23 +200,23 @@ module ActiveRecord
       def count(column_name = nil, count_options = {})
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
-          relation = scope
-          if association_scope.distinct_value
-            # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-            column_name ||= reflection.klass.primary_key
-            relation = relation.distinct
-          end
+        relation = scope
+        if association_scope.distinct_value
+          # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
+          column_name ||= reflection.klass.primary_key
+          relation = relation.distinct
+        end
 
-          value = relation.count(column_name)
+        value = relation.count(column_name)
 
-          limit  = options[:limit]
-          offset = options[:offset]
+        limit  = options[:limit]
+        offset = options[:offset]
 
-          if limit || offset
-            [ [value - offset.to_i, 0].max, limit.to_i ].min
-          else
-            value
-          end
+        if limit || offset
+          [ [value - offset.to_i, 0].max, limit.to_i ].min
+        else
+          value
+        end
       end
 
       # Removes +records+ from this association calling +before_remove+ and
