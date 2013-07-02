@@ -92,7 +92,7 @@ user_<%= n %>:
 
 #### Fixtures in Action
 
-Rails by default automatically loads all fixtures from the `test/fixtures` folder for your unit and functional test. Loading involves three steps:
+Rails by default automatically loads all fixtures from the `test/fixtures` folder for your models and controllers test. Loading involves three steps:
 
 * Remove any existing data from the table corresponding to the fixture
 * Load the fixture data into the table
@@ -116,7 +116,7 @@ email(david.girlfriend.email, david.location_tonight)
 Unit Testing your Models
 ------------------------
 
-In Rails, unit tests are what you write to test your models.
+In Rails, models tests are what you write to test your models.
 
 For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. I will be using examples from this generated code and will be supplementing it with additional examples where necessary.
 
