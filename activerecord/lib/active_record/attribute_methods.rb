@@ -37,11 +37,12 @@ module ActiveRecord
         # Use a mutex; we don't want two thread simultaneously trying to define
         # attribute methods.
         generated_attribute_methods.synchronize do
-          return if attribute_methods_generated?
+          return false if attribute_methods_generated?
           superclass.define_attribute_methods unless self == base_class
           super(column_names)
           @attribute_methods_generated = true
         end
+        true
       end
 
       def attribute_methods_generated? # :nodoc:
@@ -132,9 +133,7 @@ module ActiveRecord
     # If we haven't generated any methods yet, generate them, then
     # see if we've created the method we're looking for.
     def method_missing(method, *args, &block) # :nodoc:
-      unless self.class.attribute_methods_generated?
-        self.class.define_attribute_methods
-
+      if self.class.define_attribute_methods
         if respond_to_without_attributes?(method)
           send(method, *args, &block)
         else
@@ -177,7 +176,7 @@ module ActiveRecord
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
       name = name.to_s
-      self.class.define_attribute_methods unless self.class.attribute_methods_generated?
+      self.class.define_attribute_methods
       result = super
 
       # If the result is false the answer is false.
