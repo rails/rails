@@ -14,6 +14,19 @@ class TestMissingSourceFile < ActiveSupport::TestCase
       assert_equal 'nor/this/one.rb', e.path
     end
   end
+  def test_is_missing
+    begin load 'nor/that/one.rb'
+    rescue LoadError => e
+      assert_equal e.is_missing?('nor/that/one'), true
+    end
+  end
+  def test_is_missing_with_nil_path
+    begin load 'nor/any/one.rb'
+    rescue LoadError => e
+      e.stubs(:path).returns(nil)
+      assert_equal e.is_missing?('nor/any/one'), true
+    end
+  end
 end
 
 class TestLoadError < ActiveSupport::TestCase
@@ -27,6 +40,19 @@ class TestLoadError < ActiveSupport::TestCase
     begin load 'nor/this/one.rb'
     rescue LoadError => e
       assert_equal 'nor/this/one.rb', e.path
+    end
+  end
+  def test_is_missing
+    begin load 'nor/that/one.rb'
+    rescue LoadError => e
+      assert_equal e.is_missing?('nor/that/one'), true
+    end
+  end
+  def test_is_missing_with_nil_path
+    begin load 'nor/any/one.rb'
+    rescue LoadError => e
+      e.stubs(:path).returns(nil)
+      assert_equal e.is_missing?('nor/any/one'), true
     end
   end
 end
