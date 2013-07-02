@@ -60,7 +60,7 @@ module ActiveRecord
         end
 
         def json_to_string(object)
-          if Hash === object
+          if Hash === object || Array === object
             ActiveSupport::JSON.encode(object)
           else
             object
