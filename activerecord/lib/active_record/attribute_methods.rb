@@ -37,7 +37,7 @@ module ActiveRecord
         # Use a mutex; we don't want two thread simultaneously trying to define
         # attribute methods.
         generated_attribute_methods.synchronize do
-          return false if attribute_methods_generated?
+          return false if @attribute_methods_generated
           superclass.define_attribute_methods unless self == base_class
           super(column_names)
           @attribute_methods_generated = true
@@ -45,12 +45,8 @@ module ActiveRecord
         true
       end
 
-      def attribute_methods_generated? # :nodoc:
-        @attribute_methods_generated
-      end
-
       def undefine_attribute_methods # :nodoc:
-        super if attribute_methods_generated?
+        super if @attribute_methods_generated
         @attribute_methods_generated = false
       end
 

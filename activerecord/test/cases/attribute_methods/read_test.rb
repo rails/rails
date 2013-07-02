@@ -56,9 +56,9 @@ module ActiveRecord
       end
 
       def test_attribute_methods_generated?
-        assert(!@klass.attribute_methods_generated?, 'attribute_methods_generated?')
+        assert_not @klass.method_defined?(:one)
         @klass.define_attribute_methods
-        assert(@klass.attribute_methods_generated?, 'attribute_methods_generated?')
+        assert @klass.method_defined?(:one)
       end
     end
   end
