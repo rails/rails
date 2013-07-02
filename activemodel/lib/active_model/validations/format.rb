@@ -91,10 +91,6 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is invalid").
-      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the
-      #   attribute is +nil+ (default is +false+).
-      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the
-      #   attribute is blank (default is +false+).
       # * <tt>:with</tt> - Regular expression that if the attribute matches will
       #   result in a successful validation. This can be provided as a proc or
       #   lambda returning regular expression which will be called at runtime.
@@ -107,7 +103,7 @@ module ActiveModel
       #   beginning or end of the string. These anchors are <tt>^</tt> and <tt>$</tt>.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
+      # +:if+, +:unless+, +:on+, <tt>:allow_nil</tt> , <tt>:allow_blank</tt> , and +:strict+.
       # See <tt>ActiveModel::Validation#validates</tt> for more information
       def validates_format_of(*attr_names)
         validates_with FormatValidator, _merge_attributes(attr_names)

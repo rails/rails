@@ -83,6 +83,8 @@ module ActiveModel
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:strict</tt> - if the <tt>:strict</tt> option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
       #   <tt>:strict</tt> option can also be set to any other exception.
@@ -93,7 +95,7 @@ module ActiveModel
       #   validates :token, uniqueness: true, strict: TokenGenerationException
       #
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
+      # Finally, the options +:if+, +:unless+, +:on+, <tt>:allow_blank</tt> , <tt>:allow_nil</tt> , +:strict+
       # and +:message+ can be given to one specific validator, as a hash:
       #
       #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true

@@ -33,13 +33,9 @@ module ActiveModel
       # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is
       #   not included in the list").
-      # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the
-      #   attribute is +nil+ (default is +false+).
-      # * <tt>:allow_blank</tt> - If set to +true+, skips this validation if the
-      #   attribute is blank (default is +false+).
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
+      # +:if+, +:unless+, +:on+, <tt>:allow_nil</tt> , <tt>:allow_blank</tt> , and +:strict+.
       # See <tt>ActiveModel::Validation#validates</tt> for more information
       def validates_inclusion_of(*attr_names)
         validates_with InclusionValidator, _merge_attributes(attr_names)
