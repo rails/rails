@@ -8,6 +8,7 @@ module ActiveRecord
     include ActiveModel::AttributeMethods
 
     included do
+      @attribute_methods_generated = false
       include Read
       include Write
       include BeforeTypeCast
@@ -26,6 +27,7 @@ module ActiveRecord
 
       def initialize_generated_modules # :nodoc:
         @generated_attribute_methods = Module.new { extend Mutex_m }
+        @attribute_methods_generated = false
         include @generated_attribute_methods
       end
 
@@ -43,7 +45,7 @@ module ActiveRecord
       end
 
       def attribute_methods_generated? # :nodoc:
-        @attribute_methods_generated ||= false
+        @attribute_methods_generated
       end
 
       def undefine_attribute_methods # :nodoc:
