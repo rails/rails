@@ -1,3 +1,7 @@
+*   Removed support for deprecated `finder_sql` in associations.
+
+    *Neeraj Singh*
+
 *   Support array as root element in JSON fields.
 
     *Alexey Noskov & Francesco Rodriguez*

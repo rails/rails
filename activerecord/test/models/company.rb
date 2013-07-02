@@ -48,10 +48,6 @@ class Firm < Company
   has_many :clients_with_interpolated_conditions, ->(firm) { where "rating > #{firm.rating}" }, :class_name => "Client"
   has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, :class_name => "Client"
   has_many :clients_like_ms_with_hash_conditions, -> { where(:name => 'Microsoft').order("id") }, :class_name => "Client"
-  ActiveSupport::Deprecation.silence do
-    has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
-    has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
-  end
   has_many :plain_clients, :class_name => 'Client'
   has_many :readonly_clients, -> { readonly }, :class_name => 'Client'
   has_many :clients_using_primary_key, :class_name => 'Client',

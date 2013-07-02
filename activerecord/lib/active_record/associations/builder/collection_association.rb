@@ -8,7 +8,7 @@ module ActiveRecord::Associations::Builder
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
     def valid_options
-      super + [:table_name, :finder_sql, :before_add,
+      super + [:table_name, :before_add,
                :after_add, :before_remove, :after_remove, :extend]
     end
 

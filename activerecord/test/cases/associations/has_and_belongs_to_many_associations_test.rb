@@ -524,25 +524,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert ! project.developers.include?(developer)
   end
 
-  def test_find_in_association_with_custom_finder_sql
-    assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id), "SQL find"
-
-    active_record = projects(:active_record)
-    active_record.developers_with_finder_sql.reload
-    assert_equal developers(:david), active_record.developers_with_finder_sql.find(developers(:david).id), "Ruby find"
-  end
-
-  def test_find_in_association_with_custom_finder_sql_and_multiple_interpolations
-    # interpolate once:
-    assert_equal [developers(:david), developers(:jamis), developers(:poor_jamis)], projects(:active_record).developers_with_finder_sql, "first interpolation"
-    # interpolate again, for a different project id
-    assert_equal [developers(:david)], projects(:action_controller).developers_with_finder_sql, "second interpolation"
-  end
-
-  def test_find_in_association_with_custom_finder_sql_and_string_id
-    assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id.to_s), "SQL find"
-  end
-
   def test_find_with_merged_options
     assert_equal 1, projects(:active_record).limited_developers.size
     assert_equal 1, projects(:active_record).limited_developers.to_a.size
@@ -776,13 +757,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_count
     david = Developer.find(1)
     assert_equal 2, david.projects.count
-  end
-
-  unless current_adapter?(:PostgreSQLAdapter)
-    def test_count_with_finder_sql
-      assert_equal 3, projects(:active_record).developers_with_finder_sql.count
-      assert_equal 3, projects(:active_record).developers_with_multiline_finder_sql.count
-    end
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
