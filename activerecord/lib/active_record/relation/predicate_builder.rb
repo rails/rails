@@ -1,14 +1,20 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
+    def self.resolve_column_aliases(klass, hash)
+      hash = hash.dup
+      hash.keys.grep(Symbol) do |key|
+        if klass.attribute_alias? key
+          hash[klass.attribute_alias(key)] = hash.delete key
+        end
+      end
+      hash
+    end
+
     def self.build_from_hash(klass, attributes, default_table)
       queries = []
 
       attributes.each do |column, value|
         table = default_table
-
-        if column.is_a?(Symbol) && klass.attribute_alias?(column)
-          column = klass.attribute_alias(column)
-        end
 
         if value.is_a?(Hash)
           if value.empty?
