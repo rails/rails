@@ -186,7 +186,7 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def test_set_primary_key_with_no_connection
-    return skip("disconnect wipes in-memory db") if in_memory_db?
+    return skip("disconnect wipes in-memory db") if ARTest.in_memory_db?
 
     connection = ActiveRecord::Base.remove_connection
 
@@ -201,7 +201,7 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 

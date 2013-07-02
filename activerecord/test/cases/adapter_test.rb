@@ -9,7 +9,7 @@ module ActiveRecord
 
     ##
     # PostgreSQL does not support null bytes in strings
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless ARTest.current_adapter?(:PostgreSQLAdapter)
       def test_update_prepared_statement
         b = Book.create(name: "my \x00 book")
         b.reload
@@ -46,7 +46,7 @@ module ActiveRecord
         assert_equal "accounts", indexes.first.table
         # OpenBase does not have the concept of a named index
         # Indexes are merely properties of columns.
-        assert_equal idx_name, indexes.first.name unless current_adapter?(:OpenBaseAdapter)
+        assert_equal idx_name, indexes.first.name unless ARTest.current_adapter?(:OpenBaseAdapter)
         assert !indexes.first.unique
         assert_equal ["firm_id"], indexes.first.columns
       else
@@ -63,7 +63,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter)
+    if ARTest.current_adapter?(:MysqlAdapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal 'character_set_database', @connection.charset
@@ -191,7 +191,7 @@ module ActiveRecord
     end
 
     test "transaction state is reset after a reconnect" do
-      skip "in-memory db doesn't allow reconnect" if in_memory_db?
+      skip "in-memory db doesn't allow reconnect" if ARTest.in_memory_db?
 
       @connection.begin_transaction
       assert @connection.transaction_open?
@@ -200,7 +200,7 @@ module ActiveRecord
     end
 
     test "transaction state is reset after a disconnect" do
-      skip "in-memory db doesn't allow disconnect" if in_memory_db?
+      skip "in-memory db doesn't allow disconnect" if ARTest.in_memory_db?
 
       @connection.begin_transaction
       assert @connection.transaction_open?

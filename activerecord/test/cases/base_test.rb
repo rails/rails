@@ -1,4 +1,4 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/post'
 require 'models/author'
 require 'models/topic'
@@ -105,7 +105,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
 
     quoted = conn.quote_column_name "foo#{badchar}bar"
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       # Oracle does not allow double quotes in table and column names at all
       # therefore quoting removes them
       assert_equal("#{badchar}foobar#{badchar}", quoted)
@@ -123,7 +123,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+  unless ARTest.current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
     def test_limit_with_comma
       assert Topic.limit("1,2").to_a
     end
@@ -152,7 +152,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  unless ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_limit_should_allow_sql_literal
       assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
     end
@@ -169,7 +169,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_date_objects
-    if current_adapter?(:SybaseAdapter)
+    if ARTest.current_adapter?(:SybaseAdapter)
       # Sybase ctlib does not (yet?) support the date type; use datetime instead.
       assert_kind_of(
         Time, Topic.find(1).last_read,
@@ -221,7 +221,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    if ARTest.current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -230,8 +230,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
-    with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+    ARTest.with_env_tz 'America/New_York' do
+      ARTest.with_active_record_default_timezone :utc do
         time = Time.local(2000)
         topic = Topic.create('written_on' => time)
         saved_time = Topic.find(topic.id).reload.written_on
@@ -243,8 +243,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
-    with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+    ARTest.with_env_tz 'America/New_York' do
+      ARTest.with_active_record_default_timezone :utc do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
@@ -258,7 +258,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_utc_time_conversion_to_default_timezone_local
-    with_env_tz 'America/New_York' do
+    ARTest.with_env_tz 'America/New_York' do
       time = Time.utc(2000)
       topic = Topic.create('written_on' => time)
       saved_time = Topic.find(topic.id).reload.written_on
@@ -269,8 +269,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
-    with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :local do
+    ARTest.with_env_tz 'America/New_York' do
+      ARTest.with_active_record_default_timezone :local do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
@@ -453,7 +453,7 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  if ARTest.current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
     end
@@ -479,7 +479,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     # Oracle has some funky default handling, so it requires a bit of
     # extra testing. See ticket #2788.
-    if current_adapter?(:OracleAdapter)
+    if ARTest.current_adapter?(:OracleAdapter)
       test = TestOracleDefault.new
       assert_equal "X", test.test_char
       assert_equal "hello", test.test_string
@@ -488,7 +488,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+  unless ARTest.current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_utc_as_time_zone
       Topic.default_timezone = :utc
       attributes = { "bonus_time" => "5:42:00AM" }
@@ -523,7 +523,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil topic.last_read
 
     # Sybase adapter does not allow nulls in boolean columns
-    if current_adapter?(:SybaseAdapter)
+    if ARTest.current_adapter?(:SybaseAdapter)
       assert topic.approved == false
     else
       assert_nil topic.approved
@@ -601,7 +601,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_attributes_on_dummy_time
     # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    return true if ARTest.current_adapter?(:OracleAdapter, :SybaseAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
@@ -613,7 +613,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_attributes_on_dummy_time_with_invalid_time
     # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    return true if ARTest.current_adapter?(:OracleAdapter, :SybaseAdapter)
 
     attributes = {
       "bonus_time" => "not a time"
@@ -794,7 +794,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   # TODO: extend defaults tests to other databases!
-  if current_adapter?(:PostgreSQLAdapter)
+  if ARTest.current_adapter?(:PostgreSQLAdapter)
     def test_default
       tz = Default.default_timezone
       Default.default_timezone = :local

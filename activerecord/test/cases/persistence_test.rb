@@ -22,7 +22,7 @@ class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
-  unless current_adapter?(:OracleAdapter)
+  unless ARTest.current_adapter?(:OracleAdapter)
     def test_update_all_ignores_order_without_limit_from_association
       author = authors(:david)
       assert_nothing_raised do

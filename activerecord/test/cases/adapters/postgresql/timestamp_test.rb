@@ -12,7 +12,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_load_infinity_and_beyond
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless ARTest.current_adapter?(:PostgreSQLAdapter)
       return skip("only tested on postgresql")
     end
 
@@ -26,7 +26,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_save_infinity_and_beyond
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless ARTest.current_adapter?(:PostgreSQLAdapter)
       return skip("only tested on postgresql")
     end
 
@@ -85,7 +85,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_bc_timestamp
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless ARTest.current_adapter?(:PostgreSQLAdapter)
       return skip("only tested on postgresql")
     end
     date = Date.new(0) - 1.second

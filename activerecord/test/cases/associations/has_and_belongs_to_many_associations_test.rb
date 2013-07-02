@@ -799,7 +799,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.count
   end
 
-  unless current_adapter?(:PostgreSQLAdapter)
+  unless ARTest.current_adapter?(:PostgreSQLAdapter)
     def test_count_with_finder_sql
       assert_equal 3, projects(:active_record).developers_with_finder_sql.count
       assert_equal 3, projects(:active_record).developers_with_multiline_finder_sql.count

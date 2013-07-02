@@ -323,7 +323,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
       model.reset_column_information
       # OpenBase does not set a value to existing rows when adding a not null default column
-      model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
+      model.update_all(col => 0) if ARTest.current_adapter?(:OpenBaseAdapter)
     end
 
     def remove_counter_column_from(model, col = :test_count)
@@ -350,7 +350,7 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
+unless ARTest.current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || ARTest.in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers
@@ -371,7 +371,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
     end
 
     # PostgreSQL protests SELECT ... FOR UPDATE on an outer join.
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless ARTest.current_adapter?(:PostgreSQLAdapter)
       # Test locked eager find.
       def test_eager_find_with_lock
         assert_nothing_raised do
@@ -414,7 +414,7 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       assert_equal old, person.reload.first_name
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+    if ARTest.current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }
         assert first.end > second.end
