@@ -1,3 +1,7 @@
+*   Calling default_scope without a proc will now raise `ArgumentError`.
+
+    *Neeraj Singh*
+
 *   Removed deprecated method `type_cast_code` from Column.
 
     *Neeraj Singh*
