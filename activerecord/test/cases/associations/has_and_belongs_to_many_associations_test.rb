@@ -65,19 +65,6 @@ class DeveloperWithSymbolsForKeys < ActiveRecord::Base
     :foreign_key => "developer_id"
 end
 
-class DeveloperWithCounterSQL < ActiveRecord::Base
-  self.table_name = 'developers'
-
-  ActiveSupport::Deprecation.silence do
-    has_and_belongs_to_many :projects,
-      :class_name => "DeveloperWithCounterSQL",
-      :join_table => "developers_projects",
-      :association_foreign_key => "project_id",
-      :foreign_key => "developer_id",
-      :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
-  end
-end
-
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings
@@ -789,14 +776,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_count
     david = Developer.find(1)
     assert_equal 2, david.projects.count
-  end
-
-  def test_count_with_counter_sql
-    developer  = DeveloperWithCounterSQL.create(:name => 'tekin')
-    developer.project_ids = [projects(:active_record).id]
-    developer.save
-    developer.reload
-    assert_equal 1, developer.projects.count
   end
 
   unless current_adapter?(:PostgreSQLAdapter)

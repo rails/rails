@@ -36,19 +36,6 @@ class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   end
 end
 
-class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
-  class Invoice < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
-    end
-  end
-  def test_should_fail
-    assert_raise(ArgumentError) do
-      Invoice.create.custom_line_items.count(:conditions => {:amount => 0})
-    end
-  end
-end
-
 class HasManyAssociationsTestForCountWithVariousFinderSqls < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
     ActiveSupport::Deprecation.silence do
@@ -379,17 +366,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = firm.clients_using_sql.first
     assert_equal client, firm.clients_using_sql.find(client.id, client.id)
     assert_equal client, firm.clients_using_sql.find(client.id, client.id.to_s)
-  end
-
-  def test_counting_using_sql
-    assert_equal 1, Firm.order("id").first.clients_using_counter_sql.size
-    assert Firm.order("id").first.clients_using_counter_sql.any?
-    assert_equal 0, Firm.order("id").first.clients_using_zero_counter_sql.size
-    assert !Firm.order("id").first.clients_using_zero_counter_sql.any?
-  end
-
-  def test_counting_non_existant_items_using_sql
-    assert_equal 0, Firm.order("id").first.no_clients_using_counter_sql.size
   end
 
   def test_counting_using_finder_sql
