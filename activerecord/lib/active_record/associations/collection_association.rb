@@ -197,15 +197,15 @@ module ActiveRecord
         end
       end
 
-      # Count all records using SQL. If the +:counter_sql+ or +:finder_sql+ option is set for the
+      # Count all records using SQL. If the +:finder_sql+ option is set for the
       # association, it will be used for the query. Otherwise, construct options and pass them with
       # scope to the target class's +count+.
       def count(column_name = nil, count_options = {})
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
-        if options[:counter_sql] || options[:finder_sql]
+        if options[:finder_sql]
           unless count_options.blank?
-            raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
+            raise ArgumentError, "If finder_sql is used then options cannot be passed"
           end
 
           reflection.klass.count_by_sql(custom_counter_sql)
@@ -301,14 +301,14 @@ module ActiveRecord
 
       # Returns true if the collection is empty.
       #
-      # If the collection has been loaded or the <tt>:counter_sql</tt> option
-      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # If the collection has been loaded 
+      # it is equivalent to <tt>collection.size.zero?</tt>. If the
       # collection has not been loaded, it is equivalent to
       # <tt>collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || options[:counter_sql]
+        if loaded?
           size.zero?
         else
           @target.blank? && !scope.exists?
@@ -407,15 +407,11 @@ module ActiveRecord
       private
 
         def custom_counter_sql
-          if options[:counter_sql]
-            interpolate(options[:counter_sql])
-          else
-            # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
-            interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
-              count_with = $2.to_s
-              count_with = '*' if count_with.blank? || count_with =~ /,/ || count_with =~ /\.\*/
-              "SELECT #{$1}COUNT(#{count_with}) FROM"
-            end
+          # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
+          interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
+            count_with = $2.to_s
+            count_with = '*' if count_with.blank? || count_with =~ /,/ || count_with =~ /\.\*/
+            "SELECT #{$1}COUNT(#{count_with}) FROM"
           end
         end
 

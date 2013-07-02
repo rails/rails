@@ -726,7 +726,7 @@ module ActiveRecord
       end
 
       # Returns +true+ if the collection is empty. If the collection has been
-      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # loaded it is equivalent
       # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
       # it is equivalent to <tt>collection.exists?</tt>. If the collection has
       # not already been loaded and you are going to fetch the records anyway it
