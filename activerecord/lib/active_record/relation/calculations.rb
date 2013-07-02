@@ -161,9 +161,8 @@ module ActiveRecord
         result = result.map do |attributes|
           values = klass.initialize_attributes(attributes).values
 
-          columns.zip(values).map do |column, value|
-            column.type_cast(value)
-          end
+          iter = columns.each
+          values.map { |value| iter.next.type_cast value }
         end
         columns.one? ? result.map!(&:first) : result
       end
