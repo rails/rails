@@ -39,7 +39,7 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
-      extend ActiveModel::Callbacks
+      include ActiveSupport::Callbacks
       extend ActiveModel::Translation
 
       extend  HelperMethods
