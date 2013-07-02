@@ -332,7 +332,6 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
         @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
       end
