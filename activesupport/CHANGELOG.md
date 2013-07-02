@@ -1,3 +1,7 @@
+*   Remove deprecated `Date#to_time_in_current_zone` in favour of `Date#in_time_zone`.
+
+    *Vipul A M*
+
 *   Remove deprecated `Proc#bind` with no replacement.
 
     *Carlos Antonio da Silva*
