@@ -1,3 +1,7 @@
+*   Removed support for deprecated `counter_sql` in associations.
+
+    *Neeraj Singh*
+
 *   Do not invoke callbacks when `delete_all` is called on collection.
 
     Method `delete_all` should not be invoking callbacks and this
