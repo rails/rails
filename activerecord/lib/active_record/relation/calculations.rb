@@ -137,24 +137,20 @@ module ActiveRecord
     #
     def pluck(*column_names)
       column_names.map! do |column_name|
-        if column_name.is_a?(Symbol)
-          if attribute_alias?(column_name)
-            column_name = attribute_alias(column_name).to_sym
-          end
-
-          if self.columns_hash.key?(column_name.to_s)
-            column_name = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
-          end
+        if column_name.is_a?(Symbol) && attribute_alias?(column_name)
+          attribute_alias(column_name).to_sym
+        else
+          column_name
         end
-
-        column_name
       end
 
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else
         relation = spawn
-        relation.select_values = column_names
+        relation.select_values = column_names.map { |cn|
+          columns_hash.key?(cn.to_s) ? arel_table[cn] : cn
+        }
         result = klass.connection.select_all(relation.arel, nil, bind_values)
         columns = result.columns.map do |key|
           klass.column_types.fetch(key) {
