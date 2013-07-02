@@ -153,11 +153,35 @@ module ActiveRecord
         end
       end
 
-      # Remove all records from this association.
+      # Removes all records from the association without calling callbacks
+      # on the associated records. It honors the `:dependent` option. However
+      # if the `:dependent` value is `:destroy` then in that case the default
+      # deletion strategy for the association is applied.
+      #
+      # You can force a particular deletion strategy by passing a parameter.
+      #
+      # Example:
+      #
+      # @author.books.delete_all(:nullify)
+      # @author.books.delete_all(:delete_all)
       #
       # See delete for more info.
-      def delete_all
-        delete(:all).tap do
+      def delete_all(dependent = nil)
+        if dependent.present? && ![:nullify, :delete_all].include?(dependent)
+          raise ArgumentError, "Valid values are :nullify or :delete_all"
+        end
+
+        dependent = if dependent.present?
+                      dependent
+                    elsif options[:dependent] == :destroy
+                      # since delete_all should not invoke callbacks so use the default deletion strategy
+                      # for :destroy
+                      reflection.is_a?(ActiveRecord::Reflection::ThroughReflection) ? :delete_all : :nullify
+                    else
+                      options[:dependent]
+                    end
+
+        delete(:all, dependent: dependent).tap do
           reset
           loaded!
         end
@@ -214,18 +238,10 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        dependent = options[:dependent]
+        _options = records.extract_options!
+        dependent = _options[:dependent] || options[:dependent]
 
         if records.first == :all
-
-          if dependent && dependent == :destroy
-            message = 'In Rails 4.1 delete_all on associations would not fire callbacks. ' \
-                      'It means if the :dependent option is :destroy then the associated ' \
-                      'records would be deleted without loading and invoking callbacks.'
-
-            ActiveRecord::Base.logger ? ActiveRecord::Base.logger.warn(message) : $stderr.puts(message)
-          end
-
           if loaded? || dependent == :destroy
             delete_or_destroy(load_target, dependent)
           else
