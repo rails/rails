@@ -30,6 +30,7 @@ module ActiveRecord
           when Array
             case sql_type
             when 'point' then super(PostgreSQLColumn.point_to_string(value))
+            when 'json' then super(PostgreSQLColumn.json_to_string(value))
             else
               if column.array
                 "'#{PostgreSQLColumn.array_to_string(value, column, self).gsub(/'/, "''")}'"
@@ -98,6 +99,7 @@ module ActiveRecord
           when Array
             case column.sql_type
             when 'point' then PostgreSQLColumn.point_to_string(value)
+            when 'json' then PostgreSQLColumn.json_to_string(value)
             else
               return super(value, column) unless column.array
               PostgreSQLColumn.array_to_string(value, column, self)

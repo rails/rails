@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Support array as root element in JSON fields.
+
+    *Alexey Noskov & Francesco Rodriguez*
+
 *   Apply default scope when joining associations. For example:
 
         class Post < ActiveRecord::Base
