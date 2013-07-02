@@ -23,66 +23,6 @@ require 'models/categorization'
 require 'models/minivan'
 require 'models/speedometer'
 
-class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
-  class Invoice < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
-    end
-  end
-  def test_should_fail
-    assert_raise(ArgumentError) do
-      Invoice.create.custom_line_items.count(:conditions => {:amount => 0})
-    end
-  end
-end
-
-class HasManyAssociationsTestForCountWithVariousFinderSqls < ActiveRecord::TestCase
-  class Invoice < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
-      has_many :custom_full_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.invoice_id, line_items.amount from line_items"
-      has_many :custom_star_line_items, :class_name => 'LineItem', :finder_sql => "SELECT * from line_items"
-      has_many :custom_qualified_star_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
-    end
-  end
-
-  def test_should_count_distinct_results
-    invoice = Invoice.new
-    invoice.custom_line_items << LineItem.new(:amount => 0)
-    invoice.custom_line_items << LineItem.new(:amount => 0)
-    invoice.save!
-
-    assert_equal 1, invoice.custom_line_items.count
-  end
-
-  def test_should_count_results_with_multiple_fields
-    invoice = Invoice.new
-    invoice.custom_full_line_items << LineItem.new(:amount => 0)
-    invoice.custom_full_line_items << LineItem.new(:amount => 0)
-    invoice.save!
-
-    assert_equal 2, invoice.custom_full_line_items.count
-  end
-
-  def test_should_count_results_with_star
-    invoice = Invoice.new
-    invoice.custom_star_line_items << LineItem.new(:amount => 0)
-    invoice.custom_star_line_items << LineItem.new(:amount => 0)
-    invoice.save!
-
-    assert_equal 2, invoice.custom_star_line_items.count
-  end
-
-  def test_should_count_results_with_qualified_star
-    invoice = Invoice.new
-    invoice.custom_qualified_star_line_items << LineItem.new(:amount => 0)
-    invoice.custom_qualified_star_line_items << LineItem.new(:amount => 0)
-    invoice.save!
-
-    assert_equal 2, invoice.custom_qualified_star_line_items.count
-  end
-end
-
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
 
@@ -352,26 +292,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Summit", Firm.all.merge!(:order => "id").first.clients_using_primary_key.first.name
   end
 
-  def test_finding_using_sql
-    firm = Firm.order("id").first
-    first_client = firm.clients_using_sql.first
-    assert_not_nil first_client
-    assert_equal "Microsoft", first_client.name
-    assert_equal 1, firm.clients_using_sql.size
-    assert_equal 1, Firm.order("id").first.clients_using_sql.size
-  end
-
-  def test_finding_using_sql_take_into_account_only_uniq_ids
-    firm = Firm.order("id").first
-    client = firm.clients_using_sql.first
-    assert_equal client, firm.clients_using_sql.find(client.id, client.id)
-    assert_equal client, firm.clients_using_sql.find(client.id, client.id.to_s)
-  end
-
-  def test_counting_using_finder_sql
-    assert_equal 2, Firm.find(4).clients_using_sql.count
-  end
-
   def test_belongs_to_sanity
     c = Client.new
     assert_nil c.firm
@@ -397,22 +317,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal client, client_ary.first
 
     assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
-  end
-
-  def test_find_string_ids_when_using_finder_sql
-    firm = Firm.order("id").first
-
-    client = firm.clients_using_finder_sql.find("2")
-    assert_kind_of Client, client
-
-    client_ary = firm.clients_using_finder_sql.find(["2"])
-    assert_kind_of Array, client_ary
-    assert_equal client, client_ary.first
-
-    client_ary = firm.clients_using_finder_sql.find("2", "3")
-    assert_kind_of Array, client_ary
-    assert_equal 2, client_ary.size
-    assert_equal true, client_ary.include?(client)
   end
 
   def test_find_all
@@ -1324,13 +1228,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [readers(:michael_welcome).id], posts(:welcome).readers_with_person_ids
   end
 
-  def test_get_ids_for_unloaded_finder_sql_associations_loads_them
-    company = companies(:first_firm)
-    assert !company.clients_using_sql.loaded?
-    assert_equal [companies(:second_client).id], company.clients_using_sql_ids
-    assert company.clients_using_sql.loaded?
-  end
-
   def test_get_ids_for_ordered_association
     assert_equal [companies(:second_client).id, companies(:first_client).id], companies(:first_firm).clients_ordered_by_name_ids
   end
@@ -1417,17 +1314,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
     assert ! firm.clients.loaded?
   end
-
-  def test_include_loads_collection_if_target_uses_finder_sql
-    firm = companies(:first_firm)
-    client = firm.clients_using_sql.first
-
-    firm.reload
-    assert ! firm.clients_using_sql.loaded?
-    assert_equal true, firm.clients_using_sql.include?(client)
-    assert firm.clients_using_sql.loaded?
-  end
-
 
   def test_include_returns_false_for_non_matching_record_to_verify_scoping
     firm = companies(:first_firm)

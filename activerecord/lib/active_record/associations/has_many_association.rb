@@ -58,8 +58,6 @@ module ActiveRecord
         def count_records
           count = if has_cached_counter?
             owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif options[:finder_sql]
-            reflection.klass.count_by_sql(custom_counter_sql)
           else
             scope.count
           end

@@ -9,14 +9,6 @@ class Project < ActiveRecord::Base
   has_and_belongs_to_many :salaried_developers, -> { where "salary > 0" }, :class_name => "Developer"
 
   ActiveSupport::Deprecation.silence do
-    has_and_belongs_to_many :developers_with_finder_sql, :class_name => "Developer", :finder_sql => proc { "SELECT t.*, j.* FROM developers_projects j, developers t WHERE t.id = j.developer_id AND j.project_id = #{id} ORDER BY t.id" }
-    has_and_belongs_to_many :developers_with_multiline_finder_sql, :class_name => "Developer", :finder_sql => proc {
-      "SELECT
-         t.*, j.*
-       FROM
-         developers_projects j,
-         developers t WHERE t.id = j.developer_id AND j.project_id = #{id} ORDER BY t.id"
-    }
     has_and_belongs_to_many :developers_by_sql, :class_name => "Developer", :delete_sql => proc { |record| "DELETE FROM developers_projects WHERE project_id = #{id} AND developer_id = #{record.id}" }
   end
 

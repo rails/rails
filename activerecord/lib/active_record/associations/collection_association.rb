@@ -44,7 +44,7 @@ module ActiveRecord
 
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
-        if loaded? || options[:finder_sql]
+        if loaded?
           load_target.map do |record|
             record.send(reflection.association_primary_key)
           end
@@ -79,9 +79,7 @@ module ActiveRecord
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          if options[:finder_sql]
-            find_by_scan(*args)
-          elsif options[:inverse_of] && loaded?
+          if options[:inverse_of] && loaded?
             args = args.flatten
             raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args.blank?
 
@@ -197,19 +195,11 @@ module ActiveRecord
         end
       end
 
-      # Count all records using SQL. If the +:finder_sql+ option is set for the
-      # association, it will be used for the query. Otherwise, construct options and pass them with
+      # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
       def count(column_name = nil, count_options = {})
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
-        if options[:finder_sql]
-          unless count_options.blank?
-            raise ArgumentError, "If finder_sql is used then options cannot be passed"
-          end
-
-          reflection.klass.count_by_sql(custom_counter_sql)
-        else
           relation = scope
           if association_scope.distinct_value
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
@@ -227,7 +217,6 @@ module ActiveRecord
           else
             value
           end
-        end
       end
 
       # Removes +records+ from this association calling +before_remove+ and
@@ -361,7 +350,6 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            load_target if options[:finder_sql]
             loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
@@ -406,27 +394,8 @@ module ActiveRecord
 
       private
 
-        def custom_counter_sql
-          # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
-          interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
-            count_with = $2.to_s
-            count_with = '*' if count_with.blank? || count_with =~ /,/ || count_with =~ /\.\*/
-            "SELECT #{$1}COUNT(#{count_with}) FROM"
-          end
-        end
-
-        def custom_finder_sql
-          interpolate(options[:finder_sql])
-        end
-
         def find_target
-          records =
-            if options[:finder_sql]
-              reflection.klass.find_by_sql(custom_finder_sql)
-            else
-              scope.to_a
-            end
-
+          records = scope.to_a
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -565,7 +534,6 @@ module ActiveRecord
         # Otherwise, go to the database only if none of the following are true:
         #   * target already loaded
         #   * owner is new record
-        #   * custom :finder_sql exists
         #   * target contains new or changed record(s)
         #   * the first arg is an integer (which indicates the number of records to be returned)
         def fetch_first_or_last_using_find?(args)
@@ -574,7 +542,6 @@ module ActiveRecord
           else
             !(loaded? ||
               owner.new_record? ||
-              options[:finder_sql] ||
               target.any? { |record| record.new_record? || record.changed? } ||
               args.first.kind_of?(Integer))
           end
@@ -591,7 +558,7 @@ module ActiveRecord
           end
         end
 
-        # If using a custom finder_sql or if the :inverse_of option has been
+        # If the :inverse_of option has been
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
