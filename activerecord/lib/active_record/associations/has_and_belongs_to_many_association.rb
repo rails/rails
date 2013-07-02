@@ -18,16 +18,12 @@ module ActiveRecord
           end
         end
 
-        if options[:insert_sql]
-          owner.connection.insert(interpolate(options[:insert_sql], record))
-        else
-          stmt = join_table.compile_insert(
-            join_table[reflection.foreign_key]             => owner.id,
-            join_table[reflection.association_foreign_key] => record.id
-          )
+        stmt = join_table.compile_insert(
+          join_table[reflection.foreign_key]             => owner.id,
+          join_table[reflection.association_foreign_key] => record.id
+        )
 
-          owner.class.connection.insert stmt
-        end
+        owner.class.connection.insert stmt
 
         record
       end
