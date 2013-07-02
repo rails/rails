@@ -845,18 +845,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert project.developers.include?(developer)
   end
 
-  test ":insert_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    def klass.name; 'Foo'; end
-    assert_deprecated { klass.has_and_belongs_to_many :posts, :insert_sql => 'lol' }
-  end
-
-  test ":delete_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    def klass.name; 'Foo'; end
-    assert_deprecated { klass.has_and_belongs_to_many :posts, :delete_sql => 'lol' }
-  end
-
   test "has and belongs to many associations on new records use null relations" do
     projects = Developer.new.projects
     assert_no_queries do
