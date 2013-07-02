@@ -1,3 +1,7 @@
+*   Remove deprecated `SchemaStatements#distinct`.
+
+    *Francesco Rodriguez*
+
 *   Move deprecated `ActiveRecord::TestCase` into the rails test
     suite. The class is no longer public and is only used for internal
     Rails tests.

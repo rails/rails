@@ -694,15 +694,6 @@ module ActiveRecord
         end
       end
 
-      # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
-      #
-      #   distinct("posts.id", ["posts.created_at desc"])
-      #
-      def distinct(columns, order_by)
-        ActiveSupport::Deprecation.warn("#distinct is deprecated and shall be removed from future releases.")
-        "DISTINCT #{columns_for_distinct(columns, order_by)}"
-      end
-
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
       # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax - they
       # require the order columns appear in the SELECT.
