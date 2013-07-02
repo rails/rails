@@ -138,9 +138,9 @@ module ActiveRecord
     def pluck(*column_names)
       column_names.map! do |column_name|
         if column_name.is_a?(Symbol) && attribute_alias?(column_name)
-          attribute_alias(column_name).to_sym
+          attribute_alias(column_name)
         else
-          column_name
+          column_name.to_s
         end
       end
 
@@ -149,7 +149,7 @@ module ActiveRecord
       else
         relation = spawn
         relation.select_values = column_names.map { |cn|
-          columns_hash.key?(cn.to_s) ? arel_table[cn] : cn
+          columns_hash.key?(cn) ? arel_table[cn] : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bind_values)
         columns = result.columns.map do |key|
