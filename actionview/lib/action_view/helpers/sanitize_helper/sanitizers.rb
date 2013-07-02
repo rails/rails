@@ -14,9 +14,12 @@ module ActionView
   class LinkSanitizer
     def initialize
       @link_scrubber = Loofah::Scrubber.new do |node|
-        next unless node.name == 'a'
-        node.before node.children
-        node.remove
+        if node.name == 'a'
+          node.before node.children
+          node.remove
+        else
+          Loofah::HTML5::Scrub.scrub_attributes(node)
+        end
       end
     end
 
@@ -40,8 +43,8 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
-        loofah_fragment.scrub!(:strip)
         loofah_fragment.xpath("./form").each { |form| form.remove }
+        loofah_fragment.scrub!(:strip)
       end
       loofah_fragment.to_s
     end
