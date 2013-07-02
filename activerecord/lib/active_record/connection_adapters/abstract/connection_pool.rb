@@ -332,11 +332,6 @@ module ActiveRecord
         end
       end
 
-      def clear_stale_cached_connections! # :nodoc:
-        reap
-      end
-      deprecate :clear_stale_cached_connections! => "Please use #reap instead"
-
       # Check-out a database connection from the pool, indicating that you want
       # to use it. You should call #checkin when you no longer need this.
       #
