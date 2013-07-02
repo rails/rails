@@ -1092,21 +1092,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal num_accounts, Account.count
   end
 
-  def test_restrict
-    firm = RestrictedFirm.create!(:name => 'restrict')
-    firm.companies.create(:name => 'child')
-
-    assert !firm.companies.empty?
-    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
-    assert RestrictedFirm.exists?(:name => 'restrict')
-    assert firm.companies.exists?(:name => 'child')
-  end
-
-  def test_restrict_is_deprecated
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_many :posts, dependent: :restrict }
-  end
-
   def test_restrict_with_exception
     firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
