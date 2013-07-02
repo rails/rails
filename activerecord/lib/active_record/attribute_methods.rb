@@ -46,8 +46,10 @@ module ActiveRecord
       end
 
       def undefine_attribute_methods # :nodoc:
-        super if @attribute_methods_generated
-        @attribute_methods_generated = false
+        generated_attribute_methods.synchronize do
+          super if @attribute_methods_generated
+          @attribute_methods_generated = false
+        end
       end
 
       # Raises a <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
