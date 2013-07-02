@@ -1,3 +1,15 @@
+*   Remove deprecated constants from Action Controller:
+
+        ActionController::AbstractRequest  => ActionDispatch::Request
+        ActionController::Request          => ActionDispatch::Request
+        ActionController::AbstractResponse => ActionDispatch::Response
+        ActionController::Response         => ActionDispatch::Response
+        ActionController::Routing          => ActionDispatch::Routing
+        ActionController::Integration      => ActionDispatch::Integration
+        ActionController::IntegrationTest  => ActionDispatch::IntegrationTest
+
+    *Carlos Antonio da Silva*
+
 *   Fix `Mime::Type.parse` when bad accepts header is looked up. Previously it
     was setting `request.formats` with an array containing a `nil` value, which
     raised an error when setting the controller formats.
