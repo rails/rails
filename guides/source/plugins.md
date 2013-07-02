@@ -39,7 +39,7 @@ Rails ships with a `rails plugin new` command which creates a
  and options by asking for help:
 
 ```bash
-$ rails plugin --help
+$ rails plugin new --help
 ```
 
 Testing your newly generated plugin
