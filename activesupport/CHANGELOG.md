@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::BasicObject`, use `ActiveSupport::ProxyObject` instead.
+
+    *Carlos Antonio da Silva*
+
 *   Remove deprecated `BufferedLogger`.
 
     *Yves Senn*
