@@ -501,7 +501,15 @@ module ActiveRecord
     #   User.where(name: 'Oscar').to_sql
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
+      @to_sql ||= begin
+                    if eager_loading?
+                      join_dependency = construct_join_dependency
+                      relation = construct_relation_for_association_find(join_dependency)
+                      klass.connection.to_sql(relation.arel, relation.bind_values)
+                    else
+                      klass.connection.to_sql(arel, bind_values.dup)
+                    end
+                  end
     end
 
     # Returns a hash of where conditions.
