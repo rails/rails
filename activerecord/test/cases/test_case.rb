@@ -93,9 +93,3 @@ module ActiveRecord
 
   ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
-
-ActiveRecord::TestCase.class_eval do
-  def sqlite3? connection
-    connection.class.name.split('::').last == "SQLite3Adapter"
-  end
-end
