@@ -1,3 +1,7 @@
+*   Support array as root element in JSON fields.
+
+    *Alexey Noskov & Francesco Rodriguez*
+
 *   Removed support for deprecated `counter_sql` in associations.
 
     *Neeraj Singh*

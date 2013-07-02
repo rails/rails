@@ -96,5 +96,4 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     x.payload = ['v1', {'k2' => 'v2'}, 'v3']
     assert x.save!
   end
-
 end
