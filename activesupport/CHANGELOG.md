@@ -1,3 +1,7 @@
+*   Remove deprecated `Proc#bind` with no replacement.
+
+    *Carlos Antonio da Silva*
+
 *   Remove deprecated `Array#uniq_by` and `Array#uniq_by!`, use native
     `Array#uniq` and `Array#uniq!` instead.
 
