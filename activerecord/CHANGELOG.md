@@ -1,3 +1,7 @@
+*   Removed deprecated method `type_cast_code` from Column.
+
+    *Neeraj Singh*
+
 *   Removed deprecated options `delete_sql` and `insert_sql` from HABTM
     association.
 
