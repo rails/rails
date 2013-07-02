@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
+require 'action_view/helpers/sanitize_helper/permit_scrubber'
 require 'loofah'
 
 module ActionView
@@ -25,13 +26,23 @@ module ActionView
   end
 
   class WhiteListSanitizer
+
+    def initialize
+      @permit_scrubber = PermitScrubber.new
+    end
+
     def sanitize(html, options = {})
       return nil unless html
-      validate_options(options)
 
       loofah_fragment = Loofah.fragment(html)
-      loofah_fragment.scrub!(:strip)
-      loofah_fragment.xpath("./form").each { |form| form.remove }
+      if options[:tags] || options[:attributes]
+        @permit_scrubber.tags = options[:tags]
+        @permit_scrubber.attributes = options[:attributes]
+        loofah_fragment.scrub!(@permit_scrubber)
+      else
+        loofah_fragment.scrub!(:strip)
+        loofah_fragment.xpath("./form").each { |form| form.remove }
+      end
       loofah_fragment.to_s
     end
 
@@ -97,16 +108,6 @@ module ActionView
     self.allowed_protocols = Loofah::HTML5::WhiteList::ALLOWED_PROTOCOLS
 
     protected
-      def validate_options(options)
-        if options[:tags] && !options[:tags].is_a?(Enumerable)
-          raise ArgumentError, "You should pass :tags as an Enumerable"
-        end
-
-        if options[:attributes] && !options[:attributes].is_a?(Enumerable)
-          raise ArgumentError, "You should pass :attributes as an Enumerable"
-        end
-      end
-
       def contains_bad_protocols?(attr_name, value)
         protocol_separator = ':'
         self.uri_attributes.include?(attr_name) &&
