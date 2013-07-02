@@ -187,7 +187,7 @@ module ActiveRecord
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && @attributes.present? && self.class.column_names.include?(name)
+      if defined?(@attributes) && @attributes.any? && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 
