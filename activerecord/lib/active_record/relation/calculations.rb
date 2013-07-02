@@ -92,7 +92,7 @@ module ActiveRecord
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
-        column_name = attribute_alias(column_name).to_sym
+        column_name = attribute_alias(column_name)
       end
 
       if has_include?(column_name)
