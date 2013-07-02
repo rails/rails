@@ -1,3 +1,7 @@
+*   Remove deprecated `page_cache_extension` config.
+
+    *Francesco Rodriguez*
+
 *   Remove deprecated constants from Action Controller:
 
         ActionController::AbstractRequest  => ActionDispatch::Request
