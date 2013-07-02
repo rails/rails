@@ -1,3 +1,7 @@
+*   Removed support for deprecated `delete_sql` in associations.
+
+    *Neeraj Singh*
+
 *   Removed support for deprecated `insert_sql` in associations.
 
     *Neeraj Singh*
