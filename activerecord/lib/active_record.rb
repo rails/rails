@@ -151,7 +151,6 @@ module ActiveRecord
     autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
-  autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
 
   def self.eager_load!
