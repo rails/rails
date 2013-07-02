@@ -1,3 +1,11 @@
+*   Removed deprecated options `delete_sql` and `insert_sql` from HABTM
+    association.
+
+    Removed deprecated options `finder_sql` and `counter_sql` from
+    collection association.
+
+    *Neeraj Singh*
+
 *   Remove deprecated `ActiveRecord::Base#connection` method.
     Make sure to access it via the class.
 
