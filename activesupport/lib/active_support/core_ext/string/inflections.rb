@@ -100,14 +100,18 @@ class String
   # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
   # used in the Rails internals.
   #
-  # +titleize+ is also aliased as +titlecase+.
-  #
   #   'man from the boondocks'.titleize # => "Man From The Boondocks"
   #   'x-men: the last stand'.titleize  # => "X Men: The Last Stand"
   def titleize
     ActiveSupport::Inflector.titleize(self)
   end
-  alias_method :titlecase, :titleize
+
+  # Capitalizes all the words (segments separated by whitespace)
+  #   'active record' # => 'Active Record'
+  #   'laissez-faire' # => 'Laissez-faire'
+  def titlecase
+    ActiveSupport::Inflector.titlecase(self)
+  end
 
   # The reverse of +camelize+. Makes an underscored, lowercase form from the expression in the string.
   #
