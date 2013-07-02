@@ -154,9 +154,7 @@ module ActiveRecord
         result = klass.connection.select_all(relation.arel, nil, bind_values)
         columns = result.columns.map do |key|
           klass.column_types.fetch(key) {
-            result.column_types.fetch(key) {
-              Class.new { def type_cast(v); v; end }.new
-            }
+            result.column_types.fetch(key) { result.identity_type }
           }
         end
 
