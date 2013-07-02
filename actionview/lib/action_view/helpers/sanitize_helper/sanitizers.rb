@@ -40,15 +40,15 @@ module ActionView
     end
 
     def protocol_separator
-      ActiveSupport::Deprecation.warn('protocol_separator has been deprecated and has no effect.')
+      self.class.protocol_separator
     end
 
     def protocol_separator=(value)
-      ActiveSupport::Deprecation.warn('protocol_separator= has been deprecated and has no effect.')
+      self.class.protocol_separator
     end
 
     def bad_tags
-      ActiveSupport::Deprecation.warn('bad_tags has been deprecated and has no effect.')
+      self.class.bad_tags
     end
 
     class << self
@@ -57,11 +57,11 @@ module ActionView
       end
 
       def protocol_separator=(value)
-        ActiveSupport::Deprecation.warn('protocol_separator= has been deprecated and has no effect.')
+        self.class.protocol_separator
       end
 
       def bad_tags
-        ActiveSupport::Deprecation.warn('The bad_tags class attribute has been deprecated and has no effect. You can still affect the tags being sanitized using bad_tags= which changes the allowed_tags.')
+        ActiveSupport::Deprecation.warn('bad_tags has been deprecated and has no effect. You can still affect the tags being sanitized using ActionView::WhiteListSanitizer.bad_tags= which changes the allowed_tags.')
       end
 
       def bad_tags=(tags)
