@@ -91,8 +91,8 @@ module ActiveRecord
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
-      if column_name.is_a?(Symbol) && attribute_aliases.key?(column_name.to_s)
-        column_name = attribute_aliases[column_name.to_s].to_sym
+      if column_name.is_a?(Symbol) && attribute_alias?(column_name)
+        column_name = attribute_alias(column_name).to_sym
       end
 
       if has_include?(column_name)
@@ -138,8 +138,8 @@ module ActiveRecord
     def pluck(*column_names)
       column_names.map! do |column_name|
         if column_name.is_a?(Symbol)
-          if attribute_aliases.key?(column_name.to_s)
-            column_name = attribute_aliases[column_name.to_s].to_sym
+          if attribute_alias?(column_name)
+            column_name = attribute_alias(column_name).to_sym
           end
 
           if self.columns_hash.key?(column_name.to_s)
