@@ -30,8 +30,11 @@ module ActiveRecord
           extend Mutex_m
 
           const_set :AttrNames, Module.new {
-            def self.const_missing(name)
-              const_set(name, [name.to_s.sub(/ATTR_/, '')].pack('h*').freeze)
+            def self.set_name_cache(name, value)
+              const_name = "ATTR_#{name}"
+              unless const_defined? const_name
+                const_set const_name, value
+              end
             end
           }
         }
