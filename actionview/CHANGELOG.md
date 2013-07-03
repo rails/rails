@@ -1,4 +1,9 @@
-*   Remove deprecated block passing to FormBuilder#new.
+*   Remove the deprecated `include_seconds` argument from `distance_of_time_in_words`,
+    pass in an `:include_seconds` hash option to use this feature.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated block passing to `FormBuilder#new`.
 
     *Vipul A M*
 
