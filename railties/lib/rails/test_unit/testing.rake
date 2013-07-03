@@ -7,18 +7,7 @@ task default: :test
 
 desc 'Runs test:units, test:functionals, test:integration together'
 task :test do
-  info = Rails::TestTask.test_info Rake.application.top_level_tasks
-  if info.files.any?
-    Rails::TestTask.new('test:single') { |t|
-      t.test_files = info.files
-    }
-    ENV['TESTOPTS'] ||= info.opts
-    Rake.application.top_level_tasks.replace info.tasks
-
-    Rake::Task['test:single'].invoke
-  else
-    Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
-  end
+  Rails::TestTask.test_creator(Rake.application.top_level_tasks).invoke_rake_task
 end
 
 namespace :test do
