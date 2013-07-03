@@ -28,6 +28,31 @@ module ActiveRecord
       end
     }
 
+    class AttributeMethodCache
+      include Mutex_m
+
+      def initialize
+        super
+        @module = Module.new
+        @method_cache = {}
+      end
+
+      def [](name)
+        synchronize do
+          @method_cache.fetch(name) {
+            safe_name = name.unpack('h*').first
+            temp_method = "__temp__#{safe_name}"
+            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+            @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__
+            @method_cache[name] = @module.instance_method temp_method
+          }
+        end
+      end
+
+      private
+      def method_body; raise NotImplementedError; end
+    end
+
     module ClassMethods
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules

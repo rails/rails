@@ -1,15 +1,8 @@
 module ActiveRecord
   module AttributeMethods
     module Read
-      ReaderMethodCache = Class.new {
-        include Mutex_m
-
-        def initialize
-          super
-          @module = Module.new
-          @method_cache = {}
-        end
-
+      ReaderMethodCache = Class.new(AttributeMethodCache) {
+        private
         # We want to generate the methods via module_eval rather than
         # define_method, because define_method is slower on dispatch.
         # Evaluating many similar methods may use more memory as the instruction
@@ -28,24 +21,13 @@ module ActiveRecord
         # to allocate an object on each call to the attribute method.
         # Making it frozen means that it doesn't get duped when used to
         # key the @attributes_cache in read_attribute.
-        def [](name)
-          synchronize do
-            @method_cache.fetch(name) {
-              safe_name = name.unpack('h*').first
-              temp_method = "__temp__#{safe_name}"
-
-              ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
-
-              @module.module_eval <<-STR, __FILE__, __LINE__ + 1
-                def #{temp_method}
-                  name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-                  read_attribute(name) { |n| missing_attribute(n, caller) }
-                end
-              STR
-
-              @method_cache[name] = @module.instance_method temp_method
-            }
+        def method_body(method_name, const_name)
+          <<-EOMETHOD
+          def #{method_name}
+            name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{const_name}
+            read_attribute(name) { |n| missing_attribute(n, caller) }
           end
+          EOMETHOD
         end
       }.new
 
