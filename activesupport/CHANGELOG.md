@@ -1,3 +1,7 @@
+*   Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
 
     *Arun Agrawal*
