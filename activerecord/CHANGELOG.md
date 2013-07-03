@@ -1,3 +1,7 @@
+*   Remove deprecated `scope` use without passing a callable object.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `transaction_joinable=` in favor of `begin_transaction`
     with `:joinable` option.
 
