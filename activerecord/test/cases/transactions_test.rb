@@ -593,14 +593,5 @@ if current_adapter?(:PostgreSQLAdapter)
 
       assert_equal original_salary, Developer.find(1).salary
     end
-
-    test "#transaction_joinable= is deprecated" do
-      Developer.transaction do
-        conn = Developer.connection
-        assert conn.current_transaction.joinable?
-        assert_deprecated { conn.transaction_joinable = false }
-        assert !conn.current_transaction.joinable?
-      end
-    end
   end
 end

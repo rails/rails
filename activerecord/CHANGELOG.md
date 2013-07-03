@@ -1,3 +1,8 @@
+*   Remove deprecated `transaction_joinable=` in favor of `begin_transaction`
+    with `:joinable` option.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `decrement_open_transactions`.
 
     *Arun Agrawal*
