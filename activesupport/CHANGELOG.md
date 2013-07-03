@@ -1,3 +1,10 @@
+*   Remove deprecated `Hash#diff` with no replacement.
+
+    If you're using it to compare hashes for the purpose of testing, please use
+    MiniTest's `assert_equal` instead.
+
+    *Carlos Antonio da Silva*
+
 *   Remove deprecated `Date#to_time_in_current_zone` in favour of `Date#in_time_zone`.
 
     *Vipul A M*

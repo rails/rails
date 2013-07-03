@@ -701,12 +701,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, merged
   end
 
-  def test_diff
-    assert_deprecated do
-      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
-    end
-  end
-
   def test_slice
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
