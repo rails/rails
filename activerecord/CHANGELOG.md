@@ -1,3 +1,7 @@
+*   Removed deprecated `columns_for_remove` from `SchemaStatements`.
+
+    *Neeraj Singh*
+
 *   Remove deprecated `SchemaStatements#distinct`.
 
     *Francesco Rodriguez*
