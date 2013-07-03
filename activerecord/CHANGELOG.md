@@ -1,3 +1,7 @@
+*   Remove deprecated `increment_open_transactions`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `PostgreSQLAdapter#outside_transaction?`
     method. You can use `#transaction_open?` instead.
 

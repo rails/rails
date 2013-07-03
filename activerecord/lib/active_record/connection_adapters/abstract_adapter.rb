@@ -387,10 +387,6 @@ module ActiveRecord
         @transaction.number
       end
 
-      def increment_open_transactions
-        ActiveSupport::Deprecation.warn "#increment_open_transactions is deprecated and has no effect"
-      end
-
       def decrement_open_transactions
         ActiveSupport::Deprecation.warn "#decrement_open_transactions is deprecated and has no effect"
       end
