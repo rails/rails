@@ -1,3 +1,7 @@
+*   Remove deprecated `decrement_open_transactions`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `increment_open_transactions`.
 
     *Arun Agrawal*

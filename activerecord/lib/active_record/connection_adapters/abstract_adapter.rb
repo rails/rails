@@ -387,10 +387,6 @@ module ActiveRecord
         @transaction.number
       end
 
-      def decrement_open_transactions
-        ActiveSupport::Deprecation.warn "#decrement_open_transactions is deprecated and has no effect"
-      end
-
       def transaction_joinable=(joinable)
         message = "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
         ActiveSupport::Deprecation.warn message
