@@ -803,12 +803,6 @@ module ActiveRecord
           index_name
         end
 
-        def columns_for_remove(table_name, *column_names)
-          ActiveSupport::Deprecation.warn("columns_for_remove is deprecated and will be removed in the future")
-          raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.blank?
-          column_names.map {|column_name| quote_column_name(column_name) }
-        end
-
         def rename_table_indexes(table_name, new_name)
           indexes(new_name).each do |index|
             generated_index_name = index_name(table_name, column: index.columns)
