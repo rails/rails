@@ -168,26 +168,6 @@ module ActiveRecord
           assert_equal Date, bob.favorite_day.class
         end
 
-        # Oracle adapter stores Time or DateTime with timezone value already in _before_type_cast column
-        # therefore no timezone change is done afterwards when default timezone is changed
-        unless current_adapter?(:OracleAdapter)
-          # Test DateTime column and defaults, including timezone.
-          # FIXME: moment of truth may be Time on 64-bit platforms.
-          if bob.moment_of_truth.is_a?(DateTime)
-
-            with_env_tz 'US/Eastern' do
-              bob.reload
-              assert_equal DateTime.local_offset, bob.moment_of_truth.offset
-              assert_not_equal 0, bob.moment_of_truth.offset
-              assert_not_equal "Z", bob.moment_of_truth.zone
-              # US/Eastern is -5 hours from GMT
-              assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-              assert_match(/\A-05:00\Z/, bob.moment_of_truth.zone)
-              assert_equal DateTime::ITALY, bob.moment_of_truth.start
-            end
-          end
-        end
-
         assert_instance_of TrueClass, bob.male?
         assert_kind_of BigDecimal, bob.wealth
       end
