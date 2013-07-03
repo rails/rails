@@ -1,3 +1,8 @@
+*   Remove deprecated `PostgreSQLAdapter#outside_transaction?`
+    method. You can use `#transaction_open?` instead.
+
+    *Yves Senn*
+
 *   Remove deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
     `ActiveRecord::Fixtures.default_fixture_model_name`.
 
