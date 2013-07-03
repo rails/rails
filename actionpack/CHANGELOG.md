@@ -1,3 +1,8 @@
+*   Remove deprecated Rails application fallback for integration testing, set
+    `ActionDispatch.test_app` instead.
+
+    *Carlos Antonio da Silva*
+
 *   Remove deprecated `page_cache_extension` config.
 
     *Francesco Rodriguez*

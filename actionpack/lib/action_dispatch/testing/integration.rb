@@ -489,10 +489,6 @@ module ActionDispatch
     @@app = nil
 
     def self.app
-      if !@@app && !ActionDispatch.test_app
-        ActiveSupport::Deprecation.warn "Rails application fallback is deprecated and no longer works, please set ActionDispatch.test_app"
-      end
-
       @@app || ActionDispatch.test_app
     end
 
