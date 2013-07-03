@@ -1,3 +1,7 @@
+*   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
+
+    *Arun Agrawal*
+
 *   Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
 
     *Arun Agrawal*
