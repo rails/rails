@@ -15,13 +15,6 @@ module ActiveRecord
 
           include ActiveRecord::AttributeMethods
 
-          def self.define_attribute_methods
-            # Created in the inherited/included hook for "proper" ARs
-            @attribute_methods_mutex ||= Mutex.new
-
-            super
-          end
-
           def self.column_names
             %w{ one two three }
           end

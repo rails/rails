@@ -8,7 +8,7 @@ module ActiveRecord
     include ActiveModel::AttributeMethods
 
     included do
-      @attribute_methods_generated = false
+      initialize_generated_modules
       include Read
       include Write
       include BeforeTypeCast
