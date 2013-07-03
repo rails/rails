@@ -52,16 +52,21 @@ module ActiveRecord
         # key the @attributes_cache in read_attribute.
         def define_method_attribute(name)
           safe_name = name.unpack('h*').first
+          temp_method = "__temp__#{safe_name}"
+
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-            def __temp__#{safe_name}
+            def #{temp_method}
               name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
               read_attribute(name) { |n| missing_attribute(n, caller) }
             end
-            alias_method #{name.inspect}, :__temp__#{safe_name}
-            undef_method :__temp__#{safe_name}
           STR
+
+          generated_attribute_methods.module_eval do
+            alias_method name, temp_method
+            undef_method temp_method
+          end
         end
 
         private
