@@ -1,3 +1,7 @@
+*   Remove deprecation warning from `attribute_missing` for attributes that are columns.
+
+    *Arun Agrawal*
+
 *   Remove extra decrement of transaction deep level.
 
     Fixes: #4566

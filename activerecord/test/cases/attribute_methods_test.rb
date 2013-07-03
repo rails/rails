@@ -759,21 +759,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert subklass.method_defined?(:id), "subklass is missing id method"
   end
 
-  def test_dispatching_column_attributes_through_method_missing_deprecated
-    Topic.define_attribute_methods
-
-    topic = Topic.new(:id => 5)
-    topic.id = 5
-
-    topic.method(:id).owner.send(:undef_method, :id)
-
-    assert_deprecated do
-      assert_equal 5, topic.id
-    end
-  ensure
-    Topic.undefine_attribute_methods
-  end
-
   def test_read_attribute_with_nil_should_not_asplode
     assert_equal nil, Topic.new.read_attribute(nil)
   end
