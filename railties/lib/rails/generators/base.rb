@@ -21,6 +21,10 @@ module Rails
       add_runtime_options!
       strict_args_position!
 
+      class_option :editor, type: :string, aliases: "-e", lazy_default: ENV['GUI_EDITOR'] || ENV['EDITOR'],
+                   required: false, banner: "/path/to/your/editor",
+                   desc: "Open all generated & copied files in the specified editor (defaults to $GUI_EDITOR, then $EDITOR)"
+
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path=nil)
         @_source_root = path if path

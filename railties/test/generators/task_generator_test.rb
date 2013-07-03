@@ -9,4 +9,10 @@ class TaskGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "lib/tasks/feeds.rake", /namespace :feeds/
   end
+
+  def test_file_is_opened_in_editor
+    generator %w(feeds foo bar), editor: 'vim'
+    generator.expects(:run).once.with("vim \"lib/tasks/feeds.rake\"")
+    quietly { generator.invoke_all }
+  end
 end

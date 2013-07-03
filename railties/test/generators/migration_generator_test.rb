@@ -197,4 +197,12 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_properly_identifies_usage_file
     assert generator_class.send(:usage_path)
   end
+
+  def test_file_is_opened_in_editor
+    migration = "delete_books"
+    generator [migration], editor: 'vim'
+    ActiveRecord::Generators::MigrationGenerator.stubs(:method_added).returns(true)  # To allow mocha expectation
+    ActiveRecord::Generators::MigrationGenerator.any_instance.expects(:run).once.with("vim \"db/migrate/#{migration}.rb\"")
+    quietly { generator.invoke_all }
+  end
 end

@@ -4,7 +4,9 @@ module Rails
       argument :actions, type: :array, default: [], banner: "action action"
 
       def create_task_files
-        template 'task.rb', File.join('lib/tasks', "#{file_name}.rake")
+        destination = File.join('lib/tasks', "#{file_name}.rake")
+        template 'task.rb', destination
+        open_file_in_editor(destination) if options["editor"].present?
       end
 
     end

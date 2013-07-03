@@ -82,4 +82,10 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :bar, controller
     end
   end
+
+  def test_file_is_opened_in_editor
+    generator ["account"], editor: 'vim'
+    generator.expects(:run).once.with("vim \"app/controllers/account_controller.rb\"")
+    quietly { generator.invoke_all }
+  end
 end

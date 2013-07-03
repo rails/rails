@@ -8,7 +8,9 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        destination = "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, destination
+        open_file_in_editor(destination) if options["editor"].present?
       end
 
       protected
