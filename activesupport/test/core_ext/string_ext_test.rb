@@ -651,12 +651,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
   end
 
-  test 'knows whether it is encoding aware' do
-    assert_deprecated do
-      assert 'ruby'.encoding_aware?
-    end
-  end
-
   test "call to_param returns a normal string" do
     string = @string.html_safe
     assert string.html_safe?

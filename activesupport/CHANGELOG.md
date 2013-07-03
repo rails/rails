@@ -1,3 +1,15 @@
+*   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
+
+    *Arun Agrawal*
+
+*   Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
 
     *Carlos Antonio da Silva*
