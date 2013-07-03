@@ -1,3 +1,7 @@
+*   Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
+
+    *Carlos Antonio da Silva*
+
 *   Remove deprecated `Time#time_with_datetime_fallback`, `Time#utc_time`
     and `Time#local_time` in favor of `Time#utc` and `Time#local`.
 
