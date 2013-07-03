@@ -379,12 +379,6 @@ module ActiveRecord
 
     @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
-    def self.find_table_name(fixture_set_name) # :nodoc:
-      ActiveSupport::Deprecation.warn(
-        "ActiveRecord::Fixtures.find_table_name is deprecated and shall be removed from future releases.  Use ActiveRecord::Fixtures.default_fixture_model_name instead.")
-      default_fixture_model_name(fixture_set_name)
-    end
-
     def self.default_fixture_model_name(fixture_set_name) # :nodoc:
       ActiveRecord::Base.pluralize_table_names ?
         fixture_set_name.singularize.camelize :

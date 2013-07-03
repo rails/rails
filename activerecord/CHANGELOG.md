@@ -1,3 +1,8 @@
+*   Remove deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
+    `ActiveRecord::Fixtures.default_fixture_model_name`.
+
+    *Vipul A M*
+
 *   Removed deprecated `columns_for_remove` from `SchemaStatements`.
 
     *Neeraj Singh*
