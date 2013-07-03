@@ -13,8 +13,9 @@ module ActionView
 
   class LinkSanitizer
     def initialize
+      @strip_tags = %w(a href)
       @link_scrubber = Loofah::Scrubber.new do |node|
-        if node.name == 'a'
+        if @strip_tags.include?(node.name)
           node.before node.children
           node.remove
         else
@@ -109,12 +110,5 @@ module ActionView
     self.shorthand_css_properties = Loofah::HTML5::WhiteList::SHORTHAND_CSS_PROPERTIES
 
     self.allowed_protocols = Loofah::HTML5::WhiteList::ALLOWED_PROTOCOLS
-
-    protected
-      def contains_bad_protocols?(attr_name, value)
-        protocol_separator = ':'
-        self.uri_attributes.include?(attr_name) &&
-        (value =~ /(^[^\/:]*):|(&#0*58)|(&#x70)|(&#x0*3a)|(%|&#37;)3A/i && !self.allowed_protocols.include?(value.split(protocol_separator).first.downcase.strip))
-      end
   end
 end
