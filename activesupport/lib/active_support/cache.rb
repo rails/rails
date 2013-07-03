@@ -515,12 +515,12 @@ module ActiveSupport
           case key
           when Array
             if key.size > 1
-              key = key.collect{|element| expanded_key(element)}
+              key = key.collect { |element| expanded_key(element) }
             else
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
+            key = key.sort_by { |k,_| k.to_s }.collect { |k,v| "#{k}=#{v}" }
           end
 
           key.to_param
@@ -542,7 +542,7 @@ module ActiveSupport
           if self.class.instrument
             payload = { :key => key }
             payload.merge!(options) if options.is_a?(Hash)
-            ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
+            ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
           else
             yield(nil)
           end
