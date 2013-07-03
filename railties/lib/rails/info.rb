@@ -61,7 +61,7 @@ module Rails
       end
     end
 
-    # The Ruby version and platform, e.g. "2.0.0p247 (x86_64-darwin12.4.0)".
+    # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
     property 'Ruby version' do
       "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
     end
