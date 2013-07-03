@@ -14,11 +14,12 @@ module ActiveRecord
         # this code.
         def define_method_attribute=(name)
           safe_name = name.unpack('h*').first
-          generated_attribute_methods::AttrNames.set_name_cache safe_name, name
+          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
             def __temp__#{safe_name}=(value)
-              write_attribute(AttrNames::ATTR_#{safe_name}, value)
+              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+              write_attribute(name, value)
             end
             alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
             undef_method :__temp__#{safe_name}=

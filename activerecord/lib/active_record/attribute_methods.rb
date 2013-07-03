@@ -19,6 +19,15 @@ module ActiveRecord
       include Serialization
     end
 
+    AttrNames = Module.new {
+      def self.set_name_cache(name, value)
+        const_name = "ATTR_#{name}"
+        unless const_defined? const_name
+          const_set const_name, value
+        end
+      end
+    }
+
     module ClassMethods
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules
@@ -26,18 +35,7 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = Module.new {
-          extend Mutex_m
-
-          const_set :AttrNames, Module.new {
-            def self.set_name_cache(name, value)
-              const_name = "ATTR_#{name}"
-              unless const_defined? const_name
-                const_set const_name, value
-              end
-            end
-          }
-        }
+        @generated_attribute_methods = Module.new { extend Mutex_m }
         @attribute_methods_generated = false
         include @generated_attribute_methods
       end
