@@ -65,12 +65,6 @@ module Rails
         "#{name}.update(#{params})"
       end
 
-      def update_attributes(*args) # :nodoc:
-        ActiveSupport::Deprecation.warn("Calling '@orm_instance.update_attributes' " \
-          "is deprecated, please use '@orm_instance.update' instead.")
-        update(*args)
-      end
-
       # POST create
       # PATCH/PUT update
       def errors
