@@ -1,3 +1,7 @@
+*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
 
     *Carlos Antonio da Silva*
