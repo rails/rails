@@ -1,3 +1,8 @@
+*   Remove deprecated `Time#time_with_datetime_fallback`, `Time#utc_time`
+    and `Time#local_time` in favor of `Time#utc` and `Time#local`.
+
+    *Vipul A M*
+
 *   Remove deprecated `Hash#diff` with no replacement.
 
     If you're using it to compare hashes for the purpose of testing, please use
