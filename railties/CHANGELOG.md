@@ -1,3 +1,7 @@
+*   Removed deprecated threadsafe! from Rails Config.
+
+    *Paul Nikitochkin*
+
 *   Remove deprecated `ActiveRecord::Generators::ActiveModel#update_attributes` in
     favor of `ActiveRecord::Generators::ActiveModel#update`
 
