@@ -1,7 +1,6 @@
 require 'rbconfig'
 require 'rake/testtask'
 require 'rails/test_unit/sub_test_task'
-require 'active_support/deprecation'
 
 task default: :test
 
