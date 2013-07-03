@@ -149,39 +149,6 @@ class SanitizerTest < ActionController::TestCase
     end
   end
 
-  def test_should_flag_bad_protocols
-    sanitizer = ActionView::WhiteListSanitizer.new
-    %w(about chrome data disk hcp help javascript livescript lynxcgi lynxexec ms-help ms-its mhtml mocha opera res resource shell vbscript view-source vnd.ms.radio wysiwyg).each do |proto|
-      assert sanitizer.send(:contains_bad_protocols?, 'src', "#{proto}://bad")
-    end
-  end
-
-  def test_should_accept_good_protocols_ignoring_case
-    sanitizer = ActionView::WhiteListSanitizer.new
-    ActionView::WhiteListSanitizer.allowed_protocols.each do |proto|
-      assert !sanitizer.send(:contains_bad_protocols?, 'src', "#{proto.capitalize}://good")
-    end
-  end
-
-  def test_should_accept_good_protocols_ignoring_space
-    sanitizer = ActionView::WhiteListSanitizer.new
-    ActionView::WhiteListSanitizer.allowed_protocols.each do |proto|
-      assert !sanitizer.send(:contains_bad_protocols?, 'src', " #{proto}://good")
-    end
-  end
-
-  def test_should_accept_good_protocols
-    sanitizer = ActionView::WhiteListSanitizer.new
-    ActionView::WhiteListSanitizer.allowed_protocols.each do |proto|
-      assert !sanitizer.send(:contains_bad_protocols?, 'src', "#{proto}://good")
-    end
-  end
-
-  def test_should_reject_hex_codes_in_protocol
-    assert_sanitized %(<a href="&#37;6A&#37;61&#37;76&#37;61&#37;73&#37;63&#37;72&#37;69&#37;70&#37;74&#37;3A&#37;61&#37;6C&#37;65&#37;72&#37;74&#37;28&#37;22&#37;58&#37;53&#37;53&#37;22&#37;29">1</a>), "<a>1</a>"
-    assert @sanitizer.send(:contains_bad_protocols?, 'src', "%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%22%58%53%53%22%29")
-  end
-
   def test_should_block_script_tag
     assert_sanitized %(<SCRIPT\nSRC=http://ha.ckers.org/xss.js></SCRIPT>), ""
   end
