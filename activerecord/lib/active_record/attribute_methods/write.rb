@@ -1,6 +1,36 @@
 module ActiveRecord
   module AttributeMethods
     module Write
+      WriterMethodCache = Class.new {
+        include Mutex_m
+
+        def initialize
+          super
+          @module = Module.new
+          @method_cache = {}
+        end
+
+        def [](name)
+          synchronize do
+            @method_cache.fetch(name) {
+              safe_name = name.unpack('h*').first
+              temp_method = "__temp__#{safe_name}="
+
+              ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+
+              @module.module_eval <<-STR, __FILE__, __LINE__ + 1
+                def #{temp_method}(value)
+                  name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+                  write_attribute(name, value)
+                end
+              STR
+
+              @method_cache[name] = @module.instance_method temp_method
+            }
+          end
+        end
+      }.new
+
       extend ActiveSupport::Concern
 
       included do
@@ -13,17 +43,10 @@ module ActiveRecord
         # See define_method_attribute in read.rb for an explanation of
         # this code.
         def define_method_attribute=(name)
-          safe_name = name.unpack('h*').first
-          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
-
-          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-            def __temp__#{safe_name}=(value)
-              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-              write_attribute(name, value)
-            end
-            alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
-            undef_method :__temp__#{safe_name}=
-          STR
+          method = WriterMethodCache[name]
+          generated_attribute_methods.module_eval {
+            define_method "#{name}=", method
+          }
         end
       end
 
