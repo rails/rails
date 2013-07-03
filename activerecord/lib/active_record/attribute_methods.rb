@@ -26,7 +26,15 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = Module.new { extend Mutex_m }
+        @generated_attribute_methods = Module.new {
+          extend Mutex_m
+
+          const_set :AttrNames, Module.new {
+            def self.const_missing(name)
+              const_set(name, [name.to_s.sub(/ATTR_/, '')].pack('h*').freeze)
+            end
+          }
+        }
         @attribute_methods_generated = false
         include @generated_attribute_methods
       end
