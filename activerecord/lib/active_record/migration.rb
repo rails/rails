@@ -866,12 +866,9 @@ module ActiveRecord
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
+      @migrations        = migrations
 
-      if Array(migrations).grep(String).empty?
-        @migrations = migrations
-      end
-
-      validate(@migrations)
+      validate(migrations)
 
       ActiveRecord::SchemaMigration.create_table
     end
