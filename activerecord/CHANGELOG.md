@@ -1,3 +1,20 @@
+*   Remove deprecated `scope` use without passing a callable object.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `transaction_joinable=` in favor of `begin_transaction`
+    with `:joinable` option.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `decrement_open_transactions`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `increment_open_transactions`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated `PostgreSQLAdapter#outside_transaction?`
     method. You can use `#transaction_open?` instead.
 

@@ -141,19 +141,6 @@ module ActiveRecord
         def scope(name, body, &block)
           extension = Module.new(&block) if block
 
-          # Check body.is_a?(Relation) to prevent the relation actually being
-          # loaded by respond_to?
-          if body.is_a?(Relation) || !body.respond_to?(:call)
-            ActiveSupport::Deprecation.warn(
-              "Using #scope without passing a callable object is deprecated. For " \
-              "example `scope :red, where(color: 'red')` should be changed to " \
-              "`scope :red, -> { where(color: 'red') }`. There are numerous gotchas " \
-              "in the former usage and it makes the implementation more complicated " \
-              "and buggy. (If you prefer, you can just define a class method named " \
-              "`self.red`.)"
-            )
-          end
-
           singleton_class.send(:define_method, name) do |*args|
             if body.respond_to?(:call)
               scope = all.scoping { body.call(*args) }
