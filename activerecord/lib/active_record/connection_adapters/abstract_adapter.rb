@@ -67,22 +67,22 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use, :logger
+      attr_reader :schema_cache, :last_use, :in_use, :logger, :config
       alias :in_use? :in_use
 
-      def self.type_cast_config_to_integer(config)
-        if config =~ SIMPLE_INT
-          config.to_i
+      def self.type_cast_config_to_integer(config_value)
+        if config_value =~ SIMPLE_INT
+          config_value.to_i
         else
-          config
+          config_value
         end
       end
 
-      def self.type_cast_config_to_boolean(config)
-        if config == "false"
+      def self.type_cast_config_to_boolean(config_value)
+        if config_value == "false"
           false
         else
-          config
+          config_value
         end
       end
 
@@ -435,6 +435,7 @@ module ActiveRecord
           :sql           => sql,
           :name          => name,
           :connection_id => object_id,
+          :configuration => config,
           :binds         => binds) { yield }
       rescue => e
         message = "#{e.class.name}: #{e.message}: #{sql}"
