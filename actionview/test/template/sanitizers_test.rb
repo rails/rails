@@ -188,7 +188,7 @@ class SanitizerTest < ActionController::TestCase
   end
 
   def test_should_sanitize_unclosed_script
-    assert_sanitized %(<SCRIPT SRC=http://ha.ckers.org/xss.js?<B>), "<b>"
+    assert_sanitized %(<SCRIPT SRC=http://ha.ckers.org/xss.js?<B>), ""
   end
 
   def test_should_sanitize_half_open_scripts
