@@ -98,6 +98,10 @@ module ActiveRecord
         store_full_sti_class ? name : name.demodulize
       end
 
+      def sti_db_name
+       inheritance_name || sti_name 
+      end
+
       protected
 
       # Returns the class type of the record using the current module as a prefix. So descendants of
@@ -108,27 +112,41 @@ module ActiveRecord
           # the type_name is an absolute reference.
           ActiveSupport::Dependencies.constantize(type_name)
         else
-          # Build a list of candidates to search for
-          candidates = []
-          name.scan(/::|$/) { candidates.unshift "#{$`}::#{type_name}" }
-          candidates << type_name
-
-          candidates.each do |candidate|
-            begin
-              constant = ActiveSupport::Dependencies.constantize(candidate)
-              return constant if candidate == constant.to_s
-            # We don't want to swallow NoMethodError < NameError errors
-            rescue NoMethodError
-              raise
-            rescue NameError
-            end
-          end
-
-          raise NameError, "uninitialized constant #{candidates.first}"
+          compute_type_from_inheritance_names(type_name) || compute_type_from_candidates(type_name) 
         end
       end
 
       private
+      
+      def compute_type_from_inheritance_names(type_name)
+        name = (descendants + [self]).select {|model| 
+          model.inheritance_name && type_name == model.inheritance_name 
+        }.first
+
+        unless name.nil? 
+          ActiveSupport::Dependencies.constantize(name)
+        end
+      end
+
+      def compute_type_from_candidates(type_name)
+        # Build a list of candidates to search for
+        candidates = []
+        name.scan(/::|$/) { candidates.unshift "#{$`}::#{type_name}" }
+        candidates << type_name
+
+        candidates.each do |candidate|
+          begin
+            constant = ActiveSupport::Dependencies.constantize(candidate)
+            return constant if candidate == constant.to_s
+            # We don't want to swallow NoMethodError < NameError errors
+          rescue NoMethodError
+            raise
+          rescue NameError
+          end
+        end
+
+        raise NameError, "uninitialized constant #{candidates.first}"
+      end
 
       # Called by +instantiate+ to decide which class to use for a new
       # record instance. For single-table inheritance, we check the record
@@ -161,7 +179,7 @@ module ActiveRecord
 
       def type_condition(table = arel_table)
         sti_column = table[inheritance_column.to_sym]
-        sti_names  = ([self] + descendants).map { |model| model.sti_name }
+        sti_names  = ([self] + descendants).map { |model| model.sti_db_name }
 
         sti_column.in(sti_names)
       end
@@ -195,7 +213,7 @@ module ActiveRecord
     def ensure_proper_type
       klass = self.class
       if klass.finder_needs_type_condition?
-        write_attribute(klass.inheritance_column, klass.sti_name)
+        write_attribute(klass.inheritance_column, klass.sti_db_name)
       end
     end
   end

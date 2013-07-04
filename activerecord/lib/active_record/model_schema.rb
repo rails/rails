@@ -166,6 +166,15 @@ module ActiveRecord
         @explicit_inheritance_column = true
       end
 
+      def inheritance_name=(value)
+        self.store_full_sti_class = false
+        @inheritance_name = value
+      end
+
+      def inheritance_name
+        @inheritance_name ||= nil
+      end
+
       def sequence_name
         if base_class == self
           @sequence_name ||= reset_sequence_name
