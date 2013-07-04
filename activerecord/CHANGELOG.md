@@ -1,3 +1,8 @@
+*   Remove deprecated `ActiveRecord::Base.connection_handler.connection_pools`.
+    now returning `ActiveRecord::Base.connection_handler.connection_pool_list`.
+
+    *Arun Agrawal*
+
 *   Remove extra select and update queries on save/touch/destroy ActiveRecord model
     with belongs to reflection with option `touch: true`.
 

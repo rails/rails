@@ -495,14 +495,7 @@ module ActiveRecord
       def connection_pool_list
         owner_to_pool.values.compact
       end
-
-      def connection_pools
-        ActiveSupport::Deprecation.warn(
-          "In the next release, this will return the same as #connection_pool_list. " \
-          "(An array of pools, rather than a hash mapping specs to pools.)"
-        )
-        Hash[connection_pool_list.map { |pool| [pool.spec, pool] }]
-      end
+      alias_method :connection_pools, :connection_pool_list
 
       def establish_connection(owner, spec)
         @class_to_pool.clear
