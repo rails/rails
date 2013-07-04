@@ -15,6 +15,7 @@ module ActionDispatch
 
       @host    = options[:host]
       @port    = options[:port]
+      @non_secure_cookies = Array(options[:non_secure_cookies])
     end
 
     def call(env)
@@ -57,7 +58,7 @@ module ActionDispatch
           cookies = cookies.split("\n")
 
           headers['Set-Cookie'] = cookies.map { |cookie|
-            if cookie !~ /;\s+secure(;|$)/i
+            if cookie !~ /;\s+secure(;|$)/i && !@non_secure_cookies.any? { |name| cookie.start_with?("#{name}=") }
               "#{cookie}; secure"
             else
               cookie
