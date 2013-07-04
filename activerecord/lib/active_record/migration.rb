@@ -869,9 +869,6 @@ module ActiveRecord
 
       if Array(migrations).grep(String).empty?
         @migrations = migrations
-      else
-        ActiveSupport::Deprecation.warn "instantiate this class with a list of migrations"
-        @migrations = self.class.migrations(migrations)
       end
 
       validate(@migrations)

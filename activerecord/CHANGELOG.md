@@ -1,3 +1,7 @@
+*   Remove deprecated String constructor from `ActiveRecord::Migrator`.
+
+    *Yves Senn*
+
 *   Remove deprecated `scope` use without passing a callable object.
 
     *Arun Agrawal*
