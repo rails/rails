@@ -92,7 +92,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.touch_record(o, foreign_key, name, touch) # :nodoc:
-      old_foreign_id = o.attribute_was(foreign_key)
+      old_foreign_id = o.changed_attributes[foreign_key]
 
       if old_foreign_id
         klass      = o.association(name).klass
