@@ -99,7 +99,7 @@ module ActionView
 
     self.allowed_tags = Loofah::HTML5::WhiteList::ALLOWED_ELEMENTS
 
-    self.bad_tags = Set.new %w(script)
+    self.bad_tags = Set.new %w(script form)
 
     self.allowed_attributes = Loofah::HTML5::WhiteList::ALLOWED_ATTRIBUTES
 
