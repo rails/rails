@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
+
+    *Arun Agrawal*
+
 *   Remove deprecated nil-passing to the following `SchemaCache` methods:
     `primary_keys`, `tables`, `columns` and `columns_hash`.
 
