@@ -208,6 +208,11 @@ class FilterTest < ActionController::TestCase
     before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_filter1", true)}, :except => :show_without_filter) { |c| c.instance_variable_set(:"@ran_proc_filter2", true)}
   end
 
+  class SkipClassController < ConditionalFilterController
+    before_filter ConditionalClassFilter
+    skip_before_filter ConditionalClassFilter
+  end
+
   class ConditionalOptionsFilter < ConditionalFilterController
     before_filter :ensure_login, :if => Proc.new { |c| true }
     before_filter :clean_up_tmp, :if => Proc.new { |c| false }
@@ -776,6 +781,11 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( conditional_in_parent_after ), assigns['ran_filter']
     test_process(ChildOfConditionalParentController)
     assert_equal %w( conditional_in_parent_before conditional_in_parent_after ), assigns['ran_filter']
+  end
+
+  def test_skipping_class_filters
+    test_process(SkipClassController)
+    assert_nil assigns['ran_class_filter']
   end
 
   def test_changing_the_requirements
