@@ -1,3 +1,7 @@
+*   Removed deprecated `Rails.application.railties.engines`.
+
+    *Arun Agrawal*
+
 *   Removed deprecated threadsafe! from Rails Config.
 
     *Paul Nikitochkin*
