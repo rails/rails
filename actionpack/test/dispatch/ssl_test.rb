@@ -138,6 +138,21 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Set-Cookie'].split("\n")
   end
 
+  def test_whitelisting_non_secure_cookies
+    options = { non_secure_cookies: %w{whitelisted insecure} }
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "insecure=foo; path=/; HttpOnly\ndefault=bar; path=/; HttpOnly\nwhitelisted=baz; path=/"
+      }
+      [200, headers, ["OK"]]
+    }, options)
+
+    get "https://example.org/"
+    assert_equal ["insecure=foo; path=/; HttpOnly", "default=bar; path=/; HttpOnly; secure", "whitelisted=baz; path=/"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
   def test_no_cookies
     self.app = ActionDispatch::SSL.new(lambda { |env|
       [200, {'Content-Type' => "text/html"}, ["OK"]]
