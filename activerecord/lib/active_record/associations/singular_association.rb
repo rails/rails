@@ -44,7 +44,7 @@ module ActiveRecord
 
         # Implemented by subclasses
         def replace(record)
-          raise NotImplementedError, "Subclasses must implement a replace(record) method"
+          raise NotImplementedError, "Subclasses must implement a replace(#{record}) method"
         end
 
         def set_new_record(record)
