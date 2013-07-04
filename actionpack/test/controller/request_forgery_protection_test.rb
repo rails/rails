@@ -103,7 +103,7 @@ module RequestForgeryProtectionTests
   def setup
     @token      = "cf50faa3fe97702ca1ae"
 
-    SecureRandom.stubs(:base64).returns(@token)
+    SecureRandom.stubs(:urlsafe_base64).returns(@token)
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
@@ -293,7 +293,7 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    SecureRandom.stubs(:base64).returns(@token + '<=?')
+    SecureRandom.stubs(:urlsafe_base64).returns(@token + '<=?')
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
     assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
@@ -306,7 +306,7 @@ class NullSessionDummyKeyGenerator
   end
 end
 
-class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase  
+class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   def setup
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
   end
@@ -338,7 +338,7 @@ class FreeCookieControllerTest < ActionController::TestCase
     @response   = ActionController::TestResponse.new
     @token      = "cf50faa3fe97702ca1ae"
 
-    SecureRandom.stubs(:base64).returns(@token)
+    SecureRandom.stubs(:urlsafe_base64).returns(@token)
   end
 
   def test_should_not_render_form_with_token_tag
