@@ -167,6 +167,6 @@ Benchmark.ips(TIME) do |x|
   end
 
   x.report "AR.execute(query)" do
-    ActiveRecord::Base.connection.execute("Select * from exhibits where id = #{(rand * 1000 + 1).to_i}")
+    ActiveRecord::Base.connection.execute("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}")
   end
 end
