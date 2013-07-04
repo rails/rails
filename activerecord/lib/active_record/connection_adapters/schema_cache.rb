@@ -1,4 +1,3 @@
-require 'active_support/deprecation/reporting'
 
 module ActiveRecord
   module ConnectionAdapters
