@@ -1021,9 +1021,9 @@ content:
 ```
 
 Everything except for the `form_for` declaration remained the same.
-How `form_for` can figure out the right `action` and `method` attributes
-when building the form will be explained in just a moment. For now, let's update the
-`app/views/posts/new.html.erb` view to use this new partial, rewriting it
+How `form_for` can figure out the right `action` and `method` attributes when building the form
+will be explained in [just a moment](/form_helpers.html#binding-a-form-to-an-object).
+For now, let's update the `app/views/posts/new.html.erb` view to use this new partial, rewriting it
 completely:
 
 ```html+erb
