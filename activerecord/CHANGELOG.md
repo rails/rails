@@ -1,3 +1,7 @@
+*   Remove deprecated block filter from `ActiveRecord::Migrator#migrate`.
+
+    *Yves Senn*
+
 *   Remove deprecated String constructor from `ActiveRecord::Migrator`.
 
     *Yves Senn*

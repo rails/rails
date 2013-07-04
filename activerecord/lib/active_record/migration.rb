@@ -903,15 +903,7 @@ module ActiveRecord
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      running = runnable
-
-      if block_given?
-        message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
-        ActiveSupport::Deprecation.warn message
-        running.select! { |m| yield m }
-      end
-
-      running.each do |migration|
+      runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         begin
