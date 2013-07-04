@@ -146,15 +146,5 @@ Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
       end
     end
 
-    @@table_cache = nil
-    def self.table_cache engine # :nodoc:
-      if $VERBOSE
-        warn <<-eowarn
-(#{caller.first}) Arel::Table.table_cache is deprecated and will be removed in
-Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
-        eowarn
-      end
-      @@table_cache ||= Hash[engine.connection.tables.map { |x| [x,true] }]
-    end
   end
 end
