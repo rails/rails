@@ -1,4 +1,4 @@
-*   Remove deprecated string based terminators for y`ActiveSupport::Callbacks`.
+*   Remove deprecated string based terminators for `ActiveSupport::Callbacks`.
 
     *Yves Senn*
 
