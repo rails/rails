@@ -1203,7 +1203,6 @@ class User < ActiveRecord::Base
   scope :inactive, -> { where state: 'inactive' }
 end
 
-```ruby
 User.active.inactive
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
 ```
