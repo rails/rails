@@ -1,3 +1,7 @@
+*   Remove deprecated string based terminators for y`ActiveSupport::Callbacks`.
+
+    *Yves Senn*
+
 *   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
 
     *Arun Agrawal*
