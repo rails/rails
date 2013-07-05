@@ -1,3 +1,7 @@
+*   Ignore spaces around delimiter in Set-Cookie header.
+
+    *Yamagishi Kazutoshi*
+
 *   Remove deprecated Rails application fallback for integration testing, set
     `ActionDispatch.test_app` instead.
 
