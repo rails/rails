@@ -1216,6 +1216,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "id", Post.all.primary_key
   end
 
+  def test_disable_implicit_join_references_is_deprecated
+    assert_deprecated do
+      ActiveRecord::Base.disable_implicit_join_references = true
+    end
+  end
+
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end

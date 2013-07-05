@@ -69,6 +69,11 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
+      def self.disable_implicit_join_references=(value)
+        ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \
+                                        "Make sure to remove this configuration because it does nothing.")
+      end
+
       class_attribute :default_connection_handler, instance_writer: false
 
       def self.connection_handler
