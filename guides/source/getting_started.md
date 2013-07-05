@@ -542,12 +542,17 @@ private
     params.require(:post).permit(:title, :text)
   end
 ```
-
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
-`post_params` contains the attributes we're interested in). Then,
-`@post.save` is responsible for saving the model in the database.
+database columns. In the first line we do just that. The`post_params` method 
+contains the attributes we're interested in. Then,`@post.save` is responsible 
+for saving the model in the database. 
+
+Rails has several security features that help you write secure applications,
+and you're using one of them now. This one is called 'strong_parameters,' 
+which requires us to tell Rails exactly which parameters we want to accept in 
+our controllers. In this case, we want to allow the 'title' and 'text' parameters.
+
 Finally, we redirect the user to the `show` action,
 which we'll define later.
 
@@ -599,35 +604,8 @@ content:
 ```
 
 If you now go to
-<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
-it! You should get an error that looks like this:
-
-![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
-
-Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called
-'strong_parameters,' which requires us to tell Rails exactly which parameters
-we want to accept in our controllers. In this case, we want to allow the
-'title' and 'text' parameters, so change your `create` controller action to
-look like this:
-
-```
-def create
-  @post = Post.new(post_params)
-
-  @post.save
-  redirect_to @post
-end
-
-private
-  def post_params
-    params.require(:post).permit(:title, :text)
-  end
-```
-
-See the `permit`? It allows us to accept both `title` and `text` in this
-action. With this change, you should finally be able to create new `Post`s.
-Visit <http://localhost:3000/posts/new> and give it a try!
+<http://localhost:3000/posts/new> you will be able to create a post. Try
+it! 
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
 
