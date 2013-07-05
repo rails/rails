@@ -1,4 +1,4 @@
-*   Add Hash#deep_fetch, for grabbing deeply nested hash values.
+*   Add Hash#seek, for grabbing deeply nested hash values.
 
     *Alex Bartlow*
 
