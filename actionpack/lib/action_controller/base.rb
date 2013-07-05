@@ -161,7 +161,11 @@ module ActionController
   #     render action: "overthere" # won't be called if monkeys is nil
   #   end
   #
-  class Base < Metal
+  metal = Class.new(Metal) do
+    include AbstractController::Rendering
+  end
+
+  class Base < metal
     abstract!
 
     # We document the request and response methods here because albeit they are

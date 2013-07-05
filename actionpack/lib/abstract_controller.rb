@@ -13,6 +13,7 @@ module AbstractController
   autoload :DoubleRenderError, "abstract_controller/rendering.rb"
   autoload :Helpers
   autoload :Logger
+  autoload :Rendering
   autoload :Translation
   autoload :AssetPaths
   autoload :UrlFor

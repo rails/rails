@@ -83,21 +83,11 @@ module ActionView
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
     def render(*args, &block)
+      super
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
     end
 
-    # Raw rendering of a template to a string.
-    #
-    # It is similar to render, except that it does not
-    # set the response_body and it should be guaranteed
-    # to always return a string.
-    #
-    # If a component extends the semantics of response_body
-    # (as Action Controller extends it to be anything that
-    # responds to the method each), this method needs to be
-    # overridden in order to still return a string.
-    # :api: plugin
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
       render_to_body(options)
@@ -126,7 +116,7 @@ module ActionView
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
-      hash = {}
+      hash = super
       variables  = instance_variables
       variables -= protected_instance_variables
       variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
@@ -148,6 +138,7 @@ module ActionView
     # render "foo/bar" to render :file => "foo/bar".
     # :api: plugin
     def _normalize_args(action=nil, options={})
+      options = super(action, options)
       case action
       when NilClass
       when Hash
@@ -166,6 +157,7 @@ module ActionView
     # Normalize options.
     # :api: plugin
     def _normalize_options(options)
+      options = super(options)
       if options[:partial] == true
         options[:partial] = action_name
       end
@@ -176,11 +168,6 @@ module ActionView
 
       options[:template] ||= (options[:action] || action_name).to_s
       options
-    end
-
-    # Process extra options.
-    # :api: plugin
-    def _process_options(options)
     end
   end
 end

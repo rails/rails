@@ -755,6 +755,8 @@ class TestController < ActionController::Base
 end
 
 class MetalTestController < ActionController::Metal
+  include AbstractController::Rendering
+  include ActionView::Rendering
   include ActionController::Rendering
 
   def accessing_logger_in_template

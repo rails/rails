@@ -337,6 +337,7 @@ class RespondWithControllerTest < ActionController::TestCase
       errors = { :name => :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       put :using_resource
+
       assert_equal "text/html", @response.content_type
       assert_equal 200, @response.status
       assert_equal "Edit world!\n", @response.body

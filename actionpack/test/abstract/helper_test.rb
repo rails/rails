@@ -6,8 +6,9 @@ module AbstractController
   module Testing
 
     class ControllerWithHelpers < AbstractController::Base
-      include ActionView::Rendering
       include AbstractController::Helpers
+      include AbstractController::Rendering
+      include ActionView::Rendering
 
       def with_module
         render :inline => "Module <%= included_method %>"
