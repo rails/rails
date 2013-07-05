@@ -1,3 +1,10 @@
+*   Remove extra select and update queries on save/touch/destroy ActiveRecord model
+    with belongs to reflection with option `touch: true`.
+
+    Fixes: #11288
+
+    *Paul Nikitochkin*
+
 *   Remove deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
 
     *Arun Agrawal*
