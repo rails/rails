@@ -1,7 +1,16 @@
 #!/usr/bin/env ruby
 # Example:
 #   tools/profile activesupport/lib/active_support.rb
+require 'rubygems'
+
+version = ">= 0"
+
+if ARGV.first =~ /^_(.*)_$/ and Gem::Version.correct? $1 then
+    version = $1
+      ARGV.shift
+end
+
 ENV['NO_RELOAD'] ||= '1'
 ENV['RAILS_ENV'] ||= 'development'
-
-# TODO: replace with functionality from code_metrics gem
+gem 'code_metrics', version
+load Gem.bin_path('code_metrics', 'code_metrics-profile', version)
