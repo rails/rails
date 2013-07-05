@@ -1,9 +1,7 @@
 class Hash
   def seek(*args)
-    if args.length == 1
-      self[args.first]
-    else
-      self[args.first].try(:seek, *args[1..-1])
+    args.inject(self) do |new_hash, key|
+      new_hash[key] or return nil
     end
   end
 end

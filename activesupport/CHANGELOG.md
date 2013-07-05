@@ -1,3 +1,7 @@
+*   Add Hash#seek, for grabbing deeply nested hash values.
+
+    *Alex Bartlow*
+
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 
