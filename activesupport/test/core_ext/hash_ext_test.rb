@@ -624,14 +624,14 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
-  def test_seek_for_found_key
-    assert @nested_symbols.seek(:a)
-    assert_equal({c: 3}, @nested_symbols.seek(:a, :b))
-    assert_equal 3, @nested_symbols.seek(:a, :b, :c)
+  def test_deep_fetch_for_found_key
+    assert_equal 3, @nested_symbols.deep_fetch(:a, :b, :c)
   end
 
-  def test_seek_for_missing
-    assert_nil @nested_symbols.seek(:b, :c)
+  def test_deep_fetch_for_missing
+    assert_nil @nested_symbols.deep_fetch(:b, :c)
+
+    assert_equal 4, @nested_symbols.deep_fetch(:b, :c) { 4 }
   end
 
   def test_assorted_keys_not_stringified
