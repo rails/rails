@@ -723,7 +723,7 @@ TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
 and restart the web server when a change is made.
 
-### Allowing the update of fields
+### Adding Some Validation
 
 The model file, `app/models/post.rb` is about as simple as it can get:
 
@@ -737,8 +737,6 @@ There isn't much to this file - but note that the `Post` class inherits from
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
-
-### Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/post.rb` file and edit it:
