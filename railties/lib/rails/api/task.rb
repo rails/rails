@@ -135,9 +135,17 @@ module Rails
       def api_dir
         'doc/rdoc'
       end
+    end
 
+    class EdgeTask < RepoTask
       def rails_version
         "master@#{`git rev-parse HEAD`[0, 7]}"
+      end
+    end
+
+    class StableTask < RepoTask
+      def rails_version
+        File.read('RAILS_VERSION').strip
       end
     end
 
