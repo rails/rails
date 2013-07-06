@@ -1,0 +1,31 @@
+= Usage: Action Mailer -- Easy email delivery and testing
+
+== Description:
+
+Stubs out a new mailer and its views. Passes the mailer name, either
+CamelCased or under_scored, and an optional list of emails as arguments.
+
+This below example generates a mailer class in app/mailers and invokes your template
+engine and test framework generators.
+
+Example:
+
+  $ rails generate mailer Notifications signup forgot_password invoice
+
+Creates a Notifications mailer class, views, and test:
+
+  Mailer  
+
+    app/mailers/notifications.rb
+ 
+  Views
+
+    app/views/notifications
+    app/views/notifications/signup.text.erb
+    app/views/notifications/forgot_password.text.erb
+    app/views/notifications/invoice.text.erb
+  
+  Test
+  
+    test/mailers/notifications_test.rb
+
