@@ -941,9 +941,9 @@ Creates a form and a scope around a specific model object that is used as a base
 ```html+erb
 <%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
-  <%= f.text_field :title %><br />
+  <%= f.text_field :title %><br>
   <%= f.label :body, 'Body' %>:
-  <%= f.text_area :body %><br />
+  <%= f.text_area :body %><br>
 <% end %>
 ```
 
