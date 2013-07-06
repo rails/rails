@@ -44,7 +44,7 @@ module ActionController
     #           if session_authenticated?
     #             @current_user = @account.users.find(session[:authenticated][:user_id])
     #           else
-    #             redirect_to(login_url) and return false
+    #             redirect_to(login_url) && return false
     #           end
     #         end
     #       end
@@ -360,7 +360,7 @@ module ActionController
     #           if session_authenticated?
     #             @current_user = @account.users.find(session[:authenticated][:user_id])
     #           else
-    #             redirect_to(login_url) and return false
+    #             redirect_to(login_url) && return false
     #           end
     #         end
     #       end
