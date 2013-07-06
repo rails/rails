@@ -138,7 +138,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 |config/|Configure your application's runtime rules, routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
-|Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
+|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
@@ -264,11 +264,14 @@ Blog::Application.routes.draw do
 end
 ```
 
-If you run `rake routes`, you'll see that all the routes for the
-standard RESTful actions.
+If you run `rake routes`, you'll see that it has defined routes for all the
+standard RESTful actions.  The meaning of the prefix column (and other columns)
+will be seen later, but for now notice that Rails has inferred the
+singular form `post` and makes meaningful use of the distinction.
 
 ```bash
 $ rake routes
+   Prefix Verb   URI Pattern               Controller#Action
     posts GET    /posts(.:format)          posts#index
           POST   /posts(.:format)          posts#create
  new_post GET    /posts/new(.:format)      posts#new
@@ -394,9 +397,27 @@ Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this
 <%= form_for :post, url: posts_path do |f| %>
 ```
 
-In this example, the `posts_path` helper is passed to the `:url` option. What Rails will do with this is that it will point the form to the `create` action of the current controller, the `PostsController`, and will send a `POST` request to that route.
-
-By using the `post` method rather than the `get` method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
+In this example, the `posts_path` helper is passed to the `:url` option.
+To see what Rails will do with this, we look back at the output of
+`rake routes`:
+```bash
+$ rake routes
+   Prefix Verb   URI Pattern               Controller#Action
+    posts GET    /posts(.:format)          posts#index
+          POST   /posts(.:format)          posts#create
+ new_post GET    /posts/new(.:format)      posts#new
+edit_post GET    /posts/:id/edit(.:format) posts#edit
+     post GET    /posts/:id(.:format)      posts#show
+          PATCH  /posts/:id(.:format)      posts#update
+          PUT    /posts/:id(.:format)      posts#update
+          DELETE /posts/:id(.:format)      posts#destroy
+     root        /                         welcome#index
+```
+The `posts_path` helper tells Rails to point the form
+to the URI Pattern associated with the `posts` prefix; and
+the form will (by default) send a `POST` request
+to that route.  This is associated with the 
+`create` action of the current controller, the `PostsController`.
 
 With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
 
@@ -1016,9 +1037,14 @@ content:
 ```
 
 Everything except for the `form_for` declaration remained the same.
-How `form_for` can figure out the right `action` and `method` attributes when building the form
-will be explained in [just a moment](/form_helpers.html#binding-a-form-to-an-object).
-For now, let's update the `app/views/posts/new.html.erb` view to use this new partial, rewriting it
+The reason we can use this shorter, simpler `form_for` declaration 
+to stand in for either of the other forms is that `@post` is a *resource*
+corresponding to a full set of RESTful routes, and Rails is able to infer
+which URI and method to use.
+For more information about this use of `form_for`, see
+[Resource-oriented style](//api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for-label-Resource-oriented+style).
+
+Now, let's update the `app/views/posts/new.html.erb` view to use this new partial, rewriting it
 completely:
 
 ```html+erb
@@ -1289,11 +1315,11 @@ So first, we'll wire up the Post show template
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1369,11 +1395,11 @@ template. This is where we want the comment to show, so let's add that to the
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1435,11 +1461,11 @@ following:
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1465,11 +1491,11 @@ create a file `app/views/comments/_form.html.erb` containing:
 ```html+erb
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>

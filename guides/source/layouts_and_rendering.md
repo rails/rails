@@ -88,7 +88,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <% end %>
 </table>
 
-<br />
+<br>
 
 <%= link_to "New book", new_book_path %>
 ```
@@ -1026,7 +1026,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <%= form_for(zone) do |f| %>
       <p>
-        <b>Zone name</b><br />
+        <b>Zone name</b><br>
         <%= f.text_field :name %>
       </p>
       <p>
