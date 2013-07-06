@@ -70,7 +70,7 @@ module ActiveRecord::Associations::Builder
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def belongs_to_touch_after_save_or_destroy_for_#{name}
           foreign_key_field = #{reflection.foreign_key.inspect}
-          old_foreign_id    = attribute_was(foreign_key_field)
+          old_foreign_id    = changed_attributes[foreign_key_field]
 
           if old_foreign_id
             klass      = association(#{name.inspect}).klass

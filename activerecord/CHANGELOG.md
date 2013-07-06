@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Remove extra select and update queries on save/touch/destroy ActiveRecord model
+    with belongs to reflection with option `touch: true`.
+
+    Fixes: #11288
+
+    *Paul Nikitochkin*
+
 *   Support array as root element in JSON fields.
 
     *Alexey Noskov & Francesco Rodriguez*
