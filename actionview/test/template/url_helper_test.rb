@@ -336,8 +336,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>},
       link_to_unless(false, "Listing", url_hash)
 
-    assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
-
     assert_equal "<strong>Showing</strong>",
       link_to_unless(true, "Showing", url_hash) { |name|
         "<strong>#{name}</strong>".html_safe
@@ -357,7 +355,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_to_if
     assert_equal "Showing", link_to_if(false, "Showing", url_hash)
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
-    assert_equal "Showing", link_to_if(false, "Showing", url_hash)
   end
 
   def request_for_url(url, opts = {})
