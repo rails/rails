@@ -43,6 +43,8 @@ class Exhibit < ActiveRecord::Base
   def self.feel(exhibits) exhibits.each { |e| e.feel } end
 end
 
+def progress_bar(int); print "." if (int%100).zero? ; end
+
 puts 'Generating data...'
 
 module ActiveRecord
@@ -75,7 +77,7 @@ notes = ActiveRecord::Faker::LOREM.join ' '
 today = Date.today
 
 puts "Inserting #{RECORDS} users and exhibits..."
-RECORDS.times do
+RECORDS.times do |record|
   user = User.create(
     created_at: today,
     name: ActiveRecord::Faker.name,
@@ -88,7 +90,9 @@ RECORDS.times do
     user: user,
     notes: notes
   )
+  progress_bar(record)
 end
+puts "Done!\n"
 
 Benchmark.ips(TIME) do |x|
   ar_obj       = Exhibit.find(1)
@@ -117,8 +121,16 @@ Benchmark.ips(TIME) do |x|
     Exhibit.first.look
   end
 
+  x.report 'Model.take' do 
+    Exhibit.take
+  end
+  
   x.report("Model.all limit(100)") do
     Exhibit.look Exhibit.limit(100)
+  end
+
+  x.report("Model.all take(100)") do
+    Exhibit.look Exhibit.take(100)
   end
 
   x.report "Model.all limit(100) with relationship" do
