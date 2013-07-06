@@ -47,7 +47,11 @@ task :install => :build do
 end
 
 desc "Generate documentation for the Rails framework"
-Rails::API::RepoTask.new('rdoc')
+if ENV['EDGE']
+  Rails::API::EdgeTask.new('rdoc')
+else
+  Rails::API::StableTask.new('rdoc')
+end
 
 desc 'Bump all versions to match version.rb'
 task :update_versions do
