@@ -1,3 +1,10 @@
+*   Remove extra select and update queries on save/touch/destroy ActiveRecord model
+    with belongs to reflection with option `touch: true`.
+
+    Fixes: #11288
+
+    *Paul Nikitochkin*
+
 *   Remove deprecated nil-passing to the following `SchemaCache` methods:
     `primary_keys`, `tables`, `columns` and `columns_hash`.
 

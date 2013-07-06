@@ -1,4 +1,4 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -14,6 +14,8 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/toy'
+require 'models/invoice'
+require 'models/line_item'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -322,6 +324,45 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     topic.save!
     assert_equal 1, Topic.find(topic.id)[:replies_count]
+  end
+
+  def test_belongs_to_with_touch_option_on_touch
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(1) { line_item.touch }
+  end
+
+  def test_belongs_to_with_touch_option_on_touch_and_removed_parent
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    line_item.invoice = nil
+
+    assert_queries(2) { line_item.touch }
+  end
+
+  def test_belongs_to_with_touch_option_on_update
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(2) { line_item.update amount: 10 }
+  end
+
+  def test_belongs_to_with_touch_option_on_destroy
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(2) { line_item.destroy }
+  end
+
+  def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    line_item.invoice = Invoice.create!
+
+    assert_queries(3) { line_item.touch }
   end
 
   def test_belongs_to_counter_after_update
