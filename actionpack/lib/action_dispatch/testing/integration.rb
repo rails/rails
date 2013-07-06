@@ -298,8 +298,6 @@ module ActionDispatch
 
           session = Rack::Test::Session.new(_mock_session)
 
-          env.merge!(env)
-
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
           uri = URI.parse('/')

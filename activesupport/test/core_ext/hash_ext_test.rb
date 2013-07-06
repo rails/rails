@@ -487,6 +487,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_select_returns_a_hash_when_unchanged
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
+
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.select! {|k,v| v == 1}

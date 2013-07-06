@@ -531,27 +531,19 @@ and change the `create` action to look like this:
 
 ```ruby
 def create
-  @post = Post.new(post_params)
+  @post = Post.new(params[:post])
  
   @post.save
   redirect_to @post
 end
-
-private
-  def post_params
-    params.require(:post).permit(:title, :text)
-  end
 ```
 
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
-`post_params` contains the attributes we're interested in). Then,
-`@post.save` is responsible for saving the model in the database.
-Finally, we redirect the user to the `show` action,
-which we'll define later.
-
-TIP: Note that `def post_params` is private. This new approach prevents an attacker from setting the model's attributes by manipulating the hash passed to the model. For more information, refer to [this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+database columns. In the first line we do just that
+(remember that `params[:post]` contains the attributes we're interested in).
+Then, `@post.save` is responsible for saving the model in the database.
+Finally, we redirect the user to the `show` action, which we'll define later.
 
 TIP: As we'll see later, `@post.save` returns a boolean indicating
 whether the model was saved or not.
@@ -630,6 +622,11 @@ action. With this change, you should finally be able to create new `Post`s.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
+
+TIP: Note that `def post_params` is private. This new approach prevents an attacker from
+setting the model's attributes by manipulating the hash passed to the model.
+For more information, refer to
+[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Listing all posts
 
@@ -726,7 +723,7 @@ TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
 and restart the web server when a change is made.
 
-### Allowing the update of fields
+### Adding Some Validation
 
 The model file, `app/models/post.rb` is about as simple as it can get:
 
@@ -740,8 +737,6 @@ There isn't much to this file - but note that the `Post` class inherits from
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
-
-### Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/post.rb` file and edit it:
@@ -1021,9 +1016,9 @@ content:
 ```
 
 Everything except for the `form_for` declaration remained the same.
-How `form_for` can figure out the right `action` and `method` attributes
-when building the form will be explained in just a moment. For now, let's update the
-`app/views/posts/new.html.erb` view to use this new partial, rewriting it
+How `form_for` can figure out the right `action` and `method` attributes when building the form
+will be explained in [just a moment](/form_helpers.html#binding-a-form-to-an-object).
+For now, let's update the `app/views/posts/new.html.erb` view to use this new partial, rewriting it
 completely:
 
 ```html+erb

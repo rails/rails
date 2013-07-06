@@ -1,3 +1,16 @@
+*   Remove deprecated nil-passing to the following `SchemaCache` methods:
+    `primary_keys`, `tables`, `columns` and `columns_hash`.
+
+    *Yves Senn*
+
+*   Remove deprecated block filter from `ActiveRecord::Migrator#migrate`.
+
+    *Yves Senn*
+
+*   Remove deprecated String constructor from `ActiveRecord::Migrator`.
+
+    *Yves Senn*
+
 *   Remove deprecated `scope` use without passing a callable object.
 
     *Arun Agrawal*

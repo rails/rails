@@ -391,8 +391,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    queries = assert_sql { tagging.super_tag }
-    assert_equal 0, queries.length
+    assert_queries(0) { tagging.super_tag }
   end
 
   def test_field_name_same_as_foreign_key
