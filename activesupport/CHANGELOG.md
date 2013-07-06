@@ -1,3 +1,8 @@
+*   Make `HashWithIndifferentAccess#select` always return the hash, even when
+    `Hash#select!` returns `nil`, to allow further chaining.
+
+    *Marc Schütz*
+
 *   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
 
     *Arun Agrawal*
