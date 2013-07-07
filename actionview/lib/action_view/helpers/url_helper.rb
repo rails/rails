@@ -180,7 +180,11 @@ module ActionView
         url = url_for(options)
         html_options['href'] ||= url
 
-        content_tag(:a, name || url, html_options, &block)
+        if block_given?
+          content_tag(:a, capture(&block) || url, html_options)
+        else
+          content_tag(:a, name || url, html_options)
+        end
       end
 
       # Generates a form containing a single button that submits to the URL created
