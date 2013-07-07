@@ -1,3 +1,17 @@
+*   Fix `link_to` with block and url hashes.
+
+    Before:
+
+        link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
+        # => "<a action=\"bar\" controller=\"foo\"><span>Example site</span></a>"
+
+    After:
+
+        link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
+        # => "<a href=\"/\"><span>Example site</span></a>"
+
+    *Murahashi Sanemat Kenichi*
+
 *   Fix "Stack Level Too Deep" error when redering recursive partials.
 
     Fixes #11340.
