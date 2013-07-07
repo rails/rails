@@ -7,7 +7,12 @@ module ActionView
 
   class FullSanitizer
     def sanitize(html, options = {})
-      Loofah.fragment(html).text
+      if html
+        return html if html.empty?
+        Loofah.fragment(html).text
+      else
+        nil
+      end
     end
   end
 
