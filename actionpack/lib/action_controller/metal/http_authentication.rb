@@ -90,9 +90,13 @@ module ActionController
       end
 
       def authenticate(request, &login_procedure)
-        unless request.authorization.blank?
+        if has_basic_credentials?(request)
           login_procedure.call(*user_name_and_password(request))
         end
+      end
+
+      def has_basic_credentials?(request)
+        request.authorization.present? && (auth_scheme(request) == 'Basic')
       end
 
       def user_name_and_password(request)
@@ -100,12 +104,15 @@ module ActionController
       end
 
       def decode_credentials(request)
-        scheme, param = request.authorization.split(' ', 2)
-        if scheme == 'Basic'
-          ::Base64.decode64(param || '')
-        else
-          ''
-        end
+        ::Base64.decode64(auth_param(request) || '')
+      end
+
+      def auth_scheme(request)
+        request.authorization.split(' ', 2).first
+      end
+
+      def auth_param(request)
+        request.authorization.split(' ', 2).second
       end
 
       def encode_credentials(user_name, password)
