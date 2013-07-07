@@ -307,6 +307,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_link_tag_using_block_and_hash
+    assert_dom_equal(
+      %{<a href="/"><span>Example site</span></a>},
+      link_to(url_hash) { content_tag(:span, 'Example site') }
+    )
+  end
+
   def test_link_to_with_string_remote_in_non_html_options
     assert_dom_equal(
       %{<a href="/" data-remote="true">Hello</a>},
