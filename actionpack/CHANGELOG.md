@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fix "Stack Level Too Deep" error when redering recursive partials.
+
+    Fixes #11340.
+
+    *Rafael Mendonça França*
+
 *   Pick `DateField` `DateTimeField` and `ColorField` values from stringified options allowing use of symbol keys with helpers.
 
     *Jon Rowe*
