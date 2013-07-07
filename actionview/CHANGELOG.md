@@ -1,3 +1,23 @@
+*   Added an `enforce_utf8` hash option for `form_tag` method.
+
+    Control to output a hidden input tag with name `utf8` without monkey
+    patching.
+
+    Before:
+
+        form_tag
+        # => '<form>..<input name="utf8" type="hidden" value="&#x2713;" />..</form>'
+
+    After:
+
+        form_tag
+        # => '<form>..<input name="utf8" type="hidden" value="&#x2713;" />..</form>'
+
+        form_tag({}, { :enforce_utf8 => false })
+        # => '<form>....</form>'
+
+    *ma2gedev*
+
 *   Remove the deprecated `include_seconds` argument from `distance_of_time_in_words`,
     pass in an `:include_seconds` hash option to use this feature.
 
