@@ -149,14 +149,10 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     end
   end
 
-  def self.stub_controllers
-    old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, StubDispatcher }
-    yield ActionDispatch::Routing::RouteSet.new
-  ensure
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
+  def self.stub_controllers(config = nil)
+    route_set = ActionDispatch::Routing::RouteSet.new(*[config].compact)
+    route_set.dispatcher_class = StubDispatcher
+    yield route_set
   end
 
   def with_routing(&block)
