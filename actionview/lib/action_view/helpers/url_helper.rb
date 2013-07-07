@@ -172,7 +172,7 @@ module ActionView
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
-        html_options, options = options, name if block_given?
+        html_options, options, name = options, name, block if block_given?
         options ||= {}
 
         html_options = convert_options_to_data_attributes(options, html_options)
@@ -180,11 +180,7 @@ module ActionView
         url = url_for(options)
         html_options['href'] ||= url
 
-        if block_given?
-          content_tag(:a, capture(&block) || url, html_options)
-        else
-          content_tag(:a, name || url, html_options)
-        end
+        content_tag(:a, name || url, html_options, &block)
       end
 
       # Generates a form containing a single button that submits to the URL created
