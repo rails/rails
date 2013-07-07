@@ -1,3 +1,9 @@
+*   Fix "Stack Level Too Deep" error when redering recursive partials.
+
+    Fixes #11340.
+
+    *Rafael Mendonça França*
+
 *   Added an `enforce_utf8` hash option for `form_tag` method.
 
     Control to output a hidden input tag with name `utf8` without monkey
