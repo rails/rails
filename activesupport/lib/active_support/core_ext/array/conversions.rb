@@ -107,7 +107,7 @@ class Array
       if empty?
         'null'
       else
-        collect { |element| element.id }.join(',')
+        collect(&:id).join(',')
       end
     else
       to_default_s
