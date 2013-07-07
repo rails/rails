@@ -100,7 +100,12 @@ module ActionController
       end
 
       def decode_credentials(request)
-        ::Base64.decode64(request.authorization.split(' ', 2).last || '')
+        scheme, param = request.authorization.split(' ', 2)
+        if scheme == 'Basic'
+          ::Base64.decode64(param || '')
+        else
+          ''
+        end
       end
 
       def encode_credentials(user_name, password)
