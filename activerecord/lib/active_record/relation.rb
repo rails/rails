@@ -502,12 +502,19 @@ module ActiveRecord
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= begin
+                    relation   = self
+                    connection = klass.connection
+                    visitor    = connection.visitor
+
                     if eager_loading?
                       join_dependency = construct_join_dependency
-                      relation = construct_relation_for_association_find(join_dependency)
-                      klass.connection.to_sql(relation.arel, relation.bind_values)
-                    else
-                      klass.connection.to_sql(arel, bind_values.dup)
+                      relation        = construct_relation_for_association_find(join_dependency)
+                    end
+
+                    ast   = relation.arel.ast
+                    binds = relation.bind_values.dup
+                    visitor.accept(ast) do
+                      connection.quote(*binds.shift.reverse)
                     end
                   end
     end
