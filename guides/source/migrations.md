@@ -376,7 +376,7 @@ create_join_table :products, :categories, column_options: {null: true}
 will create the `product_id` and `category_id` with the `:null` option as
 `true`.
 
-You can pass the option `:table_name` with you want to customize the table
+You can pass the option `:table_name` when you want to customize the table
 name. For example,
 
 ```ruby
