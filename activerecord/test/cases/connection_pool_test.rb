@@ -118,6 +118,7 @@ module ActiveRecord
         connection = cs.first
         @pool.remove connection
         assert_respond_to t.join.value, :execute
+        connection.close
       end
 
       def test_reap_and_active
