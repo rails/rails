@@ -9,7 +9,7 @@ class Ship < ActiveRecord::Base
   accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :update_only_pirate, :update_only => true
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback

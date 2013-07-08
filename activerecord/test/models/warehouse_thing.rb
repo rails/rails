@@ -1,5 +1,5 @@
 class WarehouseThing < ActiveRecord::Base
   self.table_name = "warehouse-things"
 
-  validates_uniqueness_of :value
+  validates :value, uniqueness: true
 end

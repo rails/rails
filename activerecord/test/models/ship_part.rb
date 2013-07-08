@@ -3,5 +3,5 @@ class ShipPart < ActiveRecord::Base
   has_many :trinkets, :class_name => "Treasure", :as => :looter
   accepts_nested_attributes_for :trinkets, :allow_destroy => true
 
-  validates_presence_of :name
+  validates :name, presence: true
 end

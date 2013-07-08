@@ -14,7 +14,7 @@ class Post < ActiveRecord::Base
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
-  scope :limit_by, lambda {|l| limit(l) }
+  scope :limit_by, ->(l) { limit(l) }
 
   belongs_to :author
 

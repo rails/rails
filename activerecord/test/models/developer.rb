@@ -47,8 +47,8 @@ class Developer < ActiveRecord::Base
 
   scope :jamises, -> { where(:name => 'Jamis') }
 
-  validates_inclusion_of :salary, :in => 50000..200000
-  validates_length_of    :name, :within => 3..20
+  validates :salary, inclusion: { in: 50000..200000 }
+  validates :name, length: { within: 3..20 }
 
   before_create do |developer|
     developer.audit_logs.build :message => "Computer created"
