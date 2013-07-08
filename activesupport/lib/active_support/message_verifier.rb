@@ -18,13 +18,20 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
+  # Expiration timestamps can also be encoded into the signature to make the
+  # perishable.
+  #
+  #   @verifier.generate(@user.id, expires: 2.weeks.from_now)
+  #
   # By default it uses Marshal to serialize the message. If you want to use
   # another serialization method, you can set the serializer in the options
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
   class MessageVerifier
-    class InvalidSignature < StandardError; end
+    class Error < StandardError; end
+    class InvalidSignature < Error; end
+    class Expired < Error; end
 
     def initialize(secret, options = {})
       @secret = secret
@@ -35,17 +42,35 @@ module ActiveSupport
     def verify(signed_message)
       raise InvalidSignature if signed_message.blank?
 
-      data, digest = signed_message.split("--")
+      data, digest = signed_message.split(/--|-@/)
+
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        @serializer.load(::Base64.decode64(data))
+        value = @serializer.load(::Base64.decode64(data))
+
+        if signed_message =~ /-@/
+          value, expires = value
+
+          if expires.is_a?(Integer) && Time.at(expires) >= Time.now
+            value
+          else
+            raise Expired
+          end
+        else
+          value
+        end
       else
         raise InvalidSignature
       end
     end
 
-    def generate(value)
-      data = ::Base64.strict_encode64(@serializer.dump(value))
-      "#{data}--#{generate_digest(data)}"
+    def generate(value, options = {})
+      if options[:expires]
+        data = ::Base64.strict_encode64(@serializer.dump([value, options[:expires].to_i]))
+        "#{data}-@#{generate_digest(data)}"
+      else
+        data = ::Base64.strict_encode64(@serializer.dump(value))
+        "#{data}--#{generate_digest(data)}"
+      end
     end
 
     private
