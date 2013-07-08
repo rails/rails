@@ -43,7 +43,7 @@ class Pirate < ActiveRecord::Base
     :birds_with_method_callbacks, :birds_with_proc_callbacks, :allow_destroy => true
   accepts_nested_attributes_for :birds_with_reject_all_blank, :reject_if => :all_blank
 
-  validates_presence_of :catchphrase
+  validates :catchphrase, presence: true
 
   def ship_log
     @ship_log ||= []

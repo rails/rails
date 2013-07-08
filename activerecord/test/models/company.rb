@@ -5,7 +5,7 @@ end
 class Company < AbstractCompany
   self.sequence_name = :companies_nonstd_seq
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"
   has_many :contracts

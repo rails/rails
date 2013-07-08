@@ -1,6 +1,6 @@
 class Vegetable < ActiveRecord::Base
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   def self.inheritance_column
     'custom_type'

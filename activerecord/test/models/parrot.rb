@@ -6,7 +6,7 @@ class Parrot < ActiveRecord::Base
   has_many :loots, :as => :looter
   alias_attribute :title, :name
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback

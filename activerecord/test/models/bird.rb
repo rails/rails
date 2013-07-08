@@ -1,6 +1,6 @@
 class Bird < ActiveRecord::Base
   belongs_to :pirate
-  validates_presence_of :name
+  validates :name, presence: true
 
   accepts_nested_attributes_for :pirate
 
