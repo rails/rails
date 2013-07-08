@@ -1,3 +1,7 @@
+*   Fix `rake notes` to look into `*.sass` files
+
+    *Yuri Artemev*
+
 *   Removed deprecated `Rails.application.railties.engines`.
 
     *Arun Agrawal*
