@@ -5,6 +5,7 @@ require 'models/reference'
 require 'models/job'
 require 'models/reader'
 require 'models/comment'
+require 'models/rating'
 require 'models/tag'
 require 'models/tagging'
 require 'models/author'
@@ -614,6 +615,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(:favorite_author_id => 2)
     author.author_favorites.create(:favorite_author_id => 3)
     assert_equal post.author.author_favorites, post.author_favorites
+  end
+
+  def test_merge_join_association_with_has_many_through_association_proxy
+    author = authors(:mary)
+    assert_nothing_raised { author.comments.ratings.to_sql }
   end
 
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
