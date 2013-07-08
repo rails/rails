@@ -391,7 +391,8 @@ module ActionDispatch
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
-          options[:value] = @verifier.generate(options[:value])
+          verifier_options = { :expires => options[:expires] } if options[:expires]
+          options[:value] = @verifier.generate(options[:value], verifier_options)
         else
           options = { :value => @verifier.generate(options) }
         end
