@@ -105,7 +105,7 @@ depending on the purpose of these columns.
   Migrations](migrations.html) to create your tables, this column will be
   automatically created.
 
-There are also some optional column names that will create additional features
+There are also some optional column names that will add additional features
 to Active Record instances:
 
 * `created_at` - Automatically gets set to the current date and time when the
@@ -343,7 +343,7 @@ Migrations
 
 Rails provides a domain-specific language for managing a database schema called
 migrations. Migrations are stored in files which are executed against any
-database that Active Record support using `rake`. Here's a migration that
+database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
