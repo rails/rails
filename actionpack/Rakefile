@@ -40,7 +40,9 @@ task :release => :package do
 end
 
 task :lines do
-  # TODO replace with code_metrics gem
+  require 'code_metrics/line_statistics'
+  files = FileList["lib/**/*.rb"]
+  CodeMetrics::LineStatistics.new(files).print_loc
 end
 
 rule '.rb' => '.y' do |t|
