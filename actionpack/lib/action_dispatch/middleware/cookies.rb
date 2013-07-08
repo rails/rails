@@ -170,30 +170,6 @@ module ActionDispatch
             signed
           end
       end
-
-      # Returns a jar that will automatically embed the expires timestamp into
-      # the cookie value and verify the time has not expired when reading from
-      # the cookie again. This is useful to ensure the cookie can not be replayed
-      # after the expires from the browser.
-      #
-      # This jar can only be used if its chained on the signed cookie jar.
-      # Otherwise expiring timestamps could easily be forged negating the
-      # purpose.
-      #
-      # Example:
-      #
-      #   cookies.signed.expires[:user_id] = {
-      #     :value => 137, :expires => 2.weeks.from_now }
-      #
-      #   # => cookies.signed[:user_id] = {
-      #   #      :value   => [137, 2.weeks.from_now],
-      #   #      :expires => 2.weeks.from_now
-      #   #    }
-      #
-      #   cookies.signed.expires[:user_id] # => 137
-      def expires
-        @expires ||= ExpiresCookieJar.new(self)
-      end
     end
 
     module VerifyAndUpgradeLegacySignedMessage
@@ -499,40 +475,6 @@ module ActionDispatch
         if encrypted_or_signed_message = @parent_jar[name]
           decrypt_and_verify(encrypted_or_signed_message) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
         end
-      end
-    end
-
-    class ExpiresCookieJar < CookieJar #:nodoc:
-      include ChainedCookieJars
-
-      def initialize(parent_jar)
-        @parent_jar = parent_jar
-      end
-
-      def [](name)
-        value, expires = @parent_jar[name]
-        if expires.is_a?(Integer) && Time.at(expires) >= Time.now
-          value
-        end
-      end
-
-      def []=(key, options)
-        if options.is_a?(Hash)
-          options.symbolize_keys!
-        else
-          options = { :value => options }
-        end
-
-        unless options[:expires]
-          raise ArgumentError, "expiring cookies must set an :expires"
-        end
-
-        options[:value] = [options[:value], options[:expires].to_i]
-        @parent_jar[key] = options
-      end
-
-      def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
       end
     end
 
