@@ -368,7 +368,7 @@ which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
 `false` by default.
 
-You can pass the option `:table_name` with you want to customize the table
+You can pass the option `:table_name` when you want to customize the table
 name. For example,
 
 ```ruby
