@@ -404,7 +404,7 @@ module ActionDispatch
       private
         def verify(signed_message)
           @verifier.verify(signed_message)
-        rescue ActiveSupport::MessageVerifier::InvalidSignature
+        rescue ActiveSupport::MessageVerifier::Error
           nil
         end
     end
