@@ -1,4 +1,5 @@
 require 'active_support/core_ext/enumerable'
+require 'mutex_m'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -7,6 +8,7 @@ module ActiveRecord
     include ActiveModel::AttributeMethods
 
     included do
+      initialize_generated_modules
       include Read
       include Write
       include BeforeTypeCast
@@ -17,27 +19,71 @@ module ActiveRecord
       include Serialization
     end
 
+    AttrNames = Module.new {
+      def self.set_name_cache(name, value)
+        const_name = "ATTR_#{name}"
+        unless const_defined? const_name
+          const_set const_name, value.dup.freeze
+        end
+      end
+    }
+
+    class AttributeMethodCache
+      include Mutex_m
+
+      def initialize
+        super
+        @module = Module.new
+        @method_cache = {}
+      end
+
+      def [](name)
+        synchronize do
+          @method_cache.fetch(name) {
+            safe_name = name.unpack('h*').first
+            temp_method = "__temp__#{safe_name}"
+            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+            @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__
+            @method_cache[name] = @module.instance_method temp_method
+          }
+        end
+      end
+
+      private
+      def method_body; raise NotImplementedError; end
+    end
+
     module ClassMethods
+      def inherited(child_class) #:nodoc:
+        child_class.initialize_generated_modules
+        super
+      end
+
+      def initialize_generated_modules # :nodoc:
+        @generated_attribute_methods = Module.new { extend Mutex_m }
+        @attribute_methods_generated = false
+        include @generated_attribute_methods
+      end
+
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
         # Use a mutex; we don't want two thread simultaneously trying to define
         # attribute methods.
-        @attribute_methods_mutex.synchronize do
-          return if attribute_methods_generated?
+        generated_attribute_methods.synchronize do
+          return false if @attribute_methods_generated
           superclass.define_attribute_methods unless self == base_class
           super(column_names)
           @attribute_methods_generated = true
         end
-      end
-
-      def attribute_methods_generated? # :nodoc:
-        @attribute_methods_generated ||= false
+        true
       end
 
       def undefine_attribute_methods # :nodoc:
-        super if attribute_methods_generated?
-        @attribute_methods_generated = false
+        generated_attribute_methods.synchronize do
+          super if @attribute_methods_generated
+          @attribute_methods_generated = false
+        end
       end
 
       # Raises a <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
@@ -119,9 +165,7 @@ module ActiveRecord
     # If we haven't generated any methods yet, generate them, then
     # see if we've created the method we're looking for.
     def method_missing(method, *args, &block) # :nodoc:
-      unless self.class.attribute_methods_generated?
-        self.class.define_attribute_methods
-
+      if self.class.define_attribute_methods
         if respond_to_without_attributes?(method)
           send(method, *args, &block)
         else
@@ -164,7 +208,7 @@ module ActiveRecord
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
       name = name.to_s
-      self.class.define_attribute_methods unless self.class.attribute_methods_generated?
+      self.class.define_attribute_methods
       result = super
 
       # If the result is false the answer is false.
@@ -174,7 +218,7 @@ module ActiveRecord
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && @attributes.present? && self.class.column_names.include?(name)
+      if defined?(@attributes) && @attributes.any? && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 

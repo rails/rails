@@ -111,56 +111,6 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        begin
-          old_behavior, ActiveSupport::Deprecation.behavior = ActiveSupport::Deprecation.behavior, :stderr
-          whitelist_attributes = app.config.active_record.delete(:whitelist_attributes)
-
-          if respond_to?(:mass_assignment_sanitizer=)
-            mass_assignment_sanitizer = nil
-          else
-            mass_assignment_sanitizer = app.config.active_record.delete(:mass_assignment_sanitizer)
-          end
-
-          unless whitelist_attributes.nil? && mass_assignment_sanitizer.nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              Model based mass assignment security has been extracted
-              out of Rails into a gem. Please use the new recommended protection model for
-              params or add `protected_attributes` to your Gemfile to use the old one.
-
-              To disable this message remove the `whitelist_attributes` option from your
-              `config/application.rb` file and any `mass_assignment_sanitizer` options
-              from your `config/environments/*.rb` files.
-
-              See http://guides.rubyonrails.org/security.html#mass-assignment for more information.
-            EOF
-          end
-
-          unless app.config.active_record.delete(:auto_explain_threshold_in_seconds).nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              The Active Record auto explain feature has been removed.
-
-              To disable this message remove the `active_record.auto_explain_threshold_in_seconds`
-              option from the `config/environments/*.rb` config file.
-
-              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
-            EOF
-          end
-
-          unless app.config.active_record.delete(:observers).nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              Active Record Observers has been extracted out of Rails into a gem.
-              Please use callbacks or add `rails-observers` to your Gemfile to use observers.
-
-              To disable this message remove the `observers` option from your
-              `config/application.rb` or from your initializers.
-
-              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
-            EOF
-          end
-        ensure
-          ActiveSupport::Deprecation.behavior = old_behavior
-        end
-
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end

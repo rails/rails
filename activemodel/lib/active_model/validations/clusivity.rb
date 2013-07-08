@@ -15,15 +15,15 @@ module ActiveModel
     private
 
       def include?(record, value)
-        exclusions = if delimiter.respond_to?(:call)
-                       delimiter.call(record)
-                     elsif delimiter.respond_to?(:to_sym)
-                       record.send(delimiter)
-                     else
-                       delimiter
-                     end
+        members = if delimiter.respond_to?(:call)
+                    delimiter.call(record)
+                  elsif delimiter.respond_to?(:to_sym)
+                    record.send(delimiter)
+                  else
+                    delimiter
+                  end
 
-        exclusions.send(inclusion_method(exclusions), value)
+        members.send(inclusion_method(members), value)
       end
 
       def delimiter

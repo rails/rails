@@ -4,7 +4,7 @@ module ActionDispatch
     module Visitors # :nodoc:
       class Visitor # :nodoc:
         DISPATCH_CACHE = Hash.new { |h,k|
-          h[k] = "visit_#{k}"
+          h[k] = :"visit_#{k}"
         }
 
         def accept(node)

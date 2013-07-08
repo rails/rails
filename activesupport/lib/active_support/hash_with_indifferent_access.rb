@@ -228,7 +228,7 @@ module ActiveSupport
     def to_options!; self end
 
     def select(*args, &block)
-      dup.select!(*args, &block)
+      dup.tap {|hash| hash.select!(*args, &block)}
     end
 
     # Convert to a regular hash with string keys.

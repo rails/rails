@@ -160,7 +160,7 @@ module ActionDispatch
           end
       end
 
-      # Returns the +signed+ or +encrypted jar, preferring +encrypted+ if +secret_key_base+ is set.
+      # Returns the +signed+ or +encrypted+ jar, preferring +encrypted+ if +secret_key_base+ is set.
       # Used by ActionDispatch::Session::CookieStore to avoid the need to introduce new cookie stores.
       def signed_or_encrypted
         @signed_or_encrypted ||=

@@ -326,7 +326,7 @@ The following shows how to replace use `Rack::Builder` instead of the Rails supp
 config.middleware.clear
 ```
 
-<br />
+<br>
 <strong>Add a `config.ru` file to `Rails.root`</strong>
 
 ```ruby

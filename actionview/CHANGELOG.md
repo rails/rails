@@ -1,3 +1,56 @@
+*   Fix `link_to` with block and url hashes.
+
+    Before:
+
+        link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
+        # => "<a action=\"bar\" controller=\"foo\"><span>Example site</span></a>"
+
+    After:
+
+        link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
+        # => "<a href=\"/\"><span>Example site</span></a>"
+
+    *Murahashi Sanemat Kenichi*
+
+*   Fix "Stack Level Too Deep" error when redering recursive partials.
+
+    Fixes #11340.
+
+    *Rafael Mendonça França*
+
+*   Added an `enforce_utf8` hash option for `form_tag` method.
+
+    Control to output a hidden input tag with name `utf8` without monkey
+    patching.
+
+    Before:
+
+        form_tag
+        # => '<form>..<input name="utf8" type="hidden" value="&#x2713;" />..</form>'
+
+    After:
+
+        form_tag
+        # => '<form>..<input name="utf8" type="hidden" value="&#x2713;" />..</form>'
+
+        form_tag({}, { :enforce_utf8 => false })
+        # => '<form>....</form>'
+
+    *ma2gedev*
+
+*   Remove the deprecated `include_seconds` argument from `distance_of_time_in_words`,
+    pass in an `:include_seconds` hash option to use this feature.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated block passing to `FormBuilder#new`.
+
+    *Vipul A M*
+
+*   Pick `DateField` `DateTimeField` and `ColorField` values from stringified options allowing use of symbol keys with helpers.
+
+    *Jon Rowe*
+
 *   Remove the deprecated `prompt` argument from `grouped_options_for_select`,
     pass in a `:prompt` hash option to use this feature.
 

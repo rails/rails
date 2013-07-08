@@ -8,6 +8,8 @@ module ActiveRecord
   class Result
     include Enumerable
 
+    IDENTITY_TYPE = Class.new { def type_cast(v); v; end }.new # :nodoc:
+
     attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows, column_types = {})
@@ -15,6 +17,10 @@ module ActiveRecord
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types
+    end
+
+    def identity_type # :nodoc:
+      IDENTITY_TYPE
     end
 
     def each

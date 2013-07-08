@@ -64,15 +64,7 @@ module ActionView
       #   distance_of_time_in_words(from_time, to_time, include_seconds: true)                     # => about 6 years
       #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                     # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
-      def distance_of_time_in_words(from_time, to_time = 0, include_seconds_or_options = {}, options = {})
-        if include_seconds_or_options.is_a?(Hash)
-          options = include_seconds_or_options
-        else
-          ActiveSupport::Deprecation.warn "distance_of_time_in_words and time_ago_in_words now accept :include_seconds " +
-                                          "as a part of options hash, not a boolean argument"
-          options[:include_seconds] ||= !!include_seconds_or_options
-        end
-
+      def distance_of_time_in_words(from_time, to_time = 0, options = {})
         options = {
           scope: :'datetime.distance_in_words'
         }.merge!(options)

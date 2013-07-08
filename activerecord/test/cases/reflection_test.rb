@@ -186,14 +186,6 @@ class ReflectionTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = true
   end
 
-  def test_reflection_of_all_associations
-    # FIXME these assertions bust a lot
-    assert_equal 39, Firm.reflect_on_all_associations.size
-    assert_equal 29, Firm.reflect_on_all_associations(:has_many).size
-    assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
-    assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
-  end
-
   def test_reflection_should_not_raise_error_when_compared_to_other_object
     assert_nothing_raised { Firm.reflections[:clients] == Object.new }
   end

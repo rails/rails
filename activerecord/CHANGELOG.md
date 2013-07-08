@@ -1,3 +1,156 @@
+*   Remove extra select and update queries on save/touch/destroy ActiveRecord model
+    with belongs to reflection with option `touch: true`.
+
+    Fixes: #11288
+
+    *Paul Nikitochkin*
+
+*   Remove deprecated nil-passing to the following `SchemaCache` methods:
+    `primary_keys`, `tables`, `columns` and `columns_hash`.
+
+    *Yves Senn*
+
+*   Remove deprecated block filter from `ActiveRecord::Migrator#migrate`.
+
+    *Yves Senn*
+
+*   Remove deprecated String constructor from `ActiveRecord::Migrator`.
+
+    *Yves Senn*
+
+*   Remove deprecated `scope` use without passing a callable object.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `transaction_joinable=` in favor of `begin_transaction`
+    with `:joinable` option.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `decrement_open_transactions`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `increment_open_transactions`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `PostgreSQLAdapter#outside_transaction?`
+    method. You can use `#transaction_open?` instead.
+
+    *Yves Senn*
+
+*   Remove deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
+    `ActiveRecord::Fixtures.default_fixture_model_name`.
+
+    *Vipul A M*
+
+*   Removed deprecated `columns_for_remove` from `SchemaStatements`.
+
+    *Neeraj Singh*
+
+*   Remove deprecated `SchemaStatements#distinct`.
+
+    *Francesco Rodriguez*
+
+*   Move deprecated `ActiveRecord::TestCase` into the rails test
+    suite. The class is no longer public and is only used for internal
+    Rails tests.
+
+    *Yves Senn*
+
+*   Removed support for deprecated option `:restrict` for `:dependent`
+    in associations.
+
+    *Neeraj Singh*
+
+*   Removed support for deprecated `delete_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Removed support for deprecated `insert_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Removed support for deprecated `finder_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Support array as root element in JSON fields.
+
+    *Alexey Noskov & Francesco Rodriguez*
+
+*   Removed support for deprecated `counter_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Do not invoke callbacks when `delete_all` is called on collection.
+
+    Method `delete_all` should not be invoking callbacks and this
+    feature was deprecated in Rails 4.0. This is being removed.
+    `delete_all` will continue to honor the `:dependent` option. However
+    if `:dependent` value is `:destroy` then the default deletion
+    strategy for that collection will be applied.
+
+    User can also force a deletion strategy by passing parameter to
+    `delete_all`. For example you can do `@post.comments.delete_all(:nullify)` .
+
+    *Neeraj Singh*
+
+*   Calling default_scope without a proc will now raise `ArgumentError`.
+
+    *Neeraj Singh*
+
+*   Removed deprecated method `type_cast_code` from Column.
+
+    *Neeraj Singh*
+
+*   Removed deprecated options `delete_sql` and `insert_sql` from HABTM
+    association.
+
+    Removed deprecated options `finder_sql` and `counter_sql` from
+    collection association.
+
+    *Neeraj Singh*
+
+*   Remove deprecated `ActiveRecord::Base#connection` method.
+    Make sure to access it via the class.
+
+    *Yves Senn*
+
+*   Remove deprecation warning for `auto_explain_threshold_in_seconds`.
+
+    *Yves Senn*
+
+*   Remove deprecated `:distinct` option from `Relation#count`.
+
+    *Yves Senn*
+
+*   Removed deprecated methods `partial_updates`, `partial_updates?` and
+    `partial_updates=`.
+
+    *Neeraj Singh*
+
+*   Removed deprecated method `scoped`
+
+    *Neeraj Singh*
+
+*   Removed deprecated method `default_scopes?`
+
+    *Neeraj Singh*
+
+*   Remove implicit join references that were deprecated in 4.0.
+
+    Example:
+
+        # before with implicit joins
+        Comment.where('posts.author_id' => 7)
+
+        # after
+        Comment.references(:posts).where('posts.author_id' => 7)
+
+    *Yves Senn*
+
 *   Apply default scope when joining associations. For example:
 
         class Post < ActiveRecord::Base

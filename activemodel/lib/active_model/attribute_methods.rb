@@ -1,4 +1,5 @@
 require 'thread_safe'
+require 'mutex_m'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -218,6 +219,16 @@ module ActiveModel
         end
       end
 
+      # Is +new_name+ an alias?
+      def attribute_alias?(new_name)
+        attribute_aliases.key? new_name.to_s
+      end
+
+      # Returns the original name for the alias +name+
+      def attribute_alias(name)
+        attribute_aliases[name.to_s]
+      end
+
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
@@ -322,9 +333,10 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        @generated_attribute_methods ||= Module.new {
+          extend Mutex_m
+        }.tap { |mod| include mod }
       end
 
       protected

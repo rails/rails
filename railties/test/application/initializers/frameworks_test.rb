@@ -182,7 +182,7 @@ module ApplicationTests
       end
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
-      assert ActiveRecord::Base.connection.schema_cache.tables["posts"]
+      assert ActiveRecord::Base.connection.schema_cache.tables("posts")
     end
 
     test "expire schema cache dump" do
@@ -192,7 +192,7 @@ module ApplicationTests
       end
       silence_warnings {
         require "#{app_path}/config/environment"
-        assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
+        assert !ActiveRecord::Base.connection.schema_cache.tables("posts")
       }
     end
 

@@ -50,7 +50,7 @@ module ActiveModel
   #
   # The above allows you to do:
   #
-  #   p = Person.new
+  #   person = Person.new
   #   person.validate!            # => ["can not be nil"]
   #   person.errors.full_messages # => ["name can not be nil"]
   #   # etc..

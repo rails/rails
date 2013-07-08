@@ -410,16 +410,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.destroyed?, 'not destroyed'
   end
 
-  if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
-    def test_outside_transaction_works
-      assert assert_deprecated { Topic.connection.outside_transaction? }
-      Topic.connection.begin_db_transaction
-      assert assert_deprecated { !Topic.connection.outside_transaction? }
-      Topic.connection.rollback_db_transaction
-      assert assert_deprecated { Topic.connection.outside_transaction? }
-    end
-  end
-
   def test_sqlite_add_column_in_transaction
     return true unless current_adapter?(:SQLite3Adapter)
 
@@ -602,15 +592,6 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       assert_equal original_salary, Developer.find(1).salary
-    end
-
-    test "#transaction_joinable= is deprecated" do
-      Developer.transaction do
-        conn = Developer.connection
-        assert conn.current_transaction.joinable?
-        assert_deprecated { conn.transaction_joinable = false }
-        assert !conn.current_transaction.joinable?
-      end
     end
   end
 end

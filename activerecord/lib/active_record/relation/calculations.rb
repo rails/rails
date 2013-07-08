@@ -91,8 +91,8 @@ module ActiveRecord
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
-      if column_name.is_a?(Symbol) && attribute_aliases.key?(column_name.to_s)
-        column_name = attribute_aliases[column_name.to_s].to_sym
+      if column_name.is_a?(Symbol) && attribute_alias?(column_name)
+        column_name = attribute_alias(column_name)
       end
 
       if has_include?(column_name)
@@ -137,39 +137,32 @@ module ActiveRecord
     #
     def pluck(*column_names)
       column_names.map! do |column_name|
-        if column_name.is_a?(Symbol)
-          if attribute_aliases.key?(column_name.to_s)
-            column_name = attribute_aliases[column_name.to_s].to_sym
-          end
-
-          if self.columns_hash.key?(column_name.to_s)
-            column_name = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
-          end
+        if column_name.is_a?(Symbol) && attribute_alias?(column_name)
+          attribute_alias(column_name)
+        else
+          column_name.to_s
         end
-
-        column_name
       end
 
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else
         relation = spawn
-        relation.select_values = column_names
+        relation.select_values = column_names.map { |cn|
+          columns_hash.key?(cn) ? arel_table[cn] : cn
+        }
         result = klass.connection.select_all(relation.arel, nil, bind_values)
         columns = result.columns.map do |key|
           klass.column_types.fetch(key) {
-            result.column_types.fetch(key) {
-              Class.new { def type_cast(v); v; end }.new
-            }
+            result.column_types.fetch(key) { result.identity_type }
           }
         end
 
         result = result.map do |attributes|
           values = klass.initialize_attributes(attributes).values
 
-          columns.zip(values).map do |column, value|
-            column.type_cast(value)
-          end
+          iter = columns.each
+          values.map { |value| iter.next.type_cast value }
         end
         columns.one? ? result.map!(&:first) : result
       end
@@ -194,11 +187,6 @@ module ActiveRecord
 
       # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)
       distinct = self.distinct_value
-      if options.has_key?(:distinct)
-        ActiveSupport::Deprecation.warn "The :distinct option for `Relation#count` is deprecated. " \
-          "Please use `Relation#distinct` instead. (eg. `relation.distinct.count`)"
-        distinct = options[:distinct]
-      end
 
       if operation == "count"
         if select_values.present?

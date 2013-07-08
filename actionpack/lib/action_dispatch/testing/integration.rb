@@ -298,8 +298,6 @@ module ActionDispatch
 
           session = Rack::Test::Session.new(_mock_session)
 
-          env.merge!(env)
-
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
           uri = URI.parse('/')
@@ -489,10 +487,6 @@ module ActionDispatch
     @@app = nil
 
     def self.app
-      if !@@app && !ActionDispatch.test_app
-        ActiveSupport::Deprecation.warn "Rails application fallback is deprecated and no longer works, please set ActionDispatch.test_app"
-      end
-
       @@app || ActionDispatch.test_app
     end
 

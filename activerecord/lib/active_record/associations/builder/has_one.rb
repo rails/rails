@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_dependent_options
-      [:destroy, :delete, :nullify, :restrict, :restrict_with_error, :restrict_with_exception]
+      [:destroy, :delete, :nullify, :restrict_with_error, :restrict_with_exception]
     end
   end
 end

@@ -7,10 +7,14 @@ module ActionView
     @@cache = ThreadSafe::Cache.new
 
     def self.digest(name, format, finder, options = {})
-      cache_key = [name, format] + Array.wrap(options[:dependencies])
-      @@cache[cache_key.join('.')] ||= begin
+      cache_key = ([name, format] + Array.wrap(options[:dependencies])).join('.')
+      @@cache.fetch(cache_key) do
+        @@cache[cache_key] ||= nil if options[:partial] # Prevent re-entry
+
         klass = options[:partial] || name.include?("/_") ? PartialDigestor : Digestor
-        klass.new(name, format, finder, options).digest
+        digest = klass.new(name, format, finder, options).digest
+
+        @@cache[cache_key] = digest # Store the value
       end
     end
 

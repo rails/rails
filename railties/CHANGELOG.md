@@ -1,3 +1,32 @@
+*   Fix `rake notes` to look into `*.sass` files
+
+    *Yuri Artemev*
+
+*   Removed deprecated `Rails.application.railties.engines`.
+
+    *Arun Agrawal*
+
+*   Removed deprecated threadsafe! from Rails Config.
+
+    *Paul Nikitochkin*
+
+*   Remove deprecated `ActiveRecord::Generators::ActiveModel#update_attributes` in
+    favor of `ActiveRecord::Generators::ActiveModel#update`
+
+    *Vipul A M*
+
+*   Remove deprecated `config.whiny_nils` option
+
+    *Vipul A M*
+
+*   Rename `commands/plugin_new.rb` to `commands/plugin.rb` and fix references
+
+    *Richard Schneeman*
+
+*   Fix `rails plugin --help` command.
+
+    *Richard Schneeman*
+
 *   Omit turbolinks configuration completely on skip_javascript generator option.
 
     *Nikita Fedyashev*

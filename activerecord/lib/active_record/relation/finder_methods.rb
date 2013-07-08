@@ -1,5 +1,7 @@
 module ActiveRecord
   module FinderMethods
+    ONE_AS_ONE = '1 AS one'
+
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
     # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
@@ -202,7 +204,7 @@ module ActiveRecord
       relation = construct_relation_for_association_find(construct_join_dependency)
       return false if ActiveRecord::NullRelation === relation
 
-      relation = relation.except(:select, :order).select("1 AS one").limit(1)
+      relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
 
       case conditions
       when Array, Hash

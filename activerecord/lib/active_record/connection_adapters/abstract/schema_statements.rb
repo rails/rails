@@ -694,15 +694,6 @@ module ActiveRecord
         end
       end
 
-      # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
-      #
-      #   distinct("posts.id", ["posts.created_at desc"])
-      #
-      def distinct(columns, order_by)
-        ActiveSupport::Deprecation.warn("#distinct is deprecated and shall be removed from future releases.")
-        "DISTINCT #{columns_for_distinct(columns, order_by)}"
-      end
-
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
       # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax - they
       # require the order columns appear in the SELECT.
@@ -810,12 +801,6 @@ module ActiveRecord
           end
 
           index_name
-        end
-
-        def columns_for_remove(table_name, *column_names)
-          ActiveSupport::Deprecation.warn("columns_for_remove is deprecated and will be removed in the future")
-          raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.blank?
-          column_names.map {|column_name| quote_column_name(column_name) }
         end
 
         def rename_table_indexes(table_name, new_name)

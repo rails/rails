@@ -69,13 +69,10 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
-      ##
-      # :singleton-method:
-      # Disable implicit join references. This feature was deprecated with Rails 4.
-      # If you don't make use of implicit references but still see deprecation warnings
-      # you can disable the feature entirely. This will be the default with Rails 4.1.
-      mattr_accessor :disable_implicit_join_references, instance_writer: false
-      self.disable_implicit_join_references = false
+      def self.disable_implicit_join_references=(value)
+        ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \
+                                        "Make sure to remove this configuration because it does nothing.")
+      end
 
       class_attribute :default_connection_handler, instance_writer: false
 
@@ -91,20 +88,8 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(child_class) #:nodoc:
-        child_class.initialize_generated_modules
-        super
-      end
-
       def initialize_generated_modules
-        @attribute_methods_mutex = Mutex.new
-
-        # force attribute methods to be higher in inheritance hierarchy than other generated methods
-        generated_attribute_methods.const_set(:AttrNames, Module.new {
-          def self.const_missing(name)
-            const_set(name, [name.to_s.sub(/ATTR_/, '')].pack('h*').freeze)
-          end
-        })
+        super
 
         generated_feature_methods
       end
@@ -338,14 +323,6 @@ module ActiveRecord
     # Marks this record as read only.
     def readonly!
       @readonly = true
-    end
-
-    # Returns the connection currently associated with the class. This can
-    # also be used to "borrow" the connection to do database work that isn't
-    # easily done without going straight to SQL.
-    def connection
-      ActiveSupport::Deprecation.warn("#connection is deprecated in favour of accessing it via the class")
-      self.class.connection
     end
 
     def connection_handler

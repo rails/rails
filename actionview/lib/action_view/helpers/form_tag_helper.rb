@@ -38,6 +38,7 @@ module ActionView
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
+      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
       #
       # ==== Examples
       #   form_tag('/posts')
@@ -719,7 +720,8 @@ module ActionView
               method_tag(method) + token_tag(authenticity_token)
           end
 
-          tags = utf8_enforcer_tag << method_tag
+          enforce_utf8 = html_options.delete("enforce_utf8") { true }
+          tags = (enforce_utf8 ? utf8_enforcer_tag : ''.html_safe) << method_tag
           content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
 

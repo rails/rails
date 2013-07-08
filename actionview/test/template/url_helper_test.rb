@@ -308,6 +308,13 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to('/', class: "special") { content_tag(:span, 'Example site') }
   end
 
+  def test_link_tag_using_block_and_hash
+    assert_dom_equal(
+      %{<a href="/"><span>Example site</span></a>},
+      link_to(url_hash) { content_tag(:span, 'Example site') }
+    )
+  end
+
   def test_link_tag_using_block_in_erb
     out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
     assert_equal '<a href="/">Example site</a>', out
@@ -336,8 +343,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>},
       link_to_unless(false, "Listing", url_hash)
 
-    assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
-
     assert_equal "<strong>Showing</strong>",
       link_to_unless(true, "Showing", url_hash) { |name|
         "<strong>#{name}</strong>".html_safe
@@ -357,7 +362,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_to_if
     assert_equal "Showing", link_to_if(false, "Showing", url_hash)
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
-    assert_equal "Showing", link_to_if(false, "Showing", url_hash)
   end
 
   def request_for_url(url, opts = {})

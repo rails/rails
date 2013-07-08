@@ -941,9 +941,9 @@ Creates a form and a scope around a specific model object that is used as a base
 ```html+erb
 <%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
-  <%= f.text_field :title %><br />
+  <%= f.text_field :title %><br>
   <%= f.label :body, 'Body' %>:
-  <%= f.text_area :body %><br />
+  <%= f.text_area :body %><br>
 <% end %>
 ```
 
@@ -1004,6 +1004,24 @@ Returns an input tag of the "text" type tailored for accessing a specified attri
 ```ruby
 text_field(:post, :title)
 # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" />
+```
+
+#### email_field
+
+Returns an input tag of the "email" type tailored for accessing a specified attribute.
+
+```ruby
+email_field(:user, :email)
+# => <input type="email" id="user_email" name="user[email]" value="#{@user.email}" />
+```
+
+#### url_field
+
+Returns an input tag of the "url" type tailored for accessing a specified attribute.
+
+```ruby
+url_field(:user, :url)
+# => <input type="url" id="user_url" name="user[url]" value="#{@user.url}" />
 ```
 
 ### FormOptionsHelper
@@ -1372,6 +1390,24 @@ text_field_tag 'name'
 # => <input id="name" name="name" type="text" />
 ```
 
+#### email_field_tag
+
+Creates a standard input field of email type.
+
+```ruby
+email_field_tag 'email'
+# => <input id="email" name="email" type="email" />
+```
+
+#### url_field_tag
+
+Creates a standard input field of url type.
+
+```ruby
+url_field_tag 'url'
+# => <input id="url" name="url" type="url" />
+```
+
 #### date_field_tag
 
 Creates a standard input field of date type.
@@ -1456,7 +1492,7 @@ number_to_human_size(1234567)       # => 1.2 MB
 Formats a number as a percentage string.
 
 ```ruby
-number_to_percentage(100, :precision => 0)        # => 100%
+number_to_percentage(100, precision: 0)        # => 100%
 ```
 
 #### number_to_phone

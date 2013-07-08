@@ -1,3 +1,61 @@
+*   Make `HashWithIndifferentAccess#select` always return the hash, even when
+    `Hash#select!` returns `nil`, to allow further chaining.
+
+    *Marc Schütz*
+
+*   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
+
+    *Arun Agrawal*
+
+*   Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated `Time#time_with_datetime_fallback`, `Time#utc_time`
+    and `Time#local_time` in favor of `Time#utc` and `Time#local`.
+
+    *Vipul A M*
+
+*   Remove deprecated `Hash#diff` with no replacement.
+
+    If you're using it to compare hashes for the purpose of testing, please use
+    MiniTest's `assert_equal` instead.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated `Date#to_time_in_current_zone` in favor of `Date#in_time_zone`.
+
+    *Vipul A M*
+
+*   Remove deprecated `Proc#bind` with no replacement.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated `Array#uniq_by` and `Array#uniq_by!`, use native
+    `Array#uniq` and `Array#uniq!` instead.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated `ActiveSupport::BasicObject`, use `ActiveSupport::ProxyObject` instead.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated `BufferedLogger`.
+
+    *Yves Senn*
+
+*   Remove deprecated `assert_present` and `assert_blank` methods.
+
+    *Yves Senn*
+
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 

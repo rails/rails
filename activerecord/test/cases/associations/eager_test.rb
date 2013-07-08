@@ -346,9 +346,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_unquoted_table_name
     assert_nothing_raised do
-      ActiveSupport::Deprecation.silence do
-        Comment.all.merge!(:includes => :post, :where => ['posts.id = ?',4]).to_a
-      end
+      Comment.includes(:post).references(:posts).where('posts.id = ?', 4)
     end
   end
 
@@ -367,9 +365,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
-      ActiveSupport::Deprecation.silence do
-        Comment.all.merge!(:includes => :post, :where => ["#{quoted_posts_id} = ?",4]).to_a
-      end
+      Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
     end
   end
 
@@ -382,9 +378,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
-      ActiveSupport::Deprecation.silence do
-        Comment.all.merge!(:includes => :post, :order => quoted_posts_id).to_a
-      end
+      Comment.includes(:post).references(:posts).order(quoted_posts_id)
     end
   end
 
@@ -548,14 +542,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
-    posts = ActiveSupport::Deprecation.silence do
-      Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "authors.name = ?", 'David' ]).to_a
-    end
+    posts = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", 'David')
     assert_equal 2, posts.size
 
-    count = ActiveSupport::Deprecation.silence do
-      Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", 'David').count
-    end
+    count = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", 'David').count
     assert_equal posts.size, count
   end
 

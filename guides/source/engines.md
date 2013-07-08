@@ -346,7 +346,7 @@ Next, the partial that this line will render needs to exist. Create a new direct
 <h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
-    <%= f.label :text %><br />
+    <%= f.label :text %><br>
     <%= f.text_area :text %>
   </p>
   <%= f.submit %>
@@ -515,7 +515,7 @@ First, the `author_name` text field needs to be added to the `app/views/blorgh/p
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br />
+  <%= f.label :author_name %><br>
   <%= f.text_field :author_name %>
 </div>
 ```

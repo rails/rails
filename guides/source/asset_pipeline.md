@@ -69,12 +69,12 @@ Rails' old strategy was to append a date-based query string to every asset linke
 
 The query string strategy has several disadvantages:
 
-1. **Not all caches will reliably cache content where the filename only differs by query parameters**<br />
+1. **Not all caches will reliably cache content where the filename only differs by query parameters**<br>
     [Steve Souders recommends](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/), "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
 
-2. **The file name can change between nodes in multi-server environments.**<br />
+2. **The file name can change between nodes in multi-server environments.**<br>
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
-3. **Too much cache invalidation**<br />
+3. **Too much cache invalidation**<br>
     When static assets are deployed with each new release of code, the mtime(time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring that filenames are consistent based on their content.
