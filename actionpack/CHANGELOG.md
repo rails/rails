@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.14.rc1 (Jul 8, 2013) ##
 
 *   Merge `:action` from routing scope and assign endpoint if both `:controller`
     and `:action` are present. The endpoint assignment only occurs if there is

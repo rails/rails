@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.14.rc1 (Jul 8, 2013) ##
 
 *   Do not shallow the original exception in `exec_cache` on PostgreSQL adapter.
 
