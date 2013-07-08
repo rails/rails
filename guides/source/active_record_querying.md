@@ -711,7 +711,7 @@ Post.order('id DESC').limit(20).unscope(:order, :limit) = Post.all
 You can additionally unscope specific where clauses. For example:
 
 ```ruby
-Post.where(:id => 10).limit(1).unscope(where: :id, :limit).order('id DESC') = Post.order('id DESC')
+Post.where(id: 10).limit(1).unscope(where: :id, :limit).order('id DESC') = Post.order('id DESC')
 ```
 
 ### `only`

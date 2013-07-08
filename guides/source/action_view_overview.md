@@ -1492,7 +1492,7 @@ number_to_human_size(1234567)       # => 1.2 MB
 Formats a number as a percentage string.
 
 ```ruby
-number_to_percentage(100, :precision => 0)        # => 100%
+number_to_percentage(100, precision: 0)        # => 100%
 ```
 
 #### number_to_phone

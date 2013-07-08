@@ -343,7 +343,7 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ActiveRecord::Base
-  after_commit :delete_picture_file_from_disk, :on => [:destroy]
+  after_commit :delete_picture_file_from_disk, on: [:destroy]
 
   def delete_picture_file_from_disk
     if File.exist?(filepath)
