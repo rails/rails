@@ -16,7 +16,7 @@ module ActiveRecord::Associations::Builder
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
-    
+
     def define_constructors
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def build_#{name}(*args, &block)

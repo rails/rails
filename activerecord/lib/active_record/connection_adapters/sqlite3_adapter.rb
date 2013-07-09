@@ -89,6 +89,7 @@ module ActiveRecord
         end
 
         private
+
         def cache
           @cache[$$]
         end

@@ -26,6 +26,7 @@ module ActiveRecord
 
 
       private
+
         def rows
           return @rows if @rows
 

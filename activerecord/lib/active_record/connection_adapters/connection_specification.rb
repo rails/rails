@@ -36,6 +36,7 @@ module ActiveRecord
         end
 
         private
+
         def resolve_string_connection(spec) # :nodoc:
           hash = configurations.fetch(spec) do |k|
             connection_url_to_hash(k)

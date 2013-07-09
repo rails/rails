@@ -284,6 +284,7 @@ module ActiveRecord
       end
 
       private
+
       def create_column_definition(name, type)
         ColumnDefinition.new name, type
       end
@@ -495,10 +496,10 @@ module ActiveRecord
       end
 
       private
-        def native
-          @base.native_database_types
-        end
-    end
 
+      def native
+        @base.native_database_types
+      end
+    end
   end
 end

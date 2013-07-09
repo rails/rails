@@ -610,6 +610,7 @@ module ActiveRecord
     end
 
     private
+
       def primary_key_name
         @primary_key_name ||= model_class && model_class.primary_key
       end
@@ -885,6 +886,7 @@ module ActiveRecord
     end
 
     private
+
       def load_fixtures
         fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
         Hash[fixtures.map { |f| [f.name, f] }]

@@ -62,6 +62,7 @@ module ActiveRecord
     end
 
     private
+
     def hash_rows
       @hash_rows ||=
         begin

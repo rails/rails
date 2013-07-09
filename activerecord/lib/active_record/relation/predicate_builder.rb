@@ -74,6 +74,7 @@ module ActiveRecord
     end
 
     private
+
       def self.build(attribute, value)
         case value
         when Array
