@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Do not shallow the original exception in `exec_cache` on PostgreSQL adapter.
+
+    Fixes #11260.
+
+    *Rafael Mendonça França*
+
 *   Fix `ActiveRecord::Store` incorrectly tracking changes of its attributes.
     Fixes #10373.
 

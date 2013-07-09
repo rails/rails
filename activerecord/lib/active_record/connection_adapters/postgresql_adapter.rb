@@ -1179,7 +1179,11 @@ module ActiveRecord
             # prepared statements whose return value may have changed is
             # FEATURE_NOT_SUPPORTED.  Check here for more details:
             # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-            code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+            begin
+              code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+            rescue
+              raise e
+            end
             if FEATURE_NOT_SUPPORTED == code
               @statements.delete sql_key(sql)
               retry
