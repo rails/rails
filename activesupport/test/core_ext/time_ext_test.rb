@@ -700,6 +700,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_at_with_datetime_maintains_offset
+    with_env_tz 'US/Eastern' do
+      assert_equal 3600, Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0, '+1')).utc_offset
+    end
+  end
+
   def test_at_with_time_with_zone
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']))
 
@@ -711,8 +717,35 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_at_with_time_with_zone_maintains_offset
+    with_env_tz 'US/Eastern' do
+      assert_equal 0, Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['London'])).utc_offset
+      assert_equal 3600, Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 7, 1, 0, 0, 0), ActiveSupport::TimeZone['London'])).utc_offset
+    end
+  end
+
   def test_at_with_time_microsecond_precision
     assert_equal Time.at(Time.utc(2000, 1, 1, 0, 0, 0, 111)).to_f, Time.utc(2000, 1, 1, 0, 0, 0, 111).to_f
+  end
+
+  def test_at_with_utc_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.utc(2000), Time.at(Time.utc(2000))
+      assert_equal 0, Time.at(Time.utc(2000)).utc_offset
+      assert_equal 'UTC', Time.at(Time.utc(2000)).zone
+    end
+  end
+
+  def test_at_with_local_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2000), Time.at(Time.local(2000))
+      assert_equal -18000, Time.at(Time.local(2000)).utc_offset
+      assert_equal 'EST', Time.at(Time.local(2000)).zone
+
+      assert_equal Time.local(2000, 7, 1), Time.at(Time.local(2000, 7, 1))
+      assert_equal -14400, Time.at(Time.local(2000, 7, 1)).utc_offset
+      assert_equal 'EDT', Time.at(Time.local(2000, 7, 1)).zone
+    end
   end
 
   def test_eql?

@@ -33,10 +33,15 @@ class Time
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
     def at_with_coercion(*args)
-      if args.size == 1 && args.first.acts_like?(:time)
-        at_without_coercion(args.first.to_f)
+      return at_without_coercion(*args) if args.size != 1
+
+      # Time.at can be called with a time or numerical value
+      time_or_number = args.first
+
+      if time_or_number.is_a?(ActiveSupport::TimeWithZone) || time_or_number.is_a?(DateTime)
+        at_without_coercion(time_or_number.to_f).getlocal(time_or_number.utc_offset)
       else
-        at_without_coercion(*args)
+        at_without_coercion(time_or_number)
       end
     end
     alias_method :at_without_coercion, :at
