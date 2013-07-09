@@ -68,6 +68,14 @@ class MessageVerifierTest < ActiveSupport::TestCase
     end
   end
 
+  def test_stripping_timestamp_from_perishable_message_is_invalid
+    message = @verifier.generate(@data, expires: 1.minute.from_now)
+    assert @verifier.verify(message)
+
+    message = message.sub(/--\d+/, "")
+    assert_not_verified(message)
+  end
+
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)
