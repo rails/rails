@@ -39,7 +39,7 @@ class Time
       time_or_number = args.first
 
       if time_or_number.is_a?(ActiveSupport::TimeWithZone) || time_or_number.is_a?(DateTime)
-        at_without_coercion(time_or_number.to_f).getlocal(time_or_number.utc_offset)
+        at_without_coercion(time_or_number.to_f).getlocal
       else
         at_without_coercion(time_or_number)
       end
