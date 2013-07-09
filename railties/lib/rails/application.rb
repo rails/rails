@@ -291,7 +291,8 @@ module Rails
       require "rails/tasks"
       config = self.config
       task :environment do
-        config.eager_load = false
+        ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
+
         require_environment!
       end
     end
