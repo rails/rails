@@ -327,8 +327,8 @@ module CacheStoreBehavior
 
   def test_exist
     @cache.write('foo', 'bar')
-    assert @cache.exist?('foo')
-    assert !@cache.exist?('bar')
+    assert_equal true, @cache.exist?('foo')
+    assert_equal false, @cache.exist?('bar')
   end
 
   def test_nil_exist
