@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class SanitizerTest < ActionController::TestCase
+class SanitizersTest < ActionController::TestCase
   def setup
     @sanitizer = nil # used by assert_sanitizer
   end
