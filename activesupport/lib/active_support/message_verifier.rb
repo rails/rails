@@ -42,15 +42,19 @@ module ActiveSupport
     def verify(signed_message)
       raise InvalidSignature if signed_message.blank?
 
-      data, digest = signed_message.split(/--|-@/)
+      parts = signed_message.split("--")
+      if parts.length == 3
+        data, expires, digest = parts
+      else
+        data, digest = parts
+        expires = nil
+      end
 
-      if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
+      if data.present? && digest.present? && secure_compare(digest, generate_digest(data, expires))
         value = @serializer.load(::Base64.decode64(data))
 
-        if signed_message =~ /-@/
-          value, expires = value
-
-          if expires.is_a?(Integer) && Time.at(expires) >= Time.now
+        if expires
+          if Time.at(expires.to_i) >= Time.now
             value
           else
             raise Expired
@@ -64,11 +68,11 @@ module ActiveSupport
     end
 
     def generate(value, options = {})
+      data = ::Base64.strict_encode64(@serializer.dump(value))
+
       if options[:expires]
-        data = ::Base64.strict_encode64(@serializer.dump([value, options[:expires].to_i]))
-        "#{data}-@#{generate_digest(data)}"
+        "#{data}--#{options[:expires].to_i}--#{generate_digest(data, options[:expires].to_i)}"
       else
-        data = ::Base64.strict_encode64(@serializer.dump(value))
         "#{data}--#{generate_digest(data)}"
       end
     end
@@ -85,8 +89,9 @@ module ActiveSupport
         res == 0
       end
 
-      def generate_digest(data)
+      def generate_digest(data, expires = nil)
         require 'openssl' unless defined?(OpenSSL)
+        data += expires.to_s if expires
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
       end
   end
