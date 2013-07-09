@@ -22,6 +22,18 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses expected, query
   end
 
+  test "base64 strings with + character are modified when encoded" do
+    assert_parses(
+       {'token' => "azAZ09 /="}, "token=azAZ09+/="
+    )
+  end
+
+  test "urlsafe_base64 strings are not modified when encoded" do
+    assert_parses(
+       {'token' => "azAZ09-_="}, "token=azAZ09-_="
+    )
+  end
+
   test "parses nested hash" do
     query = [
       "note[viewers][viewer][][type]=User",
