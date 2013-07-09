@@ -100,7 +100,7 @@ EOT
     end
 
     def version
-      ARGV.unshift '--version'
+      argv.unshift '--version'
       require_command!("application")
     end
 
@@ -117,7 +117,7 @@ EOT
       end
 
       def shift_argv!
-        ARGV.shift if ARGV.first && ARGV.first[0] != '-'
+        argv.shift if argv.first && argv.first[0] != '-'
       end
 
       def require_command!(command)
