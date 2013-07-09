@@ -58,13 +58,14 @@ task :update_versions do
   require File.dirname(__FILE__) + "/version"
 
   File.open("RAILS_VERSION", "w") do |f|
-    f.puts Rails.version
+    f.puts Rails::VERSION::STRING
   end
 
   constants = {
     "activesupport"   => "ActiveSupport",
     "activemodel"     => "ActiveModel",
     "actionpack"      => "ActionPack",
+    "actionview"      => "ActionView",
     "actionmailer"    => "ActionMailer",
     "activerecord"    => "ActiveRecord",
     "railties"        => "Rails"

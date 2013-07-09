@@ -1,3 +1,9 @@
+*   Make `Time.at_with_coercion` retain the second fraction and return local time.
+
+    Fixes #11350
+
+    *Neer Friedman*, *Andrew White*
+
 *   Make `HashWithIndifferentAccess#select` always return the hash, even when
     `Hash#select!` returns `nil`, to allow further chaining.
 

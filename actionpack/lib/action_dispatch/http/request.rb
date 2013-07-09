@@ -226,7 +226,7 @@ module ActionDispatch
     def raw_post
       unless @env.include? 'RAW_POST_DATA'
         raw_post_body = body
-        @env['RAW_POST_DATA'] = raw_post_body.read(@env['CONTENT_LENGTH'].to_i)
+        @env['RAW_POST_DATA'] = raw_post_body.read(content_length)
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
       @env['RAW_POST_DATA']

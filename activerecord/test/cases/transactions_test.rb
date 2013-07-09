@@ -526,22 +526,20 @@ if current_adapter?(:PostgreSQLAdapter)
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread
-      assert_nothing_raised do
-        threads = (1..3).map do
-          Thread.new do
-            Topic.transaction do
-              topic = Topic.find(1)
-              topic.approved = !topic.approved?
-              topic.save!
-              topic.approved = !topic.approved?
-              topic.save!
-            end
-            Topic.connection.close
+      threads = 3.times.map do
+        Thread.new do
+          Topic.transaction do
+            topic = Topic.find(1)
+            topic.approved = !topic.approved?
+            assert topic.save!
+            topic.approved = !topic.approved?
+            assert topic.save!
           end
+          Topic.connection.close
         end
-
-        threads.each { |t| t.join }
       end
+
+      threads.each { |t| t.join }
     end
 
     # Test for dirty reads among simultaneous transactions.
