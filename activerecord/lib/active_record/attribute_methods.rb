@@ -273,7 +273,7 @@ module ActiveRecord
     #   person = Person.create!(name: 'David Heinemeier Hansson ' * 3)
     #
     #   person.attribute_for_inspect(:name)
-    #   # => "\"David Heinemeier Hansson David Heinemeier Hansson D...\""
+    #   # => "\"David Heinemeier Hansson David Heinemeier Hansson ...\""
     #
     #   person.attribute_for_inspect(:created_at)
     #   # => "\"2012-10-22 00:15:07\""
@@ -281,7 +281,7 @@ module ActiveRecord
       value = read_attribute(attr_name)
 
       if value.is_a?(String) && value.length > 50
-        "#{value[0..50]}...".inspect
+        "#{value[0..49]}...".inspect
       elsif value.is_a?(Date) || value.is_a?(Time)
         %("#{value.to_s(:db)}")
       else
