@@ -965,7 +965,7 @@ module ActionDispatch
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
-        CANONICAL_ACTIONS = %w(index create new show update destroy create_many replace_all update_all destroy_all)
+        CANONICAL_ACTIONS = %w(index create new show update destroy replace_all update_all destroy_all)
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
         RESOURCE_SCOPES = [:resource, :resources]
 
@@ -983,7 +983,7 @@ module ActionDispatch
 
           def default_actions
             [:index, :create, :new, :show, :update, :destroy, :edit,
-              :create_many, :replace_all, :update_all, :destroy_all]
+              :replace_all, :update_all, :destroy_all]
           end
 
           def actions
@@ -1268,7 +1268,6 @@ module ActionDispatch
               get    :index if parent_resource.actions.include?(:index)
               put    :replace_all if parent_resource.actions.include?(:replace_all)
               post   :create if parent_resource.actions.include?(:create)
-              post   :create_many if parent_resource.actions.include?(:create_many)
               patch  :update_all if parent_resource.actions.include?(:update_all)
               delete :destroy_all if parent_resource.actions.include?(:destroy_all)
             end
