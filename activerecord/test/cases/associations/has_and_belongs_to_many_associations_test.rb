@@ -437,13 +437,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert george.treasures(true).empty?
   end
 
-  def test_deprecated_push_with_attributes_was_removed
-    jamis = developers(:jamis)
-    assert_raise(NoMethodError) do
-      jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
-    end
-  end
-
   def test_associations_with_conditions
     assert_equal 3, projects(:active_record).developers.size
     assert_equal 1, projects(:active_record).developers_named_david.size
