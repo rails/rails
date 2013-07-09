@@ -1,6 +1,6 @@
 ## unreleased ##
 
-*   Make `Time.at_with_coercion` retain the second fraction and offset from UTC.
+*   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
     Fixes #11350
 
