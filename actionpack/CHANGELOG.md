@@ -1,3 +1,9 @@
+*   Fix `ActionDispatch::request#raw_post` to rewind body input stream
+
+    Fixes #11345
+
+    *Adrien Lamothe*
+
 *   Ignore spaces around delimiter in Set-Cookie header.
 
     *Yamagishi Kazutoshi*
