@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Make `Time.at_with_coercion` retain the second fraction and offset from UTC.
+
+    Fixes #11350
+
+    *Neer Friedman*, *Andrew White*
+
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 
