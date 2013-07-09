@@ -129,6 +129,7 @@ body {
   font-family: Helvetica, Arial, Sans-Serif;
   text-decoration: none;
   vertical-align: middle;
+  cursor: pointer;
 }
 .red-button:active {
   border-top: none;
