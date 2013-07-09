@@ -711,6 +711,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_at_with_time_microsecond_precision
+    assert_equal Time.at(Time.utc(2000, 1, 1, 0, 0, 0, 111)).to_f, Time.utc(2000, 1, 1, 0, 0, 0, 111).to_f
+  end
+
   def test_eql?
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']) )
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )

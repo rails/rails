@@ -34,7 +34,7 @@ class Time
     # instances can be used when called with a single argument
     def at_with_coercion(*args)
       if args.size == 1 && args.first.acts_like?(:time)
-        at_without_coercion(args.first.to_i)
+        at_without_coercion(args.first.to_f)
       else
         at_without_coercion(*args)
       end
