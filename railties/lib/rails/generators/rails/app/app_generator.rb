@@ -300,5 +300,67 @@ module Rails
         defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
       end
     end
+
+    # This class handles preparation of the arguments before the AppGenerator is
+    # called. The class provides version or help information if they were
+    # requested, and also constructs the railsrc file (used for extra configuration
+    # options).
+    #
+    # This class should be called before the AppGenerator is required and started
+    # since it configures and mutates ARGV correctly.
+    class AppPreparer # :nodoc
+      attr_reader :argv
+
+      def initialize(argv = ARGV)
+        @argv = argv
+      end
+
+      def prepare!
+        handle_version_request!(argv.first)
+        unless handle_invalid_command!(argv.first)
+          argv.shift
+          handle_rails_rc!
+        end
+      end
+
+      private
+
+        def handle_version_request!(argument)
+          if ['--version', '-v'].include?(argv.first)
+            require 'rails/version'
+            puts "Rails #{Rails::VERSION::STRING}"
+            exit(0)
+          end
+        end
+
+        def handle_invalid_command!(argument)
+          if argument != "new"
+            argv[0] = "--help"
+          end
+        end
+
+        def handle_rails_rc!
+          unless argv.delete("--no-rc")
+            insert_railsrc(railsrc)
+          end
+        end
+
+        def railsrc
+          if (customrc = argv.index{ |x| x.include?("--rc=") })
+            File.expand_path(argv.delete_at(customrc).gsub(/--rc=/, ""))
+          else
+            File.join(File.expand_path("~"), '.railsrc')
+          end
+        end
+
+        def insert_railsrc(railsrc)
+          if File.exist?(railsrc)
+            extra_args_string = File.read(railsrc)
+            extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
+            puts "Using #{extra_args.join(" ")} from #{railsrc}"
+            argv.insert(1, *extra_args)
+          end
+        end
+    end
   end
 end
