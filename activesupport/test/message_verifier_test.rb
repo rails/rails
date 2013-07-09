@@ -58,6 +58,9 @@ class MessageVerifierTest < ActiveSupport::TestCase
   def test_valid_expirable_message_verification
     message = @verifier.generate(@data, expires: 1.hour.from_now)
     assert_equal @data, @verifier.verify(message)
+
+    message = @verifier.generate(@data, expires: 1.hour.from_now.to_i)
+    assert_equal @data, @verifier.verify(message)
   end
 
   def test_invalid_expirable_message_verification
