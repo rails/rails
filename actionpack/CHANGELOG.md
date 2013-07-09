@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind body input stream on
+    parsing json params.
+
+    Fixes #11345
+
+    *Yuri Bol*, *Paul Nikitochkin*
+
 *   Fix `link_to` with block and url hashes.
 
     Before:

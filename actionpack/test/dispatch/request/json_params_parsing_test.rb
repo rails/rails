@@ -70,6 +70,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'raw_post is not empty for JSON request' do
+    with_test_routing do
+      post '/parse', '{"posts": [{"title": "Post Title"}]}', 'CONTENT_TYPE' => 'application/json'
+      assert_equal '{"posts": [{"title": "Post Title"}]}', request.raw_post
+    end
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing do
