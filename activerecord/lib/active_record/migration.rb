@@ -681,6 +681,7 @@ module ActiveRecord
     end
 
     private
+
     def execute_block
       if connection.respond_to? :execute_block
         super # use normal delegation to record the block
@@ -711,15 +712,14 @@ module ActiveRecord
 
     private
 
-      def migration
-        @migration ||= load_migration
-      end
+    def migration
+      @migration ||= load_migration
+    end
 
-      def load_migration
-        require(File.expand_path(filename))
-        name.constantize.new
-      end
-
+    def load_migration
+      require(File.expand_path(filename))
+      name.constantize.new
+    end
   end
 
   class NullMigration < MigrationProxy #:nodoc:
@@ -937,6 +937,7 @@ module ActiveRecord
     end
 
     private
+
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end

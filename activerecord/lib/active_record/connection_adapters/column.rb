@@ -247,6 +247,7 @@ module ActiveRecord
       end
 
       private
+
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
         end

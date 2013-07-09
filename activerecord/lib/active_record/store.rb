@@ -100,6 +100,7 @@ module ActiveRecord
     end
 
     protected
+
       def read_store_attribute(store_attribute, key)
         attribute = initialize_store_attribute(store_attribute)
         attribute[key]
@@ -114,6 +115,7 @@ module ActiveRecord
       end
 
     private
+
       def initialize_store_attribute(store_attribute)
         attribute = send(store_attribute)
         unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)

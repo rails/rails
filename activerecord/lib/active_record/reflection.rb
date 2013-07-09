@@ -155,6 +155,7 @@ module ActiveRecord
       end
 
       private
+
         def derive_class_name
           name.to_s.camelize
         end
@@ -672,6 +673,7 @@ directive on your declaration like:
       end
 
       private
+
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name

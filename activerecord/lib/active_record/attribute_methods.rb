@@ -50,7 +50,10 @@ module ActiveRecord
       end
 
       private
-      def method_body; raise NotImplementedError; end
+
+      def method_body
+        raise NotImplementedError
+      end
     end
 
     module ClassMethods

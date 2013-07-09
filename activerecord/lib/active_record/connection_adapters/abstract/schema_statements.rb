@@ -826,6 +826,7 @@ module ActiveRecord
         end
 
       private
+
       def create_table_definition(name, temporary, options)
         TableDefinition.new native_database_types, name, temporary, options
       end
