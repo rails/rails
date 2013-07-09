@@ -54,7 +54,7 @@ module ActiveSupport
         value = @serializer.load(::Base64.decode64(data))
 
         if expires
-          if Time.at(expires.to_i) >= Time.now
+          if Time.at(Integer(expires)) >= Time.now
             value
           else
             raise Expired
