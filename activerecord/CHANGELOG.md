@@ -1,3 +1,8 @@
+*   Migration dump UUID default functions to schema.rb.
+    Fixes #10751.
+
+    *kennyj*
+
 *   Remove extra select and update queries on save/touch/destroy ActiveRecord model
     with belongs to reflection with option `touch: true`.
 
