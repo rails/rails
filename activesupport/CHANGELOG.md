@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Make `Time.at_with_coercion` retain the second fraction and offset from UTC.
+
+    Fixes #11350
+
+    *Neer Friedman*, *Andrew White*
+
 *   Fix `ActiveSupport::TaggedLogging` incorrectly providing program name the same as log message
     even when block is not provided.
 
