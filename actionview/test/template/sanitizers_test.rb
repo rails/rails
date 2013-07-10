@@ -5,6 +5,38 @@ class SanitizersTest < ActionController::TestCase
     @sanitizer = nil # used by assert_sanitizer
   end
 
+  def test_sanitizer_sanitize_raises_not_implemented_error
+    assert_raises NotImplementedError do
+      ActionView::Sanitizer.new.sanitize('')
+    end
+  end
+
+  def test_sanitizer_remove_xpaths_removes_an_xpath
+    sanitizer = ActionView::Sanitizer.new
+    html = %(<h1>hello <script>code!</script></h1>)
+    assert_equal %(<h1>hello </h1>), sanitizer.remove_xpaths(html, %w(.//script))
+  end
+
+  def test_sanitizer_remove_xpaths_removes_all_occurences_of_xpath
+    sanitizer = ActionView::Sanitizer.new
+    html = %(<section><header><script>code!</script></header><p>hello <script>code!</script></p></section>)
+    assert_equal %(<section><header></header><p>hello </p></section>), sanitizer.remove_xpaths(html, %w(.//script))
+  end
+
+  def test_sanitizer_remove_xpaths_not_enumerable_xpaths_parameter
+    sanitizer = ActionView::Sanitizer.new
+    assert_raises NoMethodError do
+      sanitizer.remove_xpaths('<h1>hello<h1>', './not_enumerable')
+    end
+  end
+
+  def test_sanitizer_remove_xpaths_faulty_xpath
+    sanitizer = ActionView::Sanitizer.new
+    assert_raises Nokogiri::XML::XPath::SyntaxError do
+      sanitizer.remove_xpaths('<h1>hello<h1>', %w(..faulty_xpath))
+    end
+  end
+
   def test_strip_tags_with_quote
     sanitizer = ActionView::FullSanitizer.new
     string    = '<" <img src="trollface.gif" onload="alert(1)"> hi'
