@@ -27,8 +27,8 @@ class SanitizersTest < ActionController::TestCase
     # Actual: "Weia onclick='alert(document.cookie);'/&gt;rdos"
     assert_equal("Weirdos", sanitizer.sanitize("Wei<<a>a onclick='alert(document.cookie);'</a>/>rdos"))
 
-    # Loofah strips newlines. Leaves comment text.
-    # Actual: "This is a test. it has a comment It no longer contains any HTML."
+    # Loofah strips newlines.
+    # Actual: "This is a test.It no longer contains any HTML."
     assert_equal(
     %{This is a test.\n\n\nIt no longer contains any HTML.\n}, sanitizer.sanitize(
     %{<title>This is <b>a <a href="" target="_blank">test</a></b>.</title>\n\n<!-- it has a comment -->\n\n<p>It no <b>longer <strong>contains <em>any <strike>HTML</strike></em>.</strong></b></p>\n}))
@@ -57,6 +57,7 @@ class SanitizersTest < ActionController::TestCase
 
     assert_equal("This is a test.", sanitizer.sanitize("This is a test."))
 
+    assert_equal "This has a  here.", sanitizer.sanitize("This has a <!-- comment --> here.")
     assert_nothing_raised { sanitizer.sanitize("This is a frozen string with no tags".freeze) }
   end
 
@@ -94,7 +95,7 @@ class SanitizersTest < ActionController::TestCase
   end
 
   def test_sanitize_script
-    assert_sanitized "a b c<script language=\"Javascript\">blah blah blah</script>d e f", "a b cblah blah blahd e f"
+    assert_sanitized "a b c<script language=\"Javascript\">blah blah blah</script>d e f", "a b cd e f"
   end
 
   def test_sanitize_js_handlers
