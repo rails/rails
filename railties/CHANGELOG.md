@@ -1,3 +1,7 @@
+*   Fix `rake environment` to do not eager load modules
+
+    *Paul Nikitochkin*
+
 *   Fix `rake notes` to look into `*.sass` files
 
     *Yuri Artemev*
