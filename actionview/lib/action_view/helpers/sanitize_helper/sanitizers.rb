@@ -1,7 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
 require 'action_view/helpers/sanitize_helper/permit_scrubber'
-require 'loofah'
 
 module ActionView
   class Sanitizer
