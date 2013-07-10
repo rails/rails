@@ -384,18 +384,32 @@ module ActionDispatch
 
       def [](name)
         if signed_message = @parent_jar[name]
-          verify(signed_message)
+          if message = verify(signed_message)
+            if message[:name] != name
+              nil
+            elsif message[:expires] && Time.at(Integer(message[:expires])) < Time.now
+              nil
+            else
+              message[:value]
+            end
+          end
         end
       end
 
       def []=(name, options)
+        message = { name: name }
+
         if options.is_a?(Hash)
           options.symbolize_keys!
-          verifier_options = { :expires => options[:expires] } if options[:expires]
-          options[:value] = @verifier.generate(options[:value], verifier_options)
+
+          message[:value] = options[:value]
+          message[:expires] = options[:expires].to_i if options[:expires]
         else
-          options = { :value => @verifier.generate(options) }
+          message[:value] = options
+          options = {}
         end
+
+        options[:value] = @verifier.generate(message)
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[name] = options
@@ -404,7 +418,7 @@ module ActionDispatch
       private
         def verify(signed_message)
           @verifier.verify(signed_message)
-        rescue ActiveSupport::MessageVerifier::Error
+        rescue ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
     end
@@ -478,7 +492,6 @@ module ActionDispatch
         end
       end
     end
-
 
     def initialize(app)
       @app = app
