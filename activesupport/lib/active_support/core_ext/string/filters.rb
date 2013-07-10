@@ -50,6 +50,6 @@ class String
         length_with_room_for_omission
       end
 
-    "#{self[0...stop]}#{options[:omission]}"
+    "#{self[0, stop]}#{options[:omission]}"
   end
 end
