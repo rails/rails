@@ -24,7 +24,7 @@ module ActionView
       return html if html.empty?
 
       fragment = Loofah.fragment(html)
-      remove_xpaths(fragment, %w{./script ./form ./comment()})
+      remove_xpaths(fragment, %w{.//script .//form .//comment()})
       fragment.text
     end
   end
@@ -62,7 +62,7 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
-        remove_xpaths(loofah_fragment, %w{./script ./form ./comment()})
+        remove_xpaths(loofah_fragment, %w{.//script .//form .//comment()})
         loofah_fragment.scrub!(:strip)
       end
       loofah_fragment.to_s
