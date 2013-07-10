@@ -18,20 +18,13 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
-  # Expiration timestamps can also be encoded into the signature to make the
-  # perishable.
-  #
-  #   @verifier.generate(@user.id, expires: 2.weeks.from_now)
-  #
   # By default it uses Marshal to serialize the message. If you want to use
   # another serialization method, you can set the serializer in the options
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
   class MessageVerifier
-    class Error < StandardError; end
-    class InvalidSignature < Error; end
-    class Expired < Error; end
+    class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
       @secret = secret
@@ -42,39 +35,17 @@ module ActiveSupport
     def verify(signed_message)
       raise InvalidSignature if signed_message.blank?
 
-      parts = signed_message.split("--")
-      if parts.length == 3
-        data, expires, digest = parts
-      else
-        data, digest = parts
-        expires = nil
-      end
-
-      if data.present? && digest.present? && secure_compare(digest, generate_digest(data, expires))
-        value = @serializer.load(::Base64.decode64(data))
-
-        if expires
-          if Time.at(Integer(expires)) >= Time.now
-            value
-          else
-            raise Expired
-          end
-        else
-          value
-        end
+      data, digest = signed_message.split("--")
+      if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
+        @serializer.load(::Base64.decode64(data))
       else
         raise InvalidSignature
       end
     end
 
-    def generate(value, options = {})
+    def generate(value)
       data = ::Base64.strict_encode64(@serializer.dump(value))
-
-      if options[:expires]
-        "#{data}--#{options[:expires].to_i}--#{generate_digest(data, options[:expires].to_i)}"
-      else
-        "#{data}--#{generate_digest(data)}"
-      end
+      "#{data}--#{generate_digest(data)}"
     end
 
     private
@@ -89,9 +60,8 @@ module ActiveSupport
         res == 0
       end
 
-      def generate_digest(data, expires = nil)
+      def generate_digest(data)
         require 'openssl' unless defined?(OpenSSL)
-        data += expires.to_s if expires
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
       end
   end
