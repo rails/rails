@@ -61,6 +61,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     schema = StringIO.new
     ActiveRecord::SchemaDumper.dump(@connection, schema)
     assert_match(/\bcreate_table "pg_uuids", id: :uuid\b/, schema.string)
+    assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
   end
 end
 

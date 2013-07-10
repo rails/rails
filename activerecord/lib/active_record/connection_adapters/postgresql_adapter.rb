@@ -45,16 +45,18 @@ module ActiveRecord
   module ConnectionAdapters
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
-      attr_accessor :array
+      attr_accessor :array, :default_function
       # Instantiates a new PostgreSQL column definition in a table.
       def initialize(name, default, oid_type, sql_type = nil, null = true)
         @oid_type = oid_type
+        default_value     = self.class.extract_value_from_default(default)
+        @default_function = default if !default_value && default && default =~ /.+\(.*\)/
         if sql_type =~ /\[\]$/
           @array = true
-          super(name, self.class.extract_value_from_default(default), sql_type[0..sql_type.length - 3], null)
+          super(name, default_value, sql_type[0..sql_type.length - 3], null)
         else
           @array = false
-          super(name, self.class.extract_value_from_default(default), sql_type, null)
+          super(name, default_value, sql_type, null)
         end
       end
 
@@ -435,6 +437,7 @@ module ActiveRecord
       def prepare_column_options(column, types)
         spec = super
         spec[:array] = 'true' if column.respond_to?(:array) && column.array
+        spec[:default] = "\"#{column.default_function}\"" if column.respond_to?(:default_function) && column.default_function
         spec
       end
 
