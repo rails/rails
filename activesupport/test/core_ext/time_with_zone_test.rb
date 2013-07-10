@@ -80,6 +80,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = old
   end
 
+  def test_to_json_when_wrapping_a_date_time
+    twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone)
+    assert_equal '"1999-12-31T19:00:00.000-05:00"', ActiveSupport::JSON.encode(twz)
+  end
+
   def test_nsec
     local     = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
     with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
