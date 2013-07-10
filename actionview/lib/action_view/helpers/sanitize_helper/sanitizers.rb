@@ -72,13 +72,6 @@ module ActionView
       Loofah::HTML5::Scrub.scrub_css style_string
     end
 
-    def remove_xpaths(html, xpaths)
-      html = Loofah.fragment(html) unless html.is_a? Nokogiri::XML::DocumentFragment
-      xpaths.each do |xpath|
-        html.xpath(xpath).each { |subtree| subtree.remove }
-      end
-    end
-
     def protocol_separator
       self.class.protocol_separator
     end
