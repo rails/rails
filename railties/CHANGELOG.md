@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix `rake environment` to do not eager load modules
+
+    *Paul Nikitochkin*
+
 *   Fix `rails plugin --help` command.
 
     *Richard Schneeman*

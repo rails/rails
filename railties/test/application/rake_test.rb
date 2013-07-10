@@ -9,7 +9,6 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      FileUtils.rm_rf("#{app_path}/config/environments")
     end
 
     def teardown
@@ -56,10 +55,8 @@ module ApplicationTests
       assert_match "Doing something...", output
     end
 
-    def test_does_not_explode_when_accessing_a_model_with_eager_load
+    def test_does_not_explode_when_accessing_a_model
       add_to_config <<-RUBY
-        config.eager_load = true
-
         rake_tasks do
           task do_nothing: :environment do
             Hello.new.world
@@ -67,33 +64,38 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "app/models/hello.rb", <<-RUBY
-      class Hello
-        def world
-          puts "Hello world"
+      app_file 'app/models/hello.rb', <<-RUBY
+        class Hello
+          def world
+            puts 'Hello world'
+          end
         end
-      end
       RUBY
 
-      output = Dir.chdir(app_path){ `rake do_nothing` }
-      assert_match "Hello world", output
+      output = Dir.chdir(app_path) { `rake do_nothing` }
+      assert_match 'Hello world', output
     end
 
-    def test_should_not_eager_load_model_path_for_rake
+    def test_should_not_eager_load_model_for_rake
       add_to_config <<-RUBY
-        config.eager_load = true
-
         rake_tasks do
           task do_nothing: :environment do
           end
         end
       RUBY
 
-      app_file "app/models/hello.rb", <<-RUBY
-      raise 'should not be pre-required for rake even `eager_load=true`'
+      add_to_env_config 'production', <<-RUBY
+        config.eager_load = true
       RUBY
 
-      Dir.chdir(app_path){ `rake do_nothing` }
+      app_file 'app/models/hello.rb', <<-RUBY
+        raise 'should not be pre-required for rake even eager_load=true'
+      RUBY
+
+      Dir.chdir(app_path) do
+        assert system('rake do_nothing RAILS_ENV=production'),
+               'should not be pre-required for rake even eager_load=true'
+      end
     end
 
     def test_code_statistics_sanity

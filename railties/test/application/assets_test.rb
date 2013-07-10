@@ -91,7 +91,7 @@ module ApplicationTests
         class UsersController < ApplicationController; end
       eoruby
       app_file "app/models/user.rb", <<-eoruby
-        class User < ActiveRecord::Base; end
+        class User < ActiveRecord::Base; raise 'should not be reached'; end
       eoruby
 
       ENV['RAILS_ENV']  = 'production'
