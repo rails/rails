@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix an issue where rails raise exception about missing helper where it
+    should throw `LoadError`. When helper file exists and only loaded file from
+    this helper does not exist rails should throw LoadError instead of
+    `MissingHelperError`.
+
+    *Piotr Niełacny*
+
 *   Only cache template digests if `config.cache_template_loading` is true.
 
     *Josh Lauer*, *Justin Ridgewell*
