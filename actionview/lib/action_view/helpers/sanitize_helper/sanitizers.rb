@@ -49,7 +49,7 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
-        remove_xpaths(loofah_fragment, %w(./script ./form))
+        remove_xpaths(loofah_fragment, %w{./script ./form ./comment()})
         loofah_fragment.scrub!(:strip)
       end
       loofah_fragment.to_s
@@ -59,7 +59,7 @@ module ActionView
       Loofah::HTML5::Scrub.scrub_css style_string
     end
 
-    def remove_xpaths(html, *xpaths)
+    def remove_xpaths(html, xpaths)
       html = Loofah.fragment(html) unless html.is_a? Nokogiri::XML::DocumentFragment
       xpaths.each do |xpath|
         html.xpath(xpath).each { |subtree| subtree.remove }
