@@ -184,7 +184,7 @@ module ActiveSupport
     #
     # See also +demodulize+.
     def deconstantize(path)
-      path.to_s[0...(path.rindex('::') || 0)] # implementation based on the one in facets' Module#spacename
+      path.to_s[0, path.rindex('::') || 0] # implementation based on the one in facets' Module#spacename
     end
 
     # Creates a foreign key name from a class name.
