@@ -30,6 +30,7 @@ module ActiveSupport
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
+      # Premptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
         each_key(options) do |key|
