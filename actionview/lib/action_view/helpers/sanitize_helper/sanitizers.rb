@@ -49,6 +49,7 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
+        loofah_fragment.xpath("./script").each { |script| script.remove }
         loofah_fragment.xpath("./form").each { |form| form.remove }
         loofah_fragment.scrub!(:strip)
       end
