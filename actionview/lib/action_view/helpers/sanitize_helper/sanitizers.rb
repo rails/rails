@@ -49,8 +49,7 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
-        loofah_fragment.xpath("./script").each { |script| script.remove }
-        loofah_fragment.xpath("./form").each { |form| form.remove }
+        remove_xpaths(loofah_fragment, %w(./script ./form))
         loofah_fragment.scrub!(:strip)
       end
       loofah_fragment.to_s
@@ -58,6 +57,13 @@ module ActionView
 
     def sanitize_css(style_string)
       Loofah::HTML5::Scrub.scrub_css style_string
+    end
+
+    def remove_xpaths(html, *xpaths)
+      html = Loofah.fragment(html) unless html.is_a? Nokogiri::XML::DocumentFragment
+      xpaths.each do |xpath|
+        html.xpath(xpath).each { |subtree| subtree.remove }
+      end
     end
 
     def protocol_separator
