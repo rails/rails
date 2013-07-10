@@ -238,7 +238,7 @@ module ActiveRecord
       raise RecordNotFound, error
     end
 
-    protected
+    private
 
     def find_with_associations
       join_dependency = construct_join_dependency
@@ -289,6 +289,12 @@ module ActiveRecord
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
       id_rows.map {|row| row[primary_key]}
     end
+
+    def using_limitable_reflections?(reflections)
+      reflections.none? { |r| r.collection? }
+    end
+
+    protected
 
     def find_with_ids(*ids)
       expects_array = ids.first.kind_of?(Array)
@@ -378,10 +384,6 @@ module ActiveRecord
             reverse_order.limit(1).to_a.first
           end
       end
-    end
-
-    def using_limitable_reflections?(reflections)
-      reflections.none? { |r| r.collection? }
     end
   end
 end
