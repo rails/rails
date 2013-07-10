@@ -39,6 +39,8 @@ module ActiveSupport
         end
       end
 
+      # Increments an already existing integer value that is stored in the cache.
+      # If the key is not found nothing is done.
       def increment(name, amount = 1, options = nil)
         file_name = key_file_path(namespaced_key(name, options))
         lock_file(file_name) do
@@ -53,6 +55,8 @@ module ActiveSupport
         end
       end
 
+      # Decrements an already existing integer value that is stored in the cache.
+      # If the key is not found nothing is done.
       def decrement(name, amount = 1, options = nil)
         file_name = key_file_path(namespaced_key(name, options))
         lock_file(file_name) do
