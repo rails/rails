@@ -4,19 +4,32 @@ require 'action_view/helpers/sanitize_helper/permit_scrubber'
 require 'loofah'
 
 module ActionView
-
-  class FullSanitizer
+  class Sanitizer
     def sanitize(html, options = {})
-      if html
-        return html if html.empty?
-        Loofah.fragment(html).text
-      else
-        nil
+      raise NotImplementedError, "subclasses must implement"
+    end
+
+    def remove_xpaths(html, xpaths)
+      html = Loofah.fragment(html) unless html.is_a? Nokogiri::XML::DocumentFragment
+      xpaths.each do |xpath|
+        html.xpath(xpath).each { |subtree| subtree.remove }
       end
+      html.to_s
     end
   end
 
-  class LinkSanitizer
+  class FullSanitizer < Sanitizer
+    def sanitize(html, options = {})
+      return nil unless html
+      return html if html.empty?
+
+      fragment = Loofah.fragment(html)
+      remove_xpaths(fragment, %w{.//script .//form comment()})
+      fragment.text
+    end
+  end
+
+  class LinkSanitizer < Sanitizer
     def initialize
       @strip_tags = %w(a href)
       @link_scrubber = Loofah::Scrubber.new do |node|
@@ -34,7 +47,7 @@ module ActionView
     end
   end
 
-  class WhiteListSanitizer
+  class WhiteListSanitizer < Sanitizer
 
     def initialize
       @permit_scrubber = PermitScrubber.new
@@ -49,7 +62,7 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
-        remove_xpaths(loofah_fragment, %w(./script ./form))
+        remove_xpaths(loofah_fragment, %w{.//script .//form comment()})
         loofah_fragment.scrub!(:strip)
       end
       loofah_fragment.to_s
@@ -59,7 +72,7 @@ module ActionView
       Loofah::HTML5::Scrub.scrub_css style_string
     end
 
-    def remove_xpaths(html, *xpaths)
+    def remove_xpaths(html, xpaths)
       html = Loofah.fragment(html) unless html.is_a? Nokogiri::XML::DocumentFragment
       xpaths.each do |xpath|
         html.xpath(xpath).each { |subtree| subtree.remove }
