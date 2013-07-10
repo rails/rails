@@ -94,7 +94,6 @@ module ActionView
     end
 
     # Raw rendering of a template.
-    # :api: plugin
     def render_to_body(options = {})
       _process_options(options)
       _render_template(options)
@@ -136,7 +135,6 @@ module ActionView
 
     # Normalize args by converting render "foo" to render :action => "foo" and
     # render "foo/bar" to render :file => "foo/bar".
-    # :api: plugin
     def _normalize_args(action=nil, options={})
       options = super(action, options)
       case action
@@ -155,7 +153,6 @@ module ActionView
     end
 
     # Normalize options.
-    # :api: plugin
     def _normalize_options(options)
       options = super(options)
       if options[:partial] == true
