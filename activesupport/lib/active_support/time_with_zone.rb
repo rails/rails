@@ -132,7 +132,7 @@ module ActiveSupport
     end
 
     def xmlschema(fraction_digits = 0)
-      fraction = if fraction_digits > 0
+      fraction = if time.respond_to?(:usec) and (fraction_digits > 0)
         (".%06i" % time.usec)[0, fraction_digits + 1]
       end
 
