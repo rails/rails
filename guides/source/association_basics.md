@@ -953,7 +953,7 @@ end
 
 ##### `includes`
 
-You can use the `includes` method let you specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+You can use the `includes` method to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 ```ruby
 class LineItem < ActiveRecord::Base
