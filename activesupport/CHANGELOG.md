@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Only raise `Module::DelegationError` if it's the source of the exception.
+
+    Fixes #10559
+
 *   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
     sub-second resolution when wrapping a `DateTime` value.
     Fixes #10855

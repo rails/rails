@@ -66,6 +66,23 @@ Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
 end
 
+Product = Struct.new(:name) do
+  delegate :name, :to => :manufacturer, :prefix => true
+  delegate :name, :to => :type, :prefix => true
+
+  def manufacturer
+    @manufacturer ||= begin
+      nil.unknown_method
+    end
+  end
+
+  def type
+    @type ||= begin
+      nil.type_name
+    end
+  end
+end
+
 class ParameterSet
   delegate :[], :[]=, :to => :@params
 
@@ -262,6 +279,16 @@ class ModuleTest < ActiveSupport::TestCase
 
     assert_equal '2', se.to_s
     assert_equal [3], se.ints
+  end
+
+  def test_delegation_doesnt_mask_nested_no_method_error_on_nil_receiver
+    product = Product.new('Widget')
+
+    # Nested NoMethodError is a different name from the delegation
+    assert_raise(NoMethodError) { product.manufacturer_name }
+
+    # Nested NoMethodError is the same name as the delegation
+    assert_raise(NoMethodError) { product.type_name }
   end
 
   def test_parent
