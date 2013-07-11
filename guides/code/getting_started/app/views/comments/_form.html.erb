@@ -1,13 +1,20 @@
-<%= form_for([@post, @post.comments.build]) do |f| %>
-  <p>
-    <%= f.label :commenter %><br />
-    <%= f.text_field :commenter %>
-  </p>
-  <p>
-    <%= f.label :body %><br />
-    <%= f.text_area :body %>
-  </p>
-  <p>
-    <%= f.submit %>
-  </p>
+<p class="lead"> Add a comment </p>
+<%= form_for @post  do |f| %>
+<% f.fields_for :comments do |builder| %>
+<% if builder.object.new_record? %>
+<div class="control-group">
+  <%= builder.label :commenter , class: 'control-label'%>
+  <div class="controls">
+    <%= builder.text_field :commenter %>
+  </div>
+</div>
+<div class="control-group">
+  <%= builder.label :body ,class: 'control-label'%>
+  <div class="controls">
+    <%= builder.text_area :body %>
+  </div>
+</div>
+<%= f.submit 'Add', class: 'btn' %>
+<%end %>
+<%end%>
 <% end %>

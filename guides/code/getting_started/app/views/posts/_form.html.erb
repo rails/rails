@@ -1,6 +1,6 @@
-<%= form_for @post do |f| %>
+<%= form_for @post , class: 'form-horizontal' do |f| %>
   <% if @post.errors.any? %>
-  <div id="error_explanation">
+  <div id="error_explanation" class="alert">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
@@ -10,18 +10,31 @@
     </ul>
   </div>
   <% end %>
-  <p>
-    <%= f.label :title %><br>
+  <div class="control-group">
+    <%= f.label :title, class: 'control-label' %>
+    <div class="controls">
     <%= f.text_field :title %>
-  </p>
+    </div>
+  </div>
+   <div class="control-group">
+    <%= f.label :text, class: 'control-label' %>
+    <div class="controls">
+    <%= f.text_area :text  %>
+    </div>
+  </div>
 
-  <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+  <%= f.fields_for :comments do |builder| %>
+  <% if builder.object.new_record? %>
+    <p>
+    <%= builder.label :commenter %><br />
+    <%= builder.text_field :commenter %>
   </p>
-
   <p>
-    <%= f.submit %>
+    <%= builder.label :body %><br />
+    <%= builder.text_area :body %>
   </p>
+  <p>
+  <%end%>
 <% end %>
-
+    <%= f.submit 'New Post', class: 'btn' %>
+<% end %>
