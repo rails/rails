@@ -1,3 +1,6 @@
+require 'active_support/concern'
+require 'active_support/core_ext/class/attribute'
+
 module AbstractController
   class DoubleRenderError < Error
     DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and at most once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\"."
@@ -8,6 +11,17 @@ module AbstractController
   end
 
   module Rendering
+   extend ActiveSupport::Concern
+
+    included do
+      class_attribute :protected_instance_variables
+      self.protected_instance_variables = []
+    end
+
+    def default_protected_instance_vars
+      [:@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config]
+    end
+
     # Raw rendering of a template to a string.
     #
     # It is similar to render, except that it does not
@@ -34,7 +48,12 @@ module AbstractController
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
-      {}
+      hash = {}
+      variables  = instance_variables
+      variables -= protected_instance_variables
+      variables -= default_protected_instance_vars
+      variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
+      hash
     end
 
     # Normalize args by converting render "foo" to render :action => "foo" and

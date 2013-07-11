@@ -23,11 +23,6 @@ module ActionView
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    included do
-      class_attribute :protected_instance_variables
-      self.protected_instance_variables = []
-    end
-
     # Overwrite process to setup I18n proxy.
     def process(*) #:nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
@@ -106,21 +101,15 @@ module ActionView
       view_renderer.render(view_context, options)
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = [
-      :@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config,
-      :@_view_context_class, :@_view_renderer, :@_lookup_context
-    ]
+    def default_protected_instance_vars
+      super + [:@_view_context_class, :@_view_renderer, :@_lookup_context]
+    end
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
-      hash = super
-      variables  = instance_variables
-      variables -= protected_instance_variables
-      variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
-      variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
-      hash
+      super
     end
 
     private
