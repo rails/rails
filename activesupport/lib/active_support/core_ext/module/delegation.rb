@@ -183,16 +183,17 @@ class Module
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            _.#{method}(#{definition})                        #   _.name(*args, &block)
-          rescue NoMethodError                                # rescue NoMethodError
-            if _.nil?                                         #   if _.nil?
-              #{exception}                                    #     # add helpful message to the exception
-            else                                              #   else
-              raise                                           #     raise
-            end                                               #   end
-          end                                                 # end
+          def #{method_prefix}#{method}(#{definition})                                          # def customer_name(*args, &block)
+            _ = #{to}                                                                           #   _ = client
+            _.#{method}(#{definition})                                                          #   _.name(*args, &block)
+          rescue NoMethodError => e                                                             # rescue NoMethodError => e
+            location = "%s:%d:in `%s'" % [__FILE__, __LINE__ - 2, '#{method_prefix}#{method}']  #   location = "%s:%d:in `%s'" % [__FILE__, __LINE__ - 2, 'customer_name']
+            if _.nil? && e.backtrace.first == location                                          #   if _.nil? && e.backtrace.first == location
+              #{exception}                                                                      #     # add helpful message to the exception
+            else                                                                                #   else
+              raise                                                                             #     raise
+            end                                                                                 #   end
+          end                                                                                   # end
         EOS
       end
     end

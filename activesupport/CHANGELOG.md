@@ -1,3 +1,9 @@
+*   Only raise `Module::DelegationError` if it's the source of the exception.
+
+    Fixes #10559
+
+    *Andrew White*
+
 *   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
     Fixes #11350
