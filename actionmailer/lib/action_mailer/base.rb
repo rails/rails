@@ -4,6 +4,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
+
 require 'action_mailer/log_subscriber'
 
 module ActionMailer
@@ -364,6 +365,8 @@ module ActionMailer
     include DeliveryMethods
 
     abstract!
+
+    include AbstractController::Rendering
 
     include ActionView::Layouts
 
