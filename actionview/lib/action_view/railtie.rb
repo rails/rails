@@ -40,10 +40,6 @@ module ActionView
       ActiveSupport.on_load(:action_controller) do
         ActionController::Base.send(:include, ActionView::Layouts)
       end
-
-      ActiveSupport.on_load(:abstract_controller) do
-        AbstractController::Base.send(:include, ActionView::Rendering)
-      end
     end
   end
 end

@@ -163,8 +163,6 @@ module AbstractController
       method_for_action(action_name).present?
     end
 
-    ActiveSupport.run_load_hooks(:abstract_controller, self)
-
     private
 
       # Returns true if the name can be considered an action because
