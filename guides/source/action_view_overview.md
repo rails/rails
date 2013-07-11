@@ -775,8 +775,8 @@ select_day(5)
 Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
 
 ```ruby
-# Generates a select field for minutes that defaults to the minutes for the time provided
-select_minute(Time.now + 6.hours)
+# Generates a select field for hours that defaults to the hours for the time provided
+select_hour(Time.now + 6.hours)
 ```
 
 #### select_minute
