@@ -212,7 +212,9 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_to_method_that_exists_on_nil
     nil_person = Someone.new(nil)
-    assert_equal 0.0, nil_person.to_f
+    assert_raise RuntimeError do
+      nil_person.to_f
+    end
   end
 
   def test_delegation_to_method_that_exists_on_nil_when_allowing_nil

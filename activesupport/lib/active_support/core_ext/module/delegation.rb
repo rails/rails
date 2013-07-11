@@ -182,16 +182,13 @@ class Module
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
-        module_eval(<<-EOS, file, line - 2)
+        module_eval(<<-EOS, file, line - 5)
           def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
             _ = #{to}                                         #   _ = client
-            _.#{method}(#{definition})                        #   _.name(*args, &block)
-          rescue NoMethodError                                # rescue NoMethodError
             if _.nil?                                         #   if _.nil?
               #{exception}                                    #     # add helpful message to the exception
-            else                                              #   else
-              raise                                           #     raise
             end                                               #   end
+            _.#{method}(#{definition})                        #   _.name(*args, &block)
           end                                                 # end
         EOS
       end
