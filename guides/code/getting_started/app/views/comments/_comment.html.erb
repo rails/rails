@@ -1,15 +1,9 @@
-<p>
-  <strong>Commenter:</strong>
-  <%= comment.commenter %>
-</p>
- 
-<p>
-  <strong>Comment:</strong>
-  <%= comment.body %>
-</p>
-
-<p>
-  <%= link_to 'Destroy Comment', [comment.post, comment],
-               method: :delete,
-               data: { confirm: 'Are you sure?' } %>
-</p>
+ <% unless comment.new_record? %>
+   	<tr>
+  		<td><%= comment.commenter %></td>
+  		<td><%= comment.body %></td>
+  		<td><%= link_to 'Delete', [comment.post, comment],
+  		method: :delete,
+  		data: { confirm: 'Are you sure?' }, class: 'btn btn-danger' %></td>
+  	</tr>
+  <% end %>

@@ -43,7 +43,7 @@ GEM
     jbuilder (1.4.2)
       activesupport (>= 3.0.0)
       multi_json (>= 1.2.0)
-    jquery-rails (3.0.2)
+    jquery-rails (3.0.4)
       railties (>= 3.0, < 5.0)
       thor (>= 0.14, < 2.0)
     json (1.8.0)
@@ -98,8 +98,13 @@ GEM
     treetop (1.4.14)
       polyglot
       polyglot (>= 0.3.1)
-    turbolinks (1.2.0)
+    turbolinks (1.3.0)
       coffee-rails
+    twitter-bootstrap-rails (2.2.7)
+      actionpack (>= 3.1)
+      execjs
+      rails (>= 3.1)
+      railties (>= 3.1)
     tzinfo (0.3.37)
     uglifier (2.1.1)
       execjs (>= 0.3.0)
@@ -117,4 +122,5 @@ DEPENDENCIES
   sdoc
   sqlite3
   turbolinks
+  twitter-bootstrap-rails
   uglifier (>= 1.0.3)

@@ -8,6 +8,7 @@ class PostsController < ApplicationController
 
   def show
     @post = Post.find(params[:id])
+    @comment = @post.comments.build
   end
 
   def edit
@@ -33,6 +34,7 @@ class PostsController < ApplicationController
 
     if @post.save
       redirect_to action: :show, id: @post.id
+      flash[:notice] =  'Successfully created!'
     else
       render 'new'
     end
@@ -48,6 +50,6 @@ class PostsController < ApplicationController
   private
 
     def post_params
-      params.require(:post).permit(:title, :text)
+      params.require(:post).permit(:title, :text , comments_attributes: [:commenter, :body])
     end
 end

@@ -1,18 +1,21 @@
-<p>
-  <strong>Title:</strong>
-  <%= @post.title %>
-</p>
- 
-<p>
-  <strong>Text:</strong>
-  <%= @post.text %>
-</p>
+<h1>Title: <%= @post.title %></h1>
+<h3>Text: <%= @post.text %></h3>
 
-<h2>Comments</h2>
-<%= render @post.comments %>
- 
-<h2>Add a comment:</h2>
 <%= render "comments/form" %>
- 
+<p class="lead"> Comments </p>
+<table class="table table-hover">
+	<thead>
+		<tr>
+			<th>Commenter</th>
+			<th>Comment</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		<%= render @post.comments %>
+	</tbody>
+</table>
+
+
 <%= link_to 'Edit Post', edit_post_path(@post) %> |
 <%= link_to 'Back to Posts', posts_path %>

@@ -1,21 +1,24 @@
-<h1>Listing Posts</h1>
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th></th>
-    <th></th>
-    <th></th>
-  </tr>
- 
-<% @posts.each do |post| %>
-  <tr>
-    <td><%= post.title %></td>
-    <td><%= post.text %></td>
-    <td><%= link_to 'Show', action: :show, id: post.id %></td>
-    <td><%= link_to 'Edit', action: :edit, id: post.id %></td>
-    <td><%= link_to 'Destroy', { action: :destroy, id: post.id },
-                    method: :delete, data: { confirm: 'Are you sure?' } %></td>
-  </tr>
-<% end %>
+<h1> Listing Posts </h1>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Text</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+</thead>
+  <tbody>
+     <% @posts.each do |post| %>
+      <tr>
+        <td><%= post.title %></td>
+        <td><%= post.text %></td>
+        <td><%= link_to 'Show', post, class: 'btn btn-primary btn-small' %></td>
+        <td><%= link_to 'Edit', edit_post_path(post), class: 'btn btn-primary btn-small' %></td>
+        <td><%= link_to 'Destroy', { action: :destroy, id: post.id },
+                        method: :delete, data: { confirm: 'Are you sure?' } ,class: 'btn btn-danger btn-small'%></td>
+      </tr>
+    <% end %>
+  </tbody>
 </table>
