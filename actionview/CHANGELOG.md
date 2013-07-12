@@ -1,3 +1,20 @@
+*   Add `without_inline_styles` option to `form_for` and `form_tag` helpers
+
+    Default:
+
+        form_tag
+        # => '<form><div style="margin:0;padding:0;display:inline">...</div>...</form>'
+
+    With option:
+
+        form_tag '', without_inline_styles: true
+        # => '<form><div>...</div>...</form>'
+
+    This option gives the developer the ability to make the generated forms
+    compatible with Content Security Policy.
+
+    * R Blake Hitchcock *
+
 *   Fix default rendered format problem when calling `render` without :content_type option.
     It should return :html. Fix #11393.
 

@@ -1450,6 +1450,23 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_without_inline_styles_option_as_part_of_html_options
+    form_for(@post, url: '/', method: :delete, html: { id: 'create-post', without_inline_styles: true }) do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected =  whole_form("/", "create-post", "edit_post", method: "delete", without_inline_styles: true) do
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_method
     form_for(@post, url: '/', method: :delete, html: { id: 'create-post' }) do |f|
       concat f.text_field(:title)
@@ -2931,8 +2948,12 @@ class FormHelperTest < ActionView::TestCase
 
   protected
 
-  def hidden_fields(method = nil)
-    txt =  %{<div style="margin:0;padding:0;display:inline">}
+  def hidden_fields(method = nil, skip_inline_styles = false)
+    if !skip_inline_styles
+      txt =  %{<div style="margin:0;padding:0;display:inline">}
+    else
+      txt =  %{<div>}
+    end
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
     if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
@@ -2953,9 +2974,9 @@ class FormHelperTest < ActionView::TestCase
   def whole_form(action = "/", id = nil, html_class = nil, options = {})
     contents = block_given? ? yield : ""
 
-    method, remote, multipart = options.values_at(:method, :remote, :multipart)
+    method, remote, multipart, without_inline_styles = options.values_at(:method, :remote, :multipart, :without_inline_styles)
 
-    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method, without_inline_styles) + contents + "</form>"
   end
 
   def protect_against_forgery?

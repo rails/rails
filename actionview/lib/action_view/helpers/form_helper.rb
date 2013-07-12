@@ -340,6 +340,28 @@ module ActionView
       #     ...
       #   </form>
       #
+      # === Making the form comply with Content Security Policy
+      #
+      # For browser compatibility, the default hidden input elements generated
+      # by the helper are placed inside of a div with inline style elements
+      # applied. This violates the Content Security Policy which disallows any
+      # inline style attributes. If you wish to generate the form without the
+      # inline styles, specify the "without_inline_styles" option. Example:
+      #
+      #   <%= form_for(@post, html: { without_inline_styles: true }) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # The HTML generated for this would be:
+      #
+      #   <form action='http://www.example.com' method='post'>
+      #     <div>
+      #       <input name='_method' type='hidden' value='patch' />
+      #       ...
+      #     </div>
+      #     ...
+      #   </form>
+      #
       # === Removing hidden model id's
       #
       # The form_for method automatically includes the model id as a hidden field in the form.

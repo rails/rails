@@ -722,7 +722,11 @@ module ActionView
 
           enforce_utf8 = html_options.delete("enforce_utf8") { true }
           tags = (enforce_utf8 ? utf8_enforcer_tag : ''.html_safe) << method_tag
-          content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
+          if !html_options.delete("without_inline_styles")
+            content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
+          else
+            content_tag(:div, tags)
+          end
         end
 
         def form_tag_html(html_options)
