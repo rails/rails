@@ -4,7 +4,7 @@ require "action_controller/metal/params_wrapper"
 
 module ActionController
   # The <tt>metal</tt> anonymous class is simple workaround the ordering issues there are with modules.
-  # They need to be included in specyfic order which makes it impossible for 3rd party libs (like ActiveRecord)
+  # They need to be included in specific order which makes it impossible for 3rd party libs (like ActiveRecord)
   # to hook up with its own functionality. Having anonymous super class type of Metal with <tt>AbstractController::Rendering</tt>
   # included, allows us to include <tt>ActionView::Rendering</tt> (which implements <tt>AbstractController::Rendering</tt> interface)
   # after the <tt>AbstractController::Rendering</tt> and before <tt>ActionController::Rendering</tt>.

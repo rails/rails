@@ -114,46 +114,46 @@ module ActionView
 
     private
 
-    # Normalize args and options.
-    # :api: private
-    def _normalize_render(*args, &block)
-      options = _normalize_args(*args, &block)
-      _normalize_options(options)
-      options
-    end
-
-    # Normalize args by converting render "foo" to render :action => "foo" and
-    # render "foo/bar" to render :file => "foo/bar".
-    def _normalize_args(action=nil, options={})
-      options = super(action, options)
-      case action
-      when NilClass
-      when Hash
-        options = action
-      when String, Symbol
-        action = action.to_s
-        key = action.include?(?/) ? :file : :action
-        options[key] = action
-      else
-        options[:partial] = action
+      # Normalize args and options.
+      # :api: private
+      def _normalize_render(*args, &block)
+        options = _normalize_args(*args, &block)
+        _normalize_options(options)
+        options
       end
 
-      options
-    end
+      # Normalize args by converting render "foo" to render :action => "foo" and
+      # render "foo/bar" to render :file => "foo/bar".
+      def _normalize_args(action=nil, options={})
+        options = super(action, options)
+        case action
+        when NilClass
+        when Hash
+          options = action
+        when String, Symbol
+          action = action.to_s
+          key = action.include?(?/) ? :file : :action
+          options[key] = action
+        else
+          options[:partial] = action
+        end
 
-    # Normalize options.
-    def _normalize_options(options)
-      options = super(options)
-      if options[:partial] == true
-        options[:partial] = action_name
+        options
       end
 
-      if (options.keys & [:partial, :file, :template]).empty?
-        options[:prefixes] ||= _prefixes
-      end
+      # Normalize options.
+      def _normalize_options(options)
+        options = super(options)
+        if options[:partial] == true
+          options[:partial] = action_name
+        end
 
-      options[:template] ||= (options[:action] || action_name).to_s
-      options
-    end
+        if (options.keys & [:partial, :file, :template]).empty?
+          options[:prefixes] ||= _prefixes
+        end
+
+        options[:template] ||= (options[:action] || action_name).to_s
+        options
+      end
   end
 end

@@ -11,7 +11,7 @@ module AbstractController
   end
 
   module Rendering
-   extend ActiveSupport::Concern
+    extend ActiveSupport::Concern
 
     included do
       class_attribute :protected_instance_variables
