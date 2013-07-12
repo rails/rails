@@ -1,3 +1,7 @@
+*   Move `MissingHelperError` out of the `ClassMethods` module.
+
+    *Yves Senn*
+
 *   Fix an issue where rails raise exception about missing helper where it
     should throw `LoadError`. When helper file exists and only loaded file from
     this helper does not exist rails should throw LoadError instead of
