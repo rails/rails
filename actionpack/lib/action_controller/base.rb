@@ -3,6 +3,15 @@ require "action_controller/log_subscriber"
 require "action_controller/metal/params_wrapper"
 
 module ActionController
+  # The <tt>metal</tt> anonymous class is simple workaround the ordering issues there are with modules.
+  # They need to be included in specyfic order which makes it impossible for 3rd party libs (like ActiveRecord)
+  # to hook up with its own functionality. Having anonymous super class type of Metal with <tt>AbstractController::Rendering</tt>
+  # included, allows us to include <tt>ActionView::Rendering</tt> (which implements <tt>AbstractController::Rendering</tt> interface)
+  # after the <tt>AbstractController::Rendering</tt> and before <tt>ActionController::Rendering</tt>.
+  metal = Class.new(Metal) do
+    include AbstractController::Rendering
+  end
+
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
   # on request and then either it renders a template or redirects to another action. An action is defined as a public method
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
@@ -161,10 +170,6 @@ module ActionController
   #     render action: "overthere" # won't be called if monkeys is nil
   #   end
   #
-  metal = Class.new(Metal) do
-    include AbstractController::Rendering
-  end
-
   class Base < metal
     abstract!
 
