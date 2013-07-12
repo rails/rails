@@ -166,4 +166,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/render action: 'new'/, content)
     end
   end
+
+  def test_skip_namespace
+    run_generator ["Admin::User", "--skip_namespace"]
+    assert_file "app/controllers/admin/users_controller.rb" do |content|
+      assert_instance_method :index, content do |m|
+        assert_match(/@users = User\.all/, m)
+      end
+    end
+  end
 end

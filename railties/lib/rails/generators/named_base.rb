@@ -94,7 +94,11 @@ module Rails
         end
 
         def class_name
-          (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          if options[:skip_namespace]
+            file_name.camelize
+          else
+            (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          end
         end
 
         def human_name
@@ -106,13 +110,21 @@ module Rails
         end
 
         def i18n_scope
-          @i18n_scope ||= file_path.tr('/', '.')
+          @i18n_scope ||= if options[:skip_namespace]
+                            singular_name
+                          else
+                            file_path.tr('/', '.')
+                          end
         end
 
         def table_name
           @table_name ||= begin
             base = pluralize_table_names? ? plural_name : singular_name
-            (class_path + [base]).join('_')
+            if options[:skip_namespace]
+              base
+            else
+              (class_path + [base]).join('_')
+            end
           end
         end
 

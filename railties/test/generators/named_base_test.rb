@@ -65,6 +65,22 @@ class NamedBaseTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = true
   end
 
+  def test_named_generator_attributes_with_skip_namespace
+    g = generator ['admin/foo'], skip_namespace: true
+    assert_name g, 'admin/foo',   :name
+    assert_name g, %w(admin),     :class_path
+    assert_name g, 'admin/foo',   :file_path
+    assert_name g, 'Foo',         :class_name
+    assert_name g, 'foo',         :file_name
+    assert_name g, 'Foo',         :human_name
+    assert_name g, 'foo',         :singular_name
+    assert_name g, 'foos',        :plural_name
+    assert_name g, 'foo',         :i18n_scope
+    assert_name g, 'foos',        :table_name
+    assert_name g, 'Admin::Foos', :controller_class_name
+    assert_name g, 'admin/foos',  :controller_file_path
+  end
+
   def test_scaffold_plural_names
     g = generator ['admin/foo']
     assert_name g, 'admin/foos',  :controller_name
