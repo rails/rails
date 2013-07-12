@@ -42,12 +42,6 @@ module ActiveRecord
         @handler.remove_connection @subklass
         assert_same @pool, @handler.retrieve_connection_pool(@subklass)
       end
-
-      def test_connection_pools
-        assert_deprecated do
-          assert_equal({ Base.connection_pool.spec => @pool }, @handler.connection_pools)
-        end
-      end
     end
   end
 end
