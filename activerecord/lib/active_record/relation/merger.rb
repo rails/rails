@@ -109,7 +109,7 @@ module ActiveRecord
           # override any order specified in the original relation
           relation.reorder! values[:order]
         elsif values[:order]
-          # merge in order_values from r
+          # merge in order_values from relation
           relation.order! values[:order]
         end
 
