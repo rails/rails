@@ -1,3 +1,8 @@
+*   Added generated unit test for generator generator using new
+    `test:generators` rake task.
+
+    *Josef Šimánek*
+
 *   Removed `update:application_controller` rake task.
 
     *Josef Šimánek*
