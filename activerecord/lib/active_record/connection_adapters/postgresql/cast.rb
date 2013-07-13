@@ -69,15 +69,18 @@ module ActiveRecord
 
         def array_to_string(value, column, adapter, should_be_quoted = false)
           casted_values = value.map do |val|
-            if String === val
               if val == "NULL"
                 "\"#{val}\""
+              elsif val.is_a? Array
+                array_to_string(val, column, adapter, should_be_quoted)
               else
-                quote_and_escape(adapter.type_cast(val, column, true))
+                casted_value = adapter.type_cast(val, column, true)
+                if String === casted_value
+                  quote_and_escape(casted_value)
+                else
+                  casted_value
+                end
               end
-            else
-              adapter.type_cast(val, column, true)
-            end
           end
           "{#{casted_values.join(',')}}"
         end
@@ -115,7 +118,7 @@ module ActiveRecord
         end
 
         def string_to_array(string, oid)
-          parse_pg_array(string).map{|val| oid.type_cast val}
+          type_cast_array parse_pg_array(string), oid
         end
 
         private
@@ -144,6 +147,16 @@ module ActiveRecord
               value
             else
               "\"#{value.gsub(/"/,"\\\"")}\""
+            end
+          end
+
+          def type_cast_array(array, oid)
+            array.map do |val|
+              if val.is_a?(Array)
+                type_cast_array(val, oid) 
+              else
+                oid.type_cast val
+              end
             end
           end
       end

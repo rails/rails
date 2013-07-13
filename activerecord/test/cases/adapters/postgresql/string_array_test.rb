@@ -3,23 +3,23 @@ require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
-class PostgresqlArrayTest < ActiveRecord::TestCase
-  class PgArray < ActiveRecord::Base
-    self.table_name = 'pg_arrays'
+class PostgresqlStringArrayTest < ActiveRecord::TestCase
+  class PgStringArray < ActiveRecord::Base
+    self.table_name = 'pg_string_arrays'
   end
 
   def setup
     @connection = ActiveRecord::Base.connection
       @connection.transaction do
-        @connection.create_table('pg_arrays') do |t|
+        @connection.create_table('pg_string_arrays') do |t|
           t.string 'tags', :array => true
         end
       end
-    @column = PgArray.columns.find { |c| c.name == 'tags' }
+    @column = PgStringArray.columns.find { |c| c.name == 'tags' }
   end
 
   def teardown
-    @connection.execute 'drop table if exists pg_arrays'
+    @connection.execute 'drop table if exists pg_string_arrays'
   end
 
   def test_column
@@ -42,18 +42,20 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     assert_equal([], @column.type_cast('{}'))
     assert_equal([nil], @column.type_cast('{NULL}'))
+
+    assert_equal([['1', '2', '3'], ['4']], @column.type_cast('{{1,2,3},{4}}'))
   end
 
   def test_rewrite
-    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
-    x = PgArray.first
+    @connection.execute "insert into pg_string_arrays (tags) VALUES ('{1,2,3}')"
+    x = PgStringArray.first
     x.tags = ['1','2','3','4']
     assert x.save!
   end
 
   def test_select
-    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
-    x = PgArray.first
+    @connection.execute "insert into pg_string_arrays (tags) VALUES ('{1,2,3}')"
+    x = PgStringArray.first
     assert_equal(['1','2','3'], x.tags)
   end
 
@@ -83,19 +85,19 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_insert_fixture
     tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
-    @connection.insert_fixture({"tags" => tag_values}, "pg_arrays" )
-    assert_equal(PgArray.last.tags, tag_values)
+    @connection.insert_fixture({"tags" => tag_values}, "pg_string_arrays" )
+    assert_equal(PgStringArray.last.tags, tag_values)
   end
 
   private
   def assert_cycle array
     # test creation
-    x = PgArray.create!(:tags => array)
+    x = PgStringArray.create!(:tags => array)
     x.reload
     assert_equal(array, x.tags)
 
     # test updating
-    x = PgArray.create!(:tags => [])
+    x = PgStringArray.create!(:tags => [])
     x.tags = array
     x.save!
     x.reload
