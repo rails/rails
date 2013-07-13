@@ -9,11 +9,19 @@ module Rails
 
       def self.included(base) #:nodoc:
         base.class_option :force_plural, type: :boolean, desc: "Forces the use of a plural ModelName"
+        base.class_option :model_name, type: :string, desc: "ModelName to be used"
       end
 
       # Set controller variables on initialization.
       def initialize(*args) #:nodoc:
         super
+        if options[:model_name]
+          controller_name = name
+          self.name = options[:model_name]
+          assign_names!(self.name)
+        else
+          controller_name = name
+        end
 
         if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]
           unless ResourceHelpers.skip_warn
@@ -24,19 +32,26 @@ module Rails
           assign_names!(name)
         end
 
-        @controller_name = name.pluralize
+        assign_controller_names!(controller_name.pluralize)
       end
 
       protected
 
-        attr_reader :controller_name
+        attr_reader :controller_name, :controller_file_name
 
         def controller_class_path
-          class_path
+          if options[:model_name]
+            @controller_class_path
+          else
+            class_path
+          end
         end
 
-        def controller_file_name
-          @controller_file_name ||= file_name.pluralize
+        def assign_controller_names!(name)
+          @controller_name = name
+          @controller_class_path = name.include?('/') ? name.split('/') : name.split('::')
+          @controller_class_path.map! { |m| m.underscore }
+          @controller_file_name = @controller_class_path.pop
         end
 
         def controller_file_path
