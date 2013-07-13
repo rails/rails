@@ -1,3 +1,7 @@
+*   Deprecate `quoted_locking_column` method, which isn't used anywhere.
+
+    *kennyj*
+
 *   Migration dump UUID default functions to schema.rb.
 
     Fixes #10751.
