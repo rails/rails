@@ -1,3 +1,7 @@
+*   Removed `update:application_controller` rake task.
+
+    *Josef Šimánek*
+
 *   Fix `rake environment` to do not eager load modules
 
     *Paul Nikitochkin*
