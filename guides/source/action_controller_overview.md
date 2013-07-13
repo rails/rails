@@ -907,6 +907,92 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 GET /clients/1.pdf
 ```
 
+### Live Streaming of Arbitrary Data
+
+Rails allows you to stream more than just files. In fact, you can stream anything
+you would like in a response object. The `ActionController::Live` module allows
+you to create a persistent connection with a browser. Using this module, you will
+be able to send arbitrary data to the browser at specific points in time.
+
+#### Incorporating Live Streaming
+
+Including `ActionController::Live` inside of your controller class will provide
+all actions inside of the controller the ability to stream data. You can mix in
+the module like so:
+
+```ruby
+class MyController < ActionController::Base
+  include ActionController::Live
+
+  def stream
+    response.headers['Content-Type'] = 'text/event-stream'
+    100.times {
+      response.stream.write "hello world\n"
+      sleep 1
+    }
+  ensure
+    response.stream.close
+  end
+end
+```
+
+The above code will keep a persistent connection with the browser and send 100
+messages of `"hello world\n"`, each one second apart.
+
+There are a couple of things to notice in the above example. We need to make
+sure to close the response stream. Forgetting to close the stream will leave
+the socket open forever. We also have to set the content type to `text/event-stream`
+before we write to the response stream. This is because headers cannot be written
+after the response has been committed (when `response.committed` returns a truthy
+value), which occurs when you `write` or `commit` the response stream.
+
+#### Example Usage
+
+Let's suppose that you were making a Karaoke machine and a user wants to get the
+lyrics for a particular song. Each `Song` has a particular number of lines and
+each line takes time `num_beats` to finish singing.
+
+If we wanted to return the lyrics in Karaoke fashion (only sending the line when
+the singer has finished the previous line), then we could use `ActionController::Live`
+as follows:
+
+```ruby
+class LyricsController < ActionController::Base
+  include ActionController::Live
+
+  def show
+    response.headers['Content-Type'] = 'text/event-stream'
+    song = Song.find(params[:id])
+
+    song.each do |line|
+      response.stream.write line.lyrics
+      sleep line.num_beats
+    end
+  ensure
+    response.stream.close
+  end
+end
+```
+
+The above code sends the next line only after the singer has completed the previous
+line.
+
+#### Streaming Considerations
+
+Streaming arbitrary data is an extremely powerful tool. As shown in the previous
+examples, you can choose when and what to send across a response stream. However,
+you should also note the following things:
+
+* Each response stream creates a new thread and copies over the thread local
+  variables from the original thread. Having too many thread local variables can
+  negatively impact performance. Similarly, a large number of threads can also
+  hinder performance.
+* Failing to close the response stream will leave the corresponding socket open
+  forever. Make sure to call `close` whenever you are using a response stream.
+* WEBrick servers buffer all responses, and so including `ActionController::Live`
+  will not work. You must use a web server which does not automatically buffer 
+  responses.
+
 Log Filtering
 -------------
 
