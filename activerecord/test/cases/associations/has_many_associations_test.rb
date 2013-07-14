@@ -331,7 +331,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert ! firm.clients.loaded?
 
     assert_queries(3) do
-      firm.clients.find_each(:batch_size => 1) {|c| assert_equal firm.id, c.firm_id }
+      firm.clients.find_each(batch_size: 1, allow_unused_order: true) {|c| assert_equal firm.id, c.firm_id }
     end
 
     assert ! firm.clients.loaded?
@@ -341,7 +341,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
 
     assert_queries(2) do
-      firm.clients.where(name: 'Microsoft').find_each(batch_size: 1) do |c|
+      firm.clients.where(name: 'Microsoft').find_each(batch_size: 1, allow_unused_order: true) do |c|
         assert_equal firm.id, c.firm_id
         assert_equal "Microsoft", c.name
       end
@@ -356,7 +356,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert ! firm.clients.loaded?
 
     assert_queries(2) do
-      firm.clients.find_in_batches(:batch_size => 2) do |clients|
+      firm.clients.find_in_batches(batch_size: 2, allow_unused_order: true) do |clients|
         clients.each {|c| assert_equal firm.id, c.firm_id }
       end
     end

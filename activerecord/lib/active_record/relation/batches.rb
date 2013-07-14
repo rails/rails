@@ -85,12 +85,20 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_in_batches(options = {})
-      options.assert_valid_keys(:start, :batch_size)
+      options.assert_valid_keys(:start, :batch_size, :allow_unused_order)
 
       relation = self
 
-      if logger && (arel.orders.present? || arel.taken.present?)
-        logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
+      if arel.orders.present?
+        if (options.fetch(:allow_unused_order, false) == false)
+            raise "Scoped order is ignored in find_in_batches if this as expected, set :allow_unused_order to allow this behavior"
+        elsif logger
+            logger.warn("Scoped order is ignored, it's forced to be batch order.")
+        end
+      end
+
+      if logger && arel.taken.present?
+        logger.warn("Scoped limits are ignored, it's forced to be batch size")
       end
 
       start = options.delete(:start)
