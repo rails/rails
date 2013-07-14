@@ -85,17 +85,7 @@ module Arel
         if o.orders.empty? && o.limit.nil?
           wheres = o.wheres
         else
-          key = o.key
-          unless key
-            warn(<<-eowarn) if $VERBOSE
-(#{caller.first}) Using UpdateManager without setting UpdateManager#key is
-deprecated and support will be removed in Arel 4.0.0.  Please set the primary
-key on UpdateManager using UpdateManager#key= '#{key.inspect}'
-            eowarn
-            key = o.relation.primary_key
-          end
-
-          wheres = [Nodes::In.new(key, [build_subselect(key, o)])]
+          wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
         end
 
         [

@@ -10,6 +10,7 @@ module Arel
       else
         relation = values.first.first.relation
       end
+      um.key= relation.primary_key
       um.table relation
       um.set values
       um.take @ast.limit.expr if @ast.limit
