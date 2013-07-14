@@ -17,6 +17,7 @@ class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
   self.table_name = :lock_without_defaults_cust
+  self.column_defaults # to test @column_defaults caching.
   self.locking_column = :custom_lock_version
 end
 
