@@ -350,7 +350,7 @@ end
 
 The interesting part for a Rails app is the last line, `server.run`. Here we encounter the `wrapped_app` method again, which this time
 we're going to explore more (even though it was executed before, and
-thus memorized by now).
+thus memoized by now).
 
 ```ruby
 @wrapped_app ||= build_app app
