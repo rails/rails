@@ -95,8 +95,6 @@ module ActiveRecord
         @last_use            = false
         @logger              = logger
         @pool                = pool
-        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
-        @query_cache_enabled = false
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
       end

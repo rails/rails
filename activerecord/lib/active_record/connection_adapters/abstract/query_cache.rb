@@ -20,6 +20,12 @@ module ActiveRecord
 
       attr_reader :query_cache, :query_cache_enabled
 
+      def initialize(*)
+        super
+        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
+        @query_cache_enabled = false
+      end
+
       # Enable the query cache within the block.
       def cache
         old, @query_cache_enabled = @query_cache_enabled, true
