@@ -59,14 +59,5 @@ switch to `compile_insert`
       dm
     end
 
-    def delete
-      if $VERBOSE
-        warn <<-eowarn
-delete (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
-switch to `compile_delete`
-        eowarn
-      end
-      @engine.connection.delete compile_delete.to_sql, 'AREL'
-    end
   end
 end
