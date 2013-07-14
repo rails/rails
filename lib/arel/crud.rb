@@ -18,19 +18,6 @@ module Arel
       um
     end
 
-    # FIXME: this method should go away
-    def update values
-      if $VERBOSE
-        warn <<-eowarn
-update (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
-switch to `compile_update`
-        eowarn
-      end
-
-      um = compile_update values
-      @engine.connection.update um.to_sql, 'AREL'
-    end
-
     def compile_insert values
       im = create_insert
       im.insert values
