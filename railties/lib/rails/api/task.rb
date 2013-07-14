@@ -7,7 +7,6 @@ module Rails
         'activesupport' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/active_support/**/*.rb
           ),
           :exclude => 'lib/active_support/vendor/*'
@@ -16,7 +15,6 @@ module Rails
         'activerecord' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/active_record/**/*.rb
           ),
           :exclude => 'lib/active_record/vendor/*'
@@ -25,7 +23,6 @@ module Rails
         'activemodel' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/active_model/**/*.rb
           )
         },
@@ -33,19 +30,23 @@ module Rails
         'actionpack' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/abstract_controller/**/*.rb
             lib/action_controller/**/*.rb
             lib/action_dispatch/**/*.rb
-            lib/action_view/**/*.rb
           ),
           :exclude => 'lib/action_controller/vendor/*'
+        },
+
+        'actionview' => {
+          :include => %w(
+            README.rdoc
+            lib/action_view/**/*.rb
+          )
         },
 
         'actionmailer' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/action_mailer/**/*.rb
           ),
           :exclude => 'lib/action_mailer/vendor/*'
@@ -54,8 +55,6 @@ module Rails
         'railties' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
-            MIT-LICENSE
             lib/**/*.rb
           ),
           :exclude => 'lib/rails/generators/rails/**/templates/**/*.rb'
