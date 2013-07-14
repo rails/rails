@@ -41,17 +41,6 @@ switch to `compile_update`
       InsertManager.new @engine
     end
 
-    # FIXME: this method should go away
-    def insert values
-      if $VERBOSE
-        warn <<-eowarn
-insert (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
-switch to `compile_insert`
-        eowarn
-      end
-      @engine.connection.insert compile_insert(values).to_sql
-    end
-
     def compile_delete
       dm = DeleteManager.new @engine
       dm.wheres = @ctx.wheres
