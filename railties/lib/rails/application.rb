@@ -289,7 +289,6 @@ module Rails
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       require "rails/tasks"
-      config = self.config
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
 
