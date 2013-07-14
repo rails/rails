@@ -47,14 +47,6 @@ module Arel
       create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
     end
 
-    def where_clauses
-      if $VERBOSE
-        warn "(#{caller.first}) where_clauses is deprecated and will be removed in arel 4.0.0 with no replacement"
-      end
-      to_sql = Visitors::ToSql.new @engine.connection
-      @ctx.wheres.map { |c| to_sql.accept c }
-    end
-
     def lock locking = Arel.sql('FOR UPDATE')
       case locking
       when true
