@@ -1,3 +1,8 @@
+*   Fix default rendered format problem when calling `render` without :content_type option.
+    It should return :html. Fix #11393.
+
+    *Gleb Mazovetskiy* *Oleg* *kennyj*
+
 *   Fix `link_to` with block and url hashes.
 
     Before:
