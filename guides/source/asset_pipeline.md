@@ -606,7 +606,7 @@ Customizing the Pipeline
 
 ### CSS Compression
 
-There is currently one option for compressing CSS, YUI. The [YUI CSS compressor](http://developer.yahoo.com/yui/compressor/css.html) provides minification.
+There is currently one option for compressing CSS, YUI. The [YUI CSS compressor](http://yui.github.io/yuicompressor/css.html) provides minification.
 
 The following line enables YUI compression, and requires the `yui-compressor` gem.
 
@@ -620,7 +620,7 @@ The `config.assets.compress` must be set to `true` to enable CSS compression.
 
 Possible options for JavaScript compression are `:closure`, `:uglifier` and `:yui`. These require the use of the `closure-compiler`, `uglifier` or `yui-compressor` gems, respectively.
 
-The default Gemfile includes [uglifier](https://github.com/lautis/uglifier). This gem wraps [UglifierJS](https://github.com/mishoo/UglifyJS) (written for NodeJS) in Ruby. It compresses your code by removing white space. It also includes other optimizations such as changing your `if` and `else` statements to ternary operators where possible.
+The default Gemfile includes [uglifier](https://github.com/lautis/uglifier). This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for NodeJS) in Ruby. It compresses your code by removing white space and comments, shortening local variable names, and performing other micro-optimizations such as changing `if` and `else` statements to ternary operators where possible.
 
 The following line invokes `uglifier` for JavaScript compression.
 
