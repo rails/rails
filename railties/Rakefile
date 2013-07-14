@@ -35,15 +35,6 @@ Rake::TestTask.new('test:regular') do |t|
   t.verbose = true
 end
 
-# Update spinoffs -------------------------------------------------------------------
-
-desc "Updates application README to the latest version Railties README"
-task :update_readme do
-  readme = "lib/rails/generators/rails/app/templates/README"
-  rm readme
-  cp "./README.rdoc", readme
-end
-
 # Generate GEM ----------------------------------------------------------------------------
 
 spec = eval(File.read('railties.gemspec'))
