@@ -1,10 +1,6 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-require 'date'
-require 'rbconfig'
-
-
 task :default => :test
 
 desc "Run all unit tests"
