@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix default rendered format problem when calling `render` without :content_type option.
+    It should return :html.
+
+    Fixes #11393
+
+    *Gleb Mazovetskiy* *Oleg* *kennyj*
+
 *   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind body input stream on
     parsing json params.
 
