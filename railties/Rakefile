@@ -1,10 +1,6 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-require 'date'
-require 'rbconfig'
-
-
 task :default => :test
 
 desc "Run all unit tests"
@@ -33,15 +29,6 @@ Rake::TestTask.new('test:regular') do |t|
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
   t.verbose = true
-end
-
-# Update spinoffs -------------------------------------------------------------------
-
-desc "Updates application README to the latest version Railties README"
-task :update_readme do
-  readme = "lib/rails/generators/rails/app/templates/README"
-  rm readme
-  cp "./README.rdoc", readme
 end
 
 # Generate GEM ----------------------------------------------------------------------------
