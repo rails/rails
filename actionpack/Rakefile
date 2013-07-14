@@ -2,6 +2,8 @@ require 'rake/testtask'
 require 'rake/packagetask'
 require 'rubygems/package_task'
 
+test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions,journey,routing}/**/*_test.rb')
+
 desc "Default Task"
 task :default => :test
 
@@ -15,7 +17,7 @@ Rake::TestTask.new(:test_action_pack) do |t|
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions,journey}/**/*_test.rb').sort
+  t.test_files = test_files.sort
 
   t.warning = true
   t.verbose = true
@@ -24,8 +26,8 @@ end
 namespace :test do
   task :isolated do
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    Dir.glob("test/{abstract,controller,dispatch,template}/**/*_test.rb").all? do |file|
-      sh(ruby, '-Ilib:test', file)
+    test_files.all? do |file|
+      sh(ruby, '-w', '-Ilib:test', file)
     end or raise "Failures"
   end
 end
