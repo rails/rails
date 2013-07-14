@@ -264,31 +264,6 @@ module Arel
       @engine.connection.send(:select, to_sql, 'AREL').map { |x| Row.new(x) }
     end
 
-    # FIXME: this method should go away
-    def insert values
-      if $VERBOSE
-        warn <<-eowarn
-insert (#{caller.first}) is deprecated and will be removed in Arel 4.0.0. Please
-switch to `compile_insert`
-        eowarn
-      end
-
-      im = compile_insert(values)
-      table = @ctx.froms
-
-      primary_key      = table.primary_key
-      primary_key_name = primary_key.name if primary_key
-
-      # FIXME: in AR tests values sometimes were Array and not Hash therefore is_a?(Hash) check is added
-      primary_key_value = primary_key && values.is_a?(Hash) && values[primary_key]
-      im.into table
-      # Oracle adapter needs primary key name to generate RETURNING ... INTO ... clause
-      # for tables which assign primary key value using trigger.
-      # RETURNING ... INTO ... clause will be added only if primary_key_value is nil
-      # therefore it is necessary to pass primary key value as well
-      @engine.connection.insert im.to_sql, 'AREL', primary_key_name, primary_key_value
-    end
-
     private
     def collapse exprs, existing = nil
       exprs = exprs.unshift(existing.expr) if existing

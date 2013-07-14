@@ -435,20 +435,6 @@ module Arel
       end
     end
 
-    describe 'insert' do
-      it 'uses the select FROM' do
-        engine  = EngineProxy.new Table.engine
-        table   = Table.new :users
-        manager = Arel::SelectManager.new engine
-        manager.from table
-        manager.insert 'VALUES(NULL)'
-
-        engine.executed.last.must_be_like %{
-          INSERT INTO "users" VALUES(NULL)
-        }
-      end
-    end
-
     describe 'lock' do
       # This should fail on other databases
       it 'adds a lock node' do
