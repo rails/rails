@@ -189,11 +189,7 @@ module ActiveRecord
       distinct = self.distinct_value
 
       if operation == "count"
-        if select_values.present?
-          column_name ||= select_values.join(", ")
-        else
-          column_name ||= :all
-        end
+        column_name ||= select_for_count
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
@@ -359,6 +355,15 @@ module ActiveRecord
 
     def type_cast_using_column(value, column)
       column ? column.type_cast(value) : value
+    end
+
+    # TODO: refactor to allow non-string `select_values` (eg. Arel nodes).
+    def select_for_count
+      if select_values.present?
+        select_values.join(", ")
+      else
+        :all
+      end
     end
 
     def build_count_subquery(relation, column_name, distinct)
