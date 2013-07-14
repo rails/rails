@@ -227,6 +227,13 @@ module ActiveRecord
       assert_equal ['"posts".name ASC'], relation.order_values
     end
 
+    test "#order! on non-string does not attempt regexp match for references" do
+      obj = Object.new
+      obj.expects(:=~).never
+      assert relation.order!(obj)
+      assert_equal [obj], relation.order_values
+    end
+
     test '#references!' do
       assert relation.references!(:foo).equal?(relation)
       assert relation.references_values.include?('foo')

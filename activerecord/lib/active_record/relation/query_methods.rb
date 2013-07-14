@@ -280,7 +280,7 @@ module ActiveRecord
       args.flatten!
       validate_order_args args
 
-      references = args.reject { |arg| Arel::Node === arg }
+      references = args.grep(String)
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
