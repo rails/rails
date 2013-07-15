@@ -1,3 +1,9 @@
+*   Perform necessary deeper encoding when hstore is inside an array.
+
+    Fixes #11135.
+
+    *Josh Goodall*, *Genadi Samokovarov*
+
 *   Properly detect if a connection is still active before using it
     in multi-threaded environments.
 
