@@ -735,7 +735,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_resave_destroyed_association
-    @pirate.birds.create!(name: :parrot)
+    @pirate.birds.create!(:name => :parrot)
     @pirate.birds.first.destroy
     @pirate.save!
     assert @pirate.reload.birds.empty?
