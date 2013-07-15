@@ -19,8 +19,6 @@ module ApplicationTests
     end
 
     test "default middleware stack" do
-      add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"
-
       boot!
 
       assert_equal [
