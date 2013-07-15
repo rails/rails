@@ -19,6 +19,8 @@ module ApplicationTests
     end
 
     test "default middleware stack" do
+      add_to_config "config.active_record.migration_error = :page_load"
+
       boot!
 
       assert_equal [
@@ -35,6 +37,7 @@ module ApplicationTests
         "ActionDispatch::RemoteIp",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::Migration::CheckPending",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
@@ -88,6 +91,7 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
+      assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
     test "removes lock if cache classes is set" do
