@@ -117,6 +117,20 @@ class TransactionTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
+  def test_raising_exception_in_nested_transaction_restore_state_in_save
+    topic = Topic.new
+
+    def topic.after_save_for_transaction
+      raise 'Make the transaction rollback'
+    end
+
+    assert_raises(RuntimeError) do
+      Topic.transaction { topic.save }
+    end
+
+    assert topic.new_record?, "#{topic.inspect} should be new record"
+  end
+
   def test_update_should_rollback_on_failure
     author = Author.find(1)
     posts_count = author.posts.size
