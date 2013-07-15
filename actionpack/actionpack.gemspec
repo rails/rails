@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency 'activesupport', version
+  s.add_dependency 'actionview',    version
 
   s.add_dependency 'loofah',        '~> 1.2.1'
 
