@@ -27,7 +27,26 @@ module ActionView
       #
       #   <%= sanitize @article.body %>
       #
-      # Custom Use (only the mentioned tags and attributes are allowed, nothing else)
+      # Custom Use - Custom Scrubber
+      # (supply a Loofah::Scrubber that does the sanitization)
+      #
+      # scrubber can either wrap a block:
+      # scrubber = Loofah::Scrubber.new do |node|
+      #   node.text = "dawn of cats"
+      # end
+      #
+      # or be a subclass of Loofah::Scrubber which responds to scrub:
+      # class KittyApocalypse < Loofah::Scrubber
+      #   def scrub(node)
+      #     node.text = "dawn of cats"
+      #   end
+      # end
+      # scrubber = KittyApocalypse.new
+      #
+      # <%= sanitize @article.body, scrubber: scrubber %>
+      #
+      # Custom Use - tags and attributes
+      # (only the mentioned tags and attributes are allowed, nothing else)
       #
       #   <%= sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style) %>
       #
