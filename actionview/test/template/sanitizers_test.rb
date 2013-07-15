@@ -222,6 +222,42 @@ class SanitizersTest < ActionController::TestCase
     assert_equal "You should pass :attributes as an Enumerable", e.message
   end
 
+  def test_should_not_accept_non_loofah_inheriting_scrubber
+    sanitizer = ActionView::WhiteListSanitizer.new
+    scrubber = Object.new
+    scrubber.class_eval do
+      def scrub(node); node.name = 'h1'; end
+    end
+
+    assert_raise Loofah::ScrubberNotFound do
+      sanitizer.sanitize('', :scrubber => scrubber)
+    end
+  end
+
+  def test_should_accept_loofah_inheriting_scrubber
+    sanitizer = ActionView::WhiteListSanitizer.new
+    scrubber = Loofah::Scrubber.new
+    scrubber.class_eval do
+      def scrub(node); node.name = 'h1'; end
+    end
+    html = "<script>hello!</script>"
+    assert_equal "<h1>hello!</h1>", sanitizer.sanitize(html, :scrubber => scrubber)
+  end
+
+  def test_should_accept_loofah_scrubber_that_wraps_a_block
+    sanitizer = ActionView::WhiteListSanitizer.new
+    scrubber = Loofah::Scrubber.new { |node| node.name = 'h1' }
+    html = "<script>hello!</script>"
+    assert_equal "<h1>hello!</h1>", sanitizer.sanitize(html, :scrubber => scrubber)
+  end
+
+  def test_custom_scrubber_takes_precedence_over_other_options
+    sanitizer = ActionView::WhiteListSanitizer.new
+    scrubber = Loofah::Scrubber.new { |node| node.name = 'h1' }
+    html = "<script>hello!</script>"
+    assert_equal "<h1>hello!</h1>", sanitizer.sanitize(html, :scrubber => scrubber, :tags => ['foo'])
+  end
+
   [%w(img src), %w(a href)].each do |(tag, attr)|
     define_method "test_should_strip_#{attr}_attribute_in_#{tag}_with_bad_protocols" do
       assert_sanitized %(<#{tag} #{attr}="javascript:bang" title="1">boo</#{tag}>), %(<#{tag} title="1">boo</#{tag}>)

@@ -56,7 +56,9 @@ module ActionView
       return nil unless html
 
       loofah_fragment = Loofah.fragment(html)
-      if options[:tags] || options[:attributes]
+      if scrubber = options[:scrubber] # Loofah makes sure this is a scrubber
+        loofah_fragment.scrub!(scrubber)
+      elsif options[:tags] || options[:attributes]
         @permit_scrubber.tags = options[:tags]
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
