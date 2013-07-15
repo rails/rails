@@ -211,8 +211,8 @@ module ActiveRecord
 
   class RelationMutationTest < ActiveSupport::TestCase
     class FakeKlass < Struct.new(:table_name, :name)
-      def quoted_table_name
-        %{"#{table_name}"}
+      def arel_table
+        Post.arel_table
       end
     end
 
@@ -234,7 +234,10 @@ module ActiveRecord
 
     test "#order! with symbol prepends the table name" do
       assert relation.order!(:name).equal?(relation)
-      assert_equal ['"posts".name ASC'], relation.order_values
+      node = relation.order_values.first
+      assert node.ascending?
+      assert_equal :name, node.expr.name
+      assert_equal "posts", node.expr.relation.name
     end
 
     test '#references!' do
