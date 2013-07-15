@@ -15,41 +15,41 @@ class RespondToController < ActionController::Base
 
   def html_xml_or_rss
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.rss  { render :text => "RSS"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML" }
+      type.xml { render text: "XML" }
+      type.rss { render text: "RSS" }
+      type.all { render text: "Nothing" }
     end
   end
 
   def js_or_html
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.js   { render :text => "JS"      }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML" }
+      type.js { render text: "JS" }
+      type.all { render text: "Nothing" }
     end
   end
 
   def json_or_yaml
     respond_to do |type|
-      type.json { render :text => "JSON" }
-      type.yaml { render :text => "YAML" }
+      type.json { render text: "JSON" }
+      type.yaml { render text: "YAML" }
     end
   end
 
   def html_or_xml
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML" }
+      type.xml { render text: "XML" }
+      type.all { render text: "Nothing" }
     end
   end
 
   def json_xml_or_html
     respond_to do |type|
-      type.json { render :text => 'JSON' }
-      type.xml { render :xml => 'XML' }
-      type.html { render :text => 'HTML' }
+      type.json { render text: 'JSON' }
+      type.xml { render xml: 'XML' }
+      type.html { render text: 'HTML' }
     end
   end
 
@@ -58,14 +58,14 @@ class RespondToController < ActionController::Base
     request.format = :xml
 
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
+      type.html { render text: "HTML" }
+      type.xml { render text: "XML" }
     end
   end
 
   def just_xml
     respond_to do |type|
-      type.xml  { render :text => "XML" }
+      type.xml { render text: "XML" }
     end
   end
 
@@ -89,46 +89,46 @@ class RespondToController < ActionController::Base
 
   def made_for_content_type
     respond_to do |type|
-      type.rss  { render :text => "RSS"  }
-      type.atom { render :text => "ATOM" }
-      type.all  { render :text => "Nothing" }
+      type.rss { render text: "RSS" }
+      type.atom { render text: "ATOM" }
+      type.all { render text: "Nothing" }
     end
   end
 
   def custom_type_handling
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.custom("application/crazy-xml")  { render :text => "Crazy XML"  }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML" }
+      type.custom("application/crazy-xml") { render text: "Crazy XML" }
+      type.all { render text: "Nothing" }
     end
   end
 
 
   def custom_constant_handling
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
-      type.mobile { render :text => "Mobile" }
+      type.html { render text: "HTML" }
+      type.mobile { render text: "Mobile" }
     end
   end
 
   def custom_constant_handling_without_block
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
+      type.html { render text: "HTML" }
       type.mobile
     end
   end
 
   def handle_any
     respond_to do |type|
-      type.html { render :text => "HTML" }
-      type.any(:js, :xml) { render :text => "Either JS or XML" }
+      type.html { render text: "HTML" }
+      type.any(:js, :xml) { render text: "Either JS or XML" }
     end
   end
 
   def handle_any_any
     respond_to do |type|
-      type.html { render :text => 'HTML' }
-      type.any { render :text => 'Whatever you ask for, I got it' }
+      type.html { render text: 'HTML' }
+      type.any { render text: 'Whatever you ask for, I got it' }
     end
   end
 
@@ -142,8 +142,8 @@ class RespondToController < ActionController::Base
     request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
 
     respond_to do |type|
-      type.html   { @type = "Firefox" }
-      type.iphone { @type = "iPhone"  }
+      type.html { @type = "Firefox" }
+      type.iphone { @type = "iPhone" }
     end
   end
 
@@ -151,8 +151,8 @@ class RespondToController < ActionController::Base
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
 
     respond_to do |type|
-      type.html   { @type = "Firefox"; render :action => "iphone_with_html_response_type" }
-      type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
+      type.html { @type = "Firefox"; render action: "iphone_with_html_response_type" }
+      type.iphone { @type = "iPhone" ; render action: "iphone_with_html_response_type" }
     end
   end
 
@@ -172,7 +172,7 @@ class StarStarMimeControllerTest < ActionController::TestCase
 
   def test_javascript_with_format
     @request.accept = "text/javascript"
-    get :index, :format => 'js'
+    get :index, format: 'js'
     assert_match "function addition(a,b){ return a+b; }", @response.body
   end
 
@@ -267,10 +267,10 @@ class RespondToControllerTest < ActionController::TestCase
     xhr :get, :json_or_yaml
     assert_equal 'JSON', @response.body
 
-    get :json_or_yaml, :format => 'json'
+    get :json_or_yaml, format: 'json'
     assert_equal 'JSON', @response.body
 
-    get :json_or_yaml, :format => 'yaml'
+    get :json_or_yaml, format: 'yaml'
     assert_equal 'YAML', @response.body
 
     { 'YAML' => %w(text/yaml),
@@ -403,7 +403,7 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_handle_any_any_parameter_format
-    get :handle_any_any, {:format=>'html'}
+    get :handle_any_any, {format: 'html'}
     assert_equal 'HTML', @response.body
   end
 
@@ -447,13 +447,13 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_custom_constant
-    get :custom_constant_handling, :format => "mobile"
+    get :custom_constant_handling, format: "mobile"
     assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
 
   def test_custom_constant_handling_without_block
-    get :custom_constant_handling_without_block, :format => "mobile"
+    get :custom_constant_handling_without_block, format: "mobile"
     assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
@@ -462,13 +462,13 @@ class RespondToControllerTest < ActionController::TestCase
     get :html_xml_or_rss
     assert_equal "HTML", @response.body
 
-    get :html_xml_or_rss, :format => "html"
+    get :html_xml_or_rss, format: "html"
     assert_equal "HTML", @response.body
 
-    get :html_xml_or_rss, :format => "xml"
+    get :html_xml_or_rss, format: "xml"
     assert_equal "XML", @response.body
 
-    get :html_xml_or_rss, :format => "rss"
+    get :html_xml_or_rss, format: "rss"
     assert_equal "RSS", @response.body
   end
 
@@ -476,12 +476,12 @@ class RespondToControllerTest < ActionController::TestCase
     get :forced_xml
     assert_equal "XML", @response.body
 
-    get :forced_xml, :format => "html"
+    get :forced_xml, format: "html"
     assert_equal "XML", @response.body
   end
 
   def test_extension_synonyms
-    get :html_xml_or_rss, :format => "xhtml"
+    get :html_xml_or_rss, format: "xhtml"
     assert_equal "HTML", @response.body
   end
 
@@ -498,7 +498,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :using_defaults
     assert_equal "using_defaults - #{[:html].to_s}", @response.body
 
-    get :using_defaults, :format => "xml"
+    get :using_defaults, format: "xml"
     assert_equal "using_defaults - #{[:xml].to_s}", @response.body
   end
 
@@ -506,7 +506,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :iphone_with_html_response_type
     assert_equal '<html><div id="html">Hello future from Firefox!</div></html>', @response.body
 
-    get :iphone_with_html_response_type, :format => "iphone"
+    get :iphone_with_html_response_type, format: "iphone"
     assert_equal "text/html", @response.content_type
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
   end
@@ -520,33 +520,33 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_invalid_format
     assert_raises(ActionController::UnknownFormat) do
-      get :using_defaults, :format => "invalidformat"
+      get :using_defaults, format: "invalidformat"
     end
   end
 end
 
 class RespondWithController < ActionController::Base
   respond_to :html, :json, :touch
-  respond_to :xml, :except => :using_resource_with_block
-  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
+  respond_to :xml, except: :using_resource_with_block
+  respond_to :js, only: [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
 
   def using_resource
     respond_with(resource)
   end
 
   def using_hash_resource
-    respond_with({:result => resource})
+    respond_with({result: resource})
   end
 
   def using_resource_with_block
     respond_with(resource) do |format|
-      format.csv { render :text => "CSV" }
+      format.csv { render text: "CSV" }
     end
   end
 
   def using_resource_with_overwrite_block
     respond_with(resource) do |format|
-      format.html { render :text => "HTML" }
+      format.html { render text: "HTML" }
     end
   end
 
@@ -559,7 +559,7 @@ class RespondWithController < ActionController::Base
   end
 
   def using_resource_with_status_and_location
-    respond_with(resource, :location => "http://test.host/", :status => :created)
+    respond_with(resource, location: "http://test.host/", status: :created)
   end
 
   def using_invalid_resource_with_template
@@ -568,25 +568,25 @@ class RespondWithController < ActionController::Base
 
   def using_options_with_template
     @customer = resource
-    respond_with(@customer, :status => 123, :location => "http://test.host/")
+    respond_with(@customer, status: 123, location: "http://test.host/")
   end
 
   def using_resource_with_responder
-    responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
-    respond_with(resource, :responder => responder)
+    responder = proc { |c, r, o| c.render text: "Resource name is #{r.first.name}" }
+    respond_with(resource, responder: responder)
   end
 
   def using_resource_with_action
-    respond_with(resource, :action => :foo) do |format|
+    respond_with(resource, action: :foo) do |format|
       format.html { raise ActionView::MissingTemplate.new([], "bar", ["foo"], {}, false) }
     end
   end
 
   def using_responder_with_respond
     responder = Class.new(ActionController::Responder) do
-      def respond; @controller.render :text => "respond #{format}"; end
+      def respond; @controller.render text: "respond #{format}"; end
     end
-    respond_with(resource, :responder => responder)
+    respond_with(resource, responder: responder)
   end
 
 protected
@@ -602,7 +602,7 @@ class InheritedRespondWithController < RespondWithController
 
   def index
     respond_with(resource) do |format|
-      format.json { render :text => "JSON" }
+      format.json { render text: "JSON" }
     end
   end
 end
@@ -613,7 +613,7 @@ class RenderJsonRespondWithController < RespondWithController
 
   def index
     respond_with(resource) do |format|
-      format.json { render :json => RenderJsonTestException.new('boom') }
+      format.json { render json: RenderJsonTestException.new('boom') }
     end
   end
 
@@ -622,9 +622,9 @@ class RenderJsonRespondWithController < RespondWithController
     respond_with(resource) do |format|
       format.json do
         if resource.errors.empty?
-          render :json => { :valid => true }
+          render json: { valid: true }
         else
-          render :json => { :valid => false }
+          render json: { valid: false }
         end
       end
     end
@@ -749,7 +749,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_post_with_html_rerender_on_failure
     with_test_route_set do
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       post :using_resource
       assert_equal "text/html", @response.content_type
@@ -773,7 +773,7 @@ class RespondWithControllerTest < ActionController::TestCase
   def test_using_resource_for_post_with_xml_yields_unprocessable_entity_on_failure
     with_test_route_set do
       @request.accept = "application/xml"
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       post :using_resource
       assert_equal "application/xml", @response.content_type
@@ -786,12 +786,12 @@ class RespondWithControllerTest < ActionController::TestCase
   def test_using_resource_for_post_with_json_yields_unprocessable_entity_on_failure
     with_test_route_set do
       @request.accept = "application/json"
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       post :using_resource
       assert_equal "application/json", @response.content_type
       assert_equal 422, @response.status
-      errors = {:errors => errors}
+      errors = {errors: errors}
       assert_equal errors.to_json, @response.body
       assert_nil @response.location
     end
@@ -809,7 +809,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_patch_with_html_rerender_on_failure
     with_test_route_set do
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       patch :using_resource
       assert_equal "text/html", @response.content_type
@@ -821,7 +821,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_patch_with_html_rerender_on_failure_even_on_method_override
     with_test_route_set do
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       @request.env["rack.methodoverride.original_method"] = "POST"
       patch :using_resource
@@ -844,7 +844,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_put_with_html_rerender_on_failure
     with_test_route_set do
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       put :using_resource
       assert_equal "text/html", @response.content_type
@@ -856,7 +856,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_put_with_html_rerender_on_failure_even_on_method_override
     with_test_route_set do
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       @request.env["rack.methodoverride.original_method"] = "POST"
       put :using_resource
@@ -886,7 +886,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
     @request.accept = "application/xml"
-    errors = { :name => :invalid }
+    errors = { name: :invalid }
     Customer.any_instance.stubs(:errors).returns(errors)
     put :using_resource
     assert_equal "application/xml", @response.content_type
@@ -897,12 +897,12 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_put_with_json_yields_unprocessable_entity_on_failure
     @request.accept = "application/json"
-    errors = { :name => :invalid }
+    errors = { name: :invalid }
     Customer.any_instance.stubs(:errors).returns(errors)
     put :using_resource
     assert_equal "application/json", @response.content_type
     assert_equal 422, @response.status
-    errors = {:errors => errors}
+    errors = {errors: errors}
     assert_equal errors.to_json, @response.body
     assert_nil @response.location
   end
@@ -938,7 +938,7 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def test_using_resource_for_delete_with_html_redirects_on_failure
     with_test_route_set do
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       Customer.any_instance.stubs(:destroyed?).returns(false)
       delete :using_resource
@@ -966,7 +966,7 @@ class RespondWithControllerTest < ActionController::TestCase
       assert_equal "<name>david</name>", @response.body
       assert_equal "http://www.example.com/quiz_stores/11/customers/13", @response.location
 
-      errors = { :name => :invalid }
+      errors = { name: :invalid }
       Customer.any_instance.stubs(:errors).returns(errors)
       post :using_resource
       assert_equal "application/xml", @response.content_type
@@ -992,7 +992,7 @@ class RespondWithControllerTest < ActionController::TestCase
       end
     end
 
-    errors = { :name => :invalid }
+    errors = { name: :invalid }
     Customer.any_instance.stubs(:errors).returns(errors)
 
     post :using_resource_with_action
@@ -1035,20 +1035,20 @@ class RespondWithControllerTest < ActionController::TestCase
   def test_render_json_object_responds_to_str_still_produce_json
     @controller = RenderJsonRespondWithController.new
     @request.accept = "application/json"
-    get :index, :format => :json
+    get :index, format: :json
     assert_match(/"message":"boom"/, @response.body)
     assert_match(/"error":"RenderJsonTestException"/, @response.body)
   end
 
   def test_api_response_with_valid_resource_respect_override_block
     @controller = RenderJsonRespondWithController.new
-    post :create, :name => "sikachu", :format => :json
+    post :create, name: "sikachu", format: :json
     assert_equal '{"valid":true}', @response.body
   end
 
   def test_api_response_with_invalid_resource_respect_override_block
     @controller = RenderJsonRespondWithController.new
-    post :create, :name => "david", :format => :json
+    post :create, name: "david", format: :json
     assert_equal '{"valid":false}', @response.body
   end
 
@@ -1071,7 +1071,7 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_with_status_and_location_with_invalid_resource
-    errors = { :name => :invalid }
+    errors = { name: :invalid }
     Customer.any_instance.stubs(:errors).returns(errors)
 
     @request.accept = "text/xml"
@@ -1088,7 +1088,7 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_invalid_resource_with_template
-    errors = { :name => :invalid }
+    errors = { name: :invalid }
     Customer.any_instance.stubs(:errors).returns(errors)
 
     @request.accept = "text/xml"
@@ -1124,7 +1124,7 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_with_set_responder
-    RespondWithController.responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
+    RespondWithController.responder = proc { |c, r, o| c.render text: "Resource name is #{r.first.name}" }
     get :using_resource
     assert_equal "Resource name is david", @response.body
   ensure
@@ -1212,7 +1212,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
   end
 
   def test_non_navigational_format_with_no_template_fallbacks_to_html_template_with_no_layout
-    get :index, :format => :js
+    get :index, format: :js
     assert_equal "Hello Firefox", @response.body
   end
 end
@@ -1234,7 +1234,7 @@ class FlashResponderController < ActionController::Base
 
   def index
     respond_with Object.new do |format|
-      format.html { render :text => 'HTML' }
+      format.html { render text: 'HTML' }
     end
   end
 end
