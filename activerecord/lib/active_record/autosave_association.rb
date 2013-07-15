@@ -343,6 +343,7 @@ module ActiveRecord
           end
 
           records.each do |record|
+            next if record.destroyed?
 
             saved = true
 
