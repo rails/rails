@@ -109,7 +109,7 @@ module ActiveRecord
             { :value => value, :format => 1 }
           when Hash
             case column.sql_type
-            when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
+            when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
             when 'json' then PostgreSQLColumn.json_to_string(value)
             else super(value, column)
             end
