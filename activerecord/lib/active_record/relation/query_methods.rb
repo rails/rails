@@ -291,7 +291,7 @@ module ActiveRecord
           arg
       }
 
-      self.order_values = args + self.order_values
+      self.order_values = args.concat self.order_values
       self
     end
 
