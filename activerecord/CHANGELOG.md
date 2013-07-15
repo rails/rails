@@ -1,3 +1,9 @@
+*   Remove extra decrement of transaction deep level.
+
+    Fixes: #4566
+
+    *Paul Nikitochkin*
+
 *   Reset @column_defaults when assigning `locking_column`.
     We had a potential problem. For example:
 

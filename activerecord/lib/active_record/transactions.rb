@@ -304,6 +304,7 @@ module ActiveRecord
       run_callbacks :rollback
     ensure
       restore_transaction_record_state(force_restore_state)
+      clear_transaction_record_state
     end
 
     # Add the record to the current transaction so that the +after_rollback+ and +after_commit+ callbacks
@@ -360,8 +361,8 @@ module ActiveRecord
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
     def restore_transaction_record_state(force = false) #:nodoc:
       unless @_start_transaction_state.empty?
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        if @_start_transaction_state[:level] < 1 || force
+        transaction_level = (@_start_transaction_state[:level] || 0) - 1
+        if transaction_level < 1 || force
           restore_state = @_start_transaction_state
           was_frozen = restore_state[:frozen?]
           @attributes = @attributes.dup if @attributes.frozen?
@@ -374,7 +375,6 @@ module ActiveRecord
             @attributes_cache.delete(self.class.primary_key)
           end
           @attributes.freeze if was_frozen
-          @_start_transaction_state.clear
         end
       end
     end
