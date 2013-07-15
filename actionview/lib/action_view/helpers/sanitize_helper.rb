@@ -45,6 +45,8 @@ module ActionView
       #
       # <%= sanitize @article.body, scrubber: scrubber %>
       #
+      # Learn more about scrubbers here: https://github.com/flavorjones/loofah
+      #
       # Custom Use - tags and attributes
       # (only the mentioned tags and attributes are allowed, nothing else)
       #
