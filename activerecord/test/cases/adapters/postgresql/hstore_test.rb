@@ -26,6 +26,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     @connection.transaction do
       @connection.create_table('hstores') do |t|
         t.hstore 'tags', :default => ''
+        t.hstore 'payload', array: true
       end
     end
     @column = Hstore.columns.find { |c| c.name == 'tags' }
@@ -152,11 +153,34 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert x.save!
   end
 
-
   def test_select
     @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
     x = Hstore.first
     assert_equal({'1' => '2'}, x.tags)
+  end
+
+  def test_array_cycle
+    assert_array_cycle([{"AA" => "BB", "CC" => "DD"}, {"AA" => nil}])
+  end
+
+  def test_array_strings_with_quotes
+    assert_array_cycle([{'this has' => 'some "s that need to be escaped"'}])
+  end
+
+  def test_array_strings_with_commas
+    assert_array_cycle([{'this,has' => 'many,values'}])
+  end
+
+  def test_array_strings_with_array_delimiters
+    assert_array_cycle(['{' => '}'])
+  end
+
+  def test_array_strings_with_null_strings
+    assert_array_cycle([{'NULL' => 'NULL'}])
+  end
+
+  def test_contains_nils
+    assert_array_cycle([{'NULL' => nil}])
   end
 
   def test_select_multikey
@@ -212,17 +236,32 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
   end
 
   private
-  def assert_cycle hash
-    # test creation
-    x = Hstore.create!(:tags => hash)
-    x.reload
-    assert_equal(hash, x.tags)
 
-    # test updating
-    x = Hstore.create!(:tags => {})
-    x.tags = hash
-    x.save!
-    x.reload
-    assert_equal(hash, x.tags)
-  end
+    def assert_array_cycle(array)
+      # test creation
+      x = Hstore.create!(payload: array)
+      x.reload
+      assert_equal(array, x.payload)
+
+      # test updating
+      x = Hstore.create!(payload: [])
+      x.payload = array
+      x.save!
+      x.reload
+      assert_equal(array, x.payload)
+    end
+
+    def assert_cycle(hash)
+      # test creation
+      x = Hstore.create!(:tags => hash)
+      x.reload
+      assert_equal(hash, x.tags)
+
+      # test updating
+      x = Hstore.create!(:tags => {})
+      x.tags = hash
+      x.save!
+      x.reload
+      assert_equal(hash, x.tags)
+    end
 end
