@@ -705,6 +705,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     ids.each { |id| assert_nil klass.find_by_id(id) }
   end
 
+  def test_should_not_resave_destroyed_association
+    @pirate.birds.create!(name: :parrot)
+    @pirate.birds.first.destroy
+    @pirate.save!
+    assert @pirate.reload.birds.empty?
+  end
+
   def test_should_skip_validation_on_has_many_if_marked_for_destruction
     2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
 
