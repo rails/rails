@@ -119,6 +119,7 @@ $ rake middleware
 For a freshly generated Rails application, this might produce something like:
 
 ```ruby
+use Rack::Sendfile
 use ActionDispatch::Static
 use Rack::Lock
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
