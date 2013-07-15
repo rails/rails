@@ -4,6 +4,7 @@ require 'action_view/helpers/sanitize_helper/permit_scrubber'
 
 module ActionView
   class Sanitizer
+    # :nodoc:
     def sanitize(html, options = {})
       raise NotImplementedError, "subclasses must implement"
     end
