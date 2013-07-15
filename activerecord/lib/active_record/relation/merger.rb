@@ -97,13 +97,29 @@ module ActiveRecord
       def merge_multi_values
         lhs_wheres = relation.where_values
         rhs_wheres = values[:where] || []
+
         lhs_binds  = relation.bind_values
         rhs_binds  = values[:bind] || []
 
         removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
 
-        relation.where_values = kept + rhs_wheres
-        relation.bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
+        where_values = kept + rhs_wheres
+        bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
+
+        conn = relation.klass.connection
+        bviter = bind_values.each.with_index
+        where_values.map! do |node|
+          if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
+            (column, _), i = bviter.next
+            substitute = conn.substitute_at column, i
+            Arel::Nodes::Equality.new(node.left, substitute)
+          else
+            node
+          end
+        end
+
+        relation.where_values = where_values
+        relation.bind_values  = bind_values
 
         if values[:reordering]
           # override any order specified in the original relation

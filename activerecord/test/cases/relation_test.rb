@@ -9,6 +9,9 @@ module ActiveRecord
     fixtures :posts, :comments, :authors
 
     class FakeKlass < Struct.new(:table_name, :name)
+      def self.connection
+        Post.connection
+      end
     end
 
     def test_construction
@@ -204,6 +207,10 @@ module ActiveRecord
       def arel_table
         Post.arel_table
       end
+
+      def connection
+        Post.connection
+      end
     end
 
     def relation
@@ -295,7 +302,7 @@ module ActiveRecord
       assert_equal({foo: 'bar'}, relation.create_with_value)
     end
 
-    test 'merge!' do
+    def test_merge!
       assert relation.merge!(where: :foo).equal?(relation)
       assert_equal [:foo], relation.where_values
     end
