@@ -49,12 +49,6 @@ module ApplicationTests
       ], middleware
     end
 
-    test "Rack::Sendfile is not included by default" do
-      boot!
-
-      assert !middleware.include?("Rack::Sendfile"), "Rack::Sendfile is not included in the default stack unless you set config.action_dispatch.x_sendfile_header"
-    end
-
     test "Rack::Cache is not included by default" do
       boot!
 
@@ -143,7 +137,7 @@ module ApplicationTests
     end
 
     test "insert middleware after" do
-      add_to_config "config.middleware.insert_after ActionDispatch::Static, Rack::Config"
+      add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.second
     end
@@ -151,16 +145,16 @@ module ApplicationTests
     test "Rails.cache does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
-      assert_equal "Rack::Runtime", middleware.third
+      assert_equal "Rack::Runtime", middleware.fourth
     end
 
     test "Rails.cache does respond to middleware" do
       boot!
-      assert_equal "Rack::Runtime", middleware.fourth
+      assert_equal "Rack::Runtime", middleware.fifth
     end
 
     test "insert middleware before" do
-      add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
+      add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
     end
