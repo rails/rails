@@ -176,20 +176,6 @@ module ActiveRecord
       end
     end
 
-    def attribute_missing(match, *args, &block) # :nodoc:
-      if self.class.columns_hash[match.attr_name]
-        ActiveSupport::Deprecation.warn(
-          "The method `#{match.method_name}', matching the attribute `#{match.attr_name}' has " \
-          "dispatched through method_missing. This shouldn't happen, because `#{match.attr_name}' " \
-          "is a column of the table. If this error has happened through normal usage of Active " \
-          "Record (rather than through your own code or external libraries), please report it as " \
-          "a bug."
-        )
-      end
-
-      super
-    end
-
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
     # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
     # which will all return +true+. It also define the attribute methods if they have
