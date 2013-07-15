@@ -12,6 +12,7 @@
 # Contain an elements allowed attributes.
 # If none is set HTML5::Scrub.scrub_attributes implementation will be used.
 class PermitScrubber < Loofah::Scrubber
+  # :nodoc:
   attr_reader :tags, :attributes
 
   def tags=(tags)
