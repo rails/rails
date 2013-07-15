@@ -339,6 +339,8 @@ module ActiveRecord
             end
 
             records.each do |record|
+              next if record.destroyed?
+
               saved = true
 
               if autosave != false && (@new_record_before_save || record.new_record?)
