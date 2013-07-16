@@ -112,8 +112,16 @@ module ActiveRecord
       def preload_hash(association)
         association.each do |parent, child|
           Preloader.new(records, parent, preload_scope).run
-          Preloader.new(records.map { |record| record.send(parent) }.flatten, child).run
+          Preloader.new(parent_records_for_association_records(parent, records), child).run
         end
+      end
+
+      def parent_records_for_association_records(parent, records)
+        records.map do |record|
+          if record.respond_to?(parent)
+            record.send(parent)
+          end
+        end.flatten
       end
 
       # Not all records have the same class, so group then preload group on the reflection
@@ -140,16 +148,16 @@ module ActiveRecord
       end
 
       def records_by_reflection(association)
-        records.group_by do |record|
+        assoc = ActiveSupport::OrderedHash.new
+        records.each do |record|
           reflection = record.class.reflections[association]
 
-          unless reflection
-            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found; " \
-                                                    "perhaps you misspelled it?"
+          if reflection
+            assoc[reflection] ||= []
+            assoc[reflection] << record
           end
-
-          reflection
         end
+        assoc
       end
 
       def association_klass(reflection, record)
