@@ -69,9 +69,11 @@ module ActiveRecord
           foreign_table = parent_table
           foreign_klass = parent.base_klass
 
+          scope_chain_iter = reflection.scope_chain.reverse_each
+
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          chain.reverse.each_with_index do |reflection, i|
+          chain.reverse_each do |reflection|
             table = tables.shift
 
             case reflection.source_macro
@@ -97,7 +99,7 @@ module ActiveRecord
 
             constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
 
-            scope_chain_items = scope_chain[i].map do |item|
+            scope_chain_items = scope_chain_iter.next.map do |item|
               if item.is_a?(Relation)
                 item
               else
@@ -170,11 +172,6 @@ module ActiveRecord
         def aliased_table_name
           table.table_alias || table.name
         end
-
-        def scope_chain
-          @scope_chain ||= reflection.scope_chain.reverse
-        end
-
       end
     end
   end
