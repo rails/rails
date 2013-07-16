@@ -253,19 +253,6 @@ module ActiveRecord
         @content_columns ||= columns.reject { |c| c.primary || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
       end
 
-      # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
-      # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
-      # is available.
-      def column_methods_hash #:nodoc:
-        @dynamic_methods_hash ||= column_names.each_with_object(Hash.new(false)) do |attr, methods|
-          attr_name = attr.to_s
-          methods[attr.to_sym]       = attr_name
-          methods["#{attr}=".to_sym] = attr_name
-          methods["#{attr}?".to_sym] = attr_name
-          methods["#{attr}_before_type_cast".to_sym] = attr_name
-        end
-      end
-
       # Resets all the cached information about columns, which will cause them
       # to be reloaded on the next request.
       #

@@ -16,32 +16,23 @@ module ActiveRecord
       end
 
       def test_add_remove_single_field_using_string_arguments
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
 
         add_column 'test_models', 'last_name', :string
-
-        TestModel.reset_column_information
-
-        assert TestModel.column_methods_hash.key?(:last_name)
+        assert_column TestModel, :last_name
 
         remove_column 'test_models', 'last_name'
-
-        TestModel.reset_column_information
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
       end
 
       def test_add_remove_single_field_using_symbol_arguments
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
 
         add_column :test_models, :last_name, :string
-
-        TestModel.reset_column_information
-        assert TestModel.column_methods_hash.key?(:last_name)
+        assert_column TestModel, :last_name
 
         remove_column :test_models, :last_name
-
-        TestModel.reset_column_information
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
       end
 
       def test_unabstracted_database_dependent_types
