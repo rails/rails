@@ -14,7 +14,7 @@ namespace :test do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
-  task :run => ['test:units', 'test:functionals', 'test:integration']
+  task :run => ['test:units', 'test:functionals', 'test:generators', 'test:integration']
 
   # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
   desc "Run tests quickly by merging all types and not resetting db"
@@ -33,6 +33,10 @@ namespace :test do
     Rails::TestTask.new(name => "test:prepare") do |t|
       t.pattern = "test/#{name}/**/*_test.rb"
     end
+  end
+
+  Rails::TestTask.new(generators: "test:prepare") do |t|
+    t.pattern = "test/lib/generators/**/*_test.rb"
   end
 
   Rails::TestTask.new(units: "test:prepare") do |t|
