@@ -3620,3 +3620,56 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
     assert_equal '/projects/1', url_for(controller: 'projects', action: 'show', id: 1, only_path: true)
   end
 end
+
+class TestRackAppRouteGeneration < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      rack_app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      mount rack_app, at: '/account', as: 'account'
+      mount rack_app, at: '/:locale/account', as: 'localized_account'
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_mounted_application_doesnt_match_unnamed_route
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/account?controller=products', url_for(controller: 'products', action: 'index', only_path: true)
+    end
+
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
+    end
+  end
+end
+
+class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      get '/account', to: redirect('/myaccount'), as: 'account'
+      get '/:locale/account', to: redirect('/%{locale}/myaccount'), as: 'localized_account'
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_redirect_doesnt_match_unnamed_route
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/account?controller=products', url_for(controller: 'products', action: 'index', only_path: true)
+    end
+
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
+    end
+  end
+end

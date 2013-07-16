@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Skip routes pointing to a redirect or mounted application when generating urls
+    using an options hash as they aren't relevant and generate incorrect urls.
+
+    Fixes #8018
+
+    *Andrew White*
+
 *   Fix default rendered format problem when calling `render` without :content_type option.
     It should return :html.
 
