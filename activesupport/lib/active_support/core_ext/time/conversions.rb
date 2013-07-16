@@ -52,6 +52,7 @@ class Time
   end
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
+  alias_method :to_int, :to_i
 
   # Returns the UTC offset as an +HH:MM formatted string.
   #

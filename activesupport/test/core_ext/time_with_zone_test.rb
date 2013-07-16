@@ -802,6 +802,22 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_no_match "rescue", e.backtrace.first
   end
 
+  def test_date_range_comparisons_work_with_different_types
+    timed_out = false
+    begin
+      timeout(0.2) do
+        Time.use_zone 'Hawaii' do
+          range = 10.days.ago..2.days.ago
+          assert_equal false, range.include?(Date.today)
+        end
+      end
+    rescue Timeout::Error
+      timed_out = true
+    end
+
+    assert_equal false, timed_out, 'Range#include? never finished'
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

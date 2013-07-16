@@ -1,3 +1,9 @@
+*   Add Time#to_int alias to support Range#include? when using TimeWithZone.
+
+    Fixes #2588
+
+    *Brian Butz*, *Eno Compton*
+
 *   Only raise `Module::DelegationError` if it's the source of the exception.
 
     Fixes #10559
