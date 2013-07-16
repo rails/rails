@@ -10,4 +10,4 @@ Example:
         lib/generators/awesome/awesome_generator.rb
         lib/generators/awesome/USAGE
         lib/generators/awesome/templates/
-        test/lib/generators/awesome/awesome_generator_test.rb
+        test/lib/generators/awesome_generator_test.rb
