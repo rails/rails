@@ -25,10 +25,7 @@ module ActiveRecord
         attr_reader :tables
 
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
-        delegate :table, :table_name, :to => :parent, :prefix => :parent
         delegate :alias_tracker, :to => :join_dependency
-
-        alias :alias_suffix :parent_table_name
 
         def initialize(reflection, join_dependency, parent = nil)
           reflection.check_validity!
@@ -46,6 +43,9 @@ module ActiveRecord
           @aliased_prefix  = "t#{ join_dependency.join_parts.size }"
           @tables          = construct_tables.reverse
         end
+
+        def parent_table_name; parent.table_name; end
+        alias :alias_suffix :parent_table_name
 
         def ==(other)
           other.class == self.class &&
@@ -68,7 +68,7 @@ module ActiveRecord
           joins         = []
           tables        = @tables.dup
 
-          foreign_table = parent_table
+          foreign_table = parent.table
           foreign_klass = parent.base_klass
 
           scope_chain_iter = reflection.scope_chain.reverse_each
