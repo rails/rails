@@ -1,3 +1,7 @@
+*   `change_column` for PostgreSQL adapter respects the `:array` option.
+
+    *Yves Senn*
+
 *   Remove deprecation warning from `attribute_missing` for attributes that are columns.
 
     *Arun Agrawal*
