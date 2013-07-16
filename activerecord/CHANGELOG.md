@@ -1,3 +1,25 @@
+*   Fix bug when using Mysql2 adapter where in some cases, boolean values were
+    being output in sql as `t` or `f` instead of `1` or `0`. Example:
+
+        class Model < ActiveRecord::Base
+          validates_uniqueness_of :boolean_col
+        end
+        Model.first.valid?
+
+    Previously generated sql:
+
+        SELECT 1 AS one FROM `models` WHERE
+          `models`.`boolean_col` = BINARY 'f' LIMIT 1
+
+    With fix:
+
+        SELECT 1 AS one FROM `models` WHERE
+          `models`.`boolean_col` = BINARY 0 LIMIT 1
+
+    Fixes: #11119
+
+    *Adam Williams*
+
 *   `change_column` for PostgreSQL adapter respects the `:array` option.
 
     *Yves Senn*
