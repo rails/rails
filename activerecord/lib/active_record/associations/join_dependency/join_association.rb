@@ -114,12 +114,12 @@ module ActiveRecord
 
             scope_chain_items.concat [reflection.klass.send(:build_default_scope)].compact
 
-            constraint = scope_chain_items.inject(constraint) do |chain, item|
-              if item.arel.constraints.empty?
-                chain
-              else
-                chain.and(item.arel.constraints)
-              end
+            rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
+              left.merge right
+            end
+
+            if rel && !rel.arel.constraints.empty?
+              constraint = constraint.and rel.arel.constraints
             end
 
             manager.from(join(table, constraint))
