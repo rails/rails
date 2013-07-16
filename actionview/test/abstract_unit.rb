@@ -293,9 +293,6 @@ module ActionController
   end
 end
 
-class ::ApplicationController < ActionController::Base
-end
-
 module ActionView
   class TestCase
     # Must repeat the setup because AV::TestCase is a duplication
@@ -330,12 +327,6 @@ module ActionDispatch
     def stderr_logger
       nil
     end
-  end
-end
-
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_recall => recall))
   end
 end
 
