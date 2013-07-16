@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   `change_column` for PostgreSQL adapter respects the `:array` option.
+
+    *Yves Senn*
+
 *   fixes bug introduced by #3329.  Now, when autosaving associations,
     deletions happen before inserts and saves.  This prevents a 'duplicate
     unique value' database error that would occur if a record being created had
