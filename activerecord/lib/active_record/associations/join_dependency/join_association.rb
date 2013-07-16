@@ -97,22 +97,24 @@ module ActiveRecord
 
             constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
 
-            scope_chain_items = scope_chain[i]
+            scope_chain_items = scope_chain[i].map do |item|
+              if item.is_a?(Relation)
+                item
+              else
+                ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
+              end
+            end
 
             if reflection.type
-              scope_chain_items += [
+              scope_chain_items.concat [
                 ActiveRecord::Relation.new(reflection.klass, table)
                   .where(reflection.type => foreign_klass.base_class.name)
               ]
             end
 
-            scope_chain_items += [reflection.klass.send(:build_default_scope)].compact
+            scope_chain_items.concat [reflection.klass.send(:build_default_scope)].compact
 
             constraint = scope_chain_items.inject(constraint) do |chain, item|
-              unless item.is_a?(Relation)
-                item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
-              end
-
               if item.arel.constraints.empty?
                 chain
               else
