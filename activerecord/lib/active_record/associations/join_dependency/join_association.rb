@@ -66,6 +66,7 @@ module ActiveRecord
 
         def join_to(manager)
           tables        = @tables.dup
+
           foreign_table = parent_table
           foreign_klass = parent.base_klass
 
@@ -75,6 +76,7 @@ module ActiveRecord
           # more sense in this context), so we reverse
           chain.reverse_each do |reflection|
             table = tables.shift
+            klass = reflection.klass
 
             case reflection.source_macro
             when :belongs_to
@@ -97,23 +99,23 @@ module ActiveRecord
               foreign_key = reflection.active_record_primary_key
             end
 
-            constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
+            constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
             scope_chain_items = scope_chain_iter.next.map do |item|
               if item.is_a?(Relation)
                 item
               else
-                ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
+                ActiveRecord::Relation.new(klass, table).instance_exec(self, &item)
               end
             end
 
             if reflection.type
               scope_chain_items <<
-                ActiveRecord::Relation.new(reflection.klass, table)
+                ActiveRecord::Relation.new(klass, table)
                   .where(reflection.type => foreign_klass.base_class.name)
             end
 
-            scope_chain_items.concat [reflection.klass.send(:build_default_scope)].compact
+            scope_chain_items.concat [klass.send(:build_default_scope)].compact
 
             rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
               left.merge right
@@ -126,7 +128,7 @@ module ActiveRecord
             manager.from(join(table, constraint))
 
             # The current table in this iteration becomes the foreign table in the next
-            foreign_table, foreign_klass = table, reflection.klass
+            foreign_table, foreign_klass = table, klass
           end
 
           manager
@@ -147,13 +149,13 @@ module ActiveRecord
         #    foreign_table #=> #<Arel::Table @name="physicians" ...>
         #    foreign_key   #=> id
         #
-        def build_constraint(reflection, table, key, foreign_table, foreign_key)
+        def build_constraint(klass, table, key, foreign_table, foreign_key)
           constraint = table[key].eq(foreign_table[foreign_key])
 
-          if reflection.klass.finder_needs_type_condition?
+          if klass.finder_needs_type_condition?
             constraint = table.create_and([
               constraint,
-              reflection.klass.send(:type_condition, table)
+              klass.send(:type_condition, table)
             ])
           end
 
