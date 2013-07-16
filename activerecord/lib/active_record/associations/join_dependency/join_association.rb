@@ -106,10 +106,9 @@ module ActiveRecord
             end
 
             if reflection.type
-              scope_chain_items.concat [
+              scope_chain_items <<
                 ActiveRecord::Relation.new(reflection.klass, table)
                   .where(reflection.type => foreign_klass.base_class.name)
-              ]
             end
 
             scope_chain_items.concat [reflection.klass.send(:build_default_scope)].compact
