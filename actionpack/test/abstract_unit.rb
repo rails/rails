@@ -296,14 +296,6 @@ end
 class ::ApplicationController < ActionController::Base
 end
 
-module ActionView
-  class TestCase
-    # Must repeat the setup because AV::TestCase is a duplication
-    # of AC::TestCase
-    include ActionDispatch::SharedRoutes
-  end
-end
-
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
