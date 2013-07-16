@@ -76,8 +76,8 @@ module Rails
 
       # Defines generic callbacks to run before #after_initialize. Useful for
       # Rails::Railtie subclasses.
-      def to_prepare(&blk)
-        to_prepare_blocks << blk if blk
+      def to_prepare(&block)
+        to_prepare_blocks << block if block
       end
 
       def respond_to?(name)
@@ -86,7 +86,7 @@ module Rails
 
     private
 
-      def method_missing(name, *args, &blk)
+      def method_missing(name, *args, &block)
         if name.to_s =~ /=$/
           @@options[$`.to_sym] = args.first
         elsif @@options.key?(name)
