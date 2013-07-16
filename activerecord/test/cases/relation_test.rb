@@ -194,7 +194,7 @@ module ActiveRecord
     end
 
     def test_relation_merging_with_merged_joins_as_strings
-      join_string = "LEFT OUTER JOIN #{Rating.quoted_table_name} ON #{SpecialComment.quoted_table_name}.id = #{Rating.quoted_table_name}.comment_id"
+      join_string = "LEFT OUTER JOIN #{Rating.arel_table.name} ON #{SpecialComment.arel_table.name}.id = #{Rating.arel_table.name}.comment_id"
       special_comments_with_ratings = SpecialComment.joins join_string
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
