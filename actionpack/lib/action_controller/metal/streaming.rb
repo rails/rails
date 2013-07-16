@@ -193,8 +193,6 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    include ActionView::Rendering
-
     protected
 
     # Set proper cache control and transfer encoding when streaming
