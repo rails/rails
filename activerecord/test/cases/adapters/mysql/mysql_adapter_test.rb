@@ -108,6 +108,18 @@ module ActiveRecord
         assert_equal 2, result.column_types['status'].type_cast(result.last['status'])
       end
 
+      def test_supports_extensions
+        assert_not @conn.supports_extensions?, 'does not support extensions'
+      end
+
+      def test_respond_to_enable_extension
+        assert @conn.respond_to?(:enable_extension)
+      end
+
+      def test_respond_to_disable_extension
+        assert @conn.respond_to?(:disable_extension)
+      end
+
       private
       def insert(ctx, data, table='ex')
         binds   = data.map { |name, value|
