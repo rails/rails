@@ -948,10 +948,11 @@ module ActiveRecord
 
       join_dependency.graft(*stashed_association_joins)
 
-      # FIXME: refactor this to build an AST
-      join_dependency.join_associations.each do |association|
-        association.join_to(manager)
-      end
+      joins = join_dependency.join_associations.map { |association|
+        association.join_constraints
+      }.flatten
+
+      joins.each { |join| manager.from join }
 
       manager.join_sources.concat join_list
 

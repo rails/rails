@@ -64,7 +64,8 @@ module ActiveRecord
           end
         end
 
-        def join_to(manager)
+        def join_constraints
+          joins         = []
           tables        = @tables.dup
 
           foreign_table = parent_table
@@ -84,11 +85,10 @@ module ActiveRecord
               foreign_key = reflection.foreign_key
             when :has_and_belongs_to_many
               # Join the join table first...
-              manager.from(join(
+              joins << join(
                 table,
                 table[reflection.foreign_key].
-                  eq(foreign_table[reflection.active_record_primary_key])
-              ))
+                  eq(foreign_table[reflection.active_record_primary_key]))
 
               foreign_table, table = table, tables.shift
 
@@ -125,13 +125,13 @@ module ActiveRecord
               constraint = constraint.and rel.arel.constraints
             end
 
-            manager.from(join(table, constraint))
+            joins << join(table, constraint)
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table, foreign_klass = table, klass
           end
 
-          manager
+          joins
         end
 
         #  Builds equality condition.
