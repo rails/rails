@@ -16,6 +16,10 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
 
     assert_file "lib/generators/awesome/awesome_generator.rb",
                 /class AwesomeGenerator < Rails::Generators::NamedBase/
+    assert_file "test/lib/generators/awesome_generator_test.rb",
+               /class AwesomeGeneratorTest < Rails::Generators::TestCase/
+    assert_file "test/lib/generators/awesome_generator_test.rb",
+               /require 'generators\/awesome\/awesome_generator'/
   end
 
   def test_namespaced_generator_skeleton
@@ -29,6 +33,10 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
 
     assert_file "lib/generators/rails/awesome/awesome_generator.rb",
                 /class Rails::AwesomeGenerator < Rails::Generators::NamedBase/
+    assert_file "test/lib/generators/rails/awesome_generator_test.rb",
+               /class Rails::AwesomeGeneratorTest < Rails::Generators::TestCase/
+    assert_file "test/lib/generators/rails/awesome_generator_test.rb",
+               /require 'generators\/rails\/awesome\/awesome_generator'/
   end
 
   def test_generator_skeleton_is_created_without_file_name_namespace
@@ -42,6 +50,10 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
 
     assert_file "lib/generators/awesome_generator.rb",
                 /class AwesomeGenerator < Rails::Generators::NamedBase/
+    assert_file "test/lib/generators/awesome_generator_test.rb",
+               /class AwesomeGeneratorTest < Rails::Generators::TestCase/
+    assert_file "test/lib/generators/awesome_generator_test.rb",
+               /require 'generators\/awesome_generator'/
   end
 
   def test_namespaced_generator_skeleton_without_file_name_namespace
@@ -55,5 +67,9 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
 
     assert_file "lib/generators/rails/awesome_generator.rb",
                 /class Rails::AwesomeGenerator < Rails::Generators::NamedBase/
+    assert_file "test/lib/generators/rails/awesome_generator_test.rb",
+               /class Rails::AwesomeGeneratorTest < Rails::Generators::TestCase/
+    assert_file "test/lib/generators/rails/awesome_generator_test.rb",
+               /require 'generators\/rails\/awesome_generator'/
   end
 end
