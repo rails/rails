@@ -105,13 +105,6 @@ module ActionView
       super + [:@_view_context_class, :@_view_renderer, :@_lookup_context]
     end
 
-    # This method should return a hash with assigns.
-    # You can overwrite this configuration per controller.
-    # :api: public
-    def view_assigns
-      super
-    end
-
     private
 
       # Normalize args and options.
