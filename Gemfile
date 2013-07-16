@@ -56,7 +56,9 @@ platforms :ruby do
   group :db do
     gem 'pg', '>= 0.11.0'
     gem 'mysql', '>= 2.9.0'
-    gem 'mysql2', '>= 0.3.10'
+
+    # TODO: Relax dependency version after of fix #11457
+    gem 'mysql2', '0.3.11'
   end
 end
 
