@@ -268,6 +268,7 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 end
 
+# Emulate AV railtie.
 ActionController::Base.superclass.send(:include, ActionView::Layouts)
 
 module ActionController
@@ -328,21 +329,6 @@ module ActionDispatch
     # Silence logger
     def stderr_logger
       nil
-    end
-  end
-end
-
-module ActionDispatch
-  module RoutingVerbs
-    def get(uri_or_host, path = nil)
-      host = uri_or_host.host unless path
-      path ||= uri_or_host.path
-
-      params = {'PATH_INFO'      => path,
-                'REQUEST_METHOD' => 'GET',
-                'HTTP_HOST'      => host}
-
-      routes.call(params)[2].join
     end
   end
 end
