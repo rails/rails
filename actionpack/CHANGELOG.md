@@ -1,3 +1,10 @@
+*   Skip routes pointing to a redirect or mounted application when generating urls
+    using an options hash as they aren't relevant and generate incorrect urls.
+
+    Fixes #8018
+
+    *Andrew White*
+
 *   Move `MissingHelperError` out of the `ClassMethods` module.
 
     *Yves Senn*
