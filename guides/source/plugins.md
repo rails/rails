@@ -68,7 +68,7 @@ In this example you will add a method to String named `to_squawk`. To begin, cre
 
 require 'test_helper'
 
-class CoreExtTest < Test::Unit::TestCase
+class CoreExtTest < ActiveSupport::TestCase
   def test_to_squawk_prepends_the_word_squawk
     assert_equal "squawk! Hello World", "Hello World".to_squawk
   end
