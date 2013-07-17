@@ -184,12 +184,27 @@ module ActionDispatch
             def optimized_helper(args)
               path = @string_route.dup
               klass = Journey::Router::Utils
+              parameterized_args = args.map(&:to_param)
+              missing_keys = []
 
-              @path_parts.zip(args) do |part, arg|
+              parameterized_args.each_with_index do |arg, index|
+                if arg.nil? || arg.empty?
+                  missing_keys << @path_parts[index]
+                end
+              end
+
+              unless missing_keys.empty?
+                message = "No route matches #{Hash[@path_parts.zip(args)].inspect}"
+                message << " missing required keys: #{missing_keys.inspect}"
+
+                raise ActionController::UrlGenerationError, message
+              end
+
+              @path_parts.zip(parameterized_args) do |part, arg|
                 # Replace each route parameter
                 # e.g. :id for regular parameter or *path for globbing
                 # with ruby string interpolation code
-                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(arg.to_param))
+                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(arg))
               end
               path
             end
