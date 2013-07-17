@@ -41,5 +41,11 @@ module ActionView
         ActionController::Base.superclass.send(:include, ActionView::Layouts)
       end
     end
+
+    initializer "action_view.setup_action_mailer" do |app|
+      ActiveSupport.on_load(:action_mailer) do
+        ActionMailer::Base.send(:include, ActionView::Layouts)
+      end
+    end
   end
 end

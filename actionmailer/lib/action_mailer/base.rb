@@ -368,8 +368,6 @@ module ActionMailer
 
     include AbstractController::Rendering
 
-    include ActionView::Layouts
-
     include AbstractController::Logger
     include AbstractController::Helpers
     include AbstractController::Translation
