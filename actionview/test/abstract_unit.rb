@@ -24,7 +24,6 @@ require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
-require 'action_controller/caching'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
