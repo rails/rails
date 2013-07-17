@@ -1,3 +1,7 @@
+*   Fix backslash escaping in PostgreSQL arrays.
+
+    *Alexey Noskov*
+
 *   Perform necessary deeper encoding when hstore is inside an array.
 
     Fixes #11135.

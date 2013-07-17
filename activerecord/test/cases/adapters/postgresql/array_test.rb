@@ -113,6 +113,10 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_cycle(:tags, ['this has','some "s that need to be escaped"'])
   end
 
+  def test_strings_with_quotes_and_backslashes
+    assert_cycle(:tags, ['this has','some \\"s that need to be escaped"', 'and these\ too\"', 'and\\\"these\\\\"'])
+  end
+
   def test_strings_with_commas
     assert_cycle(:tags, ['this,has','many,values'])
   end
