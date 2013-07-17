@@ -794,18 +794,23 @@ end
 Rake Tasks for Running your Tests
 ---------------------------------
 
-You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
+You don't need to set up and run your tests by hand on a test-by-test basis.
+Rails comes with a number of commands to help in testing.
+The table below lists all commands that come along in the default Rakefile
+when you initiate a Rails project.
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default|
-| `rake test:controllers` | Runs all the controller tests from `test/controllers`|
-| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
-| `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
-| `rake test:integration` | Runs all the integration tests from `test/integration`|
-| `rake test:mailers`     | Runs all the mailer tests from `test/mailers`|
-| `rake test:models`      | Runs all the model tests from `test/models`|
-| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default |
+| `rake test:controllers` | Runs all the controller tests from `test/controllers` |
+| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
+| `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
+| `rake test:integration` | Runs all the integration tests from `test/integration` |
+| `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
+| `rake test:models`      | Runs all the model tests from `test/models` |
+| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
+| `rake test:all`         | Runs all tests quickly by merging all types and not resetting db |
+| `rake test:all:db`      | Runs all tests quickly by merging all types and resetting db |
 
 
 Brief Note About `MiniTest`
