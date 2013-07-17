@@ -160,6 +160,12 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
+      def type_cast(value, column)
+        return super unless value == true || value == false
+
+        value ? 1 : 0
+      end
+
       def quote_string(string) #:nodoc:
         @connection.quote(string)
       end
