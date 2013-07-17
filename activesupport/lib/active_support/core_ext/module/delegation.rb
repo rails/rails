@@ -6,6 +6,11 @@ class Module
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
   #
+  # ==== Options
+  # * <tt>:to</tt> - Specifies the target object
+  # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
+  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ to be raised
+  #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
   # (also a symbol or string).
