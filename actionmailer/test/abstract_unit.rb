@@ -11,11 +11,7 @@ end
 require 'active_support/testing/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
-
-silence_warnings do
-  # These external dependencies have warnings :/
-  require 'mail'
-end
+require 'mail'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
