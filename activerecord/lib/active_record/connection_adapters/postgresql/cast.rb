@@ -69,14 +69,18 @@ module ActiveRecord
 
         def array_to_string(value, column, adapter, should_be_quoted = false)
           casted_values = value.map do |val|
-            if String === val
-              if val == "NULL"
-                "\"#{val}\""
-              else
-                quote_and_escape(adapter.type_cast(val, column, true))
-              end
-            else
+            if val == "NULL"
+              "\"#{val}\""
+            elsif Array === val # Special handling of multidimensional arrays
               adapter.type_cast(val, column, true)
+            else
+              casted_val = adapter.type_cast(val, column, true)
+
+              if String === casted_val
+                quote_and_escape(casted_val)
+              else
+                casted_val
+              end
             end
           end
           "{#{casted_values.join(',')}}"
