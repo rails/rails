@@ -1,3 +1,8 @@
+*   Change the signature of `fetch_multi` to return a hash rather than an
+    array. This makes it consistent with the output of `read_multi`.
+
+    *Parker Selbert*
+
 *   Introduce `Concern#class_methods` as a sleek alternative to clunky
     `module ClassMethods`. Add `Kernel#concern` to define at the toplevel
     without chunky `module Foo; extend ActiveSupport::Concern` boilerplate.

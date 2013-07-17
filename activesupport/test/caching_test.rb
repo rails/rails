@@ -297,20 +297,21 @@ module CacheStoreBehavior
     @cache.write('foo', 'bar')
     @cache.write('fud', 'biz')
 
-    values = @cache.fetch_multi('foo', 'fu', 'fud') {|value| value * 2 }
+    values = @cache.fetch_multi('foo', 'fu', 'fud') { |value| value * 2 }
 
-    assert_equal(["bar", "fufu", "biz"], values)
-    assert_equal("fufu", @cache.read('fu'))
+    assert_equal({ 'foo' => 'bar', 'fu' => 'fufu', 'fud' => 'biz' }, values)
+    assert_equal('fufu', @cache.read('fu'))
   end
 
   def test_multi_with_objects
-    foo = stub(:title => "FOO!", :cache_key => "foo")
-    bar = stub(:cache_key => "bar")
+    foo = stub(:title => 'FOO!', :cache_key => 'foo')
+    bar = stub(:cache_key => 'bar')
 
-    @cache.write('bar', "BAM!")
+    @cache.write('bar', 'BAM!')
 
-    values = @cache.fetch_multi(foo, bar) {|object| object.title }
-    assert_equal(["FOO!", "BAM!"], values)
+    values = @cache.fetch_multi(foo, bar) { |object| object.title }
+
+    assert_equal({ foo => 'FOO!', bar => 'BAM!' }, values)
   end
 
   def test_read_and_write_compressed_small_data
