@@ -100,6 +100,14 @@ module ActiveRecord
     # firing an additional query. This will often result in a
     # performance improvement over a simple +join+.
     #
+    # You can also specify multiple relationships, like this:
+    #
+    #   users = User.includes(:address, :friends)
+    #
+    # Loading nested relationships is possible using a Hash:
+    #
+    #   users = User.includes(:address, friends: [:address, :followers])
+    #
     # === conditions
     #
     # If you want to add conditions to your included models you'll have
