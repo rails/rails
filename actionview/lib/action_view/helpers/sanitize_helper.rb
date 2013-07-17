@@ -45,6 +45,7 @@ module ActionView
       #
       # <%= sanitize @article.body, scrubber: scrubber %>
       #
+      # A custom scrubber takes precedence over custom tags and attributes
       # Learn more about scrubbers here: https://github.com/flavorjones/loofah
       #
       # Custom Use - tags and attributes
