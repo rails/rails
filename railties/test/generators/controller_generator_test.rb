@@ -25,6 +25,12 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     Object.send :remove_const, :ObjectController
   end
 
+  def test_controller_with_namespace
+    run_generator ["admin/account"]
+    assert_file "app/controllers/admin.rb", /module Admin/
+    assert_file "app/controllers/admin/account_controller.rb", /class Admin::AccountController < ApplicationController/
+  end
+
   def test_invokes_helper
     run_generator
     assert_file "app/helpers/account_helper.rb"
