@@ -72,6 +72,10 @@ module ActiveSupport
       @logger.send(method, *args)
     end
 
+    def respond_to_missing?(*args)
+      @logger.respond_to? *args
+    end
+
     private
       def tags_text
         tags = current_tags

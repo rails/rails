@@ -27,6 +27,10 @@
 
     *Andrew White*
 
+*   Add respond_to_missing? for TaggedLogging which is best practice when overriding method_missing. This permits
+    wrapping TaggedLogging by another log abstraction such as em-logger.
+
+    *Wolfram Arnold*
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
 
