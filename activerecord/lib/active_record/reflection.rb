@@ -527,7 +527,9 @@ module ActiveRecord
       #
       def chain
         @chain ||= begin
-          chain = source_reflection.chain + through_reflection.chain
+          a = source_reflection.chain
+          b = through_reflection.chain
+          chain = a + b
           chain[0] = self # Use self so we don't lose the information from :source_type
           chain
         end

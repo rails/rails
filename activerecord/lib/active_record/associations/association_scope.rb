@@ -119,7 +119,7 @@ module ActiveRecord
           # the owner
           klass.table_name
         else
-          reflection.table_name
+          super
         end
       end
 
