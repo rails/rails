@@ -14,6 +14,7 @@ Hoe.spec 'arel' do
   developer('Emilio Tagua', 'miloops@gmail.com')
   developer('Nick Kallen', 'nick@example.org') # FIXME: need Nick's email
 
+  self.licenses         = ['MIT']
   self.readme_file      = 'README.markdown'
   self.extra_rdoc_files = FileList['README.markdown']
 end
