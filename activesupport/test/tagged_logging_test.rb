@@ -66,6 +66,10 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] Funky time\n", @output.string
   end
 
+  test "correctly answers responds_to_missing? for methods on logger instance" do
+    assert @logger.respond_to?(:debug?)
+  end
+
   test "tagged once with blank and nil" do
     @logger.tagged(nil, "", "New") { @logger.info "Funky time" }
     assert_equal "[New] Funky time\n", @output.string
