@@ -13,7 +13,7 @@
     After:
 
         link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
-        # => "<a href=\"/\"><span>Example site</span></a>"
+        # => "<a href=\"/foo/bar\"><span>Example site</span></a>"
 
     *Murahashi Sanemat Kenichi*
 
