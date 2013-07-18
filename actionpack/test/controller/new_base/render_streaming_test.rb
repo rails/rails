@@ -90,7 +90,7 @@ module RenderStreaming
       begin
         get "/render_streaming/basic/template_exception"
         io.rewind
-        assert_match "(undefined method `invalid!' for nil:NilClass)", io.read
+        assert_match(/undefined method `invalid!' \w+ nil:NilClass/, io.read)
       ensure
         ActionController::Base.logger = _old
       end
