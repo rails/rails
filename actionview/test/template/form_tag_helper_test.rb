@@ -14,7 +14,11 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
 
-    txt =  %{<div style="margin:0;padding:0;display:inline">}
+    if !options[:without_inline_styles]
+      txt =  %{<div style="margin:0;padding:0;display:inline">}
+    else
+      txt =  %{<div>}
+    end
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />} if enforce_utf8
     if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
@@ -108,6 +112,13 @@ class FormTagHelperTest < ActionView::TestCase
     actual = form_tag({}, :remote => false)
 
     expected = whole_form
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_with_without_inline_styles_option
+    actual = form_tag({}, :without_inline_styles => true)
+
+    expected = whole_form("http://www.example.com", :without_inline_styles => true)
     assert_dom_equal expected, actual
   end
 
