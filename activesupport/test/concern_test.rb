@@ -68,12 +68,6 @@ class ConcernTest < ActiveSupport::TestCase
     assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
   end
 
-  def test_instance_methods_are_included
-    @klass.send(:include, Baz)
-    assert_equal "baz", @klass.new.baz
-    assert @klass.included_modules.include?(ConcernTest::Baz)
-  end
-
   def test_included_block_is_ran
     @klass.send(:include, Baz)
     assert_equal true, @klass.included_ran
