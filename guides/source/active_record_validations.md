@@ -120,8 +120,8 @@ database only if the object is valid:
 * `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't: `save` and `update` return `false`,
-`create` and `update` just return the objects.
+The non-bang versions don't, `save` and `update` return `false`,
+`create` just returns the object.
 
 ### Skipping Validations
 
@@ -677,13 +677,13 @@ class GoodnessValidator
   def initialize(person)
     @person = person
   end
-  
+
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
       @person.errors[:base] << "This person is evil"
     end
   end
-  
+
   # …
 end
 ```
