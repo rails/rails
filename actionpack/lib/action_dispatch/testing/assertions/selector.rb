@@ -1,5 +1,6 @@
 require 'action_view/vendor/html-scanner'
 require 'active_support/core_ext/object/inclusion'
+require 'loofah'
 
 #--
 # Copyright (c) 2006 Assaf Arkin (http://labnotes.org)
@@ -60,12 +61,11 @@ module ActionDispatch
       def css_select(*args)
         # See assert_select to understand what's going on here.
 
-        parser = ArgumentsParser.new(self, args, Proc.new do |arg, args|
+        parser = Selector.new(@selected, args, Proc.new do |css_selector|
           # will only be called if we're a nested select, i.e. @selected is set
-          # the elements to match has already been selected, so we return the matches here
           matches = []
           @selected.each do |selected|
-            subset = css_select(selected, HTML::Selector.new(arg.dup, args.dup))
+            subset = css_select(selected, css_selector)
             subset.each do |match|
               matches << match unless matches.include?(match)
             end
@@ -73,7 +73,7 @@ module ActionDispatch
           return matches
         end)
 
-        parser.selector.select(parser.root)
+        parser.root.css(parser.css_selector)
       end
 
       # An assertion that selects elements and makes one or more equality tests.
@@ -166,9 +166,9 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        parser = ArgumentsParser.new(self, args, Proc.new do |_, _|
-          root = HTML::Node.new(nil)
-          root.children.concat @selected
+        parser = HTMLSelector.new(@selected, args, Proc.new do |_|
+          root = Loofah.fragment('')
+          root.add_child @selected
           root
         end)
 
@@ -176,7 +176,7 @@ module ActionDispatch
         root = parser.root
 
         # First or second argument is the selector
-        selector = parser.selector
+        selector = parser.css_selector
 
         # Next argument is used for equality tests.
         equals = parser.equals
@@ -185,7 +185,7 @@ module ActionDispatch
         message = parser.message
         #- message = "No match made with selector #{selector.inspect}" unless message
 
-        matches = selector.select(root)
+        matches = root.css(selector)
         # If text/html, narrow down to those elements that match it.
         content_mismatch = nil
         if match_with = equals[:text]
@@ -357,67 +357,59 @@ module ActionDispatch
       end
 
       protected
-        attr_accessor :root_for_nested_select_proc
-        # +assert_select+ and +css_select+ call this to obtain the content in the HTML page.
-        def response_from_page
-          html_document.root
-        end
+        class Selector #:nodoc:
+          attr_accessor :root, :css_selector
 
-        def nested_call?
-          defined(@selected) && @selected
-        end
+          def initialize(selected, *args, &root_for_nested_call_proc)
+            raise ArgumentError, "ArgumentsParser expects a block for parsing a nested call's arguments" unless block_given?
+            @nested_call = selected
 
-      class ArgumentsParser #:nodoc:
-        attr_accessor :root, :selector
+            @args = args
 
-        def initialize(initiator, *args, &root_for_nested_call_proc)
-          raise ArgumentError, "ArgumentsParser expects a block for parsing a nested call's arguments" unless block_given?
+            # see +determine_root_from+
+            @css_selector_is_second_argument = false
+            @root = determine_root_from(@args.shift)
 
-          @initiator = initiator
-          @args = args
+            arg = @css_selector_is_second_argument ? @args.shift : @args.first
+            @css_selector = css_selector(arg)
+          end
 
-          # see +determine_root_from+
-          @selector_is_second_argument = false
-          @root = determine_root_from(@args.shift)
+          def response_from_page
+            @html_document ||= if @response.content_type =~ /xml$/
+              Loofah.xml_fragment(@response.body)
+            else
+              Loofah.fragment(@response.body)
+            end
+            @html_document.root
+          end
 
-          arg = @selector_is_second_argument ? @args.shift : @args.first
-          @selector = selector_from(arg, @args)
-        end
+          def determine_root_from(root_or_selector)
+            if root_or_selector.is_a?(Nokogiri::XML::Node)
+              # First argument is a node (tag or text, but also HTML root),
+              # so we know what we're selecting from,
+              # we also know that the second argument is the selector
+              @css_selector_is_second_argument = true
 
-        def determine_root_from(possible_root)
-          if possible_root.is_a?(HTML::Node)
-            # First argument is a node (tag or text, but also HTML root),
-            # so we know what we're selecting from,
-            # we also know that the second argument is the selector
-            @selector_is_second_argument = true
+              root_or_selector
+            elsif root_or_selector == nil
+              raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
+            elsif @nested_call
+              # root_or_selector is a selector since the first call failed
+              root_for_nested_select_proc.call(root_or_selector)
+            else
+              response_from_page
+            end
+          end
 
-            possible_root
-          elsif possible_root == nil
-            # This usually happens when passing a node/element that
-            # happens to be nil.
-            raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-          elsif @initiator.nested_call?
-            # Nesting selects
-            root_for_nested_select_proc.call(possible_root, @args)
-          else
-            # Otherwise just operate on the response document.
-            @initiator.response_from_page
+          def css_selector_from(arg)
+            unless arg.is_a? String
+              raise ArgumentError, "Expecting a selector as the first argument"
+            end
+            arg
           end
         end
 
-        def selector_from(arg, args)
-          case arg
-            when String
-              HTML::Selector.new(arg, args) # pass all remaining arguments.
-            when Array
-              HTML::Selector.new(*arg) # pass the argument.
-            when HTML::Selector
-              arg # also accepts selector itself.
-            else raise ArgumentError, "Expecting a selector as the first argument"
-          end
-        end
-
-        class HTMLArgumentsParser < ArgumentsParser
+        class HTMLSelector < Selector
           attr_accessor :equals, :message
           def initialize(*)
             super
@@ -457,7 +449,6 @@ module ActionDispatch
             equals
           end
         end
-      end
     end
   end
 end
