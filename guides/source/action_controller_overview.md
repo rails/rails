@@ -88,7 +88,7 @@ class ClientsController < ApplicationController
   # this RESTful request will be "/clients", and the data will be
   # sent as part of the request body.
   def create
-    @client = Client.new(params[:client])
+    @client = Client.new(client_params)
     if @client.save
       redirect_to @client
     else
@@ -98,6 +98,11 @@ class ClientsController < ApplicationController
     end
   end
 end
+
+ private
+ def client_params
+   params.require(:client).permit(:name, :phone, {address: [:city, :postcode]})
+ end
 ```
 
 ### Hash and Array Parameters
