@@ -8,6 +8,11 @@ module ActiveRecord
     module Named
       extend ActiveSupport::Concern
 
+      included do |base|
+        base.class_attribute :scopes
+        base.scopes = []
+      end
+
       module ClassMethods
         # Returns an <tt>ActiveRecord::Relation</tt> scope object.
         #
@@ -141,6 +146,7 @@ module ActiveRecord
         def scope(name, body, &block)
           extension = Module.new(&block) if block
 
+          self.scopes += [name.to_sym]
           singleton_class.send(:define_method, name) do |*args|
             if body.respond_to?(:call)
               scope = all.scoping { body.call(*args) }

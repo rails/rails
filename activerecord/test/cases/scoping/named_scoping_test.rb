@@ -448,4 +448,15 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
   end
 
+  def test_scope_names_are_registered
+    assert_equal [:relation_include_posts, :relation_include_tags], Author.scopes
+    klazz = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      scope :scope_a, Proc.new { none }
+      scope :scope_b, Proc.new { none }
+      scope :scope_c, Proc.new { none }
+    end
+    assert_equal [:scope_a, :scope_b, :scope_c], klazz.scopes
+  end
+
 end
