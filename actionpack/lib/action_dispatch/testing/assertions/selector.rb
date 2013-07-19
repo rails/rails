@@ -59,39 +59,21 @@ module ActionDispatch
       #   end
       def css_select(*args)
         # See assert_select to understand what's going on here.
-        arg = args.shift
 
-        if arg.is_a?(HTML::Node)
-          root = arg
-          arg = args.shift
-        elsif arg == nil
-          raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif defined?(@selected) && @selected
+        parser = ArgumentsParser.new(self, args, Proc.new do |arg, args|
+          # will only be called if we're a nested select, i.e. @selected is set
+          # the elements to match has already been selected, so we return the matches here
           matches = []
-
           @selected.each do |selected|
             subset = css_select(selected, HTML::Selector.new(arg.dup, args.dup))
             subset.each do |match|
-              matches << match unless matches.any? { |m| m.equal?(match) }
+              matches << match unless matches.include?(match)
             end
           end
-
           return matches
-        else
-          root = response_from_page
-        end
+        end)
 
-        case arg
-          when String
-            selector = HTML::Selector.new(arg, args)
-          when Array
-            selector = HTML::Selector.new(*arg)
-          when HTML::Selector
-            selector = arg
-          else raise ArgumentError, "Expecting a selector as the first argument"
-        end
-
-        selector.select(root)
+        parser.selector.select(parser.root)
       end
 
       # An assertion that selects elements and makes one or more equality tests.
@@ -182,72 +164,26 @@ module ActionDispatch
       #     assert_select "[name=?]", /.+/  # Not empty
       #   end
       def assert_select(*args, &block)
-        # Start with optional element followed by mandatory selector.
-        arg = args.shift
         @selected ||= nil
 
-        if arg.is_a?(HTML::Node)
-          # First argument is a node (tag or text, but also HTML root),
-          # so we know what we're selecting from.
-          root = arg
-          arg = args.shift
-        elsif arg == nil
-          # This usually happens when passing a node/element that
-          # happens to be nil.
-          raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif @selected
+        parser = ArgumentsParser.new(self, args, Proc.new do |_, _|
           root = HTML::Node.new(nil)
           root.children.concat @selected
-        else
-          # Otherwise just operate on the response document.
-          root = response_from_page
-        end
+          root
+        end)
 
-        # First or second argument is the selector: string and we pass
-        # all remaining arguments. Array and we pass the argument. Also
-        # accepts selector itself.
-        case arg
-          when String
-            selector = HTML::Selector.new(arg, args)
-          when Array
-            selector = HTML::Selector.new(*arg)
-          when HTML::Selector
-            selector = arg
-          else raise ArgumentError, "Expecting a selector as the first argument"
-        end
+        # Start with optional element followed by mandatory selector.
+        root = parser.root
+
+        # First or second argument is the selector
+        selector = parser.selector
 
         # Next argument is used for equality tests.
-        equals = {}
-        case arg = args.shift
-          when Hash
-            equals = arg
-          when String, Regexp
-            equals[:text] = arg
-          when Integer
-            equals[:count] = arg
-          when Range
-            equals[:minimum] = arg.begin
-            equals[:maximum] = arg.end
-          when FalseClass
-            equals[:count] = 0
-          when NilClass, TrueClass
-            equals[:minimum] = 1
-          else raise ArgumentError, "I don't understand what you're trying to match"
-        end
-
-        # By default we're looking for at least one match.
-        if equals[:count]
-          equals[:minimum] = equals[:maximum] = equals[:count]
-        else
-          equals[:minimum] = 1 unless equals[:minimum]
-        end
+        equals = parser.equals
 
         # Last argument is the message we use if the assertion fails.
-        message = args.shift
+        message = parser.message
         #- message = "No match made with selector #{selector.inspect}" unless message
-        if args.shift
-          raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
-        end
 
         matches = selector.select(root)
         # If text/html, narrow down to those elements that match it.
@@ -421,10 +357,107 @@ module ActionDispatch
       end
 
       protected
+        attr_accessor :root_for_nested_select_proc
         # +assert_select+ and +css_select+ call this to obtain the content in the HTML page.
         def response_from_page
           html_document.root
         end
+
+        def nested_call?
+          defined(@selected) && @selected
+        end
+
+      class ArgumentsParser #:nodoc:
+        attr_accessor :root, :selector
+
+        def initialize(initiator, *args, &root_for_nested_call_proc)
+          raise ArgumentError, "ArgumentsParser expects a block for parsing a nested call's arguments" unless block_given?
+
+          @initiator = initiator
+          @args = args
+
+          # see +determine_root_from+
+          @selector_is_second_argument = false
+          @root = determine_root_from(@args.shift)
+
+          arg = @selector_is_second_argument ? @args.shift : @args.first
+          @selector = selector_from(arg, @args)
+        end
+
+        def determine_root_from(possible_root)
+          if possible_root.is_a?(HTML::Node)
+            # First argument is a node (tag or text, but also HTML root),
+            # so we know what we're selecting from,
+            # we also know that the second argument is the selector
+            @selector_is_second_argument = true
+
+            possible_root
+          elsif possible_root == nil
+            # This usually happens when passing a node/element that
+            # happens to be nil.
+            raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
+          elsif @initiator.nested_call?
+            # Nesting selects
+            root_for_nested_select_proc.call(possible_root, @args)
+          else
+            # Otherwise just operate on the response document.
+            @initiator.response_from_page
+          end
+        end
+
+        def selector_from(arg, args)
+          case arg
+            when String
+              HTML::Selector.new(arg, args) # pass all remaining arguments.
+            when Array
+              HTML::Selector.new(*arg) # pass the argument.
+            when HTML::Selector
+              arg # also accepts selector itself.
+            else raise ArgumentError, "Expecting a selector as the first argument"
+          end
+        end
+
+        class HTMLArgumentsParser < ArgumentsParser
+          attr_accessor :equals, :message
+          def initialize(*)
+            super
+            @equals = assign_equals_from(@args.shift)
+            @message = @args.shift
+
+            if @args.shift
+              raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
+            end
+          end
+
+          def assign_equals_from(comparator)
+              equals = {}
+              case comparator
+                when Hash
+                  equals = comparator
+                when String, Regexp
+                  equals[:text] = comparator
+                when Integer
+                  equals[:count] = comparator
+                when Range
+                  equals[:minimum] = comparator.begin
+                  equals[:maximum] = comparator.end
+                when FalseClass
+                  equals[:count] = 0
+                when NilClass, TrueClass
+                  equals[:minimum] = 1
+                else raise ArgumentError, "I don't understand what you're trying to match"
+              end
+
+              # By default we're looking for at least one match.
+              if equals[:count]
+                equals[:minimum] = equals[:maximum] = equals[:count]
+              else
+                equals[:minimum] ||= 1
+              end
+            equals
+          end
+        end
+      end
     end
   end
 end
