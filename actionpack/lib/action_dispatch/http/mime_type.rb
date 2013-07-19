@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
 
