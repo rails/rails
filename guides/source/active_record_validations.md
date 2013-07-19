@@ -121,7 +121,7 @@ database only if the object is valid:
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
 The non-bang versions don't, `save` and `update` return `false`,
-`create` just return the objects.
+`create` just returns the object.
 
 ### Skipping Validations
 
