@@ -100,7 +100,7 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_nil digest("level/recursion") # assert digest is stored
   end
 
-  def test_chaning_the_top_templete_on_recursion
+  def test_chaining_the_top_template_on_recursion
     assert digest("level/recursion") # assert recursion is possible
 
     assert_digest_difference("level/recursion") do
@@ -110,7 +110,7 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_nil digest("level/recursion") # assert digest is stored
   end
 
-  def test_chaning_the_partial_templete_on_recursion
+  def test_chaining_the_partial_template_on_recursion
     assert digest("level/recursion") # assert recursion is possible
 
     assert_digest_difference("level/recursion") do
