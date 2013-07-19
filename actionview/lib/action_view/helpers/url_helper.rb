@@ -16,7 +16,7 @@ module ActionView
       # provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
-
+      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}
       extend ActiveSupport::Concern
 
       include TagHelper
@@ -289,7 +289,7 @@ module ActionView
         remote = html_options.delete('remote')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
+        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
