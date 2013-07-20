@@ -191,18 +191,16 @@ module ActionDispatch
             text = match.text
             text.strip! unless NO_STRIP.include?(match.name)
             text.sub!(/\A\n/, '') if match.name == "textarea"
-            unless content_matches?(match_with, text)
-              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, text)
-              true
+            content_matches?(match_with, text) do |error_message|
+              content_mismatch ||= error_message
             end
           end
         elsif match_with = equals[:html]
           matches.delete_if do |match|
-            html = match.children.map(&:to_s).join
+            html = match.to_s
             html.strip! unless NO_STRIP.include?(match.name)
-            unless content_matches?(match_with, html)
-              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, html)
-              true
+            content_matches?(match_with, html) do |error_message|
+              content_mismatch ||= error_message
             end
           end
         end
@@ -352,6 +350,7 @@ module ActionDispatch
           else
             content == match_with.to_s
           end
+          yield sprintf("<%s> expected but was\n<%s>.", match_with, content) if block_given?
         end
 
         class Selector #:nodoc:
