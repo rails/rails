@@ -188,20 +188,11 @@ module ActionDispatch
         content_mismatch = nil
         if match_with = equals[:text]
           matches.delete_if do |match|
-            text = ""
-            stack = match.children.reverse
-            while node = stack.pop
-              if node.tag?
-                stack.concat node.children.reverse
-              else
-                content = node.content
-                text << content
-              end
-            end
+            text = match.text
             text.strip! unless NO_STRIP.include?(match.name)
             text.sub!(/\A\n/, '') if match.name == "textarea"
-            unless match_with.is_a?(Regexp) ? (text =~ match_with) : (text == match_with.to_s)
-              content_mismatch ||= sprintf("<%s> expected but was\n<%s>", match_with, text)
+            unless content_matches?(match_with, text)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, text)
               true
             end
           end
@@ -209,8 +200,8 @@ module ActionDispatch
           matches.delete_if do |match|
             html = match.children.map(&:to_s).join
             html.strip! unless NO_STRIP.include?(match.name)
-            unless match_with.is_a?(Regexp) ? (html =~ match_with) : (html == match_with.to_s)
-              content_mismatch ||= sprintf("<%s> expected but was\n<%s>", match_with, html)
+            unless content_matches?(match_with, html)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, html)
               true
             end
           end
@@ -355,6 +346,14 @@ module ActionDispatch
       end
 
       protected
+        def content_matches?(match_with, content)
+          if match_with.is_a?(Regexp)
+            content =~ match_with
+          else
+            content == match_with.to_s
+          end
+        end
+
         class Selector #:nodoc:
           attr_accessor :root, :css_selector
 
