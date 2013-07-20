@@ -166,10 +166,8 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        parser = HTMLSelector.new(@selected, args, Proc.new do |_|
-          root = Loofah.fragment('')
-          root.add_child @selected
-          root
+        parser = HTMLSelector.new(@selected, args, Proc.new do
+          Loofah.fragment('').tap { |fragment| fragment.add_child @selected }
         end)
 
         # Start with optional element followed by mandatory selector.
