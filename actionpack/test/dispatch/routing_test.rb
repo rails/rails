@@ -3763,3 +3763,20 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 end
+
+class TestCollectionRouting < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      resources :posts
+    end
+  end
+
+  include Routes.url_helpers
+  include ActionDispatch::Assertions::RoutingAssertions
+  def app; Routes end
+
+  test "collection" do
+    opts = {controller: "post", action: "replace"}
+    assert_recognizes opts, path: "/posts", method: 'put'
+  end
+end
