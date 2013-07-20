@@ -68,8 +68,8 @@ module ActiveSupport
       @logger.flush if @logger.respond_to?(:flush)
     end
 
-    def method_missing(method, *args)
-      @logger.send(method, *args)
+    def method_missing(method, *args, &block)
+      @logger.send(method, *args, &block)
     end
 
     private

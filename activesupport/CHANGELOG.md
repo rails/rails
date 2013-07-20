@@ -1,3 +1,7 @@
+*   Pass through block for `method_missing` in `ActiveSupport::TaggedLogging`
+
+    *Adrian CB*
+
 ## Rails 3.2.14.rc2 (Jun 16, 2013) ##
 
 *   No changes.
