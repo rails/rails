@@ -138,6 +138,7 @@ module ActiveRecord
 
           scope.where_values      = Array(values[:where])      + Array(preload_values[:where])
           scope.references_values = Array(values[:references]) + Array(preload_values[:references])
+          scope.joins_values      = Array(values[:joins])      + Array(preload_values[:joins])
           scope.bind_values       = (reflection_binds + preload_binds)
 
           scope._select!   preload_values[:select] || values[:select] || table[Arel.star]

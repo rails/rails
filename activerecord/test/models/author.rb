@@ -5,6 +5,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments, -> { includes(:comments) }, :class_name => "Post"
   has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(comments_count) > 1").select("type") }, :class_name => "Post"
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order('comments.id') }, :class_name => "Post"
+  has_many :posts_with_comments_sorted_by_comment_id_via_join, -> { joins(:comments).order('comments.id') }, :class_name => "Post"
   has_many :posts_sorted_by_id_limited, -> { order('posts.id').limit(1) }, :class_name => "Post"
   has_many :posts_with_categories, -> { includes(:categories) }, :class_name => "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, :class_name => "Post"

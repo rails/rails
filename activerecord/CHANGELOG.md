@@ -1,3 +1,20 @@
+*   Fix eager loading has_many association with ordering on a joined table
+
+    A has_many association ordering on a joined table would omit the join
+    when eager loaded:
+
+    class Character < ActiveRecord::Base
+      has_many :appearances, -> { joins(:books).order("books.published_on") }
+    end
+
+    Character.where(name: "Gandalf").includes(:appearances).first
+    => SQLite3::SQLException: no such column: books.published_on:
+      SELECT "appearances".* FROM "appearances"
+      WHERE "appearances"."character_id" IN (1)
+      ORDER BY "books"."published_on"
+
+    *Jonathon M. Abbott*
+
 *   Remove deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
     `proper_table_name` instance method on `ActiveRecord::Migration` instead.
 
