@@ -161,7 +161,6 @@ module ActionDispatch
         @selected ||= nil
 
         filter = ArgumentFilter.new(@selected, response_from_page, args)
-
         root = filter.root
         selector = filter.css_selector
         equals = filter.comparisons
@@ -170,24 +169,10 @@ module ActionDispatch
         matches = root.css(selector)
         # If text/html, narrow down to those elements that match it.
         content_mismatch = nil
-        if match_with = equals[:text]
-          matches.delete_if do |match|
-            text = match.text
-            text.strip! unless NO_STRIP.include?(match.name)
-            text.sub!(/\A\n/, '') if match.name == "textarea"
-            content_matches?(match_with, text) do |error_message|
-              content_mismatch ||= error_message
-            end
-          end
-        elsif match_with = equals[:html]
-          matches.delete_if do |match|
-            html = match.to_s
-            html.strip! unless NO_STRIP.include?(match.name)
-            content_matches?(match_with, html) do |error_message|
-              content_mismatch ||= error_message
-            end
-          end
+        filter_matches(matches, equals) do |mismatch|
+          content_mismatch ||= mismatch
         end
+
         # Expecting foo found bar element only if found zero, not if
         # found one but expecting two.
         message ||= content_mismatch if matches.empty?
@@ -322,13 +307,23 @@ module ActionDispatch
       end
 
       protected
-        def content_matches?(match_with, content)
-          if match_with.is_a?(Regexp)
-            content =~ match_with
-          else
-            content == match_with.to_s
+        def filter_matches(matches, options)
+          match_with = options[:text] || options[:html]
+          return unless match_with
+
+          text_matches = options.has_key?(:text)
+          matches.delete_if do |match|
+            # Preserve html markup with to_s if not matching text elements
+            content = text_matches ? match.text : match.to_s
+
+            content.strip! unless NO_STRIP.include?(match.name)
+            content.sub!(/\A\n/, '') if text_matches && match.name == "textarea"
+
+            unless match_with.is_a?(Regexp) ? (content =~ match_with) : (content == match_with.to_s)
+              yield sprintf("<%s> expected but was\n<%s>.", match_with, content)
+              true
+            end
           end
-          yield sprintf("<%s> expected but was\n<%s>.", match_with, content) if block_given?
         end
 
         def response_from_page
