@@ -61,7 +61,7 @@ module ActionDispatch
       def css_select(*args)
         raise ArgumentError, "you at least need a selector" if args.empty?
 
-        if args.first.is_a?(String) # allow nokogiri's ability to use several selectors
+        if args.first.is_a?(String) # allow nokogiri's ability to use more selectors
           root, selectors = response_from_page, args
         else
           root, selectors = args.shift, args
@@ -160,8 +160,8 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        parser = HTMLSelector.new(@selected, args, Proc.new do
-          Loofah.fragment('').tap { |fragment| fragment.add_child @selected }
+        parser = HTMLSelector.new(@selected, reponse_from_page, args, Proc.new do
+          Loofah.fragment('').tap { |f| f.add_child @selected }
         end)
 
         # Start with optional element followed by mandatory selector.
@@ -353,9 +353,10 @@ module ActionDispatch
         class Selector #:nodoc:
           attr_accessor :root, :css_selector
 
-          def initialize(selected, *args, &root_for_nested_call_proc)
+          def initialize(selected, page, *args, &root_for_nested_call_proc)
             raise ArgumentError, "ArgumentsParser expects a block for parsing a nested call's arguments" unless block_given?
             @nested_call = selected
+            @page = page
 
             @args = args
 
@@ -381,7 +382,7 @@ module ActionDispatch
               # root_or_selector is a selector since the first call failed
               root_for_nested_select_proc.call(root_or_selector)
             else
-              response_from_page
+              @page
             end
           end
 
