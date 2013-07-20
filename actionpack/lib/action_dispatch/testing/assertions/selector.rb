@@ -295,14 +295,8 @@ module ActionDispatch
             raise ArgumentError, "Argument is optional, and may be node or array of nodes"
         end
 
-        fix_content = lambda do |node|
-          # Gets around a bug in the Rails 1.1 HTML parser.
-          node.content.gsub(/<!\[CDATA\[(.*)(\]\]>)?/m) { Rack::Utils.escapeHTML($1) }
-        end
-
         selected = elements.map do |elem|
-          text = elem.children.select{ |c| not c.tag? }.map{ |c| fix_content[c] }.join
-          root = HTML::Document.new(CGI.unescapeHTML("<encoded>#{text}</encoded>")).root
+          root = Loofah.fragment(CGI.unescapeHTML("<encoded>#{elem.text}</encoded>")).root
           css_select(root, "encoded:root", &block)[0]
         end
 
