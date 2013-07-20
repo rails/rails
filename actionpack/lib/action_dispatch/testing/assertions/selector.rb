@@ -285,7 +285,7 @@ module ActionDispatch
         case element
           when Array
             elements = element
-          when HTML::Node
+          when Nokogiri::XML::Node
             elements = [element]
           when nil
             unless elements = @selected
