@@ -1,3 +1,8 @@
+*   Use attributes extracted from association scope instead of `default_scope`
+    or default attributes.
+
+    *Paul Nikitochkin*
+
 *   The comparison between `Relation` and `CollectionProxy` should be consistent.
 
     Example:

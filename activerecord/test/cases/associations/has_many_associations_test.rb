@@ -111,6 +111,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'defaulty', bulb.name
   end
 
+  def test_create_from_association_with_respect_association_scope
+    bulb = Car.create!.foo_bulbs.build
+    assert_equal 'foo', bulb.name
+  end
+
   def test_do_not_call_callbacks_for_delete_all
     car = Car.create(:name => 'honda')
     car.funky_bulbs.create!
