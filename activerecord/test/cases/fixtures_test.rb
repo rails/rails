@@ -20,12 +20,15 @@ require 'models/book'
 require 'models/admin'
 require 'models/admin/account'
 require 'models/admin/user'
+require 'models/admin/randomly_named_c1'
+require 'models/randomly_named_c1'
 require 'tempfile'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
+  # other_topics fixture should not be included here
   fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights
 
   FIXTURES = %w( accounts binaries companies customers
@@ -93,7 +96,7 @@ class FixturesTest < ActiveRecord::TestCase
       # Reset cache to make finds on the new table work
       ActiveRecord::Fixtures.reset_cache
 
-      ActiveRecord::Base.connection.create_table :prefix_topics_suffix do |t|
+      ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
         t.column :title, :string
         t.column :author_name, :string
         t.column :author_email_address, :string
@@ -115,23 +118,36 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
 
-      topics = create_fixtures("topics")
+      other_topic_klass = Class.new(ActiveRecord::Base) do
+        def self.name
+          "OtherTopic"
+        end
+      end
 
-      first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'David'")
-      assert_equal("The First Topic", first_row["title"])
-
-      second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
-      assert_nil(second_row["author_email_address"])
+      topics = [create_fixtures("other_topics")].flatten.first
 
       # This checks for a caching problem which causes a bug in the fixtures
       # class-level configuration helper.
       assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
+
+      first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
+      assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
+      assert_equal("The First Topic", first_row["title"])
+
+      second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
+      assert_nil(second_row["author_email_address"])
+
+      assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
+      # This assertion should preferably be the last in the list, because calling
+      # other_topic_klass.table_name sets a class-level instance variable
+      assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
+
     ensure
       # Restore prefix/suffix to its previous values
       ActiveRecord::Base.table_name_prefix = old_prefix
       ActiveRecord::Base.table_name_suffix = old_suffix
 
-      ActiveRecord::Base.connection.drop_table :prefix_topics_suffix rescue nil
+      ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
     end
   end
 
@@ -729,5 +745,36 @@ class FixtureLoadingTest < ActiveRecord::TestCase
     ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
     ActiveRecord::Base.logger.expects(:warn).never
     ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
+  end
+end
+
+class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
+  ActiveRecord::Fixtures.reset_cache
+
+  set_fixture_class :randomly_named_a9         =>
+                        ClassNameThatDoesNotFollowCONVENTIONS,
+                    :'admin/randomly_named_a9' =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                    'admin/randomly_named_b0'  =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS
+
+  fixtures :randomly_named_a9, 'admin/randomly_named_a9',
+           :'admin/randomly_named_b0'
+
+  def test_named_accessor_for_randomly_named_fixture_and_class
+    assert_kind_of ClassNameThatDoesNotFollowCONVENTIONS,
+                   randomly_named_a9(:first_instance)
+  end
+
+  def test_named_accessor_for_randomly_named_namespaced_fixture_and_class
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_a9(:first_instance)
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_b0(:second_instance)
+  end
+
+  def test_table_name_is_defined_in_the_model
+    assert_equal 'randomly_named_table', ActiveRecord::Fixtures::all_loaded_fixtures['admin/randomly_named_a9'].table_name.to_s
+    assert_equal 'randomly_named_table', Admin::ClassNameThatDoesNotFollowCONVENTIONS.table_name.to_s
   end
 end
