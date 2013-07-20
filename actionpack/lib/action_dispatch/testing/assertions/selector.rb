@@ -61,7 +61,7 @@ module ActionDispatch
       def css_select(*args)
         raise ArgumentError, "you at least need a selector" if args.empty?
 
-        if args.first.is_a?(String) # allow nokogiri's ability to use more selectors
+        if args.first.is_a?(String) # use nokogiri's ability for more selectors
           root, selectors = response_from_page, args
         else
           root, selectors = args.shift, args
