@@ -59,21 +59,15 @@ module ActionDispatch
       #     ...
       #   end
       def css_select(*args)
-        # See assert_select to understand what's going on here.
+        raise ArgumentError, "you at least need a selector" if args.empty?
 
-        parser = Selector.new(@selected, args, Proc.new do |css_selector|
-          # will only be called if we're a nested select, i.e. @selected is set
-          matches = []
-          @selected.each do |selected|
-            subset = css_select(selected, css_selector)
-            subset.each do |match|
-              matches << match unless matches.include?(match)
-            end
-          end
-          return matches
-        end)
+        if args.first.is_a?(String) # allow nokogiri's ability to use several selectors
+          root, selectors = response_from_page, args
+        else
+          root, selectors = args.shift, args
+        end
 
-        parser.root.css(parser.css_selector)
+        root.css(selectors)
       end
 
       # An assertion that selects elements and makes one or more equality tests.
@@ -347,6 +341,15 @@ module ActionDispatch
           yield sprintf("<%s> expected but was\n<%s>.", match_with, content) if block_given?
         end
 
+        def response_from_page
+          @html_document ||= if @response.content_type =~ /xml$/
+            Loofah.xml_fragment(@response.body)
+          else
+            Loofah.fragment(@response.body)
+          end
+          @html_document.root
+        end
+
         class Selector #:nodoc:
           attr_accessor :root, :css_selector
 
@@ -362,15 +365,6 @@ module ActionDispatch
 
             arg = @css_selector_is_second_argument ? @args.shift : @args.first
             @css_selector = css_selector(arg)
-          end
-
-          def response_from_page
-            @html_document ||= if @response.content_type =~ /xml$/
-              Loofah.xml_fragment(@response.body)
-            else
-              Loofah.fragment(@response.body)
-            end
-            @html_document.root
           end
 
           def determine_root_from(root_or_selector)
