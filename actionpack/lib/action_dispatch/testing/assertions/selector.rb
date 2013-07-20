@@ -160,20 +160,12 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        filter = ArgumentFilter.new(@selected, reponse_from_page, args)
+        filter = ArgumentFilter.new(@selected, response_from_page, args)
 
-        # Start with optional element followed by mandatory selector.
         root = filter.root
-
-        # First or second argument is the selector
         selector = filter.css_selector
-
-        # Next argument is used for equality tests.
-        equals = filter.equals
-
-        # Last argument is the message we use if the assertion fails.
+        equals = filter.comparisons
         message = filter.message
-        #- message = "No match made with selector #{selector.inspect}" unless message
 
         matches = root.css(selector)
         # If text/html, narrow down to those elements that match it.
@@ -349,25 +341,28 @@ module ActionDispatch
         end
 
         class ArgumentFilter #:nodoc:
-          attr_accessor :root, :css_selector, :equals, :message
+          attr_accessor :root, :css_selector, :comparisons, :message
 
           def initialize(selected, page, *args)
-            @selected = selected
-            @page = page
+            @selected, @page = selected, page
 
-            @args = args
+            # Start with optional element followed by mandatory selector.
+            @root = determine_root_from(args.shift)
 
-            # see +determine_root_from+
-            @css_selector_is_second_argument = false
-            @root = determine_root_from(@args.shift)
+            # First or second argument is the selector
+            selector = @css_selector_is_second_argument ? args.shift : args.first
+            unless selector.is_a? String
+              raise ArgumentError, "Expecting a selector as the first argument"
+            end
+            @css_selector = selector
 
-            arg = @css_selector_is_second_argument ? @args.shift : @args.first
-            @css_selector = css_selector(arg)
+            # Next argument is used for equality tests.
+            @comparisons = comparisons_from(args.shift)
 
-            @equals = assign_equals_from(@args.shift)
-            @message = @args.shift
+            # Last argument is the message we use if the assertion fails.
+            @message = args.shift
 
-            if @args.shift
+            if args.shift
               raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
             end
           end
@@ -389,39 +384,32 @@ module ActionDispatch
             end
           end
 
-          def css_selector_from(arg)
-            unless arg.is_a? String
-              raise ArgumentError, "Expecting a selector as the first argument"
-            end
-            arg
-          end
-
-          def assign_equals_from(comparator)
-              equals = {}
+          def comparisons_from(comparator)
+              comparisons = {}
               case comparator
                 when Hash
-                  equals = comparator
+                  comparisons = comparator
                 when String, Regexp
-                  equals[:text] = comparator
+                  comparisons[:text] = comparator
                 when Integer
-                  equals[:count] = comparator
+                  comparisons[:count] = comparator
                 when Range
-                  equals[:minimum] = comparator.begin
-                  equals[:maximum] = comparator.end
+                  comparisons[:minimum] = comparator.begin
+                  comparisons[:maximum] = comparator.end
                 when FalseClass
-                  equals[:count] = 0
+                  comparisons[:count] = 0
                 when NilClass, TrueClass
-                  equals[:minimum] = 1
+                  comparisons[:minimum] = 1
                 else raise ArgumentError, "I don't understand what you're trying to match"
               end
 
               # By default we're looking for at least one match.
-              if equals[:count]
-                equals[:minimum] = equals[:maximum] = equals[:count]
+              if comparisons[:count]
+                comparisons[:minimum] = comparisons[:maximum] = comparisons[:count]
               else
-                equals[:minimum] ||= 1
+                comparisons[:minimum] ||= 1
               end
-            equals
+            comparisons
           end
         end
     end
