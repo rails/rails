@@ -511,17 +511,18 @@ ActiveRecord::Schema.define do
   end
 
   create_table :people, force: true do |t|
-    t.string     :first_name, null: false
-    t.references :primary_contact
-    t.string     :gender, limit: 1
-    t.references :number1_fan
-    t.integer    :lock_version, null: false, default: 0
-    t.string     :comments
-    t.integer    :followers_count, default: 0
-    t.integer    :friends_too_count, default: 0
-    t.references :best_friend
-    t.references :best_friend_of
-    t.integer    :insures, null: false, default: 0
+    t.string       :first_name, null: false
+    t.references   :primary_contact
+    t.string       :gender, limit: 1
+    t.references   :number1_fan
+    t.integer      :lock_version, null: false, default: 0
+    t.fixed_string :state, limit: 2
+    t.string       :comments
+    t.integer      :followers_count, default: 0
+    t.integer      :friends_too_count, default: 0
+    t.references   :best_friend
+    t.references   :best_friend_of
+    t.integer      :insures, null: false, default: 0
     t.timestamps
   end
 

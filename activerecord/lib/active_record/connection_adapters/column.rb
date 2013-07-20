@@ -7,6 +7,7 @@ module ActiveRecord
     class Column
       TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON'].to_set
       FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
+      TEXT_TYPES = [:string, :fixed_string, :text]
 
       module Format
         ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
@@ -42,7 +43,7 @@ module ActiveRecord
 
       # Returns +true+ if the column is either of type string or text.
       def text?
-        type == :string || type == :text
+        TEXT_TYPES.include?(type)
       end
 
       # Returns +true+ if the column is either of type integer, float or decimal.
@@ -62,7 +63,7 @@ module ActiveRecord
         when :decimal                     then BigDecimal
         when :datetime, :timestamp, :time then Time
         when :date                        then Date
-        when :text, :string, :binary      then String
+        when *TEXT_TYPES, :binary         then String
         when :boolean                     then Object
         end
       end
@@ -95,7 +96,7 @@ module ActiveRecord
         klass = self.class
 
         case type
-        when :string, :text
+        when *TEXT_TYPES
           case value
           when TrueClass; "1"
           when FalseClass; "0"
@@ -283,12 +284,14 @@ module ActiveRecord
             :time
           when /date/i
             :date
-          when /clob/i, /text/i
+          when /clob|text/i
             :text
-          when /blob/i, /binary/i
+          when /blob|binary/i
             :binary
-          when /char/i
+          when /varchar|character varying/i
             :string
+          when /char/i
+            :fixed_string
           when /boolean/i
             :boolean
           end

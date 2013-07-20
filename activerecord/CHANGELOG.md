@@ -1,3 +1,10 @@
+*   Add support for char(n) types via the new `:fixed_string` column type. Example:
+
+        add_column :people, :zip, :fixed_string, limit: 5
+
+    *Ben Woosley*
+    *George Ogata*
+
 *   `ActiveRecord::Base.no_touching` no longer triggers callbacks or start empty transactions.
 
     Fixes #14841.

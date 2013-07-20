@@ -58,7 +58,7 @@ module ActiveRecord
               super
             end
           when Numeric
-            if sql_type == 'money' || [:string, :text].include?(column.type)
+            if sql_type == 'money' || PostgreSQLColumn::TEXT_TYPES.include?(column.type)
               # Not truly string input, so doesn't require (or allow) escape string syntax.
               "'#{value}'"
             else

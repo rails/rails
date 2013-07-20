@@ -51,6 +51,13 @@ module ActiveRecord
       attr_accessor :indexes
       attr_reader :name, :temporary, :options, :as
 
+      COLUMN_TYPES = [
+        :string, :fixed_string, :text,
+        :integer, :float, :decimal,
+        :datetime, :timestamp, :time, :date,
+        :binary, :boolean
+      ]
+
       def initialize(types, name, temporary, options, as = nil)
         @columns_hash = {}
         @indexes = {}
@@ -77,7 +84,7 @@ module ActiveRecord
       # Instantiates a new column for the table.
       # The +type+ parameter is normally one of the migrations native types,
       # which is one of the following:
-      # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
+      # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:fixed_string</tt>, <tt>:text</tt>,
       # <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
       # <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
       # <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>.
@@ -88,7 +95,7 @@ module ActiveRecord
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and
+      #   Requests a maximum column length. This is number of characters for <tt>:string</tt>, <tt>:fixed_string</tt> and
       #   <tt>:text</tt> columns and number of bytes for <tt>:binary</tt> and <tt>:integer</tt> columns.
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
@@ -227,7 +234,7 @@ module ActiveRecord
         @columns_hash.delete name.to_s
       end
 
-      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+      COLUMN_TYPES.each do |column_type|
         define_method column_type do |*args|
           options = args.extract_options!
           column_names = args
@@ -483,7 +490,7 @@ module ActiveRecord
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
-      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+      TableDefinition::COLUMN_TYPES.each do |column_type|
         define_method column_type do |*args|
           options = args.extract_options!
           args.each do |name|

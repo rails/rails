@@ -101,9 +101,9 @@ module ActiveRecord
           return :boolean if adapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
 
           case field_type
-          when /enum/i, /set/i then :string
-          when /year/i         then :integer
-          when /bit/i          then :binary
+          when /enum|set/i then :string
+          when /year/i     then :integer
+          when /bit/i      then :binary
           else
             super
           end
@@ -166,18 +166,19 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) auto_increment PRIMARY KEY",
-        :string      => { :name => "varchar", :limit => 255 },
-        :text        => { :name => "text" },
-        :integer     => { :name => "int", :limit => 4 },
-        :float       => { :name => "float" },
-        :decimal     => { :name => "decimal" },
-        :datetime    => { :name => "datetime" },
-        :timestamp   => { :name => "datetime" },
-        :time        => { :name => "time" },
-        :date        => { :name => "date" },
-        :binary      => { :name => "blob" },
-        :boolean     => { :name => "tinyint", :limit => 1 }
+        :primary_key  => "int(11) auto_increment PRIMARY KEY",
+        :string       => { :name => "varchar", :limit => 255 },
+        :fixed_string => { :name => "char", :limit => 255 },
+        :text         => { :name => "text" },
+        :integer      => { :name => "int", :limit => 4 },
+        :float        => { :name => "float" },
+        :decimal      => { :name => "decimal" },
+        :datetime     => { :name => "datetime" },
+        :timestamp    => { :name => "datetime" },
+        :time         => { :name => "time" },
+        :date         => { :name => "date" },
+        :binary       => { :name => "blob" },
+        :boolean      => { :name => "tinyint", :limit => 1 }
       }
 
       INDEX_TYPES  = [:fulltext, :spatial]
