@@ -161,12 +161,10 @@ module ActionDispatch
         @selected ||= nil
 
         filter = ArgumentFilter.new(@selected, response_from_page, args)
-        root = filter.root
         selector = filter.css_selector
         equals = filter.comparisons
-        message = filter.message
 
-        matches = root.css(selector)
+        matches = filter.root.css(selector)
         # If text/html, narrow down to those elements that match it.
         content_mismatch = nil
         filter_matches(matches, equals) do |mismatch|
@@ -175,6 +173,7 @@ module ActionDispatch
 
         # Expecting foo found bar element only if found zero, not if
         # found one but expecting two.
+        message = filter.message
         message ||= content_mismatch if matches.empty?
         # Test minimum/maximum occurrence.
         min, max, count = equals[:minimum], equals[:maximum], equals[:count]
@@ -265,7 +264,7 @@ module ActionDispatch
         end
 
         selected = elements.map do |elem|
-          root = Loofah.fragment(CGI.unescapeHTML("<encoded>#{elem.text}</encoded>")).root
+          root = Loofah.document(CGI.unescapeHTML("<encoded>#{elem.text}</encoded>")).root
           css_select(root, "encoded:root", &block)[0]
         end
 
@@ -299,7 +298,7 @@ module ActionDispatch
         deliveries.each do |delivery|
           (delivery.parts.empty? ? [delivery] : delivery.parts).each do |part|
             if part["Content-Type"].to_s =~ /^text\/html\W/
-              root = HTML::Document.new(part.body.to_s).root
+              root = Loofah.document(part.body.to_s).root
               assert_select root, ":root", &block
             end
           end
@@ -328,9 +327,9 @@ module ActionDispatch
 
         def response_from_page
           @html_document ||= if @response.content_type =~ /xml$/
-            Loofah.xml_fragment(@response.body)
+            Loofah.xml_document(@response.body)
           else
-            Loofah.fragment(@response.body)
+            Loofah.document(@response.body)
           end
           @html_document.root
         end
@@ -372,8 +371,8 @@ module ActionDispatch
 
               root_or_selector
             elsif @selected
-              # nested call - wrap in document fragment
-              Loofah.fragment('').tap { |f| f.add_child @selected }
+              # nested call - wrap in document
+              Loofah.document('').tap { |f| f.add_child @selected }
             else
               @page
             end
