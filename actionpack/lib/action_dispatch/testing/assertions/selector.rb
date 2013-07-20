@@ -160,9 +160,7 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        parser = HTMLSelector.new(@selected, reponse_from_page, args, Proc.new do
-          Loofah.fragment('').tap { |f| f.add_child @selected }
-        end)
+        parser = HTMLSelector.new(@selected, reponse_from_page, args)
 
         # Start with optional element followed by mandatory selector.
         root = parser.root
@@ -353,9 +351,9 @@ module ActionDispatch
         class Selector #:nodoc:
           attr_accessor :root, :css_selector
 
-          def initialize(selected, page, *args, &root_for_nested_call_proc)
+          def initialize(selected, page, *args)
             raise ArgumentError, "ArgumentsParser expects a block for parsing a nested call's arguments" unless block_given?
-            @nested_call = selected
+            @selected = selected
             @page = page
 
             @args = args
@@ -369,18 +367,18 @@ module ActionDispatch
           end
 
           def determine_root_from(root_or_selector)
-            if root_or_selector.is_a?(Nokogiri::XML::Node)
+            if root_or_selector == nil
+              raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
+            elsif root_or_selector.is_a?(Nokogiri::XML::Node)
               # First argument is a node (tag or text, but also HTML root),
               # so we know what we're selecting from,
               # we also know that the second argument is the selector
               @css_selector_is_second_argument = true
 
               root_or_selector
-            elsif root_or_selector == nil
-              raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-            elsif @nested_call
+            elsif @selected
               # root_or_selector is a selector since the first call failed
-              root_for_nested_select_proc.call(root_or_selector)
+              Loofah.fragment('').tap { |f| f.add_child @selected }
             else
               @page
             end
