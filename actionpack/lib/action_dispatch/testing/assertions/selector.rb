@@ -175,21 +175,10 @@ module ActionDispatch
         # found one but expecting two.
         message = filter.message
         message ||= content_mismatch if matches.empty?
-        # Test minimum/maximum occurrence.
-        min, max, count = equals[:minimum], equals[:maximum], equals[:count]
+        assert_size_match!(matches.size, equals, selector, message)
 
-        # FIXME: minitest provides messaging when we use assert_operator,
-        # so is this custom message really needed?
-        message = message || %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{matches.size})
-        if count
-          assert_equal count, matches.size, message
-        else
-          assert_operator matches.size, :>=, min, message if min
-          assert_operator matches.size, :<=, max, message if max
-        end
-
-        # If a block is given call that block. Set @selected to allow
-        # nested assert_select, which can be nested several levels deep.
+        # Set @selected to allow nested assert_select.
+        # Can be nested several levels deep.
         if block_given? && !matches.empty?
           begin
             in_scope, @selected = @selected, matches
@@ -322,6 +311,21 @@ module ActionDispatch
               yield sprintf("<%s> expected but was\n<%s>.", match_with, content)
               true
             end
+          end
+        end
+
+        # +equals+ must contain :minimum, :maximum and :count keys
+        def assert_size_match!(size, equals, selector, message = nil)
+          min, max, count = equals[:minimum], equals[:maximum], equals[:count]
+
+          # FIXME: minitest provides messaging when we use assert_operator,
+          # so is this custom message really needed?
+          message ||= %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{size}.)
+          if count
+            assert_equal size, count, message
+          else
+            assert_operator size, :>=, min, message if min
+            assert_operator size, :<=, max, message if max
           end
         end
 
