@@ -160,19 +160,19 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        parser = HTMLSelector.new(@selected, reponse_from_page, args)
+        filter = ArgumentFilter.new(@selected, reponse_from_page, args)
 
         # Start with optional element followed by mandatory selector.
-        root = parser.root
+        root = filter.root
 
         # First or second argument is the selector
-        selector = parser.css_selector
+        selector = filter.css_selector
 
         # Next argument is used for equality tests.
-        equals = parser.equals
+        equals = filter.equals
 
         # Last argument is the message we use if the assertion fails.
-        message = parser.message
+        message = filter.message
         #- message = "No match made with selector #{selector.inspect}" unless message
 
         matches = root.css(selector)
@@ -348,11 +348,10 @@ module ActionDispatch
           @html_document.root
         end
 
-        class Selector #:nodoc:
-          attr_accessor :root, :css_selector
+        class ArgumentFilter #:nodoc:
+          attr_accessor :root, :css_selector, :equals, :message
 
           def initialize(selected, page, *args)
-            raise ArgumentError, "ArgumentsParser expects a block for parsing a nested call's arguments" unless block_given?
             @selected = selected
             @page = page
 
@@ -364,6 +363,13 @@ module ActionDispatch
 
             arg = @css_selector_is_second_argument ? @args.shift : @args.first
             @css_selector = css_selector(arg)
+
+            @equals = assign_equals_from(@args.shift)
+            @message = @args.shift
+
+            if @args.shift
+              raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
+            end
           end
 
           def determine_root_from(root_or_selector)
@@ -372,12 +378,11 @@ module ActionDispatch
             elsif root_or_selector.is_a?(Nokogiri::XML::Node)
               # First argument is a node (tag or text, but also HTML root),
               # so we know what we're selecting from,
-              # we also know that the second argument is the selector
               @css_selector_is_second_argument = true
 
               root_or_selector
             elsif @selected
-              # root_or_selector is a selector since the first call failed
+              # nested call - wrap in document fragment
               Loofah.fragment('').tap { |f| f.add_child @selected }
             else
               @page
@@ -389,19 +394,6 @@ module ActionDispatch
               raise ArgumentError, "Expecting a selector as the first argument"
             end
             arg
-          end
-        end
-
-        class HTMLSelector < Selector
-          attr_accessor :equals, :message
-          def initialize(*)
-            super
-            @equals = assign_equals_from(@args.shift)
-            @message = @args.shift
-
-            if @args.shift
-              raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
-            end
           end
 
           def assign_equals_from(comparator)
