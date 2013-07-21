@@ -71,7 +71,7 @@ Major Features
  * **Declarative ETags** ([commit](https://github.com/rails/rails/commit/ed5c938fa36995f06d4917d9543ba78ed506bb8d)) - Set ETag and Last-Modified headers using `etag` and `fresh_when`.
  * **[Russian doll caching](http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works)** ([commit](https://github.com/rails/rails/commit/4154bf012d2bec2aae79e4a49aa94a70d3e91d49)) - Cache nested fragments of views. Each fragment expires based on a set of dependencies (a cache key). The cache key is usually a template version number and a model object.
  * **Turbolinks** ([commit](https://github.com/rails/rails/commit/e35d8b18d0649c0ecc58f6b73df6b3c8d0c6bb74)) - Serve only one initial HTML page. When the user navigates to another page, use pushState to update the URL and use AJAX to update the title and body.
- * **Decouple ActionView from ActionController** ([commit](https://github.com/rails/rails/commit/78b0934dd1bb84e8f093fb8ef95ca99b297b51cd)) - ActionView is moved outside of ActionPack.
+ * **Decouple ActionView from ActionController** ([commit](https://github.com/rails/rails/commit/78b0934dd1bb84e8f093fb8ef95ca99b297b51cd)) - ActionView was decoupled from ActionPack and will be moved to a separated gem in Rails 4.1.
  * **Do not depend on ActiveModel** ([commit](https://github.com/rails/rails/commit/166dbaa7526a96fdf046f093f25b0a134b277a68)) - ActionPack no longer depends on ActiveModel.
 
 ### General
