@@ -1,3 +1,11 @@
+*   Fix an issue where Journey was failing to clear the named routes hash when the
+    routes were reloaded and since it doesn't overwrite existing routes then if a
+    route changed but wasn't renamed it kept the old definition. This was being
+    masked by the optimised url helpers so it only became apparent when passing an
+    options hash to the url helper.
+
+    *Andrew White*
+
 *   Skip routes pointing to a redirect or mounted application when generating urls
     using an options hash as they aren't relevant and generate incorrect urls.
 
