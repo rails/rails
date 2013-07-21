@@ -165,7 +165,6 @@ module ActionDispatch
         equals = filter.comparisons
 
         matches = filter.root.css(selector)
-        # If text/html, narrow down to those elements that match it.
         content_mismatch = nil
         filter_matches(matches, equals) do |mismatch|
           content_mismatch ||= mismatch
@@ -188,7 +187,6 @@ module ActionDispatch
           end
         end
 
-        # Returns all matches elements.
         matches
       end
 
@@ -370,7 +368,7 @@ module ActionDispatch
               raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
             elsif root_or_selector.is_a?(Nokogiri::XML::Node)
               # First argument is a node (tag or text, but also HTML root),
-              # so we know what we're selecting from,
+              # so we know what we're selecting from.
               @css_selector_is_second_argument = true
 
               root_or_selector
