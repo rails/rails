@@ -82,7 +82,7 @@ module ActiveRecord
 
             stmt = relation.where(
               relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, self.class.columns_hash[lock_col]))
+                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, column_for_attribute(lock_col)))
               )
             ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
 
