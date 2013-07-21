@@ -82,23 +82,8 @@ class Array
     end
   end
 
-  # Converts a collection of elements into a formatted string by calling
-  # <tt>to_s</tt> on all elements and joining them. Having this model:
-  #
-  #   class Blog < ActiveRecord::Base
-  #     def to_s
-  #       title
-  #     end
-  #   end
-  #
-  #   Blog.all.map(&:title) #=> ["First Post", "Second Post", "Third post"]
-  #
-  # <tt>to_formatted_s</tt> shows us:
-  #
-  #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
-  #
-  # Adding in the <tt>:db</tt> argument as the format yields a comma separated
-  # id list:
+  # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
+  # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
   #   Blog.all.to_formatted_s(:db) # => "1,2,3"
   def to_formatted_s(format = :default)

@@ -301,7 +301,7 @@ This command shows you where you are in the code by printing 10 lines centered a
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
-   10        format.json { render :json => @posts }
+   10        format.json { render json: @posts }
 ```
 
 If you repeat the `list` command, this time using just `l`, the next ten lines of the file will be printed out.
@@ -337,7 +337,7 @@ On the other hand, to see the previous ten lines you should type `list-` (or `l-
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
-   10        format.json { render :json => @posts }
+   10        format.json { render json: @posts }
 ```
 
 This way you can move inside the file, being able to see the code above and over the line you added the `debugger`.
