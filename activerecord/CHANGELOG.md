@@ -1,3 +1,9 @@
+*   `add_to_target` now accepts a second optional `skip_callbacks` argument
+
+    If truthy, it will skip the :before_add and :after_add callbacks.
+
+    *Ben Woosley*
+
 *   Fix interactions between `:before_add` callbacks and nested attributes
     assignment of `has_many` associations, when the association was not
     yet loaded:
