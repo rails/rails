@@ -1,5 +1,4 @@
 require 'thread'
-require 'mocha/setup'
 require "cases/helper"
 require 'models/person'
 require 'models/job'
