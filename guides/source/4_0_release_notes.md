@@ -76,11 +76,11 @@ Major Features
 
 ### General
 
- * **ActiveModel::Model** ([commit](https://github.com/rails/rails/commit/3b822e91d1a6c4eab0064989bbd07aae3a6d0d08)) - `ActiveModel::Model` is extracted from ActiveRecord. `ActiveModel::Model` provides validations and `form_for` for normal Ruby objects.
+ * **ActiveModel::Model** ([commit](https://github.com/rails/rails/commit/3b822e91d1a6c4eab0064989bbd07aae3a6d0d08)) - `ActiveModel::Model`, a mixin to make normal Ruby objects to work with ActionPack out of box (ex. for `form_for`)
  * **New scope API** ([commit](https://github.com/rails/rails/commit/50cbc03d18c5984347965a94027879623fc44cce)) - Scopes must always use callables.
  * **Schema cache dump** ([commit](https://github.com/rails/rails/commit/5ca4fc95818047108e69e22d200e7a4a22969477)) - To improve Rails boot time, instead of loading the schema directly from the database, load the schema from a dump file.
  * **Support for specifying transaction isolation level** ([commit](https://github.com/rails/rails/commit/392eeecc11a291e406db927a18b75f41b2658253)) - Choose whether repeatable reads or improved performance (less locking) is more important.
- * **Dalli** ([commit](https://github.com/rails/rails/commit/82663306f428a5bbc90c511458432afb26d2f238)) - For the memcache session store, use the Dalli memcache client.
+ * **Dalli** ([commit](https://github.com/rails/rails/commit/82663306f428a5bbc90c511458432afb26d2f238)) - Use Dalli memcache client for the memcache store.
  * **Notifications start &amp; finish** ([commit](https://github.com/rails/rails/commit/f08f8750a512f741acb004d0cebe210c5f949f28)) - Active Support instrumentation reports start and finish notifications to subscribers.
  * **Thread safe by default** ([commit](https://github.com/rails/rails/commit/5d416b907864d99af55ebaa400fff217e17570cd)) - Rails can run in threaded app servers without additional configuration. Note: Check that the gems you are using are threadsafe.
  * **PATCH verb** ([commit](https://github.com/rails/rails/commit/eed9f2539e3ab5a68e798802f464b8e4e95e619e)) - In Rails, PATCH replaces PUT. PATCH is used for partial updates of resources.
