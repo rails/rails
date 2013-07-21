@@ -520,12 +520,16 @@ module ActionView
         end
 
         grouped_options.each do |container|
+          html_attributes = option_html_attributes(container)
+
           if divider
             label = divider
           else
             label, container = container
           end
-          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
+
+          html_attributes = { :label => label }.merge(html_attributes)
+          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), html_attributes)
         end
 
         body
