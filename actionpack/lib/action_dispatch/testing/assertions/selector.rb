@@ -165,7 +165,6 @@ module ActionDispatch
         equals = filter.comparisons
 
         matches = filter.root.css(selector)
-        # If text/html, narrow down to those elements that match it.
         content_mismatch = nil
         filter_matches(matches, equals) do |mismatch|
           content_mismatch ||= mismatch
@@ -188,7 +187,6 @@ module ActionDispatch
           end
         end
 
-        # Returns all matches elements.
         matches
       end
 
