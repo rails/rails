@@ -1,3 +1,12 @@
+*   Don't allow `quote_value` to be called without a column.
+
+    Some adapters require column information to do their job properly.
+    By enforcing the provision of the column for this internal method
+    we ensure that those using adapters that require column information
+    will always get the proper behavior.
+
+    *Ben Woosley*
+
 *   When using optimistic locking, `update` was not passing the column to `quote_value`
     to allow the connection adapter to properly determine how to quote the value. This was
     affecting certain databases that use specific colmn types.
