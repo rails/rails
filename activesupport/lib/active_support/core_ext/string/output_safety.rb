@@ -50,11 +50,8 @@ class ERB
     # cannot contain text that unintentionally closes a <script>
     # element (a potential XSS vector).
     #
-    # This method is aliased as +j+, and available as a helper
-    # in Rails templates.
-    #
     #   <script>
-    #     var data = <%=j @data.to_json.html_safe %>;
+    #     var data = <%=json_escape @data.to_json.html_safe %>;
     #   </script>
     #
     # If @data is +"</script>"+, the output is:
