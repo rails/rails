@@ -1,7 +1,8 @@
-*   When using optimisitc locking, `update` whas not passing the column type to `quote_value`
+*   When using optimistic locking, `update` was not passing the column to `quote_value`
     to allow the connection adapter to properly determine how to quote the value. This was
     affecting certain databases that use specific colmn types.
-    Fix #6763
+
+    Fixes: #6763
 
     *Alfred Wong*
 
