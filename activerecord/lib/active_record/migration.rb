@@ -1059,8 +1059,7 @@ module ActiveRecord
       unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
         begin
           ddl_transaction(migration) do
-            migration.migrate(@direction)
-            record_version_state_after_migrating(migration.version)
+            execute_migration(migration, @direction)
           end
         rescue => e
           canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
@@ -1074,17 +1073,16 @@ module ActiveRecord
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      bulk_migratable = bulk_migration && runnable.none?(&:disable_ddl_transaction)
+      bulk_migrating = bulk_migration && runnable.none?(&:disable_ddl_transaction)
       current_migration = nil
       begin
-        ddl_transaction_if(bulk_migratable) do
+        ddl_transaction_if(bulk_migrating) do
           runnable.each do |migration|
             current_migration = migration
             Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
-            ddl_transaction_if(!bulk_migratable, migration) do
-              migration.migrate(@direction)
-              record_version_state_after_migrating(migration.version)
+            ddl_transaction_if(!bulk_migrating, migration) do
+              execute_migration(migration, @direction)
             end
           end
         end
@@ -1092,7 +1090,7 @@ module ActiveRecord
         canceled_msg =
           if !Base.connection.supports_ddl_transactions? || current_migration.disable_ddl_transaction
             "all later"
-          elsif bulk_migratable
+          elsif bulk_migrating
             "all"
           else
             "this and all later"
@@ -1128,6 +1126,11 @@ module ActiveRecord
     private
     def ran?(migration)
       migrated.include?(migration.version.to_i)
+    end
+
+    def execute_migration(migration, direction)
+      migration.migrate(direction)
+      record_version_state_after_migrating(migration.version)
     end
 
     def target
@@ -1168,16 +1171,20 @@ module ActiveRecord
       @direction == :down
     end
 
+    # Wrap the migration in a transaction only if supported by the adapter.
     def ddl_transaction(migration)
-      ddl_transaction_if(true, migration) do
+      if use_transaction?(migration)
+        Base.transaction { yield }
+      else
         yield
       end
     end
 
-    # Wrap the migration in a transaction only if supported by the adapter.
     def ddl_transaction_if(perform, migration = nil)
-      if perform && use_transaction?(migration)
-        Base.transaction { yield }
+      if perform
+        ddl_transaction(migration) do
+          yield
+        end
       else
         yield
       end
