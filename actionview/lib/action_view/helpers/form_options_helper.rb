@@ -384,8 +384,8 @@ module ActionView
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
-          :selected => extract_values_from_collection(collection, value_method, selected),
-          :disabled => extract_values_from_collection(collection, value_method, disabled)
+          selected: extract_values_from_collection(collection, value_method, selected),
+          disabled: extract_values_from_collection(collection, value_method, disabled)
         }
 
         options_for_select(options, select_deselect)
@@ -444,7 +444,7 @@ module ActionView
           option_tags = options_from_collection_for_select(
             group.send(group_method), option_key_method, option_value_method, selected_key)
 
-          content_tag(:optgroup, option_tags, :label => group.send(group_label_method))
+          content_tag(:optgroup, option_tags, label: group.send(group_label_method))
         end.join.html_safe
       end
 
@@ -516,7 +516,7 @@ module ActionView
         body = "".html_safe
 
         if prompt
-          body.safe_concat content_tag(:option, prompt_text(prompt), :value => "")
+          body.safe_concat content_tag(:option, prompt_text(prompt), value: "")
         end
 
         grouped_options.each do |container|
@@ -528,7 +528,7 @@ module ActionView
             label, container = container
           end
 
-          html_attributes = { :label => label }.merge(html_attributes)
+          html_attributes = { label: label }.merge!(html_attributes)
           body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), html_attributes)
         end
 
@@ -565,7 +565,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
+          zone_options.safe_concat content_tag(:option, '-------------', value: '', disabled: 'disabled')
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
@@ -748,7 +748,7 @@ module ActionView
         end
 
         def prompt_text(prompt)
-          prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', :default => 'Please select')
+          prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', default: 'Please select')
         end
     end
 
