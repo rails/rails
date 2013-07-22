@@ -67,8 +67,10 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(options[:coder])
-        store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
+        if self.columns_hash[store_attribute.to_s].type != :hstore
+          serialize store_attribute, IndifferentCoder.new(options[:coder])
+        end
+        store_accessor(store_attribute, options[:accessors]) 
       end
 
       def store_accessor(store_attribute, *keys)
