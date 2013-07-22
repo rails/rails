@@ -493,8 +493,13 @@ module ActiveRecord
 
     # Returns a consistent, platform-independent identifier for +label+.
     # Identifiers are positive integers less than 2^32.
-    def self.identify(label)
-      Zlib.crc32(label.to_s) % MAX_ID
+    def self.identify(label,model_class=nil)
+      if model_class && model_class.column_types[model_class.primary_key] == :uuid
+        # generate v5 uuid from label string
+        UUIDTools::UUID.sha1_create(UUIDTools::UUID_DNS_NAMESPACE, label.to_s).to_s
+      else
+        Zlib.crc32(label.to_s) % MAX_ID
+      end
     end
 
     attr_reader :table_name, :name, :fixtures, :model_class
@@ -566,7 +571,7 @@ module ActiveRecord
 
           # generate a primary key if necessary
           if has_primary_key_column? && !row.include?(primary_key_name)
-            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label)
+            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label,model_class)
           end
 
           # If STI is used, find the correct subclass for association reflection
@@ -589,7 +594,7 @@ module ActiveRecord
                   row[association.foreign_type] = $1
                 end
 
-                row[fk_name] = ActiveRecord::FixtureSet.identify(value)
+                row[fk_name] = ActiveRecord::FixtureSet.identify(value,association.klass)
               end
             when :has_and_belongs_to_many
               if (targets = row.delete(association.name.to_s))
@@ -597,7 +602,7 @@ module ActiveRecord
                 table_name = association.join_table
                 rows[table_name].concat targets.map { |target|
                   { association.foreign_key             => row[primary_key_name],
-                    association.association_foreign_key => ActiveRecord::FixtureSet.identify(target) }
+                    association.association_foreign_key => ActiveRecord::FixtureSet.identify(target,association.klass) }
                 }
               end
             end
