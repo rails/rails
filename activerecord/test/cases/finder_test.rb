@@ -613,7 +613,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_named_bind_with_postgresql_type_casts
     l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
     assert_nothing_raised(&l)
-    assert_equal "#{ActiveRecord::Base.quote_value('10')}::integer '2009-01-01'::date", l.call
+    assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
   def test_string_sanitation
