@@ -166,7 +166,7 @@ module ActionDispatch
 
         matches = filter.root.css(selector)
         content_mismatch = nil
-        filter_matches(matches, equals) do |mismatch|
+        matches = filter_matches(matches, equals) do |mismatch|
           content_mismatch ||= mismatch
         end
 
@@ -295,10 +295,10 @@ module ActionDispatch
       protected
         def filter_matches(matches, options)
           match_with = options[:text] || options[:html]
-          return unless match_with
+          return matches unless match_with
 
           text_matches = options.has_key?(:text)
-          matches.delete_if do |match|
+          matches.reject do |match|
             # Preserve html markup with to_s if not matching text elements
             content = text_matches ? match.text : match.to_s
 
@@ -339,14 +339,14 @@ module ActionDispatch
         class ArgumentFilter #:nodoc:
           attr_accessor :root, :css_selector, :comparisons, :message
 
-          def initialize(selected, page, *args)
+          def initialize(selected, page, args)
             @selected, @page = selected, page
 
             # Start with optional element followed by mandatory selector.
-            @root = determine_root_from(args.shift)
+            @root = determine_root_from(args.first)
 
             # First or second argument is the selector
-            selector = @css_selector_is_second_argument ? args.shift : args.first
+            selector = @css_selector_is_second_argument ? args.shift(2).last : args.shift
             unless selector.is_a? String
               raise ArgumentError, "Expecting a selector as the first argument"
             end
