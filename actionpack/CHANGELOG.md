@@ -1,4 +1,4 @@
-## Rails 3.2.14 (Jul 22, 2013) ##
+## unreleased ##
 
 *   Fix `ActionDispatch::Assertions::ResponseAssertions#assert_redirected_to`
     does not show user-supplied message.
@@ -8,6 +8,9 @@
     is not shown. This message is only shown if the response is not a redirect.
 
     *Alexey Chernenkov*
+
+
+## Rails 3.2.14 (Jul 22, 2013) ##
 
 *   Merge `:action` from routing scope and assign endpoint if both `:controller`
     and `:action` are present. The endpoint assignment only occurs if there is
