@@ -624,7 +624,7 @@ module ActiveRecord
         end
 
         response
-      rescue
+      rescue Exception
         ActiveRecord::Base.clear_active_connections! unless testing
         raise
       end
