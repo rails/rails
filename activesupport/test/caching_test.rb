@@ -713,8 +713,8 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = ActiveSupport::Cache::Entry.new("aaaaaaaaaa").size
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10)
+    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
   end
 
   include CacheStoreBehavior
@@ -761,6 +761,30 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(4)
     assert !@cache.exist?(3), "no entry"
     assert @cache.exist?(2)
+    assert !@cache.exist?(1), "no entry"
+  end
+
+  def test_prune_size_on_write_based_on_key_length
+    @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
+    @cache.write(2, "bbbbbbbbbb") && sleep(0.001)
+    @cache.write(3, "cccccccccc") && sleep(0.001)
+    @cache.write(4, "dddddddddd") && sleep(0.001)
+    @cache.write(5, "eeeeeeeeee") && sleep(0.001)
+    @cache.write(6, "ffffffffff") && sleep(0.001)
+    @cache.write(7, "gggggggggg") && sleep(0.001)
+    @cache.write(8, "hhhhhhhhhh") && sleep(0.001)
+    @cache.write(9, "iiiiiiiiii") && sleep(0.001)
+    long_key = '*' * 2 * @record_size
+    @cache.write(long_key, "llllllllll")
+    assert @cache.exist?(long_key)
+    assert @cache.exist?(9)
+    assert @cache.exist?(8)
+    assert @cache.exist?(7)
+    assert @cache.exist?(6)
+    assert !@cache.exist?(5), "no entry"
+    assert !@cache.exist?(4), "no entry"
+    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(2), "no entry"
     assert !@cache.exist?(1), "no entry"
   end
 
