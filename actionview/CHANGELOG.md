@@ -1,9 +1,8 @@
 *   Element of the `grouped_options_for_select` can
     optionally contain html attributes as the last element of the array.
 
-    Example:
         grouped_options_for_select(
-          [["North America", [['United States','US'],"Canada"], :data => { :foo => 'bar' }]]
+          [["North America", [['United States','US'],"Canada"], data: { foo: 'bar' }]]
         )
 
     *Vasiliy Ermolovich*
