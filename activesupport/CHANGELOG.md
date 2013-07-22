@@ -1,3 +1,16 @@
+*   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
+    The memory used by a key/entry pair is calculated via `#cached_size`:
+
+        def cached_size(key, entry)
+          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+        end
+
+    The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
+    estimation](https://gist.github.com/ssimeonov/6047200) for 64-bit MRI on
+    1.9.3 and 2.0. GH#11512
+
+    *Simeon Simeonov*
+
 *   Only raise `Module::DelegationError` if it's the source of the exception.
 
     Fixes #10559
@@ -142,18 +155,5 @@
         end
 
     *Daniel Schierbeck*
-
-*   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
-    The memory used by a key/entry pair is calculated via `#cached_size`:
-
-        def cached_size(key, entry)
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
-        end
-
-    The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
-    estimation](https://gist.github.com/ssimeonov/6047200) for 64-bit MRI on 
-    1.9.3 and 2.0. GH#11512
-
-    *Simeon Simeonov*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
