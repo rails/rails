@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.14 (Jul 22, 2013) ##
 
 *   Fix bugs that crashed `rake test:benchmark`, `rails profiler` and
     `rails benchmarker`.

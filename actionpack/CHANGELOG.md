@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.14 (Jul 22, 2013) ##
 
 *   Fix `ActionDispatch::Assertions::ResponseAssertions#assert_redirected_to`
     does not show user-supplied message.

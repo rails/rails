@@ -1,4 +1,10 @@
-## unreleased ##
+## Rails 3.2.14 (Jul 22, 2013) ##
+
+*   Do not re-create destroyed association when saving the parent object.
+
+    Fixes #11450.
+
+    *Paul Nikitochkin*
 
 *   Do not shallow the original exception in `exec_cache` on PostgreSQL adapter.
 

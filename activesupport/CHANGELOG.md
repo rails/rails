@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.14 (Jul 22, 2013) ##
 
 *   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
