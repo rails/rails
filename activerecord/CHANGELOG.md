@@ -1,3 +1,10 @@
+*   Fix use of store with Hstore columns
+
+    When usings Hstore columns with store on these columns, ActiveRecord was
+    unable to save the record.
+
+    *Jure Triglav*, *Robin Dupret*
+
 *   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
 
     *Jan Bernacki*

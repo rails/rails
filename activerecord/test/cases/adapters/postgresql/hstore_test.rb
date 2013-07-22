@@ -111,6 +111,15 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_equal "GMT", x.timezone
   end
 
+  def test_save_with_store
+    Hstore.store :settings, accessors: [:intelligence, :charisma]
+
+    x = Hstore.new
+    x.intelligence = 'notsomuch'
+    x.charisma = 'plenty'
+    x.save!
+  end
+
   def test_gen1
     assert_equal(%q(" "=>""), @column.class.hstore_to_string({' '=>''}))
   end
