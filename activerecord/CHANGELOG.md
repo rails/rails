@@ -1,3 +1,17 @@
+*   rescue from all exceptions in `ConnectionManagement#call`
+
+    Fixes #11497
+
+    As `ActiveRecord::ConnectionAdapters::ConnectionManagement` middleware does
+    not rescue from Exception (but only from StandardError), the Connection
+    Pool quickly runs out of connections when multiple erroneous Requests come
+    in right after each other.
+
+    Rescuing from all exceptions and not just StandardError, fixes this
+    behaviour.
+
+    *Vipul A M*
+
 *   `change_column` for PostgreSQL adapter respects the `:array` option.
 
     *Yves Senn*
