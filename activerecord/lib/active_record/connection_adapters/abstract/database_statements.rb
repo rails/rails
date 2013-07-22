@@ -18,8 +18,7 @@ module ActiveRecord
         end
       end
 
-      # Returns an array of record hashes with the column names as keys and
-      # column values as values.
+      # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
         select(to_sql(arel, binds), name, binds)
       end
@@ -355,8 +354,7 @@ module ActiveRecord
           subselect
         end
 
-        # Returns an array of record hashes with the column names as keys and
-        # column values as values.
+        # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
         end
         undef_method :select
