@@ -374,7 +374,7 @@ module ActionDispatch
               root_or_selector
             elsif @selected
               # nested call - wrap in document
-              Loofah.document('').tap { |f| f.add_child @selected }
+              Loofah.document('').tap { |d| d.add_child @selected }
             else
               @page
             end
