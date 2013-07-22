@@ -3,8 +3,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column = nil) #:nodoc:
-        connection.quote(value,column)
+      def quote_value(value, column) #:nodoc:
+        connection.quote(value, column)
       end
 
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
