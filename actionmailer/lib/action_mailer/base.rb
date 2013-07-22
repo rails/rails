@@ -685,7 +685,7 @@ module ActionMailer
       # Call all the procs (if any)
       class_default = self.class.default
       default_values = class_default.merge(class_default) do |k,v|
-        v.respond_to?(:to_proc) ? instance_eval(&v) : v
+        v.is_a?(Proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults
