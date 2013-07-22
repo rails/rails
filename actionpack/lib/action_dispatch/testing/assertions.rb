@@ -4,7 +4,6 @@ module ActionDispatch
     autoload :ResponseAssertions, 'action_dispatch/testing/assertions/response'
     autoload :RoutingAssertions, 'action_dispatch/testing/assertions/routing'
     autoload :SelectorAssertions, 'action_dispatch/testing/assertions/selector'
-    autoload :TagAssertions, 'action_dispatch/testing/assertions/tag'
 
     extend ActiveSupport::Concern
 
@@ -12,7 +11,6 @@ module ActionDispatch
     include ResponseAssertions
     include RoutingAssertions
     include SelectorAssertions
-    include TagAssertions
   end
 end
 
