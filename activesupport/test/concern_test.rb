@@ -56,10 +56,6 @@ class ConcernTest < ActiveSupport::TestCase
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
     assert @klass.included_modules.include?(ConcernTest::Baz)
-
-    @klass.send(:include, Baz)
-    assert_equal "baz", @klass.new.baz
-    assert @klass.included_modules.include?(ConcernTest::Baz)
   end
 
   def test_class_methods_are_extended
