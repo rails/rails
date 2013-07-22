@@ -92,7 +92,7 @@ module ActionView
       end
 
       def protocol_separator=(value)
-        self.class.protocol_separator
+        protocol_separator
       end
 
       def bad_tags
