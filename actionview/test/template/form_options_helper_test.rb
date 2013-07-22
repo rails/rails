@@ -302,6 +302,16 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_grouped_options_for_select_with_array_and_html_attributes
+    assert_dom_equal(
+      "<optgroup label=\"North America\" data-foo=\"bar\"><option value=\"US\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\" disabled=\"disabled\"><option value=\"GB\">Great Britain</option>\n<option value=\"Germany\">Germany</option></optgroup>",
+      grouped_options_for_select([
+         ["North America", [['United States','US'],"Canada"], :data => { :foo => 'bar' }],
+         ["Europe", [["Great Britain","GB"], "Germany"], :disabled => 'disabled']
+       ])
+    )
+  end
+
   def test_grouped_options_for_select_with_optional_divider
     assert_dom_equal(
       "<optgroup label=\"----------\"><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
