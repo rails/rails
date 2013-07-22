@@ -2,16 +2,14 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
-require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/abstract/schema_cache'
 require 'active_record/connection_adapters/abstract/schema_dumper'
+require 'active_record/connection_adapters/abstract/statement_pool'
 require 'monitor'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     extend ActiveSupport::Autoload
-
-    autoload :Column
-    autoload :ConnectionSpecification
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
       autoload :IndexDefinition
@@ -27,6 +25,8 @@ module ActiveRecord
     end
 
     autoload_under 'abstract' do
+      autoload :Column
+      autoload :ConnectionSpecification
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
