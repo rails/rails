@@ -346,8 +346,8 @@ module ActionView
           html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element).map { |item| item.to_s }
 
-          html_attributes[:selected] = 'selected' if option_value_selected?(value, selected)
-          html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
+          html_attributes[:selected] = option_value_selected?(value, selected)
+          html_attributes[:disabled] = disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
           content_tag_string(:option, text, html_attributes)
@@ -565,7 +565,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag(:option, '-------------', value: '', disabled: 'disabled')
+          zone_options.safe_concat content_tag(:option, '-------------', value: '', disabled: true)
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
