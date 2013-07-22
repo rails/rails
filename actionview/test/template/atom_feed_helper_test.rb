@@ -254,7 +254,7 @@ class AtomFeedTest < ActionController::TestCase
   def test_self_url_should_default_to_current_request_url
     with_restful_routing(:scrolls) do
       get :index, :id => "defaults"
-      assert_select "link[rel=self][href=http://www.nextangle.com/scrolls?id=defaults]"
+      assert_select "link[rel=self][href=\"http://www.nextangle.com/scrolls?id=defaults\"]"
     end
   end
 
@@ -326,14 +326,14 @@ class AtomFeedTest < ActionController::TestCase
   def test_feed_entry_type_option_default_to_text_html
     with_restful_routing(:scrolls) do
       get :index, :id => 'defaults'
-      assert_select "entry link[rel=alternate][type=text/html]"
+      assert_select "entry link[rel=alternate][type=\"text/html\"]"
     end
   end
 
   def test_feed_entry_type_option_specified
     with_restful_routing(:scrolls) do
       get :index, :id => 'entry_type_options'
-      assert_select "entry link[rel=alternate][type=text/xml]"
+      assert_select "entry link[rel=alternate][type=\"text/xml\"]"
     end
   end
 
