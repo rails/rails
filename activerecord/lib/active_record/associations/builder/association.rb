@@ -66,7 +66,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      (Association.valid_options + Association.extensions.map(&:valid_options)).flatten
+      Association.valid_options + Association.extensions.map(&:valid_options).flatten
     end
 
     def validate_options
