@@ -20,9 +20,7 @@ module ActiveRecord
         klass = AggregateReflection
       end
 
-      reflection = klass.new(macro, name, scope, options, ar)
-      add_reflection ar, name, reflection
-      reflection
+      klass.new(macro, name, scope, options, ar)
     end
 
     def self.add_reflection(ar, name, reflection)
