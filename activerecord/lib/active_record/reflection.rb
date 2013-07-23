@@ -10,6 +10,25 @@ module ActiveRecord
       self.aggregate_reflections = {}
     end
 
+    def self.create(macro, name, scope, options, ar)
+      case macro
+      when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
+        klass = options[:through] ? ThroughReflection : AssociationReflection
+      when :composed_of
+        klass = AggregateReflection
+      end
+
+      reflection = klass.new(macro, name, scope, options, ar)
+
+      if klass == AggregateReflection
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
+      else
+        ar.reflections = ar.reflections.merge(name => reflection)
+      end
+
+      reflection
+    end
+
     # \Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
@@ -19,25 +38,6 @@ module ActiveRecord
     # MacroReflection class has info for AggregateReflection and AssociationReflection
     # classes.
     module ClassMethods
-      def create_reflection(macro, name, scope, options, active_record)
-        case macro
-        when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
-          klass = options[:through] ? ThroughReflection : AssociationReflection
-        when :composed_of
-          klass = AggregateReflection
-        end
-
-        reflection = klass.new(macro, name, scope, options, active_record)
-
-        if klass == AggregateReflection
-          self.aggregate_reflections = self.aggregate_reflections.merge(name => reflection)
-        else
-          self.reflections = self.reflections.merge(name => reflection)
-        end
-
-        reflection
-      end
-
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
         aggregate_reflections.values

@@ -54,7 +54,7 @@ module ActiveRecord::Associations::Builder
       validate_options
       define_accessors
       configure_dependency if options[:dependent]
-      reflection = model.create_reflection(macro, name, scope, options, model)
+      reflection = ActiveRecord::Reflection.create(macro, name, scope, options, model)
       Association.extensions.each do |extension|
         extension.build @model, reflection
       end
