@@ -12,7 +12,9 @@ module ActiveRecord
 
     def self.create(macro, name, scope, options, ar)
       case macro
-      when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
+      when :has_and_belongs_to_many
+        klass = AssociationReflection
+      when :has_many, :belongs_to, :has_one
         klass = options[:through] ? ThroughReflection : AssociationReflection
       when :composed_of
         klass = AggregateReflection
@@ -191,7 +193,7 @@ module ActiveRecord
 
       attr_reader :type, :foreign_type
 
-      def initialize(*args)
+      def initialize(macro, name, scope, options, active_record)
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         @automatic_inverse_of = nil
