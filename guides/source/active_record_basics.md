@@ -175,13 +175,13 @@ class Product < ActiveRecord::Base
 end
 ```
 
-If you do so, you will have to define manually the class name that is hosting
-the fixtures (class_name.yml) using the `set_fixture_class` method in your test
+If you do so, you will have to define manually the model name that is hosting 
+the fixtures (model_name.yml) using the `set_fixture_model` method in your test
 definition:
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: 'Joke'
+  set_fixture_model funny_jokes: 'Joke'
   fixtures :funny_jokes
   ...
 end

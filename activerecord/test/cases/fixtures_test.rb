@@ -380,7 +380,7 @@ class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(topics developers accounts), fixture_set_names
   end
 end
 
@@ -413,7 +413,7 @@ class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(topics developers accounts), fixture_set_names
   end
 end
 
@@ -449,10 +449,10 @@ class OverRideFixtureMethodTest < ActiveRecord::TestCase
 end
 
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_model :funny_jokes => 'Joke'
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our set_fixture_model
   self.use_transactional_fixtures = false
 
   def test_table_method
@@ -461,10 +461,10 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :items => Book
+  set_fixture_model :items => Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our set_fixture_model
   self.use_transactional_fixtures = false
 
   def test_named_accessor
@@ -473,10 +473,10 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :items => Book, :funny_jokes => Joke
+  set_fixture_model :items => Book, :funny_jokes => Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our set_fixture_model
   self.use_transactional_fixtures = false
 
   def test_named_accessor_of_differently_named_fixture
@@ -489,7 +489,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
 end
 
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :courses => Course
+  set_fixture_model :courses => Course
   fixtures :courses
   self.use_transactional_fixtures = false
 
@@ -504,7 +504,7 @@ class CustomConnectionFixturesTest < ActiveRecord::TestCase
 end
 
 class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
-  set_fixture_class :courses => Course
+  set_fixture_model :courses => Course
   fixtures :courses
   self.use_transactional_fixtures = true
 
@@ -521,7 +521,7 @@ end
 class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our lack of set_fixture_class
+  # and thus takes into account our lack of set_fixture_model
   self.use_transactional_fixtures = false
 
   def test_raises_error
@@ -532,10 +532,10 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_model :funny_jokes => 'Joke'
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our set_fixture_model
   self.use_transactional_fixtures = false
 
   def test_proper_escaped_fixture
@@ -580,11 +580,11 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
 end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase
-  self.fixture_path = FIXTURES_ROOT + "/all"
+  self.fixture_directory_path = FIXTURES_ROOT + "/all"
   fixtures :all
 
   def test_all_there
-    assert_equal %w(developers people tasks), fixture_table_names.sort
+    assert_equal %w(developers people tasks), fixture_set_names.sort
   end
 end
 
@@ -779,7 +779,7 @@ end
 class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   ActiveRecord::FixtureSet.reset_cache
 
-  set_fixture_class :randomly_named_a9         =>
+  set_fixture_model :randomly_named_a9         =>
                         ClassNameThatDoesNotFollowCONVENTIONS,
                     :'admin/randomly_named_a9' =>
                         Admin::ClassNameThatDoesNotFollowCONVENTIONS,

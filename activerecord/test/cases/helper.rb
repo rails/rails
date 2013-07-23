@@ -74,12 +74,12 @@ class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
   include ActiveRecord::ValidationsRepairHelper
 
-  self.fixture_path = FIXTURES_ROOT
+  self.fixture_directory_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
 
   def create_fixtures(*fixture_set_names, &block)
-    ActiveRecord::FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
+    ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_directory_path, fixture_set_names, fixture_model_names, &block)
   end
 end
 

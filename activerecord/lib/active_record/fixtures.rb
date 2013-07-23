@@ -12,7 +12,7 @@ module ActiveRecord
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directory
-  # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
+  # appointed by <tt>ActiveSupport::TestCase.fixture_directory_path=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
   # The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
   # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a fixture file looks
@@ -713,20 +713,50 @@ module ActiveRecord
     end
 
     included do
-      class_attribute :fixture_path, :instance_writer => false
-      class_attribute :fixture_table_names
-      class_attribute :fixture_class_names
+      class_attribute :fixture_directory_path, :instance_writer => false
+      class_attribute :fixture_set_names
+      # class_attribute :fixture_table_names # TODO:decide how to use this
+      class_attribute :fixture_model_names
       class_attribute :use_transactional_fixtures
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
 
-      self.fixture_table_names = []
+      self.fixture_set_names = []
+      # self.fixture_table_names = {} # TODO:decide how to use this, it is currently used as a deprecated alias of `fixture_set_names`
       self.use_transactional_fixtures = true
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
 
-      self.fixture_class_names = Hash.new do |h, fixture_set_name|
+      self.fixture_model_names = Hash.new do |h, fixture_set_name|
         h[fixture_set_name] = ActiveRecord::FixtureSet.default_fixture_model_name(fixture_set_name)
+      end
+
+      #--
+      # NOTE: this is a deprecation of 3 class attributes
+      #++
+      { :fixture_table_names => :fixture_set_names,
+        :fixture_path        => :fixture_directory_path,
+        :fixture_class_names => :fixture_model_names
+      }.each_pair do |old_name, new_name|
+
+        deprecation_message =
+          "`#{ old_name }` class attribute is deprecated and shall be removed from future releases, use `#{ new_name }` instead."
+
+        { old_name          => new_name,
+          :"#{ old_name }=" => :"#{ new_name }=",
+          :"#{ old_name }?" => :"#{ new_name }?"
+        }.each_pair do |old_method_name, new_method_name|
+
+          define_singleton_method old_method_name do |*args|
+            ActiveSupport::Deprecation.warn(deprecation_message)
+            public_send new_method_name, *args
+          end
+
+          define_method old_method_name do |*args|
+            ActiveSupport::Deprecation.warn(deprecation_message)
+            public_send new_method_name, *args
+          end
+        end
       end
     end
 
@@ -735,30 +765,40 @@ module ActiveRecord
       #
       # Examples:
       #
-      #   set_fixture_class some_fixture:        SomeModel,
+      #   set_fixture_model :some_fixture        => SomeModel,
       #                     'namespaced/fixture' => Another::Model
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.
       #--
       # It is also possible to pass the class name instead of the class:
-      #   set_fixture_class 'some_fixture' => 'SomeModel'
+      #   set_fixture_model 'some_fixture' => 'SomeModel'
       # I think this option is redundant, i propose to deprecate it.
       # Isn't it easier to always pass the class itself?
       # (2011-12-20 alexeymuranov)
       #++
-      def set_fixture_class(class_names = {})
-        self.fixture_class_names = self.fixture_class_names.merge(class_names.stringify_keys)
+      def set_fixture_model(class_names = {})
+        self.fixture_model_names = self.fixture_model_names.merge(class_names.stringify_keys)
       end
+
+      #--
+      # NOTE: `set_fixture_class` method is to be deprecated
+      #++
+      alias_method :set_fixture_class, :set_fixture_model
+      # def set_fixture_class(*args) # :nodoc:
+      #   ActiveSupport::Deprecation.warn(
+      #     "`set_fixture_class` class method may be deprecated in a future release, please consider using `set_fixture_model` instead.")
+      #   set_fixture_model(*args)
+      # end
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          fixture_set_names = Dir["#{fixture_path}/**/*.{yml}"]
-          fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
+          fixture_set_names = Dir["#{fixture_directory_path}/**/*.{yml}"]
+          fixture_set_names.map! { |f| f[(fixture_directory_path.to_s.size + 1)..-5] }
         else
           fixture_set_names = fixture_set_names.flatten.map { |n| n.to_s }
         end
 
-        self.fixture_table_names |= fixture_set_names
+        self.fixture_set_names |= fixture_set_names
         require_fixture_classes(fixture_set_names)
         setup_fixture_accessors(fixture_set_names)
       end
@@ -778,7 +818,7 @@ module ActiveRecord
         if fixture_set_names
           fixture_set_names = fixture_set_names.map { |n| n.to_s }
         else
-          fixture_set_names = fixture_table_names
+          fixture_set_names = self.fixture_set_names
         end
 
         fixture_set_names.each do |file_name|
@@ -788,7 +828,7 @@ module ActiveRecord
       end
 
       def setup_fixture_accessors(fixture_set_names = nil)
-        fixture_set_names = Array(fixture_set_names || fixture_table_names)
+        fixture_set_names = Array(fixture_set_names || self.fixture_set_names)
         methods = Module.new do
           fixture_set_names.each do |fs_name|
             fs_name = fs_name.to_s
@@ -886,7 +926,7 @@ module ActiveRecord
 
     private
       def load_fixtures
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
+        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_directory_path, fixture_set_names, fixture_model_names)
         Hash[fixtures.map { |f| [f.name, f] }]
       end
 

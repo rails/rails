@@ -1,3 +1,16 @@
+*   Rename public class methods in the module `ActiveRecord::TestFixtures`:
+
+        `fixture_path`        -> `fixture_directory_path`
+        `fixture_table_names` -> `fixture_set_names`
+        `fixture_class_names` -> `fixture_model_names`
+        `set_fixture_class`   -> `set_fixture_model`
+
+    `fixture_table_names` can be used for something different in the future,
+    something better corresponding to its name (maybe some hash with
+    database table names as values?).
+
+    *Alexey Muranov*
+
 *   Don't allow `quote_value` to be called without a column.
 
     Some adapters require column information to do their job properly.

@@ -190,7 +190,7 @@ end
 class IntegrationTestTest < ActiveSupport::TestCase
   def setup
     @test = ::ActionDispatch::IntegrationTest.new(:app)
-    @test.class.stubs(:fixture_table_names).returns([])
+    @test.class.stubs(:fixture_set_names).returns([])
     @session = @test.open_session
   end
 
@@ -225,7 +225,7 @@ end
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
-  def self.fixture_table_names
+  def self.fixture_set_names
     []
   end
 
