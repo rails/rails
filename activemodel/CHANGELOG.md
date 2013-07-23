@@ -1,3 +1,8 @@
+*   Fix has_secure_password. `password_confirmation` validations are triggered
+    even if no `password_confirmation` is set.
+
+    *Vladimir Kiselev*
+
 *   `inclusion` / `exclusion` validations with ranges will only use the faster
     `Range#cover` for numerical ranges, and the more accurate `Range#include?`
     for non-numerical ones.
