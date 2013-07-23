@@ -632,6 +632,6 @@ class FormTagHelperTest < ActionView::TestCase
   private
 
   def root_elem(rendered_content)
-    HTML::Document.new(rendered_content).root.children[0]
+    Loofah.fragment(rendered_content).children.first # extract from nodeset
   end
 end
