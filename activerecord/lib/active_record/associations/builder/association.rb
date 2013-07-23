@@ -20,7 +20,7 @@ module ActiveRecord::Associations::Builder
     self.valid_options = [:class_name, :foreign_key, :validate]
     self.extensions    = []
 
-    attr_reader :model, :name, :scope, :options, :reflection
+    attr_reader :model, :name, :scope, :options
 
     def self.build(*args, &block)
       new(*args, &block).build
@@ -54,11 +54,11 @@ module ActiveRecord::Associations::Builder
       validate_options
       define_accessors
       configure_dependency if options[:dependent]
-      @reflection = model.create_reflection(macro, name, scope, options, model)
+      reflection = model.create_reflection(macro, name, scope, options, model)
       Association.extensions.each do |extension|
-        extension.build @model, @reflection
+        extension.build @model, reflection
       end
-      @reflection
+      reflection
     end
 
     def macro
