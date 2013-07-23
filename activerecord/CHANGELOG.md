@@ -1,3 +1,21 @@
+*   Assign inet/cidr attribute with `nil` value for invalid address.
+
+    Example:
+
+        record = User.new
+
+        record.logged_in_from_ip # is type of an inet or a cidr
+
+        # Before:
+        record.logged_in_from_ip = 'bad ip address' # raise exception
+
+        # After:
+        record.logged_in_from_ip = 'bad ip address' # do not raise exception
+        record.logged_in_from_ip # => nil
+        record.logged_in_from_ip_before_type_cast # => 'bad ip address'
+
+    *Paul Nikitochkin*
+
 *   `add_to_target` now accepts a second optional `skip_callbacks` argument
 
     If truthy, it will skip the :before_add and :after_add callbacks.
