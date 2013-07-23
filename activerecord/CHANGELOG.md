@@ -1,5 +1,10 @@
 ## Rails 3.2.14 (Jul 22, 2013) ##
 
+*   Fix merge error when Equality LHS is non-attribute.
+    Backport of #7380.
+
+    *Karmes Alexander*
+
 *   Do not re-create destroyed association when saving the parent object.
 
     Fixes #11450.
