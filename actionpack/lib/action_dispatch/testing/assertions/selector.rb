@@ -23,22 +23,19 @@ module ActionDispatch
     #
     # * +assert_select_encoded+ - Assertions on HTML encoded inside XML, for example for dealing with feed item descriptions.
     # * +assert_select_email+ - Assertions on the HTML body of an e-mail.
-    #
-    # Also see HTML::Selector to learn how to use selectors.
     module SelectorAssertions
       # Select and return all matching elements.
       #
       # If called with a single argument, uses that argument as a selector
-      # to match all elements of the current page. Returns an empty array
-      # if no match is found.
+      # to match all elements of the current page. Returns an empty
+      # Nokogiri::XML::NodeSet if no match is found.
       #
-      # If called with two arguments, uses the first argument as the base
+      # If called with two arguments, uses the first argument as the root
       # element and the second argument as the selector. Attempts to match the
-      # base element and any of its children. Returns an empty array if no
-      # match is found.
+      # root element and any of its children.
+      # Returns empty Nokogiri::XML::NodeSet if no match is found.
       #
-      # The selector may be a CSS selector expression (String), an expression
-      # with substitution values (Array) or an HTML::Selector object.
+      # The selector may be a CSS selector expression (String).
       #
       #   # Selects all div tags
       #   divs = css_select("div")
@@ -76,7 +73,7 @@ module ActionDispatch
       # starting from (and including) that element and all its children in
       # depth-first order.
       #
-      # If no element if specified, calling +assert_select+ selects from the
+      # If no element is specified, calling +assert_select+ selects from the
       # response HTML unless +assert_select+ is called from within an +assert_select+ block.
       #
       # When called with a block +assert_select+ passes an array of selected elements
@@ -99,8 +96,7 @@ module ActionDispatch
       #     assert_select "li", 8
       #   end
       #
-      # The selector may be a CSS selector expression (String), an expression
-      # with substitution values, or an HTML::Selector object.
+      # The selector may be a CSS selector expression (String).
       #
       # === Equality Tests
       #
@@ -149,14 +145,6 @@ module ActionDispatch
       #
       #   # Test the content and style
       #   assert_select "body div.header ul.menu"
-      #
-      #   # Use substitution values
-      #   assert_select "ol>li#?", /item-\d+/
-      #
-      #   # All input fields in the form have a name
-      #   assert_select "form input" do
-      #     assert_select "[name=?]", /.+/  # Not empty
-      #   end
       def assert_select(*args, &block)
         @selected ||= nil
 
@@ -299,7 +287,7 @@ module ActionDispatch
 
           text_matches = options.has_key?(:text)
           remaining = matches.reject do |match|
-            # Preserve html markup with to_s if not matching text elements
+            # Preserve markup with to_s for html elements
             content = text_matches ? match.text : match.to_s
 
             content.strip! unless NO_STRIP.include?(match.name)
