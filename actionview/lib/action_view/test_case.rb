@@ -155,7 +155,7 @@ module ActionView
       #
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def response_from_page
-        HTML::Document.new(@rendered.blank? ? @output_buffer : @rendered).root
+        Loofah.document(@rendered.blank? ? @output_buffer : @rendered).root
       end
 
       def say_no_to_protect_against_forgery!
