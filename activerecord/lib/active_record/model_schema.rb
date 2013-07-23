@@ -124,7 +124,7 @@ module ActiveRecord
         @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
-        @relation          = Relation.new(self, arel_table)
+        @relation          = Relation.create(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.

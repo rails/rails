@@ -105,13 +105,13 @@ module ActiveRecord
               if item.is_a?(Relation)
                 item
               else
-                ActiveRecord::Relation.new(klass, table).instance_exec(self, &item)
+                ActiveRecord::Relation.create(klass, table).instance_exec(self, &item)
               end
             end
 
             if reflection.type
               scope_chain_items <<
-                ActiveRecord::Relation.new(klass, table)
+                ActiveRecord::Relation.create(klass, table)
                   .where(reflection.type => foreign_klass.base_class.name)
             end
 

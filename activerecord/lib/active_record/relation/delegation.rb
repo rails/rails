@@ -73,10 +73,8 @@ module ActiveRecord
     module ClassMethods # :nodoc:
       @@subclasses = ThreadSafe::Cache.new(:initial_capacity => 2)
 
-      def new(klass, *args)
-        relation = relation_class_for(klass).allocate
-        relation.__send__(:initialize, klass, *args)
-        relation
+      def create(klass, *args)
+        relation_class_for(klass).new(klass, *args)
       end
 
       # This doesn't have to be thread-safe. relation_class_for guarantees that this will only be

@@ -117,7 +117,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        AssociationRelation.new(klass, klass.arel_table, self).merge!(klass.all)
+        AssociationRelation.create(klass, klass.arel_table, self).merge!(klass.all)
       end
 
       # Loads the \target if needed and returns it.
