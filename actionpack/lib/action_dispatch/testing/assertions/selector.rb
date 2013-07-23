@@ -364,6 +364,7 @@ module ActionDispatch
           end
 
           def determine_root_from(root_or_selector)
+            @css_selector_is_second_argument = false
             if root_or_selector == nil
               raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
             elsif root_or_selector.is_a?(Nokogiri::XML::Node)
