@@ -14,9 +14,11 @@ module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class << self
       attr_accessor :valid_options
+      attr_accessor :extensions
     end
 
     self.valid_options = [:class_name, :foreign_key, :validate]
+    self.extensions    = []
 
     attr_reader :model, :name, :scope, :options, :reflection
 
@@ -48,14 +50,14 @@ module ActiveRecord::Associations::Builder
       @model.generated_feature_methods
     end
 
-    include Module.new { def build(*args); end }
-
     def build
       validate_options
       define_accessors
       configure_dependency if options[:dependent]
       @reflection = model.create_reflection(macro, name, scope, options, model)
-      super(@model, @reflection) # provides an extension point
+      Association.extensions.each do |extension|
+        extension.build @model, @reflection
+      end
       @reflection
     end
 
@@ -64,13 +66,13 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      Association.valid_options
+      (Association.valid_options + Association.extensions.map(&:valid_options)).flatten
     end
 
     def validate_options
       options.assert_valid_keys(valid_options)
     end
-    
+
     # Defines the setter and getter methods for the association
     # class Post < ActiveRecord::Base
     #   has_many :comments

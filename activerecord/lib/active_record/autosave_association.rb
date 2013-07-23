@@ -127,17 +127,17 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module AssociationBuilderExtension #:nodoc:
-      def build(model, reflection)
+      def self.build(model, reflection)
         model.send(:add_autosave_association_callbacks, reflection)
-        super
+      end
+
+      def self.valid_options
+        [ :autosave ]
       end
     end
 
     included do
-      Associations::Builder::Association.class_eval do
-        self.valid_options << :autosave
-        include AssociationBuilderExtension
-      end
+      Associations::Builder::Association.extensions << AssociationBuilderExtension
     end
 
     module ClassMethods
