@@ -38,7 +38,7 @@ module ActionView
 
     initializer "action_view.setup_action_pack", before: :add_view_paths do |app|
       ActiveSupport.on_load(:action_controller) do
-        ActionController::Base.superclass.send(:include, ActionView::Layouts)
+        #ActionController::Base.superclass.send(:include, ActionView::Layouts)
       end
     end
 
