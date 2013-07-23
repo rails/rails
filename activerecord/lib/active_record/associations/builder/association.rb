@@ -48,14 +48,14 @@ module ActiveRecord::Associations::Builder
       @model.generated_feature_methods
     end
 
-    include Module.new { def build; end }
+    include Module.new { def build(*args); end }
 
     def build
       validate_options
       define_accessors
       configure_dependency if options[:dependent]
       @reflection = model.create_reflection(macro, name, scope, options, model)
-      super # provides an extension point
+      super(@model, @reflection) # provides an extension point
       @reflection
     end
 
