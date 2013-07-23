@@ -13,8 +13,13 @@
 
 <% attributes.each do |attribute| -%>
   <div class="field">
-    <%%= f.label :<%= attribute.name %> %><br />
+<% if attribute.reference? -%>
+    <%%= f.label :<%= "#{attribute.name}_id" %> %><br>
+    <%%= f.<%= attribute.field_type %> :<%= "#{attribute.name}_id" %> %>
+<% else -%>
+    <%%= f.label :<%= attribute.name %> %><br>
     <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
+<% end -%>
   </div>
 <% end -%>
   <div class="actions">
