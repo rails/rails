@@ -96,12 +96,13 @@ INFO: The predicate for strings uses the Unicode-aware character class `[:space:
 
 WARNING: Note that numbers are not mentioned. In particular, 0 and 0.0 are **not** blank.
 
-For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
+For example, this method from `ActionController::HttpAuthentication::Token::ControllerMethods` uses `blank?` for checking whether a token is present:
 
 ```ruby
-def ensure_session_key!
-  if @key.blank?
-    raise ArgumentError, 'A key is required...'
+def authenticate(controller, &login_procedure)
+  token, options = token_and_options(controller.request)
+  unless token.blank?
+    login_procedure.call(token, options)
   end
 end
 ```
