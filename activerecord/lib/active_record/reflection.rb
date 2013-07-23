@@ -580,7 +580,7 @@ module ActiveRecord
 
       # A through association is nested if there would be more than one join table
       def nested?
-        chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
+        chain.length > 2 || through_reflection.has_and_belongs_to_many?
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to
