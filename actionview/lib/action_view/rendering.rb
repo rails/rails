@@ -107,7 +107,7 @@ module ActionView
     end
 
     def default_protected_instance_vars
-      super + [:@_view_context_class, :@_view_renderer, :@_lookup_context]
+      super.concat([:@_view_context_class, :@_view_renderer, :@_lookup_context])
     end
 
     private
