@@ -77,12 +77,6 @@ module ActiveRecord
         relation_class_for(klass).new(klass, *args)
       end
 
-      # This doesn't have to be thread-safe. relation_class_for guarantees that this will only be
-      # called exactly once for a given const name.
-      def const_missing(name)
-        const_set(name, Class.new(self) { include ClassSpecificRelation })
-      end
-
       private
       # Cache the constants in @@subclasses because looking them up via const_get
       # make instantiation significantly slower.
@@ -92,7 +86,13 @@ module ActiveRecord
           # This hash is keyed by klass.name to avoid memory leaks in development mode
           my_cache.compute_if_absent(klass_name) do
             # Cache#compute_if_absent guarantees that the block will only executed once for the given klass_name
-            const_get("#{name.gsub('::', '_')}_#{klass_name.gsub('::', '_')}", false)
+            subclass_name = "#{name.gsub('::', '_')}_#{klass_name.gsub('::', '_')}"
+
+            if const_defined?(subclass_name)
+              const_get(subclass_name)
+            else
+              const_set(subclass_name, Class.new(self) { include ClassSpecificRelation })
+            end
           end
         else
           ActiveRecord::Relation

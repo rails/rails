@@ -111,6 +111,12 @@ module ActiveRecord
       assert_equal({}, relation.scope_for_create)
     end
 
+    def test_bad_constants_raise_errors
+      assert_raises(NameError) do
+        ActiveRecord::Relation::HelloWorld
+      end
+    end
+
     def test_empty_eager_loading?
       relation = Relation.new FakeKlass, :b
       assert !relation.eager_loading?
