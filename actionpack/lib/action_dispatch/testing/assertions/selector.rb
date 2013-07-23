@@ -298,7 +298,7 @@ module ActionDispatch
           return matches unless match_with
 
           text_matches = options.has_key?(:text)
-          matches.reject do |match|
+          remaining = matches.reject do |match|
             # Preserve html markup with to_s if not matching text elements
             content = text_matches ? match.text : match.to_s
 
@@ -310,6 +310,7 @@ module ActionDispatch
               true
             end
           end
+          Nokogiri::XML::NodeSet.new(matches.document, remaining)
         end
 
         # +equals+ must contain :minimum, :maximum and :count keys
