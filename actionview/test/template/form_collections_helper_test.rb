@@ -185,8 +185,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
       p.collection_radio_buttons :category_id, collection, :id, :name
     end
 
-    assert_select 'input#post_category_id_1[type=radio][value=1]'
-    assert_select 'input#post_category_id_2[type=radio][value=2]'
+    assert_select 'input#post_category_id_1[type=radio][value="1"]'
+    assert_select 'input#post_category_id_2[type=radio][value="2"]'
 
     assert_select 'label[for=post_category_id_1]', 'Category 1'
     assert_select 'label[for=post_category_id_2]', 'Category 2'
@@ -203,15 +203,15 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
 
-    assert_select 'input#user_category_ids_1[type=checkbox][value=1]'
-    assert_select 'input#user_category_ids_2[type=checkbox][value=2]'
+    assert_select 'input#user_category_ids_1[type=checkbox][value="1"]'
+    assert_select 'input#user_category_ids_2[type=checkbox][value="2"]'
   end
 
   test 'collection check boxes generates only one hidden field for the entire collection, to ensure something will be sent back to the server when posting an empty collection' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
 
-    assert_select "input[type=hidden][name='user[category_ids][]'][value=]", :count => 1
+    assert_select "input[type=hidden][name='user[category_ids][]'][value=\"\"]", :count => 1
   end
 
   test 'collection check boxes generates a hidden field using the given :name in :html_options' do
@@ -260,8 +260,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
     with_collection_check_boxes :user, :active, collection, :first, :second
 
-    assert_select 'input[type=checkbox][value=1].foo'
-    assert_select 'input[type=checkbox][value=2].bar'
+    assert_select 'input[type=checkbox][value="1"].foo'
+    assert_select 'input[type=checkbox][value="2"].bar'
   end
 
   test 'collection check boxes sets the label class defined inside the block' do
@@ -286,27 +286,27 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :checked => [1, 3]
 
-    assert_select 'input[type=checkbox][value=1][checked=checked]'
-    assert_select 'input[type=checkbox][value=3][checked=checked]'
-    assert_no_select 'input[type=checkbox][value=2][checked=checked]'
+    assert_select 'input[type=checkbox][value="1"][checked=checked]'
+    assert_select 'input[type=checkbox][value="3"][checked=checked]'
+    assert_no_select 'input[type=checkbox][value="2"][checked=checked]'
   end
 
   test 'collection check boxes accepts selected string values as :checked option' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :checked => ['1', '3']
 
-    assert_select 'input[type=checkbox][value=1][checked=checked]'
-    assert_select 'input[type=checkbox][value=3][checked=checked]'
-    assert_no_select 'input[type=checkbox][value=2][checked=checked]'
+    assert_select 'input[type=checkbox][value="1"][checked=checked]'
+    assert_select 'input[type=checkbox][value="3"][checked=checked]'
+    assert_no_select 'input[type=checkbox][value="2"][checked=checked]'
   end
 
   test 'collection check boxes accepts a single checked value' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :checked => 3
 
-    assert_select 'input[type=checkbox][value=3][checked=checked]'
-    assert_no_select 'input[type=checkbox][value=1][checked=checked]'
-    assert_no_select 'input[type=checkbox][value=2][checked=checked]'
+    assert_select 'input[type=checkbox][value="3"][checked=checked]'
+    assert_no_select 'input[type=checkbox][value="1"][checked=checked]'
+    assert_no_select 'input[type=checkbox][value="2"][checked=checked]'
   end
 
   test 'collection check boxes accepts selected values as :checked option and override the model values' do
@@ -317,36 +317,36 @@ class FormCollectionsHelperTest < ActionView::TestCase
       p.collection_check_boxes :category_ids, collection, :first, :last, :checked => [1, 3]
     end
 
-    assert_select 'input[type=checkbox][value=1][checked=checked]'
-    assert_select 'input[type=checkbox][value=3][checked=checked]'
-    assert_no_select 'input[type=checkbox][value=2][checked=checked]'
+    assert_select 'input[type=checkbox][value="1"][checked=checked]'
+    assert_select 'input[type=checkbox][value="3"][checked=checked]'
+    assert_no_select 'input[type=checkbox][value="2"][checked=checked]'
   end
 
   test 'collection check boxes accepts multiple disabled items' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :disabled => [1, 3]
 
-    assert_select 'input[type=checkbox][value=1][disabled=disabled]'
-    assert_select 'input[type=checkbox][value=3][disabled=disabled]'
-    assert_no_select 'input[type=checkbox][value=2][disabled=disabled]'
+    assert_select 'input[type=checkbox][value="1"][disabled=disabled]'
+    assert_select 'input[type=checkbox][value="3"][disabled=disabled]'
+    assert_no_select 'input[type=checkbox][value="2"][disabled=disabled]'
   end
 
   test 'collection check boxes accepts single disabled item' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :disabled => 1
 
-    assert_select 'input[type=checkbox][value=1][disabled=disabled]'
-    assert_no_select 'input[type=checkbox][value=3][disabled=disabled]'
-    assert_no_select 'input[type=checkbox][value=2][disabled=disabled]'
+    assert_select 'input[type=checkbox][value="1"][disabled=disabled]'
+    assert_no_select 'input[type=checkbox][value="3"][disabled=disabled]'
+    assert_no_select 'input[type=checkbox][value="2"][disabled=disabled]'
   end
 
   test 'collection check boxes accepts a proc to disabled items' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :disabled => proc { |i| i.first == 1 }
 
-    assert_select 'input[type=checkbox][value=1][disabled=disabled]'
-    assert_no_select 'input[type=checkbox][value=3][disabled=disabled]'
-    assert_no_select 'input[type=checkbox][value=2][disabled=disabled]'
+    assert_select 'input[type=checkbox][value="1"][disabled=disabled]'
+    assert_no_select 'input[type=checkbox][value="3"][disabled=disabled]'
+    assert_no_select 'input[type=checkbox][value="2"][disabled=disabled]'
   end
 
   test 'collection check boxes accepts multiple readonly items' do
@@ -380,8 +380,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = [[1, 'Category 1'], [2, 'Category 2']]
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, {}, :class => 'check'
 
-    assert_select 'input.check[type=checkbox][value=1]'
-    assert_select 'input.check[type=checkbox][value=2]'
+    assert_select 'input.check[type=checkbox][value="1"]'
+    assert_select 'input.check[type=checkbox][value="2"]'
   end
 
   test 'collection check boxes with fields for' do
@@ -390,8 +390,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
       p.collection_check_boxes :category_ids, collection, :id, :name
     end
 
-    assert_select 'input#post_category_ids_1[type=checkbox][value=1]'
-    assert_select 'input#post_category_ids_2[type=checkbox][value=2]'
+    assert_select 'input#post_category_ids_1[type=checkbox][value="1"]'
+    assert_select 'input#post_category_ids_2[type=checkbox][value="2"]'
 
     assert_select 'label[for=post_category_ids_1]', 'Category 1'
     assert_select 'label[for=post_category_ids_2]', 'Category 2'
