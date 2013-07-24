@@ -269,7 +269,7 @@ module ActiveRecord
       end
 
       def source_reflection
-        nil
+        self
       end
 
       # A chain of reflections from this one back to the owner. For more see the explanation in
