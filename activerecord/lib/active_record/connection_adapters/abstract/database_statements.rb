@@ -26,8 +26,7 @@ module ActiveRecord
       # Returns a record hash with the column names as keys and column values
       # as values.
       def select_one(arel, name = nil, binds = [])
-        result = select_all(arel, name, binds)
-        result.first if result
+        select_all(arel, name, binds).first
       end
 
       # Returns a single value from a record
