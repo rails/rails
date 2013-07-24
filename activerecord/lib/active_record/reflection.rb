@@ -371,6 +371,12 @@ module ActiveRecord
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
       INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
 
+      protected
+
+      def actual_source_reflection # FIXME: this is a horrible name
+        self
+      end
+
       private
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
@@ -588,15 +594,10 @@ module ActiveRecord
       # We want to use the klass from this reflection, rather than just delegate straight to
       # the source_reflection, because the source_reflection may be polymorphic. We still
       # need to respect the source_reflection's :primary_key option, though.
-      def association_primary_key(klass = nil)
+      def association_primary_key(target_class = nil)
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
-        source_reflection = self.source_reflection
-        while source_reflection.source_reflection
-          source_reflection = source_reflection.source_reflection
-        end
-
-        source_reflection.options[:primary_key] || primary_key(klass || self.klass)
+        actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
@@ -673,6 +674,12 @@ directive on your declaration like:
         end
 
         check_validity_of_inverse!
+      end
+
+      protected
+
+      def actual_source_reflection # FIXME: this is a horrible name
+        source_reflection.actual_source_reflection
       end
 
       private

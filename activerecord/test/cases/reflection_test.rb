@@ -252,8 +252,9 @@ class ReflectionTest < ActiveRecord::TestCase
     reflection = ActiveRecord::Reflection::AssociationReflection.new(:fuu, :edge, nil, {}, Author)
     assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.association_primary_key }
 
-    through = ActiveRecord::Reflection::ThroughReflection.new(:fuu, :edge, nil, {}, Author)
-    through.stubs(:source_reflection).returns(stub_everything(:options => {}, :class_name => 'Edge'))
+    through = Class.new(ActiveRecord::Reflection::ThroughReflection) {
+      define_method(:source_reflection) { reflection }
+    }.new(:fuu, :edge, nil, {}, Author)
     assert_raises(ActiveRecord::UnknownPrimaryKey) { through.association_primary_key }
   end
 
