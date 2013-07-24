@@ -59,10 +59,10 @@ module ActionDispatch
       def css_select(*args)
         raise ArgumentError, "you at least need a selector" if args.empty?
 
-        if args.first.is_a?(String) # use nokogiri's ability for more selectors
-          root, selectors = response_from_page, args
+        if args.first.is_a?(String)
+          root, selectors = response_from_page, args.first
         else
-          root, selectors = args.shift, args
+          root, selectors = args.shift, args.first
         end
 
         root.css(selectors)
@@ -248,7 +248,7 @@ module ActionDispatch
         end
 
         selected = elements.map do |elem|
-          root = Loofah.document(CGI.unescapeHTML("<encoded>#{elem.text}</encoded>")).root
+          root = Loofah.fragment(CGI.unescapeHTML("<encoded>#{elem.text}</encoded>"))
           css_select(root, "encoded:root", &block)[0]
         end
 
@@ -311,12 +311,10 @@ module ActionDispatch
         end
 
         # +equals+ must contain :minimum, :maximum and :count keys
-        def assert_size_match!(size, equals, selector, message = nil)
+        def assert_size_match!(size, equals, css_selector, message = nil)
           min, max, count = equals[:minimum], equals[:maximum], equals[:count]
 
-          # FIXME: minitest provides messaging when we use assert_operator,
-          # so is this custom message really needed?
-          message ||= %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{size}.)
+          message ||= %(Expected #{count_description(min, max, count)} matching "#{css_selector}", found #{size}.)
           if count
             assert_equal size, count, message
           else
@@ -380,6 +378,10 @@ module ActionDispatch
               root_or_selector
             elsif @selected
               # nested call - wrap in document
+              if @selected.is_a?(Array)
+                doc = @selected.empty? ? @page.document : @selected[0].document
+                @selected = Nokogiri::XML::NodeSet.new(doc, @selected)
+              end
               Loofah.fragment('').tap { |d| d.add_child @selected }
             else
               @page
