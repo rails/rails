@@ -1,5 +1,19 @@
 ## unreleased ##
 
+*   Fix `text_area` to behave like `text_field` when `nil` is given as
+    value.
+
+    Before:
+
+        f.text_field :field, value: nil #=> <input value="">
+        f.text_area :field, value: nil  #=> <textarea>value of field</textarea>
+
+    After:
+
+        f.text_area :field, value: nil  #=> <textarea></textarea>
+
+    *Joel Cogen*
+
 *   Fix an issue where Journey was failing to clear the named routes hash when the
     routes were reloaded and since it doesn't overwrite existing routes then if a
     route changed but wasn't renamed it kept the old definition. This was being

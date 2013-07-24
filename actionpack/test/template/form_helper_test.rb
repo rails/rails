@@ -676,6 +676,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_text_area_with_nil_alternate_value
+    assert_dom_equal(
+      %{<textarea id="post_body" name="post[body]">\n</textarea>},
+      text_area("post", "body", value: nil)
+    )
+  end
+
   def test_text_area_with_html_entities
     @post.body = "The HTML Entity for & is &amp;"
     assert_dom_equal(
