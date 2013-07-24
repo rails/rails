@@ -35,7 +35,8 @@ module ActionDispatch
       # root element and any of its children.
       # Returns empty Nokogiri::XML::NodeSet if no match is found.
       #
-      # The selector may be a CSS selector expression (String).
+      # The selector may be a CSS selector expression (String) or an expression
+      # with substitution values (Array).
       #
       #   # Selects all div tags
       #   divs = css_select("div")
@@ -96,7 +97,8 @@ module ActionDispatch
       #     assert_select "li", 8
       #   end
       #
-      # The selector may be a CSS selector expression (String).
+      # The selector may be a CSS selector expression (String) or an expression
+      # with substitution values (Array).
       #
       # === Equality Tests
       #
@@ -145,6 +147,14 @@ module ActionDispatch
       #
       #   # Test the content and style
       #   assert_select "body div.header ul.menu"
+      #
+      #   # Use substitution values
+      #   assert_select "ol>li#?", /item-\d+/
+      #
+      #   # All input fields in the form have a name
+      #   assert_select "form input" do
+      #     assert_select "[name=?]", /.+/  # Not empty
+      #   end
       def assert_select(*args, &block)
         @selected ||= nil
 
