@@ -3844,13 +3844,13 @@ def default_helper_module!
   module_path = module_name.underscore
   helper module_path
 rescue MissingSourceFile => e
-  raise e unless e.is_missing? "#{module_path}_helper"
+  raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/name_error.rb`.
+NOTE: Defined in `actionpack/lib/abstract_controller/helpers.rb`.
 
 Extensions to `LoadError`
 -------------------------
