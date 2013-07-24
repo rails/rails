@@ -158,11 +158,10 @@ module ActionDispatch
       def assert_select(*args, &block)
         @selected ||= nil
 
-        filter = ArgumentFilter.new(@selected, response_from_page, args)
-        selector = filter.css_selector
-        equals = filter.comparisons
+        selector = HTMLSelector.new(@selected, response_from_page, args)
 
-        matches = filter.root.css(selector, filter.substitution_context)
+        matches = selector.select
+        equals = selector.comparisons
         content_mismatch = nil
         matches = filter_matches(matches, equals) do |mismatch|
           content_mismatch ||= mismatch
@@ -170,9 +169,9 @@ module ActionDispatch
 
         # Expecting foo found bar element only if found zero, not if
         # found one but expecting two.
-        message = filter.message
+        message = selector.message
         message ||= content_mismatch if matches.empty?
-        assert_size_match!(matches.size, equals, selector, message)
+        assert_size_match!(matches.size, equals, selector.source, message)
 
         # Set @selected to allow nested assert_select.
         # Can be nested several levels deep.
@@ -339,7 +338,7 @@ module ActionDispatch
           end
         end
 
-        class ArgumentFilter #:nodoc:
+        class HTMLSelector #:nodoc:
           attr_accessor :root, :css_selector, :comparisons, :message
 
           def initialize(selected, page, args)
@@ -361,6 +360,12 @@ module ActionDispatch
             if args.shift
               raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
             end
+          end
+
+          alias :source :css_selector
+
+          def select
+            root.css(css_selector, context)
           end
 
           def determine_root_from(root_or_selector)
@@ -385,33 +390,7 @@ module ActionDispatch
             unless selector.is_a? String
               raise ArgumentError, "Expecting a selector as the first argument"
             end
-            while selector.index('?')
-              break if substitution_values.empty?
-              value = substitution_values.shift
-              if value.is_a?(Regexp)
-                value = substitution_context.add_regex value
-              end
-              selector.sub!('?', value)
-            end
-            selector
-          end
-
-          # used for regex substitution in selectors
-          def substitution_context
-            @substitution_context ||= Class.new do
-              # +regex+ will be a +String+
-              def match(matches, attribute, regex)
-                matches.find_all { |node| node[attribute] =~ @regexes[regex] }
-              end
-
-              def add_regex(regex)
-                @regexes ||= []
-                @regexes.push(regex)
-                id_for(regex)
-              end
-
-              def id_for(regex); @regexes.index(regex).to_s; end
-            end.new
+            context.substitute!(selector, substitution_values)
           end
 
           def comparisons_from(comparator)
@@ -440,6 +419,40 @@ module ActionDispatch
                 comparisons[:minimum] ||= 1
               end
             comparisons
+          end
+
+          def context
+            @context ||= SubstitutionContext.new
+          end
+
+          class SubstitutionContext
+            def initialize(substitute = '?')
+              @substitute = substitute
+              @regexes = []
+            end
+
+            def add(regex)
+              @regexes.push(regex)
+              id_for(regex)
+            end
+
+            def id_for(regex)
+              @regexes.index(regex).to_s # to_s to store it in selector string
+            end
+
+            def match(matches, attribute, id)
+              matches.find_all { |node| node[attribute] =~ @regexes[id] }
+            end
+
+            def substitute!(selector, values)
+              while selector.index(@substitute)
+                break if values.empty?
+                value = values.shift
+                value = add(value) if value.is_a?(Regexp)
+                selector.sub!(@substitute, value)
+              end
+              selector
+            end
           end
         end
     end
