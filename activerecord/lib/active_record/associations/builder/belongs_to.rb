@@ -49,21 +49,35 @@ module ActiveRecord::Associations::Builder
         end
 
         def belongs_to_counter_cache_after_update(association, reflection)
-          foreign_key  = reflection.foreign_key
-          cache_column = reflection.counter_cache_column
+          foreign_key = reflection.foreign_key
+          foreign_key_was  = attribute_was foreign_key
+          foreign_key_now  = attribute foreign_key
+          model            = reflection.klass
+          dirty            = (@_dirty_but_updated_counter_cache ||= false)
 
-          if (@_after_create_counter_called ||= false)
+          case
+          when (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && association.constructable?
-            model           = reflection.klass
-            foreign_key_was = attribute_was foreign_key
-            foreign_key     = attribute foreign_key
+            return
+          when !attribute_changed?(foreign_key) || new_record? || !association.constructable?
+            return
+          when dirty && dirty == { from: foreign_key_was, to: foreign_key_now }
+            @_dirty_but_updated_counter_cache = false
+            return
+          when !model.respond_to?(:increment_counter) || !model.respond_to?(:decrement_counter)
+            return
+          else
+            cache_column = reflection.counter_cache_column
 
-            if foreign_key && model.respond_to?(:increment_counter)
-              model.increment_counter(cache_column, foreign_key)
-            end
-            if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(cache_column, foreign_key_was)
+            model.increment_counter(cache_column, foreign_key_now) if foreign_key_now
+            model.decrement_counter(cache_column, foreign_key_was) if foreign_key_was
+
+            if dirty # undo
+              undo_from = dirty[:from]
+              undo_to = dirty[:to]
+              model.increment_counter(cache_column, undo_from) if undo_from
+              model.decrement_counter(cache_column, undo_to) if undo_to
+              @_dirty_but_updated_counter_cache = false
             end
           end
         end

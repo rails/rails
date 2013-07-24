@@ -264,6 +264,42 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, debate2.reload.replies_count
   end
 
+  def test_belongs_to_counter_with_append_after_create
+    topic = Topic.create("title" => "t1")
+    reply = Reply.create("title" => "r1", "content" => "r1")
+
+    topic.replies << reply
+    assert_equal 1, topic.reload.replies_count
+
+    assert reply.save
+    assert_equal 1, topic.reload.replies_count
+  end
+
+  def test_belongs_to_counter_with_reassigning_after_find
+    topic = Topic.create("title" => "t1")
+    reply = Reply.create("title" => "r1", "content" => "r1")
+    reply = Reply.find(reply.id)
+
+    reply.topic = topic
+
+    assert reply.save
+    assert_equal 1, topic.reload.replies_count
+  end
+
+  def test_belongs_to_counter_with_append_after_reassigning
+    topic1 = Topic.create("title" => "t1")
+    topic2 = Topic.create("title" => "t2")
+    reply = Reply.create("title" => "r1", "content" => "r1")
+    reply = Reply.find(reply.id)
+
+    reply.topic = topic1
+    topic2.replies << reply
+
+    assert reply.save
+    assert_equal 0, topic1.reload.replies_count
+    assert_equal 1, topic2.reload.replies_count
+  end
+
   def test_belongs_to_counter_with_reassigning
     topic1 = Topic.create("title" => "t1")
     topic2 = Topic.create("title" => "t2")

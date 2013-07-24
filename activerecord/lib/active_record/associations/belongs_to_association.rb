@@ -38,20 +38,26 @@ module ActiveRecord
           counter_cache_name = reflection.counter_cache_column
 
           if counter_cache_name && owner.persisted? && different_target?(record)
+            dirty_flag = { from: nil, to: nil }
+
             if record
               record.class.increment_counter(counter_cache_name, record.id)
+              dirty_flag[:to] = record.id
             end
 
             if foreign_key_present?
               klass.decrement_counter(counter_cache_name, target_id)
+              dirty_flag[:from] = target_id
             end
+
+            owner.instance_variable_set(:@_dirty_but_updated_counter_cache, dirty_flag)
           end
         end
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          if record.nil? 
-            owner[reflection.foreign_key] 
+          if record.nil?
+            owner[reflection.foreign_key]
           else
             record.id != owner[reflection.foreign_key]
           end
