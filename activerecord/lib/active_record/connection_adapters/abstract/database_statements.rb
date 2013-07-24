@@ -26,8 +26,7 @@ module ActiveRecord
       # Returns a record hash with the column names as keys and column values
       # as values.
       def select_one(arel, name = nil, binds = [])
-        result = select_all(arel, name, binds)
-        result.first if result
+        select_all(arel, name, binds).first
       end
 
       # Returns a single value from a record
@@ -375,14 +374,14 @@ module ActiveRecord
           update_sql(sql, name)
         end
 
-      def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-        [sql, binds]
-      end
-
-      def last_inserted_id(result)
-        row = result.rows.first
-        row && row.first
-      end
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+          [sql, binds]
+        end
+  
+        def last_inserted_id(result)
+          row = result.rows.first
+          row && row.first
+        end
     end
   end
 end
