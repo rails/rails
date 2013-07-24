@@ -1,3 +1,17 @@
+*   Fix `text_area` to behave like `text_field` when `nil` is given as
+    value.
+
+    Before:
+
+        f.text_field :field, value: nil #=> <input value="">
+        f.text_area :field, value: nil  #=> <textarea>value of field</textarea>
+
+    After:
+
+        f.text_area :field, value: nil  #=> <textarea></textarea>
+
+    *Joel Cogen*
+
 *   Element of the `grouped_options_for_select` can
     optionally contain html attributes as the last element of the array.
 
