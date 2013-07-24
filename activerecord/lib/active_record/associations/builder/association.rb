@@ -2,7 +2,7 @@
 # used by all associations.
 #
 # The hierarchy is defined as follows:
-#  Association 
+#  Association
 #    - SingularAssociation
 #      - BelongsToAssociation
 #      - HasOneAssociation
@@ -66,7 +66,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      Association.valid_options + Association.extensions.map(&:valid_options).flatten
+      Association.valid_options + Association.extensions.flat_map(&:valid_options)
     end
 
     def validate_options
@@ -77,7 +77,7 @@ module ActiveRecord::Associations::Builder
     # class Post < ActiveRecord::Base
     #   has_many :comments
     # end
-    # 
+    #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
 
     def define_accessors
