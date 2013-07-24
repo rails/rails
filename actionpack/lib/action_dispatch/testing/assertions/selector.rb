@@ -162,7 +162,7 @@ module ActionDispatch
         selector = filter.css_selector
         equals = filter.comparisons
 
-        matches = filter.root.css(selector)
+        matches = filter.root.css(selector, filter.substitution_context)
         content_mismatch = nil
         matches = filter_matches(matches, equals) do |mismatch|
           content_mismatch ||= mismatch
@@ -350,10 +350,7 @@ module ActionDispatch
 
             # First or second argument is the selector
             selector = @css_selector_is_second_argument ? args.shift(2).last : args.shift
-            unless selector.is_a? String
-              raise ArgumentError, "Expecting a selector as the first argument"
-            end
-            @css_selector = selector
+            @css_selector = selector_from(selector, args)
 
             # Next argument is used for equality tests.
             @comparisons = comparisons_from(args.shift)
@@ -382,6 +379,39 @@ module ActionDispatch
             else
               @page
             end
+          end
+
+          def selector_from(selector, substitution_values)
+            unless selector.is_a? String
+              raise ArgumentError, "Expecting a selector as the first argument"
+            end
+            while selector.index('?')
+              break if substitution_values.empty?
+              value = substitution_values.shift
+              if value.is_a?(Regexp)
+                value = substitution_context.add_regex value
+              end
+              selector.sub!('?', value)
+            end
+            selector
+          end
+
+          # used for regex substitution in selectors
+          def substitution_context
+            @substitution_context ||= Class.new do
+              # +regex+ will be a +String+
+              def match(matches, attribute, regex)
+                matches.find_all { |node| node[attribute] =~ @regexes[regex] }
+              end
+
+              def add_regex(regex)
+                @regexes ||= []
+                @regexes.push(regex)
+                id_for(regex)
+              end
+
+              def id_for(regex); @regexes.index(regex).to_s; end
+            end.new
           end
 
           def comparisons_from(comparator)
