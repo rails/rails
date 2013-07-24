@@ -282,7 +282,7 @@ module ActionDispatch
         deliveries.each do |delivery|
           (delivery.parts.empty? ? [delivery] : delivery.parts).each do |part|
             if part["Content-Type"].to_s =~ /^text\/html\W/
-              root = Loofah.document(part.body.to_s).root
+              root = Loofah.fragment(part.body.to_s)
               assert_select root, ":root", &block
             end
           end
@@ -443,7 +443,7 @@ module ActionDispatch
             end
 
             def match(matches, attribute, id)
-              matches.find_all { |node| node[attribute] =~ @regexes[id] }
+              matches.find_all { |node| node[attribute] =~ @regexes[id.to_i] }
             end
 
             def substitute!(selector, values)
