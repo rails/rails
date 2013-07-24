@@ -178,11 +178,11 @@ class AssertSelectTest < ActionController::TestCase
 
   def test_substitution_values
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
-    assert_select "div#?", /\d+/ do |elements|
+    assert_select "div:match('id', ?)", /\d+/ do |elements|
       assert_equal 2, elements.size
     end
     assert_select "div" do
-      assert_select "div#?", /\d+/ do |elements|
+      assert_select ":match('id', ?)", /\d+/ do |elements|
         assert_equal 2, elements.size
         assert_select "#1"
         assert_select "#2"
@@ -249,7 +249,7 @@ class AssertSelectTest < ActionController::TestCase
 
   def test_nested_css_select
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
-    assert_select "div#?", /\d+/ do |elements|
+    assert_select "div:match('id', ?)", /\d+/ do |elements|
       assert_equal 1, css_select(elements[0], "div").size
       assert_equal 1, css_select(elements[1], "div").size
     end
