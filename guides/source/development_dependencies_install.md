@@ -57,6 +57,12 @@ If you are on Fedora or CentOS, you can run
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 ```
 
+If you are running Arch Linux, you're done with:
+
+```bash
+$ sudo pacman -S lixml2 libxslt
+```
+
 If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
 Also, SQLite3 and its development files for the `sqlite3` gem — in Ubuntu you're done with just
@@ -69,6 +75,12 @@ And if you are on Fedora or CentOS, you're done with
 
 ```bash
 $ sudo yum install sqlite3 sqlite3-devel
+```
+
+If you are on Arch Linux, you will need to run:
+
+```bash
+$ sudo pacman -S sqlite
 ```
 
 Get a recent version of [Bundler](http://gembundler.com/)
@@ -135,6 +147,14 @@ On Fedora or CentOS, just run:
 ```bash
 $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
+```
+
+If you are running Arch Linux, MySQL isn't supported anymore so you will need to
+use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/)):
+
+```bash
+$ sudo pacman -S mariadb libmariadbclient mariadb-clients
+$ sudo pacman -S postgresql postgresql-libs
 ```
 
 After that, run:
