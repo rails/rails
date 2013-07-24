@@ -127,6 +127,33 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.exec_query("alter table developers drop column zomg", 'sql', []) if altered
   end
 
+  def test_tables_with_no_args
+    begin
+      new_schema, new_table = %w{ test_schema3 new_things }
+      @connection.execute "CREATE SCHEMA #{new_schema} CREATE TABLE #{new_table} (#{COLUMNS.join(',')})"
+
+      with_schema_search_path(SCHEMA2_NAME) do
+        assert_equal @connection.tables, [TABLE_NAME]
+      end
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
+  def test_tables_with_specific_schema
+    begin
+      new_schema, new_table1, new_table2 = %w{ test_schema3 new_things1 new_things2 }
+      @connection.execute "CREATE SCHEMA #{new_schema} CREATE TABLE #{new_table1} (#{COLUMNS.join(',')})
+                                                       CREATE TABLE #{new_table2} (#{COLUMNS.join(',')})"
+
+      with_schema_search_path(SCHEMA2_NAME) do
+        assert_equal @connection.tables(new_schema), [new_table1, new_table2]
+      end
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
   def test_table_exists?
     [Thing1, Thing2, Thing3, Thing4].each do |klass|
       name = klass.table_name
