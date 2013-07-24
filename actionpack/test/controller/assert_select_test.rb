@@ -232,9 +232,9 @@ class AssertSelectTest < ActionController::TestCase
     end
   end
 
-  def test_elect_with_xml_namespace_attributes
+  def test_select_with_xml_namespace_attributes
     render_html %Q{<link xlink:href="http://nowhere.com"></link>}
-    assert_nothing_raised { assert_select "link[xlink:href=http://nowhere.com]" }
+    assert_nothing_raised { assert_select %(link[xlink:href="http://nowhere.com"]) }
   end
 
   #
