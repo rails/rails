@@ -1,3 +1,10 @@
+*   Allow REMOTE_ADDR, HTTP_HOST and HTTP_USER_AGENT to be overridden from
+    the environment passed into `ActionDispatch::TestRequest.new`.
+
+    Fixes #11590
+
+    *Andrew White*
+
 *   Fix an issue where Journey was failing to clear the named routes hash when the
     routes were reloaded and since it doesn't overwrite existing routes then if a
     route changed but wasn't renamed it kept the old definition. This was being
