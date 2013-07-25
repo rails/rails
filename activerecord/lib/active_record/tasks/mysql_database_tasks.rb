@@ -136,7 +136,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         configuration.slice('host', 'port', 'socket').each do |k, v|
           args.concat([ "--#{k}", v ]) if v
         end
-        args
+        args.map(&:to_s)
       end
     end
   end
