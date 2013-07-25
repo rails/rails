@@ -286,8 +286,12 @@ class Hash
   def as_json(options = nil) #:nodoc:
     # create a subset of the hash by applying :only or :except
     subset = if options
-      if attrs = options[:only]
-        slice(*Array(attrs))
+      if only = options[:only]
+        if only.is_a?(Hash)
+          Hash[slice(*Array(only.keys)).map { |k,v| [only[k], v]}]
+        else
+          slice(*Array(only))
+        end
       elsif attrs = options[:except]
         except(*Array(attrs))
       else

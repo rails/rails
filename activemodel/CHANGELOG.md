@@ -1,3 +1,9 @@
+*   Added more options to JSON serialization. `only` and `methods` options now accept hashes
+    with a new name in which to store the results. `include` option now accepts a `root` key
+    that specifies the name under which the association will be stored.
+
+    *Sergio Campamá*
+
 *   Fix has_secure_password. `password_confirmation` validations are triggered
     even if no `password_confirmation` is set.
 

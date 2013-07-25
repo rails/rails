@@ -69,6 +69,21 @@ module ActiveModel
   #   person.serializable_hash(only: 'name')
   #   person.serializable_hash(include: :address)
   #   person.serializable_hash(include: { address: { only: 'city' }})
+  #
+  # <tt>:only</tt> and <tt>:methods</tt> also accept a Hash, in which the key is the name of the
+  # attribute to serialize and the value is the key in which to store the result. For example:
+  #
+  #   person.to_json(only: {name: :real_name})
+  #     => "{\"real_name\":\"Bob\"}"
+  #   person.to_json(methods: {full_name: :real_name})
+  #     => "{\"real_name\":\"Bob McKenzie\"}"
+  #
+  # <tt>:include</tt> also accepts a <tt>:root</tt> option that specifies the name where the
+  # association will be stored
+  #
+  #   person.to_json(only: :name, include: {children: {root: :kids, only: :name}})
+  #     => "{\"name\":\"Bob\",\"kids\":[{\"name\":\"Jimmy\"}]}"
+  #   
   module Serialization
     # Returns a serialized hash of your object.
     #
@@ -99,18 +114,29 @@ module ActiveModel
 
       attribute_names = attributes.keys
       if only = options[:only]
-        attribute_names &= Array(only).map(&:to_s)
+        attribute_names &= if only.is_a?(Hash)
+          only.keys.map(&:to_s)
+        else
+          Array(only).map(&:to_s)
+        end
       elsif except = options[:except]
         attribute_names -= Array(except).map(&:to_s)
       end
 
       hash = {}
-      attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
-
-      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) if respond_to?(m) }
+      attribute_names.each { |n|
+        key = only && only.is_a?(Hash) ? (only[n] || only[n.to_sym]).to_s : n
+        hash[key] = read_attribute_for_serialization(n)
+      }
+      
+      Array(options[:methods]).each { |m| 
+        n, key = m.is_a?(Array) ? m.map(&:to_s) : [m.to_s] * 2
+        hash[key] = send(n) if respond_to?(n)
+      }
 
       serializable_add_includes(options) do |association, records, opts|
-        hash[association.to_s] = if records.respond_to?(:to_ary)
+        key = opts[:root] || association
+        hash[key.to_s] = if records.respond_to?(:to_ary)
           records.to_ary.map { |a| a.serializable_hash(opts) }
         else
           records.serializable_hash(opts)
