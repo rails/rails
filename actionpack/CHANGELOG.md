@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Allow REMOTE_ADDR, HTTP_HOST and HTTP_USER_AGENT to be overridden from
+    the environment passed into `ActionDispatch::TestRequest.new`.
+
+    Fixes #11590
+
+    *Andrew White*
+
 *   Fix `text_area` to behave like `text_field` when `nil` is given as
     value.
 
