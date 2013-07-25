@@ -82,8 +82,6 @@ module ActionView
       super(*args, &block)
 
       options = _normalize_render(*args, &block)
-
-      self.content_type ||= Mime[lookup_context.rendered_format].to_s
       self.response_body = render_to_body(options)
     end
 

@@ -12,6 +12,7 @@ module ActionController
     def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if response_body
       super
+      self.content_type ||= Mime[lookup_context.rendered_format].to_s
       response_body
     end
 
