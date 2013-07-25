@@ -50,9 +50,8 @@ module ActiveRecord::Associations::Builder
 
         def belongs_to_counter_cache_after_update(association, reflection)
           foreign_key = reflection.foreign_key
-          foreign_key_was  = attribute_was foreign_key
-          foreign_key_now  = attribute foreign_key
-          model            = reflection.klass
+          foreign_key_from = attribute_was foreign_key
+          foreign_key_to   = attribute foreign_key
           dirty            = (@_dirty_but_updated_counter_cache ||= false)
 
           case
@@ -61,26 +60,29 @@ module ActiveRecord::Associations::Builder
             return
           when !attribute_changed?(foreign_key) || new_record? || !association.constructable?
             return
-          when dirty && dirty == { from: foreign_key_was, to: foreign_key_now }
+          when dirty && dirty == { from: foreign_key_from, to: foreign_key_to }
             @_dirty_but_updated_counter_cache = false
             return
-          when !model.respond_to?(:increment_counter) || !model.respond_to?(:decrement_counter)
-            return
           else
-            cache_column = reflection.counter_cache_column
-
-            model.increment_counter(cache_column, foreign_key_now) if foreign_key_now
-            model.decrement_counter(cache_column, foreign_key_was) if foreign_key_was
-
+            _belongs_to_counter_cache_record_change(reflection, foreign_key_from, foreign_key_to)
             if dirty # undo
-              undo_from = dirty[:from]
-              undo_to = dirty[:to]
-              model.increment_counter(cache_column, undo_from) if undo_from
-              model.decrement_counter(cache_column, undo_to) if undo_to
+              _belongs_to_counter_cache_record_change(reflection, dirty[:to], dirty[:from])
               @_dirty_but_updated_counter_cache = false
             end
           end
         end
+
+        def _belongs_to_counter_cache_record_change(reflection, from_key, to_key)
+          model = reflection.klass
+          cache_column = reflection.counter_cache_column
+          if to_key && model.respond_to?(:increment_counter)
+            model.increment_counter(cache_column, to_key)
+          end
+          if from_key && model.respond_to?(:decrement_counter)
+            model.decrement_counter(cache_column, from_key)
+          end
+        end
+
       end
     end
 
