@@ -178,4 +178,16 @@ class ObjectTryTest < ActiveSupport::TestCase
 
     assert_nil klass.new.try(:private_method)
   end
+
+  def test_try_with_no_arguments
+    assert_equal "ell", "hello".try[1...-1]
+    assert_equal nil, nil.try[1...-1]
+    assert_equal nil, "hello".try.undefined_method
+  end
+
+  def test_try_bang_with_no_arguments
+    assert_equal "ell", "hello".try![1...-1]
+    assert_equal nil, nil.try![1...-1]
+    assert_raise(NoMethodError) { "hello".try!.undefined_method }
+  end
 end

@@ -1,3 +1,5 @@
+require "active_support/try_proxy"
+
 class Object
   # Invokes the public method whose name goes as first argument just like
   # +public_send+ does, except that if the receiver does not respond to it the
@@ -41,6 +43,8 @@ class Object
   def try(*a, &b)
     if a.empty? && block_given?
       yield self
+    elsif a.empty?
+      ActiveSupport::TryProxy.new(self)
     else
       public_send(*a, &b) if respond_to?(a.first)
     end
@@ -51,6 +55,8 @@ class Object
   def try!(*a, &b)
     if a.empty? && block_given?
       yield self
+    elsif a.empty?
+      ActiveSupport::TryProxy::Raising.new(self)
     else
       public_send(*a, &b)
     end
@@ -69,10 +75,18 @@ class NilClass
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
   def try(*args)
-    nil
+    if args.empty?
+      ActiveSupport::TryProxy::Nil.new
+    else
+      nil
+    end
   end
 
   def try!(*args)
-    nil
+    if args.empty?
+      ActiveSupport::TryProxy::Nil.new
+    else
+      nil
+    end
   end
 end
