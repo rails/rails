@@ -1,3 +1,9 @@
+*   `tables` for PostgreSQL respects the "schema" parameter and fetches
+    tables only from that schema when it is supplied (the parameter used to
+    be called "name" and was not used anywhere in the method)
+
+    *Gilad Zohari*
+
 *   Don't allow `quote_value` to be called without a column.
 
     Some adapters require column information to do their job properly.
