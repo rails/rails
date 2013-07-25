@@ -323,18 +323,15 @@ module ActionDispatch
           end
         end
 
-        def response_from_page
-          html_document.root
-        end
-
         # +html_document+ is used in testing/integration.rb
         def html_document
           @html_document ||= if @response.content_type =~ /xml$/
-            Loofah.xml_document(@response.body)
+            Loofah.xml_fragment(@response.body)
           else
-            Loofah.document(@response.body)
+            Loofah.fragment(@response.body)
           end
         end
+        alias :response_from_page :html_document
 
         class HTMLSelector #:nodoc:
           attr_accessor :root, :css_selector, :comparisons, :message
