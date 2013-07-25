@@ -706,14 +706,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
 
-    topic.update_attributes do |topic|
-      topic.title = 'Topic with block updated'
+    topic.update_attributes do |t|
+      t.title = 'Topic with block updated'
     end
     topic.reload
     assert_equal 'Topic with block updated', topic.title
 
-    topic.update_attributes("approved" => true, "title" => "Topic should be overriden by block") do |topic|
-      topic.title = 'Topic with block updated'
+    topic.update_attributes("approved" => true, "title" => "Topic should be overriden by block") do |t|
+      t.title = 'Topic with block updated'
     end
     topic.reload
     assert_equal 'Topic with block updated', topic.title
