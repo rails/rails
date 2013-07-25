@@ -222,11 +222,12 @@ module ActiveRecord
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    def update(attributes)
+    def update(attributes = nil)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        assign_attributes(attributes)
+        assign_attributes(attributes) if attributes
+        yield self if block_given?
         save
       end
     end
@@ -235,11 +236,12 @@ module ActiveRecord
 
     # Updates its receiver just like +update+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
-    def update!(attributes)
+    def update!(attributes = nil)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        assign_attributes(attributes)
+        assign_attributes(attributes) if attributes
+        yield self if block_given?
         save!
       end
     end
