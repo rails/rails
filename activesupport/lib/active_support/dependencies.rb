@@ -459,7 +459,7 @@ module ActiveSupport #:nodoc:
         if loaded.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
         else
-          require_or_load(expanded)
+          require_or_load(expanded, qualified_name)
           raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it" unless from_mod.const_defined?(const_name, false)
           return from_mod.const_get(const_name)
         end
