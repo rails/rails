@@ -100,7 +100,7 @@ module ActionController
       begin
         yield output
       ensure
-        ActionController::Base.logger = old_logger
+        ActionView::Base.logger = old_logger
       end
     end
 
