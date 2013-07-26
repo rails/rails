@@ -1,5 +1,12 @@
-*   Allow enable_extension migration method to be revertible.
+*   Generate valid SQL for `ActiveRecord::Relation#reverse_order` if directions of the order
+    in the middle of the expression like: `id DESC nulls first` for `PostgreSQL`
+
+    Fixes: #11571
  
+    *Paul Nikitochkin*
+
+*   Allow enable_extension migration method to be revertible.
+
     *Eric Tipton*
 
 *   Type cast hstore values on write, so that the value is consistent

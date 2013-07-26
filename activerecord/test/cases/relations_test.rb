@@ -170,6 +170,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
+  def test_finding_with_order_direction_in_the_middle
+    unless current_adapter?(:PostgreSQLAdapter)
+      return skip("only tested on postgresql")
+    end
+
+    topics = Topic.order('id ASC nulls last')
+    assert_equal topics(:first).title, topics.first.title
+
+    topics = Topic.order('id DESC nulls last').reverse_order
+    assert_equal topics(:first).title, topics.first.title
+  end
+
   def test_raising_exception_on_invalid_hash_params
     assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
   end

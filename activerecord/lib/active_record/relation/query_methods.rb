@@ -991,7 +991,10 @@ module ActiveRecord
         when String
           o.to_s.split(',').map! do |s|
             s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+
+            s.gsub!(/\sasc(\s|\Z)/i, " DESC\\1") ||
+              s.gsub!(/\sdesc(\s|\Z)/i, " ASC\\1") ||
+              s.concat(' DESC')
           end
         when Symbol
           { o => :desc }
