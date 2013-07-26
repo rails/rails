@@ -1520,6 +1520,72 @@ number_with_precision(111.2345)     # => 111.235
 number_with_precision(111.2345, 2)  # => 111.23
 ```
 
+### SanitizeHelper
+
+The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
+
+#### sanitize
+
+This sanitize helper will html encode all tags and strip all attributes that aren’t specifically allowed.
+
+```ruby
+sanitize @article.body
+```
+
+If either the :attributes or :tags options are passed, only the mentioned tags and attributes are allowed and nothing else.
+
+```ruby
+sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
+```
+
+To change defaults for multiple uses, for example adding table tags to the default:
+
+```ruby
+class Application < Rails::Application
+  config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+end
+```
+
+#### sanitize_css(style)
+
+Sanitizes a block of CSS code.
+
+#### strip_links(html) 
+Strips all link tags from text leaving just the link text.
+
+```ruby
+strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+# => Ruby on Rails
+```
+
+```ruby
+strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+# => emails to me@email.com.
+```
+
+```ruby
+strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
+# => Blog: Visit.
+```
+
+#### strip_tags(html) 
+
+Strips all HTML tags from the html, including comments. 
+This uses the html-scanner tokenizer and so its HTML parsing ability is limited by that of html-scanner.
+
+```ruby
+strip_tags("Strip <i>these</i> tags!")
+# => Strip these tags!
+```
+
+```ruby
+strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
+# => Bold no more!  See more
+```
+
+NB: The output may still contain unescaped ‘<’, ‘>’, ‘&’ characters and confuse browsers.
+
+
 Localized Views
 ---------------
 
