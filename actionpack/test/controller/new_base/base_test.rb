@@ -33,14 +33,14 @@ module Dispatching
   class EmptyController < ActionController::Base ; end
   class SubEmptyController < EmptyController ; end
   class NonDefaultPathController < ActionController::Base
-    def self.controller_path; "i_am_not_default"; end
+    self.controller_path = "i_am_not_default"
   end
 
   module Submodule
     class ContainedEmptyController < ActionController::Base ; end
     class ContainedSubEmptyController < ContainedEmptyController ; end
     class ContainedNonDefaultPathController < ActionController::Base
-      def self.controller_path; "i_am_extremely_not_default"; end
+      self.controller_path = "i_am_extremely_not_default"
     end
   end
 
