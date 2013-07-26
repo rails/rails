@@ -76,10 +76,38 @@ class Class
 
     attrs.each do |name|
       define_singleton_method(name) { nil }
-      define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
+      define_singleton_predicte_method(name, instance_predicate)
 
       ivar = "@#{name}"
 
+      define_singleton_accessor(name, ivar)
+
+      if instance_reader
+        define_instance_reader(name, ivar)
+        define_nonsingleton_predicate_method(name, instance_predicate)
+      end
+
+      attr_writer name if instance_writer
+    end
+  end
+
+  private
+
+    def define_singleton_predicte_method(name, instance_predicate)
+      if instance_predicate
+        remove_possible_method("#{name}?")
+        define_singleton_method("#{name}?") { !!public_send(name) }
+      end
+    end
+
+    def define_nonsingleton_predicate_method(name, instance_predicate)
+      if instance_predicate
+        remove_possible_method("#{name}?")
+        define_method("#{name}?") { !!public_send(name) }
+      end
+    end
+
+    def define_singleton_accessor(name, ivar)
       define_singleton_method("#{name}=") do |val|
         singleton_class.class_eval do
           remove_possible_method(name)
@@ -100,24 +128,19 @@ class Class
         end
         val
       end
-
-      if instance_reader
-        remove_possible_method name
-        define_method(name) do
-          if instance_variable_defined?(ivar)
-            instance_variable_get ivar
-          else
-            self.class.public_send name
-          end
-        end
-        define_method("#{name}?") { !!public_send(name) } if instance_predicate
-      end
-
-      attr_writer name if instance_writer
     end
-  end
 
-  private
+    def define_instance_reader(name, ivar)
+      remove_possible_method(name)
+      define_method(name) do
+        if instance_variable_defined?(ivar)
+          instance_variable_get ivar
+        else
+          self.class.public_send name
+        end
+      end
+    end
+
     def singleton_class?
       ancestors.first != self
     end
