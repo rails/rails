@@ -41,7 +41,8 @@ module Rails
           :include => %w(
             README.rdoc
             lib/action_view/**/*.rb
-          )
+          ),
+          :exclude => 'lib/action_view/vendor/*'
         },
 
         'actionmailer' => {
