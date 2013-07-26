@@ -12,7 +12,7 @@ ActionView::Template::register_template_handler :mab,
 ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/layout_tests/' ]
 
 class LayoutTest < ActionController::Base
-  def self.controller_path; 'views' end
+  self.controller_path = 'views'
   def self._implied_layout_name; to_s.underscore.gsub(/_controller$/, '') ; end
   self.view_paths = ActionController::Base.view_paths.dup
 end
