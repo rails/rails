@@ -100,6 +100,14 @@ module ActiveRecord
     # firing an additional query. This will often result in a
     # performance improvement over a simple +join+.
     #
+    # You can also specify multiple relationships, like this:
+    #
+    #   users = User.includes(:address, :friends)
+    #
+    # Loading nested relationships is possible using a Hash:
+    #
+    #   users = User.includes(:address, friends: [:address, :followers])
+    #
     # === conditions
     #
     # If you want to add conditions to your included models you'll have
@@ -280,16 +288,18 @@ module ActiveRecord
       args.flatten!
       validate_order_args args
 
-      references = args.reject { |arg| Arel::Node === arg }
+      references = args.grep(String)
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
       # if a symbol is given we prepend the quoted table name
-      args = args.map { |arg|
-        arg.is_a?(Symbol) ? "#{quoted_table_name}.#{arg} ASC" : arg
+      args.map! { |arg|
+        arg.is_a?(Symbol) ?
+          Arel::Nodes::Ascending.new(klass.arel_table[arg]) :
+          arg
       }
 
-      self.order_values = args + self.order_values
+      self.order_values = args.concat self.order_values
       self
     end
 
@@ -795,14 +805,14 @@ module ActiveRecord
 
     # Returns the Arel object associated with the relation.
     def arel
-      @arel ||= with_default_scope.build_arel
+      @arel ||= build_arel
     end
 
     # Like #arel, but ignores the default scope of the model.
     def build_arel
       arel = Arel::SelectManager.new(table.engine, table)
 
-      build_joins(arel, joins_values) unless joins_values.empty?
+      build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
       collapse_wheres(arel, (where_values - ['']).uniq)
 
@@ -891,6 +901,7 @@ module ActiveRecord
       when String, Array
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
+        opts = PredicateBuilder.resolve_column_aliases klass, opts
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
         attributes.values.grep(ActiveRecord::Relation) do |rel|
@@ -945,10 +956,11 @@ module ActiveRecord
 
       join_dependency.graft(*stashed_association_joins)
 
-      # FIXME: refactor this to build an AST
-      join_dependency.join_associations.each do |association|
-        association.join_to(manager)
-      end
+      joins = join_dependency.join_associations.map { |association|
+        association.join_constraints
+      }.flatten
+
+      joins.each { |join| manager.from join }
 
       manager.join_sources.concat join_list
 

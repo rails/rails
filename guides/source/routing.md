@@ -171,6 +171,12 @@ A singular resourceful route generates these helpers:
 
 As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
 
+WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) prevents `form_for` from working automatically with singular resources. As a workaround, specify the URL for the form directly, like so:
+
+```ruby
+form_for @geocoder, url: geocoder_path do |f|
+```
+
 ### Controller Namespaces and Routing
 
 You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an `Admin::` namespace. You would place these controllers under the `app/controllers/admin` directory, and you can group them together in your router:
@@ -767,11 +773,11 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/posts/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the params and the request object:
+You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|params, req| "/posts/#{params[:name].pluralize}" }
-get '/stories', to: redirect {|p, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect {|path_params, req| "/posts/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect {|path_params, req| "/posts/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.

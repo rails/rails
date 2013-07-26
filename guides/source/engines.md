@@ -346,7 +346,7 @@ Next, the partial that this line will render needs to exist. Create a new direct
 <h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
-    <%= f.label :text %><br />
+    <%= f.label :text %><br>
     <%= f.text_area :text %>
   </p>
   <%= f.submit %>
@@ -393,9 +393,14 @@ The form will be making a `POST` request to `/posts/:post_id/comments`, which wi
 ```ruby
 def create
   @post = Post.find(params[:post_id])
-  @comment = @post.comments.create(params[:comment])
+  @comment = @post.comments.create(comment_params)
   flash[:notice] = "Comment has been created!"
   redirect_to posts_path
+end
+
+private
+def comment_params
+  params.require(:comment).permit(:text)
 end
 ```
 
@@ -515,7 +520,7 @@ First, the `author_name` text field needs to be added to the `app/views/blorgh/p
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br />
+  <%= f.label :author_name %><br>
   <%= f.text_field :author_name %>
 </div>
 ```

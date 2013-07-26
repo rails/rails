@@ -9,7 +9,6 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      FileUtils.rm_rf("#{app_path}/config/environments")
     end
 
     def teardown
@@ -56,10 +55,8 @@ module ApplicationTests
       assert_match "Doing something...", output
     end
 
-    def test_does_not_explode_when_accessing_a_model_with_eager_load
+    def test_does_not_explode_when_accessing_a_model
       add_to_config <<-RUBY
-        config.eager_load = true
-
         rake_tasks do
           task do_nothing: :environment do
             Hello.new.world
@@ -67,77 +64,43 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "app/models/hello.rb", <<-RUBY
-      class Hello
-        def world
-          puts "Hello world"
+      app_file 'app/models/hello.rb', <<-RUBY
+        class Hello
+          def world
+            puts 'Hello world'
+          end
         end
-      end
       RUBY
 
-      output = Dir.chdir(app_path){ `rake do_nothing` }
-      assert_match "Hello world", output
+      output = Dir.chdir(app_path) { `rake do_nothing` }
+      assert_match 'Hello world', output
     end
 
-    def test_should_not_eager_load_model_path_for_rake
+    def test_should_not_eager_load_model_for_rake
       add_to_config <<-RUBY
-        config.eager_load = true
-
         rake_tasks do
           task do_nothing: :environment do
           end
         end
       RUBY
 
-      app_file "app/models/hello.rb", <<-RUBY
-      raise 'should not be pre-required for rake even `eager_load=true`'
+      add_to_env_config 'production', <<-RUBY
+        config.eager_load = true
       RUBY
 
-      Dir.chdir(app_path){ `rake do_nothing` }
+      app_file 'app/models/hello.rb', <<-RUBY
+        raise 'should not be pre-required for rake even eager_load=true'
+      RUBY
+
+      Dir.chdir(app_path) do
+        assert system('rake do_nothing RAILS_ENV=production'),
+               'should not be pre-required for rake even eager_load=true'
+      end
     end
 
     def test_code_statistics_sanity
       assert_match "Code LOC: 5     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path){ `rake stats` }
-    end
-
-    def test_rake_test_uncommitted_always_find_git_in_parent_dir
-      return "FIXME :'("
-      app_name = File.basename(app_path)
-      app_dir = File.dirname(app_path)
-      moved_app_name = app_name + '_moved'
-
-      Dir.chdir(app_dir) do
-        # Go from "./app/" to "./app/app_moved"
-        FileUtils.mv(app_name, moved_app_name)
-        FileUtils.mkdir(app_name)
-        FileUtils.mv(moved_app_name, app_name)
-        # Initialize the git repository and start the test.
-        Dir.chdir(app_name) do
-          `git init`
-          Dir.chdir(moved_app_name){ `rake db:migrate` }
-          silence_stderr { Dir.chdir(moved_app_name) { `rake test:uncommitted` } }
-          assert_equal 0, $?.exitstatus
-        end
-      end
-    end
-
-    def test_rake_test_uncommitted_fails_with_no_scm
-      Dir.chdir(app_path){ `rake db:migrate` }
-      Dir.chdir(app_path) do
-        silence_stderr { `rake test:uncommitted` }
-        assert_equal 1, $?.exitstatus
-      end
-    end
-
-    def test_rake_test_deprecation_messages
-      Dir.chdir(app_path){ `rails generate scaffold user name:string` }
-      Dir.chdir(app_path){ `rake db:migrate` }
-
-      %w(recent uncommitted).each do |test_suit_name|
-        output = Dir.chdir(app_path) { `rake test:#{test_suit_name} 2>&1` }
-        assert_match(/DEPRECATION WARNING: `rake test:#{test_suit_name}` is deprecated/, output)
-      end
     end
 
     def test_rake_routes_calls_the_route_inspector

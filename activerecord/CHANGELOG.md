@@ -1,3 +1,304 @@
+*   Don't allow `quote_value` to be called without a column.
+
+    Some adapters require column information to do their job properly.
+    By enforcing the provision of the column for this internal method
+    we ensure that those using adapters that require column information
+    will always get the proper behavior.
+
+    *Ben Woosley*
+
+*   When using optimistic locking, `update` was not passing the column to `quote_value`
+    to allow the connection adapter to properly determine how to quote the value. This was
+    affecting certain databases that use specific colmn types.
+
+    Fixes: #6763
+
+    *Alfred Wong*
+
+*   rescue from all exceptions in `ConnectionManagement#call`
+
+    Fixes #11497
+
+    As `ActiveRecord::ConnectionAdapters::ConnectionManagement` middleware does
+    not rescue from Exception (but only from StandardError), the Connection
+    Pool quickly runs out of connections when multiple erroneous Requests come
+    in right after each other.
+
+    Rescuing from all exceptions and not just StandardError, fixes this
+    behaviour.
+
+    *Vipul A M*
+
+*   `change_column` for PostgreSQL adapter respects the `:array` option.
+
+    *Yves Senn*
+
+*   Remove deprecation warning from `attribute_missing` for attributes that are columns.
+
+    *Arun Agrawal*
+
+*   Remove extra decrement of transaction deep level.
+
+    Fixes: #4566
+
+    *Paul Nikitochkin*
+
+*   Reset @column_defaults when assigning `locking_column`.
+    We had a potential problem. For example:
+
+    class Post < ActiveRecord::Base
+      self.column_defaults  # if we call this unintentionally before setting locking_column ...
+      self.locking_column = 'my_locking_column'
+    end
+
+    Post.column_defaults["my_locking_column"]
+    => nil # expected value is 0 !
+
+    *kennyj*
+
+*   Remove extra select and update queries on save/touch/destroy ActiveRecord model
+    with belongs to reflection with option `touch: true`.
+
+    Fixes: #11288
+
+    *Paul Nikitochkin*
+
+*   Remove deprecated nil-passing to the following `SchemaCache` methods:
+    `primary_keys`, `tables`, `columns` and `columns_hash`.
+
+    *Yves Senn*
+
+*   Remove deprecated block filter from `ActiveRecord::Migrator#migrate`.
+
+    *Yves Senn*
+
+*   Remove deprecated String constructor from `ActiveRecord::Migrator`.
+
+    *Yves Senn*
+
+*   Remove deprecated `scope` use without passing a callable object.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `transaction_joinable=` in favor of `begin_transaction`
+    with `:joinable` option.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `decrement_open_transactions`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `increment_open_transactions`.
+
+    *Arun Agrawal*
+
+*   Remove deprecated `PostgreSQLAdapter#outside_transaction?`
+    method. You can use `#transaction_open?` instead.
+
+    *Yves Senn*
+
+*   Remove deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
+    `ActiveRecord::Fixtures.default_fixture_model_name`.
+
+    *Vipul A M*
+
+*   Removed deprecated `columns_for_remove` from `SchemaStatements`.
+
+    *Neeraj Singh*
+
+*   Remove deprecated `SchemaStatements#distinct`.
+
+    *Francesco Rodriguez*
+
+*   Move deprecated `ActiveRecord::TestCase` into the rails test
+    suite. The class is no longer public and is only used for internal
+    Rails tests.
+
+    *Yves Senn*
+
+*   Removed support for deprecated option `:restrict` for `:dependent`
+    in associations.
+
+    *Neeraj Singh*
+
+*   Removed support for deprecated `delete_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Removed support for deprecated `insert_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Removed support for deprecated `finder_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Support array as root element in JSON fields.
+
+    *Alexey Noskov & Francesco Rodriguez*
+
+*   Removed support for deprecated `counter_sql` in associations.
+
+    *Neeraj Singh*
+
+*   Do not invoke callbacks when `delete_all` is called on collection.
+
+    Method `delete_all` should not be invoking callbacks and this
+    feature was deprecated in Rails 4.0. This is being removed.
+    `delete_all` will continue to honor the `:dependent` option. However
+    if `:dependent` value is `:destroy` then the default deletion
+    strategy for that collection will be applied.
+
+    User can also force a deletion strategy by passing parameter to
+    `delete_all`. For example you can do `@post.comments.delete_all(:nullify)` .
+
+    *Neeraj Singh*
+
+*   Calling default_scope without a proc will now raise `ArgumentError`.
+
+    *Neeraj Singh*
+
+*   Removed deprecated method `type_cast_code` from Column.
+
+    *Neeraj Singh*
+
+*   Removed deprecated options `delete_sql` and `insert_sql` from HABTM
+    association.
+
+    Removed deprecated options `finder_sql` and `counter_sql` from
+    collection association.
+
+    *Neeraj Singh*
+
+*   Remove deprecated `ActiveRecord::Base#connection` method.
+    Make sure to access it via the class.
+
+    *Yves Senn*
+
+*   Remove deprecation warning for `auto_explain_threshold_in_seconds`.
+
+    *Yves Senn*
+
+*   Remove deprecated `:distinct` option from `Relation#count`.
+
+    *Yves Senn*
+
+*   Removed deprecated methods `partial_updates`, `partial_updates?` and
+    `partial_updates=`.
+
+    *Neeraj Singh*
+
+*   Removed deprecated method `scoped`
+
+    *Neeraj Singh*
+
+*   Removed deprecated method `default_scopes?`
+
+    *Neeraj Singh*
+
+*   Remove implicit join references that were deprecated in 4.0.
+
+    Example:
+
+        # before with implicit joins
+        Comment.where('posts.author_id' => 7)
+
+        # after
+        Comment.references(:posts).where('posts.author_id' => 7)
+
+    *Yves Senn*
+
+*   Apply default scope when joining associations. For example:
+
+        class Post < ActiveRecord::Base
+          default_scope -> { where published: true }
+        end
+
+        class Comment
+          belongs_to :post
+        end
+
+    When calling `Comment.joins(:post)`, we expect to receive only
+    comments on published posts, since that is the default scope for
+    posts.
+
+    Before this change, the default scope from `Post` was not applied,
+    so we'd get comments on unpublished posts.
+
+    *Jon Leighton*
+
+*   Remove `activerecord-deprecated_finders` as a dependency
+
+    *Łukasz Strzałkowski*
+
+*   Remove Oracle / Sqlserver / Firebird database tasks that were deprecated in 4.0.
+
+    *kennyj*
+
+*   `find_each` now returns an `Enumerator` when called without a block, so that it
+    can be chained with other `Enumerable` methods.
+
+    *Ben Woosley*
+
+*   `ActiveRecord::Result.each` now returns an `Enumerator` when called without
+     a block, so that it can be chained with other `Enumerable` methods.
+
+    *Ben Woosley*
+
+*   Flatten merged join_values before building the joins.
+
+    While joining_values special treatment is given to string values.
+    By flattening the array it ensures that string values are detected
+    as strings and not arrays.
+
+    Fixes #10669.
+
+    *Neeraj Singh and iwiznia*
+
+*   Do not load all child records for inverse case.
+
+    currently `post.comments.find(Comment.first.id)` would load all
+    comments for the given post to set the inverse association.
+
+    This has a huge performance penalty. Because if post has 100k
+    records and all these 100k records would be loaded in memory
+    even though the comment id was supplied.
+
+    Fix is to use in-memory records only if loaded? is true. Otherwise
+    load the records using full sql.
+
+    Fixes #10509.
+
+    *Neeraj Singh*
+
+*   `inspect` on Active Record model classes does not initiate a
+    new connection. This means that calling `inspect`, when the
+    database is missing, will no longer raise an exception.
+    Fixes #10936.
+
+    Example:
+
+        Author.inspect # => "Author(no database connection)"
+
+    *Yves Senn*
+
+*   Handle single quotes in PostgreSQL default column values.
+    Fixes #10881.
+
+    *Dylan Markow*
+
+*   Log the sql that is actually sent to the database.
+
+    If I have a query that produces sql
+    `WHERE "users"."name" = 'a         b'` then in the log all the
+    whitespace is being squeezed. So the sql that is printed in the
+    log is `WHERE "users"."name" = 'a b'`.
+
+    Do not squeeze whitespace out of sql queries. Fixes #10982.
+
+    *Neeraj Singh*
+
 *   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
@@ -11,33 +312,35 @@
 *   Ambiguous reflections are on :through relationships are no longer supported.
     For example, you need to change this:
 
-      class Author < ActiveRecord::Base
-        has_many :posts
-        has_many :taggings, :through => :posts
-      end
+        class Author < ActiveRecord::Base
+          has_many :posts
+          has_many :taggings, :through => :posts
+        end
 
-      class Post < ActiveRecord::Base
-        has_one :tagging
-        has_many :taggings
-      end
+        class Post < ActiveRecord::Base
+          has_one :tagging
+          has_many :taggings
+        end
 
-      class Tagging < ActiveRecord::Base
-      end
+        class Tagging < ActiveRecord::Base
+        end
 
     To this:
 
-      class Author < ActiveRecord::Base
-        has_many :posts
-        has_many :taggings, :through => :posts, :source => :tagging
-      end
+        class Author < ActiveRecord::Base
+          has_many :posts
+          has_many :taggings, :through => :posts, :source => :tagging
+        end
 
-      class Post < ActiveRecord::Base
-        has_one :tagging
-        has_many :taggings
-      end
+        class Post < ActiveRecord::Base
+          has_one :tagging
+          has_many :taggings
+        end
 
-      class Tagging < ActiveRecord::Base
-      end
+        class Tagging < ActiveRecord::Base
+        end
+
+    *Aaron Patterson*
 
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previous behavior was untested and surprising for the user.
@@ -70,9 +373,9 @@
     You can turn off the automatic detection of inverse associations by setting
     the `:inverse_of` option to `false` like so:
 
-      class Taggable < ActiveRecord::Base
-        belongs_to :tag, inverse_of: false
-      end
+        class Taggable < ActiveRecord::Base
+          belongs_to :tag, inverse_of: false
+        end
 
     *John Wang*
 
@@ -101,7 +404,7 @@
 
     Fixes #10620.
 
-    *Aaron Peterson*
+    *Aaron Patterson*
 
 *   Also support extensions in PostgreSQL 9.1. This feature has been supported since 9.1.
 
@@ -110,7 +413,7 @@
 *   Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
     as it is no longer used by internals.
 
-    *Ben Woosley#
+    *Ben Woosley*
 
 *   Fix pending migrations error when loading schema and `ActiveRecord::Base.table_name_prefix`
     is not blank.

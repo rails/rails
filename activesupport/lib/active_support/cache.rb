@@ -408,7 +408,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do
           entry = read_entry(namespaced_key(name, options), options)
-          entry && !entry.expired?
+          (entry && !entry.expired?) || false
         end
       end
 

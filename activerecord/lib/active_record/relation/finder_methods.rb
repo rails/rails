@@ -1,5 +1,7 @@
 module ActiveRecord
   module FinderMethods
+    ONE_AS_ONE = '1 AS one'
+
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
     # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
@@ -32,7 +34,7 @@ module ActiveRecord
     #   end
     #
     # ==== Variations of +find+
-    # 
+    #
     #   Person.where(name: 'Spartacus', rating: 4)
     #   # returns a chainable list (which can be empty).
     #
@@ -49,7 +51,7 @@ module ActiveRecord
     #
     #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
     #   # returns a boolean indicating if any record with the given conditions exist.
-    #   
+    #
     #   Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
     #   # returns a chainable list of instances with only the mentioned fields.
     #
@@ -124,7 +126,7 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_first_with_limit(order_values, limit)
+        find_first_with_limit(limit)
       else
         find_first
       end
@@ -202,7 +204,7 @@ module ActiveRecord
       relation = construct_relation_for_association_find(construct_join_dependency)
       return false if ActiveRecord::NullRelation === relation
 
-      relation = relation.except(:select, :order).select("1 AS one").limit(1)
+      relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
 
       case conditions
       when Array, Hash
@@ -211,7 +213,6 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
-      relation = relation.with_default_scope
       connection.select_value(relation.arel, "#{name} Exists", relation.bind_values)
     end
 
@@ -237,7 +238,7 @@ module ActiveRecord
       raise RecordNotFound, error
     end
 
-    protected
+    private
 
     def find_with_associations
       join_dependency = construct_join_dependency
@@ -245,7 +246,7 @@ module ActiveRecord
       if ActiveRecord::NullRelation === relation
         []
       else
-        rows = connection.select_all(relation, 'SQL', relation.bind_values.dup)
+        rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
         join_dependency.instantiate(rows)
       end
     end
@@ -288,6 +289,12 @@ module ActiveRecord
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
       id_rows.map {|row| row[primary_key]}
     end
+
+    def using_limitable_reflections?(reflections)
+      reflections.none? { |r| r.collection? }
+    end
+
+    protected
 
     def find_with_ids(*ids)
       expects_array = ids.first.kind_of?(Array)
@@ -354,11 +361,11 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||= find_first_with_limit(with_default_scope.order_values, 1).first
+        @first ||= find_first_with_limit(1).first
       end
     end
 
-    def find_first_with_limit(order_values, limit)
+    def find_first_with_limit(limit)
       if order_values.empty? && primary_key
         order(arel_table[primary_key].asc).limit(limit).to_a
       else
@@ -377,10 +384,6 @@ module ActiveRecord
             reverse_order.limit(1).to_a.first
           end
       end
-    end
-
-    def using_limitable_reflections?(reflections)
-      reflections.none? { |r| r.collection? }
     end
   end
 end

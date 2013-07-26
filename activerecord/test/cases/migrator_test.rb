@@ -91,12 +91,6 @@ module ActiveRecord
       assert_equal 'AddExpressions', migrations[0].name
     end
 
-    def test_deprecated_constructor
-      assert_deprecated do
-        ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid")
-      end
-    end
-
     def test_relative_migrations
       list = Dir.chdir(MIGRATIONS_ROOT) do
         ActiveRecord::Migrator.migrations("valid/")

@@ -20,10 +20,10 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency 'activesupport', version
-  s.add_dependency 'builder',       '~> 3.1.0'
+  s.add_dependency 'actionview',    version
+
   s.add_dependency 'rack',          '~> 1.5.2'
   s.add_dependency 'rack-test',     '~> 0.6.2'
-  s.add_dependency 'erubis',        '~> 2.7.0'
 
   s.add_development_dependency 'activemodel', version
   s.add_development_dependency 'tzinfo',      '~> 0.3.37'

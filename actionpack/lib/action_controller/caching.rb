@@ -9,7 +9,7 @@ module ActionController
   # You can read more about each approach by clicking the modules below.
   #
   # Note: To turn off all caching, set
-  #   config.action_controller.perform_caching = false.
+  #   config.action_controller.perform_caching = false
   #
   # == \Caching stores
   #
@@ -57,16 +57,6 @@ module ActionController
 
       config_accessor :default_static_extension
       self.default_static_extension ||= '.html'
-
-      def self.page_cache_extension=(extension)
-        ActiveSupport::Deprecation.deprecation_warning(:page_cache_extension, :default_static_extension)
-        self.default_static_extension = extension
-      end
-
-      def self.page_cache_extension
-        ActiveSupport::Deprecation.deprecation_warning(:page_cache_extension, :default_static_extension)
-        default_static_extension
-      end
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?

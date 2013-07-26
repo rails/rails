@@ -19,9 +19,12 @@ module ActiveSupport
       end
 
       unless defined?(Spec)
-        # test "verify something" do
-        #   ...
-        # end
+        # Helper to define a test method using a String. Under the hood, it replaces
+        # spaces with underscores and defines the test method.
+        #
+        #   test "verify something" do
+        #     ...
+        #   end
         def test(name, &block)
           test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
           defined = instance_method(test_name) rescue false

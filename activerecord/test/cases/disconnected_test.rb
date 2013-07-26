@@ -7,13 +7,14 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
+    skip "in-memory database mustn't disconnect" if in_memory_db?
     @connection = ActiveRecord::Base.connection
   end
 
   def teardown
+    return if in_memory_db?
     spec = ActiveRecord::Base.connection_config
     ActiveRecord::Base.establish_connection(spec)
-    @connection = nil
   end
 
   test "can't execute statements while disconnected" do

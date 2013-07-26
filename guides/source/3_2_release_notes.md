@@ -240,11 +240,11 @@ Action Pack
 
     In the example above, Posts controller will no longer automatically look up for a posts layout. If you need this functionality you could either remove `layout "application"` from `ApplicationController` or explicitly set it to `nil` in `PostsController`.
 
-* Deprecated `ActionController::UnknownAction` in favour of `AbstractController::ActionNotFound`.
+* Deprecated `ActionController::UnknownAction` in favor of `AbstractController::ActionNotFound`.
 
-* Deprecated `ActionController::DoubleRenderError` in favour of `AbstractController::DoubleRenderError`.
+* Deprecated `ActionController::DoubleRenderError` in favor of `AbstractController::DoubleRenderError`.
 
-* Deprecated `method_missing` in favour of `action_missing` for missing actions.
+* Deprecated `method_missing` in favor of `action_missing` for missing actions.
 
 * Deprecated `ActionController#rescue_action`, `ActionController#initialize_template_class` and `ActionController#assign_shortcuts`.
 

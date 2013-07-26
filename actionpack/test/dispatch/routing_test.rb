@@ -1253,6 +1253,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'api/v3/products#list', @response.body
   end
 
+  def test_controller_option_with_nesting_and_leading_slash
+    draw do
+      scope '/job', controller: 'job' do
+        scope ':id', action: 'manage_applicant' do
+          get "/active"
+        end
+      end
+    end
+
+    get '/job/5/active'
+    assert_equal 'job#manage_applicant', @response.body
+  end
+
   def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
     draw do
       resources :replies do
@@ -3605,5 +3618,58 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
 
   def test_route_defaults_are_not_required_for_url_for
     assert_equal '/projects/1', url_for(controller: 'projects', action: 'show', id: 1, only_path: true)
+  end
+end
+
+class TestRackAppRouteGeneration < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      rack_app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      mount rack_app, at: '/account', as: 'account'
+      mount rack_app, at: '/:locale/account', as: 'localized_account'
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_mounted_application_doesnt_match_unnamed_route
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/account?controller=products', url_for(controller: 'products', action: 'index', only_path: true)
+    end
+
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
+    end
+  end
+end
+
+class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      get '/account', to: redirect('/myaccount'), as: 'account'
+      get '/:locale/account', to: redirect('/%{locale}/myaccount'), as: 'localized_account'
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_redirect_doesnt_match_unnamed_route
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/account?controller=products', url_for(controller: 'products', action: 'index', only_path: true)
+    end
+
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
+    end
   end
 end

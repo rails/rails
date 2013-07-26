@@ -97,11 +97,7 @@ module ActiveSupport
       end
 
       def noise(backtrace)
-        @silencers.each do |s|
-          backtrace = backtrace.select { |line| s.call(line) }
-        end
-
-        backtrace
+        backtrace - silence(backtrace)
       end
   end
 end

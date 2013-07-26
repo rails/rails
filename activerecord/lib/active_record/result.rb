@@ -3,10 +3,35 @@ module ActiveRecord
   # This class encapsulates a Result returned from calling +exec_query+ on any
   # database connection adapter. For example:
   #
-  #   x = ActiveRecord::Base.connection.exec_query('SELECT * FROM foo')
-  #   x # => #<ActiveRecord::Result:0xdeadbeef>
+  #   result = ActiveRecord::Base.connection.exec_query('SELECT id, title, body FROM posts')
+  #   result # => #<ActiveRecord::Result:0xdeadbeef>
+  #
+  #   # Get the column names of the result:
+  #   result.columns
+  #   # => ["id", "title", "body"]
+  #
+  #   # Get the record values of the result:
+  #   result.rows
+  #   # => [[1, "title_1", "body_1"],
+  #         [2, "title_2", "body_2"],
+  #         ...
+  #        ]
+  #
+  #   # Get an array of hashes representing the result (column => value):
+  #   result.to_hash
+  #   # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
+  #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
+  #         ...
+  #        ]
+  #
+  #   # ActiveRecord::Result also includes Enumerable.
+  #   result.each do |row|
+  #     puts row['title'] + " " + row['body']
+  #   end
   class Result
     include Enumerable
+
+    IDENTITY_TYPE = Class.new { def type_cast(v); v; end }.new # :nodoc:
 
     attr_reader :columns, :rows, :column_types
 
@@ -17,8 +42,16 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    def identity_type # :nodoc:
+      IDENTITY_TYPE
+    end
+
     def each
-      hash_rows.each { |row| yield row }
+      if block_given?
+        hash_rows.each { |row| yield row }
+      else
+        hash_rows.to_enum
+      end
     end
 
     def to_hash
@@ -52,6 +85,7 @@ module ActiveRecord
     end
 
     private
+
     def hash_rows
       @hash_rows ||=
         begin

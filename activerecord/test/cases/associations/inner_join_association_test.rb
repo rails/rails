@@ -104,4 +104,12 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert !posts(:welcome).tags.empty?
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
   end
+
+  test "the default scope of the target is applied when joining associations" do
+    author = Author.create! name: "Jon"
+    author.categorizations.create!
+    author.categorizations.create! special: true
+
+    assert_equal [author], Author.where(id: author).joins(:special_categorizations)
+  end
 end

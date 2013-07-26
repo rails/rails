@@ -487,6 +487,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_select_returns_a_hash_when_unchanged
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
+
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.select! {|k,v| v == 1}
@@ -699,12 +705,6 @@ class HashExtTest < ActiveSupport::TestCase
     merged = options.dup
     assert_equal expected, merged.reverse_update(defaults)
     assert_equal expected, merged
-  end
-
-  def test_diff
-    assert_deprecated do
-      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
-    end
   end
 
   def test_slice

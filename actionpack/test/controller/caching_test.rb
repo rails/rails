@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'abstract_unit'
-require 'active_record_unit'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -311,20 +310,5 @@ class ViewCacheDependencyTest < ActionController::TestCase
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
     assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
-  end
-end
-
-class DeprecatedPageCacheExtensionTest < ActiveSupport::TestCase
-  def test_page_cache_extension_binds_default_static_extension
-    deprecation_behavior = ActiveSupport::Deprecation.behavior
-    ActiveSupport::Deprecation.behavior = :silence
-    old_extension = ActionController::Base.default_static_extension
-
-    ActionController::Base.page_cache_extension = '.rss'
-
-    assert_equal '.rss', ActionController::Base.default_static_extension
-  ensure
-    ActiveSupport::Deprecation.behavior = deprecation_behavior
-    ActionController::Base.default_static_extension = old_extension
   end
 end

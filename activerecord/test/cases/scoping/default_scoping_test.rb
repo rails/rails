@@ -56,7 +56,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC') }.join
+      Thread.new {
+        assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
+        DeveloperOrderedBySalary.connection.close
+      }.join
     end
   end
 
@@ -153,9 +156,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_to_unscope_reordering
-    expected = DeveloperOrderedBySalary.all.collect { |dev| [dev.name, dev.id] }
-    received = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order).collect { |dev| [dev.name, dev.id] }
-    assert_equal expected, received
+    scope = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order)
+    assert !(scope.to_sql =~ /order/i)
   end
 
   def test_unscope_reverse_order
@@ -361,9 +363,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     threads << Thread.new do
       Thread.current[:long_default_scope] = true
       assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
     end
     threads << Thread.new do
       assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
     end
     threads.each(&:join)
   end

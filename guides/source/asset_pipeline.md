@@ -69,12 +69,12 @@ Rails' old strategy was to append a date-based query string to every asset linke
 
 The query string strategy has several disadvantages:
 
-1. **Not all caches will reliably cache content where the filename only differs by query parameters**<br />
+1. **Not all caches will reliably cache content where the filename only differs by query parameters**<br>
     [Steve Souders recommends](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/), "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
 
-2. **The file name can change between nodes in multi-server environments.**<br />
+2. **The file name can change between nodes in multi-server environments.**<br>
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
-3. **Too much cache invalidation**<br />
+3. **Too much cache invalidation**<br>
     When static assets are deployed with each new release of code, the mtime(time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring that filenames are consistent based on their content.
@@ -606,7 +606,7 @@ Customizing the Pipeline
 
 ### CSS Compression
 
-There is currently one option for compressing CSS, YUI. The [YUI CSS compressor](http://developer.yahoo.com/yui/compressor/css.html) provides minification.
+There is currently one option for compressing CSS, YUI. The [YUI CSS compressor](http://yui.github.io/yuicompressor/css.html) provides minification.
 
 The following line enables YUI compression, and requires the `yui-compressor` gem.
 
@@ -620,7 +620,7 @@ The `config.assets.compress` must be set to `true` to enable CSS compression.
 
 Possible options for JavaScript compression are `:closure`, `:uglifier` and `:yui`. These require the use of the `closure-compiler`, `uglifier` or `yui-compressor` gems, respectively.
 
-The default Gemfile includes [uglifier](https://github.com/lautis/uglifier). This gem wraps [UglifierJS](https://github.com/mishoo/UglifyJS) (written for NodeJS) in Ruby. It compresses your code by removing white space. It also includes other optimizations such as changing your `if` and `else` statements to ternary operators where possible.
+The default Gemfile includes [uglifier](https://github.com/lautis/uglifier). This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for NodeJS) in Ruby. It compresses your code by removing white space and comments, shortening local variable names, and performing other micro-optimizations such as changing `if` and `else` statements to ternary operators where possible.
 
 The following line invokes `uglifier` for JavaScript compression.
 

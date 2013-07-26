@@ -177,20 +177,18 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_filtering_migrations
-    assert !Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
     assert !Reminder.table_exists?
 
     name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
 
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
+    assert_column Person, :last_name
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
 
-    Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
@@ -237,7 +235,7 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    assert_not Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
 
     migration = Class.new(ActiveRecord::Migration) {
       def version; 100 end
@@ -253,8 +251,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
 
-    Person.reset_column_information
-    assert_not Person.column_methods_hash.include?(:last_name),
+    assert_no_column Person, :last_name,
      "On error, the Migrator should revert schema changes but it did not."
   end
 
@@ -263,7 +260,7 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    assert_not Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
 
     migration = Class.new(ActiveRecord::Migration) {
       def version; 100 end
@@ -279,8 +276,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
 
-    Person.reset_column_information
-    assert_not Person.column_methods_hash.include?(:last_name),
+    assert_no_column Person, :last_name,
       "On error, the Migrator should revert schema changes but it did not."
   end
 
@@ -289,7 +285,7 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    assert_not Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
 
     migration = Class.new(ActiveRecord::Migration) {
       self.disable_ddl_transaction!
@@ -305,12 +301,11 @@ class MigrationTest < ActiveRecord::TestCase
     e = assert_raise(StandardError) { migrator.migrate }
     assert_equal "An error has occurred, all later migrations canceled:\n\nSomething broke", e.message
 
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name),
+    assert_column Person, :last_name,
      "without ddl transactions, the Migrator should not rollback on error but it did."
   ensure
     Person.reset_column_information
-    if Person.column_methods_hash.include?(:last_name)
+    if Person.column_names.include?('last_name')
       Person.connection.remove_column('people', 'last_name')
     end
   end

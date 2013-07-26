@@ -58,6 +58,7 @@ The methods are:
 
 * `bind`
 * `create_with`
+* `distinct`
 * `eager_load`
 * `extending`
 * `from`
@@ -76,7 +77,6 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `distinct`
 * `uniq`
 * `where`
 
@@ -711,7 +711,7 @@ Post.order('id DESC').limit(20).unscope(:order, :limit) = Post.all
 You can additionally unscope specific where clauses. For example:
 
 ```ruby
-Post.where(:id => 10).limit(1).unscope(where: :id, :limit).order('id DESC') = Post.order('id DESC')
+Post.where(id: 10).limit(1).unscope({ where: :id }, :limit).order('id DESC') = Post.order('id DESC')
 ```
 
 ### `only`
@@ -1210,9 +1210,7 @@ class User < ActiveRecord::Base
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end
-```
 
-```ruby
 User.active.inactive
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
 ```

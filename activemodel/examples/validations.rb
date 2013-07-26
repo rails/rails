@@ -4,7 +4,7 @@ class Person
   include ActiveModel::Conversion
   include ActiveModel::Validations
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   attr_accessor :name
 
@@ -25,5 +25,5 @@ person1 = Person.new
 p person1.valid? # => false
 p person1.errors.messages # => {:name=>["can't be blank"]}
 
-person2 = Person.new(:name => "matz")
+person2 = Person.new(name: 'matz')
 p person2.valid? # => true

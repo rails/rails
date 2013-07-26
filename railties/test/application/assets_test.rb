@@ -91,7 +91,7 @@ module ApplicationTests
         class UsersController < ApplicationController; end
       eoruby
       app_file "app/models/user.rb", <<-eoruby
-        class User < ActiveRecord::Base; end
+        class User < ActiveRecord::Base; raise 'should not be reached'; end
       eoruby
 
       ENV['RAILS_ENV']  = 'production'
@@ -163,6 +163,29 @@ module ApplicationTests
       precompile!
 
       assert_file_exists("#{app_path}/public/assets/something-*.js")
+    end
+
+    test 'precompile use assets defined in app env config' do
+      add_to_env_config 'production', 'config.assets.precompile = [ "something.js" ]'
+
+      app_file 'app/assets/javascripts/something.js.erb', 'alert();'
+
+      precompile! 'RAILS_ENV=production'
+
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
+    end
+
+    test 'precompile use assets defined in app config and reassigned in app env config' do
+      add_to_config 'config.assets.precompile = [ "something.js" ]'
+      add_to_env_config 'production', 'config.assets.precompile += [ "another.js" ]'
+
+      app_file 'app/assets/javascripts/something.js.erb', 'alert();'
+      app_file 'app/assets/javascripts/another.js.erb', 'alert();'
+
+      precompile! 'RAILS_ENV=production'
+
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
+      assert_file_exists("#{app_path}/public/assets/another-*.js")
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do

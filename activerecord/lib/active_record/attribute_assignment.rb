@@ -3,7 +3,6 @@ require 'active_model/forbidden_attributes_protection'
 module ActiveRecord
   module AttributeAssignment
     extend ActiveSupport::Concern
-    include ActiveModel::DeprecatedMassAssignmentSecurity
     include ActiveModel::ForbiddenAttributesProtection
 
     # Allows you to set all the attributes by passing in a hash of attributes with

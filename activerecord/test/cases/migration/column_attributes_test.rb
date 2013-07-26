@@ -16,32 +16,23 @@ module ActiveRecord
       end
 
       def test_add_remove_single_field_using_string_arguments
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
 
         add_column 'test_models', 'last_name', :string
-
-        TestModel.reset_column_information
-
-        assert TestModel.column_methods_hash.key?(:last_name)
+        assert_column TestModel, :last_name
 
         remove_column 'test_models', 'last_name'
-
-        TestModel.reset_column_information
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
       end
 
       def test_add_remove_single_field_using_symbol_arguments
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
 
         add_column :test_models, :last_name, :string
-
-        TestModel.reset_column_information
-        assert TestModel.column_methods_hash.key?(:last_name)
+        assert_column TestModel, :last_name
 
         remove_column :test_models, :last_name
-
-        TestModel.reset_column_information
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
       end
 
       def test_unabstracted_database_dependent_types
@@ -166,26 +157,6 @@ module ActiveRecord
           assert_equal Time, bob.favorite_day.class
         else
           assert_equal Date, bob.favorite_day.class
-        end
-
-        # Oracle adapter stores Time or DateTime with timezone value already in _before_type_cast column
-        # therefore no timezone change is done afterwards when default timezone is changed
-        unless current_adapter?(:OracleAdapter)
-          # Test DateTime column and defaults, including timezone.
-          # FIXME: moment of truth may be Time on 64-bit platforms.
-          if bob.moment_of_truth.is_a?(DateTime)
-
-            with_env_tz 'US/Eastern' do
-              bob.reload
-              assert_equal DateTime.local_offset, bob.moment_of_truth.offset
-              assert_not_equal 0, bob.moment_of_truth.offset
-              assert_not_equal "Z", bob.moment_of_truth.zone
-              # US/Eastern is -5 hours from GMT
-              assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-              assert_match(/\A-05:00\Z/, bob.moment_of_truth.zone)
-              assert_equal DateTime::ITALY, bob.moment_of_truth.start
-            end
-          end
         end
 
         assert_instance_of TrueClass, bob.male?

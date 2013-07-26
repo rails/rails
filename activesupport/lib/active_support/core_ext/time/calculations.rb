@@ -3,7 +3,6 @@ require 'active_support/core_ext/time/conversions'
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/date_and_time/calculations'
-require 'active_support/deprecation'
 
 class Time
   include DateAndTime::Calculations
@@ -26,41 +25,6 @@ class Time
       end
     end
 
-    # *DEPRECATED*: Use +Time#utc+ or +Time#local+ instead.
-    #
-    # Returns a new Time if requested year can be accommodated by Ruby's Time class
-    # (i.e., if year is within either 1970..2038 or 1902..2038, depending on system architecture);
-    # otherwise returns a DateTime.
-    def time_with_datetime_fallback(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0, usec=0)
-      ActiveSupport::Deprecation.warn 'time_with_datetime_fallback is deprecated. Use Time#utc or Time#local instead', caller
-      time = ::Time.send(utc_or_local, year, month, day, hour, min, sec, usec)
-
-      # This check is needed because Time.utc(y) returns a time object in the 2000s for 0 <= y <= 138.
-      if time.year == year
-        time
-      else
-        ::DateTime.civil_from_format(utc_or_local, year, month, day, hour, min, sec)
-      end
-    rescue
-      ::DateTime.civil_from_format(utc_or_local, year, month, day, hour, min, sec)
-    end
-
-    # *DEPRECATED*: Use +Time#utc+ instead.
-    #
-    # Wraps class method +time_with_datetime_fallback+ with +utc_or_local+ set to <tt>:utc</tt>.
-    def utc_time(*args)
-      ActiveSupport::Deprecation.warn 'utc_time is deprecated. Use Time#utc instead', caller
-      time_with_datetime_fallback(:utc, *args)
-    end
-
-    # *DEPRECATED*: Use +Time#local+ instead.
-    #
-    # Wraps class method +time_with_datetime_fallback+ with +utc_or_local+ set to <tt>:local</tt>.
-    def local_time(*args)
-      ActiveSupport::Deprecation.warn 'local_time is deprecated. Use Time#local instead', caller
-      time_with_datetime_fallback(:local, *args)
-    end
-
     # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
@@ -69,10 +33,15 @@ class Time
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
     def at_with_coercion(*args)
-      if args.size == 1 && args.first.acts_like?(:time)
-        at_without_coercion(args.first.to_i)
+      return at_without_coercion(*args) if args.size != 1
+
+      # Time.at can be called with a time or numerical value
+      time_or_number = args.first
+
+      if time_or_number.is_a?(ActiveSupport::TimeWithZone) || time_or_number.is_a?(DateTime)
+        at_without_coercion(time_or_number.to_f).getlocal
       else
-        at_without_coercion(*args)
+        at_without_coercion(time_or_number)
       end
     end
     alias_method :at_without_coercion, :at

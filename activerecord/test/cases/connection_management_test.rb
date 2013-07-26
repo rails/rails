@@ -80,9 +80,9 @@ module ActiveRecord
       end
 
       def test_connections_closed_if_exception
-        app       = Class.new(App) { def call(env); raise; end }.new
+        app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
         explosive = ConnectionManagement.new(app)
-        assert_raises(RuntimeError) { explosive.call(@env) }
+        assert_raises(NotImplementedError) { explosive.call(@env) }
         assert !ActiveRecord::Base.connection_handler.active_connections?
       end
 

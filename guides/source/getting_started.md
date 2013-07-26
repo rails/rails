@@ -138,7 +138,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 |config/|Configure your application's runtime rules, routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
-|Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
+|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
@@ -230,16 +230,16 @@ Blog::Application.routes.draw do
   # first created -> highest priority.
   # ...
   # You can have the root of your site routed with "root"
-  # root to: "welcome#index"
+  # root "welcome#index"
 ```
 
-This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with `root :to` and uncomment it. It should look something like the following:
+This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with `root` and uncomment it. It should look something like the following:
 
 ```ruby
-root to: "welcome#index"
+root "welcome#index"
 ```
 
-The `root to: "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to <http://localhost:3000/welcome/index> to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
+The `root "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to <http://localhost:3000/welcome/index> to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
 
 If you navigate to <http://localhost:3000> in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
@@ -252,23 +252,26 @@ Now that you've seen how to create a controller, an action and a view, let's cre
 
 In the Blog application, you will now create a new _resource_. A resource is the term used for a collection of similar objects, such as posts, people or animals. You can create, read, update and destroy items for a resource and these operations are referred to as _CRUD_ operations.
 
-Rails provides a `resources` method which can be used to declare a
-standard REST resource. Here's how `config/routes.rb` will look like.
+Rails provides a `resources` method which can be used to declare a standard REST resource.
+Here's what `config/routes.rb` should look like after the _post resource_ is declared.
 
 ```ruby
 Blog::Application.routes.draw do
 
   resources :posts
 
-  root to: "welcome#index"
+  root "welcome#index"
 end
 ```
 
-If you run `rake routes`, you'll see that all the routes for the
-standard RESTful actions.
+If you run `rake routes`, you'll see that it has defined routes for all the
+standard RESTful actions.  The meaning of the prefix column (and other columns)
+will be seen later, but for now notice that Rails has inferred the
+singular form `post` and makes meaningful use of the distinction.
 
 ```bash
 $ rake routes
+   Prefix Verb   URI Pattern               Controller#Action
     posts GET    /posts(.:format)          posts#index
           POST   /posts(.:format)          posts#create
  new_post GET    /posts/new(.:format)      posts#new
@@ -394,9 +397,27 @@ Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this
 <%= form_for :post, url: posts_path do |f| %>
 ```
 
-In this example, the `posts_path` helper is passed to the `:url` option. What Rails will do with this is that it will point the form to the `create` action of the current controller, the `PostsController`, and will send a `POST` request to that route.
-
-By using the `post` method rather than the `get` method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
+In this example, the `posts_path` helper is passed to the `:url` option.
+To see what Rails will do with this, we look back at the output of
+`rake routes`:
+```bash
+$ rake routes
+   Prefix Verb   URI Pattern               Controller#Action
+    posts GET    /posts(.:format)          posts#index
+          POST   /posts(.:format)          posts#create
+ new_post GET    /posts/new(.:format)      posts#new
+edit_post GET    /posts/:id/edit(.:format) posts#edit
+     post GET    /posts/:id(.:format)      posts#show
+          PATCH  /posts/:id(.:format)      posts#update
+          PUT    /posts/:id(.:format)      posts#update
+          DELETE /posts/:id(.:format)      posts#destroy
+     root        /                         welcome#index
+```
+The `posts_path` helper tells Rails to point the form
+to the URI Pattern associated with the `posts` prefix; and
+the form will (by default) send a `POST` request
+to that route.  This is associated with the 
+`create` action of the current controller, the `PostsController`.
 
 With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
 
@@ -531,27 +552,19 @@ and change the `create` action to look like this:
 
 ```ruby
 def create
-  @post = Post.new(post_params)
+  @post = Post.new(params[:post])
  
   @post.save
   redirect_to @post
 end
-
-private
-  def post_params
-    params.require(:post).permit(:title, :text)
-  end
 ```
 
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
-`post_params` contains the attributes we're interested in). Then,
-`@post.save` is responsible for saving the model in the database.
-Finally, we redirect the user to the `show` action,
-which we'll define later.
-
-TIP: Note that `def post_params` is private. This new approach prevents an attacker from setting the model's attributes by manipulating the hash passed to the model. For more information, refer to [this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+database columns. In the first line we do just that
+(remember that `params[:post]` contains the attributes we're interested in).
+Then, `@post.save` is responsible for saving the model in the database.
+Finally, we redirect the user to the `show` action, which we'll define later.
 
 TIP: As we'll see later, `@post.save` returns a boolean indicating
 whether the model was saved or not.
@@ -612,11 +625,16 @@ we want to accept in our controllers. In this case, we want to allow the
 look like this:
 
 ```
-  def create
-    @post = Post.new(params[:post].permit(:title, :text))
+def create
+  @post = Post.new(post_params)
 
-    @post.save
-    redirect_to @post
+  @post.save
+  redirect_to @post
+end
+
+private
+  def post_params
+    params.require(:post).permit(:title, :text)
   end
 ```
 
@@ -625,6 +643,11 @@ action. With this change, you should finally be able to create new `Post`s.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
+
+TIP: Note that `def post_params` is private. This new approach prevents an attacker from
+setting the model's attributes by manipulating the hash passed to the model.
+For more information, refer to
+[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Listing all posts
 
@@ -721,7 +744,7 @@ TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
 and restart the web server when a change is made.
 
-### Allowing the update of fields
+### Adding Some Validation
 
 The model file, `app/models/post.rb` is about as simple as it can get:
 
@@ -735,8 +758,6 @@ There isn't much to this file - but note that the `Post` class inherits from
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
-
-### Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/post.rb` file and edit it:
@@ -767,7 +788,7 @@ def new
 end
 
 def create
-  @post = Post.new(params[:post].permit(:title, :text))
+  @post = Post.new(post_params)
 
   if @post.save
     redirect_to @post
@@ -775,6 +796,11 @@ def create
     render 'new'
   end
 end
+
+private
+  def post_params
+    params.require(:post).permit(:title, :text)
+  end
 ```
 
 The `new` action is now creating a new instance variable called `@post`, and
@@ -793,7 +819,7 @@ something went wrong. To do that, you'll modify
 ```html+erb
 <%= form_for :post, url: posts_path do |f| %>
   <% if @post.errors.any? %>
-  <div id="errorExplanation">
+  <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
@@ -862,7 +888,7 @@ it look as follows:
 
 <%= form_for :post, url: post_path(@post.id), method: :patch do |f| %>
   <% if @post.errors.any? %>
-  <div id="errorExplanation">
+  <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
@@ -905,18 +931,25 @@ Next we need to create the `update` action in `app/controllers/posts_controller.
 def update
   @post = Post.find(params[:id])
 
-  if @post.update(params[:post].permit(:title, :text))
+  if @post.update(post_params)
     redirect_to @post
   else
     render 'edit'
   end
 end
+
+private
+  def post_params
+    params.require(:post).permit(:title, :text)
+  end
 ```
 
 The new method, `update`, is used when you want to update a record
 that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
+
+We reuse the `post_params` method that we defined earlier for the create action.
 
 TIP: You don't need to pass all attributes to `update`. For
 example, if you'd call `@post.update(title: 'A new title')`
@@ -939,7 +972,7 @@ appear next to the "Show" link:
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', post_path(post) %></td>
+    <td><%= link_to 'Show', post %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
   </tr>
 <% end %>
@@ -977,7 +1010,7 @@ content:
 ```html+erb
 <%= form_for @post do |f| %>
   <% if @post.errors.any? %>
-  <div id="errorExplanation">
+  <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
       this post from being saved:</h2>
     <ul>
@@ -1004,9 +1037,14 @@ content:
 ```
 
 Everything except for the `form_for` declaration remained the same.
-How `form_for` can figure out the right `action` and `method` attributes
-when building the form will be explained in just a moment. For now, let's update the
-`app/views/posts/new.html.erb` view to use this new partial, rewriting it
+The reason we can use this shorter, simpler `form_for` declaration 
+to stand in for either of the other forms is that `@post` is a *resource*
+corresponding to a full set of RESTful routes, and Rails is able to infer
+which URI and method to use.
+For more information about this use of `form_for`, see
+[Resource-oriented style](//api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for-label-Resource-oriented+style).
+
+Now, let's update the `app/views/posts/new.html.erb` view to use this new partial, rewriting it
 completely:
 
 ```html+erb
@@ -1062,7 +1100,7 @@ You can call `destroy` on Active Record objects when you want to delete
 them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the `index` action.
 
-Finally, add a 'destroy' link to your `index` action template
+Finally, add a 'Destroy' link to your `index` action template
 (`app/views/posts/index.html.erb`) to wrap everything
 together.
 
@@ -1088,8 +1126,8 @@ together.
 </table>
 ```
 
-Here we're using `link_to` in a different way. We pass the named route as the first argument,
-and then the final two keys as another argument. The `:method` and `:'data-confirm'`
+Here we're using `link_to` in a different way. We pass the named route as the second argument,
+and then the options as another argument. The `:method` and `:'data-confirm'`
 options are used as HTML5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the link with method `delete`.
 This is done via the JavaScript file `jquery_ujs` which is automatically included
@@ -1277,11 +1315,11 @@ So first, we'll wire up the Post show template
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1303,9 +1341,14 @@ Let's wire up the `create` in `app/controllers/comments_controller.rb`:
 class CommentsController < ApplicationController
   def create
     @post = Post.find(params[:post_id])
-    @comment = @post.comments.create(params[:comment].permit(:commenter, :body))
+    @comment = @post.comments.create(comment_params)
     redirect_to post_path(@post)
   end
+
+  private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body)
+    end
 end
 ```
 
@@ -1352,11 +1395,11 @@ template. This is where we want the comment to show, so let's add that to the
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1418,11 +1461,11 @@ following:
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1448,11 +1491,11 @@ create a file `app/views/comments/_form.html.erb` containing:
 ```html+erb
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
-    <%= f.label :commenter %><br />
+    <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br />
+    <%= f.label :body %><br>
     <%= f.text_area :body %>
   </p>
   <p>
@@ -1527,10 +1570,9 @@ controller (`app/controllers/comments_controller.rb`):
 
 ```ruby
 class CommentsController < ApplicationController
-
   def create
     @post = Post.find(params[:post_id])
-    @comment = @post.comments.create(params[:comment])
+    @comment = @post.comments.create(comment_params)
     redirect_to post_path(@post)
   end
 
@@ -1541,6 +1583,10 @@ class CommentsController < ApplicationController
     redirect_to post_path(@post)
   end
 
+  private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body)
+    end
 end
 ```
 
@@ -1659,7 +1705,7 @@ Two very common sources of data that are not UTF-8:
   in the browser. This also applies to your i18n translation files.
   Most editors that do not already default to UTF-8 (such as some versions of
   Dreamweaver) offer a way to change the default to UTF-8. Do so.
-* Your database. Rails defaults to converting data from your database into UTF-8 at
+* Your database: Rails defaults to converting data from your database into UTF-8 at
   the boundary. However, if your database is not using UTF-8 internally, it may not
   be able to store all characters that your users enter. For instance, if your database
   is using Latin-1 internally, and your user enters a Russian, Hebrew, or Japanese

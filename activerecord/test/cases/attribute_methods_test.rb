@@ -32,7 +32,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
 
     assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
-    assert_equal '"The First Topic Now Has A Title With\nNewlines And M..."', t.attribute_for_inspect(:title)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:title)
   end
 
   def test_attribute_present
@@ -757,21 +757,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_equal 5, instance.id
     assert subklass.method_defined?(:id), "subklass is missing id method"
-  end
-
-  def test_dispatching_column_attributes_through_method_missing_deprecated
-    Topic.define_attribute_methods
-
-    topic = Topic.new(:id => 5)
-    topic.id = 5
-
-    topic.method(:id).owner.send(:undef_method, :id)
-
-    assert_deprecated do
-      assert_equal 5, topic.id
-    end
-  ensure
-    Topic.undefine_attribute_methods
   end
 
   def test_read_attribute_with_nil_should_not_asplode

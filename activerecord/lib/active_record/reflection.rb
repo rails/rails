@@ -10,6 +10,27 @@ module ActiveRecord
       self.aggregate_reflections = {}
     end
 
+    def self.create(macro, name, scope, options, ar)
+      case macro
+      when :has_and_belongs_to_many
+        klass = AssociationReflection
+      when :has_many, :belongs_to, :has_one
+        klass = options[:through] ? ThroughReflection : AssociationReflection
+      when :composed_of
+        klass = AggregateReflection
+      end
+
+      klass.new(macro, name, scope, options, ar)
+    end
+
+    def self.add_reflection(ar, name, reflection)
+      if reflection.class == AggregateReflection
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
+      else
+        ar.reflections = ar.reflections.merge(name => reflection)
+      end
+    end
+
     # \Reflection enables to interrogate Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
@@ -19,25 +40,6 @@ module ActiveRecord
     # MacroReflection class has info for AggregateReflection and AssociationReflection
     # classes.
     module ClassMethods
-      def create_reflection(macro, name, scope, options, active_record)
-        case macro
-        when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
-          klass = options[:through] ? ThroughReflection : AssociationReflection
-        when :composed_of
-          klass = AggregateReflection
-        end
-
-        reflection = klass.new(macro, name, scope, options, active_record)
-
-        if klass == AggregateReflection
-          self.aggregate_reflections = self.aggregate_reflections.merge(name => reflection)
-        else
-          self.reflections = self.reflections.merge(name => reflection)
-        end
-
-        reflection
-      end
-
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
         aggregate_reflections.values
@@ -191,7 +193,7 @@ module ActiveRecord
 
       attr_reader :type, :foreign_type
 
-      def initialize(*args)
+      def initialize(macro, name, scope, options, active_record)
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         @automatic_inverse_of = nil
@@ -267,7 +269,7 @@ module ActiveRecord
       end
 
       def source_reflection
-        nil
+        self
       end
 
       # A chain of reflections from this one back to the owner. For more see the explanation in
@@ -368,6 +370,12 @@ module ActiveRecord
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
       INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
+
+      protected
+
+      def actual_source_reflection # FIXME: this is a horrible name
+        self
+      end
 
       private
         # Attempts to find the inverse association name automatically.
@@ -527,7 +535,9 @@ module ActiveRecord
       #
       def chain
         @chain ||= begin
-          chain = source_reflection.chain + through_reflection.chain
+          a = source_reflection.chain
+          b = through_reflection.chain
+          chain = a + b
           chain[0] = self # Use self so we don't lose the information from :source_type
           chain
         end
@@ -578,7 +588,7 @@ module ActiveRecord
 
       # A through association is nested if there would be more than one join table
       def nested?
-        chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
+        chain.length > 2 || through_reflection.has_and_belongs_to_many?
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to
@@ -587,12 +597,7 @@ module ActiveRecord
       def association_primary_key(klass = nil)
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
-        source_reflection = self.source_reflection
-        while source_reflection.source_reflection
-          source_reflection = source_reflection.source_reflection
-        end
-
-        source_reflection.options[:primary_key] || primary_key(klass || self.klass)
+        actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
@@ -669,6 +674,12 @@ directive on your declaration like:
         end
 
         check_validity_of_inverse!
+      end
+
+      protected
+
+      def actual_source_reflection # FIXME: this is a horrible name
+        source_reflection.actual_source_reflection
       end
 
       private

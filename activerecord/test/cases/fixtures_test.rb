@@ -493,10 +493,6 @@ class CustomConnectionFixturesTest < ActiveRecord::TestCase
   fixtures :courses
   self.use_transactional_fixtures = false
 
-  def test_connection_instance_method_deprecation
-    assert_deprecated { courses(:ruby).connection }
-  end
-
   def test_leaky_destroy
     assert_nothing_raised { courses(:ruby) }
     courses(:ruby).destroy

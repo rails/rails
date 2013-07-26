@@ -553,7 +553,7 @@ outputs (with actual option values omitted for brevity)
 which results in a `params` hash like
 
 ```ruby
-{:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
+{'person' => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 ```
 
 When this is passed to `Person.new` (or `update`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
@@ -881,19 +881,19 @@ end
 
 ```ruby
 {
-    :person => {
-        :name => 'John Doe',
-        :addresses_attributes => {
-            '0' => {
-                :kind => 'Home',
-                :street => '221b Baker Street',
-            },
-            '1' => {
-                :kind => 'Office',
-                :street => '31 Spooner Street'
-            }
-        }
+  'person' => {
+    'name' => 'John Doe',
+    'addresses_attributes' => {
+      '0' => {
+        'kind' => 'Home',
+        'street' => '221b Baker Street'
+      },
+      '1' => {
+        'kind' => 'Office',
+        'street' => '31 Spooner Street'
+      }
     }
+  }
 }
 ```
 
@@ -973,4 +973,4 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 ### Adding Fields on the Fly
 
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new child' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the the key of the associated array is unique - the current javascript date (milliseconds after the epoch) is a common choice.
+Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new child' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current javascript date (milliseconds after the epoch) is a common choice.

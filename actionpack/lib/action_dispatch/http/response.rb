@@ -210,7 +210,9 @@ module ActionDispatch # :nodoc:
       if body.respond_to?(:to_path)
         @stream = body
       else
-        @stream = build_buffer self, munge_body_object(body)
+        synchronize do
+          @stream = build_buffer self, munge_body_object(body)
+        end
       end
     end
 

@@ -314,7 +314,7 @@ will produce a migration that looks like this
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
     add_column :products, :price, precision: 5, scale: 2
-    add_reference :products, :user, polymorphic: true, index: true
+    add_reference :products, :supplier, polymorphic: true, index: true
   end
 end
 ```
@@ -376,7 +376,7 @@ create_join_table :products, :categories, column_options: {null: true}
 will create the `product_id` and `category_id` with the `:null` option as
 `true`.
 
-You can pass the option `:table_name` with you want to customize the table
+You can pass the option `:table_name` when you want to customize the table
 name. For example,
 
 ```ruby
@@ -390,8 +390,8 @@ will create a `categorization` table.
 
 ```ruby
 create_join_table :products, :categories do |t|
-  t.index :products
-  t.index :categories
+  t.index :product_id
+  t.index :category_id
 end
 ```
 
@@ -841,7 +841,6 @@ class AddFlagToProduct < ActiveRecord::Migration
     reversible do |dir|
       dir.up { Product.update_all flag: false }
     end
-    Product.update_all flag: false
   end
 end
 ```

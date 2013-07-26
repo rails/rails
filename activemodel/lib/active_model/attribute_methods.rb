@@ -1,4 +1,5 @@
 require 'thread_safe'
+require 'mutex_m'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -218,6 +219,16 @@ module ActiveModel
         end
       end
 
+      # Is +new_name+ an alias?
+      def attribute_alias?(new_name)
+        attribute_aliases.key? new_name.to_s
+      end
+
+      # Returns the original name for the alias +name+
+      def attribute_alias(name)
+        attribute_aliases[name.to_s]
+      end
+
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
@@ -322,9 +333,10 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        @generated_attribute_methods ||= Module.new {
+          extend Mutex_m
+        }.tap { |mod| include mod }
       end
 
       protected
@@ -388,14 +400,6 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            if options[:prefix] == '' || options[:suffix] == ''
-              message = "Specifying an empty prefix/suffix for an attribute method is no longer " \
-                        "necessary. If the un-prefixed/suffixed version of the method has not been " \
-                        "defined when `define_attribute_methods` is called, it will be defined " \
-                        "automatically."
-              ActiveSupport::Deprecation.warn message
-            end
-
             @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"

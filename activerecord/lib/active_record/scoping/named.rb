@@ -25,22 +25,18 @@ module ActiveRecord
           if current_scope
             current_scope.clone
           else
-            scope = relation
-            scope.default_scoped = true
-            scope
+            default_scoped
           end
+        end
+
+        def default_scoped # :nodoc:
+          relation.merge(build_default_scope)
         end
 
         # Collects attributes from scopes that should be applied when creating
         # an AR instance for the particular class this is called on.
         def scope_attributes # :nodoc:
-          if current_scope
-            current_scope.scope_for_create
-          else
-            scope = relation
-            scope.default_scoped = true
-            scope.scope_for_create
-          end
+          all.scope_for_create
         end
 
         # Are there default attributes associated with this scope?
@@ -144,19 +140,6 @@ module ActiveRecord
         #   Article.featured.titles
         def scope(name, body, &block)
           extension = Module.new(&block) if block
-
-          # Check body.is_a?(Relation) to prevent the relation actually being
-          # loaded by respond_to?
-          if body.is_a?(Relation) || !body.respond_to?(:call)
-            ActiveSupport::Deprecation.warn(
-              "Using #scope without passing a callable object is deprecated. For " \
-              "example `scope :red, where(color: 'red')` should be changed to " \
-              "`scope :red, -> { where(color: 'red') }`. There are numerous gotchas " \
-              "in the former usage and it makes the implementation more complicated " \
-              "and buggy. (If you prefer, you can just define a class method named " \
-              "`self.red`.)"
-            )
-          end
 
           singleton_class.send(:define_method, name) do |*args|
             if body.respond_to?(:call)

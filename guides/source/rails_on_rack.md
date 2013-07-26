@@ -5,7 +5,6 @@ This guide covers Rails integration with Rack and interfacing with other Rack co
 
 After reading this guide, you will know:
 
-* How to create Rails Metal applications.
 * How to use Rack Middlewares in your Rails applications.
 * Action Pack's internal Middleware stack.
 * How to define a custom Middleware stack.
@@ -119,6 +118,7 @@ $ rake middleware
 For a freshly generated Rails application, this might produce something like:
 
 ```ruby
+use Rack::Sendfile
 use ActionDispatch::Static
 use Rack::Lock
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
@@ -326,7 +326,7 @@ The following shows how to replace use `Rack::Builder` instead of the Rails supp
 config.middleware.clear
 ```
 
-<br />
+<br>
 <strong>Add a `config.ru` file to `Rails.root`</strong>
 
 ```ruby

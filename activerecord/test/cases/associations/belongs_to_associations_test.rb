@@ -1,4 +1,4 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -14,6 +14,8 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/toy'
+require 'models/invoice'
+require 'models/line_item'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -324,6 +326,45 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
+  def test_belongs_to_with_touch_option_on_touch
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(1) { line_item.touch }
+  end
+
+  def test_belongs_to_with_touch_option_on_touch_and_removed_parent
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    line_item.invoice = nil
+
+    assert_queries(2) { line_item.touch }
+  end
+
+  def test_belongs_to_with_touch_option_on_update
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(2) { line_item.update amount: 10 }
+  end
+
+  def test_belongs_to_with_touch_option_on_destroy
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(2) { line_item.destroy }
+  end
+
+  def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    line_item.invoice = Invoice.create!
+
+    assert_queries(3) { line_item.touch }
+  end
+
   def test_belongs_to_counter_after_update
     topic = Topic.create!(title: "37s")
     topic.replies.create!(title: "re: 37s", content: "rails")
@@ -391,8 +432,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    queries = assert_sql { tagging.super_tag }
-    assert_equal 0, queries.length
+    assert_queries(0) { tagging.super_tag }
   end
 
   def test_field_name_same_as_foreign_key
