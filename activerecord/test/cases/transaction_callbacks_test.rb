@@ -182,9 +182,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_rollback_when_commit_fails
-    @first.class.connection.class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
+    @first.class.connection.singleton_class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
     begin
-      @first.class.connection.class.class_eval do
+      @first.class.connection.singleton_class.class_eval do
         def commit_db_transaction; raise "boom!"; end
       end
 
@@ -194,8 +194,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       assert !@first.save rescue nil
       assert_equal [:after_rollback], @first.history
     ensure
-      @first.class.connection.class.send(:remove_method, :commit_db_transaction)
-      @first.class.connection.class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
+      @first.class.connection.singleton_class.send(:remove_method, :commit_db_transaction)
+      @first.class.connection.singleton_class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
     end
   end
 
