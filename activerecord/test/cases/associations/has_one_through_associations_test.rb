@@ -202,7 +202,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
     @new_detail = @member_details[0]
     assert @new_detail.send(:association, :member_type).loaded?
-    assert_not_nil assert_no_queries { @new_detail.member_type }
+    assert_no_queries { @new_detail.member_type }
   end
 
   def test_save_of_record_with_loaded_has_one_through
