@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Ensure that autoloaded constants in all-caps nestings are marked as
+    autoloaded.
+
+    *Simon Coffey*
+
 *   Adds a new deprecation behaviour that raises an exception. Throwing this
     line into `config/environments/development.rb`:
 

@@ -648,6 +648,14 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.class_eval { remove_const :E }
   end
 
+  def test_constants_in_capitalized_nesting_marked_as_autoloaded
+    with_autoloading_fixtures do
+      ActiveSupport::Dependencies.load_missing_constant(HTML, "SomeClass")
+
+      assert ActiveSupport::Dependencies.autoloaded?("HTML::SomeClass")
+    end
+  end
+
   def test_unloadable
     with_autoloading_fixtures do
       Object.const_set :M, Module.new
