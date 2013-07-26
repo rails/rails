@@ -605,6 +605,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependent_delete_and_destroy_with_belongs_to
+    AuthorAddress.destroyed_author_address_ids.clear
+
     author_address = author_addresses(:david_address)
     author_address_extra = author_addresses(:david_address_extra)
     assert_equal [], AuthorAddress.destroyed_author_address_ids
