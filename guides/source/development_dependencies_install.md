@@ -65,7 +65,7 @@ $ sudo pacman -S lixml2 libxslt
 
 If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
-Also, SQLite3 and its development files for the `sqlite3` gem — in Ubuntu you're done with just
+Also, SQLite3 and its development files for the `sqlite3-ruby` gem — in Ubuntu you're done with just
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
