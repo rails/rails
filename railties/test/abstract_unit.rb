@@ -16,3 +16,8 @@ module TestApp
     config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
   end
 end
+
+def assert_raise(*args)
+  e = super(*args)
+  assert_match(e.message, args.last, "The exception's message was incorrect") if args.last.is_a?(String)
+end

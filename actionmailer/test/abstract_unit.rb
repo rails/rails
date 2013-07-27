@@ -60,4 +60,9 @@ def restore_delivery_method
   ActionMailer::Base.delivery_method = @old_delivery_method
 end
 
+def assert_raise(*args)
+  e = super(*args)
+  assert_match(e.message, args.last, "The exception's message was incorrect") if args.last.is_a?(String)
+end
+
 ActiveSupport::Deprecation.silenced = true
