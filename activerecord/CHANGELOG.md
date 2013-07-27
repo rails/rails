@@ -1,3 +1,8 @@
+*   Show valid keys when assert_valid_keys raises an exception.
+    And show the wrong value as it was entered.
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
 *   Don't allow `quote_value` to be called without a column.
 
     Some adapters require column information to do their job properly.
