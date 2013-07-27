@@ -91,6 +91,8 @@ module ActionController
         end
       end
 
+      attr_writer :stream
+
       def commit!
         headers.freeze
         super
@@ -156,6 +158,13 @@ module ActionController
       message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
       message << "  " << exception.backtrace.join("\n  ")
       logger.fatal("#{message}\n\n")
+    end
+
+    def render_to_string(*)
+      orig_stream = response.stream
+      super
+    ensure
+      response.stream = orig_stream if orig_stream
     end
 
     def response_body=(body)

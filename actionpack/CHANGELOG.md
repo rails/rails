@@ -1,3 +1,24 @@
+*   Fix `render_to_string` in `ActionController::Live` to not break `response.stream`;
+    By wrapping `render_to_string` method to restore `response.stream` too.
+
+    This will work properly by this fix:
+
+        class FooController < ActionController::Base
+          include ActionController::Live
+
+          def streaming
+            response.stream.write "foo\n"
+
+            # This breaks existing response.stream before
+            render_to_string(text: 'zomg')
+
+            response.stream.write "bar\n"
+            response.stream.close
+          end
+        end
+
+    *Shota Fukumori (sora_h)*
+
 *   Allow REMOTE_ADDR, HTTP_HOST and HTTP_USER_AGENT to be overridden from
     the environment passed into `ActionDispatch::TestRequest.new`.
 

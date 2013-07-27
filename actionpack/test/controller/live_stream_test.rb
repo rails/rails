@@ -16,6 +16,13 @@ module ActionController
         render :text => 'zomg'
       end
 
+      def render_string
+        response.stream.write 'foo'
+        rendered = render_to_string(:text => 'bar')
+        response.stream.write rendered
+        response.stream.close
+      end
+
       def default_header
         response.stream.write "<html><body>hi</body></html>"
         response.stream.close
@@ -157,6 +164,12 @@ module ActionController
     def test_render_text
       get :render_text
       assert_equal 'zomg', response.body
+      assert_stream_closed
+    end
+
+    def test_render_string
+      get :render_string
+      assert_equal 'foobar', response.body
       assert_stream_closed
     end
 
