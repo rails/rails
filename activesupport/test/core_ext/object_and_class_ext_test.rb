@@ -166,7 +166,7 @@ class ObjectTryTest < ActiveSupport::TestCase
 
     assert_raise(NoMethodError) { klass.new.try!(:private_method) }
   end
-  
+
   def test_try_with_private_method
     klass = Class.new do
       private
@@ -177,5 +177,17 @@ class ObjectTryTest < ActiveSupport::TestCase
     end
 
     assert_nil klass.new.try(:private_method)
+  end
+end
+
+class ObjectIsAnyOf < ActiveSupport::TestCase
+  def test_in_is_true
+    assert('option1'.in?('option1', 'option2', 'option3'))
+    assert('option2'.in?('option1', 'option2', 'option3'))
+    assert('option3'.in?('option1', 'option2', 'option3'))
+  end
+
+  def test_in_is_false
+    assert_equal(false, 'this is not a valid option'.in?('option1', 'option2', 'option3'))
   end
 end

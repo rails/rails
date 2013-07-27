@@ -1,8 +1,22 @@
+*   Add Object#in?(option1, option2, ...)
+
+    Returns true if the object is equal to any of the possibilities specified as parameters.
+
+    This simplifies:
+
+        if params[:subject] == :english || params[:subject] == :math || params[:subject] == :biology
+
+    to:
+
+        if params[:subject].in?(:english, :math, :biology)
+
+    *Gonzalo Rodríguez-Baltanás Díaz
+
 *   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
     The memory used by a key/entry pair is calculated via `#cached_size`:
 
         def cached_size(key, entry)
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+            key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 
     The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
