@@ -31,9 +31,7 @@ class Array
     if block_given?
       collection.each_slice(number) { |slice| yield(slice) }
     else
-      groups = []
-      collection.each_slice(number) { |group| groups << group }
-      groups
+      collection.each_slice(number).to_a
     end
   end
 
