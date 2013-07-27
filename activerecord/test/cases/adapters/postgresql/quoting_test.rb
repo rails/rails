@@ -33,6 +33,18 @@ module ActiveRecord
           assert_equal ip, @conn.type_cast(ip, c)
         end
 
+        def test_type_cast_raise_on_alphabetic_range
+          range = ("a".."z")
+          c = PostgreSQLColumn.new(nil, nil, nil, 'int4range')
+          assert_raises(TypeError) { @conn.type_cast(range, c) }
+        end
+
+        def test_type_cast_raise_on_alphabetic_and_numeric_range
+          range = ("a1".."b1")
+          c = PostgreSQLColumn.new(nil, nil, nil, 'int4range')
+          assert_raises(TypeError) { @conn.type_cast(range, c) }
+        end
+
         def test_quote_float_nan
           nan = 0.0/0
           c = Column.new(nil, 1, 'float')

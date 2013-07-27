@@ -81,12 +81,19 @@ module ActiveRecord
           end
         end
 
+        # PostgreSQL doesn't support Alphabetic ranges
+        def valid_range?(value)
+          value.to_s !~ /[[:alpha:]]/
+        end
+
         def type_cast(value, column, array_member = false)
           return super(value, column) unless column
 
           case value
           when Range
-            return super(value, column) unless /range$/ =~ column.sql_type
+            if column.sql_type !~ /range$/ || !valid_range?(value)
+              return super(value, column)
+            end
             PostgreSQLColumn.range_to_string(value)
           when NilClass
             if column.array && array_member
