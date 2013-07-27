@@ -1,3 +1,8 @@
+*   Show valid keys when `assert_valid_keys` raises an exception, and show the
+    wrong value as it was entered.
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
 *   Both `cattr_*` and `mattr_*` method definitions now live in `active_support/core_ext/module/attribute_accessors`.
 
     Requires to `active_support/core_ext/class/attribute_accessors` are
