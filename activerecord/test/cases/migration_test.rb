@@ -846,6 +846,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def test_check_pending_with_stdlib_logger
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+    ActiveRecord::Migrator.up migrations_path
+
     old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
     quietly do
       assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({}) }
