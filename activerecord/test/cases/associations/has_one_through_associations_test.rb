@@ -191,6 +191,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_one_through_on_belongs_to
+    MemberDetail.delete_all
     assert_not_nil @member.member_type
     @organization = organizations(:nsa)
     @member_detail = MemberDetail.new
