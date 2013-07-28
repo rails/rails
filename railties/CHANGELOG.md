@@ -68,4 +68,8 @@
 
     *Sıtkı Bağdat*
 
+*   Changed stylesheet load order in the stylesheet manifest generator. [Fixes #11639]
+
+    *Pawel Janiak*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for previous changes.
