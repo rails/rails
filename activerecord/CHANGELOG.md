@@ -1,3 +1,8 @@
+*   Fix `QueryCache` to work with nested blocks, so that it will only clear the existing cache
+    after leaving the outer block instead of clearing it right after the inner block is finished.
+
+    *Vipul A M*
+
 *   The ERB in fixture files is no longer evaluated in the context of the main
     object. Helper methods used by multiple fixtures should be defined on the
     class object returned by `ActiveRecord::FixtureSet.context_class`.
