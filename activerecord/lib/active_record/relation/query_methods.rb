@@ -214,6 +214,11 @@ module ActiveRecord
     #   Model.select('field AS field_one').first.field_one
     #   # => "value"
     #
+    # You can also use a Hash in order to select fields in joins.
+    #
+    #   User.joins(:posts).select(:name, posts: [:id, :title, :body])
+    #   => SELECT name, posts.id, posts.title, posts.body FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #
     # Accessing attributes of an object that do not have fields retrieved by a select
     # will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
@@ -223,12 +228,20 @@ module ActiveRecord
       if block_given?
         to_a.select { |*block_args| yield(*block_args) }
       else
-        raise ArgumentError, 'Call this with at least one field' if fields.empty?
+        raise ArgumentError, 'Call this with at least one field' if fields.blank?
         spawn.select!(*fields)
       end
     end
 
     def select!(*fields) # :nodoc:
+      fields.each_index do |index|
+        if fields[index].is_a?(Hash)
+          fields[index] = fields[index].map do |namespace, field_names|
+            raise ArgumentError.new("The value of #{namespace} must be an Array, but was #{field_names.class}") unless field_names.is_a?(Array)
+            field_names.map{ |field_name| "#{namespace.to_s.singularize.camelize.constantize.table_name}.#{field_name}" }
+          end
+        end
+      end
       self.select_values += fields.flatten
       self
     end

@@ -237,6 +237,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
   end
 
+  def test_select_with_hash
+    author = Author.joins(:posts).select(authors: [:id, :name]).first
+    assert_not_nil author.id
+    assert_not_nil author.name
+  end
+
   def test_none
     assert_no_queries do
       assert_equal [], Developer.none
