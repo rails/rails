@@ -11,6 +11,10 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     Time.zone = nil
   end
 
+  def teardown
+    ActiveRecord::Base.default_timezone = :utc
+  end
+
   def test_multiparameter_attributes_on_date
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
