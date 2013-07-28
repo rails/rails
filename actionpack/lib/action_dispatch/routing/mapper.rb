@@ -964,7 +964,7 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :bulk]
         CANONICAL_ACTIONS = %w(index create new show update destroy replace update_many destroy_many)
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
         RESOURCE_SCOPES = [:resource, :resources]
@@ -1095,7 +1095,7 @@ module ActionDispatch
         # Takes same options as +resources+.
         def resource(*resources, &block)
           options = resources.extract_options!.dup
-
+          
           if apply_common_behavior_for(:resource, resources, options, &block)
             return self
           end
@@ -1263,13 +1263,36 @@ module ActionDispatch
 
             concerns(options[:concerns]) if options[:concerns]
 
-            collection do
-              get    :index if parent_resource.actions.include?(:index)
-              put    :replace if parent_resource.actions.include?(:replace)
-              post   :create if parent_resource.actions.include?(:create)
-              patch  :update_many if parent_resource.actions.include?(:update_many)
-              delete :destroy_many if parent_resource.actions.include?(:destroy_many)
+            if options[:bulk]
+              bulk do
+                constraints = {ids: /(?:[^\.\/\?]|\.\.)+/}
+                get    :index, constraints if parent_resource.actions.include?(:index)
+                put    :replace, constraints if parent_resource.actions.include?(:replace)
+                post   :create, constraints if parent_resource.actions.include?(:create)
+                patch  :update_many, constraints if parent_resource.actions.include?(:update_many)
+                delete :destroy_many, constraints if parent_resource.actions.include?(:destroy_many)
+              end
+            else
+              collection do
+                get    :index if parent_resource.actions.include?(:index)
+                post   :create if parent_resource.actions.include?(:create)
+              end
             end
+
+
+            # get    '/posts',             to: 'posts#index',        as: 'posts_index'
+            # post   '/posts',             to: 'posts#create',       as:  nil
+            # get    '/posts/new',         to: 'posts#new',          as: 'new_post'
+            # get    '/posts/:ids/edit',   to: 'posts#edit_many',    as: 'edit_posts', ids: /(?:[^\.\/\?]|\.\.)+/
+            # get    '/posts/:id/edit',    to: 'posts#edit',         as: 'edit_post',  id:  /[^,\.\/\?]+/
+            # get    '/posts/:ids',        to: 'posts#show_many',    as: 'posts',      ids: /(?:[^\.\/\?]|\.\.)+/
+            # get    '/posts/:id',         to: 'posts#show',         as: 'post',       id:  /[^,\.\/\?]+/
+            # put    '/posts/:ids',        to: 'posts#replace_many', as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
+            # patch  '/posts/:ids',        to: 'posts#update_many',  as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
+            # put    '/posts/:id',         to: 'posts#replace',      as:  nil,         id:  /[^,\.\/\?]+/
+            # patch  '/posts/:id',         to: 'posts#update',       as:  nil,         id:  /[^,\.\/\?]+/
+            # delete '/posts/:ids',        to: 'posts#destroy_many', as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
+            # delete '/posts/:id',         to: 'posts#destroy',      as:  nil
 
             new do
               get :new
@@ -1279,6 +1302,18 @@ module ActionDispatch
           end
 
           self
+        end
+
+        def bulk
+          unless resource_scope?
+              raise ArgumentError, "can't use new outside resource(s) scope"
+            end
+
+          with_scope_level(:collection) do
+            scope(parent_resource.new_scope(":ids")) do
+              yield
+            end
+          end
         end
 
         # To add a route to the collection:
