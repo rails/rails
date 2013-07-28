@@ -60,7 +60,7 @@ $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 If you are running Arch Linux, you're done with:
 
 ```bash
-$ sudo pacman -S lixml2 libxslt
+$ sudo pacman -S libxml2 libxslt
 ```
 
 If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
