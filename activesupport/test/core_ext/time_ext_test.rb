@@ -503,6 +503,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "20050221174430123456789",         time.to_s(:nsec)
     assert_equal "February 21, 2005 17:44",         time.to_s(:long)
     assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
+    assert_equal "2009-02-05T14:30:05Z", Time.local(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
     with_env_tz "UTC" do
       assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
     end

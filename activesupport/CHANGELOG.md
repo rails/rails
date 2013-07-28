@@ -1,3 +1,7 @@
+*   Add Time#to_s(:iso8601) for easy conversion of times to the iso8601 format for easy Javascript date parsing.
+
+    *DHH*
+
 *   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
     The memory used by a key/entry pair is calculated via `#cached_size`:
 

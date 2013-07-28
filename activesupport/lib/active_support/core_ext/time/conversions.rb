@@ -16,7 +16,8 @@ class Time
     :rfc822       => lambda { |time|
       offset_format = time.formatted_offset(false)
       time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
-    }
+    },
+    :iso8601      => "%Y-%m-%dT%H:%M:%SZ"
   }
 
   # Converts to a formatted string. See DATE_FORMATS for builtin formats.
