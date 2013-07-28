@@ -32,6 +32,8 @@ class IntegrationTest < ActiveRecord::TestCase
     est_key = Developer.first.cache_key
 
     assert_equal utc_key, est_key
+  ensure
+    Time.zone = 'UTC'
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at
