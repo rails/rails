@@ -20,9 +20,8 @@ end
 
 namespace :test do
   task :isolated do
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     test_files.all? do |file|
-      sh(ruby, '-w', '-Ilib:test', file)
+      sh(Gem.ruby, '-w', '-Ilib:test', file)
     end or raise "Failures"
   end
 end
