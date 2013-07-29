@@ -149,3 +149,8 @@ module InTimeZone
     ActiveRecord::Base.time_zone_aware_attributes = old_tz
   end
 end
+
+def assert_raise(*args)
+  e = super(*args)
+  assert_match(e.message, args.last, "The exception's message was incorrect") if args.last.is_a?(String)
+end

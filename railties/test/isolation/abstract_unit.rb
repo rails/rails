@@ -285,3 +285,8 @@ Module.new do
     f.puts "require 'rails/all'"
   end
 end unless defined?(RAILS_ISOLATED_ENGINE)
+
+def assert_raise(*args)
+  e = super(*args)
+  assert_match(e.message, args.last, "The exception's message was incorrect") if args.last.is_a?(String)
+end
