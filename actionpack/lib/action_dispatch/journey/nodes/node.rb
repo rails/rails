@@ -70,7 +70,7 @@ module ActionDispatch
         attr_accessor :regexp
         alias :symbol :regexp
 
-        DEFAULT_EXP = /[^\.\/\?]+/
+        DEFAULT_EXP = /[^\.\/\?,]+/
         def initialize(left)
           super
           @regexp = DEFAULT_EXP
