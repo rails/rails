@@ -22,7 +22,6 @@
 #++
 
 require 'abstract_controller'
-require 'action_view'
 require 'action_mailer/version'
 
 # Common Active Support usage in Action Mailer

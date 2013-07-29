@@ -14,6 +14,7 @@ require 'action_mailer/test_case'
 require 'mail'
 
 # Emulate AV railtie
+require 'action_view'
 ActionMailer::Base.send(:include, ActionView::Layouts)
 
 # Show backtraces for deprecated behavior for quicker cleanup.
