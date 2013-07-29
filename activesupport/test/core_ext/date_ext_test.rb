@@ -25,6 +25,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
     assert_equal "2005-02-21",          date.to_s(:db)
     assert_equal "21 Feb 2005",         date.to_s(:rfc822)
+    assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
   def test_readable_inspect

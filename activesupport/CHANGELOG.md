@@ -1,4 +1,8 @@
-*   Add Time#to_s(:iso8601) for easy conversion of times to the iso8601 format for easy Javascript date parsing.
+*   Add `DateTime#to_s(:iso8601)` and `Date#to_s(:iso8601)` for consistency.
+
+    *Andrew White*
+
+*   Add `Time#to_s(:iso8601)` for easy conversion of times to the iso8601 format for easy Javascript date parsing.
 
     *DHH*
 

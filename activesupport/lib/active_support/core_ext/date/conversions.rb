@@ -12,7 +12,8 @@ class Date
       day_format = ActiveSupport::Inflector.ordinalize(date.day)
       date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
     },
-    :rfc822       => '%e %b %Y'
+    :rfc822       => '%e %b %Y',
+    :iso8601      => lambda { |date| date.iso8601 }
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
@@ -34,6 +35,7 @@ class Date
   #   date.to_formatted_s(:long)          # => "November 10, 2007"
   #   date.to_formatted_s(:long_ordinal)  # => "November 10th, 2007"
   #   date.to_formatted_s(:rfc822)        # => "10 Nov 2007"
+  #   date.to_formatted_s(:iso8601)       # => "2007-11-10"
   #
   # == Adding your own time formats to to_formatted_s
   # You can add your own formats to the Date::DATE_FORMATS hash.
