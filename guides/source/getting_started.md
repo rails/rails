@@ -575,6 +575,8 @@ If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
 
+First we need to add a new `route` in `config/routes.rb`.
+
 ```ruby
 post GET    /posts/:id(.:format)      posts#show
 ```
