@@ -1,6 +1,9 @@
 require 'abstract_unit'
 require 'active_support/xml_mini'
 require 'active_support/builder'
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/hash'
+require 'active_support/core_ext/big_decimal'
 
 module XmlMiniTest
   class RenameKeyTest < ActiveSupport::TestCase
@@ -88,6 +91,61 @@ module XmlMiniTest
       assert_xml "<b>Howdy</b>"
     end
 
+    test "#to_tag should use the type value in the options hash" do
+      @xml.to_tag(:b, "blue", @options.merge(type: 'color'))
+      assert_xml( "<b type=\"color\">blue</b>" )
+    end
+
+    test "#to_tag accepts symbol types" do
+      @xml.to_tag(:b, :name, @options)
+      assert_xml( "<b type=\"symbol\">name</b>" )
+    end
+
+    test "#to_tag accepts boolean types" do
+      @xml.to_tag(:b, true, @options)
+      assert_xml( "<b type=\"boolean\">true</b>")
+    end
+
+    test "#to_tag accepts float types" do
+      @xml.to_tag(:b, 3.14, @options)
+      assert_xml( "<b type=\"float\">3.14</b>")
+    end
+
+    test "#to_tag accepts decimal types" do
+      @xml.to_tag(:b, ::BigDecimal.new("1.2"), @options)
+      assert_xml( "<b type=\"decimal\">1.2</b>")
+    end
+
+    test "#to_tag accepts date types" do
+      @xml.to_tag(:b, Date.new(2001,2,3), @options)
+      assert_xml( "<b type=\"date\">2001-02-03</b>")
+    end
+
+    test "#to_tag accepts datetime types" do
+      @xml.to_tag(:b, DateTime.new(2001,2,3,4,5,6,'+7'), @options)
+      assert_xml( "<b type=\"dateTime\">2001-02-03T04:05:06+07:00</b>")
+    end
+
+    test "#to_tag accepts time types" do
+      @xml.to_tag(:b, Time.new(1993, 02, 24, 12, 0, 0, "+09:00"), @options)
+      assert_xml( "<b type=\"dateTime\">1993-02-24T12:00:00+09:00</b>")
+    end
+
+    test "#to_tag accepts array types" do
+      @xml.to_tag(:b, ["first_name", "last_name"], @options)
+      assert_xml( "<b type=\"array\"><b>first_name</b><b>last_name</b></b>" )
+    end
+
+    test "#to_tag accepts hash types" do
+      @xml.to_tag(:b, { first_name: "Bob", last_name: "Marley" }, @options)
+      assert_xml( "<b><first-name>Bob</first-name><last-name>Marley</last-name></b>" )
+    end
+
+    test "#to_tag should not add type when skip types option is set" do
+      @xml.to_tag(:b, "Bob", @options.merge(skip_types: 1))
+      assert_xml( "<b>Bob</b>" )
+    end
+
     test "#to_tag should dasherize the space when passed a string with spaces as a key" do
       @xml.to_tag("New   York", 33, @options)
       assert_xml "<New---York type=\"integer\">33</New---York>"
@@ -97,7 +155,6 @@ module XmlMiniTest
       @xml.to_tag(:"New   York", 33, @options)
       assert_xml "<New---York type=\"integer\">33</New---York>"
     end
-    # TODO: test the remaining functions hidden in #to_tag.
   end
 
   class WithBackendTest < ActiveSupport::TestCase
