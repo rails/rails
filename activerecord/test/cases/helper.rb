@@ -124,7 +124,7 @@ module LogIntercepter
   def self.extended(base)
     base.logged = []
   end
-  def log(sql, name, binds = [], &block)
+  def log(sql, name = 'SQL', binds = [], &block)
     if @intercepted
       @logged << [sql, name, binds]
       yield
