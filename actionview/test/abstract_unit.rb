@@ -269,6 +269,7 @@ end
 
 # Emulate AV railtie.
 ActionController::Base.superclass.send(:include, ActionView::Layouts)
+ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
 
 module ActionController
   class Base

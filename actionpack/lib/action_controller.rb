@@ -50,14 +50,6 @@ module ActionController
   end
 end
 
-# All of these simply register additional autoloads
-require 'action_view'
-require 'action_view/vendor/html-scanner'
-
-ActiveSupport.on_load(:action_view) do
-  ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
-end
-
 # Common Active Support usage in Action Controller
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/load_error'
