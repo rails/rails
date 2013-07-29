@@ -117,6 +117,18 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_middle_of_day
+    assert_equal Time.local(2005,2,4,12,0,0), Time.local(2005,2,4,10,10,10).middle_of_day
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2006,4,2,12,0,0), Time.local(2006,4,2,10,10,10).middle_of_day, 'start DST'
+      assert_equal Time.local(2006,10,29,12,0,0), Time.local(2006,10,29,10,10,10).middle_of_day, 'ends DST'
+    end
+    with_env_tz 'NZ' do
+      assert_equal Time.local(2006,3,19,12,0,0), Time.local(2006,3,19,10,10,10).middle_of_day, 'ends DST'
+      assert_equal Time.local(2006,10,1,12,0,0), Time.local(2006,10,1,10,10,10).middle_of_day, 'start DST'
+    end
+  end
+
   def test_beginning_of_hour
     assert_equal Time.local(2005,2,4,19,0,0), Time.local(2005,2,4,19,30,10).beginning_of_hour
   end
