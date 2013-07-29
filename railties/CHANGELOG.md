@@ -1,3 +1,8 @@
+*   Changed stylesheet load order in the stylesheet manifest generator.
+    Fixes #11639.
+
+    *Pawel Janiak*
+
 *   Added generated unit test for generator generator using new
     `test:generators` rake task.
 
@@ -49,7 +54,8 @@
 
     *John Wang*
 
-*   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
+*   Clearing autoloaded constants triggers routes reloading.
+    Fixes #10685.
 
     *Xavier Noria*
 
@@ -67,9 +73,5 @@
 *   Changes repetitive th tags to use colspan attribute in `index.html.erb` template.
 
     *Sıtkı Bağdat*
-
-*   Changed stylesheet load order in the stylesheet manifest generator. [Fixes #11639]
-
-    *Pawel Janiak*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for previous changes.
