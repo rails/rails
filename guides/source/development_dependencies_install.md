@@ -63,6 +63,15 @@ If you are running Arch Linux, you're done with:
 $ sudo pacman -S libxml2 libxslt
 ```
 
+On FreeBSD, you just have to run:
+
+```bash
+# pkg_add -r libxml2 libxslt
+```
+
+Alternatively, you can install the `textproc/libxml2` and `textproc/libxslt`
+ports.
+
 If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
 Also, SQLite3 and its development files for the `sqlite3` gem — in Ubuntu you're done with just
@@ -82,6 +91,14 @@ If you are on Arch Linux, you will need to run:
 ```bash
 $ sudo pacman -S sqlite
 ```
+
+For FreeBSD users, you're done with:
+
+```bash
+# pkg_add -r sqlite3
+```
+
+Or compile the `databases/sqlite3` port.
 
 Get a recent version of [Bundler](http://gembundler.com/)
 
@@ -156,6 +173,17 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 $ sudo pacman -S mariadb libmariadbclient mariadb-clients
 $ sudo pacman -S postgresql postgresql-libs
 ```
+
+FreeBSD users will have to run the following:
+
+```bash
+# pkg_add -r mysql56-client mysql56-server
+# pkg_add -r postgresql92-client postgresql92-server
+```
+
+Or install them through ports (they are located under the `databases` folder).
+If you run into troubles during the installation of MySQL, please see
+[the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
 
 After that, run:
 
