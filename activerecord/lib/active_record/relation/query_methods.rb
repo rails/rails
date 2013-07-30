@@ -299,7 +299,7 @@ module ActiveRecord
           arg
       }
 
-      self.order_values = args.concat self.order_values
+      self.order_values += args
       self
     end
 
@@ -311,7 +311,7 @@ module ActiveRecord
     #
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
-    # generates a query with 'ORDER BY name ASC, id ASC'.
+    # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
       check_if_method_has_arguments!("reorder", args)
       spawn.reorder!(*args)
