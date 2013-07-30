@@ -427,25 +427,27 @@ module ActionDispatch
               @regexes = []
             end
 
-            def add(regex)
+            def add_regex(regex)
+              return regex unless regex.is_a?(Regexp)
               @regexes.push(regex)
-              id_for(regex)
+              last_id.to_s # to_s to store it in selector string
             end
 
-            def id_for(regex)
-              @regexes.index(regex).to_s # to_s to store it in selector string
+            def regex_for_id(id)
+              @regexes[id.to_i]
+            end
+
+            def last_id
+              @regexes.count - 1
             end
 
             def match(matches, attribute, id)
-              matches.find_all { |node| node[attribute] =~ @regexes[id.to_i] }
+              matches.find_all { |node| node[attribute] =~ regex_for_id(id) }
             end
 
             def substitute!(selector, values)
-              while selector.index(@substitute)
-                break if values.empty?
-                value = values.shift
-                value = add(value) if value.is_a?(Regexp)
-                selector.sub!(@substitute, value)
+              while !values.empty? && selector.index(@substitute)
+                selector.sub!(@substitute, add_regex(values.shift))
               end
               selector
             end
