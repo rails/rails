@@ -45,8 +45,9 @@ module ActiveRecord
       x
     end
 
-    def assert_no_queries(&block)
-      assert_queries(0, :ignore_none => true, &block)
+    def assert_no_queries(options = {}, &block)
+      options.reverse_merge! ignore_none: true
+      assert_queries(0, options, &block)
     end
 
     def assert_column(model, column_name, msg=nil)
