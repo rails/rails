@@ -1,3 +1,18 @@
+*   Revert `ActiveRecord::Relation#order` change that make new order
+    prepend the old one.
+
+    Before:
+
+        User.order("name asc").order("created_at desc")
+        # SELECT * FROM users ORDER BY created_at desc, name asc
+
+    After:
+
+        User.order("name asc").order("created_at desc")
+        # SELECT * FROM users ORDER BY name asc, created_at desc
+
+    This also affects order defined in `default_scope` or any kind of associations.
+
 *   Add ability to define how a class is converted to Arel predicates.
     For example, adding a very vendor specific regex implementation:
 

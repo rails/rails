@@ -153,8 +153,6 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * In Rails 4.0 when a column or a table is renamed the related indexes are also renamed. If you have migrations which rename the indexes, they are no longer needed.
 
-* Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of Rails, the new order was applied after the previously defined order. But this is no longer true. Check [Active Record Query guide](active_record_querying.html#ordering) for more information.
-
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) for a smooth upgrade path.

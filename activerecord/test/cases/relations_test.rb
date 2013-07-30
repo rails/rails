@@ -180,7 +180,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_order_concatenated
-    topics = Topic.order('title').order('author_name')
+    topics = Topic.order('author_name').order('title')
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
@@ -1183,20 +1183,20 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_order_with_scope_order
-    assert_equal 'honda', CoolCar.order_using_new_style.limit(1).first.name
-    assert_equal 'honda', FastCar.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
+    assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
   end
 
   def test_order_using_scoping
     car1 = CoolCar.order('id DESC').scoping do
-      CoolCar.all.merge!(:order => 'id asc').first
+      CoolCar.all.merge!(order: 'id asc').first
     end
-    assert_equal 'honda', car1.name
+    assert_equal 'zyke', car1.name
 
     car2 = FastCar.order('id DESC').scoping do
-      FastCar.all.merge!(:order => 'id asc').first
+      FastCar.all.merge!(order: 'id asc').first
     end
-    assert_equal 'honda', car2.name
+    assert_equal 'zyke', car2.name
   end
 
   def test_unscoped_block_style
