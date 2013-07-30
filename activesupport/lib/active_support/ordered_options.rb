@@ -29,8 +29,10 @@ module ActiveSupport
     def method_missing(name, *args)
       name_string = name.to_s
       if name_string.chomp!('=')
+        define_writer_method(name, name_string)
         self[name_string] = args.first
       else
+        define_reader_method(name)
         self[name]
       end
     end
@@ -38,6 +40,24 @@ module ActiveSupport
     def respond_to_missing?(name, include_private)
       true
     end
+
+    private
+
+      def define_writer_method(name, name_string)
+        class_eval do
+          define_method(name) do |val|
+            self[name_string] = val
+          end
+        end
+      end
+
+      def define_reader_method(name)
+        class_eval do
+          define_method(name) do
+            self[name]
+          end
+        end
+      end
   end
 
   # +InheritableOptions+ provides a constructor to build an +OrderedOptions+

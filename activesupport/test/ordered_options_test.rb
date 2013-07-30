@@ -52,6 +52,31 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal 56, a.else_where
   end
 
+  def test_caching_of_writer_method
+    a = ActiveSupport::OrderedOptions.new
+
+    original_owner = a.method(:allow_concurrency=).owner
+    assert_equal ActiveSupport::OrderedOptions, original_owner
+
+    a.allow_concurrency = true
+    current_owner = a.method(:allow_concurrency=).owner
+    assert_not_equal original_owner, current_owner
+    assert_not_equal ActiveSupport::OrderedOptions, current_owner
+  end
+
+  def test_caching_of_reader_method
+    a = ActiveSupport::OrderedOptions.new
+
+    original_owner = a.method(:allow_concurrency).owner
+    assert_equal ActiveSupport::OrderedOptions, original_owner
+
+    a.allow_concurrency = true
+    assert a.allow_concurrency
+    current_owner = a.method(:allow_concurrency).owner
+    assert_not_equal original_owner, current_owner
+    assert_not_equal ActiveSupport::OrderedOptions, current_owner
+  end
+
   def test_inheritable_options_continues_lookup_in_parent
     parent = ActiveSupport::OrderedOptions.new
     parent[:foo] = true
