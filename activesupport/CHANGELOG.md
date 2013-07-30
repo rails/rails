@@ -2,6 +2,12 @@
 
     *Andrew White*
 
+*   Fixes methods Hash#deep_transform_keys and Hash#deep_transform_keys! which 
+    results in the expected behavior of Hash#deep_symbolize_keys and 
+    Hash#deep_stringify_keys
+    
+    *Matthew Wear*
+
 *   Add `DateTime#to_s(:iso8601)` and `Date#to_s(:iso8601)` for consistency.
 
     *Andrew White*
