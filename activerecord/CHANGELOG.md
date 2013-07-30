@@ -1,3 +1,13 @@
+*   Add ability to define how a class is converted to Arel predicates.
+    For example, adding a very vendor specific regex implementation:
+
+        regex_handler = proc do |column, value|
+          Arel::Nodes::InfixOperation.new('~', column, value.source)
+        end
+        ActiveRecord::PredicateBuilder.register_handler(Regexp, regex_handler)
+
+    *Sean Griffin & @joannecheng*
+
 *   Don't allow `quote_value` to be called without a column.
 
     Some adapters require column information to do their job properly.
