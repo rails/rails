@@ -161,7 +161,7 @@ module ActionDispatch
         selector = HTMLSelector.new(@selected, response_from_page, args)
 
         matches = selector.select
-        assert_size_match!(matches.size, selector.comparisons, selector.source, message)
+        assert_size_match!(matches.size, selector.comparisons, selector.source, selector.message)
 
         # Set @selected to allow nested assert_select.
         # Can be nested several levels deep.
