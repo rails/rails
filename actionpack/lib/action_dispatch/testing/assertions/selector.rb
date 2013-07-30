@@ -161,17 +161,7 @@ module ActionDispatch
         selector = HTMLSelector.new(@selected, response_from_page, args)
 
         matches = selector.select
-        equals = selector.comparisons
-        content_mismatch = nil
-        matches = filter_matches(matches, equals) do |mismatch|
-          content_mismatch ||= mismatch
-        end
-
-        # Expecting foo found bar element only if found zero, not if
-        # found one but expecting two.
-        message = selector.message
-        message ||= content_mismatch if matches.empty?
-        assert_size_match!(matches.size, equals, selector.source, message)
+        assert_size_match!(matches.size, selector.comparisons, selector.source, message)
 
         # Set @selected to allow nested assert_select.
         # Can be nested several levels deep.
@@ -290,26 +280,6 @@ module ActionDispatch
       end
 
       protected
-        def filter_matches(matches, options)
-          match_with = options[:text] || options[:html]
-          return matches unless match_with
-
-          text_matches = options.has_key?(:text)
-          remaining = matches.reject do |match|
-            # Preserve markup with to_s for html elements
-            content = text_matches ? match.text : match.children.to_s
-
-            content.strip! unless NO_STRIP.include?(match.name)
-            content.sub!(/\A\n/, '') if text_matches && match.name == "textarea"
-
-            unless match_with.is_a?(Regexp) ? (content =~ match_with) : (content == match_with.to_s)
-              yield sprintf("<%s> expected but was\n<%s>.", match_with, content)
-              true
-            end
-          end
-          Nokogiri::XML::NodeSet.new(matches.document, remaining)
-        end
-
         # +equals+ must contain :minimum, :maximum and :count keys
         def assert_size_match!(size, equals, css_selector, message = nil)
           min, max, count = equals[:minimum], equals[:maximum], equals[:count]
@@ -360,7 +330,34 @@ module ActionDispatch
           alias :source :css_selector
 
           def select
-            root.css(css_selector, context)
+            filter root.css(css_selector, context)
+          end
+
+          def filter(matches)
+            match_with = comparisons[:text] || comparisons[:html]
+            return matches unless match_with
+
+            content_mismatch = nil
+            text_matches = comparisons.has_key?(:text)
+
+            remaining = matches.reject do |match|
+              # Preserve markup with to_s for html elements
+              content = text_matches ? match.text : match.children.to_s
+
+              content.strip! unless NO_STRIP.include?(match.name)
+              content.sub!(/\A\n/, '') if text_matches && match.name == "textarea"
+
+              unless match_with.is_a?(Regexp) ? (content =~ match_with) : (content == match_with.to_s)
+                content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, content)
+                true
+              end
+            end
+
+            # Expecting foo found bar element only if found zero, not if
+            # found one but expecting two.
+            self.message ||= content_mismatch if remaining.empty?
+
+            Nokogiri::XML::NodeSet.new(matches.document, remaining)
           end
 
           def determine_root_from(root_or_selector)
