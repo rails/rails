@@ -297,7 +297,7 @@ module ActionDispatch
           text_matches = options.has_key?(:text)
           remaining = matches.reject do |match|
             # Preserve markup with to_s for html elements
-            content = text_matches ? match.text : match.to_s
+            content = text_matches ? match.text : match.children.to_s
 
             content.strip! unless NO_STRIP.include?(match.name)
             content.sub!(/\A\n/, '') if text_matches && match.name == "textarea"
