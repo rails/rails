@@ -564,7 +564,7 @@ module ActiveRecord
       # of scopes corresponding to the chain.
       def scope_chain
         @scope_chain ||= begin
-          scope_chain = source_reflection.scope_chain.map(&:dup)
+          scope_chain = source_reflection.scope_chain
 
           # Add to it the scope from this reflection (if any)
           scope_chain.first << scope if scope
