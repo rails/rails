@@ -194,8 +194,8 @@ class AssertSelectTest < ActionController::TestCase
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_select "div" do |elements|
       assert_equal 2, elements.size
-      assert_select elements[0], "#1"
-      assert_select elements[1], "#2"
+      assert_select elements, "#1"
+      assert_select elements, "#2"
     end
     assert_select "div" do
       assert_select "div" do |elements|
