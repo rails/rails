@@ -135,6 +135,7 @@ module TestHelpers
     def make_basic_app
       require "rails"
       require "action_controller/railtie"
+      require "action_view/railtie"
 
       app = Class.new(Rails::Application)
       app.config.eager_load = false
