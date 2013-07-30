@@ -446,8 +446,16 @@ module Arel
         visit o.left
       end
 
+      def visit_Arel_Nodes_FullOuterJoin o
+        "FULL OUTER JOIN #{visit o.left} #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_OuterJoin o
         "LEFT OUTER JOIN #{visit o.left} #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_RightOuterJoin o
+        "RIGHT OUTER JOIN #{visit o.left} #{visit o.right}"
       end
 
       def visit_Arel_Nodes_InnerJoin o

@@ -54,7 +54,9 @@ module Arel
         visit_edge o, "left"
         visit_edge o, "right"
       end
-      alias :visit_Arel_Nodes_OuterJoin :visit_Arel_Nodes_InnerJoin
+      alias :visit_Arel_Nodes_FullOuterJoin  :visit_Arel_Nodes_InnerJoin
+      alias :visit_Arel_Nodes_OuterJoin      :visit_Arel_Nodes_InnerJoin
+      alias :visit_Arel_Nodes_RightOuterJoin :visit_Arel_Nodes_InnerJoin
 
       def visit_Arel_Nodes_DeleteStatement o
         visit_edge o, "relation"
