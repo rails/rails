@@ -1,20 +1,40 @@
 require 'thread_safe'
 require 'action_view/dependency_tracker'
+require 'monitor'
 
 module ActionView
   class Digestor
     cattr_reader(:cache)
-    @@cache = ThreadSafe::Cache.new
+    @@cache          = ThreadSafe::Cache.new
+    @@digest_monitor = Monitor.new
 
-    def self.digest(name, format, finder, options = {})
-      cache_key = ([name, format] + Array.wrap(options[:dependencies])).join('.')
-      @@cache.fetch(cache_key) do
-        @@cache[cache_key] ||= nil if options[:partial] # Prevent re-entry
+    class << self
+      def digest(name, format, finder, options = {})
+        cache_key = ([name, format] + Array.wrap(options[:dependencies])).join('.')
+        # this is a correctly done double-checked locking idiom
+        # (ThreadSafe::Cache's lookups have volatile semantics)
+        @@cache[cache_key] || @@digest_monitor.synchronize do
+          @@cache.fetch(cache_key) do # re-check under lock
+            compute_and_store_digest(cache_key, name, format, finder, options)
+          end
+        end
+      end
 
-        klass = options[:partial] || name.include?("/_") ? PartialDigestor : Digestor
-        digest = klass.new(name, format, finder, options).digest
+      private
+      def compute_and_store_digest(cache_key, name, format, finder, options) # called under @@digest_monitor lock
+        klass = if options[:partial] || name.include?("/_")
+          # Prevent re-entry or else recursive templates will blow the stack.
+          # There is no need to worry about other threads seeing the +false+ value,
+          # as they will then have to wait for this thread to let go of the @@digest_monitor lock.
+          pre_stored = @@cache.put_if_absent(cache_key, false).nil? # put_if_absent returns nil on insertion
+          PartialDigestor
+        else
+          Digestor
+        end
 
-        @@cache[cache_key] = digest # Store the value
+        @@cache[cache_key] = digest = klass.new(name, format, finder, options).digest # Store the actual digest
+      ensure
+        @@cache.delete_pair(cache_key, false) if pre_stored && !digest # something went wrong, make sure not to corrupt the @@cache
       end
     end
 
