@@ -1579,6 +1579,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'Post', tagging.taggable_type
   end
 
+  def test_where_first_or_initialize_has_many_should_inject_where_attributes
+    post = Post.create! title: "title", body: "bar"
+    tag = Tag.create!(name: "foo")
+    tagging = tag.taggings.where(taggable: post).first_or_initialize
+    assert_equal tagging.tag_id, tag.id
+    assert_equal tagging.taggable_id, post.id
+  end
+
   def test_where_first_or_initialize_with_polymorphic_has_many_should_inject_where_attributes
     post = Post.new title: "title", body: "bar"
     tag = Tag.create!(name: "foo")
