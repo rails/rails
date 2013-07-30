@@ -1,3 +1,7 @@
+*   Remove 'cow' => 'kine' irregular inflection from default inflections.
+
+    *Andrew White*
+
 *   Add `DateTime#to_s(:iso8601)` and `Date#to_s(:iso8601)` for consistency.
 
     *Andrew White*
