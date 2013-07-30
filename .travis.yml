@@ -1,6 +1,6 @@
 script: 'ci/travis.rb'
 before_install:
-  - gem install bundler
+  - travis_retry gem install bundler
 rvm:
   - 1.9.3
   - 2.0.0
