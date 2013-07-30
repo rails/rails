@@ -56,7 +56,15 @@ module ActiveRecord
               through_options[:include]    = options[:include] || options[:source]
               through_options[:conditions] = options[:conditions]
             end
-            through_options[:order] = options[:order] if options.has_key?(:order)
+
+            if options.has_key?(:order)
+              through_options[:order] = options[:order]
+
+              if options.has_key?(:through) && options.has_key?(:source)
+                through_options[:include] = options[:source]
+              end
+            end
+
           end
 
           through_options
