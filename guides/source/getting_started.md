@@ -575,7 +575,7 @@ If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
 
-First we need to add a new `route` in `config/routes.rb`.
+As we have seen in the output of `rake routes`, the route for `show` action is as follows:
 
 ```ruby
 post GET    /posts/:id(.:format)      posts#show
@@ -654,7 +654,7 @@ For more information, refer to
 ### Listing all posts
 
 We still need a way to list all our posts, so let's do that.
-We'll use a specific route from `config/routes.rb`:
+The route for this as per output of `rake routes` is:
 
 ```ruby
 posts GET    /posts(.:format)          posts#index
@@ -1071,7 +1071,7 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
 database. Following the REST convention, the route for
-deleting posts in the `config/routes.rb` is:
+deleting posts as per output of `rake routes` is:
 
 ```ruby
 DELETE /posts/:id(.:format)      posts#destroy
