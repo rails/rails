@@ -2,6 +2,13 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLColumn < Column
       module ArrayParser
+
+        DOUBLE_QUOTE = '"'
+        BACKSLASH = "\\"
+        COMMA = ','
+        BRACKET_OPEN = '{'
+        BRACKET_CLOSE = '}'
+
         private
           # Loads pg_array_parser if available. String parsing can be
           # performed quicker by a native extension, which will not create
@@ -12,18 +19,18 @@ module ActiveRecord
             include PgArrayParser
           rescue LoadError
             def parse_pg_array(string)
-              parse_data(string, 0)
+              parse_data(string)
             end
           end
 
-          def parse_data(string, index)
-            local_index = index
+          def parse_data(string)
+            local_index = 0
             array = []
             while(local_index < string.length)
               case string[local_index]
-              when '{'
+              when BRACKET_OPEN
                 local_index,array = parse_array_contents(array, string, local_index + 1)
-              when '}'
+              when BRACKET_CLOSE
                 return array
               end
               local_index += 1
@@ -33,9 +40,9 @@ module ActiveRecord
           end
 
           def parse_array_contents(array, string, index)
-            is_escaping = false
-            is_quoted = false
-            was_quoted = false
+            is_escaping  = false
+            is_quoted    = false
+            was_quoted   = false
             current_item = ''
 
             local_index = index
@@ -47,29 +54,29 @@ module ActiveRecord
               else
                 if is_quoted
                   case token
-                  when '"'
+                  when DOUBLE_QUOTE
                     is_quoted = false
                     was_quoted = true
-                  when "\\"
+                  when BACKSLASH
                     is_escaping = true
                   else
                     current_item << token
                   end
                 else
                   case token
-                  when "\\"
+                  when BACKSLASH
                     is_escaping = true
-                  when ','
+                  when COMMA
                     add_item_to_array(array, current_item, was_quoted)
                     current_item = ''
                     was_quoted = false
-                  when '"'
+                  when DOUBLE_QUOTE
                     is_quoted = true
-                  when '{'
+                  when BRACKET_OPEN
                     internal_items = []
                     local_index,internal_items = parse_array_contents(internal_items, string, local_index + 1)
                     array.push(internal_items)
-                  when '}'
+                  when BRACKET_CLOSE
                     add_item_to_array(array, current_item, was_quoted)
                     return local_index,array
                   else
