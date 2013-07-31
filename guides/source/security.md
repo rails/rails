@@ -93,7 +93,7 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 * The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret and inserted into the end of the cookie.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility, but could be configured to SHA512 for additional confidence). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_, and consider using the stronger hash algorithm if your Ruby implementation supports it.
+That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_.
 
 `config.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`, e.g.:
 
