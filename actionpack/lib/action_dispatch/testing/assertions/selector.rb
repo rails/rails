@@ -296,12 +296,15 @@ module ActionDispatch
         # +html_document+ is used in testing/integration.rb
         def html_document
           @html_document ||= if @response.content_type =~ /xml$/
-            Loofah.xml_fragment(@response.body)
+            Loofah.xml_document(@response.body)
           else
-            Loofah.fragment(@response.body)
+            Loofah.document(@response.body)
           end
         end
-        alias :response_from_page :html_document
+
+        def response_from_page
+          html_document.root
+        end
 
         class HTMLSelector #:nodoc:
           attr_accessor :root, :css_selector, :comparisons, :message
