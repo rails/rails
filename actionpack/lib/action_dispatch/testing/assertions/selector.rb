@@ -428,7 +428,8 @@ module ActionDispatch
             end
 
             def add_regex(regex)
-              return regex unless regex.is_a?(Regexp)
+              # Nokogiri doesn't like arbitrary values without quotes, hence inspect.
+              return regex.inspect unless regex.is_a?(Regexp)
               @regexes.push(regex)
               last_id.to_s # avoid implicit conversions of Fixnum to String
             end
