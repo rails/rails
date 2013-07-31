@@ -10,16 +10,6 @@ class DateTime
     end
   end
 
-  # Tells whether the DateTime object's datetime lies in the past.
-  def past?
-    self < ::DateTime.current
-  end
-
-  # Tells whether the DateTime object's datetime lies in the future.
-  def future?
-    self > ::DateTime.current
-  end
-
   # Seconds since midnight: DateTime.now.seconds_since_midnight.
   def seconds_since_midnight
     sec + (min * 60) + (hour * 3600)
