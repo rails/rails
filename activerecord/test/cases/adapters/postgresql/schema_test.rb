@@ -257,9 +257,10 @@ class SchemaTest < ActiveRecord::TestCase
     assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
 
     ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
-    ActiveRecord::Base.connection.schema_search_path = "public"
+
+    with_schema_search_path(SCHEMA_NAME) do
+      assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
+    end
   end
 
   def test_primary_key_with_schema_specified
