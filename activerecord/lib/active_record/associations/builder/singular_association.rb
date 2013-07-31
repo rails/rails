@@ -1,7 +1,9 @@
+# This class is inherited by the has_one and belongs_to association classes 
+
 module ActiveRecord::Associations::Builder
   class SingularAssociation < Association #:nodoc:
     def valid_options
-      super + [:remote, :dependent, :counter_cache, :primary_key, :inverse_of, :automatic_inverse_of]
+      super + [:remote, :dependent, :counter_cache, :primary_key, :inverse_of]
     end
 
     def constructable?
@@ -12,6 +14,8 @@ module ActiveRecord::Associations::Builder
       super
       define_constructors if constructable?
     end
+
+    # Defines the (build|create)_association methods for belongs_to or has_one association
 
     def define_constructors
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1

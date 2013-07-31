@@ -1,3 +1,5 @@
+# This class is inherited by the has_many and has_many_and_belongs_to_many association classes 
+
 require 'active_record/associations'
 
 module ActiveRecord::Associations::Builder
@@ -6,7 +8,7 @@ module ActiveRecord::Associations::Builder
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
     def valid_options
-      super + [:table_name, :finder_sql, :counter_sql, :before_add,
+      super + [:table_name, :before_add,
                :after_add, :before_remove, :after_remove, :extend]
     end
 
@@ -18,7 +20,6 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
-      show_deprecation_warnings
       wrap_block_extension
       reflection = super
       CALLBACKS.each { |callback_name| define_callback(callback_name) }
@@ -27,14 +28,6 @@ module ActiveRecord::Associations::Builder
 
     def writable?
       true
-    end
-
-    def show_deprecation_warnings
-      [:finder_sql, :counter_sql].each do |name|
-        if options.include? name
-          ActiveSupport::Deprecation.warn("The :#{name} association option is deprecated. Please find an alternative (such as using scopes).")
-        end
-      end
     end
 
     def wrap_block_extension
@@ -65,6 +58,8 @@ module ActiveRecord::Associations::Builder
       model.class_attribute full_callback_name.to_sym unless model.method_defined?(full_callback_name)
       model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
     end
+
+    # Defines the setter and getter methods for the collection_singular_ids.
 
     def define_readers
       super

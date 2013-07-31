@@ -41,7 +41,7 @@ module ActiveRecord
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
-      sql   = payload[:sql].squeeze(' ')
+      sql   = payload[:sql]
       binds = nil
 
       unless (payload[:binds] || []).empty?

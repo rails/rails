@@ -49,7 +49,7 @@ module ApplicationTests
 
     test "session is empty and isn't saved on unverified request when using :null_session protect method" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
         end
@@ -90,7 +90,7 @@ module ApplicationTests
 
     test "cookie jar is empty and isn't saved on unverified request when using :null_session protect method" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
         end
@@ -131,7 +131,7 @@ module ApplicationTests
 
     test "session using encrypted cookie store" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -176,7 +176,7 @@ module ApplicationTests
 
     test "session upgrading signature to encryption cookie store works the same way as encrypted cookie store" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -225,7 +225,7 @@ module ApplicationTests
 
     test "session upgrading signature to encryption cookie store upgrades session to encrypted mode" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -284,7 +284,7 @@ module ApplicationTests
 
     test "session upgrading legacy signed cookies to new signed cookies" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY

@@ -107,30 +107,6 @@ module ActiveRecord
         end
       end
 
-      def type_cast_code(var_name)
-        message = "Column#type_cast_code is deprecated in favor of using Column#type_cast only, " \
-                  "and it is going to be removed in future Rails versions."
-        ActiveSupport::Deprecation.warn message
-
-        klass = self.class.name
-
-        case type
-        when :string, :text        then var_name
-        when :integer              then "#{klass}.value_to_integer(#{var_name})"
-        when :float                then "#{var_name}.to_f"
-        when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
-        when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
-        when :time                 then "#{klass}.string_to_dummy_time(#{var_name})"
-        when :date                 then "#{klass}.value_to_date(#{var_name})"
-        when :binary               then "#{klass}.binary_to_string(#{var_name})"
-        when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
-        when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
-        when :inet, :cidr          then "#{klass}.string_to_cidr(#{var_name})"
-        when :json                 then "#{klass}.string_to_json(#{var_name})"
-        else var_name
-        end
-      end
-
       # Returns the human name of the column name.
       #
       # ===== Examples

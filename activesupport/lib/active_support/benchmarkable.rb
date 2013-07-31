@@ -45,15 +45,5 @@ module ActiveSupport
         yield
       end
     end
-
-    # Silence the logger during the execution of the block.
-    def silence
-      message = "ActiveSupport::Benchmarkable#silence is deprecated. It will be removed from Rails 4.1."
-      ActiveSupport::Deprecation.warn message
-      old_logger_level, logger.level = logger.level, ::Logger::ERROR if logger
-      yield
-    ensure
-      logger.level = old_logger_level if logger
-    end
   end
 end

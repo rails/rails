@@ -314,7 +314,7 @@ will produce a migration that looks like this
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
     add_column :products, :price, precision: 5, scale: 2
-    add_reference :products, :user, polymorphic: true, index: true
+    add_reference :products, :supplier, polymorphic: true, index: true
   end
 end
 ```
@@ -366,19 +366,8 @@ create_join_table :products, :categories
 
 which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
-`false` by default.
-
-You can pass the option `:table_name` with you want to customize the table
-name. For example,
-
-```ruby
-create_join_table :products, :categories, table_name: :categorization
-```
-
-will create a `categorization` table.
-
-By default, `create_join_table` will create two columns with no options, but
-you can specify these options using the `:column_options` option. For example,
+`false` by default. This can be overridden by specifying the `:column_options`
+option.
 
 ```ruby
 create_join_table :products, :categories, column_options: {null: true}
@@ -387,13 +376,22 @@ create_join_table :products, :categories, column_options: {null: true}
 will create the `product_id` and `category_id` with the `:null` option as
 `true`.
 
+You can pass the option `:table_name` when you want to customize the table
+name. For example,
+
+```ruby
+create_join_table :products, :categories, table_name: :categorization
+```
+
+will create a `categorization` table.
+
 `create_join_table` also accepts a block, which you can use to add indices
 (which are not created by default) or additional columns:
 
 ```ruby
 create_join_table :products, :categories do |t|
-  t.index :products
-  t.index :categories
+  t.index :product_id
+  t.index :category_id
 end
 ```
 
@@ -448,7 +446,7 @@ definitions:
 * `create_table`
 * `create_join_table`
 * `drop_table` (must supply a block)
-* `drop_join_table`  (must supply a block)
+* `drop_join_table` (must supply a block)
 * `remove_timestamps`
 * `rename_column`
 * `rename_index`
@@ -843,7 +841,6 @@ class AddFlagToProduct < ActiveRecord::Migration
     reversible do |dir|
       dir.up { Product.update_all flag: false }
     end
-    Product.update_all flag: false
   end
 end
 ```
@@ -852,7 +849,7 @@ end
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :inclusion => { :in => [true, false] }
+  validates :flag, inclusion: { in: [true, false] }
 end
 ```
 
@@ -877,7 +874,7 @@ end
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :inclusion => { :in => [true, false] }
+  validates :flag, inclusion: { in: [true, false] }
   validates :fuzz, presence: true
 end
 ```
@@ -1065,8 +1062,8 @@ with foreign key constraints in the database.
 
 Although Active Record does not provide any tools for working directly with
 such features, the `execute` method can be used to execute arbitrary SQL. You
-could also use some gem like
-[foreigner](https://github.com/matthuhiggins/foreigner) which add foreign key
+can also use a gem like
+[foreigner](https://github.com/matthuhiggins/foreigner) which adds foreign key
 support to Active Record (including support for dumping foreign keys in
 `db/schema.rb`).
 

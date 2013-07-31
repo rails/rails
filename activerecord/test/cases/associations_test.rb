@@ -217,7 +217,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal post.body, "More cool stuff!"
   end
 
-  def test_reload_returns_assocition
+  def test_reload_returns_association
     david = developers(:david)
     assert_nothing_raised do
       assert_equal david.projects, david.projects.reload.reload

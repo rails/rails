@@ -61,7 +61,6 @@ module Rails
         @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/#{Rails.env}/" ]
         @assets.js_compressor            = nil
         @assets.css_compressor           = nil
-        @assets.initialize_on_precompile = true
         @assets.logger                   = nil
       end
 
@@ -86,16 +85,6 @@ module Rails
           paths.add "tmp"
           paths
         end
-      end
-
-      def threadsafe!
-        message = "config.threadsafe! is deprecated. Rails applications " \
-                  "behave by default as thread safe in production as long as config.cache_classes and " \
-                  "config.eager_load are set to true"
-        ActiveSupport::Deprecation.warn message
-        @cache_classes = true
-        @eager_load = true
-        self
       end
 
       # Loads and returns the configuration of the database.
@@ -151,9 +140,6 @@ module Rails
         end
       end
 
-      def whiny_nils=(*)
-        ActiveSupport::Deprecation.warn "config.whiny_nils option is deprecated and no longer works"
-      end
     end
   end
 end

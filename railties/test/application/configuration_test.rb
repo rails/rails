@@ -62,6 +62,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+      ActiveRecord::NullMigration.any_instance.stubs(:mtime).returns(1)
 
       get "/foo"
       assert_equal 500, last_response.status
@@ -158,12 +159,12 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.initialize!
+      assert Rails.application.initialize!
     end
 
     test "application is always added to eager_load namespaces" do
       require "#{app_path}/config/application"
-      assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
+      assert Rails.application, Rails.application.config.eager_load_namespaces
     end
 
     test "the application can be eager loaded even when there are no frameworks" do

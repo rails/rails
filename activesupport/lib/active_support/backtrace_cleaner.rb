@@ -13,17 +13,17 @@ module ActiveSupport
   # can focus on the rest.
   #
   #   bc = BacktraceCleaner.new
-  #   bc.add_filter   { |line| line.gsub(Rails.root, '') }
-  #   bc.add_silencer { |line| line =~ /mongrel|rubygems/ }
-  #   bc.clean(exception.backtrace) # will strip the Rails.root prefix and skip any lines from mongrel or rubygems
+  #   bc.add_filter   { |line| line.gsub(Rails.root, '') } # strip the Rails.root prefix
+  #   bc.add_silencer { |line| line =~ /mongrel|rubygems/ } # skip any lines from mongrel or rubygems
+  #   bc.clean(exception.backtrace) # perform the cleanup
   #
   # To reconfigure an existing BacktraceCleaner (like the default one in Rails)
   # and show as much data as possible, you can always call
   # <tt>BacktraceCleaner#remove_silencers!</tt>, which will restore the
   # backtrace to a pristine state. If you need to reconfigure an existing
   # BacktraceCleaner so that it does not filter or modify the paths of any lines
-  # of the backtrace, you can call BacktraceCleaner#remove_filters! These two
-  # methods will give you a completely untouched backtrace.
+  # of the backtrace, you can call <tt>BacktraceCleaner#remove_filters!<tt>
+  # These two methods will give you a completely untouched backtrace.
   #
   # Inspired by the Quiet Backtrace gem by Thoughtbot.
   class BacktraceCleaner
@@ -97,11 +97,7 @@ module ActiveSupport
       end
 
       def noise(backtrace)
-        @silencers.each do |s|
-          backtrace = backtrace.select { |line| s.call(line) }
-        end
-
-        backtrace
+        backtrace - silence(backtrace)
       end
   end
 end

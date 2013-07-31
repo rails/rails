@@ -91,7 +91,7 @@ Adds a line inside the `Application` class for `config/application.rb`.
 If `options[:env]` is specified, the line is appended to the corresponding file in `config/environments`.
 
 ```ruby
-environment 'config.action_mailer.default_url_options = {host: 'http://yourwebsite.example.com'}, env: 'production'
+environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: 'production'
 ```
 
 A block can be used in place of the `data` argument.
@@ -226,4 +226,23 @@ Rails templates let you run any git command:
 git :init
 git add: "."
 git commit: "-a -m 'Initial commit'"
+```
+
+Advanced Usage
+--------------
+
+The application template is evaluated in the context of a
+`Rails::Generators::AppGenerator` instance. It uses the `apply` action
+provided by
+[Thor](https://github.com/erikhuda/thor/blob/master/lib/thor/actions.rb#L207).
+This means you can extend and change the instance to match your needs.
+
+For example by overwriting the `source_paths` method to contain the
+location of your template. Now methods like `copy_file` will accept
+relative paths to your template's location.
+
+```ruby
+def source_paths
+  [File.expand_path(File.dirname(__FILE__))]
+end
 ```

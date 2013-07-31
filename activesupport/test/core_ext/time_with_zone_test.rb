@@ -80,6 +80,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = old
   end
 
+  def test_to_json_when_wrapping_a_date_time
+    twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone)
+    assert_equal '"1999-12-31T19:00:00.000-05:00"', ActiveSupport::JSON.encode(twz)
+  end
+
   def test_nsec
     local     = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
     with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
@@ -443,6 +448,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_usec_returns_0_when_datetime_is_wrapped
     twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone)
     assert_equal 0, twz.usec
+  end
+
+  def test_usec_returns_sec_fraction_when_datetime_is_wrapped
+    twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)), @time_zone)
+    assert_equal 500000, twz.usec
+  end
+
+  def test_nsec_returns_sec_fraction_when_datetime_is_wrapped
+    twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)), @time_zone)
+    assert_equal 500000000, twz.nsec
   end
 
   def test_utc_to_local_conversion_saves_period_in_instance_variable

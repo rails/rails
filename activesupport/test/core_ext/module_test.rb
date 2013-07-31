@@ -66,6 +66,23 @@ Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
 end
 
+Product = Struct.new(:name) do
+  delegate :name, :to => :manufacturer, :prefix => true
+  delegate :name, :to => :type, :prefix => true
+
+  def manufacturer
+    @manufacturer ||= begin
+      nil.unknown_method
+    end
+  end
+
+  def type
+    @type ||= begin
+      nil.type_name
+    end
+  end
+end
+
 class ParameterSet
   delegate :[], :[]=, :to => :@params
 
@@ -207,7 +224,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_without_allow_nil_and_nil_value
     david = Someone.new("David")
-    assert_raise(RuntimeError) { david.street }
+    assert_raise(Module::DelegationError) { david.street }
   end
 
   def test_delegation_to_method_that_exists_on_nil
@@ -264,6 +281,16 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal [3], se.ints
   end
 
+  def test_delegation_doesnt_mask_nested_no_method_error_on_nil_receiver
+    product = Product.new('Widget')
+
+    # Nested NoMethodError is a different name from the delegation
+    assert_raise(NoMethodError) { product.manufacturer_name }
+
+    # Nested NoMethodError is the same name as the delegation
+    assert_raise(NoMethodError) { product.type_name }
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
@@ -277,12 +304,6 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
-  end
-
-  def test_local_constant_names
-    ActiveSupport::Deprecation.silence do
-      assert_equal %w(Constant1 Constant3), Ab.local_constant_names.sort.map(&:to_s)
-    end
   end
 end
 

@@ -57,9 +57,24 @@ If you are on Fedora or CentOS, you can run
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 ```
 
+If you are running Arch Linux, you're done with:
+
+```bash
+$ sudo pacman -S libxml2 libxslt
+```
+
+On FreeBSD, you just have to run:
+
+```bash
+# pkg_add -r libxml2 libxslt
+```
+
+Alternatively, you can install the `textproc/libxml2` and `textproc/libxslt`
+ports.
+
 If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
-Also, SQLite3 and its development files for the `sqlite3-ruby` gem — in Ubuntu you're done with just
+Also, SQLite3 and its development files for the `sqlite3` gem — in Ubuntu you're done with just
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
@@ -70,6 +85,20 @@ And if you are on Fedora or CentOS, you're done with
 ```bash
 $ sudo yum install sqlite3 sqlite3-devel
 ```
+
+If you are on Arch Linux, you will need to run:
+
+```bash
+$ sudo pacman -S sqlite
+```
+
+For FreeBSD users, you're done with:
+
+```bash
+# pkg_add -r sqlite3
+```
+
+Or compile the `databases/sqlite3` port.
 
 Get a recent version of [Bundler](http://gembundler.com/)
 
@@ -136,6 +165,25 @@ On Fedora or CentOS, just run:
 $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
 ```
+
+If you are running Arch Linux, MySQL isn't supported anymore so you will need to
+use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/)):
+
+```bash
+$ sudo pacman -S mariadb libmariadbclient mariadb-clients
+$ sudo pacman -S postgresql postgresql-libs
+```
+
+FreeBSD users will have to run the following:
+
+```bash
+# pkg_add -r mysql56-client mysql56-server
+# pkg_add -r postgresql92-client postgresql92-server
+```
+
+Or install them through ports (they are located under the `databases` folder).
+If you run into troubles during the installation of MySQL, please see
+[the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
 
 After that, run:
 

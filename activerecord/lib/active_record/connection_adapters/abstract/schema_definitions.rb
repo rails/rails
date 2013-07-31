@@ -25,6 +25,9 @@ module ActiveRecord
       end
     end
 
+    class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -269,6 +272,7 @@ module ActiveRecord
         end
 
         column.limit       = limit
+        column.array       = options[:array] if column.respond_to?(:array)
         column.precision   = options[:precision]
         column.scale       = options[:scale]
         column.default     = options[:default]

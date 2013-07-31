@@ -105,7 +105,6 @@ module InflectorTestCases
     "prize"       => "prizes",
     "edge"        => "edges",
 
-    "cow"         => "kine",
     "database"    => "databases",
 
     # regression tests against improper inflection regexes

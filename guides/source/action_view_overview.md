@@ -775,8 +775,8 @@ select_day(5)
 Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
 
 ```ruby
-# Generates a select field for minutes that defaults to the minutes for the time provided
-select_minute(Time.now + 6.hours)
+# Generates a select field for hours that defaults to the hours for the time provided
+select_hour(Time.now + 6.hours)
 ```
 
 #### select_minute
@@ -941,9 +941,9 @@ Creates a form and a scope around a specific model object that is used as a base
 ```html+erb
 <%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
-  <%= f.text_field :title %><br />
+  <%= f.text_field :title %><br>
   <%= f.label :body, 'Body' %>:
-  <%= f.text_area :body %><br />
+  <%= f.text_area :body %><br>
 <% end %>
 ```
 
@@ -1004,6 +1004,24 @@ Returns an input tag of the "text" type tailored for accessing a specified attri
 ```ruby
 text_field(:post, :title)
 # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" />
+```
+
+#### email_field
+
+Returns an input tag of the "email" type tailored for accessing a specified attribute.
+
+```ruby
+email_field(:user, :email)
+# => <input type="email" id="user_email" name="user[email]" value="#{@user.email}" />
+```
+
+#### url_field
+
+Returns an input tag of the "url" type tailored for accessing a specified attribute.
+
+```ruby
+url_field(:user, :url)
+# => <input type="url" id="user_url" name="user[url]" value="#{@user.url}" />
 ```
 
 ### FormOptionsHelper
@@ -1090,7 +1108,7 @@ Example object structure for use with this method:
 
 ```ruby
 class Post < ActiveRecord::Base
-  has_and_belongs_to_many :author
+  has_and_belongs_to_many :authors
 end
 
 class Author < ActiveRecord::Base
@@ -1230,6 +1248,14 @@ Return select and option tags for the given object and method, using `time_zone_
 time_zone_select( "user", "time_zone")
 ```
 
+#### date_field
+
+Returns an input tag of the "date" type tailored for accessing a specified attribute.
+
+```ruby
+date_field("user", "dob")
+```
+
 ### FormTagHelper
 
 Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
@@ -1364,6 +1390,33 @@ text_field_tag 'name'
 # => <input id="name" name="name" type="text" />
 ```
 
+#### email_field_tag
+
+Creates a standard input field of email type.
+
+```ruby
+email_field_tag 'email'
+# => <input id="email" name="email" type="email" />
+```
+
+#### url_field_tag
+
+Creates a standard input field of url type.
+
+```ruby
+url_field_tag 'url'
+# => <input id="url" name="url" type="url" />
+```
+
+#### date_field_tag
+
+Creates a standard input field of date type.
+
+```ruby
+date_field_tag "dob"
+# => <input id="dob" name="dob" type="date" />
+```
+
 ### JavaScriptHelper
 
 Provides functionality for working with JavaScript in your views.
@@ -1439,7 +1492,7 @@ number_to_human_size(1234567)       # => 1.2 MB
 Formats a number as a percentage string.
 
 ```ruby
-number_to_percentage(100, :precision => 0)        # => 100%
+number_to_percentage(100, precision: 0)        # => 100%
 ```
 
 #### number_to_phone

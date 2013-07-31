@@ -17,10 +17,9 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parses unbalanced query string with array" do
-    assert_parses(
-       {'location' => ["1", "2"], 'age_group' => ["2"]},
-      "location[]=1&location[]=2&age_group[]=2"
-    )
+    query    = "location[]=1&location[]=2&age_group[]=2"
+    expected = { 'location' => ["1", "2"], 'age_group' => ["2"] }
+    assert_parses expected, query
   end
 
   test "parses nested hash" do
@@ -30,9 +29,17 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       "note[viewers][viewer][][type]=Group",
       "note[viewers][viewer][][id]=2"
     ].join("&")
-
-    expected = { "note" => { "viewers"=>{"viewer"=>[{ "id"=>"1", "type"=>"User"}, {"type"=>"Group", "id"=>"2"} ]} } }
-    assert_parses(expected, query)
+    expected = {
+      "note" => {
+        "viewers" => {
+          "viewer" => [
+            { "id" => "1", "type" => "User" },
+            { "type" => "Group", "id" => "2" }
+          ]
+        }
+      }
+    }
+    assert_parses expected, query
   end
 
   test "parses more complex nesting" do
@@ -48,7 +55,6 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       "products[second]=Pc",
       "=Save"
     ].join("&")
-
     expected =  {
       "customers" => {
         "boston" => {
@@ -70,13 +76,12 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
         "second" => "Pc"
       }
     }
-
     assert_parses expected, query
   end
 
   test "parses params with array" do
-    query = "selected[]=1&selected[]=2&selected[]=3"
-    expected = { "selected" => [ "1", "2", "3" ] }
+    query    = "selected[]=1&selected[]=2&selected[]=3"
+    expected = { "selected" => ["1", "2", "3"] }
     assert_parses expected, query
   end
 
@@ -88,13 +93,13 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses params with array prefix and hashes" do
     query    = "a[][b][c]=d"
-    expected = {"a" => [{"b" => {"c" => "d"}}]}
+    expected = { "a" => [{ "b" => { "c" => "d" } }] }
     assert_parses expected, query
   end
 
   test "parses params with complex nesting" do
     query    = "a[][b][c][][d][]=e"
-    expected = {"a" => [{"b" => {"c" => [{"d" => ["e"]}]}}]}
+    expected = { "a" => [{ "b" => { "c" => [{ "d" => ["e"] }] } }] }
     assert_parses expected, query
   end
 
@@ -104,7 +109,6 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       "something_else=blah",
       "logo=#{File.expand_path(__FILE__)}"
     ].join("&")
-
     expected = {
       "customers" => {
         "boston" => {
@@ -116,22 +120,20 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       "something_else" => "blah",
       "logo" => File.expand_path(__FILE__),
     }
-
     assert_parses expected, query
   end
 
   test "parses params with Safari 2 trailing null character" do
-    query = "selected[]=1&selected[]=2&selected[]=3\0"
-    expected = { "selected" => [ "1", "2", "3" ] }
+    query    = "selected[]=1&selected[]=2&selected[]=3\0"
+    expected = { "selected" => ["1", "2", "3"] }
     assert_parses expected, query
   end
 
   test "ambiguous params returns a bad request" do
     with_routing do |set|
       set.draw do
-        post ':action', :to => ::UrlEncodedParamsParsingTest::TestController
+        post ':action', to: ::UrlEncodedParamsParsingTest::TestController
       end
-
       post "/parse", "foo[]=bar&foo[4]=bar"
       assert_response :bad_request
     end
@@ -141,7 +143,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :to => ::UrlEncodedParamsParsingTest::TestController
+          post ':action', to: ::UrlEncodedParamsParsingTest::TestController
         end
         yield
       end
@@ -151,8 +153,8 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       with_test_routing do
         post "/parse", actual
         assert_response :ok
-        assert_equal(expected, TestController.last_request_parameters)
-        assert_utf8(TestController.last_request_parameters)
+        assert_equal expected, TestController.last_request_parameters
+        assert_utf8 TestController.last_request_parameters
       end
     end
 
@@ -167,11 +169,11 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       object.each_value do |v|
         case v
         when Hash
-          assert_utf8(v)
+          assert_utf8 v
         when Array
-          v.each {|el| assert_utf8(el) }
+          v.each { |el| assert_utf8 el }
         else
-          assert_utf8(v)
+          assert_utf8 v
         end
       end
     end

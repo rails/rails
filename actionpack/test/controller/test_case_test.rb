@@ -201,11 +201,6 @@ XML
     assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
   end
 
-  def test_options
-    options :test_params
-    assert_equal 200, @response.status
-  end
-
   def test_process_without_flash
     process :set_flash
     assert_equal '><', flash['test']
@@ -283,13 +278,6 @@ XML
   def test_process_with_request_uri_with_params
     process :test_uri, "GET", :id => 7
     assert_equal "/test_case_test/test/test_uri/7", @response.body
-  end
-
-  def test_process_with_old_api
-    assert_deprecated do
-      process :test_uri, :id => 7
-      assert_equal "/test_case_test/test/test_uri/7", @response.body
-    end
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri

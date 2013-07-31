@@ -106,7 +106,11 @@ module XmlMiniTest
     module Nokogiri end
 
     setup do
-      @xml = ActiveSupport::XmlMini
+      @xml, @default_backend = ActiveSupport::XmlMini, ActiveSupport::XmlMini.backend
+    end
+
+    teardown do
+      ActiveSupport::XmlMini.backend = @default_backend
     end
 
     test "#with_backend should switch backend and then switch back" do
@@ -135,7 +139,11 @@ module XmlMiniTest
     module LibXML end
 
     setup do
-      @xml = ActiveSupport::XmlMini
+      @xml, @default_backend = ActiveSupport::XmlMini, ActiveSupport::XmlMini.backend
+    end
+
+    teardown do
+      ActiveSupport::XmlMini.backend = @default_backend
     end
 
     test "#with_backend should be thread-safe" do

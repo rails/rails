@@ -346,7 +346,7 @@ Next, the partial that this line will render needs to exist. Create a new direct
 <h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
-    <%= f.label :text %><br />
+    <%= f.label :text %><br>
     <%= f.text_area :text %>
   </p>
   <%= f.submit %>
@@ -393,9 +393,14 @@ The form will be making a `POST` request to `/posts/:post_id/comments`, which wi
 ```ruby
 def create
   @post = Post.find(params[:post_id])
-  @comment = @post.comments.create(params[:comment])
+  @comment = @post.comments.create(comment_params)
   flash[:notice] = "Comment has been created!"
   redirect_to posts_path
+end
+
+private
+def comment_params
+  params.require(:comment).permit(:text)
 end
 ```
 
@@ -515,7 +520,7 @@ First, the `author_name` text field needs to be added to the `app/views/blorgh/p
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br />
+  <%= f.label :author_name %><br>
   <%= f.text_field :author_name %>
 </div>
 ```
@@ -718,6 +723,32 @@ This section explains how to add and/or override engine MVC functionality in the
 Engine model and controller classes can be extended by open classing them in the main Rails application (since model and controller classes are just Ruby classes that inherit Rails specific functionality). Open classing an Engine class redefines it for use in the main application. This is usually implemented by using the decorator pattern.
 
 For simple class modifications use `Class#class_eval`, and for complex class modifications, consider using `ActiveSupport::Concern`.
+
+#### A note on Decorators and loading code
+
+Because these decorators are not referenced by your Rails application itself,
+Rails' autoloading system will not kick in and load your decorators. This
+means that you need to require them yourself.
+
+Here is some sample code to do this:
+
+```ruby
+# lib/blorgh/engine.rb
+module Blorgh
+  class Engine < ::Rails::Engine
+    isolate_namespace Blorgh
+
+    config.to_prepare do
+      Dir.glob(Rails.root + "app/decorators/**/*_decorator*.rb").each do |c|
+        require_dependency(c)
+      end
+    end
+  end
+end
+```
+
+This doesn't apply to just Decorators, but anything that you add in an engine
+that isn't referenced by your main application.
 
 #### Implementing Decorator Pattern Using Class#class_eval
 

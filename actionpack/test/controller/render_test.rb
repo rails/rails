@@ -775,6 +775,10 @@ class RenderTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def teardown
+    ActionView::Base.logger = nil
+  end
+
   # :ported:
   def test_simple_show
     get :hello_world
@@ -1085,6 +1089,12 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_render_formatted_html_erb_template
+    get :formatted_xml_erb
+    assert_equal '<test>passed formatted html erb</test>', @response.body
+  end
+
+  def test_should_render_formatted_html_erb_template_with_bad_accepts_header
+    @request.env["HTTP_ACCEPT"] = "; a=dsf"
     get :formatted_xml_erb
     assert_equal '<test>passed formatted html erb</test>', @response.body
   end

@@ -56,7 +56,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC') }.join
+      Thread.new {
+        assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
+        DeveloperOrderedBySalary.connection.close
+      }.join
     end
   end
 
@@ -79,7 +82,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_overwrites_default
-    expected = Developer.all.merge!(:order => ' name DESC, salary DESC').to_a.collect { |dev| dev.name }
+    expected = Developer.all.merge!(order: 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
     assert_equal expected, received
   end
@@ -91,7 +94,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_after_reorder_combines_orders
-    expected = Developer.order('id DESC, name DESC').collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
     received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
@@ -153,9 +156,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_to_unscope_reordering
-    expected = DeveloperOrderedBySalary.all.collect { |dev| [dev.name, dev.id] }
-    received = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order).collect { |dev| [dev.name, dev.id] }
-    assert_equal expected, received
+    scope = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order)
+    assert !(scope.to_sql =~ /order/i)
   end
 
   def test_unscope_reverse_order
@@ -251,8 +253,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_in_default_scope_should_not_prevail
-    expected = Developer.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
+    expected = Developer.all.merge!(order: 'salary desc').to_a.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.all.merge!(order: 'salary').to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
@@ -361,9 +363,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     threads << Thread.new do
       Thread.current[:long_default_scope] = true
       assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
     end
     threads << Thread.new do
       assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
     end
     threads.each(&:join)
   end

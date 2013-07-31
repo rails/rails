@@ -38,6 +38,7 @@ module ActionMailer
       add_delivery_method :test, Mail::TestMailer
     end
 
+    # Helpers for creating and wrapping delivery behavior, used by DeliveryMethods.
     module ClassMethods
       # Provides a list of emails that have been delivered by Mail::TestMailer
       delegate :deliveries, :deliveries=, to: Mail::TestMailer
@@ -63,7 +64,7 @@ module ActionMailer
           raise "Delivery method cannot be nil"
         when Symbol
           if klass = delivery_methods[method]
-            mail.delivery_method(klass,(send(:"#{method}_settings") || {}).merge!(options || {}))
+            mail.delivery_method(klass, (send(:"#{method}_settings") || {}).merge(options || {}))
           else
             raise "Invalid delivery method #{method.inspect}"
           end

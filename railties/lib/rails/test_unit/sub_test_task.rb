@@ -2,13 +2,53 @@ require 'rake/testtask'
 
 module Rails
   class TestTask < Rake::TestTask # :nodoc: all
+    # A utility class which is used primarily in "rails/test_unit/testing.rake"
+    # to help define rake tasks corresponding to <tt>rake test</tt>.
+    #
+    # This class takes a TestInfo class and defines the appropriate rake task
+    # based on the information, then invokes it.
+    class TestCreator
+      def initialize(info)
+        @info = info
+      end
+
+      def invoke_rake_task
+        if @info.files.any?
+          create_and_run_single_test
+          reset_application_tasks
+        else
+          Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
+        end
+      end
+
+      private
+
+        def create_and_run_single_test
+          Rails::TestTask.new('test:single') { |t|
+            t.test_files = @info.files
+          }
+          ENV['TESTOPTS'] ||= @info.opts
+          Rake::Task['test:single'].invoke
+        end
+
+        def reset_application_tasks
+          Rake.application.top_level_tasks.replace @info.tasks
+        end
+    end
+
+    # This is a utility class used by the <tt>TestTask::TestCreator</tt> class.
+    # This class takes a set of test tasks and checks to see if they correspond
+    # to test files (or can be transformed into test files). Calling <tt>files</tt>
+    # provides the set of test files and is used when initializing tests after
+    # a call to <tt>rake test</tt>.
     class TestInfo
       def initialize(tasks)
         @tasks = tasks
+        @files = nil
       end
 
       def files
-        @tasks.map { |task|
+        @files ||= @tasks.map { |task|
           [task, translate(task)].find { |file| test_file?(file) }
         }.compact
       end
@@ -53,8 +93,9 @@ module Rails
       end
     end
 
-    def self.test_info(tasks)
-      TestInfo.new tasks
+    def self.test_creator(tasks)
+      info = TestInfo.new(tasks)
+      TestCreator.new(info)
     end
 
     def initialize(name = :test)

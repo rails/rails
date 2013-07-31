@@ -5,7 +5,6 @@ This guide covers Rails integration with Rack and interfacing with other Rack co
 
 After reading this guide, you will know:
 
-* How to create Rails Metal applications.
 * How to use Rack Middlewares in your Rails applications.
 * Action Pack's internal Middleware stack.
 * How to define a custom Middleware stack.
@@ -82,7 +81,7 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 
 ```ruby
 # Rails.root/config.ru
-require ::File.expand_path('../config/environment',  __FILE__)
+require ::File.expand_path('../config/environment', __FILE__)
 
 use Rack::Debugger
 use Rack::ContentLength
@@ -119,6 +118,7 @@ $ rake middleware
 For a freshly generated Rails application, this might produce something like:
 
 ```ruby
+use Rack::Sendfile
 use ActionDispatch::Static
 use Rack::Lock
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
@@ -131,6 +131,7 @@ use ActionDispatch::DebugExceptions
 use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
+use ActiveRecord::Migration::CheckPending
 use ActiveRecord::ConnectionAdapters::ConnectionManagement
 use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
@@ -272,6 +273,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Runs the prepare callbacks before serving the request.
 
+ **`ActiveRecord::Migration::CheckPending`**
+
+* Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
+
  **`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
 
 * Cleans active connections after each request, unless the `rack.test` key in the request environment is set to `true`.
@@ -321,7 +326,7 @@ The following shows how to replace use `Rack::Builder` instead of the Rails supp
 config.middleware.clear
 ```
 
-<br />
+<br>
 <strong>Add a `config.ru` file to `Rails.root`</strong>
 
 ```ruby

@@ -98,7 +98,6 @@ module ActiveRecord
 
         def build_scope
           scope = klass.unscoped
-          scope.default_scoped = true
 
           values         = reflection_scope.values
           preload_values = preload_scope.values
@@ -113,7 +112,7 @@ module ActiveRecord
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end
 
-          scope
+          klass.default_scoped.merge(scope)
         end
       end
     end

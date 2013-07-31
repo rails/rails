@@ -480,6 +480,42 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal hash.delete('a'), nil
   end
 
+  def test_indifferent_select
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| v == 1}
+
+    assert_equal({ 'a' => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_select_returns_a_hash_when_unchanged
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
+
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_select_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.select! {|k,v| v == 1}
+
+    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_reject
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject {|k,v| v != 1}
+
+    assert_equal({ 'a' => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_reject_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.reject! {|k,v| v != 1}
+
+    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
   def test_indifferent_to_hash
     # Should convert to a Hash with String keys.
     assert_equal @strings, @mixed.with_indifferent_access.to_hash
@@ -490,6 +526,10 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+    new_to_hash = @nested_mixed.with_indifferent_access.to_hash
+    assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
   end
 
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
@@ -499,9 +539,21 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal [1], hash[:a]
   end
 
+  def test_with_indifferent_access_has_no_side_effects_on_existing_hash
+    hash = {content: [{:foo => :bar, 'bar' => 'baz'}]}
+    hash.with_indifferent_access
+
+    assert_equal [:foo, "bar"], hash[:content].first.keys
+  end
+
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
+
+    hash = hash.to_hash
+    assert_not hash.instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"].instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)
   end
 
   def test_should_preserve_array_subclass_when_value_is_array
@@ -653,12 +705,6 @@ class HashExtTest < ActiveSupport::TestCase
     merged = options.dup
     assert_equal expected, merged.reverse_update(defaults)
     assert_equal expected, merged
-  end
-
-  def test_diff
-    assert_deprecated do
-      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
-    end
   end
 
   def test_slice

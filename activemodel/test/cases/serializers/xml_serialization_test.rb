@@ -130,7 +130,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize nil" do
-    assert_match %r{<pseudonyms nil=\"true\"/>}, @contact.to_xml(methods: :pseudonyms)
+    assert_match %r{<pseudonyms nil="true"/>}, @contact.to_xml(methods: :pseudonyms)
   end
 
   test "should serialize integer" do
@@ -138,23 +138,23 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize datetime" do
-    assert_match %r{<created-at type=\"dateTime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
+    assert_match %r{<created-at type="dateTime">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
   end
 
   test "should serialize boolean" do
-    assert_match %r{<awesome type=\"boolean\">false</awesome>}, @contact.to_xml
+    assert_match %r{<awesome type="boolean">false</awesome>}, @contact.to_xml
   end
 
   test "should serialize array" do
-    assert_match %r{<social type=\"array\">\s*<social>twitter</social>\s*<social>github</social>\s*</social>}, @contact.to_xml(methods: :social)
+    assert_match %r{<social type="array">\s*<social>twitter</social>\s*<social>github</social>\s*</social>}, @contact.to_xml(methods: :social)
   end
 
   test "should serialize hash" do
-    assert_match %r{<network>\s*<git type=\"symbol\">github</git>\s*</network>}, @contact.to_xml(methods: :network)
+    assert_match %r{<network>\s*<git type="symbol">github</git>\s*</network>}, @contact.to_xml(methods: :network)
   end
 
   test "should serialize yaml" do
-    assert_match %r{<preferences type=\"yaml\">--- !ruby/struct:Customer(\s*)\nname: John\n</preferences>}, @contact.to_xml
+    assert_match %r{<preferences type="yaml">--- !ruby/struct:Customer(\s*)\nname: John\n</preferences>}, @contact.to_xml
   end
 
   test "should call proc on object" do

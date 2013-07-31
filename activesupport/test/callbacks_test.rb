@@ -525,7 +525,7 @@ module CallbacksTest
   class CallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => "result == :halt"
+    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
 
     set_callback :save, :before, :first
     set_callback :save, :before, :second
@@ -718,7 +718,7 @@ module CallbacksTest
     def test_termination_invokes_hook
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ":second", terminator.halted
+      assert_equal :second, terminator.halted
     end
 
     def test_block_never_called_if_terminated
@@ -772,22 +772,6 @@ module CallbacksTest
     end
   end
 
-  class PerKeyOptionDeprecationTest < ActiveSupport::TestCase
-
-    def test_per_key_option_deprecation
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          set_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-      assert_raise NotImplementedError do
-        Phone.class_eval do
-          skip_callback :save, :before, :before_save1, :per_key => {:if => "true"}
-        end
-      end
-    end
-  end
-
   class ExcludingDuplicatesCallbackTest < ActiveSupport::TestCase
     def test_excludes_duplicates_in_separate_calls
       model = DuplicatingCallbacks.new
@@ -799,6 +783,46 @@ module CallbacksTest
       model = DuplicatingCallbacksInSameCall.new
       model.save
       assert_equal ["two", "one", "three", "yielded"], model.record
+    end
+  end
+
+  class CallbackProcTest < ActiveSupport::TestCase
+    def build_class(callback)
+      Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, callback
+        def run; run_callbacks :foo; end
+      }
+    end
+
+    def test_proc_arity_0
+      calls = []
+      klass = build_class(->() { calls << :foo })
+      klass.new.run
+      assert_equal [:foo], calls
+    end
+
+    def test_proc_arity_1
+      calls = []
+      klass = build_class(->(o) { calls << o })
+      instance = klass.new
+      instance.run
+      assert_equal [instance], calls
+    end
+
+    def test_proc_arity_2
+      assert_raises(ArgumentError) do
+        klass = build_class(->(x,y) { })
+        klass.new.run
+      end
+    end
+
+    def test_proc_negative_called_with_empty_list
+      calls = []
+      klass = build_class(->(*args) { calls << args })
+      klass.new.run
+      assert_equal [[]], calls
     end
   end
 
@@ -824,8 +848,9 @@ module CallbacksTest
         include ActiveSupport::Callbacks
         define_callbacks :foo, :scope => [:name]
         set_callback :foo, :before, :foo, :if => callback
-        def foo; end
         def run; run_callbacks :foo; end
+        private
+        def foo; end
       }
       object = klass.new
       object.run
@@ -870,6 +895,46 @@ module CallbacksTest
         object = build_class(->(a,b) { }).new
         object.run
       end
+    end
+  end
+
+  class ResetCallbackTest < ActiveSupport::TestCase
+    def build_class(memo)
+      klass = Class.new {
+        include ActiveSupport::Callbacks
+        define_callbacks :foo
+        set_callback :foo, :before, :hello
+        def run; run_callbacks :foo; end
+      }
+      klass.class_eval {
+        define_method(:hello) { memo << :hi }
+      }
+      klass
+    end
+
+    def test_reset_callbacks
+      events = []
+      klass = build_class events
+      klass.new.run
+      assert_equal 1, events.length
+
+      klass.reset_callbacks :foo
+      klass.new.run
+      assert_equal 1, events.length
+    end
+
+    def test_reset_impacts_subclasses
+      events = []
+      klass = build_class events
+      subclass = Class.new(klass) { set_callback :foo, :before, :world }
+      subclass.class_eval { define_method(:world) { events << :world } }
+
+      subclass.new.run
+      assert_equal 2, events.length
+
+      klass.reset_callbacks :foo
+      subclass.new.run
+      assert_equal 3, events.length
     end
   end
 

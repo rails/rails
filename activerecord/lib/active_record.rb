@@ -25,7 +25,6 @@ require 'active_support'
 require 'active_support/rails'
 require 'active_model'
 require 'arel'
-require 'active_record/deprecated_finders'
 
 require 'active_record/version'
 
@@ -152,7 +151,6 @@ module ActiveRecord
     autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
-  autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
 
   def self.eager_load!

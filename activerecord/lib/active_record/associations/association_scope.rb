@@ -89,14 +89,15 @@ module ActiveRecord
             scope = scope.joins(join(foreign_table, constraint))
           end
 
+          klass = i == 0 ? self.klass : reflection.klass
+
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
           scope_chain[i].each do |scope_chain_item|
-            klass = i == 0 ? self.klass : reflection.klass
             item  = eval_scope(klass, scope_chain_item)
 
             if scope_chain_item == self.reflection.scope
-              scope.merge! item.except(:where, :includes)
+              scope.merge! item.except(:where, :includes, :bind)
             end
 
             scope.includes! item.includes_values
@@ -119,7 +120,7 @@ module ActiveRecord
           # the owner
           klass.table_name
         else
-          reflection.table_name
+          super
         end
       end
 

@@ -16,7 +16,8 @@ class Time
     :rfc822       => lambda { |time|
       offset_format = time.formatted_offset(false)
       time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
-    }
+    },
+    :iso8601      => lambda { |time| time.iso8601 }
   }
 
   # Converts to a formatted string. See DATE_FORMATS for builtin formats.
@@ -34,6 +35,7 @@ class Time
   #   time.to_formatted_s(:long)         # => "January 18, 2007 06:10"
   #   time.to_formatted_s(:long_ordinal) # => "January 18th, 2007 06:10"
   #   time.to_formatted_s(:rfc822)       # => "Thu, 18 Jan 2007 06:10:17 -0600"
+  #   time.to_formatted_s(:iso8601)      # => "2007-01-18T06:10:17-06:00"
   #
   # == Adding your own time formats to +to_formatted_s+
   # You can add your own formats to the Time::DATE_FORMATS hash.

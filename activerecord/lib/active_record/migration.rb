@@ -32,7 +32,7 @@ module ActiveRecord
 
   class PendingMigrationError < ActiveRecordError#:nodoc:
     def initialize
-      super("Migrations are pending; run 'rake db:migrate RAILS_ENV=#{Rails.env}' to resolve this issue.")
+      super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
     end
   end
 
@@ -357,11 +357,14 @@ module ActiveRecord
     class CheckPending
       def initialize(app)
         @app = app
+        @last_check = 0
       end
 
       def call(env)
-        ActiveRecord::Base.logger.silence do
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
           ActiveRecord::Migration.check_pending!
+          @last_check = mtime
         end
         @app.call(env)
       end
@@ -700,6 +703,10 @@ module ActiveRecord
       File.basename(filename)
     end
 
+    def mtime
+      File.mtime filename
+    end
+
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
@@ -713,6 +720,16 @@ module ActiveRecord
         name.constantize.new
       end
 
+  end
+
+  class NullMigration < MigrationProxy #:nodoc:
+    def initialize
+      super(nil, 0, nil, nil)
+    end
+
+    def mtime
+      0
+    end
   end
 
   class Migrator#:nodoc:
@@ -785,7 +802,11 @@ module ActiveRecord
       end
 
       def last_version
-        migrations(migrations_paths).last.try(:version)||0
+        last_migration.version
+      end
+
+      def last_migration #:nodoc:
+        migrations(migrations_paths).last || NullMigration.new
       end
 
       def proper_table_name(name)
@@ -845,13 +866,7 @@ module ActiveRecord
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
-
-      if Array(migrations).grep(String).empty?
-        @migrations = migrations
-      else
-        ActiveSupport::Deprecation.warn "instantiate this class with a list of migrations"
-        @migrations = self.class.migrations(migrations)
-      end
+      @migrations        = migrations
 
       validate(@migrations)
 
@@ -885,15 +900,7 @@ module ActiveRecord
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      running = runnable
-
-      if block_given?
-        message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
-        ActiveSupport::Deprecation.warn message
-        running.select! { |m| yield m }
-      end
-
-      running.each do |migration|
+      runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         begin

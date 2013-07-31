@@ -49,8 +49,8 @@ The macro-style class methods can also receive a block. Consider using this styl
 class User < ActiveRecord::Base
   validates :login, :email, presence: true
 
-  before_create do |user|
-    user.name = user.login.capitalize if user.name.blank?
+  before_create do
+    self.name = login.capitalize if name.blank?
   end
 end
 ```
@@ -167,6 +167,7 @@ Additionally, the `after_find` callback is triggered by the following finder met
 * `all`
 * `first`
 * `find`
+* `find_by`
 * `find_by_*`
 * `find_by_*!`
 * `find_by_sql`
@@ -342,7 +343,7 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ActiveRecord::Base
-  after_commit :delete_picture_file_from_disk, :on => [:destroy]
+  after_commit :delete_picture_file_from_disk, on: [:destroy]
 
   def delete_picture_file_from_disk
     if File.exist?(filepath)

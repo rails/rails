@@ -100,7 +100,7 @@ module ActiveModel
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-        terminator: "result == false",
+        terminator: ->(_,result) { result == false },
         skip_after_callbacks_if_terminated: true,
         scope: [:kind, :name],
         only: [:before, :around, :after]
@@ -135,7 +135,10 @@ module ActiveModel
       klass.define_singleton_method("after_#{callback}") do |*args, &block|
         options = args.extract_options!
         options[:prepend] = true
-        options[:if] = Array(options[:if]) << "value != false"
+        conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
+          v != false
+        }
+        options[:if] = Array(options[:if]) << conditional
         set_callback(:"#{callback}", :after, *(args << options), &block)
       end
     end

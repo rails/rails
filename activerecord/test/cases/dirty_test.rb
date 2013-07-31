@@ -608,20 +608,6 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  test "partial_updates config attribute is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-
-    assert klass.partial_writes?
-    assert_deprecated { assert klass.partial_updates? }
-    assert_deprecated { assert klass.partial_updates  }
-
-    assert_deprecated { klass.partial_updates = false }
-
-    assert !klass.partial_writes?
-    assert_deprecated { assert !klass.partial_updates? }
-    assert_deprecated { assert !klass.partial_updates  }
-  end
-
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?

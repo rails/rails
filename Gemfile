@@ -2,9 +2,13 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'mocha', '~> 0.13.0', require: false
+# This needs to be with require false as it is
+# loaded after loading the test library to
+# ensure correct loading order
+gem 'mocha', '~> 0.14', require: false
+
 gem 'rack-cache', '~> 1.2'
-gem 'bcrypt-ruby', '~> 3.0.0'
+gem 'bcrypt-ruby', '~> 3.1.0'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
@@ -52,12 +56,11 @@ platforms :ruby do
   group :db do
     gem 'pg', '>= 0.11.0'
     gem 'mysql', '>= 2.9.0'
-    gem 'mysql2', '>= 0.3.10'
+    gem 'mysql2', '>= 0.3.13'
   end
 end
 
 platforms :jruby do
-  gem 'json'
   gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   group :db do

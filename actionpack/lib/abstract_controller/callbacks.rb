@@ -8,7 +8,9 @@ module AbstractController
     include ActiveSupport::Callbacks
 
     included do
-      define_callbacks :process_action, :terminator => "response_body", :skip_after_callbacks_if_terminated => true
+      define_callbacks :process_action,
+                       terminator: ->(controller,_) { controller.response_body },
+                       skip_after_callbacks_if_terminated: true
     end
 
     # Override AbstractController::Base's process_action to run the
@@ -69,7 +71,7 @@ module AbstractController
       # * <tt>name</tt>     - The callback to be added
       # * <tt>options</tt>  - A hash of options to be used when adding the callback
       def _insert_callbacks(callbacks, block = nil)
-        options = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
+        options = callbacks.extract_options!
         _normalize_callback_options(options)
         callbacks.push(block) if block
         callbacks.each do |callback|

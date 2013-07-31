@@ -77,7 +77,7 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal @dtnow.advance(:days => 1).advance(:months => 2), @dtnow + 1.day + 2.months
   end
 
-  def test_duration_after_convertion_is_no_longer_accurate
+  def test_duration_after_conversion_is_no_longer_accurate
     assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
     assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
     assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)

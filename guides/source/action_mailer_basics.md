@@ -216,6 +216,11 @@ Action Mailer makes it very easy to add attachments.
     attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
     ```
 
+  When the `mail` method will be triggered, it will send a multipart email with
+  an attachment, properly nested with the top level being `multipart/mixed` and
+  the first part being a `multipart/alternative` containing the plain text and
+  HTML email messages.
+
 NOTE: Mail will automatically Base64 encode an attachment. If you want something
 different, encode your content and pass in the encoded content and encoding in a
 `Hash` to the `attachments` method.
@@ -373,7 +378,7 @@ Just like with controller views, use `yield` to render the view inside the
 layout.
 
 You can also pass in a `layout: 'layout_name'` option to the render call inside
-the format block to specify different layouts for different actions:
+the format block to specify different layouts for different formats:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -451,26 +456,6 @@ with the HTML and text versions setup as different parts.
 The order of the parts getting inserted is determined by the `:parts_order`
 inside of the `ActionMailer::Base.default` method.
 
-### Sending Emails with Attachments
-
-Attachments can be added by using the `attachments` method:
-
-```ruby
-class UserMailer < ActionMailer::Base
-  def welcome_email(user)
-    @user = user
-    @url  = user_url(@user)
-    attachments['terms.pdf'] = File.read('/path/terms.pdf')
-    mail(to: @user.email,
-         subject: 'Please see the Terms and Conditions attached')
-  end
-end
-```
-
-The above will send a multipart email with an attachment, properly nested with
-the top level being `multipart/mixed` and the first part being a
-`multipart/alternative` containing the plain text and HTML email messages.
-
 ### Sending Emails with Dynamic Delivery Options
 
 If you wish to override the default delivery options (e.g. SMTP credentials)
@@ -496,7 +481,7 @@ end
 
 There may be cases in which you want to skip the template rendering step and
 supply the email body as a string. You can achieve this using the `:body`
-option.  In such cases don't forget to add the `:content_type` option. Rails
+option. In such cases don't forget to add the `:content_type` option. Rails
 will default to `text/plain` otherwise.
 
 ```ruby
@@ -532,7 +517,7 @@ method. Here's an example:
 ```ruby
 class UserMailer < ActionMailer::Base
   def receive(email)
-    page = Page.find_by_address(email.to.first)
+    page = Page.find_by(address: email.to.first)
     page.emails.create(
       subject: email.subject,
       body: email.body
@@ -623,7 +608,7 @@ files (environment.rb, production.rb, etc...)
 | Configuration | Description |
 |---------------|-------------|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
-|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port`  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
+|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|
 |`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered. This only works if the external email server is configured for immediate delivery.|
 |`delivery_method`|Defines a delivery method. Possible values are `:smtp` (default), `:sendmail`, `:file` and `:test`.|
@@ -649,7 +634,7 @@ config.action_mailer.delivery_method = :sendmail
 # }
 config.action_mailer.perform_deliveries = true
 config.action_mailer.raise_delivery_errors = true
-config.action_mailer.default_options = {from: 'no-replay@example.com'}
+config.action_mailer.default_options = {from: 'no-reply@example.com'}
 ```
 
 ### Action Mailer Configuration for Gmail

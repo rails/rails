@@ -65,19 +65,6 @@ class DeveloperWithSymbolsForKeys < ActiveRecord::Base
     :foreign_key => "developer_id"
 end
 
-class DeveloperWithCounterSQL < ActiveRecord::Base
-  self.table_name = 'developers'
-
-  ActiveSupport::Deprecation.silence do
-    has_and_belongs_to_many :projects,
-      :class_name => "DeveloperWithCounterSQL",
-      :join_table => "developers_projects",
-      :association_foreign_key => "project_id",
-      :foreign_key => "developer_id",
-      :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
-  end
-end
-
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings
@@ -364,31 +351,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, david.projects(true).size
   end
 
-  def test_deleting_with_sql
-    david = Developer.find(1)
-    active_record = Project.find(1)
-    active_record.developers.reload
-    assert_equal 3, active_record.developers_by_sql.size
-
-    active_record.developers_by_sql.delete(david)
-    assert_equal 2, active_record.developers_by_sql(true).size
-  end
-
-  def test_deleting_array_with_sql
-    active_record = Project.find(1)
-    active_record.developers.reload
-    assert_equal 3, active_record.developers_by_sql.size
-
-    active_record.developers_by_sql.delete(Developer.all)
-    assert_equal 0, active_record.developers_by_sql(true).size
-  end
-
-  def test_deleting_all_with_sql
-    project = Project.find(1)
-    project.developers_by_sql.delete_all
-    assert_equal 0, project.developers_by_sql.size
-  end
-
   def test_deleting_all
     david = Developer.find(1)
     david.projects.reload
@@ -475,13 +437,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert george.treasures(true).empty?
   end
 
-  def test_deprecated_push_with_attributes_was_removed
-    jamis = developers(:jamis)
-    assert_raise(NoMethodError) do
-      jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
-    end
-  end
-
   def test_associations_with_conditions
     assert_equal 3, projects(:active_record).developers.size
     assert_equal 1, projects(:active_record).developers_named_david.size
@@ -537,25 +492,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert ! project.developers.include?(developer)
   end
 
-  def test_find_in_association_with_custom_finder_sql
-    assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id), "SQL find"
-
-    active_record = projects(:active_record)
-    active_record.developers_with_finder_sql.reload
-    assert_equal developers(:david), active_record.developers_with_finder_sql.find(developers(:david).id), "Ruby find"
-  end
-
-  def test_find_in_association_with_custom_finder_sql_and_multiple_interpolations
-    # interpolate once:
-    assert_equal [developers(:david), developers(:jamis), developers(:poor_jamis)], projects(:active_record).developers_with_finder_sql, "first interpolation"
-    # interpolate again, for a different project id
-    assert_equal [developers(:david)], projects(:action_controller).developers_with_finder_sql, "second interpolation"
-  end
-
-  def test_find_in_association_with_custom_finder_sql_and_string_id
-    assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id.to_s), "SQL find"
-  end
-
   def test_find_with_merged_options
     assert_equal 1, projects(:active_record).limited_developers.size
     assert_equal 1, projects(:active_record).limited_developers.to_a.size
@@ -570,9 +506,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
-  def test_find_should_prepend_to_association_order
+  def test_find_should_append_to_association_order
     ordered_developers = projects(:active_record).developers.order('projects.id')
-    assert_equal ['projects.id', 'developers.name desc, developers.id desc'], ordered_developers.order_values
+    assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
   end
 
   def test_dynamic_find_all_should_respect_readonly_access
@@ -791,21 +727,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, david.projects.count
   end
 
-  def test_count_with_counter_sql
-    developer  = DeveloperWithCounterSQL.create(:name => 'tekin')
-    developer.project_ids = [projects(:active_record).id]
-    developer.save
-    developer.reload
-    assert_equal 1, developer.projects.count
-  end
-
-  unless current_adapter?(:PostgreSQLAdapter)
-    def test_count_with_finder_sql
-      assert_equal 3, projects(:active_record).developers_with_finder_sql.count
-      assert_equal 3, projects(:active_record).developers_with_multiline_finder_sql.count
-    end
-  end
-
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
     Post.expects(:transaction)
     Category.first.posts.transaction do
@@ -843,18 +764,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project = Project.new
     developer = project.developers.build
     assert project.developers.include?(developer)
-  end
-
-  test ":insert_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    def klass.name; 'Foo'; end
-    assert_deprecated { klass.has_and_belongs_to_many :posts, :insert_sql => 'lol' }
-  end
-
-  test ":delete_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    def klass.name; 'Foo'; end
-    assert_deprecated { klass.has_and_belongs_to_many :posts, :delete_sql => 'lol' }
   end
 
   test "has and belongs to many associations on new records use null relations" do

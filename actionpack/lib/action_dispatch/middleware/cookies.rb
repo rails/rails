@@ -77,7 +77,7 @@ module ActionDispatch
   #                       domain and subdomains.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
-  # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
+  # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
@@ -160,7 +160,7 @@ module ActionDispatch
           end
       end
 
-      # Returns the +signed+ or +encrypted jar, preferring +encrypted+ if +secret_key_base+ is set.
+      # Returns the +signed+ or +encrypted+ jar, preferring +encrypted+ if +secret_key_base+ is set.
       # Used by ActionDispatch::Session::CookieStore to avoid the need to introduce new cookie stores.
       def signed_or_encrypted
         @signed_or_encrypted ||=

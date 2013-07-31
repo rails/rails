@@ -286,6 +286,30 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_scaffold_generator_belongs_to
+    run_generator ["account", "name", "currency:belongs_to"]
+
+    assert_file "app/models/account.rb", /belongs_to :currency/
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.belongs_to :currency/, up)
+      end
+    end
+
+    assert_file "app/controllers/accounts_controller.rb" do |content|
+      assert_instance_method :account_params, content do |m|
+        assert_match(/permit\(:name, :currency_id\)/, m)
+      end
+    end
+
+    assert_file "app/views/accounts/_form.html.erb" do |content|
+      assert_match(/<%= f\.text_field :name %>/, content)
+      assert_match(/<%= f\.text_field :currency_id %>/, content)
+    end
+  end
+
   def test_scaffold_generator_password_digest
     run_generator ["user", "name", "password:digest"]
 

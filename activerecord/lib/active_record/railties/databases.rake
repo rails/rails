@@ -12,7 +12,7 @@ db_namespace = namespace :db do
     end
   end
 
-  desc 'Create the database from DATABASE_URL or config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
+  desc 'Create the database from DATABASE_URL or config/database.yml for the current Rails.env (use db:create:all to create all databases in the config)'
   task :create => [:load_config] do
     if ENV['DATABASE_URL']
       ActiveRecord::Tasks::DatabaseTasks.create_database_url
@@ -172,7 +172,7 @@ db_namespace = namespace :db do
     end
   end
 
-  desc 'Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the db first)'
+  desc 'Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the database first)'
   task :setup => ['db:schema:load_if_ruby', 'db:structure:load_if_sql', :seed]
 
   desc 'Load the seed data from db/seeds.rb'
@@ -236,7 +236,7 @@ db_namespace = namespace :db do
   end
 
   namespace :schema do
-    desc 'Create a db/schema.rb file that can be portably used against any DB supported by AR'
+    desc 'Create a db/schema.rb file that is portable against any DB supported by AR'
     task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
@@ -324,7 +324,7 @@ db_namespace = namespace :db do
         ActiveRecord::Schema.verbose = false
         db_namespace["schema:load"].invoke
       ensure
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[Rails.env])
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[ActiveRecord::Tasks::DatabaseTasks.env])
       end
     end
 
@@ -360,7 +360,7 @@ db_namespace = namespace :db do
     end
 
     # desc 'Check for pending migrations and load the test schema'
-    task :prepare do
+    task :prepare => :load_config do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
       end
