@@ -112,4 +112,22 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
     assert_equal [author], Author.where(id: author).joins(:special_categorizations)
   end
+
+  test "the sti scope of the target isn't applied to an original table" do
+    begin
+      defaults = SpecialComment.default_scopes
+      SpecialComment.class_eval do
+        default_scopes = []
+        default_scope -> { order(:id) }
+      end
+  
+      assert_no_match(/"comments"\."type" IN/,
+           Post.where(:id => posts(:sti_comments).id)
+           .includes(:comments)
+           .includes(:special_comments)
+           .references(:special_comments).to_sql)
+    ensure
+      SpecialComment.default_scopes = defaults
+    end
+  end
 end
