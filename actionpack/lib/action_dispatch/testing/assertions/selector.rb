@@ -374,12 +374,11 @@ module ActionDispatch
 
               root_or_selector
             elsif @selected
-              # nested call - wrap in document
               if @selected.is_a?(Array)
                 doc = @selected.empty? ? @page.document : @selected[0].document
                 @selected = Nokogiri::XML::NodeSet.new(doc, @selected)
               end
-              Loofah.fragment('').tap { |d| d.add_child @selected }
+              @selected
             else
               @page
             end
