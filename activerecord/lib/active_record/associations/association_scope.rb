@@ -82,8 +82,9 @@ module ActiveRecord
             constraint = table[key].eq(foreign_table[foreign_key])
 
             if reflection.type
-              type = chain[i + 1].klass.base_class.name
-              constraint = constraint.and(table[reflection.type].eq(type))
+              value    = chain[i + 1].klass.base_class.name
+              bind_val = bind scope, table.table_name, reflection.type.to_s, value
+              scope    = scope.where(table[reflection.type].eq(bind_val))
             end
 
             scope = scope.joins(join(foreign_table, constraint))
