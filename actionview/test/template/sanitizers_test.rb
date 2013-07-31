@@ -65,9 +65,9 @@ class SanitizersTest < ActionController::TestCase
     %{This is a test.\n\n\nIt no longer contains any HTML.\n}, sanitizer.sanitize(
     %{<title>This is <b>a <a href="" target="_blank">test</a></b>.</title>\n\n<!-- it has a comment -->\n\n<p>It no <b>longer <strong>contains <em>any <strike>HTML</strike></em>.</strong></b></p>\n}))
 
-    # Leaves comment text.
-    # Actual: "This has a  comment  here."
-    assert_equal "This has a  here.", sanitizer.sanitize("This has a <!-- comment --> here.")
+    # Removes comment.
+    # Actual: "This is "
+    assert_equal "This is <-- not\n a comment here.", sanitizer.sanitize("This is <-- not\n a comment here.")
 
     # Leaves part of a CDATA section
     # Actual: "This has a ]]&gt; here."
