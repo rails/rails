@@ -435,11 +435,7 @@ module ActionDispatch
               # Nokogiri doesn't like arbitrary values without quotes, hence inspect.
               return regex.inspect unless regex.is_a?(Regexp)
               @regexes.push(regex)
-              last_id.to_s # to_s to store it in selector string
-            end
-
-            def regex_for_id(id)
-              @regexes[id.to_i]
+              last_id.to_s # avoid implicit conversions of Fixnum to String
             end
 
             def last_id
@@ -447,7 +443,7 @@ module ActionDispatch
             end
 
             def match(matches, attribute, id)
-              matches.find_all { |node| node[attribute] =~ regex_for_id(id) }
+              matches.find_all { |node| node[attribute] =~ @regexes[id] }
             end
 
             def substitute!(selector, values)
