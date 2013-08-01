@@ -10,9 +10,9 @@ module ActiveRecord::Associations::Builder
       true
     end
 
-    def define_accessors(mixin)
+    def define_accessors(model)
       super
-      define_constructors(mixin) if constructable?
+      define_constructors(model.generated_feature_methods) if constructable?
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
