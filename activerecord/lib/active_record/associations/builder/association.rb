@@ -13,12 +13,11 @@
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class << self
-      attr_accessor :valid_options
       attr_accessor :extensions
     end
+    self.extensions = []
 
-    self.valid_options = [:class_name, :foreign_key, :validate]
-    self.extensions    = []
+    VALID_OPTIONS = [:class_name, :foreign_key, :validate]
 
     attr_reader :name, :scope, :options
 
@@ -61,7 +60,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      Association.valid_options + Association.extensions.flat_map(&:valid_options)
+      VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
     def validate_options
