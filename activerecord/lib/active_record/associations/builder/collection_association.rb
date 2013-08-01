@@ -32,7 +32,9 @@ module ActiveRecord::Associations::Builder
 
     def define_extensions(model)
       if block_extension
-        @extension_module = mod = Module.new(&block_extension)
+        mod = Module.new(&block_extension)
+        extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
+
         silence_warnings do
           model.parent.const_set(extension_module_name, mod)
         end
@@ -45,10 +47,6 @@ module ActiveRecord::Associations::Builder
           @scope = proc { extending(mod) }
         end
       end
-    end
-
-    def extension_module_name
-      @extension_module_name ||= "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
     end
 
     def define_callback(model, callback_name)
