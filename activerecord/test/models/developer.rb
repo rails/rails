@@ -1,11 +1,5 @@
 require 'ostruct'
 
-module DeveloperProjectsAssociationExtension
-  def find_most_recent
-    order("id DESC").first
-  end
-end
-
 module DeveloperProjectsAssociationExtension2
   def find_least_recent
     order("id ASC").first
