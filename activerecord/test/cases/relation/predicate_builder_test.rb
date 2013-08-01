@@ -8,7 +8,7 @@ module ActiveRecord
         Arel::Nodes::InfixOperation.new('~', column, value.source)
       end)
 
-      assert_match %r{["`]topics["`].["`]title["`] ~ 'rails'}, Topic.where(title: /rails/).to_sql
+      assert_match %r{["`]topics["`].["`]title["`] ~ 'rails'}i, Topic.where(title: /rails/).to_sql
     end
   end
 end
