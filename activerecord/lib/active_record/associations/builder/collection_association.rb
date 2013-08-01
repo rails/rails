@@ -12,7 +12,7 @@ module ActiveRecord::Associations::Builder
                :after_add, :before_remove, :after_remove, :extend]
     end
 
-    attr_reader :block_extension, :extension_module
+    attr_reader :block_extension
 
     def initialize(*args, &extension)
       super(*args)
@@ -20,7 +20,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
-      wrap_block_extension
+      define_extensions(model)
       reflection = super
       reflection
     end
@@ -30,7 +30,7 @@ module ActiveRecord::Associations::Builder
       CALLBACKS.each { |callback_name| define_callback(model, callback_name) }
     end
 
-    def wrap_block_extension
+    def define_extensions(model)
       if block_extension
         @extension_module = mod = Module.new(&block_extension)
         silence_warnings do

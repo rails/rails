@@ -59,9 +59,12 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   end
 
   def test_extension_name
-    assert_equal 'DeveloperAssociationNameAssociationExtension', extension_name(Developer)
-    assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', extension_name(MyApplication::Business::Developer)
-    assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', extension_name(MyApplication::Business::Developer)
+    extend!(Developer)
+    extend!(MyApplication::Business::Developer)
+    extend!(MyApplication::Business::Developer)
+
+    assert Object.const_get 'DeveloperAssociationNameAssociationExtension'
+    assert MyApplication::Business.const_get 'DeveloperAssociationNameAssociationExtension'
   end
 
   def test_proxy_association_after_scoped
@@ -72,9 +75,8 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
 
   private
 
-    def extension_name(model)
+    def extend!(model)
       builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
-      builder.send(:wrap_block_extension)
-      builder.extension_module.name
+      builder.define_extensions(model)
     end
 end
