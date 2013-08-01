@@ -28,7 +28,7 @@ module ActiveRecord::Associations::Builder
       builder = new(model, name, scope, options, &block)
       reflection = builder.build
       builder.define_accessors model.generated_feature_methods
-      builder.define_callbacks reflection
+      builder.define_callbacks model, reflection
       reflection
     end
 
@@ -69,9 +69,9 @@ module ActiveRecord::Associations::Builder
       options.assert_valid_keys(valid_options)
     end
 
-    def define_callbacks(reflection)
+    def define_callbacks(model, reflection)
       Association.extensions.each do |extension|
-        extension.build @model, reflection
+        extension.build model, reflection
       end
     end
 

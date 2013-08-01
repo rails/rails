@@ -16,10 +16,10 @@ module ActiveRecord::Associations::Builder
       [:destroy, :delete]
     end
 
-    def define_callbacks(reflection)
+    def define_callbacks(model, reflection)
       super
-      add_counter_cache_callbacks(reflection) if options[:counter_cache]
-      add_touch_callbacks(reflection)         if options[:touch]
+      add_counter_cache_callbacks(model, reflection) if options[:counter_cache]
+      add_touch_callbacks(model, reflection)         if options[:touch]
     end
 
     def define_accessors(mixin)
@@ -74,7 +74,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def add_counter_cache_callbacks(reflection)
+    def add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
       association = self
 
@@ -120,7 +120,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def add_touch_callbacks(reflection)
+    def add_touch_callbacks(model, reflection)
       foreign_key = reflection.foreign_key
       n           = name
       touch       = options[:touch]
