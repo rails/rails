@@ -63,7 +63,7 @@ module ActiveRecord::Associations::Builder
         when Proc
           ->(method, owner, record) { callback.call(owner, record) }
         else
-          ->(method,owner,record)   { callback.send(method, owner, record) }
+          ->(method, owner, record) { callback.send(method, owner, record) }
         end
       end
       model.send "#{full_callback_name}=", callbacks
