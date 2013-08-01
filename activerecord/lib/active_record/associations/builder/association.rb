@@ -26,6 +26,7 @@ module ActiveRecord::Associations::Builder
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       builder = new(model, name, scope, options, &block)
+      builder.define_accessors model.generated_feature_methods
       builder.build
     end
 
@@ -49,12 +50,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def mixin
-      @model.generated_feature_methods
-    end
-
     def build
-      define_accessors(mixin)
       configure_dependency if options[:dependent]
       reflection = ActiveRecord::Reflection.create(macro, name, scope, options, model)
       Association.extensions.each do |extension|

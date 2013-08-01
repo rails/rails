@@ -23,6 +23,11 @@ module ActiveRecord::Associations::Builder
       [:destroy, :delete]
     end
 
+    def define_accessors(mixin)
+      super
+      add_counter_cache_methods mixin
+    end
+
     private
 
     def add_counter_cache_methods(mixin)
@@ -72,7 +77,6 @@ module ActiveRecord::Associations::Builder
 
     def add_counter_cache_callbacks(reflection)
       cache_column = reflection.counter_cache_column
-      add_counter_cache_methods mixin
       association = self
 
       model.after_create lambda { |record|
