@@ -44,9 +44,8 @@ module ActiveRecord::Associations::Builder
 
       validate_options
 
-      if @scope && @scope.arity == 0
-        prev_scope = @scope
-        @scope = proc { instance_exec(&prev_scope) }
+      if scope && scope.arity == 0
+        @scope = proc { instance_exec(&scope) }
       end
     end
 

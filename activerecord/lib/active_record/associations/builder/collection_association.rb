@@ -78,10 +78,8 @@ module ActiveRecord::Associations::Builder
     private
 
     def wrap_scope(scope, mod)
-      prev_scope = scope
-
-      if prev_scope
-        proc { |owner| instance_exec(owner, &prev_scope).extending(mod) }
+      if scope
+        proc { |owner| instance_exec(owner, &scope).extending(mod) }
       else
         proc { extending(mod) }
       end
