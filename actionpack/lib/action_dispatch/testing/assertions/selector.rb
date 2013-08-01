@@ -60,12 +60,14 @@ module ActionDispatch
         raise ArgumentError, "you at least need a selector" if args.empty?
 
         if args.first.is_a?(String)
-          root, selectors = response_from_page, args.first
+          root, selector = response_from_page, args.first
         else
-          root, selectors = args.shift, args.first
+          root, selector = args.shift, args.first
         end
 
-        root.css(selectors)
+        # wrap in NodeSet to avoid this:
+        # <element div>.css('div') => no matches
+        Nokogiri::XML::NodeSet.new(root.document, [root]).css(selector)
       end
 
       # An assertion that selects elements and makes one or more equality tests.
