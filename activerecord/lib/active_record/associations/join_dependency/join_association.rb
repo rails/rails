@@ -115,7 +115,7 @@ module ActiveRecord
                   .where(reflection.type => foreign_klass.base_class.name)
             end
 
-            scope_chain_items.concat [klass.send(:build_default_scope)].compact
+            scope_chain_items.concat [klass.send(:build_default_scope, false)].compact
 
             rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
               left.merge right

@@ -1,3 +1,8 @@
+*   The default STI scope of the target isn't applied to an original table.
+    Fixes #11619.
+
+    *kennyj*
+
 *   Revert `ActiveRecord::Relation#order` change that make new order
     prepend the old one.
 
