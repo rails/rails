@@ -35,10 +35,7 @@ module ActionDispatch
       # root element and any of its children.
       # Returns an empty Nokogiri::XML::NodeSet if no match is found.
       #
-      # The selector may be a CSS selector expression (String) or an expression
-      # with substitution values (Array).
-      # Substitution uses a custom pseudo class match.
-      # Pass in whatever attribute you want to match (enclosed in quotes) and a ? for the substitution.
+      # The selector may be a CSS selector expression (String).
       #
       #   # Selects all div tags
       #   divs = css_select("div")
@@ -58,9 +55,6 @@ module ActionDispatch
       #     inputs = css_select(form, "input")
       #     ...
       #   end
-      #
-      #   # Selects div tags with ids matching regex
-      #   css_select "div:match('id', ?)", /\d+/
       def css_select(*args)
         raise ArgumentError, "you at least need a selector" if args.empty?
 
