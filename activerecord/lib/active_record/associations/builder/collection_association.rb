@@ -14,19 +14,13 @@ module ActiveRecord::Associations::Builder
 
     attr_reader :block_extension
 
-    def initialize(*args)
-      super(*args)
+    def initialize(model, name, scope, options)
+      super
       @mod = nil
       if block_given?
         @mod = Module.new(&Proc.new)
         @scope = wrap_scope @scope, @mod
       end
-    end
-
-    def build
-      define_extensions(model)
-      reflection = super
-      reflection
     end
 
     def define_callbacks(model, reflection)
