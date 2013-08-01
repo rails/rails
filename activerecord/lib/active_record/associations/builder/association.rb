@@ -53,7 +53,6 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
-      configure_dependency if options[:dependent]
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
@@ -70,6 +69,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def define_callbacks(model, reflection)
+      add_before_destroy_callbacks(model, name) if options[:dependent]
       Association.extensions.each do |extension|
         extension.build model, reflection
       end
@@ -103,17 +103,18 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def configure_dependency
+    def valid_dependent_options
+      raise NotImplementedError
+    end
+
+    private
+
+    def add_before_destroy_callbacks(model, name)
       unless valid_dependent_options.include? options[:dependent]
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
       end
 
-      n = name
-      model.before_destroy lambda { |o| o.association(n).handle_dependency }
-    end
-
-    def valid_dependent_options
-      raise NotImplementedError
+      model.before_destroy lambda { |o| o.association(name).handle_dependency }
     end
   end
 end
