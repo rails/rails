@@ -4,6 +4,7 @@ before_install:
 rvm:
   - 1.9.3
   - 2.0.0
+  - jruby-19mode
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as,av"
@@ -11,6 +12,9 @@ env:
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
   - "GEM=ar:postgresql"
+matrix:
+  allow_failures:
+    - rvm: jruby-19mode
 notifications:
   email: false
   irc:
