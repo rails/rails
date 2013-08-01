@@ -338,7 +338,7 @@ module ActionDispatch
 
           def filter(matches)
             match_with = comparisons[:text] || comparisons[:html]
-            return matches unless match_with
+            return matches if matches.empty? || !match_with
 
             content_mismatch = nil
             text_matches = comparisons.has_key?(:text)
