@@ -12,15 +12,14 @@ module ActiveRecord::Associations::Builder
       !options[:polymorphic]
     end
 
-    def build
-      reflection = super
-      add_counter_cache_callbacks(reflection) if options[:counter_cache]
-      add_touch_callbacks(reflection)         if options[:touch]
-      reflection
-    end
-
     def valid_dependent_options
       [:destroy, :delete]
+    end
+
+    def define_callbacks(reflection)
+      super
+      add_counter_cache_callbacks(reflection) if options[:counter_cache]
+      add_touch_callbacks(reflection)         if options[:touch]
     end
 
     def define_accessors(mixin)

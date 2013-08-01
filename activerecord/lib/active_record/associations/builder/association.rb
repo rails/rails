@@ -26,8 +26,10 @@ module ActiveRecord::Associations::Builder
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       builder = new(model, name, scope, options, &block)
+      reflection = builder.build
       builder.define_accessors model.generated_feature_methods
-      builder.build
+      builder.define_callbacks reflection
+      reflection
     end
 
     def initialize(model, name, scope, options)
@@ -52,11 +54,7 @@ module ActiveRecord::Associations::Builder
 
     def build
       configure_dependency if options[:dependent]
-      reflection = ActiveRecord::Reflection.create(macro, name, scope, options, model)
-      Association.extensions.each do |extension|
-        extension.build @model, reflection
-      end
-      reflection
+      ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
     def macro
@@ -69,6 +67,12 @@ module ActiveRecord::Associations::Builder
 
     def validate_options
       options.assert_valid_keys(valid_options)
+    end
+
+    def define_callbacks(reflection)
+      Association.extensions.each do |extension|
+        extension.build @model, reflection
+      end
     end
 
     # Defines the setter and getter methods for the association
