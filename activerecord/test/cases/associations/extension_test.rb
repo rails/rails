@@ -75,7 +75,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   private
 
     def extend!(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
+      builder = ActiveRecord::Associations::Builder::HasMany.new(:association_name, nil, {}) { }
       builder.define_extensions(model)
     end
 end

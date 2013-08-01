@@ -20,21 +20,20 @@ module ActiveRecord::Associations::Builder
     self.valid_options = [:class_name, :foreign_key, :validate]
     self.extensions    = []
 
-    attr_reader :model, :name, :scope, :options
+    attr_reader :name, :scope, :options
 
     def self.build(model, name, scope, options, &block)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
-      builder = new(model, name, scope, options, &block)
-      reflection = builder.build
+      builder = new(name, scope, options, &block)
+      reflection = builder.build(model)
       builder.define_accessors model
       builder.define_callbacks model, reflection
       builder.define_extensions model
       reflection
     end
 
-    def initialize(model, name, scope, options)
-      @model   = model
+    def initialize(name, scope, options)
       @name    = name
 
       if scope.is_a?(Hash)
@@ -53,7 +52,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def build
+    def build(model)
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
