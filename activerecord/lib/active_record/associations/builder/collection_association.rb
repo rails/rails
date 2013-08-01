@@ -35,9 +35,7 @@ module ActiveRecord::Associations::Builder
         mod = Module.new(&block_extension)
         extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
 
-        silence_warnings do
-          model.parent.const_set(extension_module_name, mod)
-        end
+        model.parent.const_set(extension_module_name, mod)
 
         prev_scope = @scope
 
