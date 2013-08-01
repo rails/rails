@@ -65,9 +65,11 @@ module ActionDispatch
           root, selector = args.shift, args.first
         end
 
-        # wrap in NodeSet to avoid this:
-        # <element div>.css('div') => no matches
-        Nokogiri::XML::NodeSet.new(root.document, [root]).css(selector)
+        root.css(selector).tap do |matches|
+          if matches.empty? && root.matches?(selector)
+            return Nokogiri::XML::NodeSet.new(root.document, [root])
+          end
+        end
       end
 
       # An assertion that selects elements and makes one or more equality tests.
