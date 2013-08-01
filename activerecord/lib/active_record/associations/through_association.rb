@@ -13,7 +13,7 @@ module ActiveRecord
         #   2. To get the type conditions for any STI models in the chain
         def target_scope
           scope = super
-          chain[1..-1].each do |reflection|
+          chain.drop(1).each do |reflection|
             scope.merge!(
               reflection.klass.all.
                 except(:select, :create_with, :includes, :preload, :joins, :eager_load)
