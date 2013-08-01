@@ -1,3 +1,8 @@
+*   Fix `current_page?` when the URL contains escaped characters and the
+    original URL is using the hexdecimal lowercased.
+
+    *Rafael Mendonça França*
+
 *   Fix `text_area` to behave like `text_field` when `nil` is given as
     value.
 

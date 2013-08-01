@@ -17,6 +17,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/" => "foo#bar"
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
+    get "/category/:category" => "foo#category"
   end
 
   include ActionView::Helpers::UrlHelper
@@ -399,6 +400,18 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/events", method: :post)
 
     assert !current_page?('/events')
+  end
+
+  def test_current_page_with_escaped_params
+    @request = request_for_url("/category/administra%c3%a7%c3%a3o")
+
+    assert current_page?(controller: 'foo', action: 'category', category: 'administração')
+  end
+
+  def test_current_page_with_double_escaped_params
+    @request = request_for_url("/category/administra%c3%a7%c3%a3o?callback_url=http%3a%2f%2fexample.com%2ffoo")
+
+    assert current_page?(controller: 'foo', action: 'category', category: 'administração', callback_url: 'http://example.com/foo')
   end
 
   def test_link_unless_current
