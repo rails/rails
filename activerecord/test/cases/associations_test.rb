@@ -278,7 +278,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
     callbacks = PeopleList.before_add_for_has_and_belongs_to_many
-    assert_equal([:enlist], callbacks)
+    assert_equal(1, callbacks.length)
     callbacks = DifferentPeopleList.before_add_for_has_and_belongs_to_many
     assert_equal([], callbacks)
   end
@@ -286,7 +286,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   def test_has_many_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
     callbacks = PeopleList.before_add_for_has_many
-    assert_equal([:enlist], callbacks)
+    assert_equal(1, callbacks.length)
     callbacks = DifferentPeopleList.before_add_for_has_many
     assert_equal([], callbacks)
   end

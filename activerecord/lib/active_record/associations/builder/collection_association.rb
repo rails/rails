@@ -56,7 +56,17 @@ module ActiveRecord::Associations::Builder
 
       # TODO : why do i need method_defined? I think its because of the inheritance chain
       model.class_attribute full_callback_name unless model.method_defined?(full_callback_name)
-      model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
+      callbacks = Array(options[callback_name.to_sym]).map do |callback|
+        case callback
+        when Symbol
+          ->(method, owner, record) { owner.send(callback, record) }
+        when Proc
+          ->(method, owner, record) { callback.call(owner, record) }
+        else
+          ->(method,owner,record)   { callback.send(method, owner, record) }
+        end
+      end
+      model.send "#{full_callback_name}=", callbacks
     end
 
     # Defines the setter and getter methods for the collection_singular_ids.
