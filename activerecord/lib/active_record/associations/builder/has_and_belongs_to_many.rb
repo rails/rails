@@ -8,13 +8,8 @@ module ActiveRecord::Associations::Builder
       super + [:join_table, :association_foreign_key]
     end
 
-    def build
-      reflection = super
-      define_destroy_hook
-      reflection
-    end
-
-    def define_destroy_hook
+    def define_callbacks(model, reflection)
+      super
       name = self.name
       model.send(:include, Module.new {
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
