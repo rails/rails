@@ -30,10 +30,6 @@ module ActiveRecord::Associations::Builder
       CALLBACKS.each { |callback_name| define_callback(model, callback_name) }
     end
 
-    def writable?
-      true
-    end
-
     def wrap_block_extension
       if block_extension
         @extension_module = mod = Module.new(&block_extension)
