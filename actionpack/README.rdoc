@@ -17,11 +17,6 @@ It consists of several modules:
   subclassed to implement filters and actions to handle requests. The result
   of an action is typically content generated from views.
 
-* Action View, which handles view template lookup and rendering, and provides
-  view helpers that assist when building HTML forms, Atom feeds and more.
-  Template formats that Action View handles are ERB (embedded Ruby, typically
-  used to inline short Ruby snippets inside HTML), and XML Builder.
-
 With the Ruby on Rails framework, users only directly interface with the
 Action Controller module. Necessary Action Dispatch functionality is activated
 by default and Action View rendering is implicitly triggered by Action
