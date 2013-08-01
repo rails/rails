@@ -680,6 +680,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_nil_option
+    @post = Post.new
+    @post.category = nil
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\" selected=\"selected\"></option>\n<option value=\"othervalue\">othervalue</option></select>",
+      select("post", "category", [nil, "othervalue"])
+    )
+  end
+
   def test_required_select
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
@@ -774,6 +783,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest ), :selected => nil)
+    )
+  end
+
+  def test_select_with_nil_option_and_selected_nil
+    @post = Post.new
+    @post.category = nil
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"othervalue\">othervalue</option></select>",
+      select("post", "category", [nil, "othervalue"], :selected => nil)
     )
   end
 
