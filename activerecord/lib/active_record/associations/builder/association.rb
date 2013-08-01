@@ -41,6 +41,8 @@ module ActiveRecord::Associations::Builder
         @options = options
       end
 
+      validate_options
+
       if @scope && @scope.arity == 0
         prev_scope = @scope
         @scope = proc { instance_exec(&prev_scope) }
@@ -52,7 +54,6 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
-      validate_options
       define_accessors
       configure_dependency if options[:dependent]
       reflection = ActiveRecord::Reflection.create(macro, name, scope, options, model)
