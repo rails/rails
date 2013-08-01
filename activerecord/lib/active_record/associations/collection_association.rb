@@ -523,7 +523,7 @@ module ActiveRecord
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{reflection.name}"
-          owner.class.send(full_callback_name) || []
+          owner.class.send(full_callback_name)
         end
 
         # Should we deal with assoc.first or assoc.last by issuing an independent query to
