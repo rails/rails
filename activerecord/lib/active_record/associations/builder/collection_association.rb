@@ -14,9 +14,13 @@ module ActiveRecord::Associations::Builder
 
     attr_reader :block_extension
 
-    def initialize(*args, &extension)
+    def initialize(*args)
       super(*args)
-      @block_extension = extension
+      @mod = nil
+      if block_given?
+        @mod = Module.new(&Proc.new)
+        @scope = wrap_scope @scope, @mod
+      end
     end
 
     def build
@@ -31,19 +35,9 @@ module ActiveRecord::Associations::Builder
     end
 
     def define_extensions(model)
-      if block_extension
-        mod = Module.new(&block_extension)
+      if @mod
         extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
-
-        model.parent.const_set(extension_module_name, mod)
-
-        prev_scope = @scope
-
-        if prev_scope
-          @scope = proc { |owner| instance_exec(owner, &prev_scope).extending(mod) }
-        else
-          @scope = proc { extending(mod) }
-        end
+        model.parent.const_set(extension_module_name, @mod)
       end
     end
 
@@ -85,6 +79,18 @@ module ActiveRecord::Associations::Builder
           association(:#{name}).ids_writer(ids)
         end
       CODE
+    end
+
+    private
+
+    def wrap_scope(scope, mod)
+      prev_scope = scope
+
+      if prev_scope
+        proc { |owner| instance_exec(owner, &prev_scope).extending(mod) }
+      else
+        proc { extending(mod) }
+      end
     end
   end
 end
