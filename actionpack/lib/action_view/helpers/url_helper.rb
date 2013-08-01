@@ -536,9 +536,9 @@ module ActionView
         request_uri = url_string.index("?") ? request.fullpath : request.path
 
         if url_string =~ /^\w+:\/\//
-          url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
+          URI.unescape(url_string) == URI.unescape("#{request.protocol}#{request.host_with_port}#{request_uri}")
         else
-          url_string == request_uri
+          URI.unescape(url_string) == URI.unescape(request_uri)
         end
       end
 

@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix `current_page?` when the URL contains escaped characters and the
+    original URL is using the hexdecimal lowercased.
+
+    *Rafael Mendonça França*
+
 *   Allow REMOTE_ADDR, HTTP_HOST and HTTP_USER_AGENT to be overridden from
     the environment passed into `ActionDispatch::TestRequest.new`.
 
