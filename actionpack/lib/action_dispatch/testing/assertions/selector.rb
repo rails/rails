@@ -309,6 +309,8 @@ module ActionDispatch
         class HTMLSelector #:nodoc:
           attr_accessor :root, :css_selector, :comparisons, :message
 
+          alias :source :css_selector
+
           def initialize(selected, page, args)
             @selected, @page = selected, page
 
@@ -329,8 +331,6 @@ module ActionDispatch
               raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
             end
           end
-
-          alias :source :css_selector
 
           def select
             filter root.css(css_selector, context)
