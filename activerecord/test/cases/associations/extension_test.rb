@@ -61,7 +61,6 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   def test_extension_name
     extend!(Developer)
     extend!(MyApplication::Business::Developer)
-    extend!(MyApplication::Business::Developer)
 
     assert Object.const_get 'DeveloperAssociationNameAssociationExtension'
     assert MyApplication::Business.const_get 'DeveloperAssociationNameAssociationExtension'
