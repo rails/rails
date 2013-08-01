@@ -375,9 +375,9 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
 |                     | 426              | :upgrade_required                |
-|                     | 423              | :precondition_required           |
-|                     | 424              | :too_many_requests               |
-|                     | 426              | :request_header_fields_too_large |
+|                     | 428              | :precondition_required           |
+|                     | 429              | :too_many_requests               |
+|                     | 431              | :request_header_fields_too_large |
 | **Server Error**    | 500              | :internal_server_error           |
 |                     | 501              | :not_implemented                 |
 |                     | 502              | :bad_gateway                     |
