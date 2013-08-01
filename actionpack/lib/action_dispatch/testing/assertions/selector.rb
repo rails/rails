@@ -33,10 +33,12 @@ module ActionDispatch
       # If called with two arguments, uses the first argument as the root
       # element and the second argument as the selector. Attempts to match the
       # root element and any of its children.
-      # Returns empty Nokogiri::XML::NodeSet if no match is found.
+      # Returns an empty Nokogiri::XML::NodeSet if no match is found.
       #
       # The selector may be a CSS selector expression (String) or an expression
       # with substitution values (Array).
+      # Substitution uses a custom pseudo class match.
+      # Pass in whatever attribute you want to match (enclosed in quotes) and a ? for the substitution.
       #
       #   # Selects all div tags
       #   divs = css_select("div")
@@ -56,6 +58,9 @@ module ActionDispatch
       #     inputs = css_select(form, "input")
       #     ...
       #   end
+      #
+      #   # Selects div tags with ids matching regex
+      #   css_select "div:match('id', ?)", /\d+/
       def css_select(*args)
         raise ArgumentError, "you at least need a selector" if args.empty?
 
@@ -103,6 +108,9 @@ module ActionDispatch
       #
       # The selector may be a CSS selector expression (String) or an expression
       # with substitution values (Array).
+      # Substitution uses a custom pseudo class match. Pass in whatever attribute you want to match (enclosed in quotes) and a ? for the substitution.
+      #
+      # assert_select "div:match('id', ?)", /\d+/
       #
       # === Equality Tests
       #
@@ -153,11 +161,11 @@ module ActionDispatch
       #   assert_select "body div.header ul.menu"
       #
       #   # Use substitution values
-      #   assert_select "ol>li#?", /item-\d+/
+      #   assert_select "ol>li:match('id', ?)", /item-\d+/
       #
       #   # All input fields in the form have a name
       #   assert_select "form input" do
-      #     assert_select "[name=?]", /.+/  # Not empty
+      #     assert_select ":match('name', ?)", /.+/  # Not empty
       #   end
       def assert_select(*args, &block)
         @selected ||= nil
