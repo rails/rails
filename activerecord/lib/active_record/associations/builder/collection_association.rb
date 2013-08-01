@@ -22,8 +22,12 @@ module ActiveRecord::Associations::Builder
     def build
       wrap_block_extension
       reflection = super
-      CALLBACKS.each { |callback_name| define_callback(callback_name) }
       reflection
+    end
+
+    def define_callbacks(model, reflection)
+      super
+      CALLBACKS.each { |callback_name| define_callback(model, callback_name) }
     end
 
     def writable?
@@ -51,7 +55,7 @@ module ActiveRecord::Associations::Builder
       @extension_module_name ||= "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
     end
 
-    def define_callback(callback_name)
+    def define_callback(model, callback_name)
       full_callback_name = "#{callback_name}_for_#{name}"
 
       # TODO : why do i need method_defined? I think its because of the inheritance chain
