@@ -22,13 +22,14 @@ module ActiveRecord::Associations::Builder
 
     attr_reader :model, :name, :scope, :options
 
-    def self.build(*args, &block)
-      new(*args, &block).build
+    def self.build(model, name, scope, options, &block)
+      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
+
+      builder = new(model, name, scope, options, &block)
+      builder.build
     end
 
     def initialize(model, name, scope, options)
-      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
-
       @model   = model
       @name    = name
 
