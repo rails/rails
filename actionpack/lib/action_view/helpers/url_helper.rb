@@ -528,17 +528,18 @@ module ActionView
 
         return false unless request.get? || request.head?
 
-        url_string = url_for(options)
+        url_string = URI.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
         request_uri = url_string.index("?") ? request.fullpath : request.path
+        request_uri = URI.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         if url_string =~ /^\w+:\/\//
-          URI.unescape(url_string) == URI.unescape("#{request.protocol}#{request.host_with_port}#{request_uri}")
+          url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
         else
-          URI.unescape(url_string) == URI.unescape(request_uri)
+          url_string == request_uri
         end
       end
 
