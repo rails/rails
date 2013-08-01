@@ -54,7 +54,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
-      define_accessors
+      define_accessors(mixin)
       configure_dependency if options[:dependent]
       reflection = ActiveRecord::Reflection.create(macro, name, scope, options, model)
       Association.extensions.each do |extension|
@@ -82,12 +82,12 @@ module ActiveRecord::Associations::Builder
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
 
-    def define_accessors
-      define_readers
-      define_writers
+    def define_accessors(mixin)
+      define_readers(mixin)
+      define_writers(mixin)
     end
 
-    def define_readers
+    def define_readers(mixin)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}(*args)
           association(:#{name}).reader(*args)
@@ -95,7 +95,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers
+    def define_writers(mixin)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association(:#{name}).writer(value)

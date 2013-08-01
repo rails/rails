@@ -61,7 +61,7 @@ module ActiveRecord::Associations::Builder
 
     # Defines the setter and getter methods for the collection_singular_ids.
 
-    def define_readers
+    def define_readers(mixin)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -71,7 +71,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers
+    def define_writers(mixin)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
