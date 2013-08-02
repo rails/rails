@@ -238,14 +238,14 @@ class ErrorsTest < ActiveModel::TestCase
     person = Person.new
     person.validate!
 
-    assert_equal({ name: ["can not be nil"] }, person.errors.as_json)
+    assert_equal({ "name" => ["can not be nil"] }, person.errors.as_json)
   end
 
   test "as_json with :full_messages option creates a json formatted representation of the errors containing complete messages" do
     person = Person.new
     person.validate!
 
-    assert_equal({ name: ["name can not be nil"] }, person.errors.as_json(full_messages: true))
+    assert_equal({ "name" => ["name can not be nil"] }, person.errors.as_json(full_messages: true))
   end
 
   test "generate_message works without i18n_scope" do

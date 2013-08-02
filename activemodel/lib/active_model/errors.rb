@@ -241,7 +241,7 @@ module ActiveModel
     #   person.errors.as_json                      # => {:name=>["can not be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name can not be nil"]}
     def as_json(options=nil)
-      to_hash(options && options[:full_messages])
+      to_hash(options && options[:full_messages]).as_json(options)
     end
 
     # Returns a Hash of attributes with their error messages. If +full_messages+
