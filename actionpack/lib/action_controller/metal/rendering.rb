@@ -1,4 +1,22 @@
 module ActionController
+  module BasicRendering
+    extend ActiveSupport::Concern
+
+    # Render template to response_body
+    # :api: public
+    def render(*args, &block)
+      super(*args, &block)
+      text = args.first[:text]
+      if text.present?
+        self.response_body = text
+      end
+    end
+
+    def rendered_format
+      Mime::TEXT
+    end
+  end
+
   module Rendering
     extend ActiveSupport::Concern
 

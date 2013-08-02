@@ -13,6 +13,7 @@ module ActionController
   autoload :Middleware
 
   autoload_under "metal" do
+    autoload :BasicRendering, 'action_controller/metal/rendering'
     autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies

@@ -80,8 +80,6 @@ module ActionView
     # Render template to response_body
     # :api: public
     def render(*args, &block)
-      super(*args, &block)
-
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
     end
