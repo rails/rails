@@ -1,5 +1,5 @@
 *   Removed redundant override of `xml` column definition for PG,
-    in order to use `xml` column type instead of `text`
+    in order to use `xml` column type instead of `text`.
 
     *Paul Nikitochkin*, *Michael Nikitochkin*
 
