@@ -1266,8 +1266,8 @@ module ActionDispatch
             collection do
               actions = parent_resource.actions
               get    :index, options if actions.include?(:index)
-              put    :replace, options if actions.include?(:replace) and options[:collection] == true
               post   :create, options if actions.include?(:create)
+              put    :replace, options if actions.include?(:replace) and options[:collection] == true
               patch  :update_many, options if actions.include?(:update_many) and options[:collection] == true
               delete :destroy_many, options if actions.include?(:destroy_many) and options[:collection] == true
             end
