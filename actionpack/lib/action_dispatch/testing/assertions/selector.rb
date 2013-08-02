@@ -243,14 +243,18 @@ module ActionDispatch
             raise ArgumentError, "Argument is optional, and may be node or array of nodes"
         end
 
-        selected = elements.map do |elem|
-          root = Loofah.fragment(CGI.unescapeHTML("<encoded>#{elem.text}</encoded>"))
-          css_select(root, "encoded:root", &block)[0]
-        end
+        content = elements.map do |elem|
+          elem.children.select(&:cdata?).map(&:content)
+        end.join
+        selected = Loofah.fragment(content)
 
         begin
           old_selected, @selected = @selected, selected
-          assert_select ":root", &block
+          if content.empty?
+            yield selected
+          else
+            assert_select ":root", &block
+          end
         ensure
           @selected = old_selected
         end

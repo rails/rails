@@ -288,18 +288,11 @@ class AssertSelectTest < ActionController::TestCase
 </rss>
 EOF
     assert_select "channel item description" do
-      # Test element regardless of wrapper.
+      
       assert_select_encoded do
         assert_select "p", :count=>2, :text=>/Test/
       end
-      # Test through encoded wrapper.
-      assert_select_encoded do
-        assert_select "encoded p", :count=>2, :text=>/Test/
-      end
-      # Use :root instead (recommended)
-      assert_select_encoded do
-        assert_select ":root p", :count=>2, :text=>/Test/
-      end
+
       # Test individually.
       assert_select "description" do |elements|
         assert_select_encoded elements[0] do
