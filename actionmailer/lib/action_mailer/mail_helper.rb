@@ -50,7 +50,7 @@ module ActionMailer
       end
 
       indentation = " " * indent
-      sentences.map { |sentence|
+      sentences.map! { |sentence|
         "#{indentation}#{sentence.join(' ')}"
       }.join "\n"
     end
