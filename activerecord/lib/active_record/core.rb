@@ -134,13 +134,12 @@ module ActiveRecord
 
       # Returns the Arel engine.
       def arel_engine
-        @arel_engine ||= begin
+        @arel_engine ||=
           if Base == self || connection_handler.retrieve_connection_pool(self)
             self
           else
             superclass.arel_engine
           end
-        end
       end
 
       private
