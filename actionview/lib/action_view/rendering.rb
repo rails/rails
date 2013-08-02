@@ -107,6 +107,10 @@ module ActionView
       view_renderer.render(view_context, options)
     end
 
+    def rendered_format
+      Mime[lookup_context.rendered_format]
+    end
+
     def default_protected_instance_vars
       super.concat([:@_view_context_class, :@_view_renderer, :@_lookup_context])
     end

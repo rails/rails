@@ -47,6 +47,11 @@ module AbstractController
     def render(*args, &block)
     end
 
+    # Return Content-Type of rendered content
+    # :api: public
+    def rendered_format
+    end
+
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public

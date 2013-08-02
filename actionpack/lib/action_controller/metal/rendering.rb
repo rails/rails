@@ -10,17 +10,17 @@ module ActionController
 
     # Check for double render errors and set the content_type after rendering.
     def render(*args) #:nodoc:
-      raise ::AbstractController::DoubleRenderError if response_body
+      raise ::AbstractController::DoubleRenderError if self.response_body
       super
-      self.content_type ||= Mime[lookup_context.rendered_format].to_s
-      response_body
+      self.content_type ||= rendered_format.to_s
+      self.response_body
     end
 
     # Overwrite render_to_string because body can now be set to a rack body.
     def render_to_string(*)
       if self.response_body = super
         string = ""
-        response_body.each { |r| string << r }
+        self.response_body.each { |r| string << r }
         string
       end
     ensure
