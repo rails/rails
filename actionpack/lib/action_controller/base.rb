@@ -1,4 +1,3 @@
-require "action_view/layouts"
 require "action_controller/log_subscriber"
 require "action_controller/metal/params_wrapper"
 
