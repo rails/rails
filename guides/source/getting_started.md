@@ -598,9 +598,9 @@ it! You should get an error that looks like this:
 
 Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called
-'strong_parameters,' which requires us to tell Rails exactly which parameters
+`strong_parameters`, which requires us to tell Rails exactly which parameters
 we want to accept in our controllers. In this case, we want to allow the
-'title' and 'text' parameters, so change your `create` controller action to
+`title` and `text` parameters, so change your `create` controller action to
 look like this:
 
 ```
