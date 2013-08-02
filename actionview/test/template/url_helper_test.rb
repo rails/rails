@@ -25,7 +25,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   include routes.url_helpers
 
   include ActionView::Helpers::JavaScriptHelper
-  include ActionDispatch::Assertions::DomAssertions
+  include ActionView::Assertions::DomAssertions
   include ActionView::Context
   include RenderERBUtils
 
