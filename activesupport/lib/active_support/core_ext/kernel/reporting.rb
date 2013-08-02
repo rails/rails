@@ -91,6 +91,7 @@ module Kernel
     stream_io.rewind
     return captured_stream.read
   ensure
+    captured_stream.close
     captured_stream.unlink
     stream_io.reopen(origin_stream)
   end
