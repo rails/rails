@@ -33,7 +33,6 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
 
   def test_null_xml
     @connection.execute %q|insert into xml_data_type (payload) VALUES(null)|
-    x = XmlDataType.first
-    assert_equal(nil, x.payload)
+    assert_nil XmlDataType.first.payload
   end
 end
