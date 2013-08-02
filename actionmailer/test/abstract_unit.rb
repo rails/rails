@@ -59,5 +59,3 @@ end
 def restore_delivery_method
   ActionMailer::Base.delivery_method = @old_delivery_method
 end
-
-ActiveSupport::Deprecation.silenced = true
