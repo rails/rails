@@ -964,7 +964,7 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :bulk]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :collection]
         CANONICAL_ACTIONS = %w(index create new show update destroy replace update_many destroy_many)
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
         RESOURCE_SCOPES = [:resource, :resources]
@@ -1263,21 +1263,15 @@ module ActionDispatch
 
             concerns(options[:concerns]) if options[:concerns]
 
-            if options[:bulk]
-              bulk do
-                constraints = {ids: /(?:[^\.\/\?]|\.\.)+/}
-                get    :index, constraints if parent_resource.actions.include?(:index)
-                put    :replace, constraints if parent_resource.actions.include?(:replace)
-                post   :create, constraints if parent_resource.actions.include?(:create)
-                patch  :update_many, constraints if parent_resource.actions.include?(:update_many)
-                delete :destroy_many, constraints if parent_resource.actions.include?(:destroy_many)
-              end
-            else
-              collection do
-                get    :index if parent_resource.actions.include?(:index)
-                post   :create if parent_resource.actions.include?(:create)
-              end
+            collection do
+              actions = parent_resource.actions
+              get    :index, options if actions.include?(:index)
+              put    :replace, options if actions.include?(:replace) and options[:collection] == true
+              post   :create, options if actions.include?(:create)
+              patch  :update_many, options if actions.include?(:update_many) and options[:collection] == true
+              delete :destroy_many, options if actions.include?(:destroy_many) and options[:collection] == true
             end
+            
 
 
             # get    '/posts',             to: 'posts#index',        as: 'posts_index'
@@ -1302,18 +1296,6 @@ module ActionDispatch
           end
 
           self
-        end
-
-        def bulk
-          unless resource_scope?
-              raise ArgumentError, "can't use new outside resource(s) scope"
-            end
-
-          with_scope_level(:collection) do
-            scope(parent_resource.new_scope(":ids")) do
-              yield
-            end
-          end
         end
 
         # To add a route to the collection:
@@ -1476,6 +1458,12 @@ module ActionDispatch
 
         def add_route(action, options) # :nodoc:
           path = path_for_action(action, options.delete(:path))
+
+          if options[:collection] == true
+            path.sub!(/^([\w\/]+)(\.:format)?$/, '\1/:ids/\2')
+            options[:constraints] = {ids: /(?:[^\.\/\?]|\.\.)+/}
+          end
+
           action = action.to_s.dup
 
           if action =~ /^[\w\/]+$/
