@@ -17,7 +17,7 @@
 
 *   When using optimistic locking, `update` was not passing the column to `quote_value`
     to allow the connection adapter to properly determine how to quote the value. This was
-    affecting certain databases that use specific colmn types.
+    affecting certain databases that use specific column types.
 
     Fixes: #6763
 

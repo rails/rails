@@ -1,7 +1,7 @@
 ## unreleased ##
 
 *   Fix `current_page?` when the URL contains escaped characters and the
-    original URL is using the hexdecimal lowercased.
+    original URL is using the hexadecimal lowercased.
 
     *Rafael Mendonça França*
 
