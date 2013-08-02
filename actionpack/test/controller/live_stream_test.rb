@@ -135,7 +135,7 @@ module ActionController
 
       @controller.process :blocking_stream
 
-      assert t.join
+      assert t.join(3), 'timeout expired before the thread terminated'
     end
 
     def test_thread_locals_get_copied
