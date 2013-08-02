@@ -673,6 +673,7 @@ module ActionController
       included do
         include ActionController::TemplateAssertions
         include ActionDispatch::Assertions
+        include ActionView::Assertions
         class_attribute :_controller_class
         setup :setup_controller_request_and_response
       end

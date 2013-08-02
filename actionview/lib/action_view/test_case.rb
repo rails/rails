@@ -34,6 +34,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include ActionDispatch::Assertions, ActionDispatch::TestProcess
+      include ActionView::Assertions
       include ActionController::TemplateAssertions
       include ActionView::Context
 
