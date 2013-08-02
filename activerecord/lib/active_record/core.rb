@@ -346,7 +346,7 @@ module ActiveRecord
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+      Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     def set_transaction_state(state) # :nodoc:
