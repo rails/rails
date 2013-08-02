@@ -373,15 +373,11 @@ module ActiveRecord
           self
         end
 
-        def xml(options = {})
-          column(args[0], :text, options)
-        end
-
         private
 
-        def create_column_definition(name, type)
-          ColumnDefinition.new name, type
-        end
+          def create_column_definition(name, type)
+            ColumnDefinition.new name, type
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table
