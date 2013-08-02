@@ -1,8 +1,3 @@
-#--
-# Copyright (c) 2006 Assaf Arkin (http://labnotes.org)
-# Under MIT and/or CC By license.
-#++
-
 module ActionView
   module Assertions
     NO_STRIP = %w{pre script style textarea}
