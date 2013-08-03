@@ -76,9 +76,10 @@ class InflectorTest < ActiveSupport::TestCase
     ActiveSupport::Inflector.inflections.uncountable "series" # Return to normal
   end
 
-  MixtureToTitleCase.each do |before, titleized|
-    define_method "test_titleize_#{before}" do
-      assert_equal(titleized, ActiveSupport::Inflector.titleize(before))
+  MixtureToTitleCase.each_with_index do |(before, titleized), index|
+    define_method "test_titleize_mixture_to_title_case_#{index}" do
+      assert_equal(titleized, ActiveSupport::Inflector.titleize(before), "mixture \
+        to TitleCase failed for #{before}")
     end
   end
 
