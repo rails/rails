@@ -475,7 +475,7 @@ module ActionView
 
     def retrieve_template_keys
       keys = @locals.keys
-      keys << @variable
+      keys << @variable if @object || @collection
       if @collection
         keys << @variable_counter
         keys << @variable_iteration
