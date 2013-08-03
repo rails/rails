@@ -51,6 +51,13 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal 'foo', output_buffer, 'javascript_tag without a block should not concat to output_buffer'
   end
 
+  # Setting the :extname option will control what extension (if any) is appended to the url for assets
+  def test_javascript_include_tag
+    assert_dom_equal "<script src='/foo.js'></script>",  javascript_include_tag('/foo')
+    assert_dom_equal "<script src='/foo'></script>",     javascript_include_tag('/foo', extname: false )
+    assert_dom_equal "<script src='/foo.bar'></script>", javascript_include_tag('/foo', extname: '.bar' )
+  end
+
   def test_javascript_tag_with_options
     assert_dom_equal "<script id=\"the_js_tag\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')", :id => "the_js_tag")
