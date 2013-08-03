@@ -67,7 +67,7 @@ module ActiveRecord
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
-      output = super(context)
+      output = super(context) && super(:save)
       errors.empty? && output
     end
 

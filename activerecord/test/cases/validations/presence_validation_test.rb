@@ -48,4 +48,29 @@ class PresenceValidationTest < ActiveRecord::TestCase
     i2.mark_for_destruction
     assert b.invalid?
   end
+
+  class Topic < ActiveRecord::Base
+    self.table_name = "topics"
+    validates_presence_of :title, on: :save
+  end
+
+  class PresenceValidationTestWithOnSaveOption < ActiveRecord::TestCase
+    fixtures :topics
+  
+    def test_validate_presence_when_object_is_new
+      topic = Topic.create
+      assert topic.invalid?, "The object is invalid due to blank value of title"
+      assert_includes topic.errors.messages, :title
+      assert_equal ["can't be blank"], topic.errors.messages[:title]
+    end
+
+    def test_validate_presence_when_object_is_already_created
+      topic = Topic.create title: 'testing'
+      assert topic.valid?
+
+      topic.title = nil
+      assert topic.invalid?, "The object is invalid due to blank value of title"
+      assert_equal ["Title can't be blank"], topic.errors.full_messages
+    end
+  end
 end
