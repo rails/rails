@@ -7,6 +7,7 @@ require 'action_controller/metal/strong_parameters'
 module ActionController
   extend ActiveSupport::Autoload
 
+  autoload :AuthenticityToken
   autoload :Base
   autoload :Caching
   autoload :Metal
