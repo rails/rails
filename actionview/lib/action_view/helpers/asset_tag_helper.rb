@@ -26,7 +26,8 @@ module ActionView
       # to <tt>assets/javascripts</tt>, full paths are assumed to be relative to the document
       # root. Relative paths are idiomatic, use absolute paths only when needed.
       #
-      # When passing paths, the ".js" extension is optional.
+      # When passing paths, the ".js" extension is optional.  If you do not want ".js"
+      # appended to the path <tt>extname: false</tt> can be set on the options.
       #
       # You can modify the HTML attributes of the script tag by passing a hash as the
       # last argument.
@@ -36,6 +37,9 @@ module ActionView
       #
       #   javascript_include_tag "xmlhr"
       #   # => <script src="/assets/xmlhr.js?1284139606"></script>
+      #
+      #   javascript_include_tag "template.jst", extname: false
+      #   # => <script src="/assets/template.jst?1284139606"></script>
       #
       #   javascript_include_tag "xmlhr.js"
       #   # => <script src="/assets/xmlhr.js?1284139606"></script>
@@ -51,8 +55,7 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol').symbolize_keys
-
+        path_options = options.extract!('protocol', 'extname').symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
