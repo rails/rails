@@ -275,7 +275,6 @@ module ActionView
           ensure
             @virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
           end
-          #{define_locals_code}
         end_src
 
         # Make sure the source is in the encoding of the returned code

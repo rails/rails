@@ -1404,9 +1404,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_partial_with_counter
-    assert_deprecated "counter_counter is deprecated and will be removed in Rails 4.1. Please use counter_iteration.index instead." do
-      get :partial_with_counter
-    end
+    get :partial_with_counter
     assert_equal "5", @response.body
   end
 
@@ -1461,22 +1459,12 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_partial_collection_with_counter
-    assert_deprecated "customer_counter_counter is deprecated and will be removed in Rails 4.1. Please use customer_counter_iteration.index instead." do
-      get :partial_collection_with_counter
-    end
+    get :partial_collection_with_counter
     assert_equal "david0mary1", @response.body
   end
 
-  def test_partial_collection_with_counter_should_warn_deprecation
-    assert_deprecated do
-      get :partial_collection_with_counter
-    end
-  end
-
   def test_partial_collection_with_as_and_counter
-    assert_deprecated "client_counter is deprecated and will be removed in Rails 4.1. Please use client_iteration.index instead." do
-      get :partial_collection_with_as_and_counter
-    end
+    get :partial_collection_with_as_and_counter
     assert_equal "david0mary1", @response.body
   end
 
@@ -1517,9 +1505,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_partial_collection_shorthand_with_different_types_of_records
-    assert_deprecated "bad_customer_counter is deprecated and will be removed in Rails 4.1. Please use bad_customer_iteration.index instead." do
-      get :partial_collection_shorthand_with_different_types_of_records
-    end
+    get :partial_collection_shorthand_with_different_types_of_records
     assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
     assert_template :partial => 'good_customers/_good_customer', :count => 3
     assert_template :partial => 'bad_customers/_bad_customer', :count => 3

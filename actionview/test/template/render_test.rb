@@ -166,9 +166,7 @@ module RenderTestCases
   end
 
   def test_render_partial_with_locals
-    assert_deprecated "counter_counter is deprecated and will be removed in Rails 4.1. Please use counter_iteration.index instead." do
-      assert_equal "5", @view.render(:partial => "test/counter", :locals => { :counter_counter => 5 })
-    end
+    assert_equal "5", @view.render(:partial => "test/counter", :locals => { :counter_counter => 5 })
   end
 
   def test_render_partial_with_locals_from_default
@@ -285,10 +283,8 @@ module RenderTestCases
   end
 
   def test_render_partial_with_layout_using_collection_and_template_makes_current_item_counter_available_in_layout
-    assert_deprecated "customer_counter is deprecated and will be removed in Rails 4.1. Please use customer_iteration.index instead." do
-      assert_equal '<b data-counter="0">Hello: Amazon</b><b data-counter="1">Hello: Yahoo</b>',
-        @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object_counter', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
-    end
+    assert_equal '<b data-counter="0">Hello: Amazon</b><b data-counter="1">Hello: Yahoo</b>',
+      @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object_counter', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_object_and_template_makes_object_available_in_layout

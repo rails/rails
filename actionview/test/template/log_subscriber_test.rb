@@ -82,12 +82,10 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_template_without_path
-    assert_deprecated "good_customer_counter is deprecated and will be removed in Rails 4.1. Please use good_customer_iteration.index instead." do
-      @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
-      wait
+    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered collection/, @logger.logged(:info).last)
-    end
+    assert_equal 1, @logger.logged(:info).size
+    assert_match(/Rendered collection/, @logger.logged(:info).last)
   end
 end
