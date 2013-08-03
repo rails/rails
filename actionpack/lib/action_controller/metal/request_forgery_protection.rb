@@ -191,7 +191,12 @@ module ActionController #:nodoc:
 
       # Sets the token value for the current session.
       def form_authenticity_token
-        session[:_csrf_token] ||= SecureRandom.base64(32)
+        session[:_csrf_token] || refresh_authenticity_token!
+      end
+
+      # Refresh the token value
+      def refresh_authenticity_token!
+        session[:_csrf_token] = SecureRandom.base64(32)
       end
 
       # The form's authenticity parameter. Override to provide your own.

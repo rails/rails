@@ -8,6 +8,12 @@ module RequestForgeryProtectionActions
     render :inline => "<%= form_tag('/') {} %>"
   end
 
+  def critical_action
+    # do something critical
+    refresh_authenticity_token!
+    render :inline => "<%= form_tag('/') {} %>"
+  end
+
   def show_button
     render :inline => "<%= button_to('New', '/') %>"
   end
@@ -249,6 +255,15 @@ module RequestForgeryProtectionTests
   def test_should_allow_put_with_token_in_header
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { put :index }
+  end
+
+  def test_should_block_old_csrf_token
+    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    assert_not_blocked { put :critical_action }
+    
+    # token was refreshed - old will not work
+    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    assert_blocked { put :critical_action }
   end
 
   def test_should_warn_on_missing_csrf_token
