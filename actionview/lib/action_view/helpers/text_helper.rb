@@ -157,10 +157,12 @@ module ActionView
         return unless matches = text.match(regex)
         phrase = matches[0]
 
-        text.split(separator).each do |value|
-          if value.match(regex)
-            regex = phrase = value
-            break
+        unless separator.empty?
+          text.split(separator).each do |value|
+            if value.match(regex)
+              regex = phrase = value
+              break
+            end
           end
         end
 
