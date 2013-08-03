@@ -101,9 +101,12 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token      = "cf50faa3fe97702ca1ae"
+    # Pin the one-time pad to a fixed value to get predictable CSRF tokens
+    one_time_pad = SecureRandom.random_bytes(32)
+    SecureRandom.stubs(:random_bytes).returns(one_time_pad)
 
-    SecureRandom.stubs(:base64).returns(@token)
+    @token = ActionController::AuthenticityToken.generate_masked(session)
+
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
@@ -293,10 +296,9 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    SecureRandom.stubs(:base64).returns(@token + '<=?')
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
-    assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
+    assert_select 'meta[name=?][content=?]', 'csrf-token', @token
   end
 end
 
@@ -306,7 +308,7 @@ class NullSessionDummyKeyGenerator
   end
 end
 
-class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase  
+class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   def setup
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
   end
@@ -375,7 +377,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
   end
 
   def test_should_allow_custom_token
-    post :index, :custom_token_name => 'foobar'
+    post :index, :custom_token_name => SecureRandom.base64(64)
     assert_response :ok
   end
 end
