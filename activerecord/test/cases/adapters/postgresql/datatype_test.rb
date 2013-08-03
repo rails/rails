@@ -594,7 +594,7 @@ _SQL
     @connection.reconnect!
 
     @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-    assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_equal Time.local(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
     assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
     ActiveRecord::Base.default_timezone = old_default_tz
