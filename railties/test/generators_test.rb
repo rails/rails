@@ -3,7 +3,6 @@ require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
 
 class GeneratorsTest < Rails::Generators::TestCase
-  include ActiveSupport::Testing::Isolation
   include GeneratorsTestHelper
 
   def setup
