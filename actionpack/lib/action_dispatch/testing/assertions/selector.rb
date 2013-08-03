@@ -81,16 +81,7 @@ module ActionDispatch
           root = response_from_page
         end
 
-        case arg
-          when String
-            selector = HTML::Selector.new(arg, args)
-          when Array
-            selector = HTML::Selector.new(*arg)
-          when HTML::Selector
-            selector = arg
-          else raise ArgumentError, "Expecting a selector as the first argument"
-        end
-
+        selector = fetch_selector(arg, args)
         selector.select(root)
       end
 
@@ -203,18 +194,7 @@ module ActionDispatch
           root = response_from_page
         end
 
-        # First or second argument is the selector: string and we pass
-        # all remaining arguments. Array and we pass the argument. Also
-        # accepts selector itself.
-        case arg
-          when String
-            selector = HTML::Selector.new(arg, args)
-          when Array
-            selector = HTML::Selector.new(*arg)
-          when HTML::Selector
-            selector = arg
-          else raise ArgumentError, "Expecting a selector as the first argument"
-        end
+        selector = fetch_selector(arg, args)
 
         # Next argument is used for equality tests.
         equals = {}
@@ -424,6 +404,18 @@ module ActionDispatch
         # +assert_select+ and +css_select+ call this to obtain the content in the HTML page.
         def response_from_page
           html_document.root
+        end
+
+        def fetch_selector(argument, args) #:nodoc:
+          case argument
+            when String
+              HTML::Selector.new(argument, args)
+            when Array
+              HTML::Selector.new(*argument)
+            when HTML::Selector
+              argument
+            else raise ArgumentError, "Expecting a selector as the first argument"
+          end
         end
     end
   end
