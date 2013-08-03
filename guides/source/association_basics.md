@@ -1895,8 +1895,8 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 ```ruby
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, uniq: true,
-                                       read_only: true
+  has_and_belongs_to_many :assemblies, autosave: true,
+                                       readonly: true
 end
 ```
 
@@ -1908,6 +1908,7 @@ The `has_and_belongs_to_many` association supports these options:
 * `:foreign_key`
 * `:join_table`
 * `:validate`
+* `:readonly`
 
 ##### `:association_foreign_key`
 
