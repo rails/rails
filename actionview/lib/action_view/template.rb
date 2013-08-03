@@ -142,7 +142,7 @@ module ActionView
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
-    rescue Exception => e
+    rescue => e
       handle_render_error(view, e)
     end
 
