@@ -1616,6 +1616,8 @@ end
 Security
 --------
 
+### Basic Authentication
+
 If you were to publish your blog online, anybody would be able to add, edit and
 delete posts or delete comments.
 
@@ -1662,6 +1664,19 @@ Now if you try to create a new post, you will be greeted with a basic HTTP
 Authentication challenge
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
+
+Other authentication methods are available for Rails applications. Two popular
+authentication add-ons for Rails are the [Devise](https://github.com/plataformatec/devise)
+rails engine and the [Authlogic](https://github.com/binarylogic/authlogic) gem,
+along with a number of others.
+
+
+### Other Security Considerations
+
+Security, especially in web applications, is a broad and detailed area. Security
+in your Rails application is covered in more depth in 
+The [Ruby on Rails Security Guide](security.html)
+
 
 What's Next?
 ------------
