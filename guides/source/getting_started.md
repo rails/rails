@@ -155,7 +155,7 @@ To begin with, let's get some text up on screen quickly. To do this, you need to
 
 ### Starting up the Web Server
 
-You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running:
+You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running the following in the root directory of your rails app:
 
 ```bash
 $ rails server
