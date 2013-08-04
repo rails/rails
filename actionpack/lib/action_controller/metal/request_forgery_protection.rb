@@ -185,13 +185,13 @@ module ActionController #:nodoc:
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
         !protect_against_forgery? || request.get? || request.head? ||
-          AuthenticityToken.valid?(session, params[request_forgery_protection_token], logger) ||
-          AuthenticityToken.valid?(session, request.headers['X-CSRF-Token'], logger)
+          authenticity_token.valid?(params[request_forgery_protection_token]) ||
+          authenticity_token.valid?(request.headers['X-CSRF-Token'])
       end
 
       # Sets the token value for the current session.
       def form_authenticity_token
-        AuthenticityToken.generate_masked(session)
+        authenticity_token.generate_masked
       end
 
       # The form's authenticity parameter. Override to provide your own.
@@ -202,6 +202,10 @@ module ActionController #:nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery?
         allow_forgery_protection
+      end
+
+      def authenticity_token
+        AuthenticityToken.new(session, logger)
       end
   end
 end

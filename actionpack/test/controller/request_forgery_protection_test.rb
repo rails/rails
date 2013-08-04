@@ -101,11 +101,17 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    # Pin the one-time pad to a fixed value to get predictable CSRF tokens
+    # Pin the RNG to a fixed value to get predictable CSRF tokens
+    # HACK Seed in the same value many times b/c the caller is going
+    # to modify it.
     one_time_pad = SecureRandom.random_bytes(32)
-    SecureRandom.stubs(:random_bytes).returns(one_time_pad)
+    SecureRandom.stubs(:random_bytes)
+      .returns(one_time_pad.dup)
+      .then.returns(one_time_pad.dup)
+      .then.returns(one_time_pad.dup)
+      .then.returns(one_time_pad.dup)
 
-    @token = ActionController::AuthenticityToken.generate_masked(session)
+    @token = ActionController::AuthenticityToken.new(session).generate_masked
 
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
