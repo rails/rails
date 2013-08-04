@@ -671,5 +671,13 @@ module ApplicationTests
         end
       end
     end
+
+    test "config.log_level with custom logger" do
+      make_basic_app do |app|
+        app.config.logger = Logger.new(STDOUT)
+        app.config.log_level = :info
+      end
+      assert_equal Logger::INFO, Rails.logger.level
+    end
   end
 end

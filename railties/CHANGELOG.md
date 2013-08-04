@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Make `config.log_level` work with custom loggers.
+
+    *Max Shytikov*
+
 *   Fix `rake environment` to do not eager load modules
 
     *Paul Nikitochkin*
