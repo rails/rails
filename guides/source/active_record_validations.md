@@ -243,7 +243,7 @@ line of code you can add the same kind of validation to several attributes.
 All of them accept the `:on` and `:message` options, which define when the
 validation should be run and what message should be added to the `errors`
 collection if it fails, respectively. The `:on` option takes one of the values
-`:save` (the default), `:create` or `:update`. There is a default error
+`:create` or `:update`. There is a default error
 message for each one of the validation helpers. These messages are used when
 the `:message` option isn't specified. Let's take a look at each one of the
 available helpers.
@@ -765,10 +765,9 @@ class Person < ActiveRecord::Base
   validates :age, numericality: true, on: :update
 
   # the default (validates on both create and update)
-  validates :name, presence: true, on: :save
+  validates :name, presence: true
 end
 ```
-The last line is in review state and as of now, it is not running in any version of Rails 3.2.x as discussed in this [issue](https://github.com/rails/rails/issues/10248)
 
 Strict Validations
 ------------------
