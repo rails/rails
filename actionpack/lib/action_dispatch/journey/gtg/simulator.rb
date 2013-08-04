@@ -31,7 +31,7 @@ module ActionDispatch
 
           return if acceptance_states.empty?
 
-          memos = acceptance_states.map { |x| tt.memo(x) }.flatten.compact
+          memos = acceptance_states.flat_map { |x| tt.memo(x) }.compact
 
           MatchData.new(memos)
         end
