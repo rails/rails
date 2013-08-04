@@ -1,3 +1,7 @@
+*   Make `config.log_level` work with custom loggers.
+
+    *Max Shytikov*
+
 *   Changed stylesheet load order in the stylesheet manifest generator.
     Fixes #11639.
 
