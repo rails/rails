@@ -14,8 +14,6 @@ module ActionController
       # Start with some random bits
       masked_token = SecureRandom.random_bytes(LENGTH)
 
-      raise if masked_token.length != 32
-
       # XOR the random bits with the real token and concatenate them
       encrypted_csrf_token = self.class.xor_byte_strings(masked_token, @master_csrf_token)
       masked_token.concat(encrypted_csrf_token)
