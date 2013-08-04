@@ -416,7 +416,7 @@ edit_post GET    /posts/:id/edit(.:format) posts#edit
 The `posts_path` helper tells Rails to point the form
 to the URI Pattern associated with the `posts` prefix; and
 the form will (by default) send a `POST` request
-to that route.  This is associated with the 
+to that route.  This is associated with the
 `create` action of the current controller, the `PostsController`.
 
 With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
@@ -553,7 +553,7 @@ and change the `create` action to look like this:
 ```ruby
 def create
   @post = Post.new(params[:post])
- 
+
   @post.save
   redirect_to @post
 end
@@ -1039,7 +1039,7 @@ content:
 ```
 
 Everything except for the `form_for` declaration remained the same.
-The reason we can use this shorter, simpler `form_for` declaration 
+The reason we can use this shorter, simpler `form_for` declaration
 to stand in for either of the other forms is that `@post` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
