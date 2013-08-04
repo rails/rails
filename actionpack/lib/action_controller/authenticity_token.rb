@@ -58,8 +58,6 @@ module ActionController
     end
 
     def self.xor_byte_strings(s1, s2)
-      raise "#{s1.length} #{s2.length}" if s1.length != s2.length
-
       s1.bytes.zip(s2.bytes).map! { |c1, c2| c1 ^ c2 }.pack('c*')
     end
   end
