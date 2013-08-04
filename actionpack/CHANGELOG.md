@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix an issue where `assert_dom_equal` and `assert_dom_not_equal` were
+    ignoring the passed failure message argument.
+
+    Fixes #11751
+
+    *Ryan McGeary*
+
 *   Fix `current_page?` when the URL contains escaped characters and the
     original URL is using the hexadecimal lowercased.
 
