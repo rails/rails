@@ -888,7 +888,7 @@ it look as follows:
 ```html+erb
 <h1>Editing post</h1>
 
-<%= form_for :post, url: post_path(@post.id), method: :patch do |f| %>
+<%= form_for :post, url: post_path(@post), method: :patch do |f| %>
   <% if @post.errors.any? %>
   <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
