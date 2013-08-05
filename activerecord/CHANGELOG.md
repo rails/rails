@@ -1,3 +1,7 @@
+*   Create a directory for sqlite3 file if not present on the system.
+
+    *Richard Schneeman*
+
 *   Removed redundant override of `xml` column definition for PG,
     in order to use `xml` column type instead of `text`.
 
