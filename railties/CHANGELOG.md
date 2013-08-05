@@ -1,3 +1,7 @@
+*   Fix the event name of action_dispatch requests.
+
+    *Rafael Mendonça França*
+
 *   Make `config.log_level` work with custom loggers.
 
     *Max Shytikov*
