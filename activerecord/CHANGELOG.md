@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Load fixtures from linked folders.
+
+    *Kassio Borges*
+
 *   Create a directory for sqlite3 file if not present on the system.
 
     *Richard Schneeman*
