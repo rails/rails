@@ -1,6 +1,10 @@
 require 'abstract_unit'
 require "active_model"
 
+class ApplicationController < ActionController::Base
+  self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
+end
+
 class Customer < Struct.new(:name, :id)
   extend ActiveModel::Naming
   include ActiveModel::Conversion
@@ -30,6 +34,7 @@ class Customer < Struct.new(:name, :id)
 end
 
 module Quiz
+  #Models
   class Question < Struct.new(:name, :id)
     extend ActiveModel::Naming
     include ActiveModel::Conversion
@@ -39,33 +44,22 @@ module Quiz
     end
   end
 
-  class Store < Question
-  end
-end
+  class Store < Question; end
 
-module Quiz
-  class QuestionsController < ActionController::Base
-    self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
+  # Controller
+  class QuestionsController < ApplicationController
     def new
       render :partial => Quiz::Question.new("Namespaced Partial")
     end
   end
 end
 
-class BadCustomer < Customer
-end
-
-
-class GoodCustomer < Customer
-end
+class BadCustomer < Customer; end
+class GoodCustomer < Customer; end
 
 module Fun
-  class GamesController < ActionController::Base
-    self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
-
-    # :ported:
-    def hello_world
-    end
+  class GamesController < ApplicationController
+    def hello_world; end
 
     def nested_partial_with_form_builder
       render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
@@ -73,9 +67,7 @@ module Fun
   end
 end
 
-class TestController < ActionController::Base
-  self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
-
+class TestController < ApplicationController
   protect_from_forgery
 
   before_action :set_variable_for_layout
@@ -97,91 +89,6 @@ class TestController < ActionController::Base
 
   def hello_world_file
     render :file => File.expand_path("../../fixtures/actionpack/hello", __FILE__), :formats => [:html]
-  end
-
-  def conditional_hello
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_record
-    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
-
-    if stale?(record)
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_public_header
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_public_header_with_record
-    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
-
-    if stale?(record, :public => true)
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_public_header_and_expires_at
-    expires_in 1.minute
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_expires_in
-    expires_in 60.1.seconds
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_expires_in_with_public
-    expires_in 1.minute, :public => true
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_expires_in_with_must_revalidate
-    expires_in 1.minute, :must_revalidate => true
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_expires_in_with_public_and_must_revalidate
-    expires_in 1.minute, :public => true, :must_revalidate => true
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_expires_in_with_public_with_more_keys
-    expires_in 1.minute, :public => true, 's-maxage' => 5.hours
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    expires_in 1.minute, :public => true, :private => nil, 's-maxage' => 5.hours
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_expires_now
-    expires_now
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_cache_control_headers
-    response.headers['Cache-Control'] = 'no-transform'
-    expires_now
-    render :action => 'hello_world'
-  end
-
-  def conditional_hello_with_bangs
-    render :action => 'hello_world'
-  end
-  before_action :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
-
-  def handle_last_modified_and_etags
-    fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
   # :ported:
@@ -562,50 +469,6 @@ class TestController < ActionController::Base
   def render_content_type_from_body
     response.content_type = Mime::RSS
     render :text => "hello world!"
-  end
-
-  def head_created
-    head :created
-  end
-
-  def head_created_with_application_json_content_type
-    head :created, :content_type => "application/json"
-  end
-
-  def head_ok_with_image_png_content_type
-    head :ok, :content_type => "image/png"
-  end
-
-  def head_with_location_header
-    head :location => "/foo"
-  end
-
-  def head_with_location_object
-    head :location => Customer.new("david", 1)
-  end
-
-  def head_with_symbolic_status
-    head :status => params[:status].intern
-  end
-
-  def head_with_integer_status
-    head :status => params[:status].to_i
-  end
-
-  def head_with_string_status
-    head :status => params[:status]
-  end
-
-  def head_with_custom_header
-    head :x_custom_header => "something"
-  end
-
-  def head_with_www_authenticate_header
-    head 'WWW-Authenticate' => 'something'
-  end
-
-  def head_with_status_code_first
-    head :forbidden, :x_custom_header => "something"
   end
 
   def render_using_layout_around_block
@@ -1258,104 +1121,6 @@ class RenderTest < ActionController::TestCase
 
     get :hello_world_from_rxml_using_action
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
-  end
-
-  def test_head_created
-    post :head_created
-    assert @response.body.blank?
-    assert_response :created
-  end
-
-  def test_head_created_with_application_json_content_type
-    post :head_created_with_application_json_content_type
-    assert @response.body.blank?
-    assert_equal "application/json", @response.header["Content-Type"]
-    assert_response :created
-  end
-
-  def test_head_ok_with_image_png_content_type
-    post :head_ok_with_image_png_content_type
-    assert @response.body.blank?
-    assert_equal "image/png", @response.header["Content-Type"]
-    assert_response :ok
-  end
-
-  def test_head_with_location_header
-    get :head_with_location_header
-    assert @response.body.blank?
-    assert_equal "/foo", @response.headers["Location"]
-    assert_response :ok
-  end
-
-  def test_head_with_location_object
-    with_routing do |set|
-      set.draw do
-        resources :customers
-        get ':controller/:action'
-      end
-
-      get :head_with_location_object
-      assert @response.body.blank?
-      assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
-      assert_response :ok
-    end
-  end
-
-  def test_head_with_custom_header
-    get :head_with_custom_header
-    assert @response.body.blank?
-    assert_equal "something", @response.headers["X-Custom-Header"]
-    assert_response :ok
-  end
-
-  def test_head_with_www_authenticate_header
-    get :head_with_www_authenticate_header
-    assert @response.body.blank?
-    assert_equal "something", @response.headers["WWW-Authenticate"]
-    assert_response :ok
-  end
-
-  def test_head_with_symbolic_status
-    get :head_with_symbolic_status, :status => "ok"
-    assert_equal 200, @response.status
-    assert_response :ok
-
-    get :head_with_symbolic_status, :status => "not_found"
-    assert_equal 404, @response.status
-    assert_response :not_found
-
-    get :head_with_symbolic_status, :status => "no_content"
-    assert_equal 204, @response.status
-    assert !@response.headers.include?('Content-Length')
-    assert_response :no_content
-
-    Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|
-      get :head_with_symbolic_status, :status => status.to_s
-      assert_equal code, @response.response_code
-      assert_response status
-    end
-  end
-
-  def test_head_with_integer_status
-    Rack::Utils::HTTP_STATUS_CODES.each do |code, message|
-      get :head_with_integer_status, :status => code.to_s
-      assert_equal message, @response.message
-    end
-  end
-
-  def test_head_with_string_status
-    get :head_with_string_status, :status => "404 Eat Dirt"
-    assert_equal 404, @response.response_code
-    assert_equal "Not Found", @response.message
-    assert_response :not_found
-  end
-
-  def test_head_with_status_code_first
-    get :head_with_status_code_first
-    assert_equal 403, @response.response_code
-    assert_equal "Forbidden", @response.message
-    assert_equal "something", @response.headers["X-Custom-Header"]
-    assert_response :forbidden
   end
 
   def test_using_layout_around_block
