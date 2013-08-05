@@ -549,7 +549,7 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
   fixtures :all
 
   def test_all_there
-    assert_equal %w(developers people tasks), fixture_table_names.sort
+    assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
   end
 end
 
