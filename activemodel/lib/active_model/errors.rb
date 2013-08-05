@@ -238,8 +238,8 @@ module ActiveModel
     # object. You can pass the <tt>:full_messages</tt> option. This determines
     # if the json object should contain full messages or not (false by default).
     #
-    #   person.as_json                      # => {:name=>["can not be nil"]}
-    #   person.as_json(full_messages: true) # => {:name=>["name can not be nil"]}
+    #   person.errors.as_json                      # => {:name=>["can not be nil"]}
+    #   person.errors.as_json(full_messages: true) # => {:name=>["name can not be nil"]}
     def as_json(options=nil)
       to_hash(options && options[:full_messages])
     end
@@ -247,8 +247,8 @@ module ActiveModel
     # Returns a Hash of attributes with their error messages. If +full_messages+
     # is +true+, it will contain full messages (see +full_message+).
     #
-    #   person.to_hash       # => {:name=>["can not be nil"]}
-    #   person.to_hash(true) # => {:name=>["name can not be nil"]}
+    #   person.errors.to_hash       # => {:name=>["can not be nil"]}
+    #   person.errors.to_hash(true) # => {:name=>["name can not be nil"]}
     def to_hash(full_messages = false)
       if full_messages
         messages = {}
