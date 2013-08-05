@@ -507,12 +507,12 @@ module ActiveRecord
             cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
               field.name
             }
+            metadata.free
           end
 
           result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
           affected_rows = stmt.affected_rows
 
-          stmt.result_metadata.free if cols
           stmt.free_result
           stmt.close if binds.empty?
 
