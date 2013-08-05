@@ -18,9 +18,9 @@ module ActiveRecord
       # the database path is not the special path that tells
       # Sqlite to build a database only in memory.
       if ':memory:' != config[:database]
-        config[:database] = Pathname.new(config[:database])
-        config[:database] = config[:database].expand_path(Rails.root) if defined?(Rails.root)
-        config[:database].dirname.mkdir unless config[:database].dirname.directory?
+        config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
+        dirname = File.dirname(config[:database])
+        Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
       db = SQLite3::Database.new(
