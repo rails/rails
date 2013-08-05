@@ -17,12 +17,14 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if
       # the database path is not the special path that tells
       # Sqlite to build a database only in memory.
-      if defined?(Rails.root) && ':memory:' != config[:database]
-        config[:database] = File.expand_path(config[:database], Rails.root)
+      if ':memory:' != config[:database]
+        config[:database] = Pathname.new(config[:database])
+        config[:database] = config[:database].expand_path(Rails.root) if defined?(Rails.root)
+        config[:database].dirname.mkdir unless config[:database].dirname.directory?
       end
 
       db = SQLite3::Database.new(
-        config[:database],
+        config[:database].to_s,
         :results_as_hash => true
       )
 
