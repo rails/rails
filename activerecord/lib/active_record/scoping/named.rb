@@ -142,12 +142,8 @@ module ActiveRecord
           extension = Module.new(&block) if block
 
           singleton_class.send(:define_method, name) do |*args|
-            if body.respond_to?(:call)
-              scope = all.scoping { body.call(*args) }
-              scope = scope.extending(extension) if extension
-            else
-              scope = body
-            end
+            scope = all.scoping { body.call(*args) }
+            scope = scope.extending(extension) if extension
 
             scope || all
           end
