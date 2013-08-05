@@ -28,12 +28,6 @@ class Customer < Struct.new(:name, :id)
   end
 end
 
-class BadCustomer < Customer
-end
-
-class GoodCustomer < Customer
-end
-
 class ValidatedCustomer < Customer
   def errors
     if name =~ /Sikachu/i
