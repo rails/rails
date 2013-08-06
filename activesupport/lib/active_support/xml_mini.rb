@@ -13,7 +13,7 @@ module ActiveSupport
     extend self
 
     # This module decorates files deserialized using Hash.from_xml with
-    # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+    # the `original_filename` and `content_type` methods.
     module FileLike #:nodoc:
       attr_writer :original_filename, :content_type
 

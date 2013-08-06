@@ -5,13 +5,13 @@ require 'pathname'
 require 'rbconfig'
 
 module Rails
-  # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
+  # `Rails::Engine` allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
-  # Since Rails 3.0, every <tt>Rails::Application</tt> is just an engine, which allows for simple
+  # Since Rails 3.0, every `Rails::Application` is just an engine, which allows for simple
   # feature and application sharing.
   #
-  # Any <tt>Rails::Engine</tt> is also a <tt>Rails::Railtie</tt>, so the same
-  # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
+  # Any `Rails::Engine` is also a `Rails::Railtie`, so the same
+  # methods (like `rake_tasks` and +generators+) and configuration
   # options that are available in railties can also be used in engines.
   #
   # == Creating an Engine
@@ -27,16 +27,16 @@ module Rails
   #     end
   #   end
   #
-  # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
+  # Then ensure that this file is loaded at the top of your `config/application.rb`
   # (or in your +Gemfile+) and it will automatically load models, controllers and helpers
-  # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
-  # <tt>config/locales/*</tt>, and load tasks at <tt>lib/tasks/*</tt>.
+  # inside +app+, load routes at `config/routes.rb`, load locales at
+  # `config/locales/*`, and load tasks at `lib/tasks/*`.
   #
   # == Configuration
   #
   # Besides the +Railtie+ configuration which is shared across the application, in a
-  # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt>
-  # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
+  # `Rails::Engine` you can access `autoload_paths`, `eager_load_paths`
+  # and `autoload_once_paths`, which, differently from a `Railtie`, are scoped to
   # the current engine.
   #
   #   class MyEngine < Rails::Engine
@@ -50,7 +50,7 @@ module Rails
   #
   # == Generators
   #
-  # You can set up generators for engines with <tt>config.generators</tt> method:
+  # You can set up generators for engines with `config.generators` method:
   #
   #   class MyEngine < Rails::Engine
   #     config.generators do |g|
@@ -60,7 +60,7 @@ module Rails
   #     end
   #   end
   #
-  # You can also set generators for an application by using <tt>config.app_generators</tt>:
+  # You can also set generators for an application by using `config.app_generators`:
   #
   #   class MyEngine < Rails::Engine
   #     # note that you can also pass block to app_generators in the same way you
@@ -72,18 +72,18 @@ module Rails
   #
   # Since Rails 3.0, applications and engines have more flexible path configuration (as
   # opposed to the previous hardcoded path configuration). This means that you are not
-  # required to place your controllers at <tt>app/controllers</tt>, but in any place
+  # required to place your controllers at `app/controllers`, but in any place
   # which you find convenient.
   #
-  # For example, let's suppose you want to place your controllers in <tt>lib/controllers</tt>.
+  # For example, let's suppose you want to place your controllers in `lib/controllers`.
   # You can set that as an option:
   #
   #   class MyEngine < Rails::Engine
   #     paths["app/controllers"] = "lib/controllers"
   #   end
   #
-  # You can also have your controllers loaded from both <tt>app/controllers</tt> and
-  # <tt>lib/controllers</tt>:
+  # You can also have your controllers loaded from both `app/controllers` and
+  # `lib/controllers`:
   #
   #   class MyEngine < Rails::Engine
   #     paths["app/controllers"] << "lib/controllers"
@@ -105,9 +105,9 @@ module Rails
   #     paths["config/routes"]       # => ["config/routes.rb"]
   #   end
   #
-  # The <tt>Application</tt> class adds a couple more paths to this set. And as in your
-  # <tt>Application</tt>, all folders under +app+ are automatically added to the load path.
-  # If you have an <tt>app/services</tt> folder for example, it will be added by default.
+  # The `Application` class adds a couple more paths to this set. And as in your
+  # `Application`, all folders under +app+ are automatically added to the load path.
+  # If you have an `app/services` folder for example, it will be added by default.
   #
   # == Endpoint
   #
@@ -131,7 +131,7 @@ module Rails
   # == Middleware stack
   #
   # As an engine can now be a rack endpoint, it can also have a middleware
-  # stack. The usage is exactly the same as in <tt>Application</tt>:
+  # stack. The usage is exactly the same as in `Application`:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -159,9 +159,9 @@ module Rails
   #     get "/blog/omg" => "main#omg"
   #   end
   #
-  # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
-  # controller. In such a situation, requests to <tt>/blog/omg</tt> will go through +MyEngine+,
-  # and if there is no such route in +Engine+'s routes, it will be dispatched to <tt>main#omg</tt>.
+  # +MyEngine+ is mounted at `/blog`, and `/blog/omg` points to application's
+  # controller. In such a situation, requests to `/blog/omg` will go through +MyEngine+,
+  # and if there is no such route in +Engine+'s routes, it will be dispatched to `main#omg`.
   # It's much better to swap that:
   #
   #   Rails.application.routes.draw do
@@ -175,12 +175,12 @@ module Rails
   #
   # There are some places where an Engine's name is used:
   #
-  # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
-  #   it's used as default <tt>:as</tt> option
-  # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
+  # * routes: when you mount an Engine with `mount(MyEngine::Engine => '/my_engine')`,
+  #   it's used as default `:as` option
+  # * rake task for installing migrations `my_engine:install:migrations`
   #
-  # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
-  # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
+  # Engine name is set by default based on class name. For `MyEngine::Engine` it will be
+  # `my_engine_engine`. You can change it manually using the `engine_name` method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -215,7 +215,7 @@ module Rails
   #   end
   #
   # If an engine is marked as isolated, +FooController+ has access only to helpers from +Engine+ and
-  # <tt>url_helpers</tt> from <tt>MyEngine::Engine.routes</tt>.
+  # `url_helpers` from `MyEngine::Engine.routes`.
   #
   # The next thing that changes in isolated engines is the behavior of routes. Normally, when you namespace
   # your controllers, you also need to do namespace all your routes. With an isolated engine,
@@ -225,12 +225,12 @@ module Rails
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ArticlesController</tt>. Furthermore, you don't
-  # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
-  # <tt>articles_path</tt> as you would do with your application.
+  # The routes above will automatically point to `MyEngine::ArticlesController`. Furthermore, you don't
+  # need to use longer url helpers like `my_engine_articles_path`. Instead, you should simply use
+  # `articles_path` as you would do with your application.
   #
   # To make that behavior consistent with other parts of the framework, an isolated engine also has influence on
-  # <tt>ActiveModel::Naming</tt>. When you use a namespaced model, like <tt>MyEngine::Article</tt>, it will normally
+  # `ActiveModel::Naming`. When you use a namespaced model, like `MyEngine::Article`, it will normally
   # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
   # form fields for convenience.
   #
@@ -247,7 +247,7 @@ module Rails
   # == Using Engine's routes outside Engine
   #
   # Since you can now mount an engine inside application's routes, you do not have direct access to +Engine+'s
-  # <tt>url_helpers</tt> inside +Application+. When you mount an engine in an application's routes, a special helper is
+  # `url_helpers` inside +Application+. When you mount an engine in an application's routes, a special helper is
   # created to allow you to do that. Consider such a scenario:
   #
   #   # config/routes.rb
@@ -256,7 +256,7 @@ module Rails
   #     get "/foo" => "foo#index"
   #   end
   #
-  # Now, you can use the <tt>my_engine</tt> helper inside your application:
+  # Now, you can use the `my_engine` helper inside your application:
   #
   #   class FooController < ApplicationController
   #     def index
@@ -264,7 +264,7 @@ module Rails
   #     end
   #   end
   #
-  # There is also a <tt>main_app</tt> helper that gives you access to application's routes inside Engine:
+  # There is also a `main_app` helper that gives you access to application's routes inside Engine:
   #
   #   module MyEngine
   #     class BarController
@@ -274,18 +274,18 @@ module Rails
   #     end
   #   end
   #
-  # Note that the <tt>:as</tt> option given to mount takes the <tt>engine_name</tt> as default, so most of the time
+  # Note that the `:as` option given to mount takes the `engine_name` as default, so most of the time
   # you can simply omit it.
   #
   # Finally, if you want to generate a url to an engine's route using
-  # <tt>polymorphic_url</tt>, you also need to pass the engine helper. Let's
+  # `polymorphic_url`, you also need to pass the engine helper. Let's
   # say that you want to create a form pointing to one of the engine's routes.
   # All you need to do is pass the helper as the first element in array with
   # attributes for url:
   #
   #   form_for([my_engine, @user])
   #
-  # This code will use <tt>my_engine.user_path(@user)</tt> to generate the proper route.
+  # This code will use `my_engine.user_path(@user)` to generate the proper route.
   #
   # == Isolated engine's helpers
   #
@@ -311,7 +311,7 @@ module Rails
   # == Migrations & seed data
   #
   # Engines can have their own migrations. The default path for migrations is exactly the same
-  # as in application: <tt>db/migrate</tt>
+  # as in application: `db/migrate`
   #
   # To use engine's migrations in application you can use rake task, which copies them to
   # application's dir:
@@ -323,7 +323,7 @@ module Rails
   # migration in the application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
-  # the <tt>db/seeds.rb</tt> file. You can load that data using the <tt>load_seed</tt> method, e.g.
+  # the `db/seeds.rb` file. You can load that data using the `load_seed` method, e.g.
   #
   #   MyEngine::Engine.load_seed
   #
@@ -428,7 +428,7 @@ module Rails
     end
 
     # Load console and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.console</tt> for more info.
+    # Check `Rails::Railtie.console` for more info.
     def load_console(app=self)
       require "pp"
       require "rails/console/app"
@@ -438,14 +438,14 @@ module Rails
     end
 
     # Load Rails runner and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.runner</tt> for more info.
+    # Check `Rails::Railtie.runner` for more info.
     def load_runner(app=self)
       run_runner_blocks(app)
       self
     end
 
     # Load Rake, railties tasks and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
+    # Check `Rails::Railtie.rake_tasks` for more info.
     def load_tasks(app=self)
       require "rake"
       run_tasks_blocks(app)
@@ -453,7 +453,7 @@ module Rails
     end
 
     # Load Rails generators and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.generators</tt> for more info.
+    # Check `Rails::Railtie.generators` for more info.
     def load_generators(app=self)
       require "rails/generators"
       run_generators_blocks(app)
