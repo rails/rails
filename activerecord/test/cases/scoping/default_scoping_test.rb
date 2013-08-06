@@ -55,6 +55,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scoping_with_threads
+    skip "in-memory database mustn't disconnect" if in_memory_db?
+
     2.times do
       Thread.new {
         assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
