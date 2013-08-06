@@ -56,6 +56,7 @@ module ActionDispatch
       # TODO: Validate that the characters are UTF-8. If they aren't,
       # you'll get a weird error down the road, but our form handling
       # should really prevent that from happening
+      # jquadrin: is this possible to do?
       def normalize_encode_params(params)
         if params.is_a?(String)
           return params.force_encoding(Encoding::UTF_8).encode!

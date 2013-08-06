@@ -135,6 +135,9 @@ module ActiveRecord
     end
 
     initializer "active_record.set_reloader_hooks" do |app|
+      ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
+      ActionDispatch::Reloader.to_cleanup { b = c = 2 }
+      ActionDispatch::Reloader.to_prepare { c = 3 }
       hook = app.config.reload_classes_only_on_change ? :to_prepare : :to_cleanup
 
       ActiveSupport.on_load(:active_record) do
