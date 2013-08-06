@@ -63,10 +63,16 @@ class EachTest < ActiveRecord::TestCase
     Post.limit(1).find_each { |post| post }
   end
 
+  def test_raise_if_order_scope_is_set_without_allow_unused_order
+    assert_raise(RuntimeError) do
+      Post.order("title").find_each { |post| post }
+    end
+  end
+
   def test_warn_if_order_scope_is_set
     ActiveRecord::Base.logger.expects(:warn)
-    Post.order("title").find_each { |post| post }
-  end
+    Post.order("title").find_each({allow_unused_order: true}) { |post| post }
+  end  
 
   def test_logger_not_required
     previous_logger = ActiveRecord::Base.logger
@@ -134,7 +140,7 @@ class EachTest < ActiveRecord::TestCase
     # First post is with title scope
     first_post = PostWithDefaultScope.first
     posts = []
-    PostWithDefaultScope.find_in_batches  do |batch|
+    PostWithDefaultScope.find_in_batches(allow_unused_order: true)  do |batch|
       posts.concat(batch)
     end
     # posts.first will be ordered using id only. Title order scope should not apply here
