@@ -9,7 +9,7 @@ old_load_paths = ActionController::Base.view_paths
 ActionView::Template::register_template_handler :mab,
   lambda { |template| template.source.inspect }
 
-ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/layout_tests/' ]
+ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/actionpack/layout_tests/' ]
 
 class LayoutTest < ActionController::Base
   def self.controller_path; 'views' end
@@ -87,7 +87,7 @@ class StreamingLayoutController < LayoutTest
 end
 
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test')
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/actionpack/layout_tests/layouts/layout_test')
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -108,7 +108,7 @@ end
 
 class PrependsViewPathController < LayoutTest
   def hello
-    prepend_view_path File.dirname(__FILE__) + '/../fixtures/layout_tests/alt/'
+    prepend_view_path File.dirname(__FILE__) + '/../fixtures/actionpack/layout_tests/alt/'
     render :layout => 'alt'
   end
 end
