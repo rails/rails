@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "cases/helper"
 require 'active_support/concurrency/latch'
 require 'models/post'
@@ -580,6 +582,11 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
+  end
+
+  def test_unicode_column_name
+    weird = Weird.create(:なまえ => 'たこ焼き仮面')
+    assert_equal 'たこ焼き仮面', weird.なまえ
   end
 
   def test_non_valid_identifier_column_name
