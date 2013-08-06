@@ -26,7 +26,7 @@ module ActiveRecord
           const_set const_name, value.dup.freeze
         end
       end
-    }
+    } unless defined?(AttrNames)
 
     class AttributeMethodCache
       include Mutex_m
