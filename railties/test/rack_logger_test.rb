@@ -57,11 +57,14 @@ module Rails
       end
 
       def test_notification_on_raise
-        logger = TestLogger.new { raise }
+        logger = TestLogger.new do
+          # using an exception class that is not a StandardError subclass on purpose
+          raise NotImplementedError
+        end
 
         assert_difference('subscriber.starts.length') do
           assert_difference('subscriber.finishes.length') do
-            assert_raises(RuntimeError) do
+            assert_raises(NotImplementedError) do
               logger.call 'REQUEST_METHOD' => 'GET'
             end
           end
