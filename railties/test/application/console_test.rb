@@ -39,11 +39,6 @@ class ConsoleTest < ActiveSupport::TestCase
     load_environment
     a = b = c = nil
 
-    # TODO: These should be defined on the initializer
-    ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
-    ActionDispatch::Reloader.to_cleanup { b = c = 2 }
-    ActionDispatch::Reloader.to_prepare { c = 3 }
-
     # Hide Reloading... output
     silence_stream(STDOUT) { irb_context.reload! }
 
