@@ -3,9 +3,9 @@
 #   rake notes
 #   rake notes:optimize
 #
-# and friends. See `rake -T notes` and `railties/lib/tasks/annotations.rake`.
+# and friends. See <tt>rake -T notes</tt> and <tt>railties/lib/tasks/annotations.rake</tt>.
 #
-# Annotation objects are triplets `:line`, `:tag`, `:text` that
+# Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
 # represent the line where the annotation lives, its tag, and its text. Note
 # the filename is not stored.
 #
@@ -22,7 +22,7 @@ class SourceAnnotationExtractor
     #
     #   [126] [TODO] This algorithm is simple and clearly correct, make it faster.
     #
-    # If +options+ has a flag `:tag` the tag is shown as in the example above.
+    # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
     def to_s(options={})
       s = "[#{line.to_s.rjust(options[:indent])}] "
@@ -35,15 +35,15 @@ class SourceAnnotationExtractor
   # +config+, +db+, +lib+, and +test+ (recursively).
   #
   # Additional directories may be added using a comma-delimited list set using
-  # `ENV['SOURCE_ANNOTATION_DIRECTORIES']`.
+  # <tt>ENV['SOURCE_ANNOTATION_DIRECTORIES']</tt>.
   #
-  # Directories may also be explicitly set using the `:dirs` key in +options+.
+  # Directories may also be explicitly set using the <tt>:dirs</tt> key in +options+.
   #
   #   SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
   #
-  # If +options+ has a `:tag` flag, it will be passed to each annotation's +to_s+.
+  # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
   #
-  # See `#find_in` for a list of file extensions that will be taken into account.
+  # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
   #
   # This class method is the single entry point for the rake tasks.
   def self.enumerate(tag, options={})
