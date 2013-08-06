@@ -440,12 +440,13 @@ This links the folder specified in `config.assets.prefix` to `shared/assets`. If
 
 It is important that this folder is shared between deployments so that remotely cached pages that reference the old compiled assets still work for the life of the cached page.
 
-NOTE. If you are precompiling your assets locally, you can use `bundle install --without assets` on the server to avoid installing the assets gems (the gems in the assets group in the Gemfile).
-
-The default matcher for compiling files includes `application.js`, `application.css` and all non-JS/CSS files (this will include all image assets automatically):
+The default matcher for compiling files includes `application.js`,
+`application.css` and all non-JS/CSS files (this will include all image assets
+automatically) from `app/assets` folders including your gems:
 
 ```ruby
-[ Proc.new { |path| !%w(.js .css).include?(File.extname(path)) }, /application.(css|js)$/ ]
+[ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
+/application.(css|js)$/ ]
 ```
 
 NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are **not** automatically included as they compile to JS/CSS.
