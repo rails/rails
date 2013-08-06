@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "cases/helper"
 require 'models/post'
 require 'models/author'
@@ -585,6 +587,11 @@ class BasicsTest < ActiveRecord::TestCase
     post = ReadonlyTitlePost.new
     assert_raise(NoMethodError) { post._attr_readonly = [:title] }
     assert_deprecated { post._attr_readonly }
+  end
+
+  def test_unicode_column_name
+    weird = Weird.create(:なまえ => 'たこ焼き仮面')
+    assert_equal 'たこ焼き仮面', weird.なまえ
   end
 
   def test_non_valid_identifier_column_name
