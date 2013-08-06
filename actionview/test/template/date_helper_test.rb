@@ -19,8 +19,6 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def assert_distance_of_time_in_words(from, to=nil)
-    Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
-
     to ||= from
 
     # 0..1 minute with :include_seconds => true
@@ -123,12 +121,16 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
     assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => true)
     assert_equal "less than a minute", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => false)
-
-  ensure
-    Fixnum.send :public, :/
   end
 
   def test_distance_in_words
+    from = Time.utc(2004, 6, 6, 21, 45, 0)
+    assert_distance_of_time_in_words(from)
+  end
+
+  def test_distance_in_words_with_mathn_required
+    # test we avoid Integer#/ (redefined by mathn)
+    require 'mathn'
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
   end
