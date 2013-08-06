@@ -69,9 +69,9 @@ $ rails server
 => Rails 4.0.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
-[2012-05-28 00:39:41] INFO  WEBrick 1.3.1
-[2012-05-28 00:39:41] INFO  ruby 1.9.2 (2011-02-18) [x86_64-darwin11.2.0]
-[2012-05-28 00:39:41] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
+[2013-08-07 02:00:01] INFO  WEBrick 1.3.1
+[2013-08-07 02:00:01] INFO  ruby 2.0.0 (2013-06-27) [x86_64-darwin11.2.0]
+[2013-08-07 02:00:01] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 ```
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
