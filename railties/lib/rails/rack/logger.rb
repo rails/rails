@@ -38,7 +38,7 @@ module Rails
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
         resp
-      rescue
+      rescue Exception
         finish(request)
         raise
       ensure
