@@ -682,10 +682,10 @@ the cached page.
 
 The default matcher for compiling files includes `application.js`,
 `application.css` and all non-JS/CSS files (this will include all image assets
-automatically):
+automatically) from `app/assets` folders including your gems:
 
 ```ruby
-[ Proc.new { |path| !%w(.js .css).include?(File.extname(path)) },
+[ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
 /application.(css|js)$/ ]
 ```
 
