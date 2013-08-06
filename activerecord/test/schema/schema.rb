@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 ActiveRecord::Schema.define do
   def except(adapter_names_to_exclude)
     unless [adapter_names_to_exclude].flatten.include?(adapter_name)
