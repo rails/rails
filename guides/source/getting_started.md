@@ -84,7 +84,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 1.9.3p385
+ruby 2.0.0p247
 ```
 
 To install Rails, use the `gem install` command provided by RubyGems:
