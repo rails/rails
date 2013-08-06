@@ -39,6 +39,15 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert column.array
   end
 
+  def test_change_column_cant_make_non_array_column_to_array
+    @connection.add_column :pg_arrays, :a_string, :string
+    assert_raises ActiveRecord::StatementInvalid do
+      @connection.transaction do
+        @connection.change_column :pg_arrays, :a_string, :string, array: true
+      end
+    end
+  end
+
   def test_type_cast_array
     assert @column
 
