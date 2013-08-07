@@ -123,7 +123,9 @@ module ActionView
           text
         else
           highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-          match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
+          match = Array(phrases).map do |p|
+            Regexp === p ? p.to_s : Regexp.escape(p)
+          end.join('|')
           text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
         end.html_safe
       end
@@ -156,11 +158,11 @@ module ActionView
         return unless text && phrase
 
         separator = options.fetch(:separator, nil) || ""
-        if Regexp === phrase
+        case phrase
+        when Regexp
           regex = phrase
         else
-          phrase    = Regexp.escape(phrase)
-          regex     = /#{phrase}/i
+          regex = /#{Regexp.escape(phrase)}/i
         end
 
         return unless matches = text.match(regex)

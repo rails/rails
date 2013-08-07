@@ -222,6 +222,11 @@ class TextHelperTest < ActionView::TestCase
     )
   end
 
+  def test_highlight_accepts_regexp
+    assert_equal("This day was challenging for judge <mark>Allen</mark> and his colleagues.",
+                 highlight("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i))
+  end
+
   def test_highlight_with_multiple_phrases_in_one_pass
     assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), :highlighter => '<em>\1</em>')
   end
@@ -264,9 +269,12 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", :radius => 5))
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", :radius => 5))
+    assert_nil excerpt("This is a beautiful morning", "day")
+  end
+
+  def test_excerpt_with_regex
     assert_equal("...udge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 5))
     assert_equal("...judge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 1, :separator => ' '))
-    assert_nil excerpt("This is a beautiful morning", "day")
   end
 
   def test_excerpt_should_not_be_html_safe
