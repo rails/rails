@@ -55,12 +55,13 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
   }
 
-  TESTS.each do |json, expected|
-    test "json decodes #{json}" do
+  TESTS.each_with_index do |(json, expected), index|
+    test "json decodes #{index}" do
       prev = ActiveSupport.parse_json_times
       ActiveSupport.parse_json_times = true
       silence_warnings do
-        assert_equal expected, ActiveSupport::JSON.decode(json)
+        assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
+        failed for #{json}"
       end
       ActiveSupport.parse_json_times = prev
     end
