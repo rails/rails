@@ -379,7 +379,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            lazy_zones_map[arg] ||= lookup(arg).tap { |tz| tz.utc_offset }
+            lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -407,10 +407,6 @@ module ActiveSupport
         end
 
       private
-
-        def lookup(name)
-          (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
-        end
 
         def lazy_zones_map
           require_tzinfo
