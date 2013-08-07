@@ -1,3 +1,18 @@
+*   Type cast hstore values on write, so that the value is consistent
+    with reading from the database.
+
+    Example:
+
+        x = Hstore.new tags: {"bool" => true, "number" => 5}
+
+        # Before:
+        x.tags # => {"bool" => true, "number" => 5}
+
+        # After:
+        x.tags # => {"bool" => "true", "number" => "5"}
+
+    *Yves Senn* , *Severin Schoepke*
+
 *   Fix multidimensional PG arrays containing non-string items.
 
     *Yves Senn*

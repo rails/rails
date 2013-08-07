@@ -129,6 +129,14 @@ module ActiveRecord
         end
       end
 
+      def type_cast_for_write(value)
+        if @oid_type.respond_to?(:type_cast_for_write)
+          @oid_type.type_cast_for_write(value)
+        else
+          super
+        end
+      end
+
       def type_cast(value)
         return if value.nil?
         return super if encoded?
