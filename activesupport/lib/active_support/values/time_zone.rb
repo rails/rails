@@ -185,6 +185,8 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
 
+    @lazy_zones_map = ThreadSafe::Cache.new
+
     # Assumes self represents an offset from UTC in seconds (as returned from
     # Time#utc_offset) and turns this into an +HH:MM formatted string.
     #
@@ -363,11 +365,8 @@ module ActiveSupport
 
       def zones_map
         @zones_map ||= begin
-          map = {}
-          MAPPING.each_key do |place|
-            map[place] = lazy_zones_map.fetch(place) { create(place) }
-          end
-          map
+          MAPPING.each_key {|place| self[place]} # load all the zones
+          @lazy_zones_map
         end
       end
 
@@ -415,10 +414,7 @@ module ActiveSupport
 
         def lazy_zones_map
           require_tzinfo
-
-          @lazy_zones_map ||= ThreadSafe::Cache.new do |hash, place|
-            hash[place] = create(place) if MAPPING.has_key?(place)
-          end
+          @lazy_zones_map
         end
     end
 
