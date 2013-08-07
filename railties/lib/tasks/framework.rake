@@ -7,8 +7,8 @@ namespace :rails do
       require 'rubygems/gem_runner'
 
       rails = (version = ENV['VERSION']) ?
-        Gem.cache.find_name('rails', "= #{version}").first :
-        Gem.cache.find_name('rails').sort_by { |g| g.version }.last
+        Gem.source_index.find_name('rails', "= #{version}").first :
+        Gem.source_index.find_name('rails').sort_by { |g| g.version }.last
 
       version ||= rails.version
 

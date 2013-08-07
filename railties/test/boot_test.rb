@@ -111,7 +111,8 @@ class GemBootTest < Test::Unit::TestCase
   end
 
   def test_load_rails_gem_exits_with_error_if_missing
-    failed_pre_200
+    skip "failed pre 2.0.0"
+
     GemBoot.stubs(:gem_version).returns('0.0.1')
 
     boot = GemBoot.new

@@ -7,6 +7,5 @@ class URIExtTest < Test::Unit::TestCase
     str.force_encoding(Encoding::UTF_8) if str.respond_to?(:force_encoding)
 
     assert_equal str, URI::DEFAULT_PARSER.unescape(URI::DEFAULT_PARSER.escape(str))
-    assert_equal str, URI::DEFAULT_PARSER.decode(URI::DEFAULT_PARSER.escape(str))
   end
 end
