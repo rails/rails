@@ -555,6 +555,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_converted_values_are_returned_after_assignment
+    developer = Developer.new(name: 1337, salary: "50000")
+
+    assert_equal "50000", developer.salary_before_type_cast
+    assert_equal 1337, developer.name_before_type_cast
+
+    assert_equal 50000, developer.salary
+    assert_equal "1337", developer.name
+
+    developer.save!
+
+    assert_equal "50000", developer.salary_before_type_cast
+    assert_equal 1337, developer.name_before_type_cast
+
+    assert_equal 50000, developer.salary
+    assert_equal "1337", developer.name
+  end
+
   def test_write_nil_to_time_attributes
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new

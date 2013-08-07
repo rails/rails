@@ -1,3 +1,14 @@
+*   Coerce strings when reading attributes.
+    Fixes #10485.
+
+    Example:
+
+        book = Book.new(title: 12345)
+        book.save!
+        book.title # => "12345"
+
+    *Yves Senn*
+
 *   Deprecate half-baked support for PostgreSQL range values with excluding beginnings.
     We currently map PostgreSQL ranges to Ruby ranges. This conversion is not fully
     possible because the Ruby range does not support excluded beginnings.

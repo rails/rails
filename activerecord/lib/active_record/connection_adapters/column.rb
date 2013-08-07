@@ -87,7 +87,7 @@ module ActiveRecord
         end
       end
 
-      # Casts value (which is a String) to an appropriate instance.
+      # Casts value to an appropriate instance.
       def type_cast(value)
         return nil if value.nil?
         return coder.load(value) if encoded?
@@ -95,7 +95,13 @@ module ActiveRecord
         klass = self.class
 
         case type
-        when :string, :text        then value
+        when :string, :text
+          case value
+          when TrueClass; "1"
+          when FalseClass; "0"
+          else
+            value.to_s
+          end
         when :integer              then klass.value_to_integer(value)
         when :float                then value.to_f
         when :decimal              then klass.value_to_decimal(value)
