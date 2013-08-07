@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TimeWithZoneTest < Test::Unit::TestCase
+class TimeWithZoneTest < ActiveSupport::TestCase
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)

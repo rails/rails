@@ -8,7 +8,7 @@ module Ace
   end
 end
 
-class InflectorTest < Test::Unit::TestCase
+class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
 
   def test_pluralize_plurals
