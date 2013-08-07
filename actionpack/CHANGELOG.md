@@ -1,3 +1,7 @@
+*   ActionController#translate supports symbols.
+
+    *Max Melentiev*
+
 *   Introduce `BasicRendering` which is the most basic rendering implementation. It
     allows to `render :text` and `render :nothing` without depending on Action View.
 
