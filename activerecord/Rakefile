@@ -43,9 +43,15 @@ task :default => :test
 
 desc 'Run mysql, sqlite, and postgresql tests'
 task :test do
-  tasks = defined?(JRUBY_VERSION) ?
-    %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql test_sqlite3 test_postgresql)
+  # We won't bother running all the tests for the different databases.
+  # We'll just use SQLite
+  #
+  # tasks = defined?(JRUBY_VERSION) ?
+  #   %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
+  #   %w(test_mysql test_sqlite3 test_postgresql)
+  #
+  tasks = ["test_sqlite3"]
+
   run_without_aborting(*tasks)
 end
 
