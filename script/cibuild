@@ -4,7 +4,7 @@ set -x
 set -e
 
 # Use the right Ruby /without/ rbenv
-ruby_dir=$(dirname "$(RBENV_VERSION=1.9.3-p231-tcs-github rbenv which ruby)")
+ruby_dir=$(dirname "$(RBENV_VERSION=2.0.0-github rbenv which ruby)")
 export PATH=$ruby_dir:$PATH
 
 # Announce who we are
