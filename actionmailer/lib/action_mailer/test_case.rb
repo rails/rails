@@ -43,6 +43,8 @@ module ActionMailer
       end
 
       def set_expected_mail
+        failed_pre_200
+
         @expected = TMail::Mail.new
         @expected.set_content_type "text", "plain", { "charset" => charset }
         @expected.mime_version = '1.0'
