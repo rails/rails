@@ -736,10 +736,10 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_all_by_one_attribute_with_options
     topics = Topic.find_all_by_content("Have a nice day", :order => "id DESC")
-    assert topics(:first), topics.last
+    assert_equal topics(:first), topics.last
 
     topics = Topic.find_all_by_content("Have a nice day", :order => "id")
-    assert topics(:first), topics.first
+    assert_equal topics(:first), topics.first
   end
 
   def test_find_all_by_array_attribute

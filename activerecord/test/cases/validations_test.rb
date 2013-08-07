@@ -249,7 +249,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_create_without_validation_bang
     count = Reply.count
     assert_nothing_raised { Reply.new.save_without_validation! }
-    assert count+1, Reply.count
+    assert_equal count+1, Reply.count
   end
 
   def test_validates_each
@@ -1556,7 +1556,7 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
-  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
+  JUNK = ["not a number", "42 not a number", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
   INFINITY = [1.0/0.0]
 
   repair_validations(Topic)

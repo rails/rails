@@ -35,6 +35,7 @@ class HabtmJoinTableTest < ActiveRecord::TestCase
 
   uses_transaction :test_should_raise_exception_when_join_table_has_a_primary_key
   def test_should_raise_exception_when_join_table_has_a_primary_key
+    failed_pre_200
     if ActiveRecord::Base.connection.supports_primary_key?
       assert_raise ActiveRecord::ConfigurationError do
         jaime = MyReader.create(:name=>"Jaime")
@@ -45,6 +46,7 @@ class HabtmJoinTableTest < ActiveRecord::TestCase
 
   uses_transaction :test_should_cache_result_of_primary_key_check
   def test_should_cache_result_of_primary_key_check
+    failed_pre_200
     if ActiveRecord::Base.connection.supports_primary_key?
       ActiveRecord::Base.connection.stubs(:primary_key).with('my_books_my_readers').returns(false).once
       weaz = MyReader.create(:name=>'Weaz')
