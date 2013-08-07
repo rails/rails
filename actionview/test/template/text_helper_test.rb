@@ -222,6 +222,11 @@ class TextHelperTest < ActionView::TestCase
     )
   end
 
+  def test_highlight_accepts_regexp
+    assert_equal("This day was challenging for judge <mark>Allen</mark> and his colleagues.",
+                 highlight("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i))
+  end
+
   def test_highlight_with_multiple_phrases_in_one_pass
     assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), :highlighter => '<em>\1</em>')
   end

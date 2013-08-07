@@ -123,7 +123,9 @@ module ActionView
           text
         else
           highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-          match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
+          match = Array(phrases).map do |p|
+            Regexp === p ? p.to_s : Regexp.escape(p)
+          end.join('|')
           text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
         end.html_safe
       end
