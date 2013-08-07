@@ -1,9 +1,9 @@
-require "rails"
-require "action_controller"
-require "action_dispatch/railtie"
-require "action_view/railtie"
-require "abstract_controller/railties/routes_helpers"
-require "action_controller/railties/helpers"
+require 'rails'
+require 'action_controller'
+require 'action_dispatch/railtie'
+require 'action_view/railtie'
+require 'abstract_controller/railties/routes_helpers'
+require 'action_controller/railties/helpers'
 
 module ActionController
   class Railtie < Rails::Railtie #:nodoc:
