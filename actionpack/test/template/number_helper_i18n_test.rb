@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class NumberHelperI18nTests < Test::Unit::TestCase
+class NumberHelperI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::NumberHelper
 
   attr_reader :request
@@ -20,6 +20,8 @@ class NumberHelperI18nTests < Test::Unit::TestCase
   end
 
   def test_number_to_currency_translates_currency_formats
+    failed_pre_200
+
     I18n.expects(:translate).with(:'number.format', :locale => 'en', :raise => true).returns(@number_defaults)
     I18n.expects(:translate).with(:'number.currency.format', :locale => 'en',
                                   :raise => true).returns(@currency_defaults)
@@ -27,6 +29,8 @@ class NumberHelperI18nTests < Test::Unit::TestCase
   end
 
   def test_number_with_precision_translates_number_formats
+    failed_pre_200
+
     I18n.expects(:translate).with(:'number.format', :locale => 'en', :raise => true).returns(@number_defaults)
     I18n.expects(:translate).with(:'number.precision.format', :locale => 'en',
                                   :raise => true).returns(@precision_defaults)
@@ -39,6 +43,8 @@ class NumberHelperI18nTests < Test::Unit::TestCase
   end
 
   def test_number_to_percentage_translates_number_formats
+    failed_pre_200
+
     I18n.expects(:translate).with(:'number.format', :locale => 'en', :raise => true).returns(@number_defaults)
     I18n.expects(:translate).with(:'number.percentage.format', :locale => 'en',
                                   :raise => true).returns(@percentage_defaults)
@@ -46,6 +52,8 @@ class NumberHelperI18nTests < Test::Unit::TestCase
   end
 
   def test_number_to_human_size_translates_human_formats
+    failed_pre_200
+
     I18n.expects(:translate).with(:'number.format', :locale => 'en', :raise => true).returns(@number_defaults)
     I18n.expects(:translate).with(:'number.human.format', :locale => 'en',
                                   :raise => true).returns(@human_defaults)

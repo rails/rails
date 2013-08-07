@@ -105,6 +105,7 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_parameterize_and_normalize
+    failed_pre_200
     StringToParameterizedAndNormalized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
     end

@@ -94,6 +94,8 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
   end
 
   test "parses mixed files" do
+    failed_pre_200
+
     params = parse_multipart('mixed_files')
     assert_equal %w(files foo), params.keys.sort
     assert_equal 'bar', params['foo']

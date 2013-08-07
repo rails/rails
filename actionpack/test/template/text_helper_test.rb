@@ -244,6 +244,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_auto_link_parsing
+    failed_pre_200
     urls = %w(
       http://www.rubyonrails.com
       http://www.rubyonrails.com:80

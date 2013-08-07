@@ -226,6 +226,7 @@ class OrderedHashTest < Test::Unit::TestCase
   end
 
   def test_each_after_yaml_serialization
+    failed_pre_200
     values = []
     @deserialized_ordered_hash = YAML::load(YAML::dump(@ordered_hash))
 
@@ -234,6 +235,7 @@ class OrderedHashTest < Test::Unit::TestCase
   end
 
   def test_order_after_yaml_serialization
+    failed_pre_200
     @deserialized_ordered_hash = YAML::load(YAML::dump(@ordered_hash))
 
     assert_equal @keys,   @deserialized_ordered_hash.keys
@@ -241,6 +243,7 @@ class OrderedHashTest < Test::Unit::TestCase
   end
 
   def test_order_after_yaml_serialization_with_nested_arrays
+    failed_pre_200
     @ordered_hash[:array] = %w(a b c)
 
     @deserialized_ordered_hash = YAML::load(YAML::dump(@ordered_hash))

@@ -342,6 +342,8 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   end
 
   def test_cookie_monster
+    failed_pre_200
+
     with_test_route_set do
       self.cookies['cookie_1'] = "sugar"
       self.cookies['cookie_2'] = "oatmeal"

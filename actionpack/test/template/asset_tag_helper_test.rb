@@ -236,6 +236,8 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag
+    failed_pre_200
+
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -710,6 +712,8 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_compute_proper_path
+    failed_pre_200
+
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
     assert_dom_equal(%(/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
     assert_dom_equal(%(/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
@@ -723,6 +727,8 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_compute_proper_path_with_asset_host
+    failed_pre_200
+
     ActionController::Base.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))

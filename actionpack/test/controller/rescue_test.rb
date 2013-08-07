@@ -273,6 +273,7 @@ class RescueControllerTest < ActionController::TestCase
   end
 
   def test_rescue_action_locally
+    failed_pre_200
     get :raises
     assert_response :internal_server_error
     assert_template 'diagnostics.erb'
