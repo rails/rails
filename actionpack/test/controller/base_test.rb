@@ -151,6 +151,7 @@ class PerformActionTest < ActionController::TestCase
   
   def test_get_on_hidden_should_fail
     use_controller NonEmptyController
+
     get :hidden_action
     assert_response 404
     
