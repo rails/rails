@@ -105,7 +105,7 @@ will be the template used for the email, formatted in HTML:
     <h1>Welcome to example.com, <%= @user.name %></h1>
     <p>
       You have successfully signed up to example.com,
-      your username is: <%= @user.login %>.<br/>
+      your username is: <%= @user.login %>.<br>
     </p>
     <p>
       To login to the site, just follow this link: <%= @url %>.
