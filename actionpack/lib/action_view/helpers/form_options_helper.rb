@@ -97,14 +97,17 @@ module ActionView
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.
       #
-      # There are two possible formats for the choices parameter, corresponding to other helpers' output:
-      #   * A flat collection: see options_for_select
-      #   * A nested collection: see grouped_options_for_select
+      # There are two possible formats for the +choices+ parameter, corresponding to other helpers' output:
       #
-      # Example with @post.person_id => 1:
+      # * A flat collection (see +options_for_select+).
+      #
+      # * A nested collection (see +grouped_options_for_select+).
+      #
+      # For example:
+      #
       #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
       #
-      # could become:
+      # would become:
       #
       #   <select name="post[person_id]">
       #     <option value=""></option>
@@ -112,6 +115,8 @@ module ActionView
       #     <option value="2">Sam</option>
       #     <option value="3">Tobias</option>
       #   </select>
+      #
+      # assuming the associated person has ID 1.
       #
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
