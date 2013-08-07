@@ -1,3 +1,7 @@
+*   Fix multidimensional PG arrays containing non-string items.
+
+    *Yves Senn*
+
 *   Load fixtures from linked folders.
 
     *Kassio Borges*
