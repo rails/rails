@@ -1,304 +1,186 @@
-*   Fix the `ActiveSupport::Duration#instance_of?` method to return the right
-    value with the class itself since it was previously delegated to the
-    internal value.
+*   Added method `#eql?` to `ActiveSupport::Duration`, in addition to `#==`.
 
-    *Robin Dupret*
+    Currently, the following returns `false`, contrary to expectation:
 
-*   Fix rounding errors with #travel_to by resetting the usec on any passed time to zero, so we only travel
-    with per-second precision, not anything deeper than that.
+        1.minute.eql?(1.minute)
+
+    Adding method `#eql?` will make this behave like expected. Method `#eql?` is
+    just a bit stricter than `#==`, as it checks whether the argument is also a duration. Their
+    parts may be different though.
+
+        1.minute.eql?(60.seconds)  # => true
+        1.minute.eql?(60)          # => false
+
+    *Joost Lubach*
+
+*   Remove 'cow' => 'kine' irregular inflection from default inflections.
+
+    *Andrew White*
+
+*   Add `DateTime#to_s(:iso8601)` and `Date#to_s(:iso8601)` for consistency.
+
+    *Andrew White*
+
+*   Add `Time#to_s(:iso8601)` for easy conversion of times to the iso8601 format for easy Javascript date parsing.
 
     *DHH*
 
-*   Fix ActiveSupport::TestCase not to order users' test cases by default.
-    If this change breaks your tests because your tests are order dependent, you need to explicitly call
-    ActiveSupport::TestCase.my_tests_are_order_dependent! at the top of your tests.
+*   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
+    The memory used by a key/entry pair is calculated via `#cached_size`:
 
-    *Akira Matsuda*
+        def cached_size(key, entry)
+          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+        end
 
-*   Fix DateTime comparison with DateTime::Infinity object.
+    The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
+    estimation](https://gist.github.com/ssimeonov/6047200) for 64-bit MRI on
+    1.9.3 and 2.0. GH#11512
 
-    *Rafael Mendonça França*
+    *Simeon Simeonov*
 
-*   Added Object#itself which returns the object itself. Useful when dealing with a chaining scenario, like Active Record scopes:
+*   Only raise `Module::DelegationError` if it's the source of the exception.
 
-        Event.public_send(state.presence_in([ :trashed, :drafted ]) || :itself).order(:created_at)
+    Fixes #10559
 
-    *DHH*
+    *Andrew White*
 
-*   `Object#with_options` executes block in merging option context when
-    explicit receiver in not passed.
+*   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
-    *Pavel Pravosud*
+    Fixes #11350
 
-*   Fixed a compatibility issue with the `Oj` gem when cherry-picking the file
-    `active_support/core_ext/object/json` without requiring `active_support/json`.
+    *Neer Friedman*, *Andrew White*
 
-    Fixes #16131.
+*   Make `HashWithIndifferentAccess#select` always return the hash, even when
+    `Hash#select!` returns `nil`, to allow further chaining.
 
-    *Godfrey Chan*
+    *Marc Schütz*
 
-*   Make `Hash#with_indifferent_access` copy the default proc too.
+*   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
 
-    *arthurnn*, *Xanders*
+    *Arun Agrawal*
 
-*   Add `String#truncate_words` to truncate a string by a number of words.
+*   Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
 
-    *Mohamed Osama*
+    *Arun Agrawal*
 
-*   Deprecate `capture` and `quietly`.
+*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
 
-    These methods are not thread safe and may cause issues when used in threaded environments.
-    To avoid problems we are deprecating them.
+    *Arun Agrawal*
 
-    *Tom Meier*
+*   Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
 
-*   `DateTime#to_f` now preserves the fractional seconds instead of always
-    rounding to `.0`.
+    *Carlos Antonio da Silva*
 
-    Fixes #15994.
+*   Remove deprecated `Time#time_with_datetime_fallback`, `Time#utc_time`
+    and `Time#local_time` in favor of `Time#utc` and `Time#local`.
 
-    *John Paul Ashenfelter*
+    *Vipul A M*
 
-*   Add `Hash#transform_values` to simplify a common pattern where the values of a
-    hash must change, but the keys are left the same.
+*   Remove deprecated `Hash#diff` with no replacement.
 
-    *Sean Griffin*
+    If you're using it to compare hashes for the purpose of testing, please use
+    MiniTest's `assert_equal` instead.
 
-*   Always instrument `ActiveSupport::Cache`.
+    *Carlos Antonio da Silva*
 
-    Since `ActiveSupport::Notifications` only instrument items when there
-    are subscriber we don't need to disable instrumentation.
+*   Remove deprecated `Date#to_time_in_current_zone` in favor of `Date#in_time_zone`.
 
-    *Peter Wagenet*
+    *Vipul A M*
 
-*   Make the `apply_inflections` method case-insensitive when checking
-    whether a word is uncountable or not.
+*   Remove deprecated `Proc#bind` with no replacement.
 
-    *Robin Dupret*
+    *Carlos Antonio da Silva*
 
-*   Make Dependencies pass a name to NameError error.
+*   Remove deprecated `Array#uniq_by` and `Array#uniq_by!`, use native
+    `Array#uniq` and `Array#uniq!` instead.
 
-    *arthurnn*
+    *Carlos Antonio da Silva*
 
-*   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+*   Remove deprecated `ActiveSupport::BasicObject`, use `ActiveSupport::ProxyObject` instead.
 
-    *Adam Panzer / Michael Grosser*
+    *Carlos Antonio da Silva*
 
-*   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
-    when working with objects with a nanosecond component.
+*   Remove deprecated `BufferedLogger`.
 
-    `ActiveSupport::TimeWithZone#-` should return the same result as if we were
-    using `Time#-`:
+    *Yves Senn*
 
-        Time.now.end_of_day - Time.now.beginning_of_day #=> 86399.999999999
+*   Remove deprecated `assert_present` and `assert_blank` methods.
 
-    Before:
+    *Yves Senn*
 
-        Time.zone.now.end_of_day.nsec #=> 999999999
-        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day #=> 86400.0
+*   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
+    with multiple silencers.
 
-    After:
-
-        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day
-        #=> 86399.999999999
-
-    *Gordon Chan*
-
-*   Fixed precision error in NumberHelper when using Rationals.
-
-    Before:
-
-        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
-        #=> "330.00"
-
-    After:
-
-        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
-        #=> "333.33"
-
-    See #15379.
-
-    *Juanjo Bazán*
-
-*   Removed deprecated `Numeric#ago` and friends
-
-    Replacements:
-
-        5.ago   => 5.seconds.ago
-        5.until => 5.seconds.until
-        5.since => 5.seconds.since
-        5.from_now => 5.seconds.from_now
-
-    See #12389 for the history and rationale behind this.
-
-    *Godfrey Chan*
-
-*   DateTime `advance` now supports partial days.
-
-    Before:
-
-        DateTime.now.advance(days: 1, hours: 12)
-
-    After:
-
-        DateTime.now.advance(days: 1.5)
-
-    Fixes #12005.
-
-    *Shay Davidson*
-
-*   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
-    in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
-    `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
-    `Hash#deep_symbolize_keys!`.
-
-    *OZAWA Sakuro*
-
-*   Fixed confusing `DelegationError` in `Module#delegate`.
-
-    See #15186.
-
-    *Vladimir Yarotsky*
-
-*   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
-    when a subscriber method is redefined.
-
-    *Dennis Schön*
-
-*   Remove deprecated string based terminators for `ActiveSupport::Callbacks`.
-
-    *Eileen M. Uchitelle*
-
-*   Fixed an issue when using
-    `ActiveSupport::NumberHelper::NumberToDelimitedConverter` to
-    convert a value that is an `ActiveSupport::SafeBuffer` introduced
-    in 2da9d67.
-
-    See #15064.
+    Fixes #11030
 
     *Mark J. Titorenko*
 
-*   `TimeZone#parse` defaults the day of the month to '1' if any other date
-    components are specified. This is more consistent with the behavior of
-    `Time#parse`.
+*   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
+    instance instead of a `Hash` instance.
 
-    *Ulysse Carion*
+    Fixes #10723
 
-*   `humanize` strips leading underscores, if any.
+    *Albert Llop*
 
-    Before:
+*   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
+    sub-second resolution when wrapping a `DateTime` value.
 
-        '_id'.humanize # => ""
+    Fixes #10855
 
-    After:
+    *Andrew White*
 
-        '_id'.humanize # => "Id"
+*   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
+    `#blame_file!` on Exceptions that do not have the Blamable mixin
 
-    *Xavier Noria*
+    *Andrew Kreiling*
 
-*   Fixed backward compatibility isues introduced in 326e652.
+*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
 
-    Empty Hash or Array should not present in serialization result.
+    *Andrew White*
 
-        {a: []}.to_query # => ""
-        {a: {}}.to_query # => ""
+*   Prevent side effects to hashes inside arrays when
+    `Hash#with_indifferent_access` is called.
 
-    For more info see #14948.
+    Fixes #10526
 
-    *Bogdan Gusiev*
+    *Yves Senn*
 
-*   Add `Digest::UUID::uuid_v3` and `Digest::UUID::uuid_v5` to support stable
-    UUID fixtures on PostgreSQL.
+*   Raise an error when multiple `included` blocks are defined for a Concern.
+    The old behavior would silently discard previously defined blocks, running
+    only the last one.
 
-    *Roderick van Domburg*
+    *Mike Dillon*
 
-*   Fixed `ActiveSupport::Duration#eql?` so that `1.second.eql?(1.second)` is
-    true.
+*   Replace `multi_json` with `json`.
 
-    This fixes the current situation of:
+    Since Rails requires Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
+    `multi_json` is no longer necessary.
 
-        1.second.eql?(1.second) #=> false
+    *Erik Michaels-Ober*
 
-    `eql?` also requires that the other object is an `ActiveSupport::Duration`.
-    This requirement makes `ActiveSupport::Duration`'s behavior consistent with
-    the behavior of Ruby's numeric types:
+*   Added escaping of U+2028 and U+2029 inside the json encoder.
+    These characters are legal in JSON but break the Javascript interpreter.
+    After escaping them, the JSON is still legal and can be parsed by Javascript.
 
-        1.eql?(1.0) #=> false
-        1.0.eql?(1) #=> false
+    *Mario Caropreso + Viktor Kelemen + zackham*
 
-        1.second.eql?(1) #=> false (was true)
-        1.eql?(1.second) #=> false
+*   Fix skipping object callbacks using metadata fetched via callback chain
+    inspection methods (`_*_callbacks`)
 
-        { 1 => "foo", 1.0 => "bar" }
-        #=> { 1 => "foo", 1.0 => "bar" }
+    *Sean Walbran*
 
-        { 1 => "foo", 1.second => "bar" }
-        # now => { 1 => "foo", 1.second => "bar" }
-        # was => { 1 => "bar" }
+*   Add a `fetch_multi` method to the cache stores. The method provides
+    an easy to use API for fetching multiple values from the cache.
 
-    And though the behavior of these hasn't changed, for reference:
+    Example:
 
-        1 == 1.0 #=> true
-        1.0 == 1 #=> true
-
-        1 == 1.second #=> true
-        1.second == 1 #=> true
-
-    *Emily Dobervich*
-
-*   `ActiveSupport::SafeBuffer#prepend` acts like `String#prepend` and modifies
-    instance in-place, returning self. `ActiveSupport::SafeBuffer#prepend!` is
-    deprecated.
-
-    *Pavel Pravosud*
-
-*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
-    given. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
-    objects which respond to `#to_hash`, even if those objects are not Hashes
-    directly.
-
-    *Peter Jaros*
-
-*   Deprecate `Class#superclass_delegating_accessor`, use `Class#class_attribute` instead.
-
-    *Akshay Vishnoi*
-
-*   Ensure classes which `include Enumerable` get `#to_json` in addition to
-    `#as_json`.
-
-    *Sammy Larbi*
-
-*   Change the signature of `fetch_multi` to return a hash rather than an
-    array. This makes it consistent with the output of `read_multi`.
-
-    *Parker Selbert*
-
-*   Introduce `Concern#class_methods` as a sleek alternative to clunky
-    `module ClassMethods`. Add `Kernel#concern` to define at the toplevel
-    without chunky `module Foo; extend ActiveSupport::Concern` boilerplate.
-
-        # app/models/concerns/authentication.rb
-        concern :Authentication do
-          included do
-            after_create :generate_private_key
-          end
-
-          class_methods do
-            def authenticate(credentials)
-              # ...
-            end
-          end
-
-          def generate_private_key
-            # ...
-          end
+        # Calculating scores is expensive, so we only do it for posts
+        # that have been updated. Cache keys are automatically extracted
+        # from objects that define a #cache_key method.
+        scores = Rails.cache.fetch_multi(*posts) do |post|
+          calculate_score(post)
         end
 
-        # app/models/user.rb
-        class User < ActiveRecord::Base
-          include Authentication
-        end
+    *Daniel Schierbeck*
 
-    *Jeremy Kemper*
-
-Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activesupport/CHANGELOG.md) for previous changes.
+Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
