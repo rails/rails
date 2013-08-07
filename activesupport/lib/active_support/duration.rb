@@ -49,6 +49,12 @@ module ActiveSupport
       end
     end
 
+    # Returns +true+ if +other+ is also a Duration instance, which has the
+    # same parts as this one.
+    def eql?(other)
+      Duration === other && other.value.eql?(value)
+    end
+
     def self.===(other) #:nodoc:
       other.is_a?(Duration)
     rescue ::NoMethodError

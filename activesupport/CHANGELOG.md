@@ -1,3 +1,18 @@
+*   Added method `#eql?` to `ActiveSupport::Duration`, in addition to `#==`.
+
+    Currently, the following returns `false`, contrary to expectation:
+
+        1.minute.eql?(1.minute)
+
+    Adding method `#eql?` will make this behave like expected. Method `#eql?` is
+    just a bit stricter than `#==`, as it checks whether the argument is also a duration. Their
+    parts may be different though.
+
+        1.minute.eql?(60.seconds)  # => true
+        1.minute.eql?(60)          # => false
+
+    *Joost Lubach*
+
 *   Remove 'cow' => 'kine' irregular inflection from default inflections.
 
     *Andrew White*
