@@ -2921,7 +2921,7 @@ module ActiveRecord #:nodoc:
           if k.to_s.include?("(")
             multiparameter_attributes << [ k, v ]
           else
-            respond_to?(:"#{k}=") ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
+            (respond_to?(:"#{k}=", true) && !method(:"#{k}=").private?) ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
           end
         end
 
