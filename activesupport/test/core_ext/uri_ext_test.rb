@@ -6,7 +6,7 @@ class URIExtTest < Test::Unit::TestCase
     str = "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E" # Ni-ho-nn-go in UTF-8, means Japanese.
     str.force_encoding(Encoding::UTF_8) if str.respond_to?(:force_encoding)
 
-    assert_equal str, URI.unescape(URI.escape(str))
-    assert_equal str, URI.decode(URI.escape(str))
+    assert_equal str, URI.parser.unescape(URI.parser.escape(str))
+    assert_equal str, URI.parser.decode(URI.parser.escape(str))
   end
 end
