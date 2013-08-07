@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_view/vendor/html-scanner/html/node'
 
 class TextNodeTest < ActiveSupport::TestCase
   def setup
