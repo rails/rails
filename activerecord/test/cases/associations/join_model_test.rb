@@ -299,7 +299,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_array_methods_called_by_method_missing
-    assert true, authors(:david).categories.any? { |category| category.name == 'General' }
+    assert authors(:david).categories.any? { |category| category.name == 'General' }
     assert_nothing_raised { authors(:david).categories.sort }
   end
 
