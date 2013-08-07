@@ -135,6 +135,10 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
   end
 
   def test_scaffold_plural_model_name_with_force_plural_forces_plural_model
+    puts
+    p Rails::Generator::Base.instance_method(:command).source_location
+    exit!
+
     run_generator('scaffold', %w(Products name:string --force-plural))
 
     assert_generated_model_for :products
