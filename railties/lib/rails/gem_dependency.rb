@@ -4,6 +4,12 @@ module Gem
   def self.source_index
     Gem::Specification
   end
+
+  def self.source_index_search(dep)
+    Gem::Specification.select { |spec|
+      dep.matches_spec?(spec)
+    }
+  end
 end
 
 module Rails
@@ -101,7 +107,7 @@ module Rails
       # code repeated from Gem.activate. Find a matching spec, or the currently loaded version.
       # error out if loaded version and requested version are incompatible.
       @spec ||= begin
-        matches = Gem.source_index.search(self)
+        matches = Gem.source_index_search(self)
         matches << @@framework_gems[name] if framework_gem?
         if Gem.loaded_specs[name] then
           # This gem is already loaded.  If the currently loaded gem is not in the
