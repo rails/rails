@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_view/vendor/html-scanner/html/tokenizer'
 
 class TokenizerTest < ActiveSupport::TestCase
 
