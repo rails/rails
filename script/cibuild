@@ -5,6 +5,9 @@ set -e
 
 export RBENV_VERSION="1.9.3-p231-tcs-github"
 
+# Announce who we are
+ruby -v
+
 # Because Rails 2.3 doesn't use Bundler for its own tests,
 # we need to setup an isolated gem environment.
 
@@ -28,6 +31,9 @@ if [ ! -d $gem_pristine_dir ]; then
 fi
 
 cp -r $gem_pristine_dir $gem_dir
+
+# rbenv is a pile of shit
+rbenv rehash
 
 # Go ham
 rake
