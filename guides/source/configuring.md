@@ -301,7 +301,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in test mode and `true` in all other modes.
 
-* `config.action_controller.relative_url_root` can be used to tell Rails that you are deploying to a subdirectory. The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
+* `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
@@ -535,6 +535,43 @@ Imagine you have a server which mirrors the production environment but is only u
 That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`, `Rails.env.staging?` works, etc.
 
 
+### Deploy to a subdirectory (relative url root)
+
+By default Rails expects that your application is running at the root
+(eg. `/`). This section explains how to run your application inside a directory.
+
+Let's assume we want to deploy our application to "/app1". Rails needs to know
+this directory to generate the appropriate routes:
+
+```ruby
+config.relative_url_root = "/app1"
+```
+
+alternatively you can set the `RAILS_RELATIVE_URL_ROOT` environment
+variable.
+
+Rails will now prepend "/app1" when generating links.
+
+#### Using Passenger
+
+Passenger makes it easiy to run your application in a subdirectory. You can find
+the relevant configuration in the
+[passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
+
+#### Using a Reverse Proxy
+
+TODO
+
+#### Considerations when deploying to a subdirectory
+
+Deploying to a subdirectory in production has implications on various parts of
+Rails.
+
+* development environment:
+* testing environment:
+* serving static assets:
+* asset pipeline:
+
 Rails Environment Settings
 --------------------------
 
@@ -542,7 +579,7 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 * `ENV["RAILS_ENV"]` defines the Rails environment (production, development, test, and so on) that Rails will run under.
 
-* `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
+* `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you [deploy your application to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root).
 
 * `ENV["RAILS_CACHE_ID"]` and `ENV["RAILS_APP_VERSION"]` are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
