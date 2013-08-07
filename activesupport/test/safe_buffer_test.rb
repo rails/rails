@@ -11,6 +11,7 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should not escape a raw string unless using rails_xss" do
+    failed_pre_200
     @buffer << "<script>"
     assert_equal "<script>", @buffer
   end

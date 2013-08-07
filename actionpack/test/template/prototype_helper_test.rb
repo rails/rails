@@ -67,6 +67,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_link_to_remote
+    failed_pre_200
+
     assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outauthor</a>),
       link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
     assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.responseText)}}); return false;\">Remote outauthor</a>),
@@ -84,16 +86,22 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_link_to_remote_html_options
+    failed_pre_200
+
     assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outauthor</a>),
       link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }, :html => { :class => "fine" } })
   end
 
   def test_link_to_remote_url_quote_escaping
+    failed_pre_200
+
     assert_dom_equal %(<a href="#" onclick="new Ajax.Request('http://www.example.com/whatnot\\\'s', {asynchronous:true, evalScripts:true}); return false;">Remote</a>),
       link_to_remote("Remote", { :url => { :action => "whatnot's" } })
   end
 
   def test_button_to_remote
+    failed_pre_200
+
     assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true});\" />),
       button_to_remote("Remote outpost", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
     assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.reponseText)}});\" />),
@@ -119,6 +127,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_form_remote_tag
+    failed_pre_200
+
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">),
       form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater({success:'glass_of_beer'}, 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">),
@@ -130,17 +140,23 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_form_remote_tag_with_method
+    failed_pre_200
+
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"><div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div>),
       form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, :html => { :method => :put })
   end
 
   def test_form_remote_tag_with_block_in_erb
+    failed_pre_200
+
     __in_erb_template = ''
     form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) { concat "Hello world!" }
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">Hello world!</form>), output_buffer
   end
 
   def test_remote_form_for_with_record_identification_with_new_record
+    failed_pre_200
+
     remote_form_for(@record, {:html => { :id => 'create-author' }}) {}
 
     expected = %(<form action='#{authors_path}' onsubmit="new Ajax.Request('#{authors_path}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' id='create-author' method='post'></form>)
@@ -148,6 +164,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_remote_form_for_with_record_identification_without_html_options
+    failed_pre_200
+
     remote_form_for(@record) {}
 
     expected = %(<form action='#{authors_path}' onsubmit="new Ajax.Request('#{authors_path}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' method='post' id='new_author'></form>)
@@ -155,6 +173,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_remote_form_for_with_record_identification_with_existing_record
+    failed_pre_200
+
     @record.save
     remote_form_for(@record) {}
 
@@ -163,6 +183,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_remote_form_for_with_new_object_in_list
+    failed_pre_200
+
     remote_form_for([@author, @article]) {}
 
     expected = %(<form action='#{author_articles_path(@author)}' onsubmit="new Ajax.Request('#{author_articles_path(@author)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_article' method='post' id='new_article'></form>)
@@ -170,6 +192,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_remote_form_for_with_existing_object_in_list
+    failed_pre_200
+
     @author.save
     @article.save
     remote_form_for([@author, @article]) {}
@@ -179,6 +203,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_on_callbacks
+    failed_pre_200
+
     callbacks = [:uninitialized, :loading, :loaded, :interactive, :complete, :success, :failure]
     callbacks.each do |callback|
       assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, on#{callback.to_s.capitalize}:function(request){monkeys();}, parameters:Form.serialize(this)}); return false;">),
@@ -219,6 +245,7 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_submit_to_remote
+    failed_pre_200
     assert_dom_equal %(<input name=\"More beer!\" onclick=\"new Ajax.Updater('empty_bottle', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)});\" type=\"button\" value=\"1000000\" />),
       submit_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
   end

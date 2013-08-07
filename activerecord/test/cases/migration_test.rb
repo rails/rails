@@ -818,6 +818,8 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_change_column
+      name = @__name__
+
       Person.connection.add_column 'people', 'age', :integer
       old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
       assert old_columns.find { |c| c.name == 'age' and c.type == :integer }
@@ -997,7 +999,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       elsif current_adapter?(:SQLiteAdapter)
         # - SQLite3 stores a float, in violation of SQL
         assert_kind_of BigDecimal, b.value_of_e
-        assert_equal BigDecimal("2.71828182845905"), b.value_of_e
+        assert (2.71828182845905 - b.value_of_e) < 0.000001
       else
         # - SQL standard is an integer
         assert_kind_of Fixnum, b.value_of_e

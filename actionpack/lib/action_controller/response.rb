@@ -70,7 +70,7 @@ module ActionController # :nodoc:
         else
           "#{mime_type}; charset=#{c}"
         end
-      self.headers["Content-Type"] = URI.escape(new_content_type, "\r\n")
+      self.headers["Content-Type"] = URI::DEFAULT_PARSER.escape(new_content_type, "\r\n")
     end
 
     # Returns the response's content MIME type, or nil if content type has been set.

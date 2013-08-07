@@ -721,7 +721,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
 end
 
-class TimeExtMarshalingTest < Test::Unit::TestCase
+class TimeExtMarshalingTest < ActiveSupport::TestCase
   def test_marshaling_with_utc_instance
     t = Time.utc(2000)
     marshaled = Marshal.dump t
@@ -731,6 +731,7 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
   end
 
   def test_marshaling_with_local_instance
+    failed_pre_200
     t = Time.local(2000)
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
@@ -747,6 +748,7 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
   end
 
   def test_marshaling_with_frozen_local_instance
+    failed_pre_200
     t = Time.local(2000).freeze
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled

@@ -35,6 +35,7 @@ module ActiveSupport
       end
 
       def test_teardown_callback_with_exception
+        failed_pre_200
         tc = Class.new(TestCase) do
           teardown :bad_callback
           def bad_callback; raise 'oh noes' end

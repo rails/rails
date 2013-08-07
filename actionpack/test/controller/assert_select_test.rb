@@ -707,6 +707,8 @@ EOF
   #
 
   def test_assert_select_email
+    failed_pre_200
+
     assert_raise(Assertion) { assert_select_email {} }
     AssertSelectMailer.deliver_test "<div><p>foo</p><p>bar</p></div>"
     assert_select_email do

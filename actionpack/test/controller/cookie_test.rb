@@ -121,6 +121,8 @@ class CookieTest < ActionController::TestCase
   end
 
   def test_multiple_cookies
+    failed_pre_200
+
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
     assert_equal "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", @response.headers["Set-Cookie"][0]

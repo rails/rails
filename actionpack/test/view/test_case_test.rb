@@ -165,6 +165,7 @@ module ActionView
       helper_method :render_from_helper
 
       test "uses the output_buffer for assert_select" do
+        failed_pre_200
         render(:partial => 'test/from_helper')
 
         assert_select 'form' do

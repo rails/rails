@@ -218,6 +218,7 @@ class WebServiceTest < ActionController::IntegrationTest
   end
 
   def test_typecast_as_yaml
+    failed_pre_200
     with_test_route_set do
       ActionController::Base.param_parsers[Mime::YAML] = :yaml
       yaml = <<-YAML

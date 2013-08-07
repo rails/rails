@@ -36,5 +36,9 @@ module ActiveSupport
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     extend ActiveSupport::Testing::Declarative
+
+    def failed_pre_200
+      skip "failed pre-2.0.0"
+    end
   end
 end

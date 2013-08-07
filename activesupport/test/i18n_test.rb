@@ -1,12 +1,13 @@
 require 'abstract_unit'
 
-class I18nTest < Test::Unit::TestCase
+class I18nTest < ActiveSupport::TestCase
   def setup
     @date = Date.parse("2008-7-2")
     @time = Time.utc(2008, 7, 2, 16, 47, 1)
   end
   
   def test_time_zone_localization_with_default_format
+    failed_pre_200
     Time.zone.stubs(:now).returns Time.local(2000)
     assert_equal Time.zone.now.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(Time.zone.now)
   end

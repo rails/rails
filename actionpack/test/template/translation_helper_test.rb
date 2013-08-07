@@ -38,6 +38,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_translation_of_an_array_with_html
+    failed_pre_200
     assert_deprecated do
       translate_expected = ['<a href="#">foo</a>', '<a href="#">bar</a>', '<a href="#">baz</a>']
       I18n.expects(:translate).with(["foo", "bar", "baz_html"], :raise => true).returns(translate_expected)

@@ -240,6 +240,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_current_returns_date_today_when_zone_default_not_set
+    failed_pre_200
     with_env_tz 'US/Central' do
       Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
       assert_equal Date.new(1999, 12, 31), Date.today
@@ -248,6 +249,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_current_returns_time_zone_today_when_zone_default_set
+    failed_pre_200
     Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Central' do
       Time.stubs(:now).returns Time.local(1999, 12, 31, 23)

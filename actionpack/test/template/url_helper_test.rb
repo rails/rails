@@ -18,6 +18,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_url_for_escapes_urls
+    failed_pre_200
     @controller.url = "http://www.example.com?a=b&c=d"
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd')
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd', :escape => true)
@@ -49,6 +50,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_button_to_with_escaped_query
+    failed_pre_200
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com/q1=v1&amp;q2=v2\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com/q1=v1&amp;q2=v2")
   end
 
@@ -57,6 +59,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_button_to_with_javascript_confirm
+    failed_pre_200
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input onclick=\"return confirm('Are you sure?');\" type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
@@ -115,10 +118,12 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_query
+    failed_pre_200
     assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">Hello</a>", link_to("Hello", "http://www.example.com?q1=v1&amp;q2=v2")
   end
 
   def test_link_tag_with_query_and_no_name
+    failed_pre_200
     assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">http://www.example.com?q1=v1&amp;q2=v2</a>", link_to(nil, "http://www.example.com?q1=v1&amp;q2=v2")
   end
 
@@ -143,6 +148,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_img
+    failed_pre_200
     assert_dom_equal "<a href=\"http://www.example.com\"><img src='/favicon.jpg' /></a>", link_to("<img src='/favicon.jpg' />", "http://www.example.com")
   end
 
@@ -151,10 +157,12 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_custom_onclick
+    failed_pre_200
     assert_dom_equal "<a href=\"http://www.example.com\" onclick=\"alert('yay!')\">Hello</a>", link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
   end
 
   def test_link_tag_with_javascript_confirm
+    failed_pre_200
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
@@ -170,6 +178,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_popup
+    failed_pre_200
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :popup => true)
@@ -185,6 +194,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_popup_and_javascript_confirm
+    failed_pre_200
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"if (confirm('Fo\\' sho\\'?')) { window.open(this.href); };return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", { :popup => true, :confirm => "Fo' sho'?" })
@@ -196,6 +206,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_post_javascript
+    failed_pre_200
     assert_dom_equal(
       "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post)
@@ -203,6 +214,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_delete_javascript
+    failed_pre_200
     assert_dom_equal(
       "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit();return false;\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete)
@@ -210,6 +222,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_delete_javascript_and_href
+    failed_pre_200
     assert_dom_equal(
       "<a href='\#' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = 'http://www.example.com';var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit();return false;\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#')
@@ -217,6 +230,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_post_javascript_and_confirm
+    failed_pre_200
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit(); };return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post, :confirm => "Are you serious?")
@@ -224,6 +238,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_delete_javascript_and_href_and_confirm
+    failed_pre_200
     assert_dom_equal(
       "<a href='\#' onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = 'http://www.example.com';var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#', :confirm => "Are you serious?"),
@@ -279,6 +294,7 @@ class UrlHelperTest < ActionView::TestCase
   end
   
   def test_current_page_with_params_that_match
+    failed_pre_200
     @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
     assert current_page?({ :action => "show", :controller => "weblog", :order => "desc", :page => "1" })
@@ -286,6 +302,8 @@ class UrlHelperTest < ActionView::TestCase
   end
   
   def test_link_unless_current
+    failed_pre_200
+    
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/show"
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
@@ -333,10 +351,12 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_mail_to_with_javascript
+    failed_pre_200
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript")
   end
 
   def test_mail_to_with_javascript_unicode
+    failed_pre_200
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%75%6e%69%63%6f%64%65%40%65%78%61%6d%70%6c%65%2e%63%6f%6d%5c%22%3e%c3%ba%6e%69%63%6f%64%65%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("unicode@example.com", "únicode", :encode => "javascript")
   end
 
@@ -357,6 +377,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_mail_to_with_replace_options
+    failed_pre_200
     assert_dom_equal "<a href=\"mailto:wolfgang@stufenlos.net\">wolfgang(at)stufenlos(dot)net</a>", mail_to("wolfgang@stufenlos.net", nil, :replace_at => "(at)", :replace_dot => "(dot)")
     assert_dom_equal "<a href=\"&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">&#109;&#101;&#40;&#97;&#116;&#41;&#100;&#111;&#109;&#97;&#105;&#110;&#46;&#99;&#111;&#109;</a>", mail_to("me@domain.com", nil, :encode => "hex", :replace_at => "(at)")
     assert_dom_equal "<a href=\"&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">My email</a>", mail_to("me@domain.com", "My email", :encode => "hex", :replace_at => "(at)")

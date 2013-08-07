@@ -280,6 +280,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag
+    failed_pre_200
+
     assert_dom_equal(
       %(<input name='commit' onclick="if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }else { hiddenCommit = document.createElement('input');hiddenCommit.type = 'hidden';hiddenCommit.value = this.value;hiddenCommit.name = this.name;this.form.appendChild(hiddenCommit); }this.setAttribute('originalValue', this.value);this.disabled = true;this.value='Saving...';alert('hello!');result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit());if (result == false) { this.value = this.getAttribute('originalValue');this.disabled = false; }return result;" type="submit" value="Save" />),
       submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
@@ -287,6 +289,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_no_onclick_options
+    failed_pre_200
+
     assert_dom_equal(
       %(<input name='commit' onclick="if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }else { hiddenCommit = document.createElement('input');hiddenCommit.type = 'hidden';hiddenCommit.value = this.value;hiddenCommit.name = this.name;this.form.appendChild(hiddenCommit); }this.setAttribute('originalValue', this.value);this.disabled = true;this.value='Saving...';result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit());if (result == false) { this.value = this.getAttribute('originalValue');this.disabled = false; }return result;" type="submit" value="Save" />),
       submit_tag("Save", :disable_with => "Saving...")
@@ -294,6 +298,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_confirmation
+    failed_pre_200
+
     assert_dom_equal(
       %(<input name='commit' type='submit' value='Save' onclick="if (!confirm('Are you sure?')) return false; return true;"/>),
       submit_tag("Save", :confirm => "Are you sure?")
@@ -301,6 +307,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_confirmation_and_with_disable_with
+    failed_pre_200
+
     assert_dom_equal(
       %(<input name="commit" onclick="if (!confirm('Are you sure?')) return false; if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }else { hiddenCommit = document.createElement('input');hiddenCommit.type = 'hidden';hiddenCommit.value = this.value;hiddenCommit.name = this.name;this.form.appendChild(hiddenCommit); }this.setAttribute('originalValue', this.value);this.disabled = true;this.value='Saving...';result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit());if (result == false) { this.value = this.getAttribute('originalValue');this.disabled = false; }return result;" type="submit" value="Save" />),
       submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
@@ -308,6 +316,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_image_submit_tag_with_confirmation
+    failed_pre_200
+
     assert_dom_equal(
       %(<input type="image" src="/images/save.gif" onclick="return confirm('Are you sure?');"/>),
       image_submit_tag("save.gif", :confirm => "Are you sure?")

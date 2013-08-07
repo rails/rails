@@ -152,7 +152,7 @@ module ActionController
       end
       trailing_slash = options.delete(:trailing_slash) if options.key?(:trailing_slash)
       url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
-      anchor = "##{URI.escape(options.delete(:anchor).to_param.to_s, UNSAFE_PCHAR)}" if options[:anchor]
+      anchor = "##{URI::DEFAULT_PARSER.escape(options.delete(:anchor).to_param.to_s, UNSAFE_PCHAR)}" if options[:anchor]
       generated = Routing::Routes.generate(options, {})
       url << (trailing_slash ? generated.sub(/\?|\z/) { "/" + $& } : generated)
       url << anchor if anchor

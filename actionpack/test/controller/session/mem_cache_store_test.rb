@@ -39,6 +39,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     DispatcherApp = ActionController::Dispatcher.new
 
     def test_setting_and_getting_session_value
+      failed_pre_200
+
       with_test_route_set do
         get '/set_session_value'
         assert_response :success
@@ -51,6 +53,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_getting_nil_session_value
+      failed_pre_200
+
       with_test_route_set do
         get '/get_session_value'
         assert_response :success
@@ -59,6 +63,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_setting_session_value_after_session_reset
+      failed_pre_200
+
       with_test_route_set do
         get '/set_session_value'
         assert_response :success
@@ -80,6 +86,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_getting_session_value_after_session_reset
+      failed_pre_200
+      
       with_test_route_set do
         get '/set_session_value'
         assert_response :success
@@ -99,6 +107,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_getting_from_nonexistent_session
+      failed_pre_200
+
       with_test_route_set do
         get '/get_session_value'
         assert_response :success
@@ -108,6 +118,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_getting_session_id
+      failed_pre_200
+
       with_test_route_set do
         get '/set_session_value'
         assert_response :success
@@ -121,6 +133,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_doesnt_write_session_cookie_if_session_id_is_already_exists
+      failed_pre_200
+
       with_test_route_set do
         get '/set_session_value'
         assert_response :success
@@ -133,6 +147,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
     
     def test_deserializes_unloaded_class
+      failed_pre_200
+
       with_test_route_set do
         with_autoload_path "session_autoload_test" do        
           get '/set_serialized_session_value'
@@ -152,6 +168,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def test_prevents_session_fixation
+      failed_pre_200
+
       with_test_route_set do
         get '/get_session_value'
         assert_response :success

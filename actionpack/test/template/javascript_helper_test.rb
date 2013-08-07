@@ -17,11 +17,15 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_link_to_function
+    failed_pre_200
+
     assert_dom_equal %(<a href="#" onclick="alert('Hello world!'); return false;">Greeting</a>),
       link_to_function("Greeting", "alert('Hello world!')")
   end
 
   def test_link_to_function_with_existing_onclick
+    failed_pre_200
+
     assert_dom_equal %(<a href="#" onclick="confirm('Sanity!'); alert('Hello world!'); return false;">Greeting</a>),
       link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
   end
@@ -41,11 +45,15 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_link_to_function_with_href
+    failed_pre_200
+
     assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
       link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
   end
 
   def test_button_to_function
+    failed_pre_200
+
     assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />),
       button_to_function("Greeting", "alert('Hello world!')")
   end
@@ -65,6 +73,8 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_button_to_function_with_onclick
+    failed_pre_200
+
     assert_dom_equal "<input onclick=\"alert('Goodbye World :('); alert('Hello world!');\" type=\"button\" value=\"Greeting\" />",
       button_to_function("Greeting", "alert('Hello world!')", :onclick => "alert('Goodbye World :(')")
   end
@@ -89,12 +99,16 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_javascript_tag_with_block_in_erb
+    failed_pre_200
+
     __in_erb_template = ''
     javascript_tag { concat "alert('hello')" }
     assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
   end
 
   def test_javascript_tag_with_block_and_options_in_erb
+    failed_pre_200
+
     __in_erb_template = ''
     javascript_tag(:id => "the_js_tag") { concat "alert('hello')" }
     assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer

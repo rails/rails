@@ -15,9 +15,12 @@ task :default => :test
 %w(test rdoc pgem package release gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
+    passed = true
     PROJECTS.each do |project|
       system %(cd #{project} && #{env} #{$0} #{task_name})
+      passed &&= $?.success?
     end
+    exit! passed
   end
 end
 

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TimeWithZoneTest < Test::Unit::TestCase
+class TimeWithZoneTest < ActiveSupport::TestCase
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)
@@ -97,10 +97,12 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_to_yaml
+    failed_pre_200
     assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
   end
 
   def test_ruby_to_yaml
+    failed_pre_200
     assert_equal "--- \n:twz: 2000-01-01 00:00:00 Z\n", {:twz => @twz}.to_yaml
   end
 

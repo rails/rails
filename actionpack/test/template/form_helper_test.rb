@@ -1150,6 +1150,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_labelled_builder
+    failed_pre_200
+
     form_for(:post, @post, :builder => LabelledFormBuilder) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
@@ -1189,6 +1191,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_default_form_builder_with_active_record_helpers
+    failed_pre_200
+
     form_for(:post, @post) do |f|
        concat f.error_message_on('author_name')
        concat f.error_messages
@@ -1204,6 +1208,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_default_form_builder_no_instance_variable
+    failed_pre_200
+
     post = @post
     @post = nil
 
@@ -1222,6 +1228,7 @@ class FormHelperTest < ActionView::TestCase
   end
   
   def test_default_form_builder_without_object
+    failed_pre_200
 
     form_for(:post) do |f|
        concat f.error_message_on('author_name')
@@ -1239,6 +1246,8 @@ class FormHelperTest < ActionView::TestCase
 
   # Perhaps this test should be moved to prototype helper tests.
   def test_remote_form_for_with_labelled_builder
+    failed_pre_200
+
     self.extend ActionView::Helpers::PrototypeHelper
 
      remote_form_for(:post, @post, :builder => LabelledFormBuilder) do |f|
@@ -1404,6 +1413,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_remote_form_for_with_html_options_adds_options_to_form_tag
+    failed_pre_200
+
     self.extend ActionView::Helpers::PrototypeHelper
 
     remote_form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end

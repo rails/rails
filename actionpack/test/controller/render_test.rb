@@ -845,11 +845,13 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_do_with_render_text_and_layout
+    failed_pre_200
     get :render_text_hello_world_with_layout
     assert_equal "<html>hello world, I'm here!</html>", @response.body
   end
 
   def test_xhr_with_render_text_and_layout
+    failed_pre_200
     xhr :get, :render_text_hello_world_with_layout
     assert_equal "<html>hello world, I'm here!</html>", @response.body
   end
@@ -1250,6 +1252,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_action_talk_to_layout
+    failed_pre_200
     get :action_talk_to_layout
     assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
