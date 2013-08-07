@@ -3,7 +3,9 @@
 set -x
 set -e
 
-export RBENV_VERSION="1.9.3-p231-tcs-github"
+# Use the right Ruby /without/ rbenv
+ruby_dir=$(dirname "$(RBENV_VERSION=1.9.3-p231-tcs-github rbenv which ruby)")
+export PATH=$ruby_dir:$PATH
 
 # Announce who we are
 ruby -v
@@ -31,9 +33,6 @@ if [ ! -d $gem_pristine_dir ]; then
 fi
 
 cp -r $gem_pristine_dir $gem_dir
-
-# rbenv is a pile of shit
-rbenv rehash
 
 # Go ham
 rake
