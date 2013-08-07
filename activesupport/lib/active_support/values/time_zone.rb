@@ -1,3 +1,4 @@
+require 'thread_safe'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 
@@ -362,10 +363,11 @@ module ActiveSupport
 
       def zones_map
         @zones_map ||= begin
-          new_zones_names = MAPPING.keys - lazy_zones_map.keys
-          new_zones       = Hash[new_zones_names.map { |place| [place, create(place)] }]
-
-          lazy_zones_map.merge(new_zones)
+          map = {}
+          MAPPING.each_key do |place|
+            map[place] = lazy_zones_map.fetch(place) { create(place) }
+          end
+          map
         end
       end
 
@@ -414,7 +416,7 @@ module ActiveSupport
         def lazy_zones_map
           require_tzinfo
 
-          @lazy_zones_map ||= Hash.new do |hash, place|
+          @lazy_zones_map ||= ThreadSafe::Cache.new do |hash, place|
             hash[place] = create(place) if MAPPING.has_key?(place)
           end
         end
