@@ -1,3 +1,7 @@
+*   Support :unless_exist in FileStore
+
+    *Michael Grosser*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 

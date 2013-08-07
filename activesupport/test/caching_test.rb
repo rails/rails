@@ -709,6 +709,13 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.send(:read_entry, "winston", {})
     assert @buffer.string.present?
   end
+
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+    @cache.write(1, nil)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
