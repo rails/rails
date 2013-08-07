@@ -584,9 +584,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed", post.body
   end
 
-  def test_unicode_column_name
-    weird = Weird.create(:なまえ => 'たこ焼き仮面')
-    assert_equal 'たこ焼き仮面', weird.なまえ
+  unless current_adapter?(:MysqlAdapter)
+    def test_unicode_column_name
+      columns = Weird.columns_hash.keys
+      weird = Weird.create(:なまえ => 'たこ焼き仮面')
+      assert_equal 'たこ焼き仮面', weird.なまえ
+    end
   end
 
   def test_non_valid_identifier_column_name
