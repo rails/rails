@@ -921,6 +921,15 @@ class RequestParameters < BaseRequestTest
     assert e.original_exception
     assert_equal e.original_exception.backtrace, e.backtrace
   end
+
+  test "invalid utf8 sequence in query params key raises bad request error" do
+    request = stub_request("QUERY_STRING" => "foo%81E=1", "rack.input" => "foo")
+
+    assert_raises(ActionController::BadRequest) do
+      # rack will raise a ArgumentError when parsing this query string
+      request.parameters
+    end
+  end
 end
 
 

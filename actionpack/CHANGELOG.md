@@ -1,3 +1,8 @@
+*   Rescue `ArgumentError` raised by Rack when it fails parsing query parameters
+    and properly return `Bad Request` error in such cases.
+
+    *Edho Arief*
+
 *   Preserve original path in `ShowExceptions` middleware by stashing it as
     `env["action_dispatch.original_path"]`
 

@@ -292,7 +292,7 @@ module ActionDispatch
     # Override Rack's GET method to support indifferent access
     def GET
       @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
-    rescue TypeError => e
+    rescue TypeError, ArgumentError => e
       raise ActionController::BadRequest.new(:query, e)
     end
     alias :query_parameters :GET
@@ -300,7 +300,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access
     def POST
       @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
-    rescue TypeError => e
+    rescue TypeError, ArgumentError => e
       raise ActionController::BadRequest.new(:request, e)
     end
     alias :request_parameters :POST
