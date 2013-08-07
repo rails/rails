@@ -495,6 +495,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
+  def test_include_with_select
+    query = Post.select('comments_count AS ranking').order('ranking').includes(:comments)
+      .where(comments: { id: 1 })
+
+    assert_equal ['comments_count AS ranking'], query.select_values
+    assert_equal 1, query.to_a.size
+  end
+
   def test_dynamic_find_by_attributes
     david = authors(:david)
     author = Author.preload(:taggings).find_by_id(david.id)
