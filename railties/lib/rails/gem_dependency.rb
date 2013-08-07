@@ -2,11 +2,7 @@ require 'rails/vendor_gem_source_index'
 
 module Gem
   def self.source_index
-    @@source_index ||= Gem::SourceIndex.new(Gem::Specification.dirs)
-  end
-
-  def self.source_index=(index)
-    @@source_index = index
+    Gem::Specification
   end
 end
 
