@@ -264,6 +264,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", :radius => 5))
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", :radius => 5))
+    assert_equal("...udge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 5))
+    assert_equal("...judge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 1, :separator => ' '))
     assert_nil excerpt("This is a beautiful morning", "day")
   end
 
