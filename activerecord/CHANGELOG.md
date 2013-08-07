@@ -1,3 +1,10 @@
+*   Unify boolean type casting for `MysqlAdapter` and `Mysql2Adapter`.
+    `type_cast` will return `1` for `true` and `0` for `false`.
+
+    Fixes #11119.
+
+    *Adam Williams*, *Yves Senn*
+
 *   Fix bug where has_one associaton record update result in crash, when replaced with itself.
 
     Fixes #12834.

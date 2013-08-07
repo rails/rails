@@ -206,6 +206,12 @@ module ActiveRecord
         true
       end
 
+      def type_cast(value, column)
+        return super unless value == true || value == false
+
+        value ? 1 : 0
+      end
+
       # MySQL 4 technically support transaction isolation, but it is affected by a bug
       # where the transaction level gets persisted for the whole session:
       #
