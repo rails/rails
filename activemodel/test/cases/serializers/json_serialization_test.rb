@@ -155,11 +155,20 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
-  test "as_json should keep the default order in the hash" do
+  test "as_json should keep the MRI default order in the hash" do
+    skip "on JRuby as order is different" if defined? JRUBY_VERSION
     json = @contact.as_json
 
     assert_equal %w(name age created_at awesome preferences), json.keys
   end
+
+  test "as_json should keep the JRuby default order in the hash" do
+    skip "on MRI as order is different" unless defined? JRUBY_VERSION
+    json = @contact.as_json
+
+    assert_equal %w(age name created_at awesome preferences), json.keys
+  end
+
 
   test "from_json should work without a root (class attribute)" do
     json = @contact.to_json
