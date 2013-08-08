@@ -346,7 +346,7 @@ would be
 create_join_table :products, :categories
 ```
 
-which creates a `pcategories_roducts` table with two columns called
+which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
 `false` by default.
 
