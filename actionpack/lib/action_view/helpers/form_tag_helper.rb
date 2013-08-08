@@ -449,16 +449,18 @@ module ActionView
         end
 
         def extra_tags_for_form(html_options)
+          authenticity_token = html_options.delete("authenticity_token")
+
           case method = html_options.delete("method").to_s
             when /^get$/i # must be case-insentive, but can't use downcase as might be nil
               html_options["method"] = "get"
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0;display:inline') : ''
+              protect_against_forgery? && authenticity_token != false ? content_tag(:div, token_tag(authenticity_token), :style => 'margin:0;padding:0;display:inline') : ''
             else
               html_options["method"] = "post"
-              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0;display:inline')
+              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token), :style => 'margin:0;padding:0;display:inline')
           end
         end
 
@@ -474,11 +476,12 @@ module ActionView
           concat("</form>".html_safe)
         end
 
-        def token_tag
-          unless protect_against_forgery?
-            ''
+        def token_tag(token=nil)
+          if token != false && protect_against_forgery?
+            token ||= form_authenticity_token
+            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
           else
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
+            ''
           end
         end
 
