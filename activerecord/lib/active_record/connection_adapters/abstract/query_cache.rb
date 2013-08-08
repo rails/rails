@@ -81,14 +81,7 @@ module ActiveRecord
           else
             @query_cache[sql][binds] = yield
           end
-
-        # FIXME: we should guarantee that all cached items are Result
-        # objects.  Then we can avoid this conditional
-        if ActiveRecord::Result === result
-          result.dup
-        else
-          result.collect { |row| row.dup }
-        end
+        result.dup
       end
 
       # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
