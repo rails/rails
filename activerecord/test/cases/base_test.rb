@@ -585,8 +585,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_unicode_column_name
-    skip "not on mysql" if current_adapter?(:MysqlAdapter)
-    columns = Weird.columns_hash.keys
     weird = Weird.create(:なまえ => 'たこ焼き仮面')
     assert_equal 'たこ焼き仮面', weird.なまえ
   end
