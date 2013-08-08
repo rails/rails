@@ -340,7 +340,7 @@ Migrations
 
 Rails provides a domain-specific language for managing a database schema called 
 migrations. Migrations are stored in files which are executed against any 
-database that Active Record support using `rake`. Here's a migration that 
+database that Active Record supports using `rake`. Here's a migration that 
 creates a table:
 
 ```ruby
