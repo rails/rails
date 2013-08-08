@@ -613,7 +613,7 @@ look like this:
 ```
 
 See the `permit`? It allows us to accept both `title` and `text` in this
-action. With this change, you should finally be able to create new `Post`s.
+action. With this change, you should finally be able to create new posts.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
