@@ -559,6 +559,14 @@ module ActiveRecord
       def version
         @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
       end
+
+      def set_field_encoding field_name
+        field_name.force_encoding(client_encoding)
+        if internal_enc = Encoding.default_internal
+          field_name = field_name.encoding(internal_enc)
+        end
+        field_name
+      end
     end
   end
 end
