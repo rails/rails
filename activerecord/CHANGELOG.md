@@ -1,3 +1,7 @@
+*   Handle aliased attributes `select()`, `order()` and `reorder()`.
+
+    *Tsutomu Kuroda*
+
 *   Reset the collection association when calling `reset` on it.
 
     Before:

@@ -206,10 +206,34 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
+  def test_finding_with_order_by_aliased_attributes
+    topics = Topic.order(:heading)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_assoc_order_by_aliased_attributes
+    topics = Topic.order(heading: :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:third).title, topics.first.title
+  end
+
   def test_finding_with_reorder
     topics = Topic.order('author_name').order('title').reorder('id').to_a
     topics_titles = topics.map{ |t| t.title }
     assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
+  end
+
+  def test_finding_with_reorder_by_aliased_attributes
+    topics = Topic.order('author_name').reorder(:heading)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_assoc_reorder_by_aliased_attributes
+    topics = Topic.order('author_name').reorder(heading: :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:third).title, topics.first.title
   end
 
   def test_finding_with_order_and_take
@@ -773,6 +797,13 @@ class RelationTest < ActiveRecord::TestCase
     developer = Developer.where(id: david.id).select(:name, :salary).first
     assert_equal david.name, developer.name
     assert_equal david.salary, developer.salary
+  end
+
+  def test_select_takes_an_aliased_attribute
+    first = topics(:first)
+
+    topic = Topic.where(id: first.id).select(:heading).first
+    assert_equal first.heading, topic.heading
   end
 
   def test_select_argument_error
