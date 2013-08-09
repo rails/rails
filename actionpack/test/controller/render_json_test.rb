@@ -8,7 +8,7 @@ class RenderJsonTest < ActionController::TestCase
     def as_json(options={})
       hash = { :a => :b, :c => :d, :e => :f }
       hash.except!(*options[:except]) if options[:except]
-      hash
+      hash.as_json(options)
     end
 
     def to_json(options = {})

@@ -42,47 +42,29 @@ module ActiveSupport
         attr_reader :options
 
         def initialize(options = nil)
-          @options = options || {}
+          @options = (options || {}).merge(encoder: self)
           @seen = Set.new
         end
 
-        def encode(value, use_options = true)
-          check_for_circular_references(value) do
-            jsonified = use_options ? value.as_json(options_for(value)) : value.as_json
-            jsonified.encode_json(self)
+        def encode(value)
+          jsonified = check_for_circular_references(value) do
+            value.as_json(options)
           end
-        end
-
-        # like encode, but only calls as_json, without encoding to string.
-        def as_json(value, use_options = true)
-          check_for_circular_references(value) do
-            use_options ? value.as_json(options_for(value)) : value.as_json
-          end
-        end
-
-        def options_for(value)
-          if value.is_a?(Array) || value.is_a?(Hash)
-            # hashes and arrays need to get encoder in the options, so that
-            # they can detect circular references.
-            options.merge(:encoder => self)
-          else
-            options.dup
-          end
+          jsonified.encode_json(self)
         end
 
         def escape(string)
           Encoding.escape(string)
         end
 
-        private
-          def check_for_circular_references(value)
-            unless @seen.add?(value.__id__)
-              raise CircularReferenceError, 'object references itself'
-            end
-            yield
-          ensure
-            @seen.delete(value.__id__)
+        def check_for_circular_references(value)
+          unless @seen.add?(value.__id__)
+            raise CircularReferenceError, 'object references itself'
           end
+          yield
+        ensure
+          @seen.delete(value.__id__)
+        end
       end
 
 
@@ -155,13 +137,13 @@ class Object
       to_hash
     else
       instance_values
-    end
+    end.as_json(options)
   end
 end
 
 class Struct #:nodoc:
   def as_json(options = nil)
-    Hash[members.zip(values)]
+    Hash[members.zip(values)].as_json(options)
   end
 end
 
@@ -271,9 +253,14 @@ end
 
 class Array
   def as_json(options = nil) #:nodoc:
+    options ||= {}
+    options[:encoder] ||= ActiveSupport::JSON::Encoding::Encoder.new(options)
     # use encoder as a proxy to call as_json on all elements, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    map { |v| encoder.as_json(v, options) }
+    map { |v|
+      options[:encoder].check_for_circular_references(v) do
+        v.as_json(options)
+      end
+    }
   end
 
   def encode_json(encoder) #:nodoc:
@@ -284,22 +271,24 @@ end
 
 class Hash
   def as_json(options = nil) #:nodoc:
+    options ||= {}
+    options[:encoder] ||= ActiveSupport::JSON::Encoding::Encoder.new(options)
     # create a subset of the hash by applying :only or :except
-    subset = if options
-      if attrs = options[:only]
-        slice(*Array(attrs))
-      elsif attrs = options[:except]
-        except(*Array(attrs))
-      else
-        self
-      end
+    subset = if attrs = options[:only]
+      slice(*Array(attrs))
+    elsif attrs = options[:except]
+      except(*Array(attrs))
     else
       self
     end
 
     # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
+    
+    Hash[subset.map { |k, v|
+      options[:encoder].check_for_circular_references(v) do
+        [k.to_s, v.as_json(options.dup)]
+      end
+    }]
   end
 
   def encode_json(encoder) #:nodoc:
@@ -309,7 +298,7 @@ class Hash
     # on the other hand, we need to run as_json on the elements, because the model representation may contain fields
     # like Time/Date in their original (not jsonified) form, etc.
 
-    "{#{map { |k,v| "#{encoder.encode(k.to_s)}:#{encoder.encode(v, false)}" } * ','}}"
+    "{#{map { |k,v| "#{k.encode_json(encoder)}:#{v.encode_json(encoder)}" } * ','}}"
   end
 end
 

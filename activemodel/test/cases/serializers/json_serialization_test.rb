@@ -151,7 +151,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_kind_of Hash, json
     assert_kind_of Hash, json['contact']
     %w(name age created_at awesome preferences).each do |field|
-      assert_equal @contact.send(field), json['contact'][field]
+      assert_equal @contact.send(field).as_json, json['contact'][field]
     end
   end
 
@@ -195,7 +195,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "custom as_json should be honored when generating json" do
-    def @contact.as_json(options); { name: name, created_at: created_at }; end
+    def @contact.as_json(options); { name: name, created_at: created_at }.as_json(options); end
     json = @contact.to_json
 
     assert_match %r{"name":"Konata Izumi"}, json

@@ -1,3 +1,11 @@
+*   fixed `as_json` correctly returning JSON Ready values
+    
+    Standarized the output of `as_json` methods to JSON Ready values.
+
+    Fixes #11460
+
+    *Sergio Campamá*, *Godfrey Chan*
+
 *   Remove 'cow' => 'kine' irregular inflection from default inflections.
 
     *Andrew White*

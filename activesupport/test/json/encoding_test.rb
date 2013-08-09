@@ -153,6 +153,21 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
   end
 
+  def test_exception_raised_when_encoding_circular_reference_in_class_with_hash
+    hash = {}
+    hash[:foo] = a = Foo.new(hash, nil)
+
+    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+  end
+
+  def test_array_of_same_elements_does_not_raise_circular_reference
+    hash = {}
+    hash[:foo] = "bar"
+    a = [hash, hash, hash, 1, 1, 1]
+
+    assert_nothing_raised() { ActiveSupport::JSON.encode(a) }
+  end
+
   def test_hash_key_identifiers_are_always_quoted
     values = {0 => 0, 1 => 1, :_ => :_, "$" => "$", "a" => "a", :A => :A, :A0 => :A0, "A0B" => "A0B"}
     assert_equal %w( "$" "A" "A0" "A0B" "_" "a" "0" "1" ).sort, object_keys(ActiveSupport::JSON.encode(values))
@@ -326,6 +341,84 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal nil,   nil.as_json
     assert_equal true,  true.as_json
     assert_equal false, false.as_json
+  end
+
+  def test_object_as_json_returns_correct_jsonified_values
+    customer = Struct.new(:name, :address).new("Jack", "123 LaLanne St")
+    foo = Foo.new(Date.new(1985, 10, 14), customer)
+    jsonified = foo.as_json
+    assert_equal ({
+      "a" => "1985-10-14",
+      "b" => {
+        "name" => "Jack",
+        "address" => "123 LaLanne St"
+      }
+    }), jsonified
+  end
+
+  def test_array_as_json_returns_correct_jsonified_values
+    customer = Struct.new(:name, :address).new("Jack", "123 LaLanne St")
+    foo1 = Foo.new(Date.new(1985, 10, 14), customer)
+    foo2 = Foo.new(Date.new(1985, 10, 14), foo1)
+    array = [customer, foo2, foo1]
+    jsonified = array.as_json
+    assert_equal ([{
+      "name" => "Jack",
+      "address" => "123 LaLanne St"
+    }, {
+      "a" => "1985-10-14",
+      "b" => {
+        "a" => "1985-10-14",
+        "b" => {
+          "name" => "Jack",
+          "address" => "123 LaLanne St"
+        }
+      }
+    }, {
+      "a" => "1985-10-14",
+      "b" => {
+        "name" => "Jack",
+        "address" => "123 LaLanne St"
+      }
+    }]), jsonified
+  end
+
+  def test_hash_as_json_returns_correct_jsonified_values
+    customer = Struct.new(:name, :address).new("Jack", "123 LaLanne St")
+    foo1 = Foo.new(Date.new(1985, 10, 14), customer)
+    foo2 = Foo.new(Date.new(1985, 10, 14), foo1)
+    hash = {first: customer, second: foo2}
+    jsonified = hash.as_json
+    assert_equal ({
+      "first" => {
+        "name" => "Jack",
+        "address" => "123 LaLanne St"
+      },
+      "second" => {
+        "a" => "1985-10-14",
+        "b" => {
+          "a" => "1985-10-14",
+          "b" => {
+            "name" => "Jack",
+            "address" => "123 LaLanne St"
+          }
+        }
+      }
+    }), jsonified
+  end
+
+  def test_struct_as_json_returns_correct_jsonified_values
+    foo1 = Foo.new(Date.new(1985, 10, 14), [1, 2, 3])
+    struck = Struct.new(:attribute1, :attribute2).new(foo1, :symbol_value)
+    
+    jsonified = struck.as_json
+    assert_equal ({
+      "attribute1" => {
+        "a" => "1985-10-14",
+        "b" => [1, 2, 3]
+      },
+      "attribute2" => "symbol_value"
+    }), jsonified
   end
 
   protected
