@@ -277,7 +277,9 @@ module ActionView
           apply_form_for_options!([object], options)
           args.unshift object
         end
-
+        
+        options[:html] ||= {}
+        options[:html][:authenticity_token] = options.delete(:authenticity_token)
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
         concat('</form>'.html_safe)
