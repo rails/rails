@@ -1,7 +1,7 @@
 require 'strscan'
 
 module HTML #:nodoc:
-  
+
   class Conditions < Hash #:nodoc:
     def initialize(hash)
       super()
@@ -18,14 +18,14 @@ module HTML #:nodoc:
             hash[k] = Conditions.new(v)
           when :children
             hash[k] = v = keys_to_symbols(v)
-            v.each do |k,v2|
-              case k
+            v.each do |key,value|
+              case key
                 when :count, :greater_than, :less_than
                   # keys are valid, and require no further processing
                 when :only
-                  v[k] = Conditions.new(v2)
+                  v[key] = Conditions.new(value)
                 else
-                  raise "illegal key #{k.inspect} => #{v2.inspect}"
+                  raise "illegal key #{key.inspect} => #{value.inspect}"
               end
             end
           else
@@ -38,18 +38,14 @@ module HTML #:nodoc:
     private
 
       def keys_to_strings(hash)
-        hash.keys.inject({}) do |h,k|
-          h[k.to_s] = hash[k]
-          h
-        end
+        Hash[hash.keys.map {|k| [k.to_s, hash[k]]}]
       end
 
       def keys_to_symbols(hash)
-        hash.keys.inject({}) do |h,k|
+        Hash[hash.keys.map do |k|
           raise "illegal key #{k.inspect}" unless k.respond_to?(:to_sym)
-          h[k.to_sym] = hash[k]
-          h
-        end
+          [k.to_sym, hash[k]]
+        end]
       end
   end
 
@@ -57,17 +53,17 @@ module HTML #:nodoc:
   class Node #:nodoc:
     # The array of children of this node. Not all nodes have children.
     attr_reader :children
-    
+
     # The parent node of this node. All nodes have a parent, except for the
     # root node.
     attr_reader :parent
-    
+
     # The line number of the input where this node was begun
     attr_reader :line
-    
+
     # The byte position in the input where this node was begun
     attr_reader :position
-    
+
     # Create a new node as a child of the given parent.
     def initialize(parent, line=0, pos=0)
       @parent = parent
@@ -77,9 +73,7 @@ module HTML #:nodoc:
 
     # Return a textual representation of the node.
     def to_s
-      s = ""
-      @children.each { |child| s << child.to_s }
-      s
+      @children.join()
     end
 
     # Return false (subclasses must override this to provide specific matching
@@ -92,7 +86,7 @@ module HTML #:nodoc:
     # returns non +nil+. Returns the result of the #find call that succeeded.
     def find(conditions)
       conditions = validate_conditions(conditions)
-      @children.each do |child|        
+      @children.each do |child|
         node = child.find(conditions)
         return node if node
       end
@@ -133,7 +127,7 @@ module HTML #:nodoc:
 
       equivalent
     end
-    
+
     class <<self
       def parse(parent, line, pos, content, strict=true)
         if content !~ /^<\S/
@@ -160,11 +154,11 @@ module HTML #:nodoc:
 
             return CDATA.new(parent, line, pos, scanner.pre_match.gsub(/<!\[CDATA\[/, ''))
           end
-          
+
           closing = ( scanner.scan(/\//) ? :close : nil )
           return Text.new(parent, line, pos, content) unless name = scanner.scan(/[^\s!>\/]+/)
           name.downcase!
-  
+
           unless closing
             scanner.skip(/\s*/)
             attributes = {}
@@ -177,6 +171,7 @@ module HTML #:nodoc:
                     case text
                       when "\\" then
                         value << text
+                        break if scanner.eos?
                         value << scanner.getch
                       when delim
                         break
@@ -190,13 +185,13 @@ module HTML #:nodoc:
               attributes[attr.downcase] = value
               scanner.skip(/\s*/)
             end
-    
+
             closing = ( scanner.scan(/\//) ? :self : nil )
           end
-          
+
           unless scanner.scan(/\s*>/)
             if strict
-              raise "expected > (got #{scanner.rest.inspect} for #{content}, #{attributes.inspect})" 
+              raise "expected > (got #{scanner.rest.inspect} for #{content}, #{attributes.inspect})"
             else
               # throw away all text until we find what we're looking for
               scanner.skip_until(/>/) or scanner.terminate
@@ -211,9 +206,9 @@ module HTML #:nodoc:
 
   # A node that represents text, rather than markup.
   class Text < Node #:nodoc:
-    
+
     attr_reader :content
-    
+
     # Creates a new text node as a child of the given parent, with the given
     # content.
     def initialize(parent, line, pos, content)
@@ -239,7 +234,7 @@ module HTML #:nodoc:
     def find(conditions)
       match(conditions) && self
     end
-    
+
     # Returns non-+nil+ if this node meets the given conditions, or +nil+
     # otherwise. See the discussion of #find for the valid conditions.
     def match(conditions)
@@ -267,7 +262,7 @@ module HTML #:nodoc:
       content == node.content
     end
   end
-  
+
   # A CDATA node is simply a text node with a specialized way of displaying
   # itself.
   class CDATA < Text #:nodoc:
@@ -280,16 +275,16 @@ module HTML #:nodoc:
   # closing tag, or a self-closing tag. It has a name, and may have a hash of
   # attributes.
   class Tag < Node #:nodoc:
-    
+
     # Either +nil+, <tt>:close</tt>, or <tt>:self</tt>
     attr_reader :closing
-    
+
     # Either +nil+, or a hash of attributes for this node.
     attr_reader :attributes
 
     # The name of this tag.
     attr_reader :name
-        
+
     # Create a new node as a child of the given parent, using the given content
     # to describe the node. It will be parsed and the node name, attributes and
     # closing status extracted.
@@ -343,7 +338,7 @@ module HTML #:nodoc:
     def tag?
       true
     end
-    
+
     # Returns +true+ if the node meets any of the given conditions. The
     # +conditions+ parameter must be a hash of any of the following keys
     # (all are optional):
@@ -403,7 +398,7 @@ module HTML #:nodoc:
     #   node.match :descendant => { :tag => "strong" }
     #
     #   # test if the node has between 2 and 4 span tags as immediate children
-    #   node.match :children => { :count => 2..4, :only => { :tag => "span" } } 
+    #   node.match :children => { :count => 2..4, :only => { :tag => "span" } }
     #
     #   # get funky: test to see if the node is a "div", has a "ul" ancestor
     #   # and an "li" parent (with "class" = "enum"), and whether or not it has
@@ -438,7 +433,7 @@ module HTML #:nodoc:
 
       # test children
       return false unless children.find { |child| child.match(conditions[:child]) } if conditions[:child]
-   
+
       # test ancestors
       if conditions[:ancestor]
         return false unless catch :found do
@@ -456,13 +451,13 @@ module HTML #:nodoc:
           child.match(:descendant => conditions[:descendant])
         end
       end
-      
+
       # count children
       if opts = conditions[:children]
         matches = children.select do |c|
           (c.kind_of?(HTML::Tag) and (c.closing == :self or ! c.childless?))
         end
-        
+
         matches = matches.select { |c| c.match(opts[:only]) } if opts[:only]
         opts.each do |key, value|
           next if key == :only
@@ -488,24 +483,24 @@ module HTML #:nodoc:
         self_index = siblings.index(self)
 
         if conditions[:sibling]
-          return false unless siblings.detect do |s| 
+          return false unless siblings.detect do |s|
             s != self && s.match(conditions[:sibling])
           end
         end
 
         if conditions[:before]
-          return false unless siblings[self_index+1..-1].detect do |s| 
+          return false unless siblings[self_index+1..-1].detect do |s|
             s != self && s.match(conditions[:before])
           end
         end
 
         if conditions[:after]
-          return false unless siblings[0,self_index].detect do |s| 
+          return false unless siblings[0,self_index].detect do |s|
             s != self && s.match(conditions[:after])
           end
         end
       end
-  
+
       true
     end
 
@@ -514,7 +509,7 @@ module HTML #:nodoc:
       return false unless closing == node.closing && self.name == node.name
       attributes == node.attributes
     end
-    
+
     private
       # Match the given value to the given condition.
       def match_condition(value, condition)

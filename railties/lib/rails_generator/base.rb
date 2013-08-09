@@ -220,6 +220,7 @@ module Rails
           "Usage: #{$0} #{spec.name} #{spec.name.camelize}Name [options]"
         end
     
+      public
         def attributes
           @attributes ||= @args.collect do |attribute|
             Rails::Generator::GeneratedAttribute.new(*attribute.split(":"))

@@ -128,6 +128,8 @@ module HTML
   #   (no parent element).
   # * <tt>:empty</tt> -- Match the element only if it has no child elements,
   #   and no text content.
+  # * <tt>:content(string)</tt> -- Match the element only if it has <tt>string</tt>
+  #   as its text content (ignoring leading and trailing whitespace).
   # * <tt>:only-child</tt> -- Match the element if it is the only child (element)
   #   of its parent element.
   # * <tt>:only-of-type</tt> -- Match the element if it is the only child (element)
@@ -182,7 +184,7 @@ module HTML
   # not another using <tt>:not</tt>. For example:
   #   p:not(.post)
   # Matches all paragraphs that do not have the class <tt>.post</tt>.
-  #   
+  #
   # === Substitution Values
   #
   # You can use substitution with identifiers, class names and element values.

@@ -15,7 +15,7 @@ class DocumentTest < Test::Unit::TestCase
     assert_match %r{\s+}m, doc.root.children[1].content
     assert_equal "html", doc.root.children[2].name
   end
-  
+
   def test_find_img
     doc = HTML::Document.new <<-HTML.strip
       <html>
@@ -123,7 +123,7 @@ HTML
 
   def test_parse_invalid_document
     assert_nothing_raised do
-      doc = HTML::Document.new("<html>
+      HTML::Document.new("<html>
         <table>
           <tr>
             <td style=\"color: #FFFFFF; height: 17px; onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" style=\"cursor:pointer; height: 17px;\"; nowrap onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" onmouseout=\"this.bgColor='#0066cc'; this.style.color='#FFFFFF'\" onmouseover=\"this.bgColor='#ffffff'; this.style.color='#0033cc'\">About Us</td>
@@ -135,7 +135,7 @@ HTML
 
   def test_invalid_document_raises_exception_when_strict
     assert_raise RuntimeError do
-      doc = HTML::Document.new("<html>
+      HTML::Document.new("<html>
         <table>
           <tr>
             <td style=\"color: #FFFFFF; height: 17px; onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" style=\"cursor:pointer; height: 17px;\"; nowrap onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" onmouseout=\"this.bgColor='#0066cc'; this.style.color='#FFFFFF'\" onmouseover=\"this.bgColor='#ffffff'; this.style.color='#0033cc'\">About Us</td>

@@ -209,7 +209,7 @@ module Rails
       # Yield latest versions of generator gems.
       def each
         dependency = Gem::Dependency.new(/_generator$/, Gem::Requirement.default)
-        Gem.source_index.search(dependency).inject({}) { |latest, gem|
+        Gem.source_index_search(dependency).inject({}) { |latest, gem|
           hem = latest[gem.name]
           latest[gem.name] = gem if hem.nil? or gem.version > hem.version
           latest
@@ -231,17 +231,14 @@ module Rails
       private
         def generator_full_paths
           @generator_full_paths ||=
-            Gem.source_index.inject({}) do |latest, name_gem|
-              name, gem = name_gem
-              hem = latest[gem.name]
-              latest[gem.name] = gem if hem.nil? or gem.version > hem.version
-              latest
-            end.values.inject([]) do |mem, gem|
+            Gem::Specification.each_with_object({}) { |g, latest|
+              hem = latest[g.name]
+              latest[g.name] = g if hem.nil? or g.version > hem.version
+            }.values.each_with_object([]) { |gem, mem|
               Dir[gem.full_gem_path + '/{rails_,}generators/**/*_generator.rb'].each do |generator|
                 mem << generator
               end
-              mem
-            end
+            }
         end
     end
 
