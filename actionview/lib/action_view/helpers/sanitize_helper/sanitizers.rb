@@ -34,7 +34,8 @@ module ActionView
 
   class LinkSanitizer < Sanitizer
     def initialize
-      @link_scrubber = LinkScrubber.new
+      @link_scrubber = TargetScrubber.new
+      @link_scrubber.tags = %w(a href)
     end
 
     def sanitize(html, options = {})
