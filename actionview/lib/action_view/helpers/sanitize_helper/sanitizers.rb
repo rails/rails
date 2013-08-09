@@ -3,6 +3,8 @@ require 'active_support/deprecation'
 require 'action_view/helpers/sanitize_helper/permit_scrubber'
 
 module ActionView
+  XPATHS_TO_REMOVE = %w{.//script .//form comment()}
+
   class Sanitizer
     # :nodoc:
     def sanitize(html, options = {})
@@ -25,7 +27,7 @@ module ActionView
       return html if html.empty?
 
       fragment = Loofah.fragment(html)
-      remove_xpaths(fragment, %w{.//script .//form comment()})
+      remove_xpaths(fragment, XPATHS_TO_REMOVE)
       fragment.text
     end
   end
@@ -66,7 +68,7 @@ module ActionView
         @permit_scrubber.attributes = options[:attributes]
         loofah_fragment.scrub!(@permit_scrubber)
       else
-        remove_xpaths(loofah_fragment, %w{.//script .//form comment()})
+        remove_xpaths(loofah_fragment, XPATHS_TO_REMOVE)
         loofah_fragment.scrub!(:strip)
       end
       loofah_fragment.to_s
