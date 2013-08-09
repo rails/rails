@@ -12,8 +12,11 @@
 # Contain an elements allowed attributes.
 # If none is set HTML5::Scrub.scrub_attributes implementation will be used.
 #
-# Subclass PermitScrubber to provide your own definition of
-# when a node is allowed and how attributes should be scrubbed.
+# Subclass PermitScrubber to provide your own definition of:
+#
+# When a node is allowed via +allowed_node?+
+# When a node should be skipped via +should_skip_node?+
+# Which attributes should be scrubbed via +should_scrub_attributes?+
 class PermitScrubber < Loofah::Scrubber
   # :nodoc:
   attr_reader :tags, :attributes
@@ -48,22 +51,22 @@ class PermitScrubber < Loofah::Scrubber
     end
   end
 
-  def scrub_attributes(node)
-    if @attributes
-      node.attributes.each do |name, _|
-        node.remove_attribute(name) if should_remove_attributes?(name)
-      end
-    else
-      Loofah::HTML5::Scrub.scrub_attributes(node)
-    end
-  end
-
   def should_skip_node?(node)
     text_or_cdata_node?(node)
   end
 
-  def should_remove_attributes?(name)
+  def should_scrub_attributes?(name)
     @attributes.exclude?(name)
+  end
+
+  def scrub_attributes(node)
+    if @attributes
+      node.attributes.each do |name, _|
+        node.remove_attribute(name) if should_scrub_attributes?(name)
+      end
+    else
+      Loofah::HTML5::Scrub.scrub_attributes(node)
+    end
   end
 
   def text_or_cdata_node?(node)
@@ -95,7 +98,7 @@ class TargetScrubber < PermitScrubber
     @tags.exclude?(node.name)
   end
 
-  def should_remove_attributes?(name)
+  def should_scrub_attributes?(name)
     @attributes.include?(name)
   end
 end
