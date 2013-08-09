@@ -1332,7 +1332,10 @@ module ActionController #:nodoc:
         if action_methods.include?(action_name)
           send(action_name)
           default_render unless performed?
-        elsif respond_to?(:method_missing, true) && !method(:method_missing).private?
+        elsif RUBY_VERSION == "1.9.3" && respond_to?(:method_missing)
+          method_missing action_name.intern
+          default_render unless performed?
+        elsif RUBY_VERSION >= "2.0.0" && respond_to?(:method_missing, true) && !method(:method_missing).private?
           method_missing action_name.intern
           default_render unless performed?
         else
