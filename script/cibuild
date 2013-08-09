@@ -3,8 +3,10 @@
 set -x
 set -e
 
+RUBY_VERSION="$(cat .ruby-version)"
+
 # Use the right Ruby /without/ rbenv
-ruby_dir=$(dirname "$(RBENV_VERSION=2.0.0-github rbenv which ruby)")
+ruby_dir=$(dirname "$(RBENV_VERSION=$RUBY_VERSION rbenv which ruby)")
 export PATH=$ruby_dir:$PATH
 
 # Announce who we are
