@@ -1,6 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
-require 'action_view/helpers/sanitize_helper/permit_scrubber'
+require 'action_view/helpers/sanitize_helper/scrubbers'
 
 module ActionView
   XPATHS_TO_REMOVE = %w{.//script .//form comment()}
@@ -34,15 +34,7 @@ module ActionView
 
   class LinkSanitizer < Sanitizer
     def initialize
-      @strip_tags = %w(a href)
-      @link_scrubber = Loofah::Scrubber.new do |node|
-        if @strip_tags.include?(node.name)
-          node.before node.children
-          node.remove
-        else
-          Loofah::HTML5::Scrub.scrub_attributes(node)
-        end
-      end
+      @link_scrubber = LinkScrubber.new
     end
 
     def sanitize(html, options = {})
