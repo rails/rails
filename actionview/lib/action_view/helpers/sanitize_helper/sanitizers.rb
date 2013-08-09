@@ -58,7 +58,7 @@ module ActionView
 
       loofah_fragment = Loofah.fragment(html)
       if scrubber = options[:scrubber]
-        # No duck typing, Loofah checks the class of scrubber
+        # No duck typing, Loofah ensures subclass of Loofah::Scrubber
         loofah_fragment.scrub!(scrubber)
       elsif options[:tags] || options[:attributes]
         @permit_scrubber.tags = options[:tags]
