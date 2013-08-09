@@ -119,17 +119,7 @@ module ActiveRecord
         type_cast(default)
       end
 
-      # Used to convert from Strings to BLOBs
-      def string_to_binary(value)
-        self.class.string_to_binary(value)
-      end
-
       class << self
-        # Used to convert from Strings to BLOBs
-        def string_to_binary(value)
-          value
-        end
-
         # Used to convert from BLOBs to Strings
         def binary_to_string(value)
           value

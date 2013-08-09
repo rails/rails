@@ -184,25 +184,6 @@ module ActiveRecord
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:binary))
       end
 
-      def test_quote_binary_with_string_to_binary
-        col = Class.new(FakeColumn) {
-          def string_to_binary(value)
-            'foo'
-          end
-        }.new(:binary)
-        assert_equal "'foo'", @quoter.quote('lo\l', col)
-      end
-
-      def test_quote_as_mb_chars_binary_column_with_string_to_binary
-        col = Class.new(FakeColumn) {
-          def string_to_binary(value)
-            'foo'
-          end
-        }.new(:binary)
-        string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'foo'", @quoter.quote(string, col)
-      end
-
       def test_string_with_crazy_column
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:foo))
       end
