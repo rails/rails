@@ -12,7 +12,7 @@ module ActionView
     def remove_xpaths(html, xpaths)
       html = Loofah.fragment(html) unless html.is_a? Nokogiri::XML::DocumentFragment
       xpaths.each do |xpath|
-        html.xpath(xpath).each { |subtree| subtree.remove }
+        html.xpath(xpath).remove
       end
       html.to_s
     end
