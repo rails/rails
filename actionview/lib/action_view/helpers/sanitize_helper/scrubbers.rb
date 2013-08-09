@@ -11,6 +11,9 @@
 # +attributes=+
 # Contain an elements allowed attributes.
 # If none is set HTML5::Scrub.scrub_attributes implementation will be used.
+#
+# Subclass PermitScrubber to provide your own definition of
+# when a node is allowed and how attributes should be scrubbed.
 class PermitScrubber < Loofah::Scrubber
   # :nodoc:
   attr_reader :tags, :attributes
@@ -24,7 +27,7 @@ class PermitScrubber < Loofah::Scrubber
   end
 
   def scrub(node)
-    return CONTINUE if text_or_cdata_node?(node)
+    return CONTINUE if should_skip_node?(node)
 
     unless allowed_node?(node)
       node.before node.children # strip
@@ -55,6 +58,10 @@ class PermitScrubber < Loofah::Scrubber
     end
   end
 
+  def should_skip_node?(node)
+    text_or_cdata_node?(node)
+  end
+
   def text_or_cdata_node?(node)
     case node.type
     when Nokogiri::XML::Node::TEXT_NODE, Nokogiri::XML::Node::CDATA_SECTION_NODE
@@ -68,5 +75,17 @@ class PermitScrubber < Loofah::Scrubber
       raise ArgumentError, "You should pass :#{name} as an Enumerable"
     end
     var
+  end
+end
+
+# LinkScrubber overrides PermitScrubbers +allowed_node?+ to any nodes
+# which names aren't a or href
+class LinkScrubber < PermitScrubber
+  def initialize
+    @strip_tags = %w(a href)
+  end
+
+  def allowed_node?(node)
+    !@strip_tags.include?(node.name)
   end
 end
