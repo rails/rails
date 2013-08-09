@@ -51,7 +51,7 @@ class PermitScrubber < Loofah::Scrubber
   def scrub_attributes(node)
     if @attributes
       node.attributes.each do |name, _|
-        node.remove_attribute(name) unless @attributes.include?(name)
+        node.remove_attribute(name) if should_remove_attributes?(name)
       end
     else
       Loofah::HTML5::Scrub.scrub_attributes(node)
@@ -60,6 +60,10 @@ class PermitScrubber < Loofah::Scrubber
 
   def should_skip_node?(node)
     text_or_cdata_node?(node)
+  end
+
+  def should_remove_attributes?(name)
+    @attributes.exclude?(name)
   end
 
   def text_or_cdata_node?(node)
@@ -78,14 +82,20 @@ class PermitScrubber < Loofah::Scrubber
   end
 end
 
-# LinkScrubber overrides PermitScrubbers +allowed_node?+ to any nodes
-# which names aren't a or href
-class LinkScrubber < PermitScrubber
-  def initialize
-    @strip_tags = %w(a href)
+# TargetScrubber - The bizarro PermitScrubber
+#
+# With PermitScrubber you choose elements you don't want removed,
+# with TargetScrubber you choose want you want gone.
+#
+# +tags=+ and +attributes=+ has the same behavior as PermitScrubber
+# except they select what to get rid of.
+class TargetScrubber < PermitScrubber
+  def allowed_node?(node)
+    return super unless @tags
+    @tags.exclude?(node.name)
   end
 
-  def allowed_node?(node)
-    !@strip_tags.include?(node.name)
+  def should_remove_attributes?(name)
+    @attributes.include?(name)
   end
 end
