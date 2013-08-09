@@ -26,9 +26,9 @@ module ActionView
       return nil unless html
       return html if html.empty?
 
-      fragment = Loofah.fragment(html)
-      remove_xpaths(fragment, XPATHS_TO_REMOVE)
-      fragment.text
+      Loofah.fragment(html).tap do |fragment|
+        remove_xpaths(fragment, XPATHS_TO_REMOVE)
+      end.text
     end
   end
 
