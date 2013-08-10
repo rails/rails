@@ -208,6 +208,10 @@ class FilterTest < ActionController::TestCase
     before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_filter1", true)}, :except => :show_without_filter) { |c| c.instance_variable_set(:"@ran_proc_filter2", true)}
   end
 
+  class OnlyConditionalOptionsFilter < ConditionalFilterController
+    before_filter :ensure_login, :only => :index, :if => Proc.new {|c| c.instance_variable_set(:"@ran_conditional_index_proc", true) }
+  end
+
   class ConditionalOptionsFilter < ConditionalFilterController
     before_filter :ensure_login, :if => Proc.new { |c| true }
     before_filter :clean_up_tmp, :if => Proc.new { |c| false }
@@ -647,6 +651,11 @@ class FilterTest < ActionController::TestCase
     assert assigns["ran_class_filter"]
     test_process(ExceptConditionClassController, "show_without_filter")
     assert !assigns["ran_class_filter"]
+  end
+
+  def test_running_only_condition_and_conditional_options
+    test_process(OnlyConditionalOptionsFilter, "show")
+    assert_not assigns["ran_conditional_index_proc"]
   end
 
   def test_running_before_and_after_condition_filters
