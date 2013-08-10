@@ -38,7 +38,7 @@ module AbstractController
       def _normalize_callback_option(options, from, to) # :nodoc:
         if from = options[from]
           from = Array(from).map {|o| "action_name == '#{o}'"}.join(" || ")
-          options[to] = Array(options[to]) << from
+          options[to] = Array(options[to]).unshift(from)
         end
       end
 
