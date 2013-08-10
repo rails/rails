@@ -1,3 +1,7 @@
+*   Allow enable_extension migration method to be revertible.
+ 
+    *Eric Tipton*
+
 *   Type cast hstore values on write, so that the value is consistent
     with reading from the database.
 
