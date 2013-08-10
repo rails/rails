@@ -22,6 +22,10 @@ class PermitScrubber < Loofah::Scrubber
   # :nodoc:
   attr_reader :tags, :attributes
 
+  def initialize
+    @tags, @attributes = nil, nil
+  end
+
   def tags=(tags)
     @tags = validate!(tags, :tags)
   end
