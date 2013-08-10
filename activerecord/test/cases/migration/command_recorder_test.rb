@@ -242,6 +242,16 @@ module ActiveRecord
         add = @recorder.inverse_of :remove_belongs_to, [:table, :user]
         assert_equal [:add_reference, [:table, :user], nil], add
       end
+
+      def test_invert_enable_extension
+        disable = @recorder.inverse_of :enable_extension, ['uuid-ossp']
+        assert_equal [:disable_extension, ['uuid-ossp'], nil], disable
+      end
+
+      def test_invert_disable_extension
+        enable = @recorder.inverse_of :disable_extension, ['uuid-ossp']
+        assert_equal [:enable_extension, ['uuid-ossp'], nil], enable
+      end
     end
   end
 end

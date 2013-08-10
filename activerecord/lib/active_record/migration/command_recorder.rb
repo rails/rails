@@ -73,7 +73,7 @@ module ActiveRecord
       [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table, :execute_block,
+        :drop_join_table, :drop_table, :execute_block, :enable_extension,
         :change_column, :execute, :remove_columns, # irreversible methods need to be here too
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -100,6 +100,7 @@ module ActiveRecord
           add_column:        :remove_column,
           add_timestamps:    :remove_timestamps,
           add_reference:     :remove_reference,
+          enable_extension:  :disable_extension
         }.each do |cmd, inv|
           [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
             class_eval <<-EOV, __FILE__, __LINE__ + 1
