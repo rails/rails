@@ -33,7 +33,9 @@ class PermitScrubber < Loofah::Scrubber
   def scrub(node)
     return CONTINUE if skip_node?(node)
 
-    return STOP if scrub_node(node)
+    unless keep_node?(node)
+      return STOP if scrub_node(node) == STOP
+    end
 
     scrub_attributes(node)
   end
@@ -61,11 +63,8 @@ class PermitScrubber < Loofah::Scrubber
   end
 
   def scrub_node(node)
-    unless keep_node?(node)
-      node.before(node.children) # strip
-      node.remove
-      true
-    end
+    node.before(node.children) # strip
+    node.remove
   end
 
   def scrub_attributes(node)
