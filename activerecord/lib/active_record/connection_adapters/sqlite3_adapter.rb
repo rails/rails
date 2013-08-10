@@ -38,9 +38,6 @@ module ActiveRecord
     class SQLite3Column < Column #:nodoc:
       class <<  self
         def binary_to_string(value)
-          if value.encoding != Encoding::ASCII_8BIT
-            value = value.force_encoding(Encoding::ASCII_8BIT)
-          end
           value
         end
       end
