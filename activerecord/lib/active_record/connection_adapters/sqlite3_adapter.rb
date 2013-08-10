@@ -180,11 +180,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true
-      def supports_autoincrement? #:nodoc:
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -606,11 +601,7 @@ module ActiveRecord
         end
 
         def default_primary_key_type
-          if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
-          else
-            'INTEGER PRIMARY KEY NOT NULL'
-          end
+          'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
         end
 
         def translate_exception(exception, message)
