@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fix an issue where :if and :unless controller action procs were being run
+    before checking for the correct action in the :only and :unless options.
+
+    Fixes #11799
+
+    *Nicholas Jakobsen*
+
 *   Fix an issue where `assert_dom_equal` and `assert_dom_not_equal` were
     ignoring the passed failure message argument.
 
