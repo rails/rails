@@ -2,21 +2,22 @@
 #
 # PermitScrubber allows you to permit only your own tags and/or attributes.
 #
+# PermitScrubber can be subclassed to determine:
+# - When a node should be skipped via +skip_node?+
+# - When a node is allowed via +allowed_node?+
+# - When an attribute should be scrubbed via +scrub_attribute?+
+#
+# Text and CDATA nodes are skipped by defualt.
+# Unallowed elements will be stripped, i.e. element is removed but its substree kept.
 # Supplied tags and attributes should be Enumerables
 #
 # +tags=+
-# If this value is set all other elements will be stripped (their inner elements will be kept).
-# If not set elements for which HTML5::Scrub.allowed_element? is false will be stripped.
+# If set, elements excluded will be stripped.
+# If not, elements are stripped based on Loofahs +HTML5::Scrub.allowed_element?+
 #
 # +attributes=+
-# Contain an elements allowed attributes.
-# If none is set HTML5::Scrub.scrub_attributes implementation will be used.
-#
-# Subclass PermitScrubber to provide your own definition of:
-#
-# When a node is allowed via +allowed_node?+
-# When a node should be skipped via +should_skip_node?+
-# Which attributes should be scrubbed via +should_scrub_attributes?+
+# If set, attributes excluded will be removed.
+# If not, attributes are removed based on Loofahs +HTML5::Scrub.scrub_attributes+
 class PermitScrubber < Loofah::Scrubber
   # :nodoc:
   attr_reader :tags, :attributes
@@ -30,13 +31,9 @@ class PermitScrubber < Loofah::Scrubber
   end
 
   def scrub(node)
-    return CONTINUE if should_skip_node?(node)
+    return CONTINUE if skip_node?(node)
 
-    unless allowed_node?(node)
-      node.before node.children # strip
-      node.remove
-      return STOP
-    end
+    return STOP if scrub_node(node)
 
     scrub_attributes(node)
   end
@@ -44,37 +41,41 @@ class PermitScrubber < Loofah::Scrubber
   protected
 
   def allowed_node?(node)
+    @tags.include?(node.name)
+  end
+
+  def skip_node?(node)
+    node.text? || node.cdata?
+  end
+
+  def scrub_attribute?(name)
+    @attributes.exclude?(name)
+  end
+
+  def keep_node?(node)
     if @tags
-      @tags.include?(node.name)
+      allowed_node?(node)
     else
       Loofah::HTML5::Scrub.allowed_element?(node.name)
     end
   end
 
-  def should_skip_node?(node)
-    text_or_cdata_node?(node)
-  end
-
-  def should_scrub_attributes?(name)
-    @attributes.exclude?(name)
+  def scrub_node(node)
+    unless keep_node?(node)
+      node.before(node.children) # strip
+      node.remove
+      true
+    end
   end
 
   def scrub_attributes(node)
     if @attributes
       node.attributes.each do |name, _|
-        node.remove_attribute(name) if should_scrub_attributes?(name)
+        node.remove_attribute(name) if scrub_attribute?(name)
       end
     else
       Loofah::HTML5::Scrub.scrub_attributes(node)
     end
-  end
-
-  def text_or_cdata_node?(node)
-    case node.type
-    when Nokogiri::XML::Node::TEXT_NODE, Nokogiri::XML::Node::CDATA_SECTION_NODE
-      return true
-    end
-    false
   end
 
   def validate!(var, name)
@@ -85,20 +86,20 @@ class PermitScrubber < Loofah::Scrubber
   end
 end
 
-# TargetScrubber - The bizarro PermitScrubber
+# === TargetScrubber
+# The Bizarro PermitScrubber
 #
-# With PermitScrubber you choose elements you don't want removed,
-# with TargetScrubber you choose want you want gone.
+# +tags=+
+# If set, elements included will be stripped.
 #
-# +tags=+ and +attributes=+ has the same behavior as PermitScrubber
-# except they select what to get rid of.
+# +attributes=+
+# If set, attributes included will be removed.
 class TargetScrubber < PermitScrubber
   def allowed_node?(node)
-    return super unless @tags
     @tags.exclude?(node.name)
   end
 
-  def should_scrub_attributes?(name)
+  def scrub_attribute?(name)
     @attributes.include?(name)
   end
 end
