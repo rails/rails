@@ -1,3 +1,7 @@
+*   `rake db:structure:dump` no longer crashes when the port was specified as `Fixnum`.
+
+    *Kenta Okamoto*
+
 *   `NullRelation#pluck` takes a list of columns
 
     The method signature in `NullRelation` was updated to mimic that in
