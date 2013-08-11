@@ -47,7 +47,6 @@ module ActionController
   def self.eager_load!
     super
     ActionController::Caching.eager_load!
-    HTML.eager_load!
   end
 end
 
