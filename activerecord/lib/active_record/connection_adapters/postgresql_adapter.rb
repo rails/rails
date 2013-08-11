@@ -802,7 +802,7 @@ module ActiveRecord
         # Returns the statement identifier for the client side cache
         # of statements
         def sql_key(sql)
-          "#{schema_search_path}-#{sql}"
+          "#{schema_search_path}-#{sql}".to_sym
         end
 
         # Prepare the statement if it hasn't been prepared, return
