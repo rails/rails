@@ -426,6 +426,7 @@ module ActiveRecord
           :sql           => sql,
           :name          => name,
           :connection_id => object_id,
+          :operation     => parse_operation(sql),
           :binds         => binds
         }
 
@@ -436,6 +437,18 @@ module ActiveRecord
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
         raise exception
+      end
+
+      OPERATIONS = %w[select update delete insert].freeze
+
+      def parse_operation(sql)
+        operation = sql.split(" ").first.downcase
+
+        if OPERATIONS.include?(operation)
+          operation.to_sym
+        else
+          nil
+        end
       end
 
       def translate_exception(exception, message)

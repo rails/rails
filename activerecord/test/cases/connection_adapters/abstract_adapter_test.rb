@@ -11,6 +11,14 @@ module ActiveRecord
       end
     end
 
+    class FakeAdapter < AbstractAdapter
+      def make_that_query(sql)
+        log(sql) do
+          # Do that thing.
+        end
+      end
+    end
+
     class AbstractAdapterTest < ActiveRecord::TestCase
       attr_reader :adapter
 
@@ -56,6 +64,34 @@ module ActiveRecord
         assert_not adapter.in_use?
 
         assert_equal adapter, pool.connection
+      end
+
+      def test_instruments_log
+        events = []
+
+        subscriber = lambda do |*args|
+          event = ActiveSupport::Notifications::Event.new(*args)
+          events << event
+        end
+
+        ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+          adapter = FakeAdapter.new(nil)
+
+          adapter.make_that_query("SELECT socks FROM drawer")
+          assert_equal :select, events.last.payload.fetch(:operation)
+
+          adapter.make_that_query("UPDATE drawer SET full=1")
+          assert_equal :update, events.last.payload.fetch(:operation)
+
+          adapter.make_that_query("INSERT underwear INTO drawer")
+          assert_equal :insert, events.last.payload.fetch(:operation)
+
+          adapter.make_that_query("DELETE FROM drawer WHERE dirty=1")
+          assert_equal :delete, events.last.payload.fetch(:operation)
+
+          adapter.make_that_query("DANCE AROUND IN UNDERWEAR")
+          assert_equal nil, events.last.payload.fetch(:operation)
+        end
       end
     end
   end

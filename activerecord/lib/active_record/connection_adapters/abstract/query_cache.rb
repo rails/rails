@@ -79,6 +79,7 @@ module ActiveRecord
               :sql           => sql,
               :binds         => binds,
               :name          => "CACHE",
+              :operation     => nil,
               :connection_id => object_id
             }
 
