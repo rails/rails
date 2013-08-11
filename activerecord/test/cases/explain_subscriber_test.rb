@@ -25,26 +25,21 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_collects_nothing_if_collect_is_false
       ActiveRecord::ExplainRegistry.collect = false
-      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'select 1 from users', binds: [1, 2])
+      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'select 1 from users', binds: [1, 2], :operation => :select)
       assert queries.empty?
     end
 
     def test_collects_pairs_of_queries_and_binds
       sql   = 'select 1 from users'
       binds = [1, 2]
-      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: sql, binds: binds)
+      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: sql, binds: binds, :operation => :select)
       assert_equal 1, queries.size
       assert_equal sql, queries[0][0]
       assert_equal binds, queries[0][1]
     end
 
-    def test_collects_nothing_if_the_statement_is_not_whitelisted
-      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'SHOW max_identifier_length')
-      assert queries.empty?
-    end
-
-    def test_collects_nothing_if_the_statement_is_only_partially_matched
-      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'select_db yo_mama')
+    def test_collects_nothing_if_the_operation_is_not_known
+      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'SHOW max_identifier_length', :operation => nil)
       assert queries.empty?
     end
 
