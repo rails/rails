@@ -27,11 +27,15 @@ module ActionDispatch
           assert_equal '/bar', url_helpers.bar_path
         end
 
+        assert_equal 'foo', url_helpers.hash_for_foo_path[:action]
+        assert_raises NoMethodError do
+          assert_equal 'foo', url_helpers.hash_for_bar_path[:action]
+        end
+
         draw do
           get 'foo', to: SimpleApp.new('foo#index')
           get 'bar', to: SimpleApp.new('bar#index')
         end
-
         assert_equal '/foo', url_helpers.foo_path
         assert_equal '/bar', url_helpers.bar_path
       end
@@ -59,10 +63,16 @@ module ActionDispatch
         assert_equal '/foo', url_helpers.foo_path
         assert_equal '/bar', url_helpers.bar_path
 
+        assert_equal 'foo', url_helpers.hash_for_foo_path[:action]
+        assert_equal 'bar', url_helpers.hash_for_bar_path[:action]
+
         draw do
           get 'foo', to: SimpleApp.new('foo#index')
         end
 
+        assert_raises NoMethodError do
+          assert_equal 'bar', url_helpers.hash_for_bar_path[:action]
+        end
         assert_equal '/foo', url_helpers.foo_path
         assert_raises NoMethodError do
           assert_equal '/bar', url_helpers.bar_path
@@ -76,6 +86,7 @@ module ActionDispatch
           end
         end
 
+        assert_equal 'show', url_helpers.hash_for_foo_bar_path[:action]
         assert_equal '/foo/1/bar/2', url_helpers.foo_bar_path(1, 2)
         assert_equal '/foo/1/bar/2', url_helpers.foo_bar_path(2, foo_id: 1)
       end

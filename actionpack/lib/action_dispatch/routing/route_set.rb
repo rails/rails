@@ -265,24 +265,48 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, options)
-          helper = UrlHelper.create(route, options.dup)
+        # Create a hash access method for named route, such as:
+        #
+        #   hash_for_foo_url
 
+        def define_named_route_methods(name, route)
+          define_url_methods(name, route)
+          define_hash_access_methods(name, route)
+        end
+
+        def define_url_methods(name, route)
+          options = route_options(route, name, true)
+          method = UrlHelper.create(route, options)
+          define_helper_method :"#{name}_path", method
+
+          options = route_options(route, name, false)
+          method = UrlHelper.create(route, options)
+          define_helper_method :"#{name}_url", method
+        end
+
+        def define_helper_method(name, method)
           @module.remove_possible_method name
           @module.module_eval do
             define_method(name) do |*args|
-              helper.call self, args
+              method.call self, args
             end
           end
 
           helpers << name
         end
 
-        def define_named_route_methods(name, route)
-          define_url_helper route, :"#{name}_path",
-            route.defaults.merge(:use_route => name, :only_path => true)
-          define_url_helper route, :"#{name}_url",
-            route.defaults.merge(:use_route => name, :only_path => false)
+        def define_hash_access_methods(name, route)
+          method = Proc.new { route_options(route, name, true) }
+          define_helper_method :"hash_for_#{name}_path", method
+
+          method = Proc.new { route_options(route, name, false) }
+          define_helper_method :"hash_for_#{name}_url", method
+        end
+
+
+
+        def route_options(route, name, only_path)
+          route.defaults.merge(:use_route => name, :only_path => only_path).dup
         end
       end
 
