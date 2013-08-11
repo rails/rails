@@ -439,13 +439,11 @@ module ActiveRecord
         raise exception
       end
 
-      OPERATIONS = %w[select update delete insert].freeze
+      OPERATIONS = /\A\s*(select|update|delete|insert)\b/i
 
       def parse_operation(sql)
-        operation = sql.split(" ").first.downcase
-
-        if OPERATIONS.include?(operation)
-          operation.to_sym
+        if OPERATIONS =~ sql
+          $1.downcase.to_sym
         else
           nil
         end
