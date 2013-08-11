@@ -11,15 +11,15 @@ module ActiveRecord
       end
     end
 
-    class FakeAdapter < AbstractAdapter
-      def make_that_query(sql)
-        log(sql) do
-          # Do that thing.
+    class AbstractAdapterTest < ActiveRecord::TestCase
+      class FakeAdapter < AbstractAdapter
+        def make_that_query(sql)
+          log(sql) do
+            # Do that thing.
+          end
         end
       end
-    end
 
-    class AbstractAdapterTest < ActiveRecord::TestCase
       attr_reader :adapter
 
       def setup
