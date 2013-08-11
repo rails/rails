@@ -39,8 +39,8 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        result = select_rows(to_sql(arel, []), name)
-        result.map { |v| v[0] }
+        select_rows(to_sql(arel, []), name)
+          .map { |v| v[0] }
       end
 
       # Returns an array of arrays containing the field values.
