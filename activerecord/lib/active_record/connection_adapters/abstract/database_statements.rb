@@ -1,6 +1,13 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
+      TRANSACTION_ISOLATION_LEVELS = {
+          read_uncommitted: "READ UNCOMMITTED",
+          read_committed:   "READ COMMITTED",
+          repeatable_read:  "REPEATABLE READ",
+          serializable:     "SERIALIZABLE"
+      }
+
       def initialize
         super
         reset_transaction
@@ -252,12 +259,7 @@ module ActiveRecord
       def begin_db_transaction()    end
 
       def transaction_isolation_levels
-        {
-          read_uncommitted: "READ UNCOMMITTED",
-          read_committed:   "READ COMMITTED",
-          repeatable_read:  "REPEATABLE READ",
-          serializable:     "SERIALIZABLE"
-        }
+        TRANSACTION_ISOLATION_LEVELS
       end
 
       # Begins the transaction with the isolation level set. Raises an error by
