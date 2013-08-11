@@ -243,6 +243,12 @@ module TestHelpers
       end
     end
 
+    def gsub_app_file(path, regexp, *args, &block)
+      path = "#{app_path}/#{path}"
+      content = File.read(path).gsub(regexp, *args, &block)
+      File.open(path, 'wb') { |f| f.write(content) }
+    end
+
     def remove_file(path)
       FileUtils.rm_rf "#{app_path}/#{path}"
     end

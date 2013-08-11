@@ -6,14 +6,27 @@ module ActionController
     # :api: public
     def render(*args, &block)
       super(*args, &block)
-      text = args.first[:text]
-      if text.present?
-        self.response_body = text
+      opts = args.first
+      if (opts.keys & [:text, :nothing]).present?
+        self.response_body = if opts.has_key?(:text) && opts[:text].present?
+          opts[:text]
+        elsif opts.has_key?(:nothing) && opts[:nothing]
+          " "
+        end
+      else
+        raise UnsupportedOperationError
       end
     end
 
     def rendered_format
       Mime::TEXT
+    end
+
+    class UnsupportedOperationError < StandardError
+      def initialize
+        super "Unsupported render operation. BasicRendering supports only :text
+        and :nothing options. For more, you need to include ActionView."
+      end
     end
   end
 
