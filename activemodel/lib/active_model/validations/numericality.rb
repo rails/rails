@@ -8,6 +8,15 @@ module ActiveModel
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
+      def initialize(options)
+        if range = (options.delete(:in) || options.delete(:within))
+          raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
+          options[:greater_than_or_equal_to], options[:less_than_or_equal_to] = range.min, range.max
+        end
+        
+        super
+      end
+
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
@@ -94,6 +103,10 @@ module ActiveModel
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
       #   +false+). Notice that for fixnum and float columns empty strings are
       #   converted to +nil+.
+      # * <tt>:within</tt> - A range specifying the minimum and maximum value of
+      #   the attribute. It is possible to use a large number as the range end if
+      #   you wish for it to be 'unbounded', however it would better to use <tt>:greater_than</tt>
+      # * <tt>:in</tt> - A synonym (or alias) for <tt>:within</tt>.
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
       #   supplied value.
       # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be

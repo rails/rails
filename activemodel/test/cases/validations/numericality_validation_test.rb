@@ -106,6 +106,18 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!([2])
   end
 
+  def test_validates_numericality_with_range
+    Topic.validates_numericality_of :approved, in: 1..4
+    invalid!([20])
+    valid!([1, 2, 3, 4])
+  end
+
+  def test_validates_numericality_with_range_excluding_end_value
+    Topic.validates_numericality_of :approved, in: 1...4
+    invalid!([20, 4])
+    valid!([1, 2, 3])
+  end
+
   def test_validates_numericality_with_other_than
     Topic.validates_numericality_of :approved, other_than: 0
 
