@@ -65,6 +65,7 @@ module ActionDispatch
   autoload :Journey
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
+  autoload :Url
 
   module Http
     extend ActiveSupport::Autoload
