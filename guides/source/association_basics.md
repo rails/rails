@@ -1137,6 +1137,12 @@ Controls what happens to the associated object when its owner is destroyed:
 * `:restrict_with_exception` causes an exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
 
+It's necessary not to set or leave `:nullify` option for those associations 
+that have `NOT NULL` database constraints. If you don't set `dependent` to 
+destroy such associations you won't be able to change the associated object 
+because initial associated object foreign key will be set to unallowed `NULL` 
+value.
+
 ##### `:foreign_key`
 
 By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix `_id` added. The `:foreign_key` option lets you set the name of the foreign key directly:
