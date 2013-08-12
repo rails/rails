@@ -70,13 +70,13 @@ module ActiveSupport
     alias :until :ago
 
     def inspect #:nodoc:
-      consolidated = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
-      parts = [:years, :months, :days, :minutes, :seconds].map do |length|
-        n = consolidated[length]
-        "#{n} #{n == 1 ? length.to_s.chop : length.to_s}" if n.nonzero?
-      end.compact
-      parts = ["0 seconds"] if parts.empty?
-      parts.to_sentence(:locale => :en)
+      val_for = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
+      [:years, :months, :days, :minutes, :seconds].
+        select {|unit| val_for[unit].nonzero?}.
+        tap {|units| units << :seconds if units.empty?}.
+        map {|unit| [unit, val_for[unit]]}.
+        map {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
+        to_sentence(:locale => :en)
     end
 
     def as_json(options = nil) #:nodoc:
