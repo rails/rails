@@ -19,6 +19,14 @@ module RequestForgeryProtectionActions
     render :inline => "<% form_remote_tag(:url => '/') {} %>"
   end
 
+  def external_form_for
+    render :inline => "<%= form_for(:some_resource, :authenticity_token => 'external_token') {} %>"
+  end
+
+  def form_for_without_token
+    render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
+  end
+
   def unsafe
     render :text => 'pwn'
   end
@@ -155,6 +163,20 @@ module RequestForgeryProtectionTests
   def assert_not_blocked
     assert_nothing_raised { yield }
     assert_response :success
+  end
+
+  def test_should_render_form_with_token_tag_with_authenticity_token_requested
+    assert_not_blocked do
+      get :external_form_for
+    end
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', 'external_token'
+  end
+
+  def test_should_render_form_without_token_tag_with_authenticity_token_set_to_false
+    assert_not_blocked do
+      get :form_for_without_token
+    end
+    assert_select 'form>div>input[name=?]', 'authenticity_token', false
   end
 end
 
