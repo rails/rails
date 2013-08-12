@@ -30,26 +30,16 @@ module ActionDispatch
         end
 
         def url_for(options = {})
-          options = options.dup
-          path  = options.delete(:script_name).to_s.chomp("/")
-          path << options.delete(:path).to_s
-
           params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
-          params.reject! { |_,v| v.to_param.nil? }
+          params = params.reject { |_,v| v.to_param.nil? }
+          options = options.merge(params: params)
 
-          result = build_host_url(options)
-          if options[:trailing_slash]
-            if path.include?('?')
-              result << path.sub(/\?/, '/\&')
-            else
-              result << path.sub(/[^\/]\z|\A\z/, '\&/')
-            end
+          url = ::ActionDispatch::Url.new(options)
+          if options[:only_path]
+            url.relative_path
           else
-            result << path
+            url.absolute_path
           end
-          result << "?#{params.to_query}" unless params.empty?
-          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
-          result
         end
 
         private
