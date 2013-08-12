@@ -73,7 +73,7 @@ module ActiveSupport
       consolidated = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
       parts = [:years, :months, :days, :minutes, :seconds].map do |length|
         n = consolidated[length]
-        "#{n} #{n == 1 ? length.to_s.singularize : length.to_s}" if n.nonzero?
+        "#{n} #{n == 1 ? length.to_s.chop : length.to_s}" if n.nonzero?
       end.compact
       parts = ["0 seconds"] if parts.empty?
       parts.to_sentence(:locale => :en)
