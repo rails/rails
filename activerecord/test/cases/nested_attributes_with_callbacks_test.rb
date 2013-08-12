@@ -61,7 +61,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
 
   # Characterizing when :before_add callback is called
   test ":before_add called for new bird when not loaded" do
-    refute @pirate.birds_with_add.loaded?
+    assert_not @pirate.birds_with_add.loaded?
     @pirate.birds_with_add_attributes = new_bird_attributes
     assert_new_bird_with_callback_called
   end
@@ -78,7 +78,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   end
 
   test ":before_add not called for identical assignment when not loaded" do
-    refute @pirate.birds_with_add.loaded?
+    assert_not @pirate.birds_with_add.loaded?
     @pirate.birds_with_add_attributes = existing_birds_attributes
     assert_callbacks_not_called
   end
@@ -90,7 +90,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   end
 
   test ":before_add not called for destroy assignment when not loaded" do
-    refute @pirate.birds_with_add.loaded?
+    assert_not @pirate.birds_with_add.loaded?
     @pirate.birds_with_add_attributes = destroy_bird_attributes
     assert_callbacks_not_called
   end
@@ -109,7 +109,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   # Ensuring that the records in the association target are updated,
   # whether the association is loaded before or not
   test "Assignment updates records in target when not loaded" do
-    refute @pirate.birds_with_add.loaded?
+    assert_not @pirate.birds_with_add.loaded?
     @pirate.birds_with_add_attributes = update_new_and_destroy_bird_attributes
     assert_assignment_affects_records_in_target(:birds_with_add)
   end
@@ -122,7 +122,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
 
   test("Assignment updates records in target when not loaded" +
        " and callback loads target") do
-    refute @pirate.birds_with_add_load.loaded?
+    assert_not @pirate.birds_with_add_load.loaded?
     @pirate.birds_with_add_load_attributes = update_new_and_destroy_bird_attributes
     assert_assignment_affects_records_in_target(:birds_with_add_load)
   end
