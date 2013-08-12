@@ -42,7 +42,6 @@
 # See the documentation for Nokogiri::XML::Node to understand what's possible
 # with nodes: http://nokogiri.org/Nokogiri/XML/Node.html
 class PermitScrubber < Loofah::Scrubber
-  # :nodoc:
   attr_reader :tags, :attributes
 
   def initialize
