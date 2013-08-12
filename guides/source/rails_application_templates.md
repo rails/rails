@@ -197,7 +197,7 @@ end
 
 ### ask(question)
 
-`ask()` gives you a chance to get some feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you’re adding:
+`ask()` gives you a chance to get some feedback from the user and use it in your templates. Do not use `gets()` since will give a `template could not be loaded` error. Let's say you want your user to name the new shiny library you’re adding:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library ?")
@@ -220,12 +220,16 @@ rake("rails:freeze:gems") if yes?("Freeze rails gems?")
 
 ### git(:command)
 
-Rails templates let you run any git command:
+Rails templates let you run any git command. For instance, to initialize a repository and push it to Github:
 
 ```ruby
 git :init
 git add: "."
 git commit: "-a -m 'Initial commit'"
+username = ask "What is your Github username?"
+run "curl -u #{username} -d '{\"name\":\"#{app_name}\"}' https://api.github.com/user/repos"
+git remote: %Q{ add origin git@github.com:#{username}/#{app_name}.git }
+git push: %Q{ origin master }
 ```
 
 Advanced Usage
