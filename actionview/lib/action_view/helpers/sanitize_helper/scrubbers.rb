@@ -7,7 +7,13 @@
 # - When a node is allowed via +allowed_node?+
 # - When an attribute should be scrubbed via +scrub_attribute?+
 #
-# Text and CDATA nodes are skipped by defualt.
+# Subclasses don't need to worry if tags or attributes are set or not.
+# If tags or attributes are not set, Loofahs behavior will be used.
+# If you override +allowed_node?+ and no tags are set, it will not be called.
+# Instead Loofahs behavior will be used.
+# Likewise for +scrub_attribute?+ and attributes respectively.
+#
+# Text and CDATA nodes are skipped by default.
 # Unallowed elements will be stripped, i.e. element is removed but its subtree kept.
 # Supplied tags and attributes should be Enumerables
 #
@@ -18,6 +24,23 @@
 # +attributes=+
 # If set, attributes excluded will be removed.
 # If not, attributes are removed based on Loofahs +HTML5::Scrub.scrub_attributes+
+#
+# class CommentScrubber < PermitScrubber
+#   def allowed_node?(node)
+#     %w(form script comment blockquote).exclude?(node.name)
+#   end
+#
+#   def skip_node?(node)
+#     node.text?
+#   end
+#
+#   def scrub_attribute?(name)
+#     name == "style"
+#   end
+# end
+#
+# See the documentation for Nokogiri::XML::Node to understand what's possible
+# with nodes: http://nokogiri.org/Nokogiri/XML/Node.html
 class PermitScrubber < Loofah::Scrubber
   # :nodoc:
   attr_reader :tags, :attributes
@@ -90,7 +113,15 @@ class PermitScrubber < Loofah::Scrubber
 end
 
 # === TargetScrubber
-# The Bizarro PermitScrubber
+#
+# Where PermitScrubber picks out tags and attributes to permit in sanitization
+# TargetScrubber picks tags and attributes to target for removal
+#
+# It uses PermitScrubber open architecture to redefine:
+# - +allowed_node?+
+#   # allowed if node is not in tags
+# - +scrub_attribute?+
+#   # should scrub if attribute name is not in attributes
 #
 # +tags=+
 # If set, elements included will be stripped.
