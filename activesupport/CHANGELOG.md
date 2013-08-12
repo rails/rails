@@ -1,5 +1,17 @@
 ## unreleased ##
 
+*   Adds a new deprecation behaviour that aborts the application. Throwing this
+    line into +config/environments/development.rb+
+
+        ActiveSupport::Deprecation.behavior = :abort
+
+    will cause the application to raise an +ActiveSupport::DeprecationException+
+    on deprecations.
+
+    Use this for agressive deprecation cleanups.
+
+    *Xavier Noria*
+
 *   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
     The memory used by a key/entry pair is calculated via `#cached_size`:
 
