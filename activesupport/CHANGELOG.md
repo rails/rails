@@ -1,3 +1,7 @@
+*   FalseClass#blank? now returns false, making it complient with TrueClass
+
+    *Elad Meidar*
+
 *   Remove 'cow' => 'kine' irregular inflection from default inflections.
 
     *Andrew White*

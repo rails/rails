@@ -4,8 +4,8 @@ require 'abstract_unit'
 require 'active_support/core_ext/object/blank'
 
 class BlankTest < ActiveSupport::TestCase
-  BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", '　', [], {} ]
-  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, 'a', [nil], { nil => 0 } ]
+  BLANK = [ EmptyTrue.new, nil, '', '   ', "  \n\t  \r ", '　', [], {} ]
+  NOT   = [ EmptyFalse.new, Object.new, false, true, 0, 1, 'a', [nil], { nil => 0 } ]
 
   def test_blank
     BLANK.each { |v| assert v.blank?,  "#{v.inspect} should be blank" }

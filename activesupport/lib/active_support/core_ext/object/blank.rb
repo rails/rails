@@ -53,7 +53,7 @@ class FalseClass
   #
   #   false.blank? # => true
   def blank?
-    true
+    false
   end
 end
 
