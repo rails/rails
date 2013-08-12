@@ -8,7 +8,7 @@
 # - When an attribute should be scrubbed via +scrub_attribute?+
 #
 # Text and CDATA nodes are skipped by defualt.
-# Unallowed elements will be stripped, i.e. element is removed but its substree kept.
+# Unallowed elements will be stripped, i.e. element is removed but its subtree kept.
 # Supplied tags and attributes should be Enumerables
 #
 # +tags=+
