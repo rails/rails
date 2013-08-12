@@ -3,8 +3,10 @@
 set -x
 set -e
 
+RUBY_VERSION="$(cat .ruby-version)"
+
 # Use the right Ruby /without/ rbenv
-ruby_dir=$(dirname "$(RBENV_VERSION=1.9.3-p231-tcs-github rbenv which ruby)")
+ruby_dir=$(dirname "$(RBENV_VERSION=$RUBY_VERSION rbenv which ruby)")
 export PATH=$ruby_dir:$PATH
 
 # Announce who we are
@@ -13,7 +15,7 @@ ruby -v
 # Because Rails 2.3 doesn't use Bundler for its own tests,
 # we need to setup an isolated gem environment.
 
-gem_environment_version="$(md5sum Gemfile.sh | cut -d' ' -f1)"
+gem_environment_version="$(md5sum Gemfile.sh | cut -d' ' -f1)-$(ruby -e 'print RUBY_VERSION')"
 
 gem_dir=`pwd`/.gem
 gem_pristine_dir=${gem_dir}-${gem_environment_version}

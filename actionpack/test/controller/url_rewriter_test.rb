@@ -240,7 +240,7 @@ class UrlWriterTests < ActionController::TestCase
     # We need to create a new class in order to install the new named route.
     kls = Class.new { include ActionController::UrlWriter }
     controller = kls.new
-    assert controller.respond_to?(:home_url)
+    assert controller.respond_to?(:home_url, true)
     assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
       controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
 
@@ -278,7 +278,7 @@ class UrlWriterTests < ActionController::TestCase
     # We need to create a new class in order to install the new named route.
     kls = Class.new { include ActionController::UrlWriter }
     controller = kls.new
-    assert controller.respond_to?(:home_url)
+    assert controller.respond_to?(:home_url, true)
     assert_equal '/brave/new/world',
       controller.send(:url_for, :controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
 
