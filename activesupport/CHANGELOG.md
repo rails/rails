@@ -1,3 +1,15 @@
+*   Adds a new deprecation behaviour that aborts the application. Throwing this
+    line into +config/environments/development.rb+
+
+        ActiveSupport::Deprecation.behavior = :abort
+
+    will cause the application to raise an +ActiveSupport::DeprecationException+
+    on deprecations.
+
+    Use this for agressive deprecation cleanups.
+
+    *Xavier Noria*
+
 *   Remove 'cow' => 'kine' irregular inflection from default inflections.
 
     *Andrew White*
