@@ -14,7 +14,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '/books', url_for(:only_path => true, :path => '/books')
 
     assert_equal 'http://www.example.com/books/?q=code', url_for(trailing_slash: true, path: '/books?q=code')
-    assert_equal 'http://www.example.com/books/?spareslashes=////', url_for(trailing_slash: true, path: '/books?spareslashes=////')
+    assert_equal 'http://www.example.com/books/?spareslashes=%2F%2F%2F%2F', url_for(trailing_slash: true, path: '/books?spareslashes=////')
 
     assert_equal 'http://www.example.com',  url_for
     assert_equal 'http://api.example.com',  url_for(:subdomain => 'api')
