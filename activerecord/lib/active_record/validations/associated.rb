@@ -4,7 +4,7 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         collection = Array.wrap(value)
 
-        if collection.reject { |r| r.marked_for_destruction? || r.valid?(record.validation_context) }.any? ||
+        if collection.reject { |r| r.marked_for_destruction? || r.valid? }.any? ||
             !unique_for_nested_attributes?(collection)
           record.errors.add(attribute, :invalid, options.merge(:value => value))
         end
@@ -22,24 +22,17 @@ module ActiveRecord
 
         return true if uniqueness_validators.empty?
 
-        attribute_uniquifiers = {}
-        uniqueness_validators.each do |validator|
-          validator_set = [validator.attributes, validator.options[:scope]].flatten.compact.sort
-          attribute_uniquifiers[validator_set] = Set.new()
-        end
+        attribute_uniquifiers = Hash[uniqueness_validators.map do |validator|
+          unique_attributes = [validator.attributes, validator.options[:scope]].flatten.compact.sort
+          [unique_attributes, Set.new]
+        end]
 
-        collection.each do |record|
-          attribute_uniquifiers.each do |attribute_list, previous_combinations|
-            new_combination = attribute_list.map { |attribute| record.send(attribute) }
-            if previous_combinations.include?(new_combination)
-              return false
-            else
-              previous_combinations.add(new_combination)
-            end
+        collection.all? do |record|
+          attribute_uniquifiers.all? do |unique_attributes, previous_combinations|
+            unique_attribute_values = unique_attributes.map { |attribute| record.send(attribute) }
+            previous_combinations.add?(unique_attribute_values)
           end
         end
-
-        return true
       end
     end
 

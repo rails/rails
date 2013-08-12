@@ -124,30 +124,16 @@ class AssociationValidationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_validates_associated_models_in_the_same_context
-    Topic.validates_presence_of :title, :on => :custom_context
-    Topic.validates_associated :replies
-    Reply.validates_presence_of :title, :on => :custom_context
-
-    t = Topic.new('title' => '')
-    r = t.replies.new('title' => '')
-
-    assert t.valid?
-    assert !t.valid?(:custom_context)
-
-    t.title = "Longer"
-    assert !t.valid?(:custom_context), "Should NOT be valid if the associated object is not valid in the same context."
-
-    r.title = "Longer"
-    assert t.valid?(:custom_context), "Should be valid if the associated object is not valid in the same context."
-  end
-
   def test_validates_associated_many_uniqueness
     Topic.validates_associated(:replies)
     Reply.validates_uniqueness_of(:title)
 
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
-    t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply"), r3 = Reply.new("title" => "Another reply")]
+    t.replies << [
+      r = Reply.new("title" => "A reply"),
+      r2 = Reply.new("title" => "Another reply"),
+      r3 = Reply.new("title" => "Another reply")
+    ]
 
     assert !t.valid?
     assert t.errors[:replies].any?
@@ -177,7 +163,11 @@ class AssociationValidationTest < ActiveRecord::TestCase
 
     # There is no uniquness on Reply, therefore it should allow duplicates.
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
-    t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
+    t.replies_attributes = [
+      { "title" => "A reply" },
+      { "title" => "Another reply" },
+      { "title" => "Another reply" }
+    ]
 
     assert t.valid?
     t.save!
@@ -189,16 +179,38 @@ class AssociationValidationTest < ActiveRecord::TestCase
     Topic.accepts_nested_attributes_for(:replies)
     Reply.validates_uniqueness_of(:title)
 
-    t = Topic.create("title" => "My Title", "content" => "This is so boss.")
-    t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
+    t = Topic.create("title" => "uhohuhoh", "content" => "This is so boss.")
+    t.replies_attributes = [
+      { "title" => "A reply" },
+      { "title" => "Another reply" },
+      { "title" => "Another reply" }
+    ]
     assert !t.valid?
 
     new_t = Topic.create("title" => "My better title", "content" => "This is so boss.")
-    new_t.replies_attributes = [{ "title" => "A reply" }, { "title" => "It really isn't that boss." }, { "title" => "Actually, yes this is pretty boss." }]
+    new_t.replies_attributes = [
+      { "title" => "A reply" },
+      { "title" => "It really isn't that boss." },
+      { "title" => "Actually, yes this is pretty boss." }
+    ]
 
     assert new_t.valid?
     new_t.save!
     assert_equal 3, new_t.replies.size
+  end
+
+  def test_validates_associated_nested_attributes_destroy
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    Reply.validates_uniqueness_of(:title)
+
+    t = Topic.create("title" => "uhohuhoh", "content" => "This is so boss.")
+    t.replies_attributes = [
+      { "title" => "A reply" },
+      { "title" => "Another reply" },
+      { "title" => "Another reply", "_destroy" => true }
+    ]
+    assert t.valid?
   end
 
   def test_validates_associated_nested_attributes_uniqueness_with_scoping
@@ -207,11 +219,18 @@ class AssociationValidationTest < ActiveRecord::TestCase
     Reply.validates_uniqueness_of(:title, :scope => :content)
 
     t = Topic.create("title" => "Brogramming", "content" => "Programming, for bros.")
-    t.replies_attributes = [{"title" => "Reply", "content" => "Some content"}, {"title" => "Reply", "content" => "Some content"}]
+    t.replies_attributes = [
+      {"title" => "Reply", "content" => "Some content"},
+      {"title" => "Reply", "content" => "Some content"}
+    ]
     assert !t.valid?
 
     new_t = Topic.create("title" => "Programming", "content" => "For the masses")
-    new_t.replies_attributes = [{"title" => "aa", "content" => "aa"}, {"title" => "a", :content => "aaa"}, {"title" => "Apple", :content => "Boy"}]
+    new_t.replies_attributes = [
+      {"title" => "aa",    "content" => "aa"},
+      {"title" => "a",     "content" => "aaa"},
+      {"title" => "Apple", "content" => "Boy"}
+    ]
 
     assert new_t.valid?
     new_t.save!
