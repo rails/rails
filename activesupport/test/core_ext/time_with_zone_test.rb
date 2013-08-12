@@ -795,10 +795,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_no_method_error_has_proper_context
-    e = assert_raises(NoMethodError) {
+    e = assert_raises(ActiveSupport::NoMethodOnObjectError) {
       @twz.this_method_does_not_exist
     }
-    assert_equal "undefined method `this_method_does_not_exist' for Fri, 31 Dec 1999 19:00:00 EST -05:00:Time", e.message
+    assert_equal @twz.time, e.object
+    assert_equal :this_method_does_not_exist, e.name
     assert_no_match "rescue", e.backtrace.first
   end
 

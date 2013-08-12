@@ -2,6 +2,16 @@ require 'active_support/values/time_zone'
 require 'active_support/core_ext/object/acts_like'
 
 module ActiveSupport
+  class NoMethodOnObjectError < NoMethodError
+    attr_reader :object
+
+    def initialize(msg, name, args = nil, object = nil)
+      super(msg, name, args)
+
+      @object = object
+    end
+  end
+
   # A Time-like class that can represent a time in any time zone. Necessary
   # because standard Ruby Time instances are limited to UTC and the
   # system's <tt>ENV['TZ']</tt> zone.
@@ -363,7 +373,8 @@ module ActiveSupport
     def method_missing(sym, *args, &block)
       wrap_with_time_zone time.__send__(sym, *args, &block)
     rescue NoMethodError => e
-      raise e, e.message.sub(time.inspect, self.inspect), e.backtrace
+      msg = e.message.sub(time.inspect, self.inspect)
+      raise NoMethodOnObjectError.new(msg, sym, args, time), msg, e.backtrace
     end
 
     private
