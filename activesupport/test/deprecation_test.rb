@@ -98,8 +98,8 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/foo=nil/, @b)
   end
 
-  def test_abort_behaviour
-    ActiveSupport::Deprecation.behavior = :abort
+  def test_raise_behaviour
+    ActiveSupport::Deprecation.behavior = :raise
 
     message   = 'Revise this deprecated stuff now!'
     callstack = %w(foo bar baz)
@@ -110,7 +110,7 @@ class DeprecationTest < ActiveSupport::TestCase
       assert_equal message, e.message
       assert_equal callstack, e.backtrace
     else
-      flunk 'the :abort deprecation behaviour should raise the expected exception'
+      flunk 'the :raise deprecation behaviour should raise the expected exception'
     end
   end
 
