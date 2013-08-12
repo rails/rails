@@ -1,4 +1,8 @@
 module ActionController
+  # Basic rendering implements the most minimal rendering layer.
+  # It only supports rendering :text and :nothing. Passing any other option will
+  # result in `UnsupportedOperationError` exception. For more functionality like
+  # different formats, layouts etc. you should use `ActionView` gem.
   module BasicRendering
     extend ActiveSupport::Concern
 
