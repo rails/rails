@@ -6,7 +6,7 @@
     will cause the application to raise an +ActiveSupport::DeprecationException+
     on deprecations.
 
-    Use this for agressive deprecation cleanups.
+    Use this for aggressive deprecation cleanups.
 
     *Xavier Noria*
 
