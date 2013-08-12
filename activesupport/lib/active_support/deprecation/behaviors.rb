@@ -7,7 +7,7 @@ module ActiveSupport
   class Deprecation
     # Default warning behaviors per Rails.env.
     DEFAULT_BEHAVIORS = {
-      abort: ->(message, callstack) {
+      raise: ->(message, callstack) {
         e = DeprecationException.new(message)
         e.set_backtrace(callstack)
         raise e
@@ -52,7 +52,7 @@ module ActiveSupport
       #
       # Available behaviors:
       #
-      # [+abort+]   Raises <tt>ActiveSupport::DeprecationException</tt>.
+      # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
       # [+stderr+]  Log all deprecation warnings to +$stderr+.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
       # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.

@@ -1,7 +1,7 @@
-*   Adds a new deprecation behaviour that aborts the application. Throwing this
+*   Adds a new deprecation behaviour that raises an exception. Throwing this
     line into +config/environments/development.rb+
 
-        ActiveSupport::Deprecation.behavior = :abort
+        ActiveSupport::Deprecation.behavior = :raise
 
     will cause the application to raise an +ActiveSupport::DeprecationException+
     on deprecations.
