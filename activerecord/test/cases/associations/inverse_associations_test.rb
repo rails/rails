@@ -406,7 +406,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     interest = Interest.create!(man: man)
 
     man.interests.find(interest.id)
-    refute man.interests.loaded?
+    assert_not man.interests.loaded?
   end
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
