@@ -1,3 +1,17 @@
+*   Dom and Selector assertions has been moved to Action View.
+
+    Loofah replaces html-scanner in `DomAssertions`:
+    `assert_dom_equal`
+    `assert_dom_not_equal`
+
+    Also in `SelectorAssertions`:
+    `css_select`
+    `assert_select`
+    `assert_select_encoded`
+    `assert_select_email`
+
+    *Kasper Timm Hansen*
+
 *   Bring `cache_digest` rake tasks up-to-date with the latest API changes
 
     *Jiri Pospisil*
