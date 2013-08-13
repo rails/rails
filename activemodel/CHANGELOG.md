@@ -1,3 +1,8 @@
+*   Fix `ActiveModel::Errors` raising NoMethodError when adding errors to
+    arbitrary keys on models and using I18n translations.
+
+    *Caleb Thompson*
+
 *   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
 
     *T.J. Schuck*
