@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
+ActionController::Base.helpers_path = File.expand_path('../../../fixtures/helpers', __FILE__)
 
 module AbstractController
   module Testing
@@ -52,7 +52,7 @@ module AbstractController
     class AbstractInvalidHelpers < AbstractHelpers
       include ActionController::Helpers
 
-      path = File.join(File.expand_path('../../fixtures', __FILE__), "helpers_missing")
+      path = File.join(File.expand_path('../../../fixtures', __FILE__), "helpers_missing")
       $:.unshift(path)
       self.helpers_path = path
     end
