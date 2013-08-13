@@ -337,13 +337,15 @@ class CreateAssembliesAndParts < ActiveRecord::Migration
       t.timestamps
     end
 
-    create_table :assemblies_parts do |t|
+    create_table :assemblies_parts, id: false do |t|
       t.belongs_to :assembly
       t.belongs_to :part
     end
   end
 end
 ```
+
+Option `id: false` for `create_table :assemblies_parts` prevents `id` column creation because we don't have to generate primary key here.
 
 ### Choosing Between `belongs_to` and `has_one`
 
