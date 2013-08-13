@@ -616,7 +616,7 @@ assert_select "ol" do
 end
 ```
 
-The `assert_select` assertion is quite powerful. For more advanced usage, refer to its [documentation](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html).
+The `assert_select` assertion is quite powerful. For more advanced usage, refer to its [documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html).
 
 #### Additional View-Based Assertions
 

@@ -113,10 +113,10 @@ to Active Record instances:
 * `updated_at` - Automatically gets set to the current date and time whenever
   the record is updated.
 * `lock_version` - Adds [optimistic
-  locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
+  locking](http://edgeapi.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html)
+  Inheritance](http://edgeapi.rubyonrails.org/classes/ActiveRecord/Base.html)
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on

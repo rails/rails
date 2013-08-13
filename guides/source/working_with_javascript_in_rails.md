@@ -151,7 +151,7 @@ attributes, and attaches appropriate handlers.
 
 ### form_for
 
-[`form_for`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for)
+[`form_for`](http://edgeapi.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for)
 is a helper that assists with writing forms. `form_for` takes a `:remote`
 option. It works like this:
 

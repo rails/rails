@@ -151,7 +151,7 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 { name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://edgeapi.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
 NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
 
@@ -450,7 +450,7 @@ To reset the entire session, use `reset_session`.
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
 
-It is accessed in much the same way as the session, as a hash (it's a [FlashHash](http://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
+It is accessed in much the same way as the session, as a hash (it's a [FlashHash](http://edgeapi.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
 
 Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
@@ -733,7 +733,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html). Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [API documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/Request.html). Among the properties that you can access on this object are:
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |

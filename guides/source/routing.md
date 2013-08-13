@@ -1072,7 +1072,7 @@ TIP: You'll find that the output from `rake routes` is much more readable if you
 
 ### Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](http://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
 
 * `assert_generates`
 * `assert_recognizes`
