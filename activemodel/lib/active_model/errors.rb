@@ -339,7 +339,11 @@ module ActiveModel
       defaults.flatten!
 
       key = defaults.shift
-      value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
+      value = if @base.respond_to?(attribute)
+                @base.send(:read_attribute_for_validation, attribute)
+              else
+                nil
+              end
 
       options = {
         :default => defaults,
