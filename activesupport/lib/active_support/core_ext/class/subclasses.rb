@@ -6,20 +6,15 @@ class Class
     ObjectSpace.each_object(Class.new) {}
 
     def descendants # :nodoc:
-      descendants = []
-      ObjectSpace.each_object(singleton_class) do |k|
-        descendants.unshift k unless k == self
+      ObjectSpace.each_object(singleton_class).reject do |k|
+        k == self
       end
-      descendants
     end
-  rescue StandardError # JRuby
+  rescue # JRuby 1.6 raises a NameError and JRuby 1.7 a RuntimeError.
     def descendants # :nodoc:
-      descendants = []
-      ObjectSpace.each_object(Class) do |k|
-        descendants.unshift k if k < self
-      end
-      descendants.uniq!
-      descendants
+      ObjectSpace.each_object(Class).select do |k|
+        k < self
+      end.uniq
     end
   end
 
@@ -33,10 +28,9 @@ class Class
   #
   #   Foo.subclasses # => [Bar]
   def subclasses
-    subclasses, chain = [], descendants
-    chain.each do |k|
-      subclasses << k unless chain.any? { |c| c > k }
+    chain = descendants
+    chain.delete_if do |k|
+      chain.any? { |c| c > k }
     end
-    subclasses
   end
 end
