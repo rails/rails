@@ -1,9 +1,24 @@
 class String
+
+  class << self
+    attr_reader :indent_string
+    # Configures "\t" as the default indent_string that String#indent will always use unless the call to indent explicitly uses another indent_string
+    #
+    def indent_with_tab
+      indent_with("\t")
+    end
+    # Configures a default indent_string that String#indent will always use unless the call to indent explicitly uses another indent_string
+    #
+    def indent_with(indent_string)
+      @indent_string = indent_string
+    end
+  end
+
   # Same as +indent+, except it indents the receiver in-place.
   #
   # Returns the indented string, or +nil+ if there was nothing to indent.
   def indent!(amount, indent_string=nil, indent_empty_lines=false)
-    indent_string = indent_string || self[/^[ \t]/] || ' '
+    indent_string = indent_string || self.class.indent_string || self[/^[ \t]/] || ' '
     re = indent_empty_lines ? /^/ : /^(?!$)/
     gsub!(re, indent_string * amount)
   end

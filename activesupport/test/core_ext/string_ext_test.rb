@@ -683,6 +683,10 @@ class StringExcludeTest < ActiveSupport::TestCase
 end
 
 class StringIndentTest < ActiveSupport::TestCase
+  teardown do
+    String.indent_with(nil)
+  end
+
   test 'does not indent strings that only contain newlines (edge cases)' do
     ['', "\n", "\n" * 7].each do |str|
       assert_nil str.indent!(8)
@@ -701,6 +705,26 @@ class StringIndentTest < ActiveSupport::TestCase
 
   test "by default, indents with spaces as a fallback if there is no indentation" do
     assert_equal "   foo\n   bar\n   baz", "foo\nbar\nbaz".indent(3)
+  end
+
+  test "indents with tabs if configured at class level to do so" do
+    String.indent_with_tab
+    assert_equal "\t\t\tfoo\n\t\t\tbar\n\t\t\tbaz", "foo\nbar\nbaz".indent(3)
+  end
+
+  test "indents with '@' if configured at class level to do so" do
+    String.indent_with('@')
+    assert_equal "@@foo\n@@bar\n@@baz", "foo\nbar\nbaz".indent(2)
+  end
+
+  test "doesn't use space as a fallback when configured at class level" do
+    String.indent_with('@')
+    assert_equal "@@foo\n@@ bar\n@@baz", "foo\n bar\nbaz".indent(2)
+  end
+
+  test "doesn't use tab when configured at class level" do
+    String.indent_with('@')
+    assert_equal "@@foo\n@@\tbar\n@@baz", "foo\n\tbar\nbaz".indent(2)
   end
 
   # Nothing is said about existing indentation that mixes spaces and tabs, so
