@@ -5,17 +5,17 @@ module ActionDispatch
   module Http
     module URL
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
-      HOST_REGEXP     = /(^.*:\/\/)?([^:]+)(?::(\d+$))?/
-      PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
       mattr_accessor :tld_length
       self.tld_length = 1
 
       class << self
+        # TODO: Used by /actionpack/test/dispatch/request_test.rb:221
         def extract_domain(host, tld_length = @@tld_length)
           host.split('.').last(1 + tld_length).join('.') if named_host?(host)
         end
 
+        # TODO: Used by /actionpack/test/dispatch/routing_test.rb:3426
         def extract_subdomains(host, tld_length = @@tld_length)
           if named_host?(host)
             parts = host.split('.')
@@ -25,6 +25,7 @@ module ActionDispatch
           end
         end
 
+        # TODO: Used by /actionpack/test/dispatch/routing_test.rb:3426
         def extract_subdomain(host, tld_length = @@tld_length)
           extract_subdomains(host, tld_length).join('.')
         end
@@ -44,88 +45,9 @@ module ActionDispatch
 
         private
 
-        def build_host_url(options)
-          if options[:host].blank? && options[:only_path].blank?
-            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
-          end
-
-          result = ""
-
-          unless options[:only_path]
-            if match = options[:host].match(HOST_REGEXP)
-              options[:protocol] ||= match[1] unless options[:protocol] == false
-              options[:host]       = match[2]
-              options[:port]       = match[3] unless options.key?(:port)
-            end
-
-            options[:protocol] = normalize_protocol(options)
-            options[:host]     = normalize_host(options)
-            options[:port]     = normalize_port(options)
-
-            result << options[:protocol]
-            result << rewrite_authentication(options)
-            result << options[:host]
-            result << ":#{options[:port]}" if options[:port]
-          end
-          result
-        end
-
+        # TODO: Used by /actionpack/test/dispatch/routing_test.rb:3426
         def named_host?(host)
           host && IP_HOST_REGEXP !~ host
-        end
-
-        def same_host?(options)
-          (options[:subdomain] == true || !options.key?(:subdomain)) && options[:domain].nil?
-        end
-
-        def rewrite_authentication(options)
-          if options[:user] && options[:password]
-            "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
-          else
-            ""
-          end
-        end
-
-        def normalize_protocol(options)
-          case options[:protocol]
-          when nil
-            "http://"
-          when false, "//"
-            "//"
-          when PROTOCOL_REGEXP
-            "#{$1}://"
-          else
-            raise ArgumentError, "Invalid :protocol option: #{options[:protocol].inspect}"
-          end
-        end
-
-        def normalize_host(options)
-          return options[:host] if !named_host?(options[:host]) || same_host?(options)
-
-          tld_length = options[:tld_length] || @@tld_length
-
-          host = ""
-          if options[:subdomain] == true || !options.key?(:subdomain)
-            host << extract_subdomain(options[:host], tld_length).to_param
-          elsif options[:subdomain].present?
-            host << options[:subdomain].to_param
-          end
-          host << "." unless host.empty?
-          host << (options[:domain] || extract_domain(options[:host], tld_length))
-          host
-        end
-
-        def normalize_port(options)
-          return nil if options[:port].nil? || options[:port] == false
-
-          case options[:protocol]
-          when "//"
-            nil
-          when "https://"
-            options[:port].to_i == 443 ? nil : options[:port]
-          else
-            options[:port].to_i == 80 ? nil : options[:port]
-          end
         end
       end
 
@@ -133,11 +55,6 @@ module ActionDispatch
         super
         @protocol = nil
         @port     = nil
-      end
-
-      # Returns the complete URL used for this request.
-      def url
-        protocol + host_with_port + fullpath
       end
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
@@ -195,16 +112,19 @@ module ActionDispatch
         standard_port? ? nil : port
       end
 
+      # TODO: Used by /actionpack/test/dispatch/rack_test.rb:107
       # Returns a string \port suffix, including colon, like ":8080" if the \port
       # number of this request is not the default HTTP \port 80 or HTTPS \port 443.
       def port_string
         standard_port? ? '' : ":#{port}"
       end
 
+      # TODO: Used by /actionpack/test/dispatch/rack_test.rb:148
       def server_port
         @env['SERVER_PORT'].to_i
       end
 
+      # TODO: Used by /actionpack/test/dispatch/request_test.rb:221
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
       # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
       def domain(tld_length = @@tld_length)
