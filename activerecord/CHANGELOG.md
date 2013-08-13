@@ -1,3 +1,8 @@
+*   Objects intiantiated using a null relationship will now retain the
+    attributes of the where clause.
+
+    *Peter Brown*
+
 *   `add_to_target` now accepts a second optional `skip_callbacks` argument
 
     If truthy, it will skip the :before_add and :after_add callbacks.

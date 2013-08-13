@@ -42,10 +42,6 @@ module ActiveRecord
       ""
     end
 
-    def where_values_hash
-      {}
-    end
-
     def count(*)
       0
     end
