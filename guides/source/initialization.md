@@ -40,7 +40,7 @@ This file is as follows:
 ```ruby
 #!/usr/bin/env ruby
 APP_PATH = File.expand_path('../../config/application', __FILE__)
-require File.expand_path('../../config/boot', __FILE__)
+require_relative '../config/boot'
 require 'rails/commands'
 ```
 
