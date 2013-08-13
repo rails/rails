@@ -307,6 +307,10 @@ end
 
 A controller is simply a class that is defined to inherit from `ApplicationController`. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
 
+NOTE: There are `public`, `private` and `protected` methods in `Ruby`
+(for more details you can check on [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)).
+But only `public` methods can be actions for controllers.
+
 If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
 
 ![Unknown action new for PostsController!](images/getting_started/unknown_action_new_for_posts.png)
