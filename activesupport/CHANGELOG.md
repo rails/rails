@@ -1,3 +1,7 @@
+*   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
+
+    *DHH*
+
 *   Adds a new deprecation behaviour that raises an exception. Throwing this
     line into +config/environments/development.rb+
 
