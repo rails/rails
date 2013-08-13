@@ -1590,6 +1590,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
 
+  def test_attributes_are_set_when_initialized_from_has_many_null_relationship
+    car = Car.new name: "honda"
+    bulb = car.bulbs.where(name: 'headlight').first_or_initialize
+    assert_equal 'headlight', bulb.name
+  end
+
+  def test_attributes_are_set_when_initialized_from_polymorphic_has_many_null_relationship
+    post = Post.new title: "title", body: "bar"
+    tag = Tag.create!(name: "foo")
+    tagging = post.taggings.where(tag: tag).first_or_initialize
+    assert_equal tag.id, tagging.tag_id
+    assert_equal 'Post', tagging.taggable_type
+  end
+
   def test_replace
     car = Car.create(:name => 'honda')
     bulb1 = car.bulbs.create

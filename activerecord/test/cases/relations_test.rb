@@ -289,6 +289,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal({}, Developer.none.where_values_hash)
   end
 
+  def test_null_relation_where_values_hash
+    assert_equal({'salary' => 100_000}, Developer.none.where(salary: 100_000).where_values_hash)
+  end
+
   def test_joins_with_nil_argument
     assert_nothing_raised { DependentFirm.joins(nil).first }
   end
