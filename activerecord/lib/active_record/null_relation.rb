@@ -77,5 +77,9 @@ module ActiveRecord
     def exists?(_id = false)
       false
     end
+
+    def absent?(_)
+      true
+    end
   end
 end
