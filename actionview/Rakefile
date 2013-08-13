@@ -35,7 +35,7 @@ namespace :test do
     desc 'ActionPack Integration Tests'
     Rake::TestTask.new(:action_pack) do |t|
       t.libs << 'test'
-      t.test_files = Dir.glob("test/actionpack/*_test.rb")
+      t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
       t.warning = true
       t.verbose = true
     end

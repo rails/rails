@@ -88,7 +88,7 @@ class TestController < ApplicationController
   end
 
   def hello_world_file
-    render :file => File.expand_path("../../fixtures/actionpack/hello", __FILE__), :formats => [:html]
+    render :file => File.expand_path("../../../fixtures/actionpack/hello", __FILE__), :formats => [:html]
   end
 
   # :ported:
@@ -157,14 +157,14 @@ class TestController < ApplicationController
   # :ported:
   def render_file_with_instance_variables
     @secret = 'in the sauce'
-    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar')
+    path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar')
     render :file => path
   end
 
   # :ported:
   def render_file_as_string_with_instance_variables
     @secret = 'in the sauce'
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar'))
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar'))
     render path
   end
 
@@ -181,21 +181,21 @@ class TestController < ApplicationController
 
   def render_file_using_pathname
     @secret = 'in the sauce'
-    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
+    render :file => Pathname.new(File.dirname(__FILE__)).join('..', '..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
   end
 
   def render_file_from_template
     @secret = 'in the sauce'
-    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar'))
+    @path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar'))
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals')
+    path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals')
     render :file => path, :locals => {:secret => 'in the sauce'}
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals'))
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals'))
     render path, :locals => {:secret => 'in the sauce'}
   end
 
