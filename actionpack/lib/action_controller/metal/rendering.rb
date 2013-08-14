@@ -11,12 +11,10 @@ module ActionController
     def render(*args, &block)
       super(*args, &block)
       opts = args.first
-      if (opts.keys & [:text, :nothing]).present?
-        self.response_body = if opts.has_key?(:text) && opts[:text].present?
-          opts[:text]
-        elsif opts.has_key?(:nothing) && opts[:nothing]
-          " "
-        end
+      if opts.has_key?(:text) && opts[:text].present?
+        self.response_body = opts[:text]
+      elsif opts.has_key?(:nothing) && opts[:nothing]
+        self.response_body = " "
       else
         raise UnsupportedOperationError
       end
