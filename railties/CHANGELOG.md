@@ -1,3 +1,21 @@
+*   Generate nested route for namespaced controller generated using
+    `rails g controller`.
+    Fixes #11532.
+    
+    Example:
+    
+        rails g controller admin/dashboard index
+        
+        # Before:
+        get "dashboard/index"
+        
+        # After:
+        namespace :admin do
+          get "dashboard/index"
+        end
+    
+    *Prathamesh Sonpatki*
+    
 *   Fix the event name of action_dispatch requests.
 
     *Rafael Mendonça França*
