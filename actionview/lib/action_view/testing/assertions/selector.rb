@@ -47,7 +47,7 @@ module ActionView
       #     ...
       #   end
       def css_select(*args)
-        raise ArgumentError, "you at least need a selector" if args.empty?
+        raise ArgumentError, "you at least need a selector argument" if args.empty?
 
         root = args.size == 1 ? response_from_page : args.shift
         selector = args.first
