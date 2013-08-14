@@ -170,6 +170,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
+  def test_order_with_hash_and_symbol_generates_the_same_sql
+    assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
+  end
+
   def test_raising_exception_on_invalid_hash_params
     assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
   end
