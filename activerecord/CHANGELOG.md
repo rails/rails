@@ -1,3 +1,8 @@
+*   Fixed `columns_for_distinct` of postgresql adapter to work correctly
+    with orders without sort direction modifiers.
+
+    *Nikolay Kondratyev*
+
 *   Assign inet/cidr attribute with `nil` value for invalid address.
 
     Example:

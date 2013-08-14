@@ -475,7 +475,7 @@ module ActiveRecord
               # Convert Arel node to string
               s = s.to_sql unless s.is_a?(String)
               # Remove any ASC/DESC modifiers
-              s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
+              s.gsub(/\s+(?:ASC|DESC)?\s*(?:NULLS\s+(?:FIRST|LAST)\s*)?/i, '')
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           [super, *order_columns].join(', ')
