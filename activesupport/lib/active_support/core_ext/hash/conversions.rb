@@ -235,7 +235,6 @@ module ActiveSupport
         value.map! { |i| deep_to_h(i) }
         value.length > 1 ? value : value.first
       end
-
   end
 end
 

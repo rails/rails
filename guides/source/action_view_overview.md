@@ -68,7 +68,7 @@ Consider the following loop for names:
 ```html+erb
 <h1>Names of all the people</h1>
 <% @people.each do |person| %>
-  Name: <%= person.name %><br/>
+  Name: <%= person.name %><br>
 <% end %>
 ```
 

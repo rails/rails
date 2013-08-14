@@ -47,7 +47,7 @@ class Object
   end
 
   # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
-  # does not implemented the tried method.
+  # does not implement the tried method.
   def try!(*a, &b)
     if a.empty? && block_given?
       yield self

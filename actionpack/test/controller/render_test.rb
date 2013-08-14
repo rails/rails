@@ -775,6 +775,10 @@ class RenderTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def teardown
+    ActionView::Base.logger = nil
+  end
+
   # :ported:
   def test_simple_show
     get :hello_world

@@ -646,6 +646,7 @@ class RespondWithControllerTest < ActionController::TestCase
     Mime::Type.register_alias('text/html', :iphone)
     Mime::Type.register_alias('text/html', :touch)
     Mime::Type.register('text/x-mobile', :mobile)
+    Customer.send(:undef_method, :to_json) if Customer.method_defined?(:to_json)
   end
 
   def teardown
