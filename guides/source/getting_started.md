@@ -574,8 +574,15 @@ whether the model was saved or not.
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
+Open the file `config/routes.rb` and add this line.
 
 ```ruby
+resources :posts
+```
+
+If you run `rake routes` in your terminal, several lines will be shown regarding posts, including this:
+
+```
 post GET    /posts/:id(.:format)      posts#show
 ```
 
