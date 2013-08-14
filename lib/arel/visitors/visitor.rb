@@ -7,12 +7,15 @@ module Arel
 
       private
 
-      DISPATCH = Hash.new do |hash, klass|
-        hash[klass] = "visit_#{(klass.name || '').gsub('::', '_')}"
+      DISPATCH = Hash.new do |hash, visitor_class|
+        hash[visitor_class] =
+          Hash.new do |hash, node_class|
+            hash[node_class] = "visit_#{(node_class.name || '').gsub('::', '_')}"
+          end
       end
 
       def dispatch
-        DISPATCH
+        DISPATCH[self.class]
       end
 
       def visit object, attribute = nil
