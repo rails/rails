@@ -83,6 +83,16 @@ Product = Struct.new(:name) do
   end
 end
 
+Employee  = Struct.new(:name, :employee_id)
+Guest     = Struct.new(:name)
+
+Entry     = Struct.new(:person) do
+  delegate :name, :to => :person, :allow_nil => true
+  delegate :employee_id, :to => :person, :default => 'N/A'
+  delegate :birth_date, :to => :person, :default => nil
+  delegate :ssn, :to => :person, :default => 'N/A', :allow_nil => true
+end
+
 class ParameterSet
   delegate :[], :[]=, :to => :@params
 
@@ -289,6 +299,17 @@ class ModuleTest < ActiveSupport::TestCase
 
     # Nested NoMethodError is the same name as the delegation
     assert_raise(NoMethodError) { product.type_name }
+  end
+
+  def test_delegation_with_default
+    employee_entry = Entry.new(Employee.new('David', '123'))
+    assert_equal employee_entry.employee_id, '123'
+    assert_equal employee_entry.ssn, "N/A"
+    guest_entry = Entry.new(Guest.new('John'))
+    assert_equal guest_entry.employee_id, "N/A"
+    assert_nil guest_entry.birth_date
+    empty_entry = Entry.new(nil)
+    assert_nil empty_entry.ssn
   end
 
   def test_parent

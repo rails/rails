@@ -10,6 +10,8 @@ class Module
   # * <tt>:to</tt> - Specifies the target object
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
   # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ to be raised
+  # * <tt>:default</tt> - Specifies the value to return if the target does not respond
+  # to the method
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
@@ -138,13 +140,26 @@ class Module
   #
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
+  # In example above, along with other situations where the target is not guaranteed to
+  # respond to the method, a default value can be specified using <tt>:default</tt>.
+  # This can be particularly useful when the target is polymorphic.
+  #
+  #   class Foo
+  #     def initialize(bar)
+  #       @bar = bar
+  #     end
+  #
+  #     delegate :name, to: :@bar, allow_nil: true, default: nil
+  #   end
+  #
+  #   Foo.new("Bar").name # nil
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
       raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
     end
 
-    prefix, allow_nil = options.values_at(:prefix, :allow_nil)
+    prefix, allow_nil, default = options.values_at(:prefix, :allow_nil, :default)
 
     if prefix == true && to =~ /^[^a-z_]/
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
@@ -177,12 +192,19 @@ class Module
       # be doing one call.
       if allow_nil
         module_eval(<<-EOS, file, line - 3)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            if !_.nil? || nil.respond_to?(:#{method})         #   if !_.nil? || nil.respond_to?(:name)
-              _.#{method}(#{definition})                      #     _.name(*args, &block)
-            end                                               #   end
-          end                                                 # end
+          def #{method_prefix}#{method}(#{definition})                                          # def customer_name(*args, &block)
+            _ = #{to}                                                                           #   _ = client
+            if !_.nil? || nil.respond_to?(:#{method})                                           #   if !_.nil? || nil.respond_to?(:name)
+              _.#{method}(#{definition})                                                        #     _.name(*args, &block)
+            end                                                                                 #   end
+          rescue NoMethodError => e                                                             # rescue NoMethodError => e
+            location = "%s:%d:in `%s'" % [__FILE__, __LINE__ - 3, '#{method_prefix}#{method}']  #   location = "%s:%d:in `%s'" % [__FILE__, __LINE__ - 3, 'customer_name']
+            if #{options.has_key?(:default)} && e.backtrace.first == location                   #   if true and e.backtrace.first == location
+              #{default.inspect}                                                                #     nil
+            else                                                                                #   else
+              raise                                                                             #     raise
+            end                                                                                 #   end
+          end                                                                                   # end
         EOS
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
@@ -195,6 +217,8 @@ class Module
             location = "%s:%d:in `%s'" % [__FILE__, __LINE__ - 2, '#{method_prefix}#{method}']  #   location = "%s:%d:in `%s'" % [__FILE__, __LINE__ - 2, 'customer_name']
             if _.nil? && e.backtrace.first == location                                          #   if _.nil? && e.backtrace.first == location
               #{exception}                                                                      #     # add helpful message to the exception
+            elsif #{options.has_key?(:default)} && e.backtrace.first == location                #   elsif true && e.backtrace.first == location
+              #{default.inspect}                                                                #     nil
             else                                                                                #   else
               raise                                                                             #     raise
             end                                                                                 #   end
