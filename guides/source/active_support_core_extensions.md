@@ -1249,6 +1249,17 @@ Calling `to_s` on a safe string returns a safe string, but coercion with `to_str
 
 Calling `dup` or `clone` on safe strings yields safe strings.
 
+### `remove`
+
+The method `remove` will remove all occurrences of the pattern:
+
+```ruby
+"Hello World".remove(/Hello /) => "World"
+```
+
+There's also the destructive version `String#remove!`.
+
+NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 ### `squish`
 
 The method `squish` strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
