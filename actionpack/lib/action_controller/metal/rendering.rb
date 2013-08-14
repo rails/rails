@@ -6,7 +6,7 @@ module ActionController
   module BasicRendering
     extend ActiveSupport::Concern
 
-    # Render template to response_body
+    # Render text or nothing (empty string) to response_body
     # :api: public
     def render(*args, &block)
       super(*args, &block)
