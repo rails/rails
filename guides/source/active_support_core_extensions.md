@@ -1260,6 +1260,7 @@ The method `remove` will remove all occurrences of the pattern:
 There's also the destructive version `String#remove!`.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+
 ### `squish`
 
 The method `squish` strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
