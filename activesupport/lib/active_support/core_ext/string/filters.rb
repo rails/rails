@@ -20,12 +20,12 @@ class String
     self
   end
 
-  # Returns a new string with all occurances of the pattern removed. Short-hand for String#gsub(pattern, '').
+  # Returns a new string with all occurrences of the pattern removed. Short-hand for String#gsub(pattern, '').
   def remove(pattern)
-    gsub pattern, ''    
+    gsub pattern, ''
   end
 
-  # Alters the string by removing all occurances of the pattern. Short-hand for String#gsub!(pattern, '').
+  # Alters the string by removing all occurrences of the pattern. Short-hand for String#gsub!(pattern, '').
   def remove!(pattern)
     gsub! pattern, ''
   end
