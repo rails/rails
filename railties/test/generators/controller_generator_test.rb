@@ -82,4 +82,9 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :bar, controller
     end
   end
+
+  def test_namespaced_routes_are_created_in_routes
+    run_generator ["admin/dashboard", "index"]
+    assert_file "config/routes.rb", /namespace :admin do\n\s+get "dashboard\/index"\n/
+  end
 end
