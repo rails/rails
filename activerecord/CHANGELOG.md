@@ -1,3 +1,7 @@
+*   Readonly records can no longer be deleted.
+
+    *David Peter*
+
 *   `add_to_target` now accepts a second optional `skip_callbacks` argument
 
     If truthy, it will skip the :before_add and :after_add callbacks.

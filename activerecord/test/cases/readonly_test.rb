@@ -25,6 +25,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save  }
     assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save! }
     assert_raise(ActiveRecord::ReadOnlyRecord) { dev.destroy }
+    assert_raise(ActiveRecord::ReadOnlyRecord) { dev.delete }
   end
 
 
