@@ -66,11 +66,20 @@ module ActiveRecord
       def create_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
+      
+      def ensure_proper_type
+        super.tap do
+          @changed_attributes.delete(self.class.inheritance_column) if self.new_record?
+        end
+      end
 
       # Serialized attributes should always be written in case they've been
-      # changed in place.
+      # changed in place.  New records with an inheritance column should include it.
       def keys_for_partial_write
-        changed | (attributes.keys & self.class.serialized_attributes.keys)
+        klass = self.class
+        keys = changed | (attributes.keys & klass.serialized_attributes.keys)
+        keys = keys | (attributes.keys & [klass.inheritance_column]) if self.new_record?
+        keys
       end
 
       def _field_changed?(attr, old, value)

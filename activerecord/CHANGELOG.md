@@ -1,3 +1,23 @@
+*   Newly instantiated STI records are not marked as dirty
+    
+    Example:
+    
+        class Parrot < ActiveRecord::Base
+        end
+        
+        class LiveParrot < Parrot
+        end
+        
+        # Before: 
+        Parrot.new.changed? # => false
+        LiveParrot.new.changed? # => true
+        
+        # After:
+        Parrot.new.changed? # => false
+        LiveParrot.new.changed? # => false
+        
+    *James Prior*
+
 *   Assign inet/cidr attribute with `nil` value for invalid address.
 
     Example:

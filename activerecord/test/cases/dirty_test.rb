@@ -305,6 +305,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal [], pirate.changed
     assert_equal Hash.new, pirate.changes
   end
+  
+  def test_inherited_object_should_not_be_changed_when_instantiated
+    # Using an STI class here
+    live_parrot = LiveParrot.new
+    assert !live_parrot.changed?
+    assert_equal [], live_parrot.changed
+    assert_equal Hash.new, live_parrot.changes    
+  end
 
   def test_attribute_will_change!
     pirate = Pirate.create!(:catchphrase => 'arr')
