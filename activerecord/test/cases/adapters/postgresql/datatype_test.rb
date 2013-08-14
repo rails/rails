@@ -311,11 +311,11 @@ _SQL
   def test_update_tstzrange
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     new_tstzrange = Time.parse('2010-01-01 14:30:00 CDT')...Time.parse('2011-02-02 14:30:00 CET')
-    assert @first_range.tstz_range = new_tstzrange
+    @first_range.tstz_range = new_tstzrange
     assert @first_range.save
     assert @first_range.reload
     assert_equal new_tstzrange, @first_range.tstz_range
-    assert @first_range.tstz_range = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2010-01-01 13:30:00 +0000')
+    @first_range.tstz_range = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2010-01-01 13:30:00 +0000')
     assert @first_range.save
     assert @first_range.reload
     assert_nil @first_range.tstz_range
@@ -335,11 +335,11 @@ _SQL
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     tz = ::ActiveRecord::Base.default_timezone
     new_tsrange = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0)
-    assert @first_range.ts_range = new_tsrange
+    @first_range.ts_range = new_tsrange
     assert @first_range.save
     assert @first_range.reload
     assert_equal new_tsrange, @first_range.ts_range
-    assert @first_range.ts_range = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0)
+    @first_range.ts_range = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0)
     assert @first_range.save
     assert @first_range.reload
     assert_nil @first_range.ts_range
@@ -357,11 +357,11 @@ _SQL
   def test_update_numrange
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     new_numrange = BigDecimal.new('0.5')...BigDecimal.new('1')
-    assert @first_range.num_range = new_numrange
+    @first_range.num_range = new_numrange
     assert @first_range.save
     assert @first_range.reload
     assert_equal new_numrange, @first_range.num_range
-    assert @first_range.num_range = BigDecimal.new('0.5')...BigDecimal.new('0.5')
+    @first_range.num_range = BigDecimal.new('0.5')...BigDecimal.new('0.5')
     assert @first_range.save
     assert @first_range.reload
     assert_nil @first_range.num_range
@@ -379,11 +379,11 @@ _SQL
   def test_update_daterange
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     new_daterange = Date.new(2012, 2, 3)...Date.new(2012, 2, 10)
-    assert @first_range.date_range = new_daterange
+    @first_range.date_range = new_daterange
     assert @first_range.save
     assert @first_range.reload
     assert_equal new_daterange, @first_range.date_range
-    assert @first_range.date_range = Date.new(2012, 2, 3)...Date.new(2012, 2, 3)
+    @first_range.date_range = Date.new(2012, 2, 3)...Date.new(2012, 2, 3)
     assert @first_range.save
     assert @first_range.reload
     assert_nil @first_range.date_range
@@ -401,11 +401,11 @@ _SQL
   def test_update_int4range
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     new_int4range = 6...10
-    assert @first_range.int4_range = new_int4range
+    @first_range.int4_range = new_int4range
     assert @first_range.save
     assert @first_range.reload
     assert_equal new_int4range, @first_range.int4_range
-    assert @first_range.int4_range = 3...3
+    @first_range.int4_range = 3...3
     assert @first_range.save
     assert @first_range.reload
     assert_nil @first_range.int4_range
@@ -423,11 +423,11 @@ _SQL
   def test_update_int8range
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     new_int8range = 60000...10000000
-    assert @first_range.int8_range = new_int8range
+    @first_range.int8_range = new_int8range
     assert @first_range.save
     assert @first_range.reload
     assert_equal new_int8range, @first_range.int8_range
-    assert @first_range.int8_range = 39999...39999
+    @first_range.int8_range = 39999...39999
     assert @first_range.save
     assert @first_range.reload
     assert_nil @first_range.int8_range
@@ -435,10 +435,10 @@ _SQL
 
   def test_update_tsvector
     new_text_vector = "'new' 'text' 'vector'"
-    assert @first_tsvector.text_vector = new_text_vector
+    @first_tsvector.text_vector = new_text_vector
     assert @first_tsvector.save
     assert @first_tsvector.reload
-    assert @first_tsvector.text_vector = new_text_vector
+    @first_tsvector.text_vector = new_text_vector
     assert @first_tsvector.save
     assert @first_tsvector.reload
     assert_equal new_text_vector, @first_tsvector.text_vector
@@ -479,11 +479,11 @@ _SQL
 
   def test_update_integer_array
     new_value = [32800,95000,29350,17000]
-    assert @first_array.commission_by_quarter = new_value
+    @first_array.commission_by_quarter = new_value
     assert @first_array.save
     assert @first_array.reload
     assert_equal new_value, @first_array.commission_by_quarter
-    assert @first_array.commission_by_quarter = new_value
+    @first_array.commission_by_quarter = new_value
     assert @first_array.save
     assert @first_array.reload
     assert_equal new_value, @first_array.commission_by_quarter
@@ -491,11 +491,11 @@ _SQL
 
   def test_update_text_array
     new_value = ['robby','robert','rob','robbie']
-    assert @first_array.nicknames = new_value
+    @first_array.nicknames = new_value
     assert @first_array.save
     assert @first_array.reload
     assert_equal new_value, @first_array.nicknames
-    assert @first_array.nicknames = new_value
+    @first_array.nicknames = new_value
     assert @first_array.save
     assert @first_array.reload
     assert_equal new_value, @first_array.nicknames
@@ -503,7 +503,7 @@ _SQL
 
   def test_update_money
     new_value = BigDecimal.new('123.45')
-    assert @first_money.wealth = new_value
+    @first_money.wealth = new_value
     assert @first_money.save
     assert @first_money.reload
     assert_equal new_value, @first_money.wealth
@@ -512,8 +512,8 @@ _SQL
   def test_update_number
     new_single = 789.012
     new_double = 789012.345
-    assert @first_number.single = new_single
-    assert @first_number.double = new_double
+    @first_number.single = new_single
+    @first_number.double = new_double
     assert @first_number.save
     assert @first_number.reload
     assert_equal new_single, @first_number.single
@@ -521,7 +521,7 @@ _SQL
   end
 
   def test_update_time
-    assert @first_time.time_interval = '2 years 3 minutes'
+    @first_time.time_interval = '2 years 3 minutes'
     assert @first_time.save
     assert @first_time.reload
     assert_equal '2 years 00:03:00', @first_time.time_interval
@@ -531,9 +531,9 @@ _SQL
     new_inet_address = '10.1.2.3/32'
     new_cidr_address = '10.0.0.0/8'
     new_mac_address = 'bc:de:f0:12:34:56'
-    assert @first_network_address.cidr_address = new_cidr_address
-    assert @first_network_address.inet_address = new_inet_address
-    assert @first_network_address.mac_address = new_mac_address
+    @first_network_address.cidr_address = new_cidr_address
+    @first_network_address.inet_address = new_inet_address
+    @first_network_address.mac_address = new_mac_address
     assert @first_network_address.save
     assert @first_network_address.reload
     assert_equal @first_network_address.cidr_address, new_cidr_address
@@ -544,8 +544,8 @@ _SQL
   def test_update_bit_string
     new_bit_string = '11111111'
     new_bit_string_varying = '0xFF'
-    assert @first_bit_string.bit_string = new_bit_string
-    assert @first_bit_string.bit_string_varying = new_bit_string_varying
+    @first_bit_string.bit_string = new_bit_string
+    @first_bit_string.bit_string_varying = new_bit_string_varying
     assert @first_bit_string.save
     assert @first_bit_string.reload
     assert_equal new_bit_string, @first_bit_string.bit_string
@@ -560,7 +560,7 @@ _SQL
 
   def test_update_oid
     new_value = 567890
-    assert @first_oid.obj_id = new_value
+    @first_oid.obj_id = new_value
     assert @first_oid.save
     assert @first_oid.reload
     assert_equal new_value, @first_oid.obj_id
