@@ -100,7 +100,11 @@ module ActiveRecord
           if string.nil?
             nil
           elsif String === string
-            IPAddr.new(string)
+            begin
+              IPAddr.new(string)
+            rescue ArgumentError
+              nil
+            end
           else
             string
           end

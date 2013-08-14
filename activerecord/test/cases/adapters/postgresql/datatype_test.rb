@@ -566,6 +566,20 @@ _SQL
     assert_raise(ActiveRecord::StatementInvalid) { assert @first_bit_string.save }
   end
 
+  def test_invalid_network_address
+    @first_network_address.cidr_address = 'invalid addr'
+    assert_nil @first_network_address.cidr_address
+    assert_equal 'invalid addr', @first_network_address.cidr_address_before_type_cast
+    assert @first_network_address.save
+
+    @first_network_address.reload
+
+    @first_network_address.inet_address = 'invalid addr'
+    assert_nil @first_network_address.inet_address
+    assert_equal 'invalid addr', @first_network_address.inet_address_before_type_cast
+    assert @first_network_address.save
+  end
+
   def test_update_oid
     new_value = 567890
     assert @first_oid.obj_id = new_value
