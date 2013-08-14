@@ -49,11 +49,8 @@ module ActionView
       def css_select(*args)
         raise ArgumentError, "you at least need a selector" if args.empty?
 
-        if args.first.is_a?(String)
-          root, selector = response_from_page, args.first
-        else
-          root, selector = args.shift, args.first
-        end
+        root = args.size == 1 ? response_from_page : args.shift
+        selector = args.first
 
         root.css(selector).tap do |matches|
           if matches.empty? && root.matches?(selector)
