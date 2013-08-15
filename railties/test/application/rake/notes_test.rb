@@ -52,7 +52,7 @@ module ApplicationTests
           assert_match(/note in less/, output)
           assert_match(/note in rake/, output)
 
-          assert_equal 10, lines.size
+          assert_equal 11, lines.size
 
           lines.each do |line|
             assert_equal 4, line[0].size
