@@ -422,18 +422,31 @@ module ActiveRecord
       protected
 
       def log(sql, name = "SQL", binds = [])
-        @instrumenter.instrument(
-          "sql.active_record",
+        payload = {
           :sql           => sql,
           :name          => name,
           :connection_id => object_id,
-          :binds         => binds) { yield }
+          :operation     => parse_operation(sql),
+          :binds         => binds
+        }
+
+        @instrumenter.instrument("sql.active_record", payload) { yield }
       rescue => e
         message = "#{e.class.name}: #{e.message}: #{sql}"
         @logger.error message if @logger
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
         raise exception
+      end
+
+      OPERATIONS = /\A\s*(select|update|delete|insert)\b/i
+
+      def parse_operation(sql)
+        if OPERATIONS =~ sql
+          $1.downcase.to_sym
+        else
+          nil
+        end
       end
 
       def translate_exception(exception, message)
