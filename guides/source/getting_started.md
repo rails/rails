@@ -573,18 +573,7 @@ whether the model was saved or not.
 
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
-`show` action before proceeding.
-Open the file `config/routes.rb` and add this line.
-
-```ruby
-resources :posts
-```
-
-If you run `rake routes` in your terminal, several lines will be shown regarding posts, including this:
-
-```
-post GET    /posts/:id(.:format)      posts#show
-```
+`show` action before proceeding. The show action is matched by this route in the `rake routes` output:
 
 The special syntax `:id` tells rails that this route expects an `:id`
 parameter, which in our case will be the id of the post.
@@ -599,8 +588,9 @@ end
 ```
 
 A couple of things to note. We use `Post.find` to find the post we're
-interested in. We also use an instance variable (prefixed by `@`) to
-hold a reference to the post object. We do this because Rails will pass all instance
+interested in, passing in `params[:id]` to get the `:id` parameter from the
+request. We also use an instance variable (prefixed by `@`) to hold a
+reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
 Now, create a new file `app/views/posts/show.html.erb` with the following
