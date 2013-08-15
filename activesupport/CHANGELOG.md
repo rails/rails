@@ -184,4 +184,10 @@
 
     *Daniel Schierbeck*
 
+*   Preserve DST boolean to fix marshalling Time in JRuby (credit to @andrewtabit)
+
+    Fixes #10900 
+
+    *Mike Admire*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
