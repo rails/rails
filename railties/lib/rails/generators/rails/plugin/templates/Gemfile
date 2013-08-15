@@ -3,7 +3,9 @@ source "https://rubygems.org"
 <% if options[:skip_gemspec] -%>
 <%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
 <% else -%>
-# Declare your gem's dependencies in <%= name %>.gemspec.
+# Declare your gem's dependencies in <%= name %>.gemspec to ensure they are 
+# loaded into the host environment. Whether Gems declared in this Gemfile 
+# are installed with this engine depends upon how the engine is installed.
 # Bundler will treat runtime dependencies like base dependencies, and
 # development dependencies will be added by default to the :development group.
 gemspec
@@ -18,6 +20,13 @@ end
 # your gemspec. These might include edge Rails or gems from your path or
 # Git. Remember to move these dependencies to your gemspec before releasing
 # your gem to rubygems.org.
+#
+# You can also declare dependencies here for gems that are only used when 
+# working on the code within this engine and that will not be required by 
+# an app that hosts the engine. For example, a gem that you wish to use 
+# when testing or debugging (e.g. debugger) this code, or a gem that is 
+# only needed within the test/dummy application.
+
 <% end -%>
 
 <% if options.dev? || options.edge? -%>
