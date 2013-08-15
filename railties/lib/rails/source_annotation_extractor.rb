@@ -82,7 +82,7 @@ class SourceAnnotationExtractor
             case item
             when /\.(builder|rb|coffee|rake)$/
               /#\s*(#{tag}):?\s*(.*)$/
-            when /\.(css|scss|sass|js)$/
+            when /\.(css|scss|sass|less|js)$/
               /\/\/\s*(#{tag}):?\s*(.*)$/
             when /\.erb$/
               /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/
