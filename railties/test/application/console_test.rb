@@ -73,6 +73,13 @@ class ConsoleTest < ActiveSupport::TestCase
     assert User.new.respond_to?(:age)
   end
 
+  def test_reload_in_sandbox_does_not_rollback_sandbox_transaction
+    load_environment(true)
+    assert ActiveRecord::Base.connection.transaction_open?, 'Sandbox not active'
+    silence_stream(STDOUT) { irb_context.reload! }
+    assert ActiveRecord::Base.connection.transaction_open?
+  end
+
   def test_access_to_helpers
     load_environment
     helper = irb_context.helper
