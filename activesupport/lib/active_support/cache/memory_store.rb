@@ -29,6 +29,7 @@ module ActiveSupport
       end
 
       def clear(options = nil)
+        validate_for_hash(options) if options
         synchronize do
           @data.clear
           @key_access.clear

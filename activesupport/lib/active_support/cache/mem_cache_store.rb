@@ -109,6 +109,7 @@ module ActiveSupport
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
       def clear(options = nil)
+        validate_for_hash(options) if options
         @data.flush_all
       rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger

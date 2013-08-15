@@ -422,6 +422,10 @@ module CacheStoreBehavior
     assert_equal({key => "bar"}, @cache.read_multi(key))
     assert @cache.delete(key)
   end
+
+  def test_clear_exception_with_string_as_options_argument
+    assert_raises(ArgumentError) { @cache.clear('string') }
+  end
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters

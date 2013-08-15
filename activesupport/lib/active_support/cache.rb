@@ -588,6 +588,10 @@ module ActiveSupport
           write(name, result, options)
           result
         end
+
+        def validate_for_hash(options) # :nodoc:
+          raise ArgumentError, 'Options must be a hash' unless options.is_a?(Hash)
+        end
     end
 
     # This class is used to represent cache entries. Cache entries have a value and an optional
