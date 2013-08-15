@@ -1,3 +1,7 @@
+*   rake notes now searches *.less files
+
+    *Josh Crowder*
+
 *   Generate nested route for namespaced controller generated using
     `rails g controller`.
     Fixes #11532.
