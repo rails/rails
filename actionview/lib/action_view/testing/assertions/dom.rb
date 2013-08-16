@@ -6,9 +6,7 @@ module ActionView
       #   # assert that the referenced method generates the appropriate HTML string
       #   assert_dom_equal '<a href="http://www.example.com">Apples</a>', link_to("Apples", "http://www.example.com")
       def assert_dom_equal(expected, actual, message = nil)
-        expected_dom, actual_dom = doms_from_strings(expected, actual)
-        message ||= "Expected: #{expected_dom}\nActual: #{actual_dom}"
-        assert compare_doms(expected_dom, actual_dom), message
+        assert dom_assertion(message, expected, actual)
       end
 
       # The negated form of +assert_dom_equal+.
@@ -16,15 +14,14 @@ module ActionView
       #   # assert that the referenced method does not generate the specified HTML string
       #   assert_dom_not_equal '<a href="http://www.example.com">Apples</a>', link_to("Oranges", "http://www.example.com")
       def assert_dom_not_equal(expected, actual, message = nil)
-        expected_dom, actual_dom = doms_from_strings(expected, actual)
-        message ||= "Expected: #{expected_dom}\nActual: #{actual_dom}"
-        assert_not compare_doms(expected_dom, actual_dom), message
+        assert_not dom_assertion(message, expected, actual)
       end
 
       protected
-        # +doms_from_strings+ creates a Loofah::HTML::DocumentFragment for every string in strings
-        def doms_from_strings(*strings)
-          strings.map { |str| Loofah.fragment(str) }
+        def dom_assertion(message = nil, *html_strings)
+          expected, actual = html_strings.map { |str| Loofah.fragment(str) }
+          message ||= "Expected: #{expected}\nActual: #{actual}"
+          return compare_doms(expected, actual), message
         end
 
         # +compare_doms+ takes two doms loops over all their children and compares each child via +equal_children?+
