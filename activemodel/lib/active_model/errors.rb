@@ -70,7 +70,7 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = {}
+      @messages = ActiveSupport::HashWithIndifferentAccess.new
     end
 
     def initialize_dup(other) # :nodoc:
