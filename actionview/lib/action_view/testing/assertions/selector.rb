@@ -310,10 +310,8 @@ module ActionView
           alias :source :css_selector
 
           def initialize(selected, page, args)
-            @selected, @page = selected, page
-
             # Start with optional element followed by mandatory selector.
-            @root = determine_root_from(args.first)
+            @root = determine_root_from(args.first, page, selected)
 
             # First or second argument is the selector
             selector = @css_selector_is_second_argument ? args.shift(2).last : args.shift
@@ -361,7 +359,7 @@ module ActionView
             Nokogiri::XML::NodeSet.new(matches.document, remaining)
           end
 
-          def determine_root_from(root_or_selector)
+          def determine_root_from(root_or_selector, page, previous_selection = nil)
             @css_selector_is_second_argument = false
             if root_or_selector == nil
               raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
@@ -371,14 +369,14 @@ module ActionView
               @css_selector_is_second_argument = true
 
               root_or_selector
-            elsif @selected
-              if @selected.is_a?(Array)
-                doc = @selected.empty? ? @page.document : @selected[0].document
-                @selected = Nokogiri::XML::NodeSet.new(doc, @selected)
+            elsif previous_selection
+              if previous_selection.is_a?(Array)
+                Nokogiri::XML::NodeSet.new(previous_selection[0].document, previous_selection)
+              else
+                previous_selection
               end
-              @selected
             else
-              @page
+              page
             end
           end
 
