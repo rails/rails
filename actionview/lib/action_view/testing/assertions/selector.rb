@@ -357,11 +357,8 @@ module ActionView
             @selector_is_second_argument = false
             if root_or_selector == nil
               raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-            elsif root_or_selector.is_a?(Nokogiri::XML::Node) || root_or_selector.is_a?(Nokogiri::XML::NodeSet)
-              # First argument is a node (tag or text, but also HTML root),
-              # so we know what we're selecting from.
+            elsif root_or_selector.respond_to?(:css)
               @selector_is_second_argument = true
-
               root_or_selector
             elsif previous_selection
               if previous_selection.is_a?(Array)
