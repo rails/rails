@@ -37,6 +37,17 @@ class SanitizersTest < ActionController::TestCase
     end
   end
 
+  def test_sanitizer_remove_xpaths_called_with_string_returns_string
+    sanitizer = ActionView::Sanitizer.new
+    assert '<a></a>', sanitizer.remove_xpaths('<a></a>', [])
+  end
+
+  def test_sanitizer_remove_xpaths_called_with_fragment_returns_fragment
+    sanitizer = ActionView::Sanitizer.new
+    fragment = sanitizer.remove_xpaths(Loofah.fragment('<a></a>'), [])
+    assert_kind_of Loofah::HTML::DocumentFragment, fragment
+  end
+
   def test_strip_tags_with_quote
     sanitizer = ActionView::FullSanitizer.new
     string    = '<" <img src="trollface.gif" onload="alert(1)"> hi'

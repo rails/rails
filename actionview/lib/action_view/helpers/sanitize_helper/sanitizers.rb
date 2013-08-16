@@ -14,9 +14,9 @@ module ActionView
     def remove_xpaths(html, xpaths)
       if html.respond_to?(:xpath)
         xpaths.each { |xpath| html.xpath(xpath).remove }
-        html.to_s
+        html
       else
-        remove_xpaths(Loofah.fragment(html), xpaths)
+        remove_xpaths(Loofah.fragment(html), xpaths).to_s
       end
     end
   end
