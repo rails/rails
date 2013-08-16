@@ -310,10 +310,8 @@ module ActionView
           alias :source :css_selector
 
           def initialize(selected, page, args)
-            # Start with optional element followed by mandatory selector.
+            # Start with possible optional element followed by mandatory selector.
             @root = determine_root_from(args.first, page, selected)
-
-            # First or second argument is the selector
             @css_selector = extract_selector(args)
 
             @equality_tests = equality_tests_from(args.shift)
