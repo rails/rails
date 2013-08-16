@@ -26,6 +26,8 @@ module ActionView
 
         # +compare_doms+ takes two doms loops over all their children and compares each child via +equal_children?+
         def compare_doms(expected, actual)
+          return false unless expected.children.size == actual.children.size
+          
           expected.children.each_with_index do |child, i|
             return false unless equal_children?(child, actual.children[i])
           end
