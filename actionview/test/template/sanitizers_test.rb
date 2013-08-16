@@ -11,38 +11,38 @@ class SanitizersTest < ActionController::TestCase
     end
   end
 
-  def test_sanitizer_remove_xpaths_removes_an_xpath
+  def test_remove_xpaths_removes_an_xpath
     sanitizer = ActionView::Sanitizer.new
     html = %(<h1>hello <script>code!</script></h1>)
     assert_equal %(<h1>hello </h1>), sanitizer.remove_xpaths(html, %w(.//script))
   end
 
-  def test_sanitizer_remove_xpaths_removes_all_occurences_of_xpath
+  def test_remove_xpaths_removes_all_occurences_of_xpath
     sanitizer = ActionView::Sanitizer.new
     html = %(<section><header><script>code!</script></header><p>hello <script>code!</script></p></section>)
     assert_equal %(<section><header></header><p>hello </p></section>), sanitizer.remove_xpaths(html, %w(.//script))
   end
 
-  def test_sanitizer_remove_xpaths_not_enumerable_xpaths_parameter
+  def test_remove_xpaths_not_enumerable_xpaths_parameter
     sanitizer = ActionView::Sanitizer.new
     assert_raises NoMethodError do
       sanitizer.remove_xpaths('<h1>hello<h1>', './not_enumerable')
     end
   end
 
-  def test_sanitizer_remove_xpaths_faulty_xpath
+  def test_remove_xpaths_faulty_xpath
     sanitizer = ActionView::Sanitizer.new
     assert_raises Nokogiri::XML::XPath::SyntaxError do
       sanitizer.remove_xpaths('<h1>hello<h1>', %w(..faulty_xpath))
     end
   end
 
-  def test_sanitizer_remove_xpaths_called_with_string_returns_string
+  def test_remove_xpaths_called_with_string_returns_string
     sanitizer = ActionView::Sanitizer.new
     assert '<a></a>', sanitizer.remove_xpaths('<a></a>', [])
   end
 
-  def test_sanitizer_remove_xpaths_called_with_fragment_returns_fragment
+  def test_remove_xpaths_called_with_fragment_returns_fragment
     sanitizer = ActionView::Sanitizer.new
     fragment = sanitizer.remove_xpaths(Loofah.fragment('<a></a>'), [])
     assert_kind_of Loofah::HTML::DocumentFragment, fragment
