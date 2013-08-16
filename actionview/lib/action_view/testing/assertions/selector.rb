@@ -155,7 +155,7 @@ module ActionView
         selector = HTMLSelector.new(@selected, response_from_page, args)
 
         matches = selector.select
-        assert_size_match!(matches.size, selector.comparisons, selector.source, selector.message)
+        assert_size_match!(matches.size, selector.equality_tests, selector.source, selector.message)
 
         # Set @selected to allow nested assert_select.
         # Can be nested several levels deep.
@@ -305,7 +305,7 @@ module ActionView
         end
 
         class HTMLSelector #:nodoc:
-          attr_accessor :root, :css_selector, :comparisons, :message
+          attr_accessor :root, :css_selector, :equality_tests, :message
 
           alias :source :css_selector
 
@@ -317,10 +317,7 @@ module ActionView
             selector = @css_selector_is_second_argument ? args.shift(2).last : args.shift
             @css_selector = selector_from(selector, args)
 
-            # Next argument is used for equality tests.
-            @comparisons = comparisons_from(args.shift)
-
-            # Last argument is the message we use if the assertion fails.
+            @equality_tests = equality_tests_from(args.shift)
             @message = args.shift
 
             if args.shift
@@ -333,11 +330,11 @@ module ActionView
           end
 
           def filter(matches)
-            match_with = comparisons[:text] || comparisons[:html]
+            match_with = equality_tests[:text] || equality_tests[:html]
             return matches if matches.empty? || !match_with
 
             content_mismatch = nil
-            text_matches = comparisons.has_key?(:text)
+            text_matches = equality_tests.has_key?(:text)
 
             remaining = matches.reject do |match|
               # Preserve markup with to_s for html elements
@@ -387,7 +384,7 @@ module ActionView
             context.substitute!(selector, substitution_values)
           end
 
-          def comparisons_from(comparator)
+          def equality_tests_from(comparator)
               comparisons = {}
               case comparator
                 when Hash
