@@ -341,16 +341,12 @@ module ActionView
               content.strip! unless NO_STRIP.include?(match.name)
               content.sub!(/\A\n/, '') if text_matches && match.name == "textarea"
 
-              unless match_with.is_a?(Regexp) ? (content =~ match_with) : (content == match_with.to_s)
-                content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, content)
-                true
-              end
+              next if match_with.is_a?(Regexp) ? (content =~ match_with) : (content == match_with.to_s)
+              content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, content)
+              true
             end
 
-            # Expecting foo found bar element only if found zero, not if
-            # found one but expecting two.
             self.message ||= content_mismatch if remaining.empty?
-
             Nokogiri::XML::NodeSet.new(matches.document, remaining)
           end
 
