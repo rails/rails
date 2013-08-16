@@ -314,8 +314,7 @@ module ActionView
             @root = determine_root_from(args.first, page, selected)
 
             # First or second argument is the selector
-            selector = @css_selector_is_second_argument ? args.shift(2).last : args.shift
-            @css_selector = selector_from(selector, args)
+            @css_selector = extract_selector(args)
 
             @equality_tests = equality_tests_from(args.shift)
             @message = args.shift
@@ -377,11 +376,12 @@ module ActionView
             end
           end
 
-          def selector_from(selector, substitution_values)
+          def extract_selector(values)
+            selector = @css_selector_is_second_argument ? values.shift(2).last : values.shift
             unless selector.is_a? String
               raise ArgumentError, "Expecting a selector as the first argument"
             end
-            context.substitute!(selector, substitution_values)
+            context.substitute!(selector, values)
           end
 
           def equality_tests_from(comparator)
