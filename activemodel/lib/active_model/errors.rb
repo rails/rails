@@ -105,7 +105,7 @@ module ActiveModel
     #   person.errors.get(:name) # => ["can not be nil"]
     #   person.errors.get(:age)  # => nil
     def get(key)
-      messages[key]
+      messages[key.to_sym]
     end
 
     # Set messages for +key+ to +value+.
@@ -114,7 +114,7 @@ module ActiveModel
     #   person.errors.set(:name, ["can't be nil"])
     #   person.errors.get(:name) # => ["can't be nil"]
     def set(key, value)
-      messages[key] = value
+      messages[key.to_sym] = value
     end
 
     # Delete messages for +key+. Returns the deleted messages.
@@ -123,7 +123,7 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["can not be nil"]
     #   person.errors.get(:name)    # => nil
     def delete(key)
-      messages.delete(key)
+      messages.delete(key.to_sym)
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
