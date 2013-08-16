@@ -305,14 +305,14 @@ module ActionView
         end
 
         class HTMLSelector #:nodoc:
-          attr_accessor :root, :css_selector, :equality_tests, :message
+          attr_accessor :root, :selector, :equality_tests, :message
 
-          alias :source :css_selector
+          alias :source :selector
 
           def initialize(selected, page, args)
             # Start with possible optional element followed by mandatory selector.
             @root = determine_root_from(args.first, page, selected)
-            @css_selector = extract_selector(args)
+            @selector = extract_selector(args)
 
             @equality_tests = equality_tests_from(args.shift)
             @message = args.shift
@@ -323,7 +323,7 @@ module ActionView
           end
 
           def select
-            filter root.css(css_selector, context)
+            filter root.css(selector, context)
           end
 
           def filter(matches)
@@ -354,13 +354,13 @@ module ActionView
           end
 
           def determine_root_from(root_or_selector, page, previous_selection = nil)
-            @css_selector_is_second_argument = false
+            @selector_is_second_argument = false
             if root_or_selector == nil
               raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
             elsif root_or_selector.is_a?(Nokogiri::XML::Node) || root_or_selector.is_a?(Nokogiri::XML::NodeSet)
               # First argument is a node (tag or text, but also HTML root),
               # so we know what we're selecting from.
-              @css_selector_is_second_argument = true
+              @selector_is_second_argument = true
 
               root_or_selector
             elsif previous_selection
@@ -375,7 +375,7 @@ module ActionView
           end
 
           def extract_selector(values)
-            selector = @css_selector_is_second_argument ? values.shift(2).last : values.shift
+            selector = @selector_is_second_argument ? values.shift(2).last : values.shift
             unless selector.is_a? String
               raise ArgumentError, "Expecting a selector as the first argument"
             end
