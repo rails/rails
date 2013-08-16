@@ -113,7 +113,29 @@ and run:
 $ bundle install --without db
 ```
 
-This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon. With dependencies installed, you can run the test suite with:
+This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon.
+
+NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
+
+You can use homebrew to install memcached on OSX:
+
+```bash
+$ brew install memcached
+```
+
+On Ubuntu you can install it with apt-get:
+
+```bash
+$ sudo apt-get install memcached
+```
+
+Or use yum on Fedora or CentOS:
+
+```bash
+$ sudo yum install memcached
+```
+
+With the dependencies now installed, you can run the test suite with:
 
 ```bash
 $ bundle exec rake test
