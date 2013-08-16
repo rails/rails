@@ -212,6 +212,11 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_headers = nil
     end
   end
+
+  test "respond_to? accepts include_private" do
+    assert_not @response.respond_to?(:method_missing)
+    assert @response.respond_to?(:method_missing, true)
+  end
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
