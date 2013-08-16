@@ -311,6 +311,7 @@ module ActionView
 
           def initialize(selected, page, args)
             # Start with possible optional element followed by mandatory selector.
+            @selector_is_second_argument = false
             @root = determine_root_from(args.first, page, selected)
             @selector = extract_selector(args)
 
@@ -354,7 +355,6 @@ module ActionView
           end
 
           def determine_root_from(root_or_selector, page, previous_selection = nil)
-            @selector_is_second_argument = false
             if root_or_selector == nil
               raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
             elsif root_or_selector.respond_to?(:css)
