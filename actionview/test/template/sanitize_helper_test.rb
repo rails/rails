@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
-# The exhaustive tests are in  test/template/html-scanner/sanitizer_test.rb
-# This tests the that the helpers hook up correctly to the sanitizer classes.
+# The exhaustive tests are in test/controller/html/sanitizer_test.rb.
+# This tests that the helpers hook up correctly to the sanitizer classes.
 class SanitizeHelperTest < ActionView::TestCase
   tests ActionView::Helpers::SanitizeHelper
 
@@ -49,7 +49,7 @@ class SanitizeHelperTest < ActionView::TestCase
       stripped = strip_tags(blank)
       assert_equal blank, stripped
     end
-    
+
     # Actual: "something "
     assert_equal "something &lt;img onerror=alert(1337)", ERB::Util.html_escape(strip_tags("something <img onerror=alert(1337)"))
   end
