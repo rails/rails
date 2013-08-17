@@ -27,7 +27,7 @@ module ActionView
         # +compare_doms+ takes two doms loops over all their children and compares each child via +equal_children?+
         def compare_doms(expected, actual)
           return false unless expected.children.size == actual.children.size
-          
+
           expected.children.each_with_index do |child, i|
             return false unless equal_children?(child, actual.children[i])
           end
@@ -42,7 +42,8 @@ module ActionView
 
           case child.type
           when Nokogiri::XML::Node::ELEMENT_NODE
-            child.name == other_child.name && attributes_are_equal?(child, other_child)
+            child.name == other_child.name &&
+                equal_attribute_nodes?(child.attribute_nodes, other_child.attribute_nodes)
           else
             child.to_s == other_child.to_s
           end
@@ -51,12 +52,12 @@ module ActionView
         # +attributes_are_equal?+ sorts elements attributes by name and compares
         # each attribute by calling +equal_attribute?+
         # If those are +true+ the attributes are considered equal
-        def attributes_are_equal?(element, other_element)
-          first_nodes = element.attribute_nodes.sort_by { |a| a.name }
-          other_nodes = other_element.attribute_nodes.sort_by { |a| a.name }
+        def equal_attribute_nodes?(nodes, other_nodes)
+          return false unless nodes.size == other_nodes.size
+          nodes = nodes.sort_by(&:name)
+          other_nodes = other_nodes.sort_by(&:name)
 
-          return false unless first_nodes.size == other_nodes.size
-          first_nodes.each_with_index do |attr, i|
+          nodes.each_with_index do |attr, i|
             return false unless equal_attribute?(attr, other_nodes[i])
           end
           true
