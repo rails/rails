@@ -23,14 +23,14 @@ class Thread
   # for the fiber local. The fiber is executed in the same thread, so the
   # thread local values are available.
   def thread_variable_get(key)
-    locals[key.to_sym]
+    active_support_locals[key.to_sym]
   end
 
   # Sets a thread local with +key+ to +value+. Note that these are local to
   # threads, and not to fibers. Please see Thread#thread_variable_get for
   # more information.
   def thread_variable_set(key, value)
-    locals[key.to_sym] = value
+    active_support_locals[key.to_sym] = value
   end
 
   # Returns an an array of the names of the thread-local variables (as Symbols).
@@ -45,7 +45,7 @@ class Thread
   # Note that these are not fiber local variables. Please see Thread#thread_variable_get
   # for more details.
   def thread_variables
-    locals.keys
+    active_support_locals.keys
   end
 
   # Returns <tt>true</tt> if the given string (or symbol) exists as a
@@ -59,16 +59,16 @@ class Thread
   # Note that these are not fiber local variables. Please see Thread#thread_variable_get
   # for more details.
   def thread_variable?(key)
-    locals.has_key?(key.to_sym)
+    active_support_locals.has_key?(key.to_sym)
   end
 
   private
 
-  def locals
-    if defined?(@locals)
-      @locals
+  def active_support_locals
+    if defined?(@active_support_locals)
+      @active_support_locals
     else
-      LOCK.synchronize { @locals ||= {} }
+      LOCK.synchronize { @active_support_locals ||= {} }
     end
   end
 end unless Thread.instance_methods.include?(:thread_variable_set)
