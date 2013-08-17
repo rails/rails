@@ -1,6 +1,7 @@
 class Project < ActiveRecord::Base
   has_and_belongs_to_many :developers, -> { distinct.order 'developers.name desc, developers.id desc' }
   has_and_belongs_to_many :readonly_developers, -> { readonly }, :class_name => "Developer"
+  has_and_belongs_to_many :selected_developers, -> { distinct.select "developers.*" }, :class_name => "Developer"
   has_and_belongs_to_many :non_unique_developers, -> { order 'developers.name desc, developers.id desc' }, :class_name => 'Developer'
   has_and_belongs_to_many :limited_developers, -> { limit 1 }, :class_name => "Developer"
   has_and_belongs_to_many :developers_named_david, -> { where("name = 'David'").distinct }, :class_name => "Developer"

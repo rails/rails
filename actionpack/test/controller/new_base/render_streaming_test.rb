@@ -92,7 +92,7 @@ module RenderStreaming
         io.rewind
         assert_match "(undefined method `invalid!' for nil:NilClass)", io.read
       ensure
-        ActionView::Base.logger = _old
+        ActionController::Base.logger = _old
       end
     end
 

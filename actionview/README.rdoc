@@ -1,5 +1,7 @@
 = Action View
 
+
+
 == Download and installation
 
 The latest version of Action View can be installed with RubyGems:

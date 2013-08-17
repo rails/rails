@@ -96,13 +96,12 @@ INFO: The predicate for strings uses the Unicode-aware character class `[:space:
 
 WARNING: Note that numbers are not mentioned. In particular, 0 and 0.0 are **not** blank.
 
-For example, this method from `ActionController::HttpAuthentication::Token::ControllerMethods` uses `blank?` for checking whether a token is present:
+For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
 
 ```ruby
-def authenticate(controller, &login_procedure)
-  token, options = token_and_options(controller.request)
-  unless token.blank?
-    login_procedure.call(token, options)
+def ensure_session_key!
+  if @key.blank?
+    raise ArgumentError, 'A key is required...'
   end
 end
 ```
@@ -421,9 +420,9 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implemention of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `OrderedHash` needs special handling in order to provide a proper JSON representation.
+Active Support provides a better implemention of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+ and +OrderedHash+ needs special handling in order to provide a proper JSON representation.
 
-Active Support also provides an implementation of `as_json` for the `Process::Status` class.
+Active Support also provides an implementation of `as_json` for the <tt>Process::Status</tt> class.
 
 NOTE: Defined in `active_support/core_ext/object/to_json.rb`.
 
@@ -2000,7 +1999,7 @@ Produce a string representation of a number in human-readable words:
 1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
+NOTE: Defined in `active_support/core_ext/numeric/formatting.rb`.
 
 Extensions to `Integer`
 -----------------------
@@ -2058,7 +2057,7 @@ BigDecimal.new(5.00, 6).to_s  # => "5.0"
 
 ### `to_formatted_s`
 
-The method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
+Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
 BigDecimal.new(5.00, 6).to_formatted_s  # => "5.0"
@@ -2445,7 +2444,7 @@ dup[1][2] = 4
 array[1][2] == nil   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
+NOTE: Defined in `active_support/core_ext/array/deep_dup.rb`.
 
 ### Grouping
 
@@ -2671,7 +2670,45 @@ hash[:b][:e] == nil      # => true
 hash[:b][:d] == [3, 4]   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
+NOTE: Defined in `active_support/core_ext/hash/deep_dup.rb`.
+
+### Diffing
+
+The method `diff` returns a hash that represents a diff of the receiver and the argument with the following logic:
+
+* Pairs `key`, `value` that exist in both hashes do not belong to the diff hash.
+
+* If both hashes have `key`, but with different values, the pair in the receiver wins.
+
+* The rest is just merged.
+
+```ruby
+{a: 1}.diff(a: 1)
+# => {}, first rule
+
+{a: 1}.diff(a: 2)
+# => {:a=>1}, second rule
+
+{a: 1}.diff(b: 2)
+# => {:a=>1, :b=>2}, third rule
+
+{a: 1, b: 2, c: 3}.diff(b: 1, c: 3, d: 4)
+# => {:a=>1, :b=>2, :d=>4}, all rules
+
+{}.diff({})        # => {}
+{a: 1}.diff({})    # => {:a=>1}
+{}.diff(a: 1)      # => {:a=>1}
+```
+
+An important property of this diff hash is that you can retrieve the original hash by applying `diff` twice:
+
+```ruby
+hash.diff(hash2).diff(hash2) == hash
+```
+
+Diffing hashes may be useful for error messages related to expected option hashes for example.
+
+NOTE: Defined in `active_support/core_ext/hash/diff.rb`.
 
 ### Working with Keys
 
@@ -3806,13 +3843,13 @@ def default_helper_module!
   module_path = module_name.underscore
   helper module_path
 rescue MissingSourceFile => e
-  raise e unless e.is_missing? "helpers/#{module_path}_helper"
+  raise e unless e.is_missing? "#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end
 ```
 
-NOTE: Defined in `actionpack/lib/abstract_controller/helpers.rb`.
+NOTE: Defined in `active_support/core_ext/name_error.rb`.
 
 Extensions to `LoadError`
 -------------------------
@@ -3835,4 +3872,4 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `actionpack/lib/abstract_controller/helpers.rb`.
+NOTE: Defined in `active_support/core_ext/load_error.rb`.

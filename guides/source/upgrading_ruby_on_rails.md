@@ -322,7 +322,7 @@ config.assets.js_compressor = :uglifier
 
 ### sass-rails
 
-* `asset-url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
+* `asset_url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
 
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------
