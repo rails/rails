@@ -8,7 +8,7 @@
 # - When an attribute should be scrubbed via +scrub_attribute?+
 #
 # Subclasses don't need to worry if tags or attributes are set or not.
-# If tags or attributes are not set, Loofahs behavior will be used.
+# If tags or attributes are not set, Loofah's behavior will be used.
 # If you override +allowed_node?+ and no tags are set, it will not be called.
 # Instead Loofahs behavior will be used.
 # Likewise for +scrub_attribute?+ and attributes respectively.
