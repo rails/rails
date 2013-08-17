@@ -6,7 +6,7 @@ module ActionView
       #   # assert that the referenced method generates the appropriate HTML string
       #   assert_dom_equal '<a href="http://www.example.com">Apples</a>', link_to("Apples", "http://www.example.com")
       def assert_dom_equal(expected, actual, message = nil)
-        assert dom_assertion(message, expected, actual)
+        assert dom_assertion(expected, actual, message)
       end
 
       # The negated form of +assert_dom_equal+.
@@ -14,12 +14,12 @@ module ActionView
       #   # assert that the referenced method does not generate the specified HTML string
       #   assert_dom_not_equal '<a href="http://www.example.com">Apples</a>', link_to("Oranges", "http://www.example.com")
       def assert_dom_not_equal(expected, actual, message = nil)
-        assert_not dom_assertion(message, expected, actual)
+        assert_not dom_assertion(expected, actual, message)
       end
 
       protected
-        def dom_assertion(message = nil, *html_strings)
-          expected, actual = html_strings.map { |str| Loofah.fragment(str) }
+        def dom_assertion(expected_string, actual_string, message = nil)
+          expected, actual = Loofah.fragment(expected_string), Loofah.fragment(actual_string)
           message ||= "Expected: #{expected}\nActual: #{actual}"
           return compare_doms(expected, actual), message
         end
