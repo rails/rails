@@ -83,8 +83,9 @@ module ActiveRecord
           # Each record may have multiple owners, and vice-versa
           records_by_owner = Hash[owners.map { |owner| [owner, []] }]
           records.each do |record|
-            owner_key = record[association_key_name].to_s
-
+            raw_key   = record[association_key_name]
+            owner_key = raw_key.kind_of?(BigDecimal) ? raw_key.to_i.to_s : raw_key.to_s
+            
             owners_map[owner_key].each do |owner|
               records_by_owner[owner] << record
             end
