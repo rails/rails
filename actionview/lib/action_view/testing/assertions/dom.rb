@@ -40,8 +40,7 @@ module ActionView
         def equal_children?(child, other_child)
           return false unless child.type == other_child.type
 
-          case child.type
-          when Nokogiri::XML::Node::ELEMENT_NODE
+          if child.element?
             child.name == other_child.name &&
                 equal_attribute_nodes?(child.attribute_nodes, other_child.attribute_nodes)
           else
