@@ -1,6 +1,6 @@
 require 'active_record'
 
-db_namespace = namespace :db do
+namespace :db do
   task :load_config do
     ActiveRecord::Base.configurations = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
     ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
