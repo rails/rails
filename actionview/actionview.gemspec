@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name        = 'actionview'
   s.version     = version
   s.summary     = 'Rendering framework putting the V in MVC (part of Rails).'
-  s.description = 'Simple, battle-tested conventions and helpers for building web pages.'
+  s.description = ''
 
   s.required_ruby_version = '>= 1.9.3'
 

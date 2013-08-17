@@ -453,11 +453,6 @@ class TransactionTest < ActiveRecord::TestCase
         raise ActiveRecord::Rollback
       end
     end
-
-   ensure
-    Topic.reset_column_information # reset the column information to get correct reading
-    Topic.connection.remove_column('topics', 'stuff') if Topic.column_names.include?('stuff')
-    Topic.reset_column_information # reset the column information again for other tests
   end
 
   def test_transactions_state_from_rollback

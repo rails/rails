@@ -34,6 +34,7 @@ class Topic < ActiveRecord::Base
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :approved_replies, -> { approved }, class_name: 'Reply', foreign_key: "parent_id", counter_cache: 'replies_count'
+  has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"
 
   has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"

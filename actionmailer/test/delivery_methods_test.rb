@@ -152,9 +152,6 @@ class MailDeliveryTest < ActiveSupport::TestCase
     assert_equal "overridden", delivery_method_instance.settings[:user_name]
     assert_equal "somethingobtuse", delivery_method_instance.settings[:password]
     assert_equal delivery_method_instance.settings.merge(overridden_options), delivery_method_instance.settings
-
-    # make sure that overriding delivery method options per mail instance doesn't affect the Base setting
-    assert_equal settings, ActionMailer::Base.smtp_settings
   end
 
   test "non registered delivery methods raises errors" do

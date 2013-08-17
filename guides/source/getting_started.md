@@ -598,8 +598,9 @@ end
 ```
 
 A couple of things to note. We use `Post.find` to find the post we're
-interested in. We also use an instance variable (prefixed by `@`) to
-hold a reference to the post object. We do this because Rails will pass all instance
+interested in, passing in `params[:id]` to get the `:id` parameter from the
+request. We also use an instance variable (prefixed by `@`) to hold a
+reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
 Now, create a new file `app/views/posts/show.html.erb` with the following
