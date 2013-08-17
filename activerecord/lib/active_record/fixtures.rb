@@ -455,7 +455,7 @@ module ActiveRecord
             fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
               connection,
               fs_name,
-              class_names[fs_name] || default_fixture_model_name(fs_name),
+              (class_names[fs_name] || default_fixture_model_name(fs_name)).constantize,
               ::File.join(fixtures_directory, fs_name))
           end
 
