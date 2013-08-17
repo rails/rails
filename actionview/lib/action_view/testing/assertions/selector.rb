@@ -333,7 +333,7 @@ module ActionView
 
             content_mismatch = nil
             text_matches = equality_tests.has_key?(:text)
-            match_with = Regexp.new(match_with.to_s) unless match_with.is_a?(Regexp)
+            regex_matching = match_with.is_a?(Regexp)
 
             remaining = matches.reject do |match|
               # Preserve markup with to_s for html elements
@@ -342,7 +342,7 @@ module ActionView
               content.strip! unless NO_STRIP.include?(match.name)
               content.sub!(/\A\n/, '') if text_matches && match.name == "textarea"
 
-              next if content =~ match_with
+              next if regex_matching ? (content =~ match_with) : (content == match_with)
               content_mismatch ||= sprintf("<%s> expected but was\n<%s>.", match_with, content)
               true
             end
