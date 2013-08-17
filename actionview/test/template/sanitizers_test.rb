@@ -23,23 +23,26 @@ class SanitizersTest < ActionController::TestCase
     assert_equal %(<section><header></header><p>hello </p></section>), sanitizer.remove_xpaths(html, %w(.//script))
   end
 
-  def test_remove_xpaths_not_enumerable_xpaths_parameter
-    sanitizer = ActionView::Sanitizer.new
-    assert_raises NoMethodError do
-      sanitizer.remove_xpaths('<h1>hello<h1>', './not_enumerable')
-    end
-  end
-
-  def test_remove_xpaths_faulty_xpath
+  def test_remove_xpaths_called_with_faulty_xpath
     sanitizer = ActionView::Sanitizer.new
     assert_raises Nokogiri::XML::XPath::SyntaxError do
       sanitizer.remove_xpaths('<h1>hello<h1>', %w(..faulty_xpath))
     end
   end
 
+  def test_remove_xpaths_called_with_xpath_string
+    sanitizer = ActionView::Sanitizer.new
+    assert_equal '', sanitizer.remove_xpaths('<a></a>', './/a')
+  end
+
+  def test_remove_xpaths_called_with_enumerable_xpaths
+    sanitizer = ActionView::Sanitizer.new
+    assert_equal '', sanitizer.remove_xpaths('<a><span></span></a>', %w(.//a .//span))
+  end
+
   def test_remove_xpaths_called_with_string_returns_string
     sanitizer = ActionView::Sanitizer.new
-    assert '<a></a>', sanitizer.remove_xpaths('<a></a>', [])
+    assert_equal '<a></a>', sanitizer.remove_xpaths('<a></a>', [])
   end
 
   def test_remove_xpaths_called_with_fragment_returns_fragment
