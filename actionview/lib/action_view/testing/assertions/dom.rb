@@ -49,9 +49,8 @@ module ActionView
           end
         end
 
-        # +attributes_are_equal?+ sorts elements attributes by name and compares
-        # each attribute by calling +equal_attribute?+
-        # If those are +true+ the attributes are considered equal
+        # +equal_attribute_nodes?+ sorts attribute nodes by name and compares
+        # each by calling +equal_attribute?+
         def equal_attribute_nodes?(nodes, other_nodes)
           return false unless nodes.size == other_nodes.size
           nodes = nodes.sort_by(&:name)
