@@ -305,6 +305,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_sql(/LIMIT 5|ROWNUM <= 5/) { Topic.last(5).entries }
   end
 
+  def test_first_and_last_should_use_default_order
+    assert_sql(/ORDER BY .topics.\..id./) { Topic.first }
+    assert_sql(/ORDER BY .topics.\..id. DESC/) { Topic.last }
+  end
+
+  def test_first_and_last_with_integer_should_use_default_order
+    assert_sql(/ORDER BY .topics.\..id./) { Topic.first(2).entries }
+    assert_sql(/ORDER BY id DESC/) { Topic.last(5).entries }
+  end
+
   def test_last_with_integer_and_order_should_keep_the_order
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
   end
