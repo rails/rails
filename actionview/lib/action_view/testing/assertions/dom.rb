@@ -24,7 +24,6 @@ module ActionView
           return compare_doms(expected, actual), message
         end
 
-        # +compare_doms+ takes two doms loops over all their children and compares each child via +equal_children?+
         def compare_doms(expected, actual)
           return false unless expected.children.size == actual.children.size
 
@@ -34,9 +33,6 @@ module ActionView
           true
         end
 
-        # +equal_children?+ compares children according to their type
-        # Determines further comparison via said type
-        # i.e. element node children with equal names has their attributes compared using +attributes_are_equal?+
         def equal_children?(child, other_child)
           return false unless child.type == other_child.type
 
@@ -48,8 +44,6 @@ module ActionView
           end
         end
 
-        # +equal_attribute_nodes?+ sorts attribute nodes by name and compares
-        # each by calling +equal_attribute?+
         def equal_attribute_nodes?(nodes, other_nodes)
           return false unless nodes.size == other_nodes.size
           nodes = nodes.sort_by(&:name)
@@ -61,7 +55,6 @@ module ActionView
           true
         end
 
-        # +equal_attribute?+ compares attributes by their name and value
         def equal_attribute?(attr, other_attr)
           attr.name == other_attr.name && attr.value == other_attr.value
         end
