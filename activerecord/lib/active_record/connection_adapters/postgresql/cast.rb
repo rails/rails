@@ -100,7 +100,11 @@ module ActiveRecord
           if string.nil?
             nil
           elsif String === string
-            IPAddr.new(string)
+            begin
+              IPAddr.new(string)
+            rescue ArgumentError
+              nil
+            end
           else
             string
           end
@@ -115,7 +119,7 @@ module ActiveRecord
         end
 
         def string_to_array(string, oid)
-          parse_pg_array(string).map{|val| oid.type_cast val}
+          parse_pg_array(string).map {|val| type_cast_array(oid, val)}
         end
 
         private
@@ -144,6 +148,14 @@ module ActiveRecord
               value
             else
               "\"#{value.gsub(/"/,"\\\"")}\""
+            end
+          end
+
+          def type_cast_array(oid, value)
+            if ::Array === value
+              value.map {|item| type_cast_array(oid, item)}
+            else
+              oid.type_cast value
             end
           end
       end

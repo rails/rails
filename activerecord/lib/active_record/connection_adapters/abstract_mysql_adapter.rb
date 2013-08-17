@@ -246,8 +246,8 @@ module ActiveRecord
       # QUOTING ==================================================
 
       def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
-          s = column.class.string_to_binary(value).unpack("H*")[0]
+        if value.kind_of?(String) && column && column.type == :binary
+          s = value.unpack("H*")[0]
           "x'#{s}'"
         elsif value.kind_of?(BigDecimal)
           value.to_s("F")
@@ -469,7 +469,8 @@ module ActiveRecord
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation], field[:Extra])
+            field_name = set_field_encoding(field[:Field])
+            new_column(field_name, field[:Default], field[:Type], field[:Null] == "YES", field[:Collation], field[:Extra])
           end
         end
       end

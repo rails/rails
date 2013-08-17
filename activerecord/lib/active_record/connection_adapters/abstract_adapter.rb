@@ -291,6 +291,14 @@ module ActiveRecord
         false
       end
 
+      # This is meant to be implemented by the adapters that support extensions
+      def disable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support extensions
+      def enable_extension(name)
+      end
+
       # A list of extensions, to be filled in by adapters that support them. At
       # the moment only postgresql does.
       def extensions

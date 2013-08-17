@@ -1,4 +1,28 @@
-*   Add Time#to_s(:iso8601) for easy conversion of times to the iso8601 format for easy Javascript date parsing.
+*   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
+
+    *DHH*
+
+*   Adds a new deprecation behaviour that raises an exception. Throwing this
+    line into +config/environments/development.rb+
+
+        ActiveSupport::Deprecation.behavior = :raise
+
+    will cause the application to raise an +ActiveSupport::DeprecationException+
+    on deprecations.
+
+    Use this for aggressive deprecation cleanups.
+
+    *Xavier Noria*
+
+*   Remove 'cow' => 'kine' irregular inflection from default inflections.
+
+    *Andrew White*
+
+*   Add `DateTime#to_s(:iso8601)` and `Date#to_s(:iso8601)` for consistency.
+
+    *Andrew White*
+
+*   Add `Time#to_s(:iso8601)` for easy conversion of times to the iso8601 format for easy Javascript date parsing.
 
     *DHH*
 

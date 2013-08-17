@@ -1,9 +1,11 @@
 script: 'ci/travis.rb'
 before_install:
-  - gem install bundler
+  - travis_retry gem install bundler
 rvm:
   - 1.9.3
   - 2.0.0
+  - jruby-19mode
+  - rbx-19mode
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as,av"
@@ -11,6 +13,10 @@ env:
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
   - "GEM=ar:postgresql"
+matrix:
+  allow_failures:
+    - rvm: jruby-19mode
+    - rvm: rbx-19mode
 notifications:
   email: false
   irc:

@@ -55,6 +55,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scoping_with_threads
+    skip "in-memory database mustn't disconnect" if in_memory_db?
+
     2.times do
       Thread.new {
         assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
@@ -82,7 +84,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_overwrites_default
-    expected = Developer.all.merge!(:order => ' name DESC, salary DESC').to_a.collect { |dev| dev.name }
+    expected = Developer.all.merge!(order: 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
     assert_equal expected, received
   end
@@ -94,7 +96,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_after_reorder_combines_orders
-    expected = Developer.order('id DESC, name DESC').collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
     received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
@@ -253,8 +255,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_in_default_scope_should_not_prevail
-    expected = Developer.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
+    expected = Developer.all.merge!(order: 'salary desc').to_a.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.all.merge!(order: 'salary').to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 

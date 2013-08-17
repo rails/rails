@@ -876,11 +876,4 @@ class FinderTest < ActiveRecord::TestCase
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
-
-    def with_active_record_default_timezone(zone)
-      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
-      yield
-    ensure
-      ActiveRecord::Base.default_timezone = old_zone
-    end
 end

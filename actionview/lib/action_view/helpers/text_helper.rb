@@ -157,10 +157,12 @@ module ActionView
         return unless matches = text.match(regex)
         phrase = matches[0]
 
-        text.split(separator).each do |value|
-          if value.match(regex)
-            regex = phrase = value
-            break
+        unless separator.empty?
+          text.split(separator).each do |value|
+            if value.match(regex)
+              regex = phrase = value
+              break
+            end
           end
         end
 
@@ -215,7 +217,7 @@ module ActionView
       def word_wrap(text, options = {})
         line_width = options.fetch(:line_width, 80)
 
-        text.split("\n").collect do |line|
+        text.split("\n").collect! do |line|
           line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
         end * "\n"
       end
@@ -264,7 +266,7 @@ module ActionView
         if paragraphs.empty?
           content_tag(wrapper_tag, nil, html_options)
         else
-          paragraphs.map { |paragraph|
+          paragraphs.map! { |paragraph|
             content_tag(wrapper_tag, paragraph, html_options, options[:sanitize])
           }.join("\n\n").html_safe
         end

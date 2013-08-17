@@ -129,6 +129,14 @@ module ActiveRecord
         end
       end
 
+      def type_cast_for_write(value)
+        if @oid_type.respond_to?(:type_cast_for_write)
+          @oid_type.type_cast_for_write(value)
+        else
+          super
+        end
+      end
+
       def type_cast(value)
         return if value.nil?
         return super if encoded?
@@ -373,15 +381,11 @@ module ActiveRecord
           self
         end
 
-        def xml(options = {})
-          column(args[0], :text, options)
-        end
-
         private
 
-        def create_column_definition(name, type)
-          ColumnDefinition.new name, type
-        end
+          def create_column_definition(name, type)
+            ColumnDefinition.new name, type
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

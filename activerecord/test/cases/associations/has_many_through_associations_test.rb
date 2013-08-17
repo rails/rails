@@ -91,6 +91,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_concat
+    person = people(:david)
+    post   = posts(:thinking)
+    post.people.concat [person]
+    assert_equal 1, post.people.size
+    assert_equal 1, post.people(true).size
+  end
 
   def test_associate_existing_record_twice_should_add_to_target_twice
     post   = posts(:thinking)

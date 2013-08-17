@@ -19,6 +19,7 @@ class DateTime
   #   datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
   #   datetime.to_formatted_s(:long_ordinal)  # => "December 4th, 2007 00:00"
   #   datetime.to_formatted_s(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
+  #   datetime.to_formatted_s(:iso8601)       # => "2007-12-04T00:00:00+00:00"
   #
   # == Adding your own datetime formats to to_formatted_s
   # DateTime formats are shared with Time. You can add your own to the

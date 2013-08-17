@@ -25,6 +25,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
     assert_equal "2005-02-21",          date.to_s(:db)
     assert_equal "21 Feb 2005",         date.to_s(:rfc822)
+    assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
   def test_readable_inspect
@@ -245,6 +246,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_beginning_of_day
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
+  end
+
+  def test_middle_of_day
+    assert_equal Time.local(2005,2,21,12,0,0), Date.new(2005,2,21).middle_of_day
   end
 
   def test_beginning_of_day_when_zone_is_set

@@ -142,6 +142,16 @@ class Time
   alias :at_midnight :beginning_of_day
   alias :at_beginning_of_day :beginning_of_day
 
+  # Returns a new Time representing the middle of the day (12:00)
+  def middle_of_day
+    change(:hour => 12)
+  end
+  alias :midday :middle_of_day
+  alias :noon :middle_of_day
+  alias :at_midday :middle_of_day
+  alias :at_noon :middle_of_day
+  alias :at_middle_of_day :middle_of_day
+
   # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
   def end_of_day
     change(

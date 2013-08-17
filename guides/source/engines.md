@@ -525,6 +525,14 @@ First, the `author_name` text field needs to be added to the `app/views/blorgh/p
 </div>
 ```
 
+Next, we need to update our `Blorgh::PostController#post_params` method to permit the new form parameter:
+
+```ruby
+def post_params
+  params.require(:post).permit(:title, :text, :author_name)
+end
+```
+
 The `Blorgh::Post` model should then have some code to convert the `author_name` field into an actual `User` object and associate it as that post's `author` before the post is saved. It will also need to have an `attr_accessor` setup for this field so that the setter and getter methods are defined for it.
 
 To do all this, you'll need to add the `attr_accessor` for `author_name`, the association for the author and the `before_save` call into `app/models/blorgh/post.rb`. The `author` association will be hard-coded to the `User` class for the time being.

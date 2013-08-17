@@ -20,6 +20,16 @@ class String
     self
   end
 
+  # Returns a new string with all occurrences of the pattern removed. Short-hand for String#gsub(pattern, '').
+  def remove(pattern)
+    gsub pattern, ''
+  end
+
+  # Alters the string by removing all occurrences of the pattern. Short-hand for String#gsub!(pattern, '').
+  def remove!(pattern)
+    gsub! pattern, ''
+  end
+
   # Truncates a given +text+ after a given <tt>length</tt> if +text+ is longer than <tt>length</tt>:
   #
   #   'Once upon a time in a world far far away'.truncate(27)

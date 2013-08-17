@@ -1,3 +1,38 @@
+*   rake notes now searches *.less files
+
+    *Josh Crowder*
+
+*   Generate nested route for namespaced controller generated using
+    `rails g controller`.
+    Fixes #11532.
+    
+    Example:
+    
+        rails g controller admin/dashboard index
+        
+        # Before:
+        get "dashboard/index"
+        
+        # After:
+        namespace :admin do
+          get "dashboard/index"
+        end
+    
+    *Prathamesh Sonpatki*
+    
+*   Fix the event name of action_dispatch requests.
+
+    *Rafael Mendonça França*
+
+*   Make `config.log_level` work with custom loggers.
+
+    *Max Shytikov*
+
+*   Changed stylesheet load order in the stylesheet manifest generator.
+    Fixes #11639.
+
+    *Pawel Janiak*
+
 *   Added generated unit test for generator generator using new
     `test:generators` rake task.
 
@@ -49,7 +84,8 @@
 
     *John Wang*
 
-*   Clearing autoloaded constants triggers routes reloading [Fixes #10685].
+*   Clearing autoloaded constants triggers routes reloading.
+    Fixes #10685.
 
     *Xavier Noria*
 
@@ -67,9 +103,5 @@
 *   Changes repetitive th tags to use colspan attribute in `index.html.erb` template.
 
     *Sıtkı Bağdat*
-
-*   Changed stylesheet load order in the stylesheet manifest generator. [Fixes #11639]
-
-    *Pawel Janiak*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for previous changes.

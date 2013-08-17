@@ -507,12 +507,12 @@ module ActiveRecord
             cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
               field.name
             }
+            metadata.free
           end
 
           result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
           affected_rows = stmt.affected_rows
 
-          stmt.result_metadata.free if cols
           stmt.free_result
           stmt.close if binds.empty?
 
@@ -558,6 +558,14 @@ module ActiveRecord
       # Returns the version of the connected MySQL server.
       def version
         @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      end
+
+      def set_field_encoding field_name
+        field_name.force_encoding(client_encoding)
+        if internal_enc = Encoding.default_internal
+          field_name = field_name.encoding(internal_enc)
+        end
+        field_name
       end
     end
   end

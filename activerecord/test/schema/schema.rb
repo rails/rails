@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 ActiveRecord::Schema.define do
   def except(adapter_names_to_exclude)
     unless [adapter_names_to_exclude].flatten.include?(adapter_name)
@@ -781,6 +783,7 @@ ActiveRecord::Schema.define do
   end
   create_table :weirds, :force => true do |t|
     t.string 'a$b'
+    t.string 'なまえ'
     t.string 'from'
   end
 

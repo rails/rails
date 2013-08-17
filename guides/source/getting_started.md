@@ -84,7 +84,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 1.9.3p385
+ruby 2.0.0p247
 ```
 
 To install Rails, use the `gem install` command provided by RubyGems:
@@ -155,7 +155,7 @@ To begin with, let's get some text up on screen quickly. To do this, you need to
 
 ### Starting up the Web Server
 
-You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running:
+You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running the following in the root directory of your rails application:
 
 ```bash
 $ rails server
@@ -310,6 +310,10 @@ end
 
 A controller is simply a class that is defined to inherit from `ApplicationController`. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
 
+NOTE: There are `public`, `private` and `protected` methods in `Ruby`
+(for more details you can check on [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)).
+But only `public` methods can be actions for controllers.
+
 If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
 
 ![Unknown action new for PostsController!](images/getting_started/unknown_action_new_for_posts.png)
@@ -416,7 +420,7 @@ edit_post GET    /posts/:id/edit(.:format) posts#edit
 The `posts_path` helper tells Rails to point the form
 to the URI Pattern associated with the `posts` prefix; and
 the form will (by default) send a `POST` request
-to that route.  This is associated with the 
+to that route.  This is associated with the
 `create` action of the current controller, the `PostsController`.
 
 With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
@@ -553,7 +557,7 @@ and change the `create` action to look like this:
 ```ruby
 def create
   @post = Post.new(params[:post])
- 
+
   @post.save
   redirect_to @post
 end
@@ -574,6 +578,8 @@ whether the model was saved or not.
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
+
+As we have seen in the output of `rake routes`, the route for `show` action is as follows:
 
 ```ruby
 post GET    /posts/:id(.:format)      posts#show
@@ -619,9 +625,9 @@ it! You should get an error that looks like this:
 
 Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called
-'strong_parameters,' which requires us to tell Rails exactly which parameters
+`strong_parameters`, which requires us to tell Rails exactly which parameters
 we want to accept in our controllers. In this case, we want to allow the
-'title' and 'text' parameters, so change your `create` controller action to
+`title` and `text` parameters, so change your `create` controller action to
 look like this:
 
 ```
@@ -639,7 +645,7 @@ private
 ```
 
 See the `permit`? It allows us to accept both `title` and `text` in this
-action. With this change, you should finally be able to create new `Post`s.
+action. With this change, you should finally be able to create new posts.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
@@ -652,7 +658,7 @@ For more information, refer to
 ### Listing all posts
 
 We still need a way to list all our posts, so let's do that.
-We'll use a specific route from `config/routes.rb`:
+The route for this as per output of `rake routes` is:
 
 ```ruby
 posts GET    /posts(.:format)          posts#index
@@ -886,7 +892,7 @@ it look as follows:
 ```html+erb
 <h1>Editing post</h1>
 
-<%= form_for :post, url: post_path(@post.id), method: :patch do |f| %>
+<%= form_for :post, url: post_path(@post), method: :patch do |f| %>
   <% if @post.errors.any? %>
   <div id="error_explanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -1037,7 +1043,7 @@ content:
 ```
 
 Everything except for the `form_for` declaration remained the same.
-The reason we can use this shorter, simpler `form_for` declaration 
+The reason we can use this shorter, simpler `form_for` declaration
 to stand in for either of the other forms is that `@post` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
@@ -1069,7 +1075,7 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
 database. Following the REST convention, the route for
-deleting posts in the `config/routes.rb` is:
+deleting posts as per output of `rake routes` is:
 
 ```ruby
 DELETE /posts/:id(.:format)      posts#destroy
@@ -1614,6 +1620,8 @@ end
 Security
 --------
 
+### Basic Authentication
+
 If you were to publish your blog online, anybody would be able to add, edit and
 delete posts or delete comments.
 
@@ -1660,6 +1668,19 @@ Now if you try to create a new post, you will be greeted with a basic HTTP
 Authentication challenge
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
+
+Other authentication methods are available for Rails applications. Two popular
+authentication add-ons for Rails are the [Devise](https://github.com/plataformatec/devise)
+rails engine and the [Authlogic](https://github.com/binarylogic/authlogic) gem,
+along with a number of others.
+
+
+### Other Security Considerations
+
+Security, especially in web applications, is a broad and detailed area. Security
+in your Rails application is covered in more depth in 
+The [Ruby on Rails Security Guide](security.html)
+
 
 What's Next?
 ------------

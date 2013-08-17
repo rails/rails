@@ -172,7 +172,7 @@ class CalculationsTest < ActiveRecord::TestCase
       Account.select("credit_limit, firm_name").count
     }
 
-    assert_match "accounts", e.message
+    assert_match %r{accounts}i, e.message
     assert_match "credit_limit, firm_name", e.message
   end
 

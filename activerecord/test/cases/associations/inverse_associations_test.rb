@@ -9,9 +9,23 @@ require 'models/rating'
 require 'models/comment'
 require 'models/car'
 require 'models/bulb'
+require 'models/mixed_case_monkey'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
+
+  def test_has_one_and_belongs_to_should_find_inverse_automatically_on_multiple_word_name
+    monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
+    man_reflection = Man.reflect_on_association(:mixed_case_monkey)
+
+    assert_respond_to monkey_reflection, :has_inverse?
+    assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
+    assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert man_reflection.has_inverse?, "The man reflection should have an inverse"
+    assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
+  end
 
   def test_has_one_and_belongs_to_should_find_inverse_automatically
     car_reflection = Car.reflect_on_association(:bulb)
@@ -406,7 +420,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     interest = Interest.create!(man: man)
 
     man.interests.find(interest.id)
-    refute man.interests.loaded?
+    assert_not man.interests.loaded?
   end
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed

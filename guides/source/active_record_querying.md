@@ -549,11 +549,11 @@ Client.order("orders_count ASC, created_at DESC")
 Client.order("orders_count ASC", "created_at DESC")
 ```
 
-If you want to call `order` multiple times e.g. in different context, new order will prepend previous one
+If you want to call `order` multiple times e.g. in different context, new order will append previous one
 
 ```ruby
 Client.order("orders_count ASC").order("created_at DESC")
-# SELECT * FROM clients ORDER BY created_at DESC, orders_count ASC
+# SELECT * FROM clients ORDER BY orders_count ASC, created_at DESC
 ```
 
 Selecting Specific Fields

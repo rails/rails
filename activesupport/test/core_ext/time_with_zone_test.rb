@@ -997,6 +997,15 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
+  def test_time_in_time_zone_doesnt_affect_receiver
+    with_env_tz 'Europe/London' do
+      time = Time.local(2000, 7, 1)
+      time_with_zone = time.in_time_zone('Eastern Time (US & Canada)')
+      assert_equal Time.utc(2000, 6, 30, 23, 0, 0), time_with_zone
+      assert_not time.utc?, 'time expected to be local, but is UTC'
+    end
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

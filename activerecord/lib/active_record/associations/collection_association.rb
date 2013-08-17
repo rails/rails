@@ -290,7 +290,7 @@ module ActiveRecord
 
       # Returns true if the collection is empty.
       #
-      # If the collection has been loaded 
+      # If the collection has been loaded
       # it is equivalent to <tt>collection.size.zero?</tt>. If the
       # collection has not been loaded, it is equivalent to
       # <tt>collection.exists?</tt>. If the collection has not already been
@@ -366,8 +366,8 @@ module ActiveRecord
         target
       end
 
-      def add_to_target(record)
-        callback(:before_add, record)
+      def add_to_target(record, skip_callbacks = false)
+        callback(:before_add, record) unless skip_callbacks
         yield(record) if block_given?
 
         if association_scope.distinct_value && index = @target.index(record)
@@ -376,7 +376,7 @@ module ActiveRecord
           @target << record
         end
 
-        callback(:after_add, record)
+        callback(:after_add, record) unless skip_callbacks
         set_inverse_instance(record)
 
         record
@@ -510,20 +510,13 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            case callback
-            when Symbol
-              owner.send(callback, record)
-            when Proc
-              callback.call(owner, record)
-            else
-              callback.send(method, owner, record)
-            end
+            callback.call(method, owner, record)
           end
         end
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{reflection.name}"
-          owner.class.send(full_callback_name.to_sym) || []
+          owner.class.send(full_callback_name)
         end
 
         # Should we deal with assoc.first or assoc.last by issuing an independent query to

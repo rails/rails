@@ -66,17 +66,33 @@ Here's a sample YAML fixture file:
 ```yaml
 # lo & behold! I am a YAML comment!
 david:
- name: David Heinemeier Hansson
- birthday: 1979-10-15
- profession: Systems development
+  name: David Heinemeier Hansson
+  birthday: 1979-10-15
+  profession: Systems development
 
 steve:
- name: Steve Ross Kellock
- birthday: 1974-09-27
- profession: guy with keyboard
+  name: Steve Ross Kellock
+  birthday: 1974-09-27
+  profession: guy with keyboard
 ```
 
 Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column. Keys which resemble YAML keywords such as 'yes' and 'no' are quoted so that the YAML Parser correctly interprets them.
+
+If you are working with [associations](/association_basics.html), you can simply
+define a reference node between two different fixtures. Here's an example with
+a belongs_to/has_many association:
+
+```yaml
+# In fixtures/categories.yml
+about:
+  name: About
+
+# In fixtures/articles.yml
+one:
+  title: Welcome to Rails!
+  body: Hello world!
+  category: about
+```
 
 #### ERB'in It Up
 
@@ -357,28 +373,28 @@ Here's an extract of the assertions you can use with `minitest`, the default tes
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
 | `assert( test, [msg] )`                                          | Ensures that `test` is true.|
-| `refute( test, [msg] )`                                          | Ensures that `test` is false.|
+| `assert_not( test, [msg] )`                                      | Ensures that `test` is false.|
 | `assert_equal( expected, actual, [msg] )`                        | Ensures that `expected == actual` is true.|
-| `refute_equal( expected, actual, [msg] )`                        | Ensures that `expected != actual` is true.|
+| `assert_not_equal( expected, actual, [msg] )`                    | Ensures that `expected != actual` is true.|
 | `assert_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is true.|
-| `refute_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is false.|
+| `assert_not_same( expected, actual, [msg] )`                     | Ensures that `expected.equal?(actual)` is false.|
 | `assert_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is true.|
-| `refute_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is false.|
+| `assert_not_nil( obj, [msg] )`                                   | Ensures that `obj.nil?` is false.|
 | `assert_match( regexp, string, [msg] )`                          | Ensures that a string matches the regular expression.|
-| `refute_match( regexp, string, [msg] )`                          | Ensures that a string doesn't match the regular expression.|
+| `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
 | `assert_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
-| `refute_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
+| `assert_not_in_delta( expecting, actual, [delta], [msg] )`       | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
-| `refute_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class`.|
+| `assert_not_instance_of( class, obj, [msg] )`                    | Ensures that `obj` is not an instance of `class`.|
 | `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
-| `refute_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is not an instance of `class` and is not descending from it.|
+| `assert_not_kind_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class` and is not descending from it.|
 | `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
-| `refute_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` does not respond to `symbol`.|
+| `assert_not_respond_to( obj, symbol, [msg] )`                    | Ensures that `obj` does not respond to `symbol`.|
 | `assert_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is true.|
-| `refute_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is false.|
+| `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
@@ -990,6 +1006,47 @@ class UserControllerTest < ActionController::TestCase
 end
 ```
 
+Testing helpers
+---------------
+
+In order to test helpers, all you need to do is check that the output of the
+helper method matches what you'd expect. Tests related to the helpers are
+located under the `test/helpers` directory. Rails provides a generator which
+generates both the helper and the test file:
+
+```bash
+$ rails generate helper User
+      create  app/helpers/user_helper.rb
+      invoke  test_unit
+      create    test/helpers/user_helper_test.rb
+```
+
+The generated test file contains the following code:
+
+```ruby
+require 'test_helper'
+
+class UserHelperTest < ActionView::TestCase
+end
+```
+
+A helper is just a simple module where you can define methods which are
+available into your views. To test the output of the helper's methods, you just
+have to use a mixin like this:
+
+```ruby
+class UserHelperTest < ActionView::TestCase
+  include UserHelper
+
+  test "should return the user name" do
+    # ...
+  end
+end
+```
+
+Moreover, since the test class extends from `ActionView::TestCase`, you have
+access to Rails' helper methods such as `link_to` or `pluralize`.
+
 Other Testing Approaches
 ------------------------
 
@@ -998,6 +1055,7 @@ The built-in `test/unit` based testing is not the only way to test Rails applica
 * [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
 * [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
 * [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
+* [Fixture Builder](https://github.com/rdy/fixture_builder), a tool that compiles Ruby factories into fixtures before a test run.
 * [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
 * [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
 * [RSpec](http://relishapp.com/rspec), a behavior-driven development framework

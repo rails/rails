@@ -545,6 +545,8 @@ if current_adapter?(:PostgreSQLAdapter)
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread
+      skip "in memory db can't share a db between threads" if in_memory_db?
+
       threads = 3.times.map do
         Thread.new do
           Topic.transaction do

@@ -12,56 +12,50 @@ module ActiveRecord::Associations::Builder
                :after_add, :before_remove, :after_remove, :extend]
     end
 
-    attr_reader :block_extension, :extension_module
+    attr_reader :block_extension
 
-    def initialize(*args, &extension)
-      super(*args)
-      @block_extension = extension
-    end
-
-    def build
-      wrap_block_extension
-      reflection = super
-      CALLBACKS.each { |callback_name| define_callback(callback_name) }
-      reflection
-    end
-
-    def writable?
-      true
-    end
-
-    def wrap_block_extension
-      if block_extension
-        @extension_module = mod = Module.new(&block_extension)
-        silence_warnings do
-          model.parent.const_set(extension_module_name, mod)
-        end
-
-        prev_scope = @scope
-
-        if prev_scope
-          @scope = proc { |owner| instance_exec(owner, &prev_scope).extending(mod) }
-        else
-          @scope = proc { extending(mod) }
-        end
+    def initialize(name, scope, options)
+      super
+      @mod = nil
+      if block_given?
+        @mod = Module.new(&Proc.new)
+        @scope = wrap_scope @scope, @mod
       end
     end
 
-    def extension_module_name
-      @extension_module_name ||= "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
+    def define_callbacks(model, reflection)
+      super
+      CALLBACKS.each { |callback_name| define_callback(model, callback_name) }
     end
 
-    def define_callback(callback_name)
+    def define_extensions(model)
+      if @mod
+        extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
+        model.parent.const_set(extension_module_name, @mod)
+      end
+    end
+
+    def define_callback(model, callback_name)
       full_callback_name = "#{callback_name}_for_#{name}"
 
       # TODO : why do i need method_defined? I think its because of the inheritance chain
-      model.class_attribute full_callback_name.to_sym unless model.method_defined?(full_callback_name)
-      model.send("#{full_callback_name}=", Array(options[callback_name.to_sym]))
+      model.class_attribute full_callback_name unless model.method_defined?(full_callback_name)
+      callbacks = Array(options[callback_name.to_sym]).map do |callback|
+        case callback
+        when Symbol
+          ->(method, owner, record) { owner.send(callback, record) }
+        when Proc
+          ->(method, owner, record) { callback.call(owner, record) }
+        else
+          ->(method, owner, record) { callback.send(method, owner, record) }
+        end
+      end
+      model.send "#{full_callback_name}=", callbacks
     end
 
     # Defines the setter and getter methods for the collection_singular_ids.
 
-    def define_readers
+    def define_readers(mixin)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -71,7 +65,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers
+    def define_writers(mixin)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -79,6 +73,16 @@ module ActiveRecord::Associations::Builder
           association(:#{name}).ids_writer(ids)
         end
       CODE
+    end
+
+    private
+
+    def wrap_scope(scope, mod)
+      if scope
+        proc { |owner| instance_exec(owner, &scope).extending(mod) }
+      else
+        proc { extending(mod) }
+      end
     end
   end
 end

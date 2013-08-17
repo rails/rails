@@ -3,7 +3,7 @@ require "action_controller/metal/params_wrapper"
 
 module ActionController
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
-  # on request and then either render a template or redirect to another action. An action is defined as a public method
+  # on request and then either it renders a template or redirects to another action. An action is defined as a public method
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
   #
   # By default, only the ApplicationController in a \Rails application inherits from <tt>ActionController::Base</tt>. All other

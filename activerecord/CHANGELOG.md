@@ -1,3 +1,101 @@
+*   Assign inet/cidr attribute with `nil` value for invalid address.
+
+    Example:
+
+        record = User.new
+
+        record.logged_in_from_ip # is type of an inet or a cidr
+
+        # Before:
+        record.logged_in_from_ip = 'bad ip address' # raise exception
+
+        # After:
+        record.logged_in_from_ip = 'bad ip address' # do not raise exception
+        record.logged_in_from_ip # => nil
+        record.logged_in_from_ip_before_type_cast # => 'bad ip address'
+
+    *Paul Nikitochkin*
+
+*   `add_to_target` now accepts a second optional `skip_callbacks` argument
+
+    If truthy, it will skip the :before_add and :after_add callbacks.
+
+    *Ben Woosley*
+
+*   Fix interactions between `:before_add` callbacks and nested attributes
+    assignment of `has_many` associations, when the association was not
+    yet loaded:
+
+    - A `:before_add` callback was being called when a nested attributes
+      assignment assigned to an existing record.
+
+    - Nested Attributes assignment did not affect the record in the
+      association target when a `:before_add` callback triggered the
+      loading of the association
+
+    *Jörg Schray*
+
+*   Allow enable_extension migration method to be revertible.
+
+    *Eric Tipton*
+
+*   Type cast hstore values on write, so that the value is consistent
+    with reading from the database.
+
+    Example:
+
+        x = Hstore.new tags: {"bool" => true, "number" => 5}
+
+        # Before:
+        x.tags # => {"bool" => true, "number" => 5}
+
+        # After:
+        x.tags # => {"bool" => "true", "number" => "5"}
+
+    *Yves Senn* , *Severin Schoepke*
+
+*   Fix multidimensional PG arrays containing non-string items.
+
+    *Yves Senn*
+
+*   Load fixtures from linked folders.
+
+    *Kassio Borges*
+
+*   Create a directory for sqlite3 file if not present on the system.
+
+    *Richard Schneeman*
+
+*   Removed redundant override of `xml` column definition for PG,
+    in order to use `xml` column type instead of `text`.
+
+    *Paul Nikitochkin*, *Michael Nikitochkin*
+
+*   Revert `ActiveRecord::Relation#order` change that make new order
+    prepend the old one.
+
+    Before:
+
+        User.order("name asc").order("created_at desc")
+        # SELECT * FROM users ORDER BY created_at desc, name asc
+
+    After:
+
+        User.order("name asc").order("created_at desc")
+        # SELECT * FROM users ORDER BY name asc, created_at desc
+
+    This also affects order defined in `default_scope` or any kind of associations.
+
+*   Add ability to define how a class is converted to Arel predicates.
+    For example, adding a very vendor specific regex implementation:
+
+        regex_handler = proc do |column, value|
+          Arel::Nodes::InfixOperation.new('~', column, value.source)
+        end
+        ActiveRecord::PredicateBuilder.register_handler(Regexp, regex_handler)
+
+    *Sean Griffin & @joannecheng*
+
 *   Don't allow `quote_value` to be called without a column.
 
     Some adapters require column information to do their job properly.
@@ -9,7 +107,7 @@
 
 *   When using optimistic locking, `update` was not passing the column to `quote_value`
     to allow the connection adapter to properly determine how to quote the value. This was
-    affecting certain databases that use specific colmn types.
+    affecting certain databases that use specific column types.
 
     Fixes: #6763
 

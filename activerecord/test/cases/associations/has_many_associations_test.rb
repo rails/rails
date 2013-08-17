@@ -253,9 +253,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, companies(:first_firm).limited_clients.limit(nil).to_a.size
   end
 
-  def test_find_should_prepend_to_association_order
+  def test_find_should_append_to_association_order
     ordered_clients =  companies(:first_firm).clients_sorted_desc.order('companies.id')
-    assert_equal ['companies.id', 'id DESC'], ordered_clients.order_values
+    assert_equal ['id DESC', 'companies.id'], ordered_clients.order_values
   end
 
   def test_dynamic_find_should_respect_association_order

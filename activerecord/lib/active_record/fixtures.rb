@@ -592,14 +592,7 @@ module ActiveRecord
                 row[fk_name] = ActiveRecord::FixtureSet.identify(value)
               end
             when :has_and_belongs_to_many
-              if (targets = row.delete(association.name.to_s))
-                targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-                table_name = association.join_table
-                rows[table_name].concat targets.map { |target|
-                  { association.foreign_key             => row[primary_key_name],
-                    association.association_foreign_key => ActiveRecord::FixtureSet.identify(target) }
-                }
-              end
+              handle_habtm(rows, row, association)
             end
           end
         end
@@ -612,6 +605,17 @@ module ActiveRecord
     private
       def primary_key_name
         @primary_key_name ||= model_class && model_class.primary_key
+      end
+
+      def handle_habtm(rows, row, association)
+        if (targets = row.delete(association.name.to_s))
+          targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
+          table_name = association.join_table
+          rows[table_name].concat targets.map { |target|
+            { association.foreign_key             => row[primary_key_name],
+              association.association_foreign_key => ActiveRecord::FixtureSet.identify(target) }
+          }
+        end
       end
 
       def has_primary_key_column?
@@ -633,7 +637,7 @@ module ActiveRecord
       end
 
       def read_fixture_files
-        yaml_files = Dir["#{@path}/**/*.yml"].select { |f|
+        yaml_files = Dir["#{@path}/{**,*}/*.yml"].select { |f|
           ::File.file?(f)
         } + [yaml_file_path]
 
@@ -752,7 +756,7 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          fixture_set_names = Dir["#{fixture_path}/**/*.{yml}"]
+          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
           fixture_set_names = fixture_set_names.flatten.map { |n| n.to_s }

@@ -506,9 +506,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
-  def test_find_should_prepend_to_association_order
+  def test_find_should_append_to_association_order
     ordered_developers = projects(:active_record).developers.order('projects.id')
-    assert_equal ['projects.id', 'developers.name desc, developers.id desc'], ordered_developers.order_values
+    assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
   end
 
   def test_dynamic_find_all_should_respect_readonly_access

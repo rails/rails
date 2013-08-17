@@ -10,16 +10,6 @@ class DateTime
     end
   end
 
-  # Tells whether the DateTime object's datetime lies in the past.
-  def past?
-    self < ::DateTime.current
-  end
-
-  # Tells whether the DateTime object's datetime lies in the future.
-  def future?
-    self > ::DateTime.current
-  end
-
   # Seconds since midnight: DateTime.now.seconds_since_midnight.
   def seconds_since_midnight
     sec + (min * 60) + (hour * 3600)
@@ -98,6 +88,16 @@ class DateTime
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
   alias :at_beginning_of_day :beginning_of_day
+
+  # Returns a new DateTime representing the middle of the day (12:00)
+  def middle_of_day
+    change(:hour => 12)
+  end
+  alias :midday :middle_of_day
+  alias :noon :middle_of_day
+  alias :at_midday :middle_of_day
+  alias :at_noon :middle_of_day
+  alias :at_middle_of_day :middle_of_day
 
   # Returns a new DateTime representing the end of the day (23:59:59).
   def end_of_day

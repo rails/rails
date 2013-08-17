@@ -6,10 +6,6 @@ module ActiveRecord
       module OID
         class Type
           def type; end
-
-          def type_cast_for_write(value)
-            value
-          end
         end
 
         class Identity < Type
@@ -224,6 +220,10 @@ module ActiveRecord
         end
 
         class Hstore < Type
+          def type_cast_for_write(value)
+            ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
+          end
+
           def type_cast(value)
             return if value.nil?
 

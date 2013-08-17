@@ -3,49 +3,6 @@ require 'minitest/parallel_each'
 
 module ActiveSupport
   module Testing
-    class RemoteError < StandardError
-
-      attr_reader :message, :backtrace
-
-      def initialize(exception)
-        @message = "caught #{exception.class.name}: #{exception.message}"
-        @backtrace = exception.backtrace
-      end
-    end
-
-    class ProxyTestResult
-      def initialize(calls = [])
-        @calls = calls
-      end
-
-      def add_error(e)
-        e = Test::Unit::Error.new(e.test_name, RemoteError.new(e.exception))
-        @calls << [:add_error, e]
-      end
-
-      def __replay__(result)
-        @calls.each do |name, args|
-          result.send(name, *args)
-        end
-      end
-
-      def marshal_dump
-        @calls
-      end
-
-      def marshal_load(calls)
-        initialize(calls)
-      end
-
-      def method_missing(name, *args)
-        @calls << [name, args]
-      end
-
-      def info_signal
-        Signal.list['INFO']
-      end
-    end
-
     module Isolation
       require 'thread'
 
@@ -107,19 +64,18 @@ module ActiveSupport
           require "tempfile"
 
           if ENV["ISOLATION_TEST"]
-            proxy = ProxyTestResult.new
-            retval = yield proxy
+            yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump([retval, proxy])].pack("m")
+              file.puts [Marshal.dump(self.dup)].pack("m")
             end
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
-              ENV["ISOLATION_TEST"]   = @method_name
+              ENV["ISOLATION_TEST"]   = self.class.name
               ENV["ISOLATION_OUTPUT"] = tmpfile.path
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")} -t\"#{self.class}\"`
+              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")}`
 
               ENV.delete("ISOLATION_TEST")
               ENV.delete("ISOLATION_OUTPUT")

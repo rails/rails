@@ -1,3 +1,22 @@
+*   Added an `extname` hash option for `javascript_include_tag` method.
+
+    Before:
+
+        javascript_include_tag('templates.jst')
+        # => <script src="/javascripts/templates.jst.js"></script>
+
+    After:
+
+        javascript_include_tag('templates.jst', extname: false )
+        # => <script src="/javascripts/templates.jst"></script>
+
+    *Nathan Stitt*
+
+*   Fix `current_page?` when the URL contains escaped characters and the
+    original URL is using the hexadecimal lowercased.
+
+    *Rafael Mendonça França*
+
 *   Fix `text_area` to behave like `text_field` when `nil` is given as
     value.
 
