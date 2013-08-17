@@ -638,6 +638,14 @@ class TestController < ActionController::Base
     render :partial => "customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer
   end
 
+  def partial_collection_with_iteration
+    render partial: "customer_iteration", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new('christine') ]
+  end
+
+  def partial_collection_with_as_and_iteration
+    render partial: "customer_iteration_with_as", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new('christine') ], as: :client
+  end
+
   def partial_collection_with_counter
     render :partial => "customer_counter", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
@@ -1434,6 +1442,16 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_as
     get :partial_collection_with_as
     assert_equal "david david davidmary mary mary", @response.body
+  end
+
+  def test_partial_collection_with_iteration
+    get :partial_collection_with_iteration
+    assert_equal "3-0: david-first3-1: mary3-2: christine-last", @response.body
+  end
+
+  def test_partial_collection_with_as_and_iteration
+    get :partial_collection_with_as_and_iteration
+    assert_equal "3-0: david-first3-1: mary3-2: christine-last", @response.body
   end
 
   def test_partial_collection_with_counter
