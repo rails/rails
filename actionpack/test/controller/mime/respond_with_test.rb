@@ -107,6 +107,20 @@ class RenderJsonRespondWithController < RespondWithController
   end
 end
 
+class CsvRespondWithController < ActionController::Base
+  respond_to :csv
+
+  class RespondWithCsv
+    def to_csv
+      "c,s,v"
+    end
+  end
+
+  def index
+    respond_with(RespondWithCsv.new)
+  end
+end
+
 class EmptyRespondWithController < ActionController::Base
   def index
     respond_with(Customer.new("david", 13))
@@ -605,6 +619,23 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "Resource name is david", @response.body
   ensure
     RespondWithController.responder = ActionController::Responder
+  end
+
+  def test_uses_renderer_if_an_api_behavior
+    ActionController::Renderers.add :csv do |obj, options|
+      send_data obj.to_csv, type: Mime::CSV
+    end
+    @controller = CsvRespondWithController.new
+    get :index, format: 'csv'
+    assert_equal Mime::CSV, @response.content_type
+    assert_equal "c,s,v", @response.body
+  end
+
+  def test_raises_missing_renderer_if_an_api_behavior_with_no_renderer
+    @controller = CsvRespondWithController.new
+    assert_raise ActionController::MissingRenderer do
+      get :index, format: 'csv'
+    end
   end
 
   def test_error_is_raised_if_no_respond_to_is_declared_and_respond_with_is_called
