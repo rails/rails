@@ -71,9 +71,15 @@ module ActiveSupport
     def method_missing(method, *args)
       @logger.send(method, *args)
     end
-
-    def respond_to_missing?(*args)
-      @logger.respond_to? *args
+    
+    if RUBY_VERSION < '1.9'
+      def respond_to?(*args)
+        super || @logger.respond_to?(*args)
+      end
+    else  
+      def respond_to_missing?(*args)
+        @logger.respond_to? *args
+      end
     end
 
     private

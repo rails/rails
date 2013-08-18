@@ -1,4 +1,7 @@
 ## unreleased ##
+*   Fix respond_to_missing? for TaggedLogging not compatible with 1.8.7
+
+    *Eugene Kalenkovich*
 
 *   Add respond_to_missing? for TaggedLogging which is best practice when overriding method_missing. This permits
     wrapping TaggedLogging by another log abstraction such as em-logger.
