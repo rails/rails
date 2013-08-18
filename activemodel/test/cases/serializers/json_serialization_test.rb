@@ -155,17 +155,6 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
-  test "as_json should keep the default order in the hash according to used engine" do
-    json = @contact.as_json
-
-    # Check for original order only on MRI and sort for other implementations
-    if RUBY_ENGINE == 'ruby'
-      assert_equal %w(name age created_at awesome preferences), json.keys
-    else
-      assert_equal %w(age awesome created_at name preferences), json.keys.sort
-    end
-  end
-
   test "from_json should work without a root (class attribute)" do
     json = @contact.to_json
     result = Contact.new.from_json(json)
