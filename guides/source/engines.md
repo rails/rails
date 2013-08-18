@@ -104,7 +104,7 @@ At the root of this brand new engine's directory lives a `blorgh.gemspec` file. 
 gem 'blorgh', path: "vendor/engines/blorgh"
 ```
 
-By specifying it as a gem within the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file and requiring a file within the `lib` directory called `lib/blorgh.rb`. This file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`) and defines a base module called `Blorgh`.
+Don't foget to ` bundle install` as usual. By specifying it as a gem within the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file and requiring a file within the `lib` directory called `lib/blorgh.rb`. This file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`) and defines a base module called `Blorgh`.
 
 ```ruby
 require "blorgh/engine"
@@ -466,7 +466,7 @@ NOTE: Other engines, such as Devise, handle this a little differently by making 
 The engine contains migrations for the `blorgh_posts` and `blorgh_comments` table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
 ```bash
-$ rake blorgh_engine:install:migrations
+$ rake blorgh:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use `railties:install:migrations` instead:
