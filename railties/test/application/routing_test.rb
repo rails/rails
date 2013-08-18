@@ -330,7 +330,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render :text => "foo"
           end
         end
       RUBY
@@ -338,14 +338,14 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: "bar"
+            render :text => "bar"
           end
         end
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
-          get ':locale/foo', to: 'foo#index', as: 'foo'
+          get ':locale/foo', :to => 'foo#index', :as => 'foo'
         end
       RUBY
 
@@ -355,7 +355,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
-          get ':locale/bar', to: 'bar#index', as: 'foo'
+          get ':locale/bar', :to => 'bar#index', :as => 'foo'
         end
       RUBY
 
