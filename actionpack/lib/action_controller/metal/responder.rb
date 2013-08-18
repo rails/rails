@@ -202,6 +202,7 @@ module ActionController #:nodoc:
     # This is the common behavior for formats associated with APIs, such as :xml and :json.
     def api_behavior(error)
       raise error unless resourceful?
+      raise MissingRenderer.new(format) unless has_renderer?
 
       if get?
         display resource
@@ -267,6 +268,11 @@ module ActionController #:nodoc:
     #
     def has_errors?
       resource.respond_to?(:errors) && !resource.errors.empty?
+    end
+
+    # Check whether the neceessary Renderer is available
+    def has_renderer?
+      Renderers::RENDERERS.include?(format)
     end
 
     # By default, render the <code>:edit</code> action for HTML requests with errors, unless

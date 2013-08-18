@@ -6,6 +6,13 @@ module ActionController
     Renderers.add(key, &block)
   end
 
+  class MissingRenderer < LoadError
+    def initialize(format)
+      @format = format
+      super("No renderer defined for format: #{@format}")
+    end
+  end
+
   module Renderers
     extend ActiveSupport::Concern
 
