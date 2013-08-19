@@ -45,16 +45,17 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists
-    assert Topic.exists?(1)
-    assert Topic.exists?("1")
-    assert Topic.exists?(:author_name => "David")
-    assert Topic.exists?(:author_name => "Mary", :approved => true)
-    assert Topic.exists?(["parent_id = ?", 1])
-    assert !Topic.exists?(45)
-    assert !Topic.exists?(Topic.new)
+    assert_equal true, Topic.exists?(1)
+    assert_equal true, Topic.exists?("1")
+    assert_equal true, Topic.exists?(author_name: "David")
+    assert_equal true, Topic.exists?(author_name: "Mary", approved: true)
+    assert_equal true, Topic.exists?(["parent_id = ?", 1])
+
+    assert_equal false, Topic.exists?(45)
+    assert_equal false, Topic.exists?(Topic.new)
 
     begin
-      assert !Topic.exists?("foo")
+      assert_equal false, Topic.exists?("foo")
     rescue ActiveRecord::StatementInvalid
       # PostgreSQL complains about string comparison with integer field
     rescue Exception
@@ -71,61 +72,62 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_returns_true_with_one_record_and_no_args
-    assert Topic.exists?
+    assert_equal true, Topic.exists?
   end
 
   def test_exists_returns_false_with_false_arg
-    assert !Topic.exists?(false)
+    assert_equal false, Topic.exists?(false)
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
-    assert !Topic.exists?(nil)
-    assert Topic.exists?
-    assert !Topic.first.replies.exists?(nil)
-    assert Topic.first.replies.exists?
+    assert_equal false, Topic.exists?(nil)
+    assert_equal true, Topic.exists?
+
+    assert_equal false, Topic.first.replies.exists?(nil)
+    assert_equal true, Topic.first.replies.exists?
   end
 
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
-    assert Topic.order(:id).distinct.exists?
+    assert_equal true, Topic.order(:id).distinct.exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
-    assert !Topic.includes(:replies).limit(0).exists?
-    assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+    assert_equal false, Topic.includes(:replies).limit(0).exists?
+    assert_equal false, Topic.includes(:replies).limit(1).where('0 = 1').exists?
   end
 
   def test_exists_with_distinct_association_includes_and_limit
     author = Author.first
-    assert !author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
-    assert author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
   end
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert !author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
-    assert author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
-    assert !Topic.exists?
+    assert_equal false, Topic.exists?
   end
 
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
-    assert Customer.exists?(:address => existing_address)
+    assert_equal true, Customer.exists?(:address => existing_address)
   end
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
