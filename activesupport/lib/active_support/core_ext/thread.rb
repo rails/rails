@@ -62,6 +62,11 @@ class Thread
     _locals.has_key?(key.to_sym)
   end
 
+  def freeze
+    _locals.freeze
+    super
+  end
+
   private
 
   def _locals
