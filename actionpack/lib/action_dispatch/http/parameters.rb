@@ -59,6 +59,8 @@ module ActionDispatch
       def normalize_encode_params(params)
         if params.is_a?(String)
           return params.force_encoding(Encoding::UTF_8).encode!
+        elsif Hash === params && params.has_key?(:tempfile)
+          return UploadedFile.new(params)
         elsif !params.is_a?(Hash)
           return params
         end
