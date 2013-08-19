@@ -64,16 +64,14 @@ module ActionDispatch
           if params.has_key?(:tempfile)
             UploadedFile.new(params)
           else
-            new_hash = {}
-            params.each do |key, val|
+            params.each_with_object({}) do |(key, val), new_hash|
               new_key = key.is_a?(String) ? key.dup.force_encoding(Encoding::UTF_8).encode! : key
               new_hash[new_key] = if val.is_a?(Array)
                 val.map! { |el| normalize_encode_params(el) }
               else
                 normalize_encode_params(val)
               end
-            end
-            new_hash.with_indifferent_access
+            end.with_indifferent_access
           end
         else
           params
