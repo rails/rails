@@ -57,24 +57,27 @@ module ActionDispatch
       # you'll get a weird error down the road, but our form handling
       # should really prevent that from happening
       def normalize_encode_params(params)
-        if params.is_a?(String)
-          return params.force_encoding(Encoding::UTF_8).encode!
-        elsif Hash === params && params.has_key?(:tempfile)
-          return UploadedFile.new(params)
-        elsif !params.is_a?(Hash)
-          return params
-        end
-
-        new_hash = {}
-        params.each do |key, val|
-          new_key = key.is_a?(String) ? key.dup.force_encoding(Encoding::UTF_8).encode! : key
-          new_hash[new_key] = if val.is_a?(Array)
-            val.map! { |el| normalize_encode_params(el) }
+        case params
+        when String
+          params.force_encoding(Encoding::UTF_8).encode!
+        when Hash
+          if params.has_key?(:tempfile)
+            UploadedFile.new(params)
           else
-            normalize_encode_params(val)
+            new_hash = {}
+            params.each do |key, val|
+              new_key = key.is_a?(String) ? key.dup.force_encoding(Encoding::UTF_8).encode! : key
+              new_hash[new_key] = if val.is_a?(Array)
+                val.map! { |el| normalize_encode_params(el) }
+              else
+                normalize_encode_params(val)
+              end
+            end
+            new_hash.with_indifferent_access
           end
+        else
+          params
         end
-        new_hash.with_indifferent_access
       end
     end
   end
