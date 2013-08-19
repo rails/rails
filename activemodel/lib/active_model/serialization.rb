@@ -63,12 +63,13 @@ module ActiveModel
   #   person.to_json             # => "{\"name\":\"Bob\"}"
   #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
-  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and
-  # <tt>:include</tt>. The following are all valid examples:
+  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt>,
+  # <tt>:include</tt> and <tt>:sorted</tt>. The following are all valid examples:
   #
   #   person.serializable_hash(only: 'name')
   #   person.serializable_hash(include: :address)
   #   person.serializable_hash(include: { address: { only: 'city' }})
+  #   person.serializable_hash(sorted: true) # returned alphabetically sorted
   module Serialization
     # Returns a serialized hash of your object.
     #
@@ -94,10 +95,11 @@ module ActiveModel
     #   person.serializable_hash(except: :name) # => {"age"=>22}
     #   person.serializable_hash(methods: :capitalized_name)
     #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
+    #   person.serializable_hash(sorted: true) # => {"age"=>22, "name"=>"bob"}
     def serializable_hash(options = nil)
       options ||= {}
 
-      attribute_names = attributes.keys
+      attribute_names = options[:sorted] ? attributes.keys.sort : attributes.keys
       if only = options[:only]
         attribute_names &= Array(only).map(&:to_s)
       elsif except = options[:except]
