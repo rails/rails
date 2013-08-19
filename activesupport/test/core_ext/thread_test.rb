@@ -63,6 +63,15 @@ class ThreadExt < ActiveSupport::TestCase
     end
   end
 
+  def test_thread_variable_frozen_after_set
+    t = Thread.new { }.join
+    t.thread_variable_set :foo, "bar"
+    t.freeze
+    assert_raises(RuntimeError) do
+      t.thread_variable_set(:baz, "qux")
+    end
+  end
+
   def test_thread_variable_security
     t = Thread.new { sleep }
 
