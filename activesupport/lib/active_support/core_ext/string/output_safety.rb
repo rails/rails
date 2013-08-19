@@ -83,8 +83,8 @@ end
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
-      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
-      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+      chomp chop delete gsub lstrip next reverse rstrip
+      slice squeeze strip sub succ swapcase tr tr_s prepend
     )
 
     alias_method :original_concat, :concat
