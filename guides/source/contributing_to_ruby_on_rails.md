@@ -184,7 +184,11 @@ Ruby on Rails has two main sets of documentation: the guides help you in learnin
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
-You can either push your fix to [Docrails](http://github.com/rails/docrails) (ask the [Rails core team](http://rubyonrails.org/core) for push access if you'd like to contribute regularly), or open a pull request to [Rails](http://github.com/rails/rails) itself.
+You can either open a pull request to [Rails](http://github.com/rails/rails) or
+ask the [Rails core team](http://rubyonrails.org/core) for commit access on
+[docrails](http://github.com/rails/docrails) if you contribute regularly.
+Please do not open pull requests in docrails, if you'd like to get feedback on your
+change, ask for it in [Rails](http://github.com/rails/rails) instead.
 
 Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
