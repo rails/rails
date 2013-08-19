@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   `ActiveRecord::FinderMethods#exists?` returns `true`/`false` in all cases.
+
+    *Xavier Noria*
+
 *   Load fixtures from linked folders.
 
     *Kassio Borges*
