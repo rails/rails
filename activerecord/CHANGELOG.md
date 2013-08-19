@@ -1,3 +1,7 @@
+*   `ActiveRecord::FinderMethods#exists?` returns `true`/`false` in all cases.
+
+    *Xavier Noria*
+
 *   Assign inet/cidr attribute with `nil` value for invalid address.
 
     Example:
