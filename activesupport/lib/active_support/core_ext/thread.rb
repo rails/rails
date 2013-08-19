@@ -65,7 +65,7 @@ class Thread
   private
 
   def _locals
-    if defined?(@locals)
+    if defined?(@_locals)
       @_locals
     else
       LOCK.synchronize { @_locals ||= {} }
