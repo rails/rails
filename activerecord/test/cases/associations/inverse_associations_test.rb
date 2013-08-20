@@ -319,10 +319,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
   end
 
+  def test_find_on_child_instance_with_id_should_not_load_all_child_records
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    man.interests.find(interest.id)
+    refute man.interests.loaded?
+  end
+
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
+    # delete all interest records to ensure that hard coded invalid_id(s)
+    # are indeed invalid.
+    Interest.delete_all
+
     man = Man.create!
 
-    invalid_id = 2394823094892348920348523452345
+    invalid_id = 245324523
     assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
 
     invalid_ids = [8432342, 2390102913, 2453245234523452]
