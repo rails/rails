@@ -1,3 +1,8 @@
+*   Stop interpreting SQL 'string' columns as :string type because there is no
+    common STRING datatype in SQL.
+
+    *Ben Woosley*
+
 *   `ActiveRecord::FinderMethods#exists?` returns `true`/`false` in all cases.
 
     *Xavier Noria*
