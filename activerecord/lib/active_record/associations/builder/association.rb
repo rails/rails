@@ -86,6 +86,7 @@ module ActiveRecord::Associations::Builder
       mixin = model.generated_feature_methods
       define_readers(mixin)
       define_writers(mixin)
+      define_questions(mixin)
     end
 
     def define_readers(mixin)
@@ -100,6 +101,14 @@ module ActiveRecord::Associations::Builder
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association(:#{name}).writer(value)
+        end
+      CODE
+    end
+
+    def define_questions(mixin)
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}?(*args)
+          association(:#{name}).reader(*args).present?
         end
       CODE
     end
