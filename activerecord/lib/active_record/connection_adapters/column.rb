@@ -272,7 +272,7 @@ module ActiveRecord
             :text
           when /blob/i, /binary/i
             :binary
-          when /char/i, /string/i
+          when /char/i
             :string
           when /boolean/i
             :boolean
