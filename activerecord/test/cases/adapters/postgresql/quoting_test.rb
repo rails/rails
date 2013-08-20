@@ -47,7 +47,7 @@ module ActiveRecord
 
         def test_quote_cast_numeric
           fixnum = 666
-          c = Column.new(nil, nil, 'string')
+          c = Column.new(nil, nil, 'varchar')
           assert_equal "'666'", @conn.quote(fixnum, c)
           c = Column.new(nil, nil, 'text')
           assert_equal "'666'", @conn.quote(fixnum, c)
