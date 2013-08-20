@@ -1,3 +1,4 @@
+require "cases/helper"
 require 'models/club'
 require 'models/membership'
 require 'models/category'
