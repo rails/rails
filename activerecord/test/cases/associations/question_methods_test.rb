@@ -13,7 +13,7 @@ class QuestionMethodsTest < ActiveRecord::TestCase
     assert club.category?
 
     club = Club.create
-    assert_equal club.category?, false
+    assert_not club.category?
   end
 
   def test_question_method_to_has_one_association
@@ -22,7 +22,7 @@ class QuestionMethodsTest < ActiveRecord::TestCase
     assert club.sponsor?
 
     club = Club.create
-    assert_equal club.sponsor?, false
+    assert_not club.sponsor?
   end
 
   def test_question_method_to_has_many_association
@@ -31,7 +31,7 @@ class QuestionMethodsTest < ActiveRecord::TestCase
     assert club.memberships?
 
     club = Club.create
-    assert_equal club.memberships?, false
+    assert_not club.memberships?
   end
 
   def test_question_method_to_has_and_belongs_to_many_association
@@ -40,6 +40,6 @@ class QuestionMethodsTest < ActiveRecord::TestCase
     assert lesson.students?
 
     lesson = Lesson.create
-    assert_equal lesson.students?, false
+    assert_not lesson.students?
   end
 end
