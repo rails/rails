@@ -92,6 +92,11 @@ module ActiveSupport
       def assert_no_difference(expression, message = nil, &block)
         assert_difference expression, 0, message, &block
       end
+
+      # Skips the current run on JRuby using <tt>Minitest::Assertions#skip</tt>
+      def jruby_skip(message = '')
+        skip message if RUBY_ENGINE == 'jruby'
+      end
     end
   end
 end
