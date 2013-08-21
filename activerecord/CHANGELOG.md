@@ -1,4 +1,9 @@
 ## unreleased ##
+*   Fix `FinderMethods#last` unscoped primary key.
+
+    Fixes #11917.
+
+    *Eugene Kalenkovich*
 
 *   Load fixtures from linked folders.
 

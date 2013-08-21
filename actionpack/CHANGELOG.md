@@ -12,7 +12,6 @@
 
     *Kassio Borges*
 
-
 *   Fix `ActionDispatch::Assertions::ResponseAssertions#assert_redirected_to`
     does not show user-supplied message.
 
