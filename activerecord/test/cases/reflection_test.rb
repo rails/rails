@@ -76,7 +76,14 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_for_nested_class_name
-    reflection = MacroReflection.new(:company, nil, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
+    reflection = MacroReflection.new(:has_one, :company, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
+    assert_nothing_raised do
+      assert_equal MyApplication::Business::Company, reflection.klass
+    end
+  end
+
+  def test_reflection_klass_for_class_namespace
+    reflection = MacroReflection.new(:has_one, :company, nil, { :class_namespace => 'MyApplication::Business' }, ActiveRecord::Base)
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end

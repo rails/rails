@@ -143,7 +143,7 @@ module ActiveRecord
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
-        @class_name ||= (options[:class_name] || derive_class_name).to_s
+        @class_name ||= (options[:class_name] || class_name_with_namespace || derive_class_name).to_s
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -159,6 +159,10 @@ module ActiveRecord
       private
         def derive_class_name
           name.to_s.camelize
+        end
+
+        def class_name_with_namespace
+          "#{options[:class_namespace]}::#{derive_class_name}" if options[:class_namespace]
         end
     end
 
