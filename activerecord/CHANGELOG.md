@@ -1,3 +1,7 @@
+*   Re-use `order` argument pre-processing for `reorder`.
+
+    *Paul Nikitochkin*
+
 *   Fix PredicateBuilder so polymorhic association keys in `where` clause can
     also accept not only `ActiveRecord::Base` direct descendances (decorated
     models, for example).
