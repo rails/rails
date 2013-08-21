@@ -30,12 +30,14 @@ At the minimum, your issue report needs a title and descriptive text. But that's
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
-### Create a Self-Contained gist for Active Record Issues
+### Create a Self-Contained gist for Active Record and Action Controller Issues
 
-If you are filing a bug report for Active Record, please use
-[this template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb)
+If you are filing a bug report, please use
+[Active Record template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb) or
+[Action Controller template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb)
 if the bug is found in a published gem, and
-[this template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+[Active Record template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb) or
+[Action Controller template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
 if the bug happens in the master branch.
 
 ### Special Treatment for Security Issues
