@@ -19,14 +19,14 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
-    test "Rails::Railtie itself does not respond to config" do
-      assert !Rails::Railtie.respond_to?(:config)
+    test "cannot instantiate a Railtie object" do
+      assert_raise(RuntimeError) { Rails::Railtie.new }
     end
 
     test "Railtie provides railtie_name" do
       begin
         class ::FooBarBaz < Rails::Railtie ; end
-        assert_equal "foo_bar_baz", ::FooBarBaz.railtie_name
+        assert_equal "foo_bar_baz", FooBarBaz.railtie_name
       ensure
         Object.send(:remove_const, :"FooBarBaz")
       end
@@ -37,13 +37,6 @@ module RailtiesTest
         railtie_name "bar"
       end
       assert_equal "bar", Foo.railtie_name
-    end
-
-    test "cannot inherit from a railtie" do
-      class Foo < Rails::Railtie ; end
-      assert_raise RuntimeError do
-        class Bar < Foo; end
-      end
     end
 
     test "config is available to railtie" do
@@ -65,7 +58,7 @@ module RailtiesTest
         config.foo.greetings = "hello"
       end
       require "#{app_path}/config/application"
-      assert_equal "hello", AppTemplate::Application.config.foo.greetings
+      assert_equal "hello", Rails.application.config.foo.greetings
     end
 
     test "railtie can add to_prepare callbacks" do
@@ -103,7 +96,7 @@ module RailtiesTest
       require 'rake/testtask'
       require 'rdoc/task'
 
-      AppTemplate::Application.load_tasks
+      Rails.application.load_tasks
       assert $ran_block
     end
 
@@ -127,7 +120,7 @@ module RailtiesTest
       require 'rake/testtask'
       require 'rdoc/task'
 
-      AppTemplate::Application.load_tasks
+      Rails.application.load_tasks
       assert $ran_block.include?("my_tie")
     end
 
@@ -143,7 +136,7 @@ module RailtiesTest
       require "#{app_path}/config/environment"
 
       assert !$ran_block
-      AppTemplate::Application.load_generators
+      Rails.application.load_generators
       assert $ran_block
     end
 
@@ -159,7 +152,7 @@ module RailtiesTest
       require "#{app_path}/config/environment"
 
       assert !$ran_block
-      AppTemplate::Application.load_console
+      Rails.application.load_console
       assert $ran_block
     end
 
@@ -175,7 +168,7 @@ module RailtiesTest
       require "#{app_path}/config/environment"
 
       assert !$ran_block
-      AppTemplate::Application.load_runner
+      Rails.application.load_runner
       assert $ran_block
     end
 

@@ -14,7 +14,7 @@ module ApplicationTests
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/posts', to: "posts#index"
         end
       RUBY

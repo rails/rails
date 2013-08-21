@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/aliasing'
+
 module Marshal
   class << self
     def load_with_autoloading(source)

@@ -8,7 +8,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless include?(record, value)
-          record.errors.add(attribute, :inclusion, options.except(:in, :within).merge!(:value => value))
+          record.errors.add(attribute, :inclusion, options.except(:in, :within).merge!(value: value))
         end
       end
     end
@@ -28,7 +28,7 @@ module ActiveModel
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of available items. This can be
       #   supplied as a proc, lambda or symbol which returns an enumerable. If the
-      #   enumerable is a range the test is performed with <tt>Range#cover?</tt>,
+      #   enumerable is a numerical range the test is performed with <tt>Range#cover?</tt>,
       #   otherwise with <tt>include?</tt>.
       # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is

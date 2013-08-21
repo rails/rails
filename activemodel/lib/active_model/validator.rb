@@ -82,18 +82,16 @@ module ActiveModel
   #     validates :title, presence: true
   #   end
   #
-  # Validator may also define a +setup+ instance method which will get called
-  # with the class that using that validator as its argument. This can be
-  # useful when there are prerequisites such as an +attr_accessor+ being present.
+  # It can be useful to access the class that is using that validator when there are prerequisites such
+  # as an +attr_accessor+ being present. This class is accessable via +options[:class]+ in the constructor.
+  # To setup your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def setup(klass)
-  #       klass.send :attr_accessor, :custom_attribute
+  #     def initialize(options={})
+  #       super
+  #       options[:class].send :attr_accessor, :custom_attribute
   #     end
   #   end
-  #
-  # This setup method is only called when used with validation macros or the
-  # class level <tt>validates_with</tt> method.
   class Validator
     attr_reader :options
 
@@ -107,7 +105,8 @@ module ActiveModel
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @options = options.freeze
+      @options  = options.except(:class).freeze
+      deprecated_setup(options)
     end
 
     # Return the kind for this validator.
@@ -122,6 +121,21 @@ module ActiveModel
     # to the records +errors+ array where necessary.
     def validate(record)
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
+    end
+
+    private
+    def deprecated_setup(options) # TODO: remove me in 4.2.
+      return unless respond_to?(:setup)
+      ActiveSupport::Deprecation.warn "The `Validator#setup` instance method is deprecated and will be removed on Rails 4.2. Do your setup in the constructor instead:
+
+class MyValidator < ActiveModel::Validator
+  def initialize(options={})
+    super
+    options[:class].send :attr_accessor, :custom_attribute
+  end
+end
+"
+      setup(options[:class])
     end
   end
 

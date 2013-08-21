@@ -68,7 +68,7 @@ In this example you will add a method to String named `to_squawk`. To begin, cre
 
 require 'test_helper'
 
-class CoreExtTest < Test::Unit::TestCase
+class CoreExtTest < ActiveSupport::TestCase
   def test_to_squawk_prepends_the_word_squawk
     assert_equal "squawk! Hello World", "Hello World".to_squawk
   end
@@ -136,7 +136,7 @@ To begin, set up your files so that you have:
 
 require 'test_helper'
 
-class ActsAsYaffleTest < Test::Unit::TestCase
+class ActsAsYaffleTest < ActiveSupport::TestCase
 end
 ```
 
@@ -173,7 +173,7 @@ To start out, write a failing test that shows the behavior you'd like:
 
 require 'test_helper'
 
-class ActsAsYaffleTest < Test::Unit::TestCase
+class ActsAsYaffleTest < ActiveSupport::TestCase
 
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal "last_squawk", Hickwall.yaffle_text_field
@@ -321,7 +321,7 @@ To start out, write a failing test that shows the behavior you'd like:
 # yaffle/test/acts_as_yaffle_test.rb
 require 'test_helper'
 
-class ActsAsYaffleTest < Test::Unit::TestCase
+class ActsAsYaffleTest < ActiveSupport::TestCase
 
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal "last_squawk", Hickwall.yaffle_text_field

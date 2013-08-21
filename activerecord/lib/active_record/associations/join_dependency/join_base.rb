@@ -4,7 +4,7 @@ module ActiveRecord
       class JoinBase < JoinPart # :nodoc:
         def ==(other)
           other.class == self.class &&
-            other.active_record == active_record
+            other.base_klass == base_klass
         end
 
         def aliased_prefix
@@ -16,7 +16,7 @@ module ActiveRecord
         end
 
         def aliased_table_name
-          active_record.table_name
+          base_klass.table_name
         end
       end
     end

@@ -33,7 +33,6 @@ module ActiveRecord
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table
-        self.default_scoped = true
         merge! association.scope(nullify: false)
       end
 
@@ -92,7 +91,7 @@ module ActiveRecord
       #   # => ActiveModel::MissingAttributeError: missing attribute: person_id
       #
       # *Second:* You can pass a block so it can be used just like Array#select.
-      # This build an array of objects from the database for the scope,
+      # This builds an array of objects from the database for the scope,
       # converting them into an array and iterating through them using
       # Array#select.
       #
@@ -304,7 +303,7 @@ module ActiveRecord
         @association.concat(*records)
       end
 
-      # Replace this collection with +other_array+. This will perform a diff
+      # Replaces this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       #
       #   class Person < ActiveRecord::Base
@@ -418,13 +417,13 @@ module ActiveRecord
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
-      def delete_all
-        @association.delete_all
+      def delete_all(dependent = nil)
+        @association.delete_all(dependent)
       end
 
-      # Deletes the records of the collection directly from the database.
-      # This will _always_ remove the records ignoring the +:dependent+
-      # option.
+      # Deletes the records of the collection directly from the database
+      # ignoring the +:dependent+ option. It invokes +before_remove+,
+      # +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -727,7 +726,7 @@ module ActiveRecord
       end
 
       # Returns +true+ if the collection is empty. If the collection has been
-      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # loaded it is equivalent
       # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
       # it is equivalent to <tt>collection.exists?</tt>. If the collection has
       # not already been loaded and you are going to fetch the records anyway it
@@ -830,7 +829,7 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(20)) # => true
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
-        @association.include?(record)
+        !!@association.include?(record)
       end
 
       def proxy_association
@@ -847,9 +846,7 @@ module ActiveRecord
 
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        @association.scope.tap do |scope|
-          scope.proxy_association = @association
-        end
+        @association.scope
       end
 
       # :nodoc:

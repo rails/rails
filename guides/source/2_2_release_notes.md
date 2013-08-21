@@ -200,7 +200,7 @@ Active Record association proxies now respect the scope of methods on the proxie
 * More information:
     * [Rails 2.2 Change: Private Methods on Association Proxies are Private](http://afreshcup.com/2008/10/24/rails-22-change-private-methods-on-association-proxies-are-private/)
 
-### Other ActiveRecord Changes
+### Other Active Record Changes
 
 * `rake db:migrate:redo` now accepts an optional VERSION to target that specific migration to redo
 * Set `config.active_record.timestamped_migrations = false` to have migrations with numeric prefix instead of UTC timestamp.

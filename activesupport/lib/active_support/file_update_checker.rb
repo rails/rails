@@ -115,7 +115,7 @@ module ActiveSupport
     end
 
     def compile_glob(hash)
-      hash.freeze # Freeze so changes aren't accidently pushed
+      hash.freeze # Freeze so changes aren't accidentally pushed
       return if hash.empty?
 
       globs = hash.map do |key, value|

@@ -12,7 +12,7 @@ class Array
   # pass an option key that doesn't exist in the list below, it will raise an
   # <tt>ArgumentError</tt>.
   #
-  # Options:
+  # ==== Options
   #
   # * <tt>:words_connector</tt> - The sign or word used to join the elements
   #   in arrays with two or more elements (default: ", ").
@@ -23,6 +23,8 @@ class Array
   # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
+  #
+  # ==== Examples
   #
   #   [].to_sentence                      # => ""
   #   ['one'].to_sentence                 # => "one"
@@ -38,10 +40,10 @@ class Array
   #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
   #   # => "one or two or at least three"
   #
-  # Examples using <tt>:locale</tt> option:
+  # Using <tt>:locale</tt> option:
   #
   #   # Given this locale dictionary:
-  #   # 
+  #   #
   #   #   es:
   #   #     support:
   #   #       array:
@@ -80,23 +82,8 @@ class Array
     end
   end
 
-  # Converts a collection of elements into a formatted string by calling
-  # <tt>to_s</tt> on all elements and joining them. Having this model:
-  #
-  #   class Blog < ActiveRecord::Base
-  #     def to_s
-  #       title
-  #     end
-  #   end
-  #
-  #   Blog.all.map(&:title) #=> ["First Post", "Second Post", "Third post"]
-  #
-  # <tt>to_formatted_s</tt> shows us:
-  #
-  #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
-  #
-  # Adding in the <tt>:db</tt> argument as the format yields a comma separated
-  # id list:
+  # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
+  # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
   #   Blog.all.to_formatted_s(:db) # => "1,2,3"
   def to_formatted_s(format = :default)

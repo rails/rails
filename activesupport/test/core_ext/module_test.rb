@@ -66,6 +66,23 @@ Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
 end
 
+Product = Struct.new(:name) do
+  delegate :name, :to => :manufacturer, :prefix => true
+  delegate :name, :to => :type, :prefix => true
+
+  def manufacturer
+    @manufacturer ||= begin
+      nil.unknown_method
+    end
+  end
+
+  def type
+    @type ||= begin
+      nil.type_name
+    end
+  end
+end
+
 class ParameterSet
   delegate :[], :[]=, :to => :@params
 
@@ -79,6 +96,21 @@ class Name
 
   def initialize(first, last)
     @full_name = "#{first} #{last}"
+  end
+end
+
+class SideEffect
+  attr_reader :ints
+
+  delegate :to_i, :to => :shift, :allow_nil => true
+  delegate :to_s, :to => :shift
+
+  def initialize
+    @ints = [1, 2, 3]
+  end
+
+  def shift
+    @ints.shift
   end
 end
 
@@ -171,6 +203,17 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nil rails.name
   end
 
+  # Ensures with check for nil, not for a falseish target.
+  def test_delegation_with_allow_nil_and_false_value
+    project = Project.new(false, false)
+    assert_raise(NoMethodError) { project.name }
+  end
+
+  def test_delegation_with_allow_nil_and_invalid_value
+    rails = Project.new("Rails", "David")
+    assert_raise(NoMethodError) { rails.name }
+  end
+
   def test_delegation_with_allow_nil_and_nil_value_and_prefix
     Project.class_eval do
       delegate :name, :to => :person, :allow_nil => true, :prefix => true
@@ -181,7 +224,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_without_allow_nil_and_nil_value
     david = Someone.new("David")
-    assert_raise(RuntimeError) { david.street }
+    assert_raise(Module::DelegationError) { david.street }
   end
 
   def test_delegation_to_method_that_exists_on_nil
@@ -228,6 +271,26 @@ class ModuleTest < ActiveSupport::TestCase
            "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
+  def test_delegation_invokes_the_target_exactly_once
+    se = SideEffect.new
+
+    assert_equal 1, se.to_i
+    assert_equal [2, 3], se.ints
+
+    assert_equal '2', se.to_s
+    assert_equal [3], se.ints
+  end
+
+  def test_delegation_doesnt_mask_nested_no_method_error_on_nil_receiver
+    product = Product.new('Widget')
+
+    # Nested NoMethodError is a different name from the delegation
+    assert_raise(NoMethodError) { product.manufacturer_name }
+
+    # Nested NoMethodError is the same name as the delegation
+    assert_raise(NoMethodError) { product.type_name }
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
@@ -241,12 +304,6 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
-  end
-
-  def test_local_constant_names
-    ActiveSupport::Deprecation.silence do
-      assert_equal %w(Constant1 Constant3), Ab.local_constant_names.sort.map(&:to_s)
-    end
   end
 end
 

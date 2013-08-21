@@ -213,9 +213,11 @@ class DirtyTest < ActiveRecord::TestCase
       topic = target.create
       assert_nil topic.written_on
 
-      topic.written_on = ""
-      assert_nil topic.written_on
-      assert !topic.written_on_changed?
+      ["", nil].each do |value|
+        topic.written_on = value
+        assert_nil topic.written_on
+        assert !topic.written_on_changed?
+      end
     end
   end
 
@@ -604,20 +606,6 @@ class DirtyTest < ActiveRecord::TestCase
       a.reload
       assert_not_nil a.id
     end
-  end
-
-  test "partial_updates config attribute is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-
-    assert klass.partial_writes?
-    assert_deprecated { assert klass.partial_updates? }
-    assert_deprecated { assert klass.partial_updates  }
-
-    assert_deprecated { klass.partial_updates = false }
-
-    assert !klass.partial_writes?
-    assert_deprecated { assert !klass.partial_updates? }
-    assert_deprecated { assert !klass.partial_updates  }
   end
 
   private

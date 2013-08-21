@@ -9,12 +9,14 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
+
 namespace :test do
-  Rake::TestTask.new(:isolated) do |t|
-    t.pattern = 'test/ts_isolated.rb'
+  task :isolated do
+    Dir.glob("test/**/*_test.rb").all? do |file|
+      sh(Gem.ruby, '-w', '-Ilib:test', file)
+    end or raise "Failures"
   end
 end
-
 
 spec = eval(File.read('activesupport.gemspec'))
 
@@ -22,7 +24,7 @@ Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-desc "Release to gemcutter"
+desc "Release to rubygems"
 task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define

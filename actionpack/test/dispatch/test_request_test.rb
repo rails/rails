@@ -62,6 +62,36 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal false, req.env.empty?
   end
 
+  test "default remote address is 0.0.0.0" do
+    req = ActionDispatch::TestRequest.new
+    assert_equal '0.0.0.0', req.remote_addr
+  end
+
+  test "allows remote address to be overridden" do
+    req = ActionDispatch::TestRequest.new('REMOTE_ADDR' => '127.0.0.1')
+    assert_equal '127.0.0.1', req.remote_addr
+  end
+
+  test "default host is test.host" do
+    req = ActionDispatch::TestRequest.new
+    assert_equal 'test.host', req.host
+  end
+
+  test "allows host to be overridden" do
+    req = ActionDispatch::TestRequest.new('HTTP_HOST' => 'www.example.com')
+    assert_equal 'www.example.com', req.host
+  end
+
+  test "default user agent is 'Rails Testing'" do
+    req = ActionDispatch::TestRequest.new
+    assert_equal 'Rails Testing', req.user_agent
+  end
+
+  test "allows user agent to be overridden" do
+    req = ActionDispatch::TestRequest.new('HTTP_USER_AGENT' => 'GoogleBot')
+    assert_equal 'GoogleBot', req.user_agent
+  end
+
   private
     def assert_cookies(expected, cookie_jar)
       assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))

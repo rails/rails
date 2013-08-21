@@ -1,4 +1,5 @@
 require 'thread_safe'
+require 'mutex_m'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -12,19 +13,21 @@ module ActiveModel
   #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
+
   # == Active \Model Attribute Methods
   #
   # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and
-  # suffixes to your methods as well as handling the creation of Active Record
-  # like class methods such as +table_name+.
+  # suffixes to your methods as well as handling the creation of
+  # <tt>ActiveRecord::Base</tt>-like class methods such as +table_name+.
   #
-  # The requirements to implement ActiveModel::AttributeMethods are to:
+  # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
-  # * <tt>include ActiveModel::AttributeMethods</tt> in your object.
-  # * Call each Attribute Method module method you want to add, such as
-  #   +attribute_method_suffix+ or +attribute_method_prefix+.
+  # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
+  # * Call each of its method you want to add, such as +attribute_method_suffix+
+  #   or +attribute_method_prefix+.
   # * Call +define_attribute_methods+ after the other methods are called.
   # * Define the various generic +_attribute+ methods that you have declared.
+  # * Define an +attributes+ method, see below.
   #
   # A minimal implementation could be:
   #
@@ -37,6 +40,10 @@ module ActiveModel
   #     define_attribute_methods :name
   #
   #     attr_accessor :name
+  #
+  #     def attributes
+  #       {'name' => @name}
+  #     end
   #
   #     private
   #
@@ -53,10 +60,10 @@ module ActiveModel
   #     end
   #   end
   #
-  # Note that whenever you include ActiveModel::AttributeMethods in your class,
-  # it requires you to implement an +attributes+ method which returns a hash
-  # with each attribute name in your model as hash key and the attribute value as
-  # hash value.
+  # Note that whenever you include <tt>ActiveModel::AttributeMethods</tt> in
+  # your class, it requires you to implement an +attributes+ method which
+  # returns a hash with each attribute name in your model as hash key and the
+  # attribute value as hash value.
   #
   # Hash keys must be strings.
   module AttributeMethods
@@ -179,7 +186,6 @@ module ActiveModel
         undefine_attribute_methods
       end
 
-
       # Allows you to make aliases for attributes.
       #
       #   class Person
@@ -211,6 +217,16 @@ module ActiveModel
           matcher_old = matcher.method_name(old_name).to_s
           define_proxy_call false, self, matcher_new, matcher_old
         end
+      end
+
+      # Is +new_name+ an alias?
+      def attribute_alias?(new_name)
+        attribute_aliases.key? new_name.to_s
+      end
+
+      # Returns the original name for the alias +name+
+      def attribute_alias(name)
+        attribute_aliases[name.to_s]
       end
 
       # Declares the attributes that should be prefixed and suffixed by
@@ -317,9 +333,10 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        @generated_attribute_methods ||= Module.new {
+          extend Mutex_m
+        }.tap { |mod| include mod }
       end
 
       protected
@@ -338,7 +355,7 @@ module ActiveModel
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
         def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(:initial_capacity => 4)
+          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(initial_capacity: 4)
         end
 
         def attribute_method_matcher(method_name) #:nodoc:
@@ -383,14 +400,6 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            if options[:prefix] == '' || options[:suffix] == ''
-              message = "Specifying an empty prefix/suffix for an attribute method is no longer " \
-                        "necessary. If the un-prefixed/suffixed version of the method has not been " \
-                        "defined when `define_attribute_methods` is called, it will be defined " \
-                        "automatically."
-              ActiveSupport::Deprecation.warn message
-            end
-
             @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
@@ -413,17 +422,16 @@ module ActiveModel
         end
     end
 
-    # Allows access to the object attributes, which are held in the
-    # <tt>@attributes</tt> hash, as though they were first-class methods. So a
-    # Person class with a name attribute can use Person#name and Person#name=
-    # and never directly use the attributes hash -- except for multiple assigns
-    # with ActiveRecord#attributes=. A Milestone class can also ask
-    # Milestone#completed? to test that the completed attribute is not +nil+
-    # or 0.
+    # Allows access to the object attributes, which are held in the hash
+    # returned by <tt>attributes</tt>, as though they were first-class
+    # methods. So a +Person+ class with a +name+ attribute can for example use
+    # <tt>Person#name</tt> and <tt>Person#name=</tt> and never directly use
+    # the attributes hash -- except for multiple assigns with
+    # <tt>ActiveRecord::Base#attributes=</tt>.
     #
-    # It's also possible to instantiate related objects, so a Client class
-    # belonging to the clients table with a +master_id+ foreign key can
-    # instantiate master through Client#master.
+    # It's also possible to instantiate related objects, so a <tt>Client</tt>
+    # class belonging to the +clients+ table with a +master_id+ foreign key
+    # can instantiate master through <tt>Client#master</tt>.
     def method_missing(method, *args, &block)
       if respond_to_without_attributes?(method, true)
         super
@@ -433,17 +441,17 @@ module ActiveModel
       end
     end
 
-    # attribute_missing is like method_missing, but for attributes. When method_missing is
-    # called we check to see if there is a matching attribute method. If so, we call
-    # attribute_missing to dispatch the attribute. This method can be overloaded to
-    # customize the behavior.
+    # +attribute_missing+ is like +method_missing+, but for attributes. When
+    # +method_missing+ is called we check to see if there is a matching
+    # attribute method. If so, we tell +attribute_missing+ to dispatch the
+    # attribute. This method can be overloaded to customize the behavior.
     def attribute_missing(match, *args, &block)
       __send__(match.target, match.attr_name, *args, &block)
     end
 
-    # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
-    # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
-    # which will all return +true+.
+    # A +Person+ instance with a +name+ attribute can ask
+    # <tt>person.respond_to?(:name)</tt>, <tt>person.respond_to?(:name=)</tt>,
+    # and <tt>person.respond_to?(:name?)</tt> which will all return +true+.
     alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_private_methods = false)
       if super

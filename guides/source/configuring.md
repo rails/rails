@@ -30,10 +30,10 @@ Configuring Rails Components
 
 In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file `config/application.rb` and environment-specific configuration files (such as `config/environments/production.rb`) allow you to specify the various settings that you want to pass down to all of the components.
 
-For example, the default `config/application.rb` file includes this setting:
+For example, the `config/application.rb` file includes this setting:
 
 ```ruby
-config.filter_parameters += [:password]
+config.autoload_paths += %W(#{config.root}/extras)
 ```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
@@ -97,9 +97,13 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.file_watcher` the class used to detect file updates in the filesystem when `config.reload_classes_only_on_change` is true. Must conform to `ActiveSupport::FileUpdateChecker` API.
 
-* `config.filter_parameters` used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card numbers.
+* `config.filter_parameters` used for filtering out the parameters that
+you don't want shown in the logs, such as passwords or credit card
+numbers. New applications filter out passwords by adding the following `config.filter_parameters+=[:password]` in `config/initializers/filter_parameter_logging.rb`.
 
 * `config.force_ssl` forces all requests to be under HTTPS protocol by using `ActionDispatch::SSL` middleware.
+
+* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to a instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
 
 * `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all modes except production, where it defaults to `:info`.
 
@@ -131,7 +135,8 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 ### Configuring Assets
 
-* `config.assets.enabled` a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in `config/application.rb`.
+* `config.assets.enabled` a flag that controls whether the asset
+pipeline is enabled. It is set to true by default.
 
 * `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
 
@@ -193,7 +198,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when `config.cache_classes` is `false`.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
-* `Rails::Rack::Logger` notifies the logs that the request has began. After request is complete, flushes all the logs.
+* `Rails::Rack::Logger` notifies the logs that the request has begun. After request is complete, flushes all the logs.
 * `ActionDispatch::ShowExceptions` rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
 * `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method.
 * `ActionDispatch::RemoteIp` checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
@@ -268,7 +273,7 @@ config.middleware.delete "Rack::MethodOverride"
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
-* +config.active_record.cache_timestamp_format+ controls the format of the timestamp value in the cache key. Default is +:number+.
+* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:number`.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -296,7 +301,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in test mode and `true` in all other modes.
 
-* `config.action_controller.relative_url_root` can be used to tell Rails that you are deploying to a subdirectory. The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
+* `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
@@ -421,13 +426,13 @@ There are a few configuration options available in Active Support:
 
 ### Configuring a Database
 
-Just about every Rails application will interact with a database. The database to use is specified in a configuration file called `config/database.yml`.  If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
+Just about every Rails application will interact with a database. The database to use is specified in a configuration file called `config/database.yml`. If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
 
 * The `development` environment is used on your development/local computer as you interact manually with the application.
 * The `test` environment is used when running automated tests.
 * The `production` environment is used when you deploy your application for the world to use.
 
-TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite.  Detailed examples of the common database connections are below.
+TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.
 
 #### Configuring an SQLite3 Database
 
@@ -527,8 +532,45 @@ By default Rails ships with three environments: "development", "test", and "prod
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server just by create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
-That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`,  `Rails.env.staging?` works, etc.
+That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`, `Rails.env.staging?` works, etc.
 
+
+### Deploy to a subdirectory (relative url root)
+
+By default Rails expects that your application is running at the root
+(eg. `/`). This section explains how to run your application inside a directory.
+
+Let's assume we want to deploy our application to "/app1". Rails needs to know
+this directory to generate the appropriate routes:
+
+```ruby
+config.relative_url_root = "/app1"
+```
+
+alternatively you can set the `RAILS_RELATIVE_URL_ROOT` environment
+variable.
+
+Rails will now prepend "/app1" when generating links.
+
+#### Using Passenger
+
+Passenger makes it easiy to run your application in a subdirectory. You can find
+the relevant configuration in the
+[passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
+
+#### Using a Reverse Proxy
+
+TODO
+
+#### Considerations when deploying to a subdirectory
+
+Deploying to a subdirectory in production has implications on various parts of
+Rails.
+
+* development environment:
+* testing environment:
+* serving static assets:
+* asset pipeline:
 
 Rails Environment Settings
 --------------------------
@@ -537,7 +579,7 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 * `ENV["RAILS_ENV"]` defines the Rails environment (production, development, test, and so on) that Rails will run under.
 
-* `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
+* `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you [deploy your application to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root).
 
 * `ENV["RAILS_CACHE_ID"]` and `ENV["RAILS_APP_VERSION"]` are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
@@ -600,7 +642,7 @@ end
 
 The `initializer` method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The `:before` key in the options hash can be specified to specify which initializer this new initializer must run before, and the `:after` key will specify which initializer to run this initializer _after_.
 
-Initializers defined using the `initializer` method will be ran in the order they are defined in, with the exception of ones that use the `:before` or `:after` methods.
+Initializers defined using the `initializer` method will be run in the order they are defined in, with the exception of ones that use the `:before` or `:after` methods.
 
 WARNING: You may put your initializer before or after any other initializer in the chain, as long as it is logical. Say you have 4 initializers called "one" through "four" (defined in that order) and you define "four" to go _before_ "four" but _after_ "three", that just isn't logical and Rails will not be able to determine your initializer order.
 
@@ -702,7 +744,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `ensure_autoload_once_paths_as_subset` Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 
-* `add_to_prepare_blocks` The block for every `config.to_prepare` call in the application, a railtie or engine is added to the `to_prepare` callbacks for Action Dispatch which will be ran per request in development, or before the first request in production.
+* `add_to_prepare_blocks` The block for every `config.to_prepare` call in the application, a railtie or engine is added to the `to_prepare` callbacks for Action Dispatch which will be run per request in development, or before the first request in production.
 
 * `add_builtin_route` If the application is running under the development environment then this will append the route for `rails/info/properties` to the application routes. This route provides the detailed information such as Rails and Ruby version for `public/index.html` in a default Rails application.
 
@@ -729,7 +771,7 @@ development:
   timeout: 5000
 ```
 
-Since the connection pooling is handled inside of ActiveRecord by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
 
 Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
 

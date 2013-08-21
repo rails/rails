@@ -2,25 +2,24 @@ require "cases/helper"
 
 class ActiveSchemaTest < ActiveRecord::TestCase
   def setup
-    ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+    @connection = ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.establish_connection(@connection)
+
+    ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
-      remove_method :execute
       def execute(sql, name = nil) return sql end
     end
   end
 
   def teardown
-    ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
-      remove_method :execute
-      alias_method :execute, :execute_without_stub
-    end
+    ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.establish_connection(@connection)
   end
 
   def test_add_index
     # add_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:define_method, :index_name_exists?) do |*|
-      false
-    end
+    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
+
     expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
     assert_equal expected, add_index(:people, :last_name, :length => nil)
 
@@ -58,8 +57,6 @@ class ActiveSchemaTest < ActiveRecord::TestCase
 
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15)) "
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :using => :btree)
-
-    ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:remove_method, :index_name_exists?)
   end
 
   def test_drop_table
@@ -121,21 +118,19 @@ class ActiveSchemaTest < ActiveRecord::TestCase
 
   private
     def with_real_execute
-      #we need to actually modify some data, so we make execute point to the original method
-      ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+      ActiveRecord::Base.connection.singleton_class.class_eval do
         alias_method :execute_with_stub, :execute
         remove_method :execute
         alias_method :execute, :execute_without_stub
       end
+
       yield
     ensure
-      #before finishing, we restore the alias to the mock-up method
-      ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.class_eval do
+      ActiveRecord::Base.connection.singleton_class.class_eval do
         remove_method :execute
         alias_method :execute, :execute_with_stub
       end
     end
-
 
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)

@@ -8,6 +8,8 @@ module AbstractControllerTests
       include AbstractController::Rendering
       include AbstractController::Layouts
 
+      abstract!
+
       self.view_paths = [ActionView::FixtureResolver.new(
         "layouts/hello.erb"             => "With String <%= yield %>",
         "layouts/hello_override.erb"    => "With Override <%= yield %>",
@@ -249,6 +251,10 @@ module AbstractControllerTests
         controller = WithNilLayout.new
         controller.process(:index)
         assert_equal "Hello nil!", controller.response_body
+      end
+
+      test "when layout is specified as a proc, do not leak any methods into controller's action_methods" do
+        assert_equal Set.new(['index']), WithProc.action_methods
       end
 
       test "when layout is specified as a proc, call it and use the layout returned" do

@@ -12,10 +12,11 @@ module ActiveSupport
   # This can be used in situations similar to the <tt>MessageVerifier</tt>, but
   # where you don't want users to be able to determine the value of the payload.
   #
-  #   key = OpenSSL::Digest::SHA256.new('password').digest        # => "\x89\xE0\x156\xAC..."
-  #   crypt = ActiveSupport::MessageEncryptor.new(key)            # => #<ActiveSupport::MessageEncryptor ...>
-  #   encrypted_data = crypt.encrypt_and_sign('my secret data')   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
-  #   crypt.decrypt_and_verify(encrypted_data)                    # => "my secret data"
+  #   salt  = SecureRandom.random_bytes(64) 
+  #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt) # => "\x89\xE0\x156\xAC..."
+  #   crypt = ActiveSupport::MessageEncryptor.new(key)                       # => #<ActiveSupport::MessageEncryptor ...>
+  #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
+  #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
   class MessageEncryptor
     module NullSerializer #:nodoc:
       def self.load(value)
@@ -28,7 +29,7 @@ module ActiveSupport
     end
 
     class InvalidMessage < StandardError; end
-    OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
+    OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
     # the cipher key size. For the default 'aes-256-cbc' cipher, this is 256
@@ -66,12 +67,11 @@ module ActiveSupport
 
     def _encrypt(value)
       cipher = new_cipher
-      # Rely on OpenSSL for the initialization vector
-      iv = cipher.random_iv
-
       cipher.encrypt
       cipher.key = @secret
-      cipher.iv  = iv
+
+      # Rely on OpenSSL for the initialization vector
+      iv = cipher.random_iv
 
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final

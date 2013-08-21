@@ -1,6 +1,6 @@
 namespace :rails do
-  desc "Update configs and some other initially generated files (or use just update:configs, update:bin, or update:application_controller)"
-  task update: [ "update:configs", "update:bin", "update:application_controller" ]
+  desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
+  task update: [ "update:configs", "update:bin" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task :template do
@@ -47,7 +47,7 @@ namespace :rails do
         gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
                                                              destination_root: Rails.root
         File.exists?(Rails.root.join("config", "application.rb")) ?
-          gen.send(:app_const) : gen.send(:valid_app_const?)
+          gen.send(:app_const) : gen.send(:valid_const?)
         gen
       end
     end
@@ -61,16 +61,6 @@ namespace :rails do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       invoke_from_app_generator :create_bin_files
-    end
-
-    # desc "Rename application.rb to application_controller.rb"
-    task :application_controller do
-      old_style = Rails.root + '/app/controllers/application.rb'
-      new_style = Rails.root + '/app/controllers/application_controller.rb'
-      if File.exists?(old_style) && !File.exists?(new_style)
-        FileUtils.mv(old_style, new_style)
-        puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"
-      end
     end
   end
 end

@@ -5,6 +5,102 @@ require 'models/interest'
 require 'models/zine'
 require 'models/club'
 require 'models/sponsor'
+require 'models/rating'
+require 'models/comment'
+require 'models/car'
+require 'models/bulb'
+require 'models/mixed_case_monkey'
+
+class AutomaticInverseFindingTests < ActiveRecord::TestCase
+  fixtures :ratings, :comments, :cars
+
+  def test_has_one_and_belongs_to_should_find_inverse_automatically_on_multiple_word_name
+    monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
+    man_reflection = Man.reflect_on_association(:mixed_case_monkey)
+
+    assert_respond_to monkey_reflection, :has_inverse?
+    assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
+    assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert man_reflection.has_inverse?, "The man reflection should have an inverse"
+    assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
+  end
+
+  def test_has_one_and_belongs_to_should_find_inverse_automatically
+    car_reflection = Car.reflect_on_association(:bulb)
+    bulb_reflection = Bulb.reflect_on_association(:car)
+
+    assert_respond_to car_reflection, :has_inverse?
+    assert car_reflection.has_inverse?, "The Car reflection should have an inverse"
+    assert_equal bulb_reflection, car_reflection.inverse_of, "The Car reflection's inverse should be the Bulb reflection"
+
+    assert_respond_to bulb_reflection, :has_inverse?
+    assert bulb_reflection.has_inverse?, "The Bulb reflection should have an inverse"
+    assert_equal car_reflection, bulb_reflection.inverse_of, "The Bulb reflection's inverse should be the Car reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically
+    comment_reflection = Comment.reflect_on_association(:ratings)
+    rating_reflection = Rating.reflect_on_association(:comment)
+
+    assert_respond_to comment_reflection, :has_inverse?
+    assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
+    assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
+  end
+
+  def test_has_one_and_belongs_to_automatic_inverse_shares_objects
+    car = Car.first
+    bulb = Bulb.create!(car: car)
+
+    assert_equal car.bulb, bulb, "The Car's bulb should be the original bulb"
+
+    car.bulb.color = "Blue"
+    assert_equal car.bulb.color, bulb.color, "Changing the bulb's color on the car association should change the bulb's color"
+
+    bulb.color = "Red"
+    assert_equal bulb.color, car.bulb.color, "Changing the bulb's color should change the bulb's color on the car association"
+  end
+
+  def test_has_many_and_belongs_to_automatic_inverse_shares_objects_on_rating
+    comment = Comment.first
+    rating = Rating.create!(comment: comment)
+
+    assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
+
+    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
+
+    comment.body = "Broseiden is the king of the sea of bros."
+    assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
+  end
+
+  def test_has_many_and_belongs_to_automatic_inverse_shares_objects_on_comment
+    rating = Rating.create!
+    comment = Comment.first
+    rating.comment = comment
+
+    assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
+
+    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
+
+    comment.body = "Broseiden is the king of the sea of bros."
+    assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
+  end
+
+  def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
+    sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
+
+    assert_respond_to sponsor_reflection, :has_inverse?
+    assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
+
+    club_reflection = Club.reflect_on_association(:members)
+
+    assert_respond_to club_reflection, :has_inverse?
+    assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
+  end
+end
 
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
@@ -319,10 +415,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
   end
 
+  def test_find_on_child_instance_with_id_should_not_load_all_child_records
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    man.interests.find(interest.id)
+    assert_not man.interests.loaded?
+  end
+
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
+    # delete all interest records to ensure that hard coded invalid_id(s)
+    # are indeed invalid.
+    Interest.delete_all
+
     man = Man.create!
 
-    invalid_id = 2394823094892348920348523452345
+    invalid_id = 245324523
     assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
 
     invalid_ids = [8432342, 2390102913, 2453245234523452]

@@ -117,12 +117,6 @@ class SessionTest < ActiveSupport::TestCase
     @session.head(path,params,headers)
   end
 
-  def test_options
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:options,path,params,headers)
-    @session.options(path,params,headers)
-  end
-
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
@@ -183,16 +177,6 @@ class SessionTest < ActiveSupport::TestCase
     @session.xml_http_request(:head,path,params,headers)
   end
 
-  def test_xml_http_request_options
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:options,path,params,headers_after_xhr)
-    @session.xml_http_request(:options,path,params,headers)
-  end
-
   def test_xml_http_request_override_accept
     path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
     headers_after_xhr = headers.merge(
@@ -250,7 +234,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     @integration_session.stubs(:generic_url_rewriter)
     @integration_session.stubs(:process)
 
-    %w( get post head patch put delete options ).each do |verb|
+    %w( get post head patch put delete ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
   end
@@ -293,7 +277,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def redirect
-      redirect_to :action => "get"
+      redirect_to action_url('get')
     end
   end
 
@@ -527,8 +511,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller, :via => [:get, :post]
-          get 'get/:action', :to => controller
+          match ':action', :to => controller, :via => [:get, :post], :as => :action
+          get 'get/:action', :to => controller, :as => :get_action
         end
 
         self.singleton_class.send(:include, set.url_helpers)

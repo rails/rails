@@ -6,6 +6,7 @@ require 'models/edge'
 require 'models/organization'
 require 'models/possession'
 require 'models/topic'
+require 'models/reply'
 require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
@@ -26,6 +27,10 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_average_field
     value = Account.average(:credit_limit)
     assert_equal 53.0, value
+  end
+
+  def test_should_resolve_aliased_attributes
+    assert_equal 318, Account.sum(:available_credit)
   end
 
   def test_should_return_decimal_average_of_integer_field
@@ -160,6 +165,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_count_on_invalid_columns_raises
+    e = assert_raises(ActiveRecord::StatementInvalid) {
+      Account.select("credit_limit, firm_name").count
+    }
+
+    assert_match %r{accounts}i, e.message
+    assert_match "credit_limit, firm_name", e.message
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -337,19 +351,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 5, Account.count(:firm_id)
   end
 
-  def test_count_distinct_option_is_deprecated
-    assert_deprecated do
-      assert_equal 4, Account.select(:credit_limit).count(distinct: true)
-    end
-
-    assert_deprecated do
-      assert_equal 6, Account.select(:credit_limit).count(distinct: false)
-    end
-  end
-
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
     assert_equal 4, Account.select(:credit_limit).uniq.count
+  end
+
+  def test_count_with_aliased_attribute
+    assert_equal 6, Account.count(:available_credit)
   end
 
   def test_count_with_column_and_options_parameter
@@ -400,12 +408,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Account.sum(:credit_limit), Account.from('accounts').sum(:credit_limit)
     assert_equal Account.where("credit_limit > 50").sum(:credit_limit),
         Account.where("credit_limit > 50").from('accounts').sum(:credit_limit)
-  end
-
-  def test_sum_array_compatibility_deprecation
-    assert_deprecated do
-      assert_equal Account.sum(:credit_limit), Account.sum(&:credit_limit)
-    end
   end
 
   def test_average_with_from_option
@@ -470,6 +472,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_without_column_names
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
+      Company.order(:id).limit(1).pluck
+  end
+
   def test_pluck_type_cast
     topic = topics(:first)
     relation = Topic.where(:id => topic.id)
@@ -486,6 +493,10 @@ class CalculationsTest < ActiveRecord::TestCase
     company = Company.first
     contract = company.contracts.create!
     assert_equal [contract.id], company.contracts.pluck(:id)
+  end
+
+  def test_pluck_on_aliased_attribute
+    assert_equal 'The First Topic', Topic.order(:id).pluck(:heading).first
   end
 
   def test_pluck_with_serialization
@@ -525,6 +536,11 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_plucks_with_ids
     assert_equal Company.all.map(&:id).sort, Company.ids.sort
+  end
+
+  def test_pluck_with_includes_limit_and_empty_result
+    assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
+    assert_equal [], Topic.includes(:replies).limit(1).where('0 = 1').pluck(:id)
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included

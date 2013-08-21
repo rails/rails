@@ -18,7 +18,7 @@ require 'models/pet'
 require 'models/toy'
 require 'rexml/document'
 
-class PersistencesTest < ActiveRecord::TestCase
+class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
@@ -137,6 +137,19 @@ class PersistencesTest < ActiveRecord::TestCase
       assert_equal clients, destroyed
       assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
     end
+  end
+
+  def test_becomes
+    assert_kind_of Reply, topics(:first).becomes(Reply)
+    assert_equal "The First Topic", topics(:first).becomes(Reply).title
+  end
+
+  def test_becomes_includes_errors
+    company = Company.new(:name => nil)
+    assert !company.valid?
+    original_errors = company.errors
+    client = company.becomes(Client)
+    assert_equal original_errors, client.errors
   end
 
   def test_delete_many

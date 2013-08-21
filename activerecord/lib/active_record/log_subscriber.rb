@@ -3,11 +3,11 @@ module ActiveRecord
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
     def self.runtime=(value)
-      Thread.current[:active_record_sql_runtime] = value
+      ActiveRecord::RuntimeRegistry.sql_runtime = value
     end
 
     def self.runtime
-      Thread.current[:active_record_sql_runtime] ||= 0
+      ActiveRecord::RuntimeRegistry.sql_runtime ||= 0
     end
 
     def self.reset_runtime
@@ -41,7 +41,7 @@ module ActiveRecord
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
-      sql   = payload[:sql].squeeze(' ')
+      sql   = payload[:sql]
       binds = nil
 
       unless (payload[:binds] || []).empty?

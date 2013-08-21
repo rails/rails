@@ -1,4 +1,4 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -14,6 +14,8 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/toy'
+require 'models/invoice'
+require 'models/line_item'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -324,6 +326,45 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
+  def test_belongs_to_with_touch_option_on_touch
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(1) { line_item.touch }
+  end
+
+  def test_belongs_to_with_touch_option_on_touch_and_removed_parent
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    line_item.invoice = nil
+
+    assert_queries(2) { line_item.touch }
+  end
+
+  def test_belongs_to_with_touch_option_on_update
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(2) { line_item.update amount: 10 }
+  end
+
+  def test_belongs_to_with_touch_option_on_destroy
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(2) { line_item.destroy }
+  end
+
+  def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    line_item.invoice = Invoice.create!
+
+    assert_queries(3) { line_item.touch }
+  end
+
   def test_belongs_to_counter_after_update
     topic = Topic.create!(title: "37s")
     topic.replies.create!(title: "re: 37s", content: "rails")
@@ -338,7 +379,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     topic.replies.create!(:title => "re: 37s", :content => "rails")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_columns(content: "rails is wonderfull")
+    topic.update_columns(content: "rails is wonderful")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
@@ -391,8 +432,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    queries = assert_sql { tagging.super_tag }
-    assert_equal 0, queries.length
+    assert_queries(0) { tagging.super_tag }
   end
 
   def test_field_name_same_as_foreign_key
@@ -412,6 +452,26 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     topic[:replies_count] = 15
     assert_equal 15, topic.replies.size
+  end
+
+  def test_counter_cache_double_destroy
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+
+    5.times do
+      topic.replies.create(:title => "re: zoom", :content => "speedy quick!")
+    end
+
+    assert_equal 5, topic.reload[:replies_count]
+    assert_equal 5, topic.replies.size
+
+    reply = topic.replies.first
+
+    reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+
+    reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+    assert_equal 4, topic.replies.size
   end
 
   def test_custom_counter_cache
@@ -545,6 +605,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependent_delete_and_destroy_with_belongs_to
+    AuthorAddress.destroyed_author_address_ids.clear
+
     author_address = author_addresses(:david_address)
     author_address_extra = author_addresses(:david_address_extra)
     assert_equal [], AuthorAddress.destroyed_author_address_ids

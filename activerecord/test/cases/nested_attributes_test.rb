@@ -131,6 +131,20 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 's1', ship.reload.name
   end
 
+  def test_reuse_already_built_new_record
+    pirate = Pirate.new
+    ship_built_first = pirate.build_ship
+    pirate.ship_attributes = { name: 'Ship 1' }
+    assert_equal ship_built_first.object_id, pirate.ship.object_id
+  end
+
+  def test_do_not_allow_assigning_foreign_key_when_reusing_existing_new_record
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    pirate.build_ship
+    pirate.ship_attributes = { name: 'Ship 1', pirate_id: pirate.id + 1 }
+    assert_equal pirate.id, pirate.ship.pirate_id
+  end
+
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_many
     Man.accepts_nested_attributes_for :interests, :reject_if => proc {|attributes| true }
     man = Man.create(name: "John")
@@ -781,24 +795,6 @@ module NestedAttributesOnACollectionAssociationTests
         end
       end
     end
-  end
-
-  def test_validate_presence_of_parent_fails_without_inverse_of
-    Man.accepts_nested_attributes_for(:interests)
-    Man.reflect_on_association(:interests).options.delete(:inverse_of)
-    Interest.reflect_on_association(:man).options.delete(:inverse_of)
-
-    repair_validations(Interest) do
-      Interest.validates_presence_of(:man)
-      assert_no_difference ['Man.count', 'Interest.count'] do
-        man = Man.create(:name => 'John',
-                         :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
-        assert !man.errors[:"interests.man"].empty?
-      end
-    end
-  ensure
-    Man.reflect_on_association(:interests).options[:inverse_of] = :man
-    Interest.reflect_on_association(:man).options[:inverse_of]  = :interests
   end
 
   def test_can_use_symbols_as_object_identifier

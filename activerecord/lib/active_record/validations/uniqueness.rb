@@ -7,11 +7,7 @@ module ActiveRecord
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
         super({ case_sensitive: true }.merge!(options))
-      end
-
-      # Unfortunately, we have to tie Uniqueness validators to a class.
-      def setup(klass)
-        @klass = klass
+        @klass = options[:class]
       end
 
       def validate_each(record, attribute, value)
@@ -34,7 +30,6 @@ module ActiveRecord
       end
 
     protected
-
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
       # (self), to the first non-abstract class. Since classes don't know
@@ -202,8 +197,8 @@ module ActiveRecord
       # will result in the default Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking him to re-enter the title).
-      # This technique is also known as optimistic concurrency control:
-      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control.
+      # This technique is also known as
+      # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an

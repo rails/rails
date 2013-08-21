@@ -30,7 +30,7 @@ module ActiveRecord
         assert @conn.valid_type?(column.type)
       end
 
-      # sqlite databses should be able to support any type and not
+      # sqlite databases should be able to support any type and not
       # just the ones mentioned in the native_database_types. 
       # Therefore test_invalid column should always return true 
       # even if the type is not valid.
@@ -352,6 +352,18 @@ module ActiveRecord
       def test_no_primary_key
         @conn.execute 'CREATE TABLE failboat (number integer not null)'
         assert_nil @conn.primary_key('failboat')
+      end
+
+      def test_supports_extensions
+        assert_not @conn.supports_extensions?, 'does not support extensions'
+      end
+
+      def test_respond_to_enable_extension
+        assert @conn.respond_to?(:enable_extension)
+      end
+
+      def test_respond_to_disable_extension
+        assert @conn.respond_to?(:disable_extension)
       end
 
       private

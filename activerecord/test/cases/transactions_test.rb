@@ -117,6 +117,20 @@ class TransactionTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
+  def test_raising_exception_in_nested_transaction_restore_state_in_save
+    topic = Topic.new
+
+    def topic.after_save_for_transaction
+      raise 'Make the transaction rollback'
+    end
+
+    assert_raises(RuntimeError) do
+      Topic.transaction { topic.save }
+    end
+
+    assert topic.new_record?, "#{topic.inspect} should be new record"
+  end
+
   def test_update_should_rollback_on_failure
     author = Author.find(1)
     posts_count = author.posts.size
@@ -410,16 +424,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.destroyed?, 'not destroyed'
   end
 
-  if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
-    def test_outside_transaction_works
-      assert assert_deprecated { Topic.connection.outside_transaction? }
-      Topic.connection.begin_db_transaction
-      assert assert_deprecated { !Topic.connection.outside_transaction? }
-      Topic.connection.rollback_db_transaction
-      assert assert_deprecated { Topic.connection.outside_transaction? }
-    end
-  end
-
   def test_sqlite_add_column_in_transaction
     return true unless current_adapter?(:SQLite3Adapter)
 
@@ -536,22 +540,22 @@ if current_adapter?(:PostgreSQLAdapter)
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread
-      assert_nothing_raised do
-        threads = (1..3).map do
-          Thread.new do
-            Topic.transaction do
-              topic = Topic.find(1)
-              topic.approved = !topic.approved?
-              topic.save!
-              topic.approved = !topic.approved?
-              topic.save!
-            end
-            Topic.connection.close
-          end
-        end
+      skip "in memory db can't share a db between threads" if in_memory_db?
 
-        threads.each { |t| t.join }
+      threads = 3.times.map do
+        Thread.new do
+          Topic.transaction do
+            topic = Topic.find(1)
+            topic.approved = !topic.approved?
+            assert topic.save!
+            topic.approved = !topic.approved?
+            assert topic.save!
+          end
+          Topic.connection.close
+        end
       end
+
+      threads.each { |t| t.join }
     end
 
     # Test for dirty reads among simultaneous transactions.
@@ -602,15 +606,6 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       assert_equal original_salary, Developer.find(1).salary
-    end
-
-    test "#transaction_joinable= is deprecated" do
-      Developer.transaction do
-        conn = Developer.connection
-        assert conn.current_transaction.joinable?
-        assert_deprecated { conn.transaction_joinable = false }
-        assert !conn.current_transaction.joinable?
-      end
     end
   end
 end

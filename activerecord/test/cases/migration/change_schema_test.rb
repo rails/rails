@@ -74,6 +74,35 @@ module ActiveRecord
         assert_equal "hello", five.default unless mysql
       end
 
+      def test_add_column_with_array
+        if current_adapter?(:PostgreSQLAdapter)
+          connection.create_table :testings
+          connection.add_column :testings, :foo, :string, :array => true
+
+          columns = connection.columns(:testings)
+          array_column = columns.detect { |c| c.name == "foo" }
+
+          assert array_column.array
+        else
+          skip "array option only supported in PostgreSQLAdapter"
+        end
+      end
+
+      def test_create_table_with_array_column
+        if current_adapter?(:PostgreSQLAdapter)
+          connection.create_table :testings do |t|
+            t.string :foo, :array => true
+          end
+
+          columns = connection.columns(:testings)
+          array_column = columns.detect { |c| c.name == "foo" }
+
+          assert array_column.array
+        else
+          skip "array option only supported in PostgreSQLAdapter"
+        end
+      end
+
       def test_create_table_with_limits
         connection.create_table :testings do |t|
           t.column :foo, :string, :limit => 255
@@ -235,7 +264,7 @@ module ActiveRecord
         end
       end
 
-      def test_keeping_default_and_notnull_constaint_on_change
+      def test_keeping_default_and_notnull_constraints_on_change
         connection.create_table :testings do |t|
           t.column :title, :string
         end

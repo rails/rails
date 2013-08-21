@@ -44,16 +44,18 @@ class ClassAttributeAccessorTest < ActiveSupport::TestCase
   end
 
   def test_should_raise_name_error_if_attribute_name_is_invalid
-    assert_raises NameError do
+    exception = assert_raises NameError do
       Class.new do
-        cattr_reader "invalid attribute name"
+        cattr_reader "1nvalid"
       end
     end
+    assert_equal "invalid class attribute name: 1nvalid", exception.message
 
-    assert_raises NameError do
+    exception = assert_raises NameError do
       Class.new do
-        cattr_writer "invalid attribute name"
+        cattr_writer "1nvalid"
       end
     end
+    assert_equal "invalid class attribute name: 1nvalid", exception.message
   end
 end

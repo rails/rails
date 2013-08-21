@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rake/packagetask'
 require 'rubygems/package_task'
 
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
@@ -59,11 +58,10 @@ end
   task "isolated_test_#{adapter}" do
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
     puts [adapter, adapter_short].inspect
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     (Dir["test/cases/**/*_test.rb"].reject {
       |x| x =~ /\/adapters\//
     } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      sh(ruby, "-Itest", file)
+      sh(Gem.ruby, '-w' ,"-Itest", file)
     end or raise "Failures"
   end
 
@@ -120,14 +118,9 @@ namespace :postgresql do
     %x( createdb -E UTF8 -T template0 #{config['arunit']['database']} )
     %x( createdb -E UTF8 -T template0 #{config['arunit2']['database']} )
 
-    # prepare hstore
-    version = %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2")
-    %w(arunit arunit2).each do |db|
-      if version < "9.1.0"
-        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
-      else
-        %x( psql #{config[db]['database']} -c "CREATE EXTENSION hstore;" )
-      end
+    # notify about preparing hstore
+    if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
+      puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
     end
   end
 
@@ -225,7 +218,7 @@ end
 
 # Publishing ------------------------------------------------------
 
-desc "Release to gemcutter"
+desc "Release to rubygems"
 task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define

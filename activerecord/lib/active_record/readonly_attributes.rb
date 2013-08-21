@@ -20,11 +20,5 @@ module ActiveRecord
         self._attr_readonly
       end
     end
-
-    def _attr_readonly
-      message = "Instance level _attr_readonly method is deprecated, please use class level method."
-      ActiveSupport::Deprecation.warn message
-      defined?(@_attr_readonly) ? @_attr_readonly : self.class._attr_readonly
-    end
   end
 end

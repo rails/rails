@@ -50,7 +50,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
-      # * +counters+ - An Array of Hashes containing the names of the fields
+      # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       #
       # ==== Examples

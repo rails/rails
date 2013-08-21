@@ -1,10 +1,9 @@
 gem 'minitest' # make sure we get the gem, not stdlib
-require 'minitest/unit'
+require 'minitest'
 require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
-require 'active_support/testing/pending'
 require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
@@ -16,10 +15,28 @@ begin
 rescue LoadError
 end
 
+module Minitest # :nodoc:
+  class << self
+    remove_method :__run
+  end
+
+  def self.__run reporter, options # :nodoc:
+    # FIXME: MT5's runnables is not ordered. This is needed because
+    # we have have tests have cross-class order-dependent bugs.
+    suites = Runnable.runnables.sort_by { |ts| ts.name.to_s }
+
+    parallel, serial = suites.partition { |s| s.test_order == :parallel }
+
+    ParallelEach.new(parallel).map { |suite| suite.run reporter, options } +
+     serial.map { |suite| suite.run reporter, options }
+  end
+end
+
 module ActiveSupport
-  class TestCase < ::MiniTest::Unit::TestCase
-    Assertion = MiniTest::Assertion
-    alias_method :method_name, :__name__
+  class TestCase < ::Minitest::Test
+    Assertion = Minitest::Assertion
+
+    alias_method :method_name, :name
 
     $tags = {}
     def self.for_tag(tag)
@@ -36,7 +53,6 @@ module ActiveSupport
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
-    include ActiveSupport::Testing::Pending
     extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods

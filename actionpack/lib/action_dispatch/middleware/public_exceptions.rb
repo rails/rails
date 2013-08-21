@@ -7,11 +7,10 @@ module ActionDispatch
     end
 
     def call(env)
-      exception    = env["action_dispatch.exception"]
       status       = env["PATH_INFO"][1..-1]
       request      = ActionDispatch::Request.new(env)
       content_type = request.formats.first
-      body         = { :status => status, :error => exception.message }
+      body         = { :status => status, :error => Rack::Utils::HTTP_STATUS_CODES.fetch(status.to_i, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
       render(status, content_type, body)
     end
@@ -19,7 +18,7 @@ module ActionDispatch
     private
 
     def render(status, content_type, body)
-      format = content_type && "to_#{content_type.to_sym}"
+      format = "to_#{content_type.to_sym}" if content_type
       if format && body.respond_to?(format)
         render_format(status, content_type, body.public_send(format))
       else

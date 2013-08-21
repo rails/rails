@@ -151,9 +151,9 @@ module ActionMailer
   #
   # For example, if the following templates exist:
   # * signup_notification.text.erb
-  # * signup_notification.text.html.erb
-  # * signup_notification.text.xml.builder
-  # * signup_notification.text.yaml.erb
+  # * signup_notification.html.erb
+  # * signup_notification.xml.builder
+  # * signup_notification.yaml.erb
   #
   # Each would be rendered and added as a separate part to the message, with the corresponding content
   # type. The content type for the entire message is automatically set to <tt>multipart/alternative</tt>,
@@ -175,7 +175,7 @@ module ActionMailer
   #     end
   #   end
   #
-  # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.text.html.erb</tt>
+  # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.html.erb</tt>
   # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
@@ -334,8 +334,8 @@ module ActionMailer
   #     and starts to use it.
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
-  #     of an OpenSSL verify constant ('none', 'peer', 'client_once','fail_if_no_peer_cert') or directly the
-  #     constant  (OpenSSL::SSL::VERIFY_NONE, OpenSSL::SSL::VERIFY_PEER,...).
+  #     of an OpenSSL verify constant ('none', 'peer', 'client_once', 'fail_if_no_peer_cert') or directly the
+  #     constant  (OpenSSL::SSL::VERIFY_NONE, OpenSSL::SSL::VERIFY_PEER, ...).
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
@@ -398,7 +398,7 @@ module ActionMailer
 
       # Register an Observer which will be notified when mail is delivered.
       # Either a class or a string can be passed in as the Observer. If a string is passed in
-      # it will be <tt>constantize</tt>d.
+      # it will be +constantize+d.
       def register_observer(observer)
         delivery_observer = (observer.is_a?(String) ? observer.constantize : observer)
         Mail.register_observer(delivery_observer)
@@ -412,12 +412,20 @@ module ActionMailer
         Mail.register_interceptor(delivery_interceptor)
       end
 
+      # Returns the name of current mailer. This method is also being used as a path for a view lookup.
+      # If this is an anonymous mailer, this method will return +anonymous+ instead.
       def mailer_name
         @mailer_name ||= anonymous? ? "anonymous" : name.underscore
       end
+      # Allows to set the name of current mailer.
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
+      # Sets the defaults through app configuration:
+      #
+      #     config.action_mailer.default { from: "no-reply@example.org" }
+      #
+      # Aliased by ::default_options=
       def default(value = nil)
         self.default_params = default_params.merge(value).freeze if value
         default_params
@@ -429,13 +437,15 @@ module ActionMailer
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
-      # object's +receive+ method. If you want your mailer to be able to
-      # process incoming messages, you'll need to implement a +receive+
-      # method that accepts the raw email string as a parameter:
+      # object's +receive+ method.
+      #
+      # If you want your mailer to be able to process incoming messages, you'll
+      # need to implement a +receive+ method that accepts the raw email string
+      # as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
       #     def receive(mail)
-      #       ...
+      #       # ...
       #     end
       #   end
       def receive(raw_mail)
@@ -446,10 +456,12 @@ module ActionMailer
         end
       end
 
-      # Wraps an email delivery inside of Active Support Notifications instrumentation. This
-      # method is actually called by the <tt>Mail::Message</tt> object itself through a callback
-      # when you call <tt>:deliver</tt> on the Mail::Message, calling +deliver_mail+ directly
-      # and passing a Mail::Message will do nothing except tell the logger you sent the email.
+      # Wraps an email delivery inside of ActiveSupport::Notifications instrumentation.
+      #
+      # This method is actually called by the Mail::Message object itself
+      # through a callback when you call +:deliver+ on the Mail::Message,
+      # calling +deliver_mail+ directly and passing a Mail::Message will do
+      # nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           set_payload_for_mail(payload, mail)
@@ -475,7 +487,7 @@ module ActionMailer
         payload[:mail]       = mail.encoded
       end
 
-      def method_missing(method_name, *args)
+      def method_missing(method_name, *args) # :nodoc:
         if respond_to?(method_name)
           new(method_name, *args).message
         else
@@ -512,17 +524,18 @@ module ActionMailer
       end
     end
 
+    # Returns the name of the mailer object.
     def mailer_name
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt> object
-    # which will add them to itself.
+    # Allows you to pass random and unusual headers to the new Mail::Message
+    # object which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
     #
-    # You can also pass a hash into headers of header field names and values, which
-    # will then be set on the Mail::Message object:
+    # You can also pass a hash into headers of header field names and values,
+    # which will then be set on the Mail::Message object:
     #
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
@@ -578,44 +591,46 @@ module ActionMailer
     # Both methods accept a headers hash. This hash allows you to specify the most used headers
     # in an email message, these are:
     #
-    # * <tt>:subject</tt> - The subject of the message, if this is omitted, Action Mailer will
-    #   ask the Rails I18n class for a translated <tt>:subject</tt> in the scope of
+    # * +:subject+ - The subject of the message, if this is omitted, Action Mailer will
+    #   ask the Rails I18n class for a translated +:subject+ in the scope of
     #   <tt>[mailer_scope, action_name]</tt> or if this is missing, will translate the
-    #   humanized version of the <tt>action_name</tt>
-    # * <tt>:to</tt> - Who the message is destined for, can be a string of addresses, or an array
+    #   humanized version of the +action_name+
+    # * +:to+ - Who the message is destined for, can be a string of addresses, or an array
     #   of addresses.
-    # * <tt>:from</tt> - Who the message is from
-    # * <tt>:cc</tt> - Who you would like to Carbon-Copy on this email, can be a string of addresses,
+    # * +:from+ - Who the message is from
+    # * +:cc+ - Who you would like to Carbon-Copy on this email, can be a string of addresses,
     #   or an array of addresses.
-    # * <tt>:bcc</tt> - Who you would like to Blind-Carbon-Copy on this email, can be a string of
+    # * +:bcc+ - Who you would like to Blind-Carbon-Copy on this email, can be a string of
     #   addresses, or an array of addresses.
-    # * <tt>:reply_to</tt> - Who to set the Reply-To header of the email to.
-    # * <tt>:date</tt> - The date to say the email was sent on.
+    # * +:reply_to+ - Who to set the Reply-To header of the email to.
+    # * +:date+ - The date to say the email was sent on.
     #
-    # You can set default values for any of the above headers (except :date) by using the <tt>default</tt>
-    # class method:
+    # You can set default values for any of the above headers (except +:date+)
+    # by using the ::default class method:
     #
     #  class Notifier < ActionMailer::Base
-    #    self.default from: 'no-reply@test.lindsaar.net',
-    #                 bcc: 'email_logger@test.lindsaar.net',
-    #                 reply_to: 'bounces@test.lindsaar.net'
+    #    default from: 'no-reply@test.lindsaar.net',
+    #            bcc: 'email_logger@test.lindsaar.net',
+    #            reply_to: 'bounces@test.lindsaar.net'
     #  end
     #
     # If you need other headers not listed above, you can either pass them in
     # as part of the headers hash or use the <tt>headers['name'] = value</tt>
     # method.
     #
-    # When a <tt>:return_path</tt> is specified as header, that value will be used as the 'envelope from'
-    # address for the Mail message. Setting this is useful when you want delivery notifications
-    # sent to a different address than the one in <tt>:from</tt>. Mail will actually use the
-    # <tt>:return_path</tt> in preference to the <tt>:sender</tt> in preference to the <tt>:from</tt>
-    # field for the 'envelope from' value.
+    # When a +:return_path+ is specified as header, that value will be used as
+    # the 'envelope from' address for the Mail message. Setting this is useful
+    # when you want delivery notifications sent to a different address than the
+    # one in +:from+. Mail will actually use the +:return_path+ in preference
+    # to the +:sender+ in preference to the +:from+ field for the 'envelope
+    # from' value.
     #
-    # If you do not pass a block to the +mail+ method, it will find all templates in the
-    # view paths using by default the mailer name and the method name that it is being
-    # called from, it will then create parts for each of these templates intelligently,
-    # making educated guesses on correct content type and sequence, and return a fully
-    # prepared Mail::Message ready to call <tt>:deliver</tt> on to send.
+    # If you do not pass a block to the +mail+ method, it will find all
+    # templates in the view paths using by default the mailer name and the
+    # method name that it is being called from, it will then create parts for
+    # each of these templates intelligently, making educated guesses on correct
+    # content type and sequence, and return a fully prepared Mail::Message
+    # ready to call +:deliver+ on to send.
     #
     # For example:
     #
@@ -650,8 +665,8 @@ module ActionMailer
     #     format.html { render text: "<h1>Hello Mikel!</h1>" }
     #   end
     #
-    # Which will render a <tt>multipart/alternative</tt> email with <tt>text/plain</tt> and
-    # <tt>text/html</tt> parts.
+    # Which will render a +multipart/alternative+ email with +text/plain+ and
+    # +text/html+ parts.
     #
     # The block syntax also allows you to customize the part headers if desired:
     #
@@ -670,7 +685,7 @@ module ActionMailer
       # Call all the procs (if any)
       class_default = self.class.default
       default_values = class_default.merge(class_default) do |k,v|
-        v.respond_to?(:to_proc) ? instance_eval(&v) : v
+        v.is_a?(Proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults
@@ -705,6 +720,15 @@ module ActionMailer
 
   protected
 
+    # Used by #mail to set the content type of the message.
+    #
+    # It will use the given +user_content_type+, or multipart if the mail
+    # message has any attachments. If the attachments are inline, the content
+    # type will be "multipart/related", otherwise "multipart/mixed".
+    #
+    # If there is no content type passed in via headers, and there are no
+    # attachments, or the message is multipart, then the default content type is
+    # used.
     def set_content_type(m, user_content_type, class_default)
       params = m.content_type_parameters || {}
       case

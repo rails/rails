@@ -2,7 +2,7 @@
 <header>
   <h1>
     <%= @exception.original_exception.class.to_s %> in
-    <%= @request.parameters["controller"].capitalize if @request.parameters["controller"]%>#<%= @request.parameters["action"] %>
+    <%= @request.parameters["controller"].camelize if @request.parameters["controller"] %>#<%= @request.parameters["action"] %>
   </h1>
 </header>
 

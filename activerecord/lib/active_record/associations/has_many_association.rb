@@ -9,7 +9,7 @@ module ActiveRecord
 
       def handle_dependency
         case options[:dependent]
-        when :restrict, :restrict_with_exception
+        when :restrict_with_exception
           raise ActiveRecord::DeleteRestrictionError.new(reflection.name) unless empty?
 
         when :restrict_with_error
@@ -58,8 +58,6 @@ module ActiveRecord
         def count_records
           count = if has_cached_counter?
             owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif options[:counter_sql] || options[:finder_sql]
-            reflection.klass.count_by_sql(custom_counter_sql)
           else
             scope.count
           end
@@ -115,8 +113,7 @@ module ActiveRecord
             if records == :all
               scope = self.scope
             else
-              keys  = records.map { |r| r[reflection.association_primary_key] }
-              scope = self.scope.where(reflection.association_primary_key => keys)
+              scope = self.scope.where(reflection.klass.primary_key => records)
             end
 
             if method == :delete_all

@@ -1,7 +1,7 @@
 Layouts and Rendering in Rails
 ==============================
 
-This guide covers the basic layout features of Action Controller and Action View. By referring to this guide, you will be able to:
+This guide covers the basic layout features of Action Controller and Action View.
 
 After reading this guide, you will know:
 
@@ -88,7 +88,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <% end %>
 </table>
 
-<br />
+<br>
 
 <%= link_to "New book", new_book_path %>
 ```
@@ -283,8 +283,8 @@ Calls to the `render` method generally accept four options:
 
 * `:content_type`
 * `:layout`
-* `:status`
 * `:location`
+* `:status`
 
 ##### The `:content_type` Option
 
@@ -310,6 +310,14 @@ You can also tell Rails to render with no layout at all:
 render layout: false
 ```
 
+##### The `:location` Option
+
+You can use the `:location` option to set the HTTP `Location` header:
+
+```ruby
+render xml: photo, location: photo_url(photo)
+```
+
 ##### The `:status` Option
 
 Rails will automatically generate a response with the correct HTTP status code (in most cases, this is `200 OK`). You can use the `:status` option to change this:
@@ -319,15 +327,68 @@ render status: 500
 render status: :forbidden
 ```
 
-Rails understands both numeric and symbolic status codes.
+Rails understands both numeric status codes and the corresponding symbols shown below.
 
-##### The `:location` Option
-
-You can use the `:location` option to set the HTTP `Location` header:
-
-```ruby
-render xml: photo, location: photo_url(photo)
-```
+| Response Class      | HTTP Status Code | Symbol                           |
+| ------------------- | ---------------- | -------------------------------- |
+| **Informational**   | 100              | :continue                        |
+|                     | 101              | :switching_protocols             |
+|                     | 102              | :processing                      |
+| **Success**         | 200              | :ok                              |
+|                     | 201              | :created                         |
+|                     | 202              | :accepted                        |
+|                     | 203              | :non_authoritative_information   |
+|                     | 204              | :no_content                      |
+|                     | 205              | :reset_content                   |
+|                     | 206              | :partial_content                 |
+|                     | 207              | :multi_status                    |
+|                     | 208              | :already_reported                |
+|                     | 226              | :im_used                         |
+| **Redirection**     | 300              | :multiple_choices                |
+|                     | 301              | :moved_permanently               |
+|                     | 302              | :found                           |
+|                     | 303              | :see_other                       |
+|                     | 304              | :not_modified                    |
+|                     | 305              | :use_proxy                       |
+|                     | 306              | :reserved                        |
+|                     | 307              | :temporary_redirect              |
+|                     | 308              | :permanent_redirect              |
+| **Client Error**    | 400              | :bad_request                     |
+|                     | 401              | :unauthorized                    |
+|                     | 402              | :payment_required                |
+|                     | 403              | :forbidden                       |
+|                     | 404              | :not_found                       |
+|                     | 405              | :method_not_allowed              |
+|                     | 406              | :not_acceptable                  |
+|                     | 407              | :proxy_authentication_required   |
+|                     | 408              | :request_timeout                 |
+|                     | 409              | :conflict                        |
+|                     | 410              | :gone                            |
+|                     | 411              | :length_required                 |
+|                     | 412              | :precondition_failed             |
+|                     | 413              | :request_entity_too_large        |
+|                     | 414              | :request_uri_too_long            |
+|                     | 415              | :unsupported_media_type          |
+|                     | 416              | :requested_range_not_satisfiable |
+|                     | 417              | :expectation_failed              |
+|                     | 422              | :unprocessable_entity            |
+|                     | 423              | :locked                          |
+|                     | 424              | :failed_dependency               |
+|                     | 426              | :upgrade_required                |
+|                     | 428              | :precondition_required           |
+|                     | 429              | :too_many_requests               |
+|                     | 431              | :request_header_fields_too_large |
+| **Server Error**    | 500              | :internal_server_error           |
+|                     | 501              | :not_implemented                 |
+|                     | 502              | :bad_gateway                     |
+|                     | 503              | :service_unavailable             |
+|                     | 504              | :gateway_timeout                 |
+|                     | 505              | :http_version_not_supported      |
+|                     | 506              | :variant_also_negotiates         |
+|                     | 507              | :insufficient_storage            |
+|                     | 508              | :loop_detected                   |
+|                     | 510              | :not_extended                    |
+|                     | 511              | :network_authentication_required |
 
 #### Finding Layouts
 
@@ -531,7 +592,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     render action: "index"
   end
@@ -546,7 +607,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     redirect_to action: :index
   end
@@ -565,10 +626,10 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     @books = Book.all
-    flash[:alert] = "Your book was not found"
+    flash.now[:alert] = "Your book was not found"
     render "index"
   end
 end
@@ -578,7 +639,7 @@ This would detect that there are no books with the specified ID, populate the `@
 
 ### Using `head` To Build Header-Only Responses
 
-The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method takes one parameter, which is interpreted as a hash of header names and values. For example, you can return only an error header:
+The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 ```ruby
 head :bad_request
@@ -654,7 +715,7 @@ There are three tag options available for the `auto_discovery_link_tag`:
 
 * `:rel` specifies the `rel` value in the link. The default value is "alternate".
 * `:type` specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
-* `:title` specifies the title of the link. The default value is the uppercased `:type` value, for example, "ATOM" or "RSS".
+* `:title` specifies the title of the link. The default value is the uppercase `:type` value, for example, "ATOM" or "RSS".
 
 #### Linking to JavaScript Files with the `javascript_include_tag`
 
@@ -965,7 +1026,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <%= form_for(zone) do |f| %>
       <p>
-        <b>Zone name</b><br />
+        <b>Zone name</b><br>
         <%= f.text_field :name %>
       </p>
       <p>

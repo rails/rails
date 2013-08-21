@@ -31,10 +31,17 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
-    attr_accessor :request, :header
+    # The request that the response is responding to.
+    attr_accessor :request
+
+    # The HTTP status code.
     attr_reader :status
+
     attr_writer :sending_file
 
+    # Get and set headers for this response.
+    attr_accessor :header
+    
     alias_method :headers=, :header=
     alias_method :headers,  :header
 
@@ -49,12 +56,16 @@ module ActionDispatch # :nodoc:
     # If a character set has been defined for this response (see charset=) then
     # the character set information will also be included in the content type
     # information.
-    attr_accessor :charset
     attr_reader   :content_type
+
+    # The charset of the response. HTML wants to know the encoding of the
+    # content you're giving them, so we need to send that along.
+    attr_accessor :charset
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
+    NO_CONTENT_CODES = [204, 304]
 
     cattr_accessor(:default_charset) { "utf-8" }
     cattr_accessor(:default_headers)
@@ -92,6 +103,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    # The underlying body, as a streamable object.
     attr_reader :stream
 
     def initialize(status = 200, header = {}, body = [])
@@ -141,6 +153,7 @@ module ActionDispatch # :nodoc:
       @status = Rack::Utils.status_code(status)
     end
 
+    # Sets the HTTP content type.
     def content_type=(content_type)
       @content_type = content_type.to_s
     end
@@ -197,7 +210,9 @@ module ActionDispatch # :nodoc:
       if body.respond_to?(:to_path)
         @stream = body
       else
-        @stream = build_buffer self, munge_body_object(body)
+        synchronize do
+          @stream = build_buffer self, munge_body_object(body)
+        end
       end
     end
 
@@ -215,11 +230,13 @@ module ActionDispatch # :nodoc:
       ::Rack::Utils.delete_cookie_header!(header, key, value)
     end
 
+    # The location header we'll be responding with.
     def location
       headers[LOCATION]
     end
     alias_method :redirect_url, :location
 
+    # Sets the location header we'll be responding with.
     def location=(url)
       headers[LOCATION] = url
     end
@@ -228,11 +245,13 @@ module ActionDispatch # :nodoc:
       stream.close if stream.respond_to?(:close)
     end
 
+    # Turns the Response into a Rack-compatible array of the status, headers,
+    # and body.
     def to_a
       rack_response @status, @header.to_hash
     end
     alias prepare! to_a
-    alias to_ary   to_a # For implicit splat on 1.9.2
+    alias to_ary   to_a
 
     # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
@@ -289,7 +308,7 @@ module ActionDispatch # :nodoc:
 
       header[SET_COOKIE] = header[SET_COOKIE].join("\n") if header[SET_COOKIE].respond_to?(:join)
 
-      if [204, 304].include?(@status)
+      if NO_CONTENT_CODES.include?(@status)
         header.delete CONTENT_TYPE
         [status, header, []]
       else

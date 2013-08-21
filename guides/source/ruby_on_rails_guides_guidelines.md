@@ -63,6 +63,10 @@ Those guidelines apply also to guides.
 HTML Guides
 -----------
 
+Before generating the guides, make sure that you have the latest version of Bundler installed on your system. As of this writing, you must install Bundler 1.3.5 on your device.
+
+To install the latest version of Bundler, simply run the `gem install bundler` command
+
 ### Generation
 
 To generate all the guides, just `cd` into the `guides` directory, run `bundle install` and execute:

@@ -79,7 +79,7 @@ module ActiveModel
           require 'builder' unless defined? ::Builder
 
           options[:indent]  ||= 2
-          options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
+          options[:builder] ||= ::Builder::XmlMarkup.new(indent: options[:indent])
 
           @builder = options[:builder]
           @builder.instruct! unless options[:skip_instruct]
@@ -88,8 +88,8 @@ module ActiveModel
           root = ActiveSupport::XmlMini.rename_key(root, options)
 
           args = [root]
-          args << {:xmlns => options[:namespace]} if options[:namespace]
-          args << {:type => options[:type]} if options[:type] && !options[:skip_types]
+          args << { xmlns: options[:namespace] } if options[:namespace]
+          args << { type: options[:type] } if options[:type] && !options[:skip_types]
 
           @builder.tag!(*args) do
             add_attributes_and_methods
@@ -132,7 +132,7 @@ module ActiveModel
             records = records.to_ary
 
             tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
-            type = options[:skip_types] ? { } : {:type => "array"}
+            type = options[:skip_types] ? { } : { type: "array" }
             association_name = association.to_s.singularize
             merged_options[:root] = association_name
 
@@ -145,7 +145,7 @@ module ActiveModel
                     record_type = {}
                   else
                     record_class = (record.class.to_s.underscore == association_name) ? nil : record.class.name
-                    record_type = {:type => record_class}
+                    record_type = { type: record_class }
                   end
 
                   record.to_xml merged_options.merge(record_type)
@@ -205,7 +205,7 @@ module ActiveModel
         Serializer.new(self, options).serialize(&block)
       end
 
-      # Sets the model +attributes+ from a JSON string. Returns +self+.
+      # Sets the model +attributes+ from an XML string. Returns +self+.
       #
       #   class Person
       #     include ActiveModel::Serializers::Xml

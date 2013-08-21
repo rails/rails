@@ -198,7 +198,9 @@ Adding extra logging like this makes it easy to search for unexpected or unusual
 
 ### Tagged Logging
 
-When running multi-user, multi-account applications, it’s often useful to be able to filter the logs using some custom rules. `TaggedLogging` in ActiveSupport helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
+When running multi-user, multi-account applications, it’s often useful
+to be able to filter the logs using some custom rules. `TaggedLogging`
+in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
 ```ruby
 logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
@@ -206,6 +208,37 @@ logger.tagged("BCX") { logger.info "Stuff" }                            # Logs "
 logger.tagged("BCX", "Jason") { logger.info "Stuff" }                   # Logs "[BCX] [Jason] Stuff"
 logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
 ```
+
+### Impact of Logs on Performance
+Logging will always have a small impact on performance of your rails app, 
+        particularly when logging to disk.However, there are a few subtleties:
+
+Using the `:debug` level will have a greater performance penalty than `:fatal`,
+      as a far greater number of strings are being evaluated and written to the
+      log output (e.g. disk).
+
+Another potential pitfall is that if you have many calls to `Logger` like this
+      in your code:
+
+```ruby
+logger.debug "Person attributes hash: #{@person.attributes.inspect}"
+```
+
+In the above example, There will be a performance impact even if the allowed 
+output level doesn't include debug. The reason is that Ruby has to evaluate 
+these strings, which includes instantiating the somewhat heavy `String` object 
+and interpolating the variables, and which takes time.
+Therefore, it's recommended to pass blocks to the logger methods, as these are 
+only evaluated if the output level is the same or included in the allowed level 
+(i.e. lazy loading). The same code rewritten would be:
+
+```ruby
+logger.debug {"Person attibutes hash: #{@person.attributes.inspect}"}
+```
+
+The contents of the block, and therefore the string interpolation, is only 
+evaluated if debug is enabled. This performance savings is only really 
+noticeable with large amounts of logging, but it's a good practice to employ.
 
 Debugging with the `debugger` gem
 ---------------------------------
@@ -246,7 +279,7 @@ Make sure you have started your web server with the option `--debugger`:
 ```bash
 $ rails server --debugger
 => Booting WEBrick
-=> Rails 3.2.13 application starting on http://0.0.0.0:3000
+=> Rails 4.0.0 application starting on http://0.0.0.0:3000
 => Debugger enabled
 ...
 ```
@@ -299,7 +332,7 @@ This command shows you where you are in the code by printing 10 lines centered a
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
-   10        format.json { render :json => @posts }
+   10        format.json { render json: @posts }
 ```
 
 If you repeat the `list` command, this time using just `l`, the next ten lines of the file will be printed out.
@@ -335,7 +368,7 @@ On the other hand, to see the previous ten lines you should type `list-` (or `l-
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
-   10        format.json { render :json => @posts }
+   10        format.json { render json: @posts }
 ```
 
 This way you can move inside the file, being able to see the code above and over the line you added the `debugger`.
@@ -502,7 +535,7 @@ TIP: You can use the debugger while using `rails console`. Just remember to `req
 
 ```
 $ rails console
-Loading development environment (Rails 3.2.13)
+Loading development environment (Rails 4.0.0)
 >> require "debugger"
 => []
 >> author = Author.first
@@ -646,7 +679,7 @@ In this section, you will learn how to find and fix such leaks by using tool suc
 
 [Valgrind](http://valgrind.org/) is a Linux-only application for detecting C-based memory leaks and race conditions.
 
-There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls `malloc()` but is doesn't properly call `free()`, this memory won't be available until the app terminates.
+There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, if a C extension in the interpreter calls `malloc()` but doesn't properly call `free()`, this memory won't be available until the app terminates.
 
 For further information on how to install Valgrind and use with Ruby, refer to [Valgrind and Ruby](http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/) by Evan Weaver.
 
@@ -655,21 +688,20 @@ Plugins for Debugging
 
 There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
-* [Footnotes](https://github.com/josevalim/rails-footnotes:) Every Rails page has footnotes that give request information and link back to your source via TextMate.
-* [Query Trace](https://github.com/ntalbott/query_trace/tree/master:) Adds query origin tracing to your logs.
-* [Query Reviewer](https://github.com/nesquena/query_reviewer:) This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
-* [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master:) Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
+* [Footnotes](https://github.com/josevalim/rails-footnotes) Every Rails page has footnotes that give request information and link back to your source via TextMate.
+* [Query Trace](https://github.com/ntalbott/query_trace/tree/master) Adds query origin tracing to your logs.
+* [Query Reviewer](https://github.com/nesquena/query_reviewer) This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
+* [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master) Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
+* [Better Errors](https://github.com/charliesome/better_errors) Replaces the standard Rails error page with a new one containing more contextual information, like source code and variable inspection.
+* [RailsPanel](https://github.com/dejan/rails_panel) Chrome extension for Rails development that will end your tailing of development.log. Have all information about your Rails app requests in the browser - in the Developer Tools panel. Provides insight to db/rendering/total times, parameter list, rendered views and more.
 
 References
 ----------
 
 * [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
 * [debugger Homepage](https://github.com/cldwalker/debugger)
-* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/article/debug-rails-app-ruby-debug/)
-* [ruby-debug Basics screencast](http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/)
+* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/debug-rails-app-ruby-debug/)
 * [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
 * [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)
 * [Ryan Bates' logger screencast](http://railscasts.com/episodes/56-the-logger)
 * [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)
-* [ruby-debug cheat sheet](http://cheat.errtheblog.com/s/rdebug/)
-* [Ruby on Rails Wiki: How to Configure Logging](http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging)

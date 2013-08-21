@@ -40,7 +40,28 @@ class DogWithMissingName < Dog
   validates_presence_of :name
 end
 
+class DogValidatorWithIfCondition < Dog
+  before_validation :set_before_validation_marker1, if: -> { true }
+  before_validation :set_before_validation_marker2, if: -> { false }
+
+  after_validation :set_after_validation_marker1, if: -> { true }
+  after_validation :set_after_validation_marker2, if: -> { false }
+
+  def set_before_validation_marker1; self.history << 'before_validation_marker1'; end
+  def set_before_validation_marker2; self.history << 'before_validation_marker2' ; end
+
+  def set_after_validation_marker1; self.history << 'after_validation_marker1'; end
+  def set_after_validation_marker2; self.history << 'after_validation_marker2' ; end
+end
+
+
 class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
+
+  def test_if_condition_is_respected_for_before_validation
+    d = DogValidatorWithIfCondition.new
+    d.valid?
+    assert_equal ["before_validation_marker1", "after_validation_marker1"], d.history
+  end
 
   def test_before_validation_and_after_validation_callbacks_should_be_called
     d = DogWithMethodCallbacks.new

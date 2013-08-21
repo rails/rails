@@ -7,6 +7,7 @@ class Reply < Topic
 end
 
 class UniqueReply < Reply
+  belongs_to :topic, :foreign_key => 'parent_id', :counter_cache => true
   validates_uniqueness_of :content, :scope => 'parent_id'
 end
 

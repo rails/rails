@@ -10,7 +10,7 @@ class ModelWithAttributes
   end
 
   def attributes
-    { :foo => 'value of foo', :baz => 'value of baz' }
+    { foo: 'value of foo', baz: 'value of baz' }
   end
 
 private
@@ -80,7 +80,7 @@ class ModelWithRubyKeywordNamedAttributes
   include ActiveModel::AttributeMethods
 
   def attributes
-    { :begin => 'value of begin', :end => 'value of end' }
+    { begin: 'value of begin', end: 'value of end' }
   end
 
 private
@@ -200,17 +200,6 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_equal 'bar', m.foo
     assert_equal 'bar', m.foo_test
-  end
-
-  test 'explicitly specifying an empty prefix/suffix is deprecated' do
-    klass = Class.new(ModelWithAttributes)
-
-    assert_deprecated { klass.attribute_method_suffix '' }
-    assert_deprecated { klass.attribute_method_prefix '' }
-
-    klass.define_attribute_methods(:foo)
-
-    assert_equal 'value of foo', klass.new.foo
   end
 
   test 'should not interfere with method_missing if the attr has a private/protected method' do

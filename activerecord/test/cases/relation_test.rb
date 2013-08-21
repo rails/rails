@@ -1,19 +1,21 @@
 require "cases/helper"
 require 'models/post'
 require 'models/comment'
+require 'models/author'
+require 'models/rating'
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments
+    fixtures :posts, :comments, :authors
 
     class FakeKlass < Struct.new(:table_name, :name)
+      def self.connection
+        Post.connection
+      end
     end
 
     def test_construction
-      relation = nil
-      assert_nothing_raised do
-        relation = Relation.new FakeKlass, :b
-      end
+      relation = Relation.new FakeKlass, :b
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
       assert !relation.loaded, 'relation is not loaded'
@@ -109,6 +111,12 @@ module ActiveRecord
       assert_equal({}, relation.scope_for_create)
     end
 
+    def test_bad_constants_raise_errors
+      assert_raises(NameError) do
+        ActiveRecord::Relation::HelloWorld
+      end
+    end
+
     def test_empty_eager_loading?
       relation = Relation.new FakeKlass, :b
       assert !relation.eager_loading?
@@ -176,12 +184,38 @@ module ActiveRecord
       relation.merge!(where: ['foo = ?', 'bar'])
       assert_equal ['foo = bar'], relation.where_values
     end
+
+    def test_relation_merging_with_merged_joins_as_symbols
+      special_comments_with_ratings = SpecialComment.joins(:ratings)
+      posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
+      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
+    end
+
+    def test_respond_to_for_non_selected_element
+      post = Post.select(:title).first
+      assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+
+      silence_warnings { post = Post.select("'title' as post_title").first }
+      assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
+    end
+
+    def test_relation_merging_with_merged_joins_as_strings
+      join_string = "LEFT OUTER JOIN #{Rating.quoted_table_name} ON #{SpecialComment.quoted_table_name}.id = #{Rating.quoted_table_name}.comment_id"
+      special_comments_with_ratings = SpecialComment.joins join_string
+      posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
+      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
+    end
+
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
     class FakeKlass < Struct.new(:table_name, :name)
-      def quoted_table_name
-        %{"#{table_name}"}
+      def arel_table
+        Post.arel_table
+      end
+
+      def connection
+        Post.connection
       end
     end
 
@@ -203,7 +237,17 @@ module ActiveRecord
 
     test "#order! with symbol prepends the table name" do
       assert relation.order!(:name).equal?(relation)
-      assert_equal ['"posts".name ASC'], relation.order_values
+      node = relation.order_values.first
+      assert node.ascending?
+      assert_equal :name, node.expr.name
+      assert_equal "posts", node.expr.relation.name
+    end
+
+    test "#order! on non-string does not attempt regexp match for references" do
+      obj = Object.new
+      obj.expects(:=~).never
+      assert relation.order!(obj)
+      assert_equal [obj], relation.order_values
     end
 
     test '#references!' do
@@ -264,7 +308,7 @@ module ActiveRecord
       assert_equal({foo: 'bar'}, relation.create_with_value)
     end
 
-    test 'merge!' do
+    def test_merge!
       assert relation.merge!(where: :foo).equal?(relation)
       assert_equal [:foo], relation.where_values
     end

@@ -79,6 +79,13 @@ module ActiveSupport
           def initialize(pattern, delegate)
             @pattern = pattern
             @delegate = delegate
+            @can_publish = delegate.respond_to?(:publish)
+          end
+
+          def publish(name, *args)
+            if @can_publish
+              @delegate.publish name, *args
+            end
           end
 
           def start(name, id, payload)

@@ -4,6 +4,7 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:
+require "active_model/railtie"
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"

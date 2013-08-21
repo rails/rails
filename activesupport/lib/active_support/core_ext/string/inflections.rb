@@ -41,7 +41,7 @@ class String
   #
   # If the optional parameter +locale+ is specified,
   # the word will be singularized as a word of that language.
-  # By default, this paramter is set to <tt>:en</tt>.
+  # By default, this parameter is set to <tt>:en</tt>.
   # You must define your own inflection rules for languages other than English.
   #
   #   'posts'.singularize            # => "post"
@@ -185,7 +185,7 @@ class String
   #
   # Singular names are not handled correctly.
   #
-  #   'business'.classify # => "Busines"
+  #   'business'.classify # => "Business"
   def classify
     ActiveSupport::Inflector.classify(self)
   end

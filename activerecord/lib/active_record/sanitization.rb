@@ -3,8 +3,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column = nil) #:nodoc:
-        connection.quote(value,column)
+      def quote_value(value, column) #:nodoc:
+        connection.quote(value, column)
       end
 
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
@@ -86,10 +86,11 @@ module ActiveRecord
       #   { address: Address.new("123 abc st.", "chicago") }
       #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
+        attrs = PredicateBuilder.resolve_column_aliases self, attrs
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
         table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
-        PredicateBuilder.build_from_hash(self.class, attrs, table).map { |b|
+        PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
           connection.visitor.accept b
         }.join(' AND ')
       end

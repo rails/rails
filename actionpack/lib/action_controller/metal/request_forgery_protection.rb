@@ -199,6 +199,7 @@ module ActionController #:nodoc:
         params[request_forgery_protection_token]
       end
 
+      # Checks if the controller allows forgery protection.
       def protect_against_forgery?
         allow_forgery_protection
       end

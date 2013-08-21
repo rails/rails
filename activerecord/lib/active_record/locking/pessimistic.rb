@@ -64,7 +64,7 @@ module ActiveRecord
       end
 
       # Wraps the passed block in a transaction, locking the object
-      # before yielding. You pass can the SQL locking clause
+      # before yielding. You can pass the SQL locking clause
       # as argument (see <tt>lock!</tt>).
       def with_lock(lock = true)
         transaction do

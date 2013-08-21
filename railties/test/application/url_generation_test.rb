@@ -20,7 +20,7 @@ module ApplicationTests
         config.eager_load = false
       end
 
-      MyApp.initialize!
+      Rails.application.initialize!
 
       class ::ApplicationController < ActionController::Base
       end

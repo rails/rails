@@ -8,7 +8,6 @@ ensure
 end
 
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/string/encoding'
 
 silence_warnings do
   Encoding.default_internal = "UTF-8"

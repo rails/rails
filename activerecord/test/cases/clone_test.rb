@@ -29,5 +29,12 @@ module ActiveRecord
       topic.author_name = 'Aaron'
       assert_equal 'Aaron', cloned.author_name
     end
+
+    def test_freezing_a_cloned_model_does_not_freeze_clone
+      cloned = Topic.new
+      clone = cloned.clone
+      cloned.freeze
+      assert_not clone.frozen?
+    end
   end
 end

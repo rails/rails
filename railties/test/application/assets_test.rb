@@ -45,7 +45,7 @@ module ApplicationTests
       app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, ["Not an asset"]] }
         end
       RUBY
@@ -91,7 +91,7 @@ module ApplicationTests
         class UsersController < ApplicationController; end
       eoruby
       app_file "app/models/user.rb", <<-eoruby
-        class User < ActiveRecord::Base; end
+        class User < ActiveRecord::Base; raise 'should not be reached'; end
       eoruby
 
       ENV['RAILS_ENV']  = 'production'
@@ -163,6 +163,29 @@ module ApplicationTests
       precompile!
 
       assert_file_exists("#{app_path}/public/assets/something-*.js")
+    end
+
+    test 'precompile use assets defined in app env config' do
+      add_to_env_config 'production', 'config.assets.precompile = [ "something.js" ]'
+
+      app_file 'app/assets/javascripts/something.js.erb', 'alert();'
+
+      precompile! 'RAILS_ENV=production'
+
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
+    end
+
+    test 'precompile use assets defined in app config and reassigned in app env config' do
+      add_to_config 'config.assets.precompile = [ "something.js" ]'
+      add_to_env_config 'production', 'config.assets.precompile += [ "another.js" ]'
+
+      app_file 'app/assets/javascripts/something.js.erb', 'alert();'
+      app_file 'app/assets/javascripts/another.js.erb', 'alert();'
+
+      precompile! 'RAILS_ENV=production'
+
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
+      assert_file_exists("#{app_path}/public/assets/another-*.js")
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
@@ -313,7 +336,7 @@ module ApplicationTests
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/omg', :to => "omg#index"
         end
       RUBY
@@ -374,18 +397,6 @@ module ApplicationTests
       add_to_config "config.assets.digest = false"
       precompile!
       assert_equal "Post;\n", File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
-    end
-
-    test "assets can't access model information when precompiling if not initializing the app" do
-      app_file "app/models/post.rb", "class Post; end"
-      app_file "app/assets/javascripts/application.js", "//= require_tree ."
-      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= defined?(Post) || :NoPost %>"
-
-      add_to_config "config.assets.digest = false"
-      add_to_config "config.assets.initialize_on_precompile = false"
-
-      precompile!
-      assert_equal "NoPost;\n", File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
     end
 
     test "initialization on the assets group should set assets_dir" do
@@ -475,7 +486,7 @@ module ApplicationTests
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get '/posts', :to => "posts#index"
         end
       RUBY

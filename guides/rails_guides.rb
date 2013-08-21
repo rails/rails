@@ -22,7 +22,7 @@ end
 
 begin
   require 'redcarpet'
-rescue Gem::LoadError
+rescue LoadError
   # This can happen if doc:guides is executed in an application.
   $stderr.puts('Generating guides requires Redcarpet 2.1.1+.')
   $stderr.puts(<<ERROR) if bundler?

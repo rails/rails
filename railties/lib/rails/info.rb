@@ -23,7 +23,7 @@ module Rails
       end
 
       def frameworks
-        %w( active_record action_pack action_mailer active_support )
+        %w( active_record action_pack action_view action_mailer active_support )
       end
 
       def framework_version(framework)
@@ -61,8 +61,10 @@ module Rails
       end
     end
 
-    # The Ruby version and platform, e.g. "1.8.2 (powerpc-darwin8.2.0)".
-    property 'Ruby version', "#{RUBY_VERSION} (#{RUBY_PLATFORM})"
+    # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
+    property 'Ruby version' do
+      "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
+    end
 
     # The RubyGems version, if it's installed.
     property 'RubyGems version' do

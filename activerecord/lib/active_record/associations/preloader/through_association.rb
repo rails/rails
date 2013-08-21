@@ -41,21 +41,21 @@ module ActiveRecord
         end
 
         def through_scope
-          through_scope = through_reflection.klass.unscoped
+          scope = through_reflection.klass.unscoped
 
           if options[:source_type]
-            through_scope.where! reflection.foreign_type => options[:source_type]
+            scope.where! reflection.foreign_type => options[:source_type]
           else
             unless reflection_scope.where_values.empty?
-              through_scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
-              through_scope.where_values    = reflection_scope.values[:where]
+              scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+              scope.where_values    = reflection_scope.values[:where]
             end
 
-            through_scope.references! reflection_scope.values[:references]
-            through_scope.order! reflection_scope.values[:order] if through_scope.eager_loading?
+            scope.references! reflection_scope.values[:references]
+            scope.order! reflection_scope.values[:order] if scope.eager_loading?
           end
 
-          through_scope
+          scope
         end
       end
     end

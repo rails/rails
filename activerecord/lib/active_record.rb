@@ -25,7 +25,6 @@ require 'active_support'
 require 'active_support/rails'
 require 'active_model'
 require 'arel'
-require 'active_record/deprecated_finders'
 
 require 'active_record/version'
 
@@ -50,12 +49,14 @@ module ActiveRecord
   autoload :Querying
   autoload :ReadonlyAttributes
   autoload :Reflection
+  autoload :RuntimeRegistry
   autoload :Sanitization
   autoload :Schema
   autoload :SchemaDumper
   autoload :SchemaMigration
   autoload :Scoping
   autoload :Serialization
+  autoload :StatementCache
   autoload :Store
   autoload :Timestamp
   autoload :Transactions
@@ -74,6 +75,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
 
     autoload :Relation
+    autoload :AssociationRelation
     autoload :NullRelation
 
     autoload_under 'relation' do
@@ -149,7 +151,6 @@ module ActiveRecord
     autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
-  autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
 
   def self.eager_load!

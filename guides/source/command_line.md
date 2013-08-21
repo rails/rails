@@ -27,6 +27,8 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * `rails dbconsole`
 * `rails new app_name`
 
+All commands can run with ```-h or --help``` to list more information.
+
 Let's create a simple Rails application to step through each of these commands in context.
 
 ### `rails new`
@@ -64,12 +66,12 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
-=> Rails 3.2.3 application starting in development on http://0.0.0.0:3000
+=> Rails 4.0.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
-[2012-05-28 00:39:41] INFO  WEBrick 1.3.1
-[2012-05-28 00:39:41] INFO  ruby 1.9.2 (2011-02-18) [x86_64-darwin11.2.0]
-[2012-05-28 00:39:41] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
+[2013-08-07 02:00:01] INFO  WEBrick 1.3.1
+[2013-08-07 02:00:01] INFO  ruby 2.0.0 (2013-06-27) [x86_64-darwin11.2.0]
+[2013-08-07 02:00:01] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 ```
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
@@ -201,7 +203,7 @@ Usage:
 
 ...
 
-ActiveRecord options:
+Active Record options:
       [--migration]            # Indicates when to generate migration
                                # Default: true
 
@@ -220,7 +222,7 @@ We will set up a simple resource called "HighScore" that will keep track of our 
 ```bash
 $ rails generate scaffold HighScore game:string score:integer
     invoke  active_record
-    create    db/migrate/20120528060026_create_high_scores.rb
+    create    db/migrate/20130717151933_create_high_scores.rb
     create    app/models/high_score.rb
     invoke    test_unit
     create      test/models/high_score_test.rb
@@ -242,18 +244,21 @@ $ rails generate scaffold HighScore game:string score:integer
     create      app/helpers/high_scores_helper.rb
     invoke      test_unit
     create        test/helpers/high_scores_helper_test.rb
+    invoke    jbuilder
+    create      app/views/high_scores/index.json.jbuilder
+    create      app/views/high_scores/show.json.jbuilder
     invoke  assets
     invoke    coffee
     create      app/assets/javascripts/high_scores.js.coffee
     invoke    scss
     create      app/assets/stylesheets/high_scores.css.scss
     invoke  scss
-    create    app/assets/stylesheets/scaffolds.css.scss
+   identical    app/assets/stylesheets/scaffolds.css.scss
 ```
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
 
-The migration requires that we **migrate**, that is, run some Ruby code (living in that `20120528060026_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
+The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
 
 ```bash
 $ rake db:migrate
@@ -289,7 +294,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ rails console --sandbox
-Loading development environment in sandbox (Rails 3.2.3)
+Loading development environment in sandbox (Rails 4.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -348,6 +353,9 @@ Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'mak
 
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing `rake --tasks`. Each task has a description, and should help you find the thing you need.
 
+To get the full backtrace for running rake task you can pass the option
+```--trace``` to command line, for example ```rake db:create --trace```.
+
 ```bash
 $ rake --tasks
 rake about              # List versions of all Rails frameworks and the environment
@@ -361,6 +369,7 @@ rake middleware         # Prints out your Rack middleware stack
 rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)
 rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
 ```
+INFO: You can also use ```rake -T```  to get the list of tasks.
 
 ### `about`
 
@@ -372,13 +381,13 @@ About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.0.0.beta
+Rails version             4.0.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.0.0.beta
-Action Pack version       4.0.0.beta
-Action Mailer version     4.0.0.beta
-Active Support version    4.0.0.beta
-Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::EncryptedCookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Active Record version     4.0.0
+Action Pack version       4.0.0
+Action Mailer version     4.0.0
+Active Support version    4.0.0
+Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::EncryptedCookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3
@@ -445,12 +454,12 @@ NOTE. When using specific annotations and custom annotations, the annotation nam
 By default, `rake notes` will look in the `app`, `config`, `lib`, `bin` and `test` directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
 
 ```bash
-$ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'
+$ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
 $ rake notes
 (in /home/foobar/commandsapp)
 app/models/user.rb:
   * [ 35] [FIXME] User should have a subscription at this point
-rspec/model/user_spec.rb:
+spec/models/user_spec.rb:
   * [122] [TODO] Verify the user that has a subscription works
 ```
 
@@ -468,12 +477,13 @@ Rails comes with a test suite called `Test::Unit`. Rails owes its stability to t
 
 The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
 
-The `tmp:` namespaced tasks will help you clear the `Rails.root/tmp` directory:
+The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 
 * `rake tmp:cache:clear` clears `tmp/cache`.
 * `rake tmp:sessions:clear` clears `tmp/sessions`.
 * `rake tmp:sockets:clear` clears `tmp/sockets`.
 * `rake tmp:clear` clears all the three: cache, sessions and sockets.
+* `rake tmp:create` creates tmp directories for sessions, cache, sockets, and pids.
 
 ### Miscellaneous
 

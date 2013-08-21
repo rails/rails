@@ -1,3 +1,4 @@
+require 'date'
 require 'active_support/inflector/methods'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/calculations'
@@ -18,6 +19,7 @@ class DateTime
   #   datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
   #   datetime.to_formatted_s(:long_ordinal)  # => "December 4th, 2007 00:00"
   #   datetime.to_formatted_s(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
+  #   datetime.to_formatted_s(:iso8601)       # => "2007-12-04T00:00:00+00:00"
   #
   # == Adding your own datetime formats to to_formatted_s
   # DateTime formats are shared with Time. You can add your own to the
@@ -77,6 +79,16 @@ class DateTime
   # Converts +self+ to an integer number of seconds since the Unix epoch.
   def to_i
     seconds_since_unix_epoch.to_i
+  end
+
+  # Returns the fraction of a second as microseconds
+  def usec
+    (sec_fraction * 1_000_000).to_i
+  end
+
+  # Returns the fraction of a second as nanoseconds
+  def nsec
+    (sec_fraction * 1_000_000_000).to_i
   end
 
   private

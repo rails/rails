@@ -39,7 +39,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -51,7 +51,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -63,7 +63,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -75,7 +75,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 

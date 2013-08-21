@@ -56,9 +56,9 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
     end
   end
 
-  def test_setting_nokogiri_as_backend
-    XmlMini.backend = 'Nokogiri'
-    assert_equal XmlMini_Nokogiri, XmlMini.backend
+  def test_setting_nokogirisax_as_backend
+    XmlMini.backend = 'NokogiriSAX'
+    assert_equal XmlMini_NokogiriSAX, XmlMini.backend
   end
 
   def test_blank_returns_empty_hash
@@ -209,7 +209,8 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
   private
     def assert_equal_rexml(xml)
       parsed_xml = XmlMini.parse(xml)
-      hash = XmlMini.with_backend('REXML') { parsed_xml }
+      xml.rewind if xml.respond_to?(:rewind)
+      hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
       assert_equal(hash, parsed_xml)
     end
 end

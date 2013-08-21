@@ -1,4 +1,7 @@
+# encoding: utf-8
+
 require "cases/helper"
+require 'active_support/concurrency/latch'
 require 'models/post'
 require 'models/author'
 require 'models/topic'
@@ -581,10 +584,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed", post.body
   end
 
-  def test_attr_readonly_is_class_level_setting
-    post = ReadonlyTitlePost.new
-    assert_raise(NoMethodError) { post._attr_readonly = [:title] }
-    assert_deprecated { post._attr_readonly }
+  def test_unicode_column_name
+    weird = Weird.create(:なまえ => 'たこ焼き仮面')
+    assert_equal 'たこ焼き仮面', weird.なまえ
   end
 
   def test_non_valid_identifier_column_name
@@ -1228,93 +1230,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_no_queries { assert true }
   end
 
-  def test_to_param_should_return_string
-    assert_kind_of String, Client.first.to_param
-  end
-
-  def test_to_param_returns_id_even_if_not_persisted
-    client = Client.new
-    client.id = 1
-    assert_equal "1", client.to_param
-  end
-
-  def test_inspect_class
-    assert_equal 'ActiveRecord::Base', ActiveRecord::Base.inspect
-    assert_equal 'LoosePerson(abstract)', LoosePerson.inspect
-    assert_match(/^Topic\(id: integer, title: string/, Topic.inspect)
-  end
-
-  def test_inspect_instance
-    topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", important: nil, approved: false, replies_count: 1, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}">), topic.inspect
-  end
-
-  def test_inspect_new_instance
-    assert_match(/Topic id: nil/, Topic.new.inspect)
-  end
-
-  def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.all.merge!(:select => 'id', :where => 'id = 1').first.inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(:select => 'id, title', :where => 'id = 1').first.inspect
-  end
-
-  def test_inspect_class_without_table
-    assert_equal "NonExistentTable(Table doesn't exist)", NonExistentTable.inspect
-  end
-
-  def test_attribute_for_inspect
-    t = topics(:first)
-    t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
-
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
-    assert_equal '"The First Topic Now Has A Title With\nNewlines And M..."', t.attribute_for_inspect(:title)
-  end
-
-  def test_becomes
-    assert_kind_of Reply, topics(:first).becomes(Reply)
-    assert_equal "The First Topic", topics(:first).becomes(Reply).title
-  end
-
-  def test_becomes_includes_errors
-    company = Company.new(:name => nil)
-    assert !company.valid?
-    original_errors = company.errors
-    client = company.becomes(Client)
-    assert_equal original_errors, client.errors
-  end
-
-  def test_silence_sets_log_level_to_error_in_block
-    original_logger = ActiveRecord::Base.logger
-
-    assert_deprecated do
-      log = StringIO.new
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-      ActiveRecord::Base.logger.level = Logger::DEBUG
-      ActiveRecord::Base.silence do
-        ActiveRecord::Base.logger.warn "warn"
-        ActiveRecord::Base.logger.error "error"
-      end
-      assert_equal "error\n", log.string
-    end
-  ensure
-    ActiveRecord::Base.logger = original_logger
-  end
-
-  def test_silence_sets_log_level_back_to_level_before_yield
-    original_logger = ActiveRecord::Base.logger
-
-    assert_deprecated do
-      log = StringIO.new
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-      ActiveRecord::Base.logger.level = Logger::WARN
-      ActiveRecord::Base.silence do
-      end
-      assert_equal Logger::WARN, ActiveRecord::Base.logger.level
-    end
-  ensure
-    ActiveRecord::Base.logger = original_logger
-  end
-
   def test_benchmark_with_log_level
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
@@ -1377,9 +1292,9 @@ class BasicsTest < ActiveRecord::TestCase
     UnloadablePost.send(:current_scope=, UnloadablePost.all)
 
     UnloadablePost.unloadable
-    assert_not_nil Thread.current[:UnloadablePost_current_scope]
+    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, "UnloadablePost")
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil Thread.current[:UnloadablePost_current_scope]
+    assert_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, "UnloadablePost")
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end
@@ -1431,74 +1346,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [], AbstractCompany.attribute_names
   end
 
-  def test_cache_key_for_existing_record_is_not_timezone_dependent
-    ActiveRecord::Base.time_zone_aware_attributes = true
-
-    Time.zone = "UTC"
-    utc_key = Developer.first.cache_key
-
-    Time.zone = "EST"
-    est_key = Developer.first.cache_key
-
-    assert_equal utc_key, est_key
-  end
-
-  def test_cache_key_format_for_existing_record_with_updated_at
-    dev = Developer.first
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
-  end
-
-  def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
-    dev = CachedDeveloper.first
-    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
-  end
-
-  def test_cache_key_changes_when_child_touched
-    car = Car.create
-    Bulb.create(car: car)
-
-    key = car.cache_key
-    car.bulb.touch
-    car.reload
-    assert_not_equal key, car.cache_key
-  end
-
-  def test_cache_key_format_for_existing_record_with_nil_updated_timestamps
-    dev = Developer.first
-    dev.update_columns(updated_at: nil, updated_on: nil)
-    assert_match(/\/#{dev.id}$/, dev.cache_key)
-  end
-
-  def test_cache_key_for_updated_on
-    dev = Developer.first
-    dev.updated_at = nil
-    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
-  end
-
-  def test_cache_key_for_newer_updated_at
-    dev = Developer.first
-    dev.updated_at += 3600
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
-  end
-
-  def test_cache_key_for_newer_updated_on
-    dev = Developer.first
-    dev.updated_on += 3600
-    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
-  end
-
   def test_touch_should_raise_error_on_a_new_object
     company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
     assert_raises(ActiveRecord::ActiveRecordError) do
       company.touch :updated_at
     end
-  end
-
-  def test_cache_key_format_is_precise_enough
-    dev = Developer.first
-    key = dev.cache_key
-    dev.touch
-    assert_not_equal key, dev.cache_key
   end
 
   def test_uniq_delegates_to_scoped
@@ -1614,21 +1466,20 @@ class BasicsTest < ActiveRecord::TestCase
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     after_handler = nil
-    is_set = false
+    latch1 = ActiveSupport::Concurrency::Latch.new
+    latch2 = ActiveSupport::Concurrency::Latch.new
 
     t = Thread.new do
       klass.connection_handler = new_handler
-      is_set = true
-      Thread.stop
+      latch1.release
+      latch2.await
       after_handler = klass.connection_handler
     end
 
-    while(!is_set)
-      Thread.pass
-    end
+    latch1.await
 
     klass.connection_handler = orig_handler
-    t.wakeup
+    latch2.release
     t.join
 
     assert_equal after_handler, new_handler

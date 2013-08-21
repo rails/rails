@@ -5,26 +5,11 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      super + [:join_table, :association_foreign_key, :delete_sql, :insert_sql]
+      super + [:join_table, :association_foreign_key]
     end
 
-    def build
-      reflection = super
-      define_destroy_hook
-      reflection
-    end
-
-    def show_deprecation_warnings
+    def define_callbacks(model, reflection)
       super
-
-      [:delete_sql, :insert_sql].each do |name|
-        if options.include? name
-          ActiveSupport::Deprecation.warn("The :#{name} association option is deprecated. Please find an alternative (such as using has_many :through).")
-        end
-      end
-    end
-
-    def define_destroy_hook
       name = self.name
       model.send(:include, Module.new {
         class_eval <<-RUBY, __FILE__, __LINE__ + 1

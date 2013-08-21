@@ -218,13 +218,6 @@ module ActiveRecord
           execute "ROLLBACK"
         end
 
-        def outside_transaction?
-          message = "#outside_transaction? is deprecated. This method was only really used " \
-                    "internally, but you can use #transaction_open? instead."
-          ActiveSupport::Deprecation.warn message
-          @connection.transaction_status == PGconn::PQTRANS_IDLE
-        end
-
         def create_savepoint
           execute("SAVEPOINT #{current_savepoint_name}")
         end

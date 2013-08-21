@@ -12,86 +12,126 @@ module ActiveRecord::Associations::Builder
       !options[:polymorphic]
     end
 
-    def build
-      reflection = super
-      add_counter_cache_callbacks(reflection) if options[:counter_cache]
-      add_touch_callbacks(reflection)         if options[:touch]
-      reflection
+    def valid_dependent_options
+      [:destroy, :delete]
     end
 
-    def add_counter_cache_callbacks(reflection)
-      cache_column = reflection.counter_cache_column
-      foreign_key = reflection.foreign_key
+    def define_callbacks(model, reflection)
+      super
+      add_counter_cache_callbacks(model, reflection) if options[:counter_cache]
+      add_touch_callbacks(model, reflection)         if options[:touch]
+    end
 
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_counter_cache_after_create_for_#{name}
-          record = #{name}
-          record.class.increment_counter(:#{cache_column}, record.id) unless record.nil?
-          @_after_create_counter_called = true
-        end
+    def define_accessors(mixin)
+      super
+      add_counter_cache_methods mixin
+    end
 
-        def belongs_to_counter_cache_before_destroy_for_#{name}
-          unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == #{foreign_key.to_sym.inspect}
-            record = #{name}
-            record.class.decrement_counter(:#{cache_column}, record.id) unless record.nil?
+    private
+
+    def add_counter_cache_methods(mixin)
+      return if mixin.method_defined? :belongs_to_counter_cache_after_create
+
+      mixin.class_eval do
+        def belongs_to_counter_cache_after_create(association, reflection)
+          if record = send(association.name)
+            cache_column = reflection.counter_cache_column
+            record.class.increment_counter(cache_column, record.id)
+            @_after_create_counter_called = true
           end
         end
 
-        def belongs_to_counter_cache_after_update_for_#{name}
+        def belongs_to_counter_cache_before_destroy(association, reflection)
+          foreign_key = reflection.foreign_key.to_sym
+          unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+            record = send association.name
+            if record && !self.destroyed?
+              cache_column = reflection.counter_cache_column
+              record.class.decrement_counter(cache_column, record.id)
+            end
+          end
+        end
+
+        def belongs_to_counter_cache_after_update(association, reflection)
+          foreign_key  = reflection.foreign_key
+          cache_column = reflection.counter_cache_column
+
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif self.#{foreign_key}_changed? && !new_record? && defined?(#{name.to_s.camelize})
-            model = #{name.to_s.camelize}
-            foreign_key_was = self.#{foreign_key}_was
-            foreign_key = self.#{foreign_key}
+          elsif attribute_changed?(foreign_key) && !new_record? && association.constructable?
+            model           = reflection.klass
+            foreign_key_was = attribute_was foreign_key
+            foreign_key     = attribute foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
-              model.increment_counter(:#{cache_column}, foreign_key)
+              model.increment_counter(cache_column, foreign_key)
             end
             if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(:#{cache_column}, foreign_key_was)
+              model.decrement_counter(cache_column, foreign_key_was)
             end
           end
         end
-      CODE
+      end
+    end
 
-      model.after_create   "belongs_to_counter_cache_after_create_for_#{name}"
-      model.before_destroy "belongs_to_counter_cache_before_destroy_for_#{name}"
-      model.after_update   "belongs_to_counter_cache_after_update_for_#{name}"
+    def add_counter_cache_callbacks(model, reflection)
+      cache_column = reflection.counter_cache_column
+      association = self
+
+      model.after_create lambda { |record|
+        record.belongs_to_counter_cache_after_create(association, reflection)
+      }
+
+      model.before_destroy lambda { |record|
+        record.belongs_to_counter_cache_before_destroy(association, reflection)
+      }
+
+      model.after_update lambda { |record|
+        record.belongs_to_counter_cache_after_update(association, reflection)
+      }
 
       klass = reflection.class_name.safe_constantize
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def add_touch_callbacks(reflection)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def belongs_to_touch_after_save_or_destroy_for_#{name}
-          foreign_key_field = #{reflection.foreign_key.inspect}
-          old_foreign_id    = attribute_was(foreign_key_field)
+    def self.touch_record(o, foreign_key, name, touch) # :nodoc:
+      old_foreign_id = o.changed_attributes[foreign_key]
 
-          if old_foreign_id
-            reflection_klass = #{reflection.klass}
-            old_record       = reflection_klass.find_by(reflection_klass.primary_key => old_foreign_id)
+      if old_foreign_id
+        klass      = o.association(name).klass
+        old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
-            if old_record
-              old_record.touch #{options[:touch].inspect if options[:touch] != true}
-            end
-          end
-
-          record = #{name}
-          unless record.nil? || record.new_record?
-            record.touch #{options[:touch].inspect if options[:touch] != true}
+        if old_record
+          if touch != true
+            old_record.touch touch
+          else
+            old_record.touch
           end
         end
-      CODE
+      end
 
-      model.after_save    "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      model.after_touch   "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      model.after_destroy "belongs_to_touch_after_save_or_destroy_for_#{name}"
+      record = o.send name
+      unless record.nil? || record.new_record?
+        if touch != true
+          record.touch touch
+        else
+          record.touch
+        end
+      end
     end
 
-    def valid_dependent_options
-      [:destroy, :delete]
+    def add_touch_callbacks(model, reflection)
+      foreign_key = reflection.foreign_key
+      n           = name
+      touch       = options[:touch]
+
+      callback = lambda { |record|
+        BelongsTo.touch_record(record, foreign_key, n, touch)
+      }
+
+      model.after_save    callback
+      model.after_touch   callback
+      model.after_destroy callback
     end
   end
 end

@@ -117,6 +117,18 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_middle_of_day
+    assert_equal Time.local(2005,2,4,12,0,0), Time.local(2005,2,4,10,10,10).middle_of_day
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2006,4,2,12,0,0), Time.local(2006,4,2,10,10,10).middle_of_day, 'start DST'
+      assert_equal Time.local(2006,10,29,12,0,0), Time.local(2006,10,29,10,10,10).middle_of_day, 'ends DST'
+    end
+    with_env_tz 'NZ' do
+      assert_equal Time.local(2006,3,19,12,0,0), Time.local(2006,3,19,10,10,10).middle_of_day, 'ends DST'
+      assert_equal Time.local(2006,10,1,12,0,0), Time.local(2006,10,1,10,10,10).middle_of_day, 'start DST'
+    end
+  end
+
   def test_beginning_of_hour
     assert_equal Time.local(2005,2,4,19,0,0), Time.local(2005,2,4,19,30,10).beginning_of_hour
   end
@@ -509,6 +521,9 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     with_env_tz "US/Central" do
       assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:rfc822)
       assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:rfc822)
+      assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
+      assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_s(:iso8601)
+      assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
     end
   end
 
@@ -576,58 +591,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_days_in_month_feb_in_leap_year_without_year_arg
     Time.stubs(:now).returns(Time.utc(2008))
     assert_equal 29, Time.days_in_month(2)
-  end
-
-  def test_time_with_datetime_fallback
-    ActiveSupport::Deprecation.silence do
-      assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30), Time.utc(2005, 2, 21, 17, 44, 30)
-      assert_equal Time.time_with_datetime_fallback(:local, 2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30)
-      assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0)
-      assert_equal Time.time_with_datetime_fallback(:local, 2039, 2, 21, 17, 44, 30), DateTime.civil_from_format(:local, 2039, 2, 21, 17, 44, 30)
-      assert_equal Time.time_with_datetime_fallback(:utc, 1900, 2, 21, 17, 44, 30), DateTime.civil(1900, 2, 21, 17, 44, 30, 0)
-      assert_equal Time.time_with_datetime_fallback(:utc, 2005), Time.utc(2005)
-      assert_equal Time.time_with_datetime_fallback(:utc, 2039), DateTime.civil(2039, 1, 1, 0, 0, 0, 0)
-      assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30, 1), Time.utc(2005, 2, 21, 17, 44, 30, 1) #with usec
-      # This won't overflow on 64bit linux
-      unless time_is_64bits?
-        assert_equal Time.time_with_datetime_fallback(:local, 1900, 2, 21, 17, 44, 30), DateTime.civil_from_format(:local, 1900, 2, 21, 17, 44, 30)
-        assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1),
-                     DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
-        assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
-      end
-      silence_warnings do
-        0.upto(138) do |year|
-          [:utc, :local].each do |format|
-            assert_equal year, Time.time_with_datetime_fallback(format, year).year
-          end
-        end
-      end
-    end
-  end
-
-  def test_utc_time
-    ActiveSupport::Deprecation.silence do
-      assert_equal Time.utc_time(2005, 2, 21, 17, 44, 30), Time.utc(2005, 2, 21, 17, 44, 30)
-      assert_equal Time.utc_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0)
-      assert_equal Time.utc_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, 0)
-    end
-  end
-
-  def test_local_time
-    ActiveSupport::Deprecation.silence do
-      assert_equal Time.local_time(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30)
-      assert_equal Time.local_time(2039, 2, 21, 17, 44, 30), DateTime.civil_from_format(:local, 2039, 2, 21, 17, 44, 30)
-
-      unless time_is_64bits?
-        assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil_from_format(:local, 1901, 2, 21, 17, 44, 30)
-      end
-    end
-  end
-
-  def test_time_with_datetime_fallback_deprecations
-    assert_deprecated(/time_with_datetime_fallback/) { Time.time_with_datetime_fallback(:utc, 2012, 6, 7) }
-    assert_deprecated(/utc_time/) { Time.utc_time(2012, 6, 7) }
-    assert_deprecated(/local_time/) { Time.local_time(2012, 6, 7) }
   end
 
   def test_last_month_on_31st
@@ -741,6 +704,82 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
   end
 
+  def test_at_with_datetime
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
+
+    # Only test this if the underlying Time.at raises a TypeError
+    begin
+      Time.at_without_coercion(Time.now, 0)
+    rescue TypeError
+      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0)) }
+    end
+  end
+
+  def test_at_with_datetime_returns_local_time
+    with_env_tz 'US/Eastern' do
+      dt = DateTime.civil(2000, 1, 1, 0, 0, 0, '+0')
+      assert_equal Time.local(1999, 12, 31, 19, 0, 0), Time.at(dt)
+      assert_equal 'EST', Time.at(dt).zone
+      assert_equal(-18000, Time.at(dt).utc_offset)
+
+      # Daylight savings
+      dt = DateTime.civil(2000, 7, 1, 1, 0, 0, '+1')
+      assert_equal Time.local(2000, 6, 30, 20, 0, 0), Time.at(dt)
+      assert_equal 'EDT', Time.at(dt).zone
+      assert_equal(-14400, Time.at(dt).utc_offset)
+    end
+  end
+
+  def test_at_with_time_with_zone
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']))
+
+    # Only test this if the underlying Time.at raises a TypeError
+    begin
+      Time.at_without_coercion(Time.now, 0)
+    rescue TypeError
+      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']), 0)) }
+    end
+  end
+
+  def test_at_with_time_with_zone_returns_local_time
+    with_env_tz 'US/Eastern' do
+      twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['London'])
+      assert_equal Time.local(1999, 12, 31, 19, 0, 0), Time.at(twz)
+      assert_equal 'EST', Time.at(twz).zone
+      assert_equal(-18000, Time.at(twz).utc_offset)
+
+      # Daylight savings
+      twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 7, 1, 0, 0, 0), ActiveSupport::TimeZone['London'])
+      assert_equal Time.local(2000, 6, 30, 20, 0, 0), Time.at(twz)
+      assert_equal 'EDT', Time.at(twz).zone
+      assert_equal(-14400, Time.at(twz).utc_offset)
+    end
+  end
+
+  def test_at_with_time_microsecond_precision
+    assert_equal Time.at(Time.utc(2000, 1, 1, 0, 0, 0, 111)).to_f, Time.utc(2000, 1, 1, 0, 0, 0, 111).to_f
+  end
+
+  def test_at_with_utc_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.utc(2000), Time.at(Time.utc(2000))
+      assert_equal 'UTC', Time.at(Time.utc(2000)).zone
+      assert_equal(0, Time.at(Time.utc(2000)).utc_offset)
+    end
+  end
+
+  def test_at_with_local_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2000), Time.at(Time.local(2000))
+      assert_equal 'EST', Time.at(Time.local(2000)).zone
+      assert_equal(-18000, Time.at(Time.local(2000)).utc_offset)
+
+      assert_equal Time.local(2000, 7, 1), Time.at(Time.local(2000, 7, 1))
+      assert_equal 'EDT', Time.at(Time.local(2000, 7, 1)).zone
+      assert_equal(-14400, Time.at(Time.local(2000, 7, 1)).utc_offset)
+    end
+  end
+
   def test_eql?
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']) )
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
@@ -810,9 +849,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
 
-    def time_is_64bits?
-      Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).is_a?(Time)
-    end
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase
@@ -853,12 +889,5 @@ class TimeExtMarshalingTest < ActiveSupport::TestCase
 
   def test_last_quarter_on_31st
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 5, 31).last_quarter
-  end
-end
-
-class TimeExtBehaviorTest < ActiveSupport::TestCase
-  def test_compare_with_infinity
-    assert_equal(-1, Time.now <=> Float::INFINITY)
-    assert_equal(1, Time.now <=> -Float::INFINITY)
   end
 end

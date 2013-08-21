@@ -257,6 +257,26 @@ module CacheStoreBehavior
     assert_equal({"fu" => "baz"}, @cache.read_multi('foo', 'fu'))
   end
 
+  def test_fetch_multi
+    @cache.write('foo', 'bar')
+    @cache.write('fud', 'biz')
+
+    values = @cache.fetch_multi('foo', 'fu', 'fud') {|value| value * 2 }
+
+    assert_equal(["bar", "fufu", "biz"], values)
+    assert_equal("fufu", @cache.read('fu'))
+  end
+
+  def test_multi_with_objects
+    foo = stub(:title => "FOO!", :cache_key => "foo")
+    bar = stub(:cache_key => "bar")
+
+    @cache.write('bar', "BAM!")
+
+    values = @cache.fetch_multi(foo, bar) {|object| object.title }
+    assert_equal(["FOO!", "BAM!"], values)
+  end
+
   def test_read_and_write_compressed_small_data
     @cache.write('foo', 'bar', :compress => true)
     assert_equal 'bar', @cache.read('foo')
@@ -307,8 +327,8 @@ module CacheStoreBehavior
 
   def test_exist
     @cache.write('foo', 'bar')
-    assert @cache.exist?('foo')
-    assert !@cache.exist?('bar')
+    assert_equal true, @cache.exist?('foo')
+    assert_equal false, @cache.exist?('bar')
   end
 
   def test_nil_exist
@@ -405,7 +425,7 @@ module CacheStoreBehavior
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
-# The error is caused by charcter encodings that can't be compared with ASCII-8BIT regular expressions and by special
+# The error is caused by character encodings that can't be compared with ASCII-8BIT regular expressions and by special
 # characters like the umlaut in UTF-8.
 module EncodedKeyCacheBehavior
   Encoding.list.each do |encoding|
@@ -693,8 +713,8 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = ActiveSupport::Cache::Entry.new("aaaaaaaaaa").size
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10)
+    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
   end
 
   include CacheStoreBehavior
@@ -741,6 +761,30 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(4)
     assert !@cache.exist?(3), "no entry"
     assert @cache.exist?(2)
+    assert !@cache.exist?(1), "no entry"
+  end
+
+  def test_prune_size_on_write_based_on_key_length
+    @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
+    @cache.write(2, "bbbbbbbbbb") && sleep(0.001)
+    @cache.write(3, "cccccccccc") && sleep(0.001)
+    @cache.write(4, "dddddddddd") && sleep(0.001)
+    @cache.write(5, "eeeeeeeeee") && sleep(0.001)
+    @cache.write(6, "ffffffffff") && sleep(0.001)
+    @cache.write(7, "gggggggggg") && sleep(0.001)
+    @cache.write(8, "hhhhhhhhhh") && sleep(0.001)
+    @cache.write(9, "iiiiiiiiii") && sleep(0.001)
+    long_key = '*' * 2 * @record_size
+    @cache.write(long_key, "llllllllll")
+    assert @cache.exist?(long_key)
+    assert @cache.exist?(9)
+    assert @cache.exist?(8)
+    assert @cache.exist?(7)
+    assert @cache.exist?(6)
+    assert !@cache.exist?(5), "no entry"
+    assert !@cache.exist?(4), "no entry"
+    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(2), "no entry"
     assert !@cache.exist?(1), "no entry"
   end
 
@@ -943,29 +987,28 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal value.bytesize, entry.size
   end
 
-  def test_restoring_version_3_entries
-    version_3_entry = ActiveSupport::Cache::Entry.allocate
-    version_3_entry.instance_variable_set(:@value, "hello")
-    version_3_entry.instance_variable_set(:@created_at, Time.now - 60)
-    entry = Marshal.load(Marshal.dump(version_3_entry))
+  def test_restoring_version_4beta1_entries
+    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
+    version_4beta1_entry.instance_variable_set(:@v, "hello")
+    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i + 60)
+    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
     assert_equal "hello", entry.value
     assert_equal false, entry.expired?
   end
 
-  def test_restoring_compressed_version_3_entries
-    version_3_entry = ActiveSupport::Cache::Entry.allocate
-    version_3_entry.instance_variable_set(:@value, Zlib::Deflate.deflate(Marshal.dump("hello")))
-    version_3_entry.instance_variable_set(:@compressed, true)
-    entry = Marshal.load(Marshal.dump(version_3_entry))
+  def test_restoring_compressed_version_4beta1_entries
+    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
+    version_4beta1_entry.instance_variable_set(:@v, Zlib::Deflate.deflate(Marshal.dump("hello")))
+    version_4beta1_entry.instance_variable_set(:@c, true)
+    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
     assert_equal "hello", entry.value
   end
 
-  def test_restoring_expired_version_3_entries
-    version_3_entry = ActiveSupport::Cache::Entry.allocate
-    version_3_entry.instance_variable_set(:@value, "hello")
-    version_3_entry.instance_variable_set(:@created_at, Time.now - 60)
-    version_3_entry.instance_variable_set(:@expires_in, 58.9)
-    entry = Marshal.load(Marshal.dump(version_3_entry))
+  def test_restoring_expired_version_4beta1_entries
+    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
+    version_4beta1_entry.instance_variable_set(:@v, "hello")
+    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i - 1)
+    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
     assert_equal "hello", entry.value
     assert_equal true, entry.expired?
   end

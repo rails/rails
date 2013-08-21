@@ -201,6 +201,7 @@ module ActionController
     # You may declare that the parameter should be an array of permitted scalars
     # by mapping it to an empty array:
     #
+    #   params = ActionController::Parameters.new(tags: ['rails', 'parameters'])
     #   params.permit(tags: [])
     #
     # You can also use +permit+ on nested parameters, like:
@@ -230,7 +231,7 @@ module ActionController
     #   params = ActionController::Parameters.new({
     #     person: {
     #       contact: {
-    #         email: 'none@test.com'
+    #         email: 'none@test.com',
     #         phone: '555-1234'
     #       }
     #     }

@@ -89,6 +89,13 @@ module AbstractController
         )
       end
 
+      def test_subdomain_may_be_removed_with_blank_string
+        W.default_url_options[:host] = 'api.basecamphq.com'
+        assert_equal('http://basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => '', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_multiple_subdomains_may_be_removed
         W.default_url_options[:host] = 'mobile.www.api.basecamphq.com'
         assert_equal('http://basecamphq.com/c/a/i',

@@ -150,9 +150,4 @@ class StoreTest < ActiveRecord::TestCase
   test "all stored attributes are returned" do
     assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
   end
-
-  test "stores_attributes are class level settings" do
-    assert_raise(NoMethodError) { @john.stored_attributes = Hash.new }
-    assert_raise(NoMethodError) { @john.stored_attributes }
-  end
 end

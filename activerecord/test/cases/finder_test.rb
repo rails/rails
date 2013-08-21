@@ -31,6 +31,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_symbols_table_ref
+    Post.first # warm up
+    x = Symbol.all_symbols.count
+    Post.where("title" => {"xxxqqqq" => "bar"})
+    assert_equal x, Symbol.all_symbols.count
+  end
+
   # find should handle strings that come from URLs
   # (example: Category.find(params[:id]))
   def test_find_with_string
@@ -38,16 +45,18 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists
-    assert Topic.exists?(1)
-    assert Topic.exists?("1")
-    assert Topic.exists?(:author_name => "David")
-    assert Topic.exists?(:author_name => "Mary", :approved => true)
-    assert Topic.exists?(["parent_id = ?", 1])
-    assert !Topic.exists?(45)
-    assert !Topic.exists?(Topic.new)
+    assert_equal true, Topic.exists?(1)
+    assert_equal true, Topic.exists?("1")
+    assert_equal true, Topic.exists?(title: "The First Topic")
+    assert_equal true, Topic.exists?(heading: "The First Topic")
+    assert_equal true, Topic.exists?(:author_name => "Mary", :approved => true)
+    assert_equal true, Topic.exists?(["parent_id = ?", 1])
+
+    assert_equal false, Topic.exists?(45)
+    assert_equal false, Topic.exists?(Topic.new)
 
     begin
-      assert !Topic.exists?("foo")
+      assert_equal false, Topic.exists?("foo")
     rescue ActiveRecord::StatementInvalid
       # PostgreSQL complains about string comparison with integer field
     rescue Exception
@@ -64,49 +73,62 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_returns_true_with_one_record_and_no_args
-    assert Topic.exists?
+    assert_equal true, Topic.exists?
   end
 
   def test_exists_returns_false_with_false_arg
-    assert !Topic.exists?(false)
+    assert_equal false, Topic.exists?(false)
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
-    assert !Topic.exists?(nil)
-    assert Topic.exists?
-    assert !Topic.first.replies.exists?(nil)
-    assert Topic.first.replies.exists?
+    assert_equal false, Topic.exists?(nil)
+    assert_equal true, Topic.exists?
+
+    assert_equal false, Topic.first.replies.exists?(nil)
+    assert_equal true, Topic.first.replies.exists?
   end
 
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
-    assert Topic.order(:id).distinct.exists?
+    assert_equal true, Topic.order(:id).distinct.exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
-    assert !Topic.includes(:replies).limit(0).exists?
-    assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+    assert_equal false, Topic.includes(:replies).limit(0).exists?
+    assert_equal false, Topic.includes(:replies).limit(1).where('0 = 1').exists?
+  end
+
+  def test_exists_with_distinct_association_includes_and_limit
+    author = Author.first
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+  end
+
+  def test_exists_with_distinct_association_includes_limit_and_order
+    author = Author.first
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
-    assert !Topic.exists?
+    assert_equal false, Topic.exists?
   end
 
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
-    assert Customer.exists?(:address => existing_address)
+    assert_equal true, Customer.exists?(:address => existing_address)
   end
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
@@ -593,7 +615,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_named_bind_with_postgresql_type_casts
     l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
     assert_nothing_raised(&l)
-    assert_equal "#{ActiveRecord::Base.quote_value('10')}::integer '2009-01-01'::date", l.call
+    assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
   def test_string_sanitation
@@ -833,6 +855,8 @@ class FinderTest < ActiveRecord::TestCase
     rescue ActiveRecord::RecordNotFound => e
       assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
     end
+  ensure
+    Toy.reset_primary_key
   end
 
   def test_finder_with_offset_string
@@ -853,12 +877,5 @@ class FinderTest < ActiveRecord::TestCase
       yield
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
-    def with_active_record_default_timezone(zone)
-      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
-      yield
-    ensure
-      ActiveRecord::Base.default_timezone = old_zone
     end
 end

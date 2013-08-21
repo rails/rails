@@ -15,12 +15,12 @@ class Array
   #
   # * If the argument responds to +to_ary+ the method is invoked. <tt>Kernel#Array</tt>
   #   moves on to try +to_a+ if the returned value is +nil+, but <tt>Array.wrap</tt> returns
-  #   such a +nil+ right away.
+  #   +nil+ right away.
   # * If the returned value from +to_ary+ is neither +nil+ nor an +Array+ object, <tt>Kernel#Array</tt>
   #   raises an exception, while <tt>Array.wrap</tt> does not, it just returns the value.
-  # * It does not call +to_a+ on the argument, though special-cases +nil+ to return an empty array.
+  # * It does not call +to_a+ on the argument, but returns an empty array if argument is +nil+.
   #
-  # The last point is particularly worth comparing for some enumerables:
+  # The second point is easily explained with some enumerables:
   #
   #   Array(foo: :bar)      # => [[:foo, :bar]]
   #   Array.wrap(foo: :bar) # => [{:foo=>:bar}]
@@ -29,10 +29,10 @@ class Array
   #
   #   [*object]
   #
-  # which for +nil+ returns <tt>[]</tt>, and calls to <tt>Array(object)</tt> otherwise.
+  # which returns <tt>[]</tt> for +nil+, but calls to <tt>Array(object)</tt> otherwise.
   #
-  # Thus, in this case the behavior may be different for +nil+, and the differences with
-  # <tt>Kernel#Array</tt> explained above apply to the rest of <tt>object</tt>s.
+  # The differences with <tt>Kernel#Array</tt> explained above
+  # apply to the rest of <tt>object</tt>s.
   def self.wrap(object)
     if object.nil?
       []

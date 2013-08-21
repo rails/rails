@@ -11,6 +11,23 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
+      # Creates new flash types. You can pass as many types as you want to create
+      # flash types other than the default <tt>alert</tt> and <tt>notice</tt> in
+      # your controllers and views. For instance:
+      #
+      #   # in application_controller.rb
+      #   class ApplicationController < ActionController::Base
+      #     add_flash_types :warning
+      #   end
+      #
+      #   # in your controller
+      #   redirect_to user_path(@user), warning: "Incomplete profile"
+      #
+      #   # in your view
+      #   <%= warning %>
+      #
+      # This method will automatically define a new method for each of the given
+      # names, and it will be available in your views.
       def add_flash_types(*types)
         types.each do |type|
           next if _flash_types.include?(type)

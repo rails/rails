@@ -15,24 +15,23 @@ class String
   #   "2012-12-13 06:12".to_time         # => 2012-12-13 06:12:00 +0100
   #   "2012-12-13T06:12".to_time         # => 2012-12-13 06:12:00 +0100
   #   "2012-12-13T06:12".to_time(:utc)   # => 2012-12-13 05:12:00 UTC
+  #   "12/13/2012".to_time               # => ArgumentError: argument out of range
   def to_time(form = :local)
     parts = Date._parse(self, false)
     return if parts.empty?
 
     now = Time.now
-    offset = parts[:offset]
-    utc_offset = form == :utc ? 0 : now.utc_offset
-    adjustment = offset ? offset - utc_offset : 0
-
-    Time.send(
-      form,
+    time = Time.new(
       parts.fetch(:year, now.year),
       parts.fetch(:mon, now.month),
       parts.fetch(:mday, now.day),
       parts.fetch(:hour, 0),
       parts.fetch(:min, 0),
-      parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0)
-    ) - adjustment
+      parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+      parts.fetch(:offset, form == :utc ? 0 : nil)
+    )
+
+    form == :utc ? time.utc : time.getlocal
   end
 
   # Converts a string to a Date value.

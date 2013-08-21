@@ -91,7 +91,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should allow attribute filtering with only" do
-    json = @contact.to_json(:only => [:name, :age])
+    json = @contact.to_json(only: [:name, :age])
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
@@ -153,12 +153,6 @@ class JsonSerializationTest < ActiveModel::TestCase
     %w(name age created_at awesome preferences).each do |field|
       assert_equal @contact.send(field), json['contact'][field]
     end
-  end
-
-  test "as_json should keep the default order in the hash" do
-    json = @contact.as_json
-
-    assert_equal %w(name age created_at awesome preferences), json.keys
   end
 
   test "from_json should work without a root (class attribute)" do

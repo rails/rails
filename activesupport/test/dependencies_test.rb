@@ -76,6 +76,14 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_dependency_which_raises_doesnt_blindly_call_blame_file!
+    with_loading do
+      filename = 'dependencies/raises_exception_without_blame_file'
+
+      assert_raises(Exception) { require_dependency filename }
+    end
+  end
+
   def test_warnings_should_be_enabled_on_first_load
     with_loading 'dependencies' do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
@@ -526,7 +534,6 @@ class DependenciesTest < ActiveSupport::TestCase
     m = Module.new
     m.module_eval "def a() CountingLoader; end"
     extend m
-    kls = nil
     with_autoloading_fixtures do
       kls = nil
       assert_nothing_raised { kls = a }

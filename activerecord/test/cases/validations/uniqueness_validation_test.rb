@@ -268,7 +268,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_case_sensitive_uniqueness_with_attribute_passed_as_integer
-    Topic.validates_uniqueness_of(:title, :case_sensitve => true)
+    Topic.validates_uniqueness_of(:title, :case_sensitive => true)
     Topic.create!('title' => 101)
 
     t2 = Topic.new('title' => 101)

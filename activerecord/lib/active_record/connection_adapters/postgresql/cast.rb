@@ -26,6 +26,15 @@ module ActiveRecord
           end
         end
 
+        def string_to_bit(value)
+          case value
+          when /^0x/i
+            value[2..-1].hex.to_s(2) # Hexadecimal notation
+          else
+            value                    # Bit-string notation
+          end
+        end
+
         def hstore_to_string(object)
           if Hash === object
             object.map { |k,v|
@@ -51,7 +60,7 @@ module ActiveRecord
         end
 
         def json_to_string(object)
-          if Hash === object
+          if Hash === object || Array === object
             ActiveSupport::JSON.encode(object)
           else
             object
@@ -91,7 +100,11 @@ module ActiveRecord
           if string.nil?
             nil
           elsif String === string
-            IPAddr.new(string)
+            begin
+              IPAddr.new(string)
+            rescue ArgumentError
+              nil
+            end
           else
             string
           end
@@ -106,7 +119,7 @@ module ActiveRecord
         end
 
         def string_to_array(string, oid)
-          parse_pg_array(string).map{|val| oid.type_cast val}
+          parse_pg_array(string).map {|val| type_cast_array(oid, val)}
         end
 
         private
@@ -135,6 +148,14 @@ module ActiveRecord
               value
             else
               "\"#{value.gsub(/"/,"\\\"")}\""
+            end
+          end
+
+          def type_cast_array(oid, value)
+            if ::Array === value
+              value.map {|item| type_cast_array(oid, item)}
+            else
+              oid.type_cast value
             end
           end
       end

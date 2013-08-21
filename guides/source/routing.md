@@ -36,7 +36,7 @@ the request is dispatched to the `patients` controller's `show` action with `{ i
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs.  If the route above is modified to be:
+You can also generate paths and URLs. If the route above is modified to be:
 
 ```ruby
 get '/patients/:id', to: 'patients#show', as: 'patient'
@@ -138,6 +138,12 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
+Passing a `String` to `match` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
+
+```ruby
+get 'profile', to: :show
+```
+
 This resourceful route:
 
 ```ruby
@@ -164,6 +170,12 @@ A singular resourceful route generates these helpers:
 * `geocoder_path` returns `/geocoder`
 
 As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
+
+WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) prevents `form_for` from working automatically with singular resources. As a workaround, specify the URL for the form directly, like so:
+
+```ruby
+form_for @geocoder, url: geocoder_path do |f|
+```
 
 ### Controller Namespaces and Routing
 
@@ -761,11 +773,11 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/posts/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the params and the request object:
+You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|params, req| "/posts/#{params[:name].pluralize}" }
-get '/stories', to: redirect {|p, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect {|path_params, req| "/posts/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect {|path_params, req| "/posts/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
@@ -797,7 +809,7 @@ You should put the `root` route at the top of the file, because it is the most p
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
-You can also use root inside namespaces and scopes as well.  For example:
+You can also use root inside namespaces and scopes as well. For example:
 
 ```ruby
 namespace :admin do
@@ -851,7 +863,7 @@ resources :user_permissions, controller: 'admin/user_permissions'
 This will route to the `Admin::UserPermissions` controller.
 
 NOTE: Only the directory notation is supported. Specifying the
-controller with ruby constant notation (eg. `:controller =>
+controller with Ruby constant notation (eg. `:controller =>
 'Admin::UserPermissions'`) can lead to routing problems and results in
 a warning.
 

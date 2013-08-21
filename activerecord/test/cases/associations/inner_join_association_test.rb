@@ -46,10 +46,10 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 2, authors.count
   end
 
-  def test_find_with_implicit_inner_joins_honors_readonly_without_select
-    authors = Author.joins(:posts).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| a.readonly? }, "expected all authors to be readonly"
+  def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly
+    authors = Author.joins(:posts)
+    assert_not authors.empty?, "expected authors to be non-empty"
+    assert authors.none? {|a| a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
@@ -103,5 +103,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_find_with_conditions_on_through_reflection
     assert !posts(:welcome).tags.empty?
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
+  end
+
+  test "the default scope of the target is applied when joining associations" do
+    author = Author.create! name: "Jon"
+    author.categorizations.create!
+    author.categorizations.create! special: true
+
+    assert_equal [author], Author.where(id: author).joins(:special_categorizations)
   end
 end

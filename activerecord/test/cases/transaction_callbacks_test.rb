@@ -182,9 +182,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_rollback_when_commit_fails
-    @first.class.connection.class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
+    @first.class.connection.singleton_class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
     begin
-      @first.class.connection.class.class_eval do
+      @first.class.connection.singleton_class.class_eval do
         def commit_db_transaction; raise "boom!"; end
       end
 
@@ -194,8 +194,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       assert !@first.save rescue nil
       assert_equal [:after_rollback], @first.history
     ensure
-      @first.class.connection.class.send(:remove_method, :commit_db_transaction)
-      @first.class.connection.class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
+      @first.class.connection.singleton_class.send(:remove_method, :commit_db_transaction)
+      @first.class.connection.singleton_class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
     end
   end
 
@@ -278,38 +278,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_after_commit_callbacks_should_validate_on_condition
     assert_raise(ArgumentError) { Topic.send(:after_commit, :on => :save) }
-  end
-end
-
-
-class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
-
-  class TopicWithSaveInCallback < ActiveRecord::Base
-    self.table_name = :topics
-    after_commit :cache_topic, :on => :create
-    after_commit :call_update, :on => :update
-    attr_accessor :cached, :record_updated
-
-    def call_update
-      self.record_updated = true
-    end
-
-    def cache_topic
-      unless cached
-        self.cached = true
-        self.save
-      else
-        self.cached = false
-      end
-    end
-  end
-
-  def test_after_commit_in_save
-    topic = TopicWithSaveInCallback.new()
-    topic.save
-    assert_equal true, topic.cached
-    assert_equal true, topic.record_updated
   end
 end
 

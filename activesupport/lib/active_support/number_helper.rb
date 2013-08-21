@@ -244,14 +244,14 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #   number_to_percentage(100)                                 # => 100.000%
-    #   number_to_percentage('98')                                # => 98.000%
-    #   number_to_percentage(100, precision: 0)                   # => 100%
-    #   number_to_percentage(1000, delimiter: '.', separator: ,') # => 1.000,000%
-    #   number_to_percentage(302.24398923423, precision: 5)       # => 302.24399%
-    #   number_to_percentage(1000, locale: :fr)                   # => 1 000,000%
-    #   number_to_percentage('98a')                               # => 98a%
-    #   number_to_percentage(100, format: '%n  %')                # => 100  %
+    #   number_to_percentage(100)                                  # => 100.000%
+    #   number_to_percentage('98')                                 # => 98.000%
+    #   number_to_percentage(100, precision: 0)                    # => 100%
+    #   number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
+    #   number_to_percentage(302.24398923423, precision: 5)        # => 302.24399%
+    #   number_to_percentage(1000, locale: :fr)                    # => 1 000,000%
+    #   number_to_percentage('98a')                                # => 98a%
+    #   number_to_percentage(100, format: '%n  %')                 # => 100  %
     def number_to_percentage(number, options = {})
       return unless number
       options = options.symbolize_keys
@@ -295,7 +295,7 @@ module ActiveSupport
 
       options = format_options(options[:locale]).merge!(options)
 
-      parts = number.to_s.to_str.split('.')
+      parts = number.to_s.split('.')
       parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
       parts.join(options[:separator])
     end
@@ -356,7 +356,8 @@ module ActiveSupport
           digits, rounded_number = 1, 0
         else
           digits = (Math.log10(number.abs) + 1).floor
-          rounded_number = (BigDecimal.new(number.to_s) / BigDecimal.new((10 ** (digits - precision)).to_f.to_s)).round.to_f * 10 ** (digits - precision)
+          multiplier = 10 ** (digits - precision)
+          rounded_number = (BigDecimal.new(number.to_s) / BigDecimal.new(multiplier.to_f.to_s)).round.to_f * multiplier
           digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
         end
         precision -= digits

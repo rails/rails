@@ -27,6 +27,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
+  def test_attribute_for_inspect
+    t = topics(:first)
+    t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
+
+    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:title)
+  end
+
   def test_attribute_present
     t = Topic.new
     t.title = "hello there!"
@@ -130,6 +138,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal '10', keyboard.id_before_type_cast
     assert_equal nil, keyboard.read_attribute_before_type_cast('id')
     assert_equal '10', keyboard.read_attribute_before_type_cast('key_number')
+    assert_equal '10', keyboard.read_attribute_before_type_cast(:key_number)
   end
 
   # Syck calls respond_to? before actually calling initialize
@@ -141,13 +150,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, :title
   end
 
-  # IRB inspects the return value of "MyModel.allocate"
-  # by inspecting it.
+  # IRB inspects the return value of "MyModel.allocate".
   def test_allocated_object_can_be_inspected
     topic = Topic.allocate
-    topic.instance_eval { @attributes = nil }
-    assert_nothing_raised { topic.inspect }
-    assert topic.inspect, "#<Topic not initialized>"
+    assert_equal "#<Topic not initialized>", topic.inspect
   end
 
   def test_array_content
@@ -713,6 +719,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
+  def test_bulk_update_raise_unknown_attribute_errro
+    error = assert_raises(ActiveRecord::UnknownAttributeError) {
+      @target.new(:hello => "world")
+    }
+    assert @target, error.record
+    assert "hello", error.attribute
+    assert "unknown attribute: hello", error.message
+  end
+
   def test_read_attribute_overwrites_private_method_not_considered_implemented
     # simulate a model with a db column that shares its name an inherited
     # private method (e.g. Object#system)
@@ -742,21 +757,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_equal 5, instance.id
     assert subklass.method_defined?(:id), "subklass is missing id method"
-  end
-
-  def test_dispatching_column_attributes_through_method_missing_deprecated
-    Topic.define_attribute_methods
-
-    topic = Topic.new(:id => 5)
-    topic.id = 5
-
-    topic.method(:id).owner.send(:undef_method, :id)
-
-    assert_deprecated do
-      assert_equal 5, topic.id
-    end
-  ensure
-    Topic.undefine_attribute_methods
   end
 
   def test_read_attribute_with_nil_should_not_asplode

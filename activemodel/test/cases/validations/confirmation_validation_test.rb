@@ -13,7 +13,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   def test_no_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.new(:author_name => "Plutarch")
+    t = Topic.new(author_name: "Plutarch")
     assert t.valid?
 
     t.title_confirmation = "Parallel Lives"
@@ -57,8 +57,8 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations('en', {
-      :errors => {:messages => {:confirmation => "doesn't match %{attribute}"}},
-      :activemodel => {:attributes => {:topic => {:title => 'Test Title'}}}
+      errors: { messages: { confirmation: "doesn't match %{attribute}" } },
+      activemodel: { attributes: { topic: { title: 'Test Title'} } }
     })
 
     Topic.validates_confirmation_of(:title)

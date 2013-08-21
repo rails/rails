@@ -94,4 +94,18 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = ""
     assert @user.valid?(:update), "user should be valid"
   end
+
+  test "password_confirmation validations will not be triggered if password_confirmation is not sent" do
+    @user.password = "password"
+    assert @user.valid?(:create)
+  end
+
+  test "will not save if confirmation is blank but password is not" do
+    @user.password = "password"
+    @user.password_confirmation = ""
+    assert_not @user.valid?(:create)
+
+    @user.password_confirmation = "password"
+    assert @user.valid?(:create)
+  end
 end

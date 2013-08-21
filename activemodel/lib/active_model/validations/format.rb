@@ -29,7 +29,7 @@ module ActiveModel
       end
 
       def record_error(record, attribute, name, value)
-        record.errors.add(attribute, :invalid, options.except(name).merge!(:value => value))
+        record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
       end
 
       def regexp_using_multiline_anchors?(regexp)

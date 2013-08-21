@@ -30,7 +30,7 @@ module ActiveRecord
         reset_scope
       end
 
-      # Returns the name of the table of the related class:
+      # Returns the name of the table of the associated class:
       #
       #   post.comments.aliased_table_name # => "comments"
       #
@@ -84,11 +84,6 @@ module ActiveRecord
         target_scope.merge(association_scope)
       end
 
-      def scoped
-        ActiveSupport::Deprecation.warn "#scoped is deprecated. use #scope instead."
-        scope
-      end
-
       # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
@@ -122,7 +117,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        klass.all
+        AssociationRelation.create(klass, klass.arel_table, self).merge!(klass.all)
       end
 
       # Loads the \target if needed and returns it.
@@ -164,6 +159,13 @@ module ActiveRecord
         @reflection = @owner.class.reflect_on_association(reflection_name)
       end
 
+      def initialize_attributes(record) #:nodoc:
+        skip_assign = [reflection.foreign_key, reflection.type].compact
+        attributes = create_scope.except(*(record.changed - skip_assign))
+        record.assign_attributes(attributes)
+        set_inverse_instance(record)
+      end
+
       private
 
         def find_target?
@@ -189,13 +191,14 @@ module ActiveRecord
           creation_attributes.each { |key, value| record[key] = value }
         end
 
-        # Should be true if there is a foreign key present on the owner which
+        # Returns true if there is a foreign key present on the owner which
         # references the target. This is used to determine whether we can load
         # the target if the owner is currently a new record (and therefore
-        # without a key).
+        # without a key). If the owner is a new record then foreign_key must
+        # be present in order to load target.
         #
         # Currently implemented by belongs_to (vanilla and polymorphic) and
-        # has_one/has_many :through associations which go through a belongs_to
+        # has_one/has_many :through associations which go through a belongs_to.
         def foreign_key_present?
           false
         end
@@ -233,10 +236,7 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            skip_assign = [reflection.foreign_key, reflection.type].compact
-            attributes = create_scope.except(*(record.changed - skip_assign))
-            record.assign_attributes(attributes)
-            set_inverse_instance(record)
+            initialize_attributes(record)
           end
         end
     end

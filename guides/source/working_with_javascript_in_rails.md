@@ -185,7 +185,7 @@ $(document).ready ->
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
-start.
+start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 ### form_tag
 
@@ -278,9 +278,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 <b>Users</b>
 
 <ul id="users">
-<% @users.each do |user| %>
-  <%= render user %>
-<% end %>
+<%= render @users %>
 </ul>
 
 <br>

@@ -578,6 +578,10 @@ class BaseTest < ActiveSupport::TestCase
     assert(mail1.to_s.to_i > mail2.to_s.to_i)
   end
 
+  test 'default values which have to_proc (e.g. symbols) should not be considered procs' do
+    assert(ProcMailer.welcome['x-has-to-proc'].to_s == 'symbol')
+  end
+
   test "we can call other defined methods on the class as needed" do
     mail = ProcMailer.welcome
     assert_equal("Thanks for signing up this afternoon", mail.subject)

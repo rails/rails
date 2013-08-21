@@ -693,6 +693,17 @@ There are a few limitations to `inverse_of` support:
 * They do not work with `:as` associations.
 * For `belongs_to` associations, `has_many` inverse associations are ignored.
 
+Every association will attempt to automatically find the inverse association
+and set the `:inverse_of` option heuristically (based on the association name).
+Most associations with standard names will be supported. However, associations
+that contain the following options will not have their inverses set
+automatically:
+
+* :conditions
+* :through
+* :polymorphic
+* :foreign_key
+
 Detailed Association Reference
 ------------------------------
 
@@ -710,6 +721,7 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
+* `create_association!(attributes = {})`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
@@ -726,6 +738,7 @@ customer
 customer=
 build_customer
 create_customer
+create_customer!
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -765,6 +778,10 @@ The `create_association` method returns a new object of the associated type. Thi
 @customer = @order.create_customer(customer_number: 123,
                                    customer_name: "John Doe")
 ```
+
+##### `create_association!(attributes = {})`
+
+Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 
 #### Options for `belongs_to`
@@ -936,7 +953,7 @@ end
 
 ##### `includes`
 
-You can use the `includes` method let you specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+You can use the `includes` method to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 ```ruby
 class LineItem < ActiveRecord::Base
@@ -1008,6 +1025,7 @@ When you declare a `has_one` association, the declaring class automatically gain
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
+* `create_association!(attributes = {})`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
@@ -1024,6 +1042,7 @@ account
 account=
 build_account
 create_account
+create_account!
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -1061,6 +1080,10 @@ The `create_association` method returns a new object of the associated type. Thi
 ```ruby
 @account = @supplier.create_account(terms: "Net 30")
 ```
+
+##### `create_association!(attributes = {})`
+
+Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 #### Options for `has_one`
 
@@ -1113,6 +1136,12 @@ Controls what happens to the associated object when its owner is destroyed:
 * `:nullify` causes the foreign key to be set to `NULL`. Callbacks are not executed.
 * `:restrict_with_exception` causes an exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
+
+It's necessary not to set or leave `:nullify` option for those associations 
+that have `NOT NULL` database constraints. If you don't set `dependent` to 
+destroy such associations you won't be able to change the associated object 
+because initial associated object foreign key will be set to unallowed `NULL` 
+value.
 
 ##### `:foreign_key`
 
@@ -1274,6 +1303,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection.exists?(...)`
 * `collection.build(attributes = {}, ...)`
 * `collection.create(attributes = {})`
+* `collection.create!(attributes = {})`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1301,6 +1331,7 @@ orders.where(...)
 orders.exists?(...)
 orders.build(attributes = {}, ...)
 orders.create(attributes = {})
+orders.create!(attributes = {})
 ```
 
 ##### `collection(force_reload = false)`
@@ -1416,6 +1447,10 @@ The `collection.create` method returns a new object of the associated type. This
                                  order_number: "A12345")
 ```
 
+##### `collection.create!(attributes = {})`
+
+Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
 #### Options for `has_many`
 
 While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the `has_many` association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this association uses two such options:
@@ -1499,6 +1534,20 @@ end
 ##### `:primary_key`
 
 By convention, Rails assumes that the column used to hold the primary key of the association is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
+
+Let's say that `users` table has `id` as the primary_key but it also has
+`guid` column. And the requirement is that `todos` table should hold
+`guid` column value and not `id` value. This can be achieved like this
+
+```ruby
+class User < ActiveRecord::Base
+  has_many :todos, primary_key: :guid
+end
+```
+
+Now if we execute `@user.todos.create` then `@todo` record will have
+`user_id` value as the `guid` value of `@user`.
+
 
 ##### `:source`
 
@@ -1667,7 +1716,7 @@ person.posts.inspect # => [#<Post id: 5, name: "a1">, #<Post id: 5, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, post_id: 5>, #<Reading id: 13, person_id: 5, post_id: 5>]
 ```
 
-In the above case there are two readings and `person.posts` brings out both of 
+In the above case there are two readings and `person.posts` brings out both of
 them even though these records are pointing to the same post.
 
 Now let's set `distinct`:
@@ -1686,24 +1735,24 @@ person.posts.inspect # => [#<Post id: 7, name: "a1">]
 Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>]
 ```
 
-In the above case there are still two readings. However `person.posts` shows 
+In the above case there are still two readings. However `person.posts` shows
 only one post because the collection loads only unique records.
 
-If you want to make sure that, upon insertion, all of the records in the 
-persisted association are distinct (so that you can be sure that when you 
-inspect the association that you will never find duplicate records), you should 
-add a unique index on the table itself. For example, if you have a table named 
-``person_posts`` and you want to make sure all the posts are unique, you could 
+If you want to make sure that, upon insertion, all of the records in the
+persisted association are distinct (so that you can be sure that when you
+inspect the association that you will never find duplicate records), you should
+add a unique index on the table itself. For example, if you have a table named
+`person_posts` and you want to make sure all the posts are unique, you could
 add the following in a migration:
 
 ```ruby
-add_index :person_posts, :post, :unique => true
+add_index :person_posts, :post, unique: true
 ```
 
-Note that checking for uniqueness using something like ``include?`` is subject 
-to race conditions. Do not attempt to use ``include?`` to enforce distinctness 
-in an association. For instance, using the post example from above, the 
-following code would be racy because multiple users could be attempting this 
+Note that checking for uniqueness using something like `include?` is subject
+to race conditions. Do not attempt to use `include?` to enforce distinctness
+in an association. For instance, using the post example from above, the
+following code would be racy because multiple users could be attempting this
 at the same time:
 
 ```ruby
@@ -1743,6 +1792,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection.exists?(...)`
 * `collection.build(attributes = {})`
 * `collection.create(attributes = {})`
+* `collection.create!(attributes = {})`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1770,6 +1820,7 @@ assemblies.where(...)
 assemblies.exists?(...)
 assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
+assemblies.create!(attributes = {})
 ```
 
 ##### Additional Column Methods
@@ -1889,14 +1940,18 @@ The `collection.create` method returns a new object of the associated type. This
 @assembly = @part.assemblies.create({assembly_name: "Transmission housing"})
 ```
 
+##### `collection.create!(attributes = {})`
+
+Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
 #### Options for `has_and_belongs_to_many`
 
 While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the `has_and_belongs_to_many` association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this association uses two such options:
 
 ```ruby
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, uniq: true,
-                                       read_only: true
+  has_and_belongs_to_many :assemblies, autosave: true,
+                                       readonly: true
 end
 ```
 
@@ -1908,6 +1963,7 @@ The `has_and_belongs_to_many` association supports these options:
 * `:foreign_key`
 * `:join_table`
 * `:validate`
+* `:readonly`
 
 ##### `:association_foreign_key`
 
@@ -1917,7 +1973,7 @@ TIP: The `:foreign_key` and `:association_foreign_key` options are useful when s
 
 ```ruby
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, 
+  has_and_belongs_to_many :friends,
       class_name: "User",
       foreign_key: "this_user_id",
       association_foreign_key: "other_user_id"
@@ -2122,7 +2178,7 @@ You're not limited to the functionality that Rails automatically builds into ass
 class Customer < ActiveRecord::Base
   has_many :orders do
     def find_by_order_prefix(order_number)
-      find_by_region_id(order_number[0..2])
+      find_by(region_id: order_number[0..2])
     end
   end
 end

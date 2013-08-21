@@ -221,7 +221,7 @@ Upon form submission the value entered by the user will be stored in `params[:pe
 
 WARNING: You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 
-Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations and Callbacks](./active_record_validations_callbacks.html#displaying-validation-errors-in-the-view) guide.
+Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations](./active_record_validations.html#displaying-validation-errors-in-views) guide.
 
 ### Binding a Form to an Object
 
@@ -553,7 +553,7 @@ outputs (with actual option values omitted for brevity)
 which results in a `params` hash like
 
 ```ruby
-{:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
+{'person' => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 ```
 
 When this is passed to `Person.new` (or `update`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
@@ -568,7 +568,7 @@ NOTE: In many cases the built-in date pickers are clumsy as they do not aid the 
 
 ### Individual Components
 
-Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the  `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
+Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
 
 The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example
 
@@ -605,7 +605,7 @@ The object in the `params` hash is an instance of a subclass of IO. Depending on
 ```ruby
 def upload
   uploaded_io = params[:person][:picture]
-  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'w') do |file|
+  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'wb') do |file|
     file.write(uploaded_io.read)
   end
 end
@@ -830,23 +830,20 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 
 ### Configuring the Model
 
-Active Record provides model level support  via the `accepts_nested_attributes_for` method:
+Active Record provides model level support via the `accepts_nested_attributes_for` method:
 
 ```ruby
 class Person < ActiveRecord::Base
   has_many :addresses
   accepts_nested_attributes_for :addresses
-
-  attr_accessible :name, :addresses_attributes
 end
 
 class Address < ActiveRecord::Base
   belongs_to :person
-  attr_accessible :kind, :street
 end
 ```
 
-This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses. When using `attr_accessible` or `attr_protected` you must mark `addresses_attributes` as accessible as well as the other attributes of `Person` and `Address` that should be mass assigned.
+This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses.
 
 ### Building the Form
 
@@ -884,19 +881,19 @@ end
 
 ```ruby
 {
-    :person => {
-        :name => 'John Doe',
-        :addresses_attributes => {
-            '0' => {
-                :kind  => 'Home',
-                :street => '221b Baker Street',
-            },
-            '1' => {
-                :kind => 'Office',
-                :street => '31 Spooner Street'
-            }
-        }
+  'person' => {
+    'name' => 'John Doe',
+    'addresses_attributes' => {
+      '0' => {
+        'kind' => 'Home',
+        'street' => '221b Baker Street'
+      },
+      '1' => {
+        'kind' => 'Office',
+        'street' => '31 Spooner Street'
+      }
     }
+  }
 }
 ```
 
@@ -976,4 +973,4 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 ### Adding Fields on the Fly
 
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new child' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the the key of the associated array is unique - the current javascript date (milliseconds after the epoch) is a common choice.
+Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new child' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current javascript date (milliseconds after the epoch) is a common choice.

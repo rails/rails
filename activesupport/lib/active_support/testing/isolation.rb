@@ -3,45 +3,6 @@ require 'minitest/parallel_each'
 
 module ActiveSupport
   module Testing
-    class RemoteError < StandardError
-
-      attr_reader :message, :backtrace
-
-      def initialize(exception)
-        @message = "caught #{exception.class.name}: #{exception.message}"
-        @backtrace = exception.backtrace
-      end
-    end
-
-    class ProxyTestResult
-      def initialize(calls = [])
-        @calls = calls
-      end
-
-      def add_error(e)
-        e = Test::Unit::Error.new(e.test_name, RemoteError.new(e.exception))
-        @calls << [:add_error, e]
-      end
-
-      def __replay__(result)
-        @calls.each do |name, args|
-          result.send(name, *args)
-        end
-      end
-
-      def marshal_dump
-        @calls
-      end
-
-      def marshal_load(calls)
-        initialize(calls)
-      end
-
-      def method_missing(name, *args)
-        @calls << [name, args]
-      end
-    end
-
     module Isolation
       require 'thread'
 
@@ -68,16 +29,12 @@ module ActiveSupport
         end
       end
 
-      def run(runner)
-        _run_class_setup
-
-        serialized = run_in_isolation do |isolated_runner|
-          super(isolated_runner)
+      def run
+        serialized = run_in_isolation do
+          super
         end
 
-        retval, proxy = Marshal.load(serialized)
-        proxy.__replay__(runner)
-        retval
+        Marshal.load(serialized)
       end
 
       module Forking
@@ -86,9 +43,8 @@ module ActiveSupport
 
           pid = fork do
             read.close
-            proxy = ProxyTestResult.new
-            retval = yield proxy
-            write.puts [Marshal.dump([retval, proxy])].pack("m")
+            yield
+            write.puts [Marshal.dump(self.dup)].pack("m")
             exit!
           end
 
@@ -108,19 +64,18 @@ module ActiveSupport
           require "tempfile"
 
           if ENV["ISOLATION_TEST"]
-            proxy = ProxyTestResult.new
-            retval = yield proxy
+            yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump([retval, proxy])].pack("m")
+              file.puts [Marshal.dump(self.dup)].pack("m")
             end
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
-              ENV["ISOLATION_TEST"]   = @method_name
+              ENV["ISOLATION_TEST"]   = self.class.name
               ENV["ISOLATION_OUTPUT"] = tmpfile.path
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")} -t\"#{self.class}\"`
+              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")}`
 
               ENV.delete("ISOLATION_TEST")
               ENV.delete("ISOLATION_OUTPUT")

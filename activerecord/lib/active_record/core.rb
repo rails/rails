@@ -69,42 +69,27 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
-      ##
-      # :singleton-method:
-      # Disable implicit join references. This feature was deprecated with Rails 4.
-      # If you don't make use of implicit references but still see deprecation warnings
-      # you can disable the feature entirely. This will be the default with Rails 4.1.
-      mattr_accessor :disable_implicit_join_references, instance_writer: false
-      self.disable_implicit_join_references = false
+      def self.disable_implicit_join_references=(value)
+        ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \
+                                        "Make sure to remove this configuration because it does nothing.")
+      end
 
       class_attribute :default_connection_handler, instance_writer: false
 
       def self.connection_handler
-        Thread.current[:active_record_connection_handler] || self.default_connection_handler
+        ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        Thread.current[:active_record_connection_handler] = handler
+        ActiveRecord::RuntimeRegistry.connection_handler = handler
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
     module ClassMethods
-      def inherited(child_class) #:nodoc:
-        child_class.initialize_generated_modules
-        super
-      end
-
       def initialize_generated_modules
-        @attribute_methods_mutex = Mutex.new
-
-        # force attribute methods to be higher in inheritance hierarchy than other generated methods
-        generated_attribute_methods.const_set(:AttrNames, Module.new {
-          def self.const_missing(name)
-            const_set(name, [name.to_s.sub(/ATTR_/, '')].pack('h*').freeze)
-          end
-        })
+        super
 
         generated_feature_methods
       end
@@ -123,6 +108,8 @@ module ActiveRecord
           super
         elsif abstract_class?
           "#{super}(abstract)"
+        elsif !connected?
+          "#{super}(no database connection)"
         elsif table_exists?
           attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
           "#{super}(#{attr_list})"
@@ -147,19 +134,18 @@ module ActiveRecord
 
       # Returns the Arel engine.
       def arel_engine
-        @arel_engine ||= begin
+        @arel_engine ||=
           if Base == self || connection_handler.retrieve_connection_pool(self)
             self
           else
             superclass.arel_engine
           end
-       end
       end
 
       private
 
       def relation #:nodoc:
-        relation = Relation.new(self, arel_table)
+        relation = Relation.create(self, arel_table)
 
         if finder_needs_type_condition?
           relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
@@ -307,9 +293,11 @@ module ActiveRecord
       id.hash
     end
 
-    # Freeze the attributes hash such that associations are still accessible, even on destroyed records.
+    # Clone and freeze the attributes hash such that associations are still
+    # accessible, even on destroyed records, but cloned models will not be
+    # frozen.
     def freeze
-      @attributes.freeze
+      @attributes = @attributes.clone.freeze
       self
     end
 
@@ -336,21 +324,15 @@ module ActiveRecord
       @readonly = true
     end
 
-    # Returns the connection currently associated with the class. This can
-    # also be used to "borrow" the connection to do database work that isn't
-    # easily done without going straight to SQL.
-    def connection
-      ActiveSupport::Deprecation.warn("#connection is deprecated in favour of accessing it via the class")
-      self.class.connection
-    end
-
     def connection_handler
       self.class.connection_handler
     end
 
     # Returns the contents of the record as a nicely formatted string.
     def inspect
-      inspection = if @attributes
+      # We check defined?(@attributes) not to issue warnings if the object is
+      # allocated but not initialized.
+      inspection = if defined?(@attributes) && @attributes
                      self.class.column_names.collect { |name|
                        if has_attribute?(name)
                          "#{name}: #{attribute_for_inspect(name)}"
@@ -364,7 +346,7 @@ module ActiveRecord
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+      Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     def set_transaction_state(state) # :nodoc:

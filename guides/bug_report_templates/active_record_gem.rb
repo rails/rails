@@ -1,5 +1,5 @@
 # Activate the gem you are reporting the issue against.
-gem 'activerecord', '3.2.11'
+gem 'activerecord', '4.0.0'
 require 'active_record'
 require 'minitest/autorun'
 require 'logger'

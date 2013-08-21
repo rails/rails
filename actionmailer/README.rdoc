@@ -67,12 +67,12 @@ simply call the method and optionally call +deliver+ on the return value.
 
 Calling the method returns a Mail Message object:
 
-  message = Notifier.welcome  # => Returns a Mail::Message object
-  message.deliver             # => delivers the email
+  message = Notifier.welcome("david@loudthinking.com")  # => Returns a Mail::Message object
+  message.deliver                                       # => delivers the email
 
 Or you can just chain the methods together like:
 
-  Notifier.welcome.deliver    # Creates the email and sends it immediately
+  Notifier.welcome("david@loudthinking.com").deliver    # Creates the email and sends it immediately
 
 == Setting defaults
 
@@ -119,8 +119,7 @@ trivial case like this:
   rails runner 'Mailman.receive(STDIN.read)'
 
 However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single
-instance of Rails should be run within a daemon, if it is going to be utilized to process more than just
-a limited number of email.
+instance of Rails should be run within a daemon, if it is going to process more than just a limited amount of email.
 
 == Configuration
 

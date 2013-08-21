@@ -4,9 +4,13 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class TestRouter < ActiveSupport::TestCase
+      # TODO : clean up routing tests so we don't need this hack
+      class StubDispatcher < Routing::RouteSet::Dispatcher; end
+
       attr_reader :routes
 
       def setup
+        @app       = StubDispatcher.new
         @routes    = Routes.new
         @router    = Router.new(@routes, {})
         @formatter = Formatter.new(@routes)
@@ -306,7 +310,7 @@ module ActionDispatch
 
       def test_nil_path_parts_are_ignored
         path  = Path::Pattern.new "/:controller(/:action(.:format))"
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         params = { :controller => "tasks", :format => nil }
         extras = { :action => 'lol' }
@@ -321,7 +325,7 @@ module ActionDispatch
         str = Router::Strexp.new("/", Hash[params], ['/', '.', '?'], true)
         path  = Path::Pattern.new str
 
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         path, _ = @formatter.generate(:path_info, nil, Hash[params], {})
         assert_equal '/', path
@@ -329,7 +333,7 @@ module ActionDispatch
 
       def test_generate_calls_param_proc
         path  = Path::Pattern.new '/:controller(/:action)'
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         parameterized = []
         params = [ [:controller, "tasks"],
@@ -347,7 +351,7 @@ module ActionDispatch
 
       def test_generate_id
         path  = Path::Pattern.new '/:controller(/:action)'
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(
           :path_info, nil, {:id=>1, :controller=>"tasks", :action=>"show"}, {})
@@ -357,7 +361,7 @@ module ActionDispatch
 
       def test_generate_escapes
         path  = Path::Pattern.new '/:controller(/:action)'
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         path, _ = @formatter.generate(:path_info,
           nil, { :controller        => "tasks",
@@ -368,7 +372,7 @@ module ActionDispatch
 
       def test_generate_extra_params
         path  = Path::Pattern.new '/:controller(/:action)'
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(:path_info,
           nil, { :id                => 1,
@@ -382,7 +386,7 @@ module ActionDispatch
 
       def test_generate_uses_recall_if_needed
         path  = Path::Pattern.new '/:controller(/:action(/:id))'
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(:path_info,
           nil,
@@ -394,7 +398,7 @@ module ActionDispatch
 
       def test_generate_with_name
         path  = Path::Pattern.new '/:controller(/:action)'
-        @router.routes.add_route nil, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(:path_info,
           "tasks",
@@ -541,7 +545,7 @@ module ActionDispatch
       def add_routes router, paths
         paths.each do |path|
           path  = Path::Pattern.new path
-          router.routes.add_route nil, path, {}, {}, {}
+          router.routes.add_route @app, path, {}, {}, {}
         end
       end
 

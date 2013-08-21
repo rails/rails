@@ -25,10 +25,7 @@ module ActiveRecord
         attr_reader :tables
 
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
-        delegate :table, :table_name, :to => :parent, :prefix => :parent
         delegate :alias_tracker, :to => :join_dependency
-
-        alias :alias_suffix :parent_table_name
 
         def initialize(reflection, join_dependency, parent = nil)
           reflection.check_validity!
@@ -47,6 +44,9 @@ module ActiveRecord
           @tables          = construct_tables.reverse
         end
 
+        def parent_table_name; parent.table_name; end
+        alias :alias_suffix :parent_table_name
+
         def ==(other)
           other.class == self.class &&
             other.reflection == reflection &&
@@ -55,19 +55,29 @@ module ActiveRecord
 
         def find_parent_in(other_join_dependency)
           other_join_dependency.join_parts.detect do |join_part|
-            parent == join_part
+            case parent
+            when JoinBase
+              parent.base_klass == join_part.base_klass
+            else
+              parent == join_part
+            end
           end
         end
 
-        def join_to(manager)
+        def join_constraints
+          joins         = []
           tables        = @tables.dup
-          foreign_table = parent_table
-          foreign_klass = parent.active_record
+
+          foreign_table = parent.table
+          foreign_klass = parent.base_klass
+
+          scope_chain_iter = reflection.scope_chain.reverse_each
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          chain.reverse.each_with_index do |reflection, i|
+          chain.reverse_each do |reflection|
             table = tables.shift
+            klass = reflection.klass
 
             case reflection.source_macro
             when :belongs_to
@@ -75,11 +85,10 @@ module ActiveRecord
               foreign_key = reflection.foreign_key
             when :has_and_belongs_to_many
               # Join the join table first...
-              manager.from(join(
+              joins << join(
                 table,
                 table[reflection.foreign_key].
-                  eq(foreign_table[reflection.active_record_primary_key])
-              ))
+                  eq(foreign_table[reflection.active_record_primary_key]))
 
               foreign_table, table = table, tables.shift
 
@@ -90,41 +99,63 @@ module ActiveRecord
               foreign_key = reflection.active_record_primary_key
             end
 
-            constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
+            constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
-            scope_chain_items = scope_chain[i]
+            scope_chain_items = scope_chain_iter.next.map do |item|
+              if item.is_a?(Relation)
+                item
+              else
+                ActiveRecord::Relation.create(klass, table).instance_exec(self, &item)
+              end
+            end
 
             if reflection.type
-              scope_chain_items += [
-                ActiveRecord::Relation.new(reflection.klass, table)
+              scope_chain_items <<
+                ActiveRecord::Relation.create(klass, table)
                   .where(reflection.type => foreign_klass.base_class.name)
-              ]
             end
 
-            scope_chain_items.each do |item|
-              unless item.is_a?(Relation)
-                item = ActiveRecord::Relation.new(reflection.klass, table).instance_exec(self, &item)
-              end
+            scope_chain_items.concat [klass.send(:build_default_scope)].compact
 
-              constraint = constraint.and(item.arel.constraints) unless item.arel.constraints.empty?
+            rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
+              left.merge right
             end
 
-            manager.from(join(table, constraint))
+            if rel && !rel.arel.constraints.empty?
+              constraint = constraint.and rel.arel.constraints
+            end
+
+            joins << join(table, constraint)
 
             # The current table in this iteration becomes the foreign table in the next
-            foreign_table, foreign_klass = table, reflection.klass
+            foreign_table, foreign_klass = table, klass
           end
 
-          manager
+          joins
         end
 
-        def build_constraint(reflection, table, key, foreign_table, foreign_key)
+        #  Builds equality condition.
+        #
+        #  Example:
+        #
+        #  class Physician < ActiveRecord::Base
+        #    has_many :appointments
+        #  end
+        #
+        #  If I execute `Physician.joins(:appointments).to_a` then
+        #    reflection    #=> #<ActiveRecord::Reflection::AssociationReflection @macro=:has_many ...>
+        #    table         #=> #<Arel::Table @name="appointments" ...>
+        #    key           #=>  physician_id
+        #    foreign_table #=> #<Arel::Table @name="physicians" ...>
+        #    foreign_key   #=> id
+        #
+        def build_constraint(klass, table, key, foreign_table, foreign_key)
           constraint = table[key].eq(foreign_table[foreign_key])
 
-          if reflection.klass.finder_needs_type_condition?
+          if klass.finder_needs_type_condition?
             constraint = table.create_and([
               constraint,
-              reflection.klass.send(:type_condition, table)
+              klass.send(:type_condition, table)
             ])
           end
 
@@ -143,11 +174,6 @@ module ActiveRecord
         def aliased_table_name
           table.table_alias || table.name
         end
-
-        def scope_chain
-          @scope_chain ||= reflection.scope_chain.reverse
-        end
-
       end
     end
   end

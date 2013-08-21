@@ -6,6 +6,7 @@ require 'active_support/testing/autorun'
 require 'active_support/test_case'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
+require 'rails/generators/test_case'
 
 # Config Rails backtrace in tests.
 require 'rails/backtrace_cleaner'

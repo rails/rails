@@ -104,7 +104,7 @@ At the root of this brand new engine's directory lives a `blorgh.gemspec` file. 
 gem 'blorgh', path: "vendor/engines/blorgh"
 ```
 
-By specifying it as a gem within the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file and requiring a file within the `lib` directory called `lib/blorgh.rb`. This file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`) and defines a base module called `Blorgh`.
+Don't forget to run `bundle install` as usual. By specifying it as a gem within the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file and requiring a file within the `lib` directory called `lib/blorgh.rb`. This file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`) and defines a base module called `Blorgh`.
 
 ```ruby
 require "blorgh/engine"
@@ -346,7 +346,7 @@ Next, the partial that this line will render needs to exist. Create a new direct
 <h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
-    <%= f.label :text %><br />
+    <%= f.label :text %><br>
     <%= f.text_area :text %>
   </p>
   <%= f.submit %>
@@ -393,9 +393,14 @@ The form will be making a `POST` request to `/posts/:post_id/comments`, which wi
 ```ruby
 def create
   @post = Post.find(params[:post_id])
-  @comment = @post.comments.create(params[:comment])
+  @comment = @post.comments.create(comment_params)
   flash[:notice] = "Comment has been created!"
   redirect_to posts_path
+end
+
+private
+def comment_params
+  params.require(:comment).permit(:text)
 end
 ```
 
@@ -515,9 +520,17 @@ First, the `author_name` text field needs to be added to the `app/views/blorgh/p
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br />
+  <%= f.label :author_name %><br>
   <%= f.text_field :author_name %>
 </div>
+```
+
+Next, we need to update our `Blorgh::PostController#post_params` method to permit the new form parameter:
+
+```ruby
+def post_params
+  params.require(:post).permit(:title, :text, :author_name)
+end
 ```
 
 The `Blorgh::Post` model should then have some code to convert the `author_name` field into an actual `User` object and associate it as that post's `author` before the post is saved. It will also need to have an `attr_accessor` setup for this field so that the setter and getter methods are defined for it.
@@ -612,50 +625,50 @@ This section covers how to make the `User` class configurable, followed by gener
 
 #### Setting configuration settings in the application
 
-The next step is to make the class that represents a `User` in the application customizable for the engine. This is because, as explained before, that class may not always be `User`. To make this customizable, the engine will have a configuration setting called `user_class` that will be used to specify what the class representing users is inside the application.
+The next step is to make the class that represents a `User` in the application customizable for the engine. This is because, as explained before, that class may not always be `User`. To make this customizable, the engine will have a configuration setting called `author_class` that will be used to specify what the class representing users is inside the application.
 
 To define this configuration setting, you should use a `mattr_accessor` inside the `Blorgh` module for the engine, located at `lib/blorgh.rb` inside the engine. Inside this module, put this line:
 
 ```ruby
-mattr_accessor :user_class
+mattr_accessor :author_class
 ```
 
-This method works like its brothers `attr_accessor` and `cattr_accessor`, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using `Blorgh.user_class`.
+This method works like its brothers `attr_accessor` and `cattr_accessor`, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using `Blorgh.author_class`.
 
 The next step is switching the `Blorgh::Post` model over to this new setting. For the `belongs_to` association inside this model (`app/models/blorgh/post.rb`), it will now become this:
 
 ```ruby
-belongs_to :author, class_name: Blorgh.user_class
+belongs_to :author, class_name: Blorgh.author_class
 ```
 
 The `set_author` method also located in this class should also use this class:
 
 ```ruby
-self.author = Blorgh.user_class.constantize.find_or_create_by(name: author_name)
+self.author = Blorgh.author_class.constantize.find_or_create_by(name: author_name)
 ```
 
-To save having to call `constantize` on the `user_class` result all the time, you could instead just override the `user_class` getter method inside the `Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the saved value before returning the result:
+To save having to call `constantize` on the `author_class` result all the time, you could instead just override the `author_class` getter method inside the `Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the saved value before returning the result:
 
 ```ruby
-def self.user_class
-  @@user_class.constantize
+def self.author_class
+  @@author_class.constantize
 end
 ```
 
 This would then turn the above code for `set_author` into this:
 
 ```ruby
-self.author = Blorgh.user_class.find_or_create_by(name: author_name)
+self.author = Blorgh.author_class.find_or_create_by(name: author_name)
 ```
 
-Resulting in something a little shorter, and more implicit in its behavior. The `user_class` method should always return a `Class` object.
+Resulting in something a little shorter, and more implicit in its behavior. The `author_class` method should always return a `Class` object.
 
-Since we changed the `user_class` method to no longer return a
+Since we changed the `author_class` method to no longer return a
 `String` but a `Class` we must also modify our `belongs_to` definition
 in the `Blorgh::Post` model:
 
 ```ruby
-belongs_to :author, class_name: Blorgh.user_class.to_s
+belongs_to :author, class_name: Blorgh.author_class.to_s
 ```
 
 To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
@@ -663,7 +676,7 @@ To set this configuration setting within the application, an initializer should 
 Create a new initializer at `config/initializers/blorgh.rb` inside the application where the `blorgh` engine is installed and put this content in it:
 
 ```ruby
-Blorgh.user_class = "User"
+Blorgh.author_class = "User"
 ```
 
 WARNING: It's very important here to use the `String` version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a `String` should be used and then converted to a class using `constantize` in the engine later on.
@@ -718,6 +731,32 @@ This section explains how to add and/or override engine MVC functionality in the
 Engine model and controller classes can be extended by open classing them in the main Rails application (since model and controller classes are just Ruby classes that inherit Rails specific functionality). Open classing an Engine class redefines it for use in the main application. This is usually implemented by using the decorator pattern.
 
 For simple class modifications use `Class#class_eval`, and for complex class modifications, consider using `ActiveSupport::Concern`.
+
+#### A note on Decorators and loading code
+
+Because these decorators are not referenced by your Rails application itself,
+Rails' autoloading system will not kick in and load your decorators. This
+means that you need to require them yourself.
+
+Here is some sample code to do this:
+
+```ruby
+# lib/blorgh/engine.rb
+module Blorgh
+  class Engine < ::Rails::Engine
+    isolate_namespace Blorgh
+
+    config.to_prepare do
+      Dir.glob(Rails.root + "app/decorators/**/*_decorator*.rb").each do |c|
+        require_dependency(c)
+      end
+    end
+  end
+end
+```
+
+This doesn't apply to just Decorators, but anything that you add in an engine
+that isn't referenced by your main application.
 
 #### Implementing Decorator Pattern Using Class#class_eval
 

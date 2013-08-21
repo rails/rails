@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/aliasing'
+
 class Range
   # Extends the default Range#include? to support range comparisons.
   #  (1..5).include?(1..5) # => true

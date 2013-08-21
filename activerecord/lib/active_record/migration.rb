@@ -32,7 +32,7 @@ module ActiveRecord
 
   class PendingMigrationError < ActiveRecordError#:nodoc:
     def initialize
-      super("Migrations are pending; run 'rake db:migrate RAILS_ENV=#{Rails.env}' to resolve this issue.")
+      super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
     end
   end
 
@@ -357,11 +357,14 @@ module ActiveRecord
     class CheckPending
       def initialize(app)
         @app = app
+        @last_check = 0
       end
 
       def call(env)
-        ActiveRecord::Base.logger.silence do
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
           ActiveRecord::Migration.check_pending!
+          @last_check = mtime
         end
         @app.call(env)
       end
@@ -466,7 +469,7 @@ module ActiveRecord
       @connection.respond_to?(:reverting) && @connection.reverting
     end
 
-    class ReversibleBlockHelper < Struct.new(:reverting)
+    class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
       def up
         yield unless reverting
       end
@@ -668,6 +671,7 @@ module ActiveRecord
       copied
     end
 
+    # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
@@ -699,6 +703,10 @@ module ActiveRecord
       File.basename(filename)
     end
 
+    def mtime
+      File.mtime filename
+    end
+
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
@@ -712,6 +720,16 @@ module ActiveRecord
         name.constantize.new
       end
 
+  end
+
+  class NullMigration < MigrationProxy #:nodoc:
+    def initialize
+      super(nil, 0, nil, nil)
+    end
+
+    def mtime
+      0
+    end
   end
 
   class Migrator#:nodoc:
@@ -784,7 +802,11 @@ module ActiveRecord
       end
 
       def last_version
-        migrations(migrations_paths).last.try(:version)||0
+        last_migration.version
+      end
+
+      def last_migration #:nodoc:
+        migrations(migrations_paths).last || NullMigration.new
       end
 
       def proper_table_name(name)
@@ -844,13 +866,7 @@ module ActiveRecord
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
-
-      if Array(migrations).grep(String).empty?
-        @migrations = migrations
-      else
-        ActiveSupport::Deprecation.warn "instantiate this class with a list of migrations"
-        @migrations = self.class.migrations(migrations)
-      end
+      @migrations        = migrations
 
       validate(@migrations)
 
@@ -867,11 +883,15 @@ module ActiveRecord
     alias :current :current_migration
 
     def run
-      target = migrations.detect { |m| m.version == @target_version }
-      raise UnknownMigrationVersionError.new(@target_version) if target.nil?
-      unless (up? && migrated.include?(target.version.to_i)) || (down? && !migrated.include?(target.version.to_i))
-        target.migrate(@direction)
-        record_version_state_after_migrating(target.version)
+      migration = migrations.detect { |m| m.version == @target_version }
+      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
+          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
+        end
       end
     end
 
@@ -880,22 +900,11 @@ module ActiveRecord
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      running = runnable
-
-      if block_given?
-        message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
-        ActiveSupport::Deprecation.warn message
-        running.select! { |m| yield m }
-      end
-
-      running.each do |migration|
+      runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         begin
-          ddl_transaction(migration) do
-            migration.migrate(@direction)
-            record_version_state_after_migrating(migration.version)
-          end
+          execute_migration_in_transaction(migration, @direction)
         rescue => e
           canceled_msg = use_transaction?(migration) ? "this and " : ""
           raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
@@ -930,6 +939,13 @@ module ActiveRecord
     private
     def ran?(migration)
       migrated.include?(migration.version.to_i)
+    end
+
+    def execute_migration_in_transaction(migration, direction)
+      ddl_transaction(migration) do
+        migration.migrate(direction)
+        record_version_state_after_migrating(migration.version)
+      end
     end
 
     def target

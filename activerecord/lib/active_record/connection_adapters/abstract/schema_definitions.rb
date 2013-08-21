@@ -16,13 +16,13 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
-      def string_to_binary(value)
-        value
-      end
 
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end
+    end
+
+    class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -65,8 +65,7 @@ module ActiveRecord
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, options = {})
-        options[:primary_key] = true
-        column(name, type, options)
+        column(name, type, options.merge(:primary_key => true))
       end
 
       # Returns a ColumnDefinition for the column with name +name+.
@@ -270,6 +269,7 @@ module ActiveRecord
         end
 
         column.limit       = limit
+        column.array       = options[:array] if column.respond_to?(:array)
         column.precision   = options[:precision]
         column.scale       = options[:scale]
         column.default     = options[:default]

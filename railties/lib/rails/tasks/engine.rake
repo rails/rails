@@ -26,7 +26,7 @@ namespace :db do
   desc "Display status of migrations"
   app_task "migrate:status"
 
-  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
+  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all databases in the config)'
   app_task "create"
   app_task "create:all"
 

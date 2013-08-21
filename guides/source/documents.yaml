@@ -36,6 +36,11 @@
   name: Views
   documents:
     -
+      name: Action View Overview
+      url: action_view_overview.html
+      description: This guide provides an introduction to Action View and introduces a few of the more common view helpers.
+      work_in_progress: true
+    -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
       description: This guide covers the basic layout features of Action Controller and Action View, including rendering and redirecting, using content_for blocks, and working with partials.
@@ -68,7 +73,6 @@
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
-      work_in_progress: true
       description: This guide describes how to use Action Mailer to send and receive emails.
     -
       name: Testing Rails Applications

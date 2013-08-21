@@ -27,7 +27,7 @@ else
   puts <<-EOT
 Usage: rails COMMAND [ARGS]
 
-The common rails commands available for engines are:
+The common Rails commands available for engines are:
  generate    Generate new code (short-cut alias: "g")
  destroy     Undo code generated with "generate" (short-cut alias: "d")
 

@@ -96,6 +96,10 @@ class ArrayExtToSentenceTests < ActiveSupport::TestCase
     assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(options)
     assert_equal({ words_connector: ' ' }, options)
   end
+
+  def test_with_blank_elements
+    assert_equal ", one, , two, and three", [nil, 'one', '', 'two', 'three'].to_sentence
+  end
 end
 
 class ArrayExtToSTests < ActiveSupport::TestCase
@@ -352,36 +356,6 @@ class ArrayExtractOptionsTests < ActiveSupport::TestCase
     hash = [{:foo => 1}.with_indifferent_access]
     options = hash.extract_options!
     assert_equal 1, options[:foo]
-  end
-end
-
-class ArrayUniqByTests < ActiveSupport::TestCase
-  def test_uniq_by
-    ActiveSupport::Deprecation.silence do
-      assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
-      assert_equal [1,2], [1,2,3,4].uniq_by(&:even?)
-      assert_equal((-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 })
-    end
-  end
-
-  def test_uniq_by!
-    a = [1,2,3,4]
-    ActiveSupport::Deprecation.silence do
-      a.uniq_by! { |i| i.odd? }
-    end
-    assert_equal [1,2], a
-
-    a = [1,2,3,4]
-    ActiveSupport::Deprecation.silence do
-      a.uniq_by! { |i| i.even? }
-    end
-    assert_equal [1,2], a
-
-    a = (-5..5).to_a
-    ActiveSupport::Deprecation.silence do
-      a.uniq_by! { |i| i**2 }
-    end
-    assert_equal((-5..0).to_a, a)
   end
 end
 

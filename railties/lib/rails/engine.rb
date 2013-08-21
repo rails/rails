@@ -124,7 +124,7 @@ module Rails
   #
   # Now you can mount your engine in application's routes just like that:
   #
-  #   MyRailsApp::Application.routes.draw do
+  #   Rails.application.routes.draw do
   #     mount MyEngine::Engine => "/engine"
   #   end
   #
@@ -154,7 +154,7 @@ module Rails
   # Note that now there can be more than one router in your application, and it's better to avoid
   # passing requests through many routers. Consider this situation:
   #
-  #   MyRailsApp::Application.routes.draw do
+  #   Rails.application.routes.draw do
   #     mount MyEngine::Engine => "/blog"
   #     get "/blog/omg" => "main#omg"
   #   end
@@ -164,7 +164,7 @@ module Rails
   # and if there is no such route in +Engine+'s routes, it will be dispatched to <tt>main#omg</tt>.
   # It's much better to swap that:
   #
-  #   MyRailsApp::Application.routes.draw do
+  #   Rails.application.routes.draw do
   #     get "/blog/omg" => "main#omg"
   #     mount MyEngine::Engine => "/blog"
   #   end
@@ -251,7 +251,7 @@ module Rails
   # created to allow you to do that. Consider such a scenario:
   #
   #   # config/routes.rb
-  #   MyApplication::Application.routes.draw do
+  #   Rails.application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", as: "my_engine"
   #     get "/foo" => "foo#index"
   #   end
@@ -447,7 +447,7 @@ module Rails
       self
     end
 
-    # Load rails generators and invoke the registered hooks.
+    # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
     def load_generators(app=self)
       require "rails/generators"
@@ -634,15 +634,15 @@ module Rails
       end
     end
 
+    def routes? #:nodoc:
+      @routes
+    end
+
     protected
 
     def run_tasks_blocks(*) #:nodoc:
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
-    end
-
-    def routes? #:nodoc:
-      @routes
     end
 
     def has_migrations? #:nodoc:

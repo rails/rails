@@ -49,8 +49,8 @@ The macro-style class methods can also receive a block. Consider using this styl
 class User < ActiveRecord::Base
   validates :login, :email, presence: true
 
-  before_create do |user|
-    user.name = user.login.capitalize if user.name.blank?
+  before_create do
+    self.name = login.capitalize if name.blank?
   end
 end
 ```
@@ -167,6 +167,7 @@ Additionally, the `after_find` callback is triggered by the following finder met
 * `all`
 * `first`
 * `find`
+* `find_by`
 * `find_by_*`
 * `find_by_*!`
 * `find_by_sql`
@@ -179,7 +180,7 @@ NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated aut
 Skipping Callbacks
 ------------------
 
-Just as with validations, it is also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
+Just as with validations, it is also possible to skip callbacks by using the following methods:
 
 * `decrement`
 * `decrement_counter`
@@ -193,6 +194,8 @@ Just as with validations, it is also possible to skip callbacks. These methods s
 * `update_columns`
 * `update_all`
 * `update_counters`
+
+These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
 
 Halting Execution
 -----------------
@@ -342,7 +345,7 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ActiveRecord::Base
-  after_commit :delete_picture_file_from_disk, :on => [:destroy]
+  after_commit :delete_picture_file_from_disk, on: [:destroy]
 
   def delete_picture_file_from_disk
     if File.exist?(filepath)

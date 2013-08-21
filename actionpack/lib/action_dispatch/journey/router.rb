@@ -38,7 +38,9 @@ module ActionDispatch
           env['REMOTE_ADDR']
         end
 
-        def [](k); env[k]; end
+        def [](k)
+          env[k]
+        end
       end
 
       attr_reader :request_class, :formatter
@@ -52,7 +54,7 @@ module ActionDispatch
       end
 
       def call(env)
-        env['PATH_INFO'] = Utils.normalize_path(env['PATH_INFO'])
+        env['PATH_INFO'] = normalize_path(env['PATH_INFO'])
 
         find_routes(env).each do |match, parameters, route|
           script_name, path_info, set_params = env.values_at('SCRIPT_NAME',
@@ -100,6 +102,12 @@ module ActionDispatch
       end
 
       private
+
+        def normalize_path(path)
+          path = "/#{path}"
+          path.squeeze!('/')
+          path
+        end
 
         def partitioned_routes
           routes.partitioned_routes

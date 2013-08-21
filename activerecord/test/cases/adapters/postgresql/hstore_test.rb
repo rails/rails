@@ -70,6 +70,13 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     Hstore.reset_column_information
   end
 
+  def test_cast_value_on_write
+    x = Hstore.new tags: {"bool" => true, "number" => 5}
+    assert_equal({"bool" => "true", "number" => "5"}, x.tags)
+    x.save
+    assert_equal({"bool" => "true", "number" => "5"}, x.reload.tags)
+  end
+
   def test_type_cast_hstore
     assert @column
 

@@ -12,7 +12,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
       @connection.transaction do
         @connection.create_table('pg_arrays') do |t|
-          t.string 'tags', :array => true
+          t.string 'tags', array: true
+          t.integer 'ratings', array: true
         end
       end
     @column = PgArray.columns.find { |c| c.name == 'tags' }
@@ -25,6 +26,27 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_column
     assert_equal :string, @column.type
     assert @column.array
+  end
+
+  def test_change_column_with_array
+    @connection.add_column :pg_arrays, :snippets, :string, array: true, default: []
+    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: "{}"
+
+    PgArray.reset_column_information
+    column = PgArray.columns.find { |c| c.name == 'snippets' }
+
+    assert_equal :text, column.type
+    assert_equal [], column.default
+    assert column.array
+  end
+
+  def test_change_column_cant_make_non_array_column_to_array
+    @connection.add_column :pg_arrays, :a_string, :string
+    assert_raises ActiveRecord::StatementInvalid do
+      @connection.transaction do
+        @connection.change_column :pg_arrays, :a_string, :string, array: true
+      end
+    end
   end
 
   def test_type_cast_array
@@ -57,42 +79,52 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal(['1','2','3'], x.tags)
   end
 
-  def test_multi_dimensional
-    assert_cycle([['1','2'],['2','3']])
+  def test_multi_dimensional_with_strings
+    assert_cycle(:tags, [[['1'], ['2']], [['2'], ['3']]])
+  end
+
+  def test_multi_dimensional_with_integers
+    assert_cycle(:ratings, [[[1], [7]], [[8], [10]]])
   end
 
   def test_strings_with_quotes
-    assert_cycle(['this has','some "s that need to be escaped"'])
+    assert_cycle(:tags, ['this has','some "s that need to be escaped"'])
   end
 
   def test_strings_with_commas
-    assert_cycle(['this,has','many,values'])
+    assert_cycle(:tags, ['this,has','many,values'])
   end
 
   def test_strings_with_array_delimiters
-    assert_cycle(['{','}'])
+    assert_cycle(:tags, ['{','}'])
   end
 
   def test_strings_with_null_strings
-    assert_cycle(['NULL','NULL'])
+    assert_cycle(:tags, ['NULL','NULL'])
   end
 
   def test_contains_nils
-    assert_cycle(['1',nil,nil])
+    assert_cycle(:tags, ['1',nil,nil])
+  end
+
+  def test_insert_fixture
+    tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
+    @connection.insert_fixture({"tags" => tag_values}, "pg_arrays" )
+    assert_equal(PgArray.last.tags, tag_values)
   end
 
   private
-  def assert_cycle array
+  def assert_cycle field, array
     # test creation
-    x = PgArray.create!(:tags => array)
+    x = PgArray.create!(field => array)
     x.reload
-    assert_equal(array, x.tags)
+    assert_equal(array, x.public_send(field))
 
     # test updating
-    x = PgArray.create!(:tags => [])
-    x.tags = array
+    x = PgArray.create!(field => [])
+    x.public_send("#{field}=", array)
     x.save!
     x.reload
-    assert_equal(array, x.tags)
+    assert_equal(array, x.public_send(field))
   end
 end

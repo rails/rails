@@ -20,7 +20,8 @@ class Build
     'am'   => 'actionmailer',
     'amo'  => 'activemodel',
     'as'   => 'activesupport',
-    'ar'   => 'activerecord'
+    'ar'   => 'activerecord',
+    'av'   => 'actionview'
   }
 
   attr_reader :component, :options

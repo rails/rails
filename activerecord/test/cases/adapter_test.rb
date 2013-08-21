@@ -173,6 +173,11 @@ module ActiveRecord
         end
       end
     end
+
+    def test_select_all_always_return_activerecord_result
+      result = @connection.select_all "SELECT * FROM posts"
+      assert result.is_a?(ActiveRecord::Result)
+    end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase

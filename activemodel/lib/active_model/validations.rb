@@ -46,7 +46,7 @@ module ActiveModel
       include HelperMethods
 
       attr_accessor :validation_context
-      define_callbacks :validate, :scope => :name
+      define_callbacks :validate, scope: :name
 
       class_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
@@ -142,7 +142,9 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:if] = Array(options[:if])
-          options[:if].unshift("validation_context == :#{options[:on]}")
+          options[:if].unshift lambda { |o|
+            o.validation_context == options[:on]
+          }
         end
         args << options
         set_callback(:validate, *args, &block)
@@ -226,7 +228,6 @@ module ActiveModel
       #   Person.validators_on(:name)
       #   # => [
       #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
-      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={in:0..99}>
       #   #    ]
       def validators_on(*attributes)
         attributes.flat_map do |attribute|

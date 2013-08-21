@@ -91,7 +91,7 @@ module ActiveSupport
     #
     # This value can be later fetched using either +:key+ or +'key'+.
     def []=(key, value)
-      regular_writer(convert_key(key), convert_value(value))
+      regular_writer(convert_key(key), convert_value(value, for: :assignment))
     end
 
     alias_method :store, :[]=
@@ -223,13 +223,21 @@ module ActiveSupport
     def deep_stringify_keys; dup end
     undef :symbolize_keys!
     undef :deep_symbolize_keys!
-    def symbolize_keys; to_hash.symbolize_keys end
-    def deep_symbolize_keys; to_hash.deep_symbolize_keys end
+    def symbolize_keys; to_hash.symbolize_keys! end
+    def deep_symbolize_keys; to_hash.deep_symbolize_keys! end
     def to_options!; self end
+
+    def select(*args, &block)
+      dup.tap {|hash| hash.select!(*args, &block)}
+    end
 
     # Convert to a regular hash with string keys.
     def to_hash
-      Hash.new(default).merge!(self)
+      _new_hash= {}
+      each do |key, value|
+        _new_hash[convert_key(key)] = convert_value(value, for: :to_hash)
+      end
+      Hash.new(default).merge!(_new_hash)
     end
 
     protected
@@ -237,12 +245,18 @@ module ActiveSupport
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value)
+      def convert_value(value, options = {})
         if value.is_a? Hash
-          value.nested_under_indifferent_access
+          if options[:for] == :to_hash
+            value.to_hash
+          else
+            value.nested_under_indifferent_access
+          end
         elsif value.is_a?(Array)
-          value = value.dup if value.frozen?
-          value.map! { |e| convert_value(e) }
+          unless options[:for] == :assignment
+            value = value.dup
+          end
+          value.map! { |e| convert_value(e, options) }
         else
           value
         end

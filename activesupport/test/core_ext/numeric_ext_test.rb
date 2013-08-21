@@ -77,7 +77,7 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal @dtnow.advance(:days => 1).advance(:months => 2), @dtnow + 1.day + 2.months
   end
 
-  def test_duration_after_convertion_is_no_longer_accurate
+  def test_duration_after_conversion_is_no_longer_accurate
     assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
     assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
     assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)
@@ -439,59 +439,5 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
-  end
-end
-
-class NumericExtBehaviorTest < ActiveSupport::TestCase
-  def setup
-    @inf = BigDecimal.new('Infinity')
-  end
-
-  def test_compare_infinity_with_date
-    assert_equal(-1, -Float::INFINITY <=> Date.today)
-    assert_equal(1, Float::INFINITY <=> Date.today)
-    assert_equal(-1, -@inf <=> Date.today)
-    assert_equal(1, @inf <=> Date.today)
-  end
-
-  def test_compare_infinty_with_infinty
-    assert_equal(-1, -Float::INFINITY <=> Float::INFINITY)
-    assert_equal(1, Float::INFINITY <=> -Float::INFINITY)
-    assert_equal(0, Float::INFINITY <=> Float::INFINITY)
-    assert_equal(0, -Float::INFINITY <=> -Float::INFINITY)
-
-    assert_equal(-1, -Float::INFINITY <=> BigDecimal::INFINITY)
-    assert_equal(1, Float::INFINITY <=> -BigDecimal::INFINITY)
-    assert_equal(0, Float::INFINITY <=> BigDecimal::INFINITY)
-    assert_equal(0, -Float::INFINITY <=> -BigDecimal::INFINITY)
-
-    assert_equal(-1, -BigDecimal::INFINITY <=> Float::INFINITY)
-    assert_equal(1, BigDecimal::INFINITY <=> -Float::INFINITY)
-    assert_equal(0, BigDecimal::INFINITY <=> Float::INFINITY)
-    assert_equal(0, -BigDecimal::INFINITY <=> -Float::INFINITY)
-  end
-
-  def test_compare_infinity_with_time
-    assert_equal(-1, -Float::INFINITY <=> Time.now)
-    assert_equal(1, Float::INFINITY <=> Time.now)
-    assert_equal(-1, -@inf <=> Time.now)
-    assert_equal(1, @inf <=> Time.now)
-  end
-
-  def test_compare_infinity_with_datetime
-    assert_equal(-1, -Float::INFINITY <=> DateTime.now)
-    assert_equal(1, Float::INFINITY <=> DateTime.now)
-    assert_equal(-1, -@inf <=> DateTime.now)
-    assert_equal(1, @inf <=> DateTime.now)
-  end
-
-  def test_compare_infinity_with_twz
-    time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    twz = ActiveSupport::TimeWithZone.new(Time.now, time_zone)
-
-    assert_equal(-1, -Float::INFINITY <=> twz)
-    assert_equal(1, Float::INFINITY <=> twz)
-    assert_equal(-1, -@inf <=> twz)
-    assert_equal(1, @inf <=> twz)
   end
 end

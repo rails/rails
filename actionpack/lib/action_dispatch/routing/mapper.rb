@@ -11,8 +11,8 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
       SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
-                       :controller, :path_names, :constraints, :defaults,
-                       :shallow, :blocks, :options]
+                       :controller, :action, :path_names, :constraints,
+                       :shallow, :blocks, :defaults, :options]
 
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
@@ -299,7 +299,7 @@ module ActionDispatch
           end
       end
 
-      # Invokes Rack::Mount::Utils.normalize path and ensure that
+      # Invokes Journey::Router::Utils.normalize_path and ensure that
       # (:locale) becomes (/:locale) instead of /(:locale). Except
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
@@ -489,7 +489,7 @@ module ActionDispatch
             end
 
             options = app
-            app, path = options.find { |k, v| k.respond_to?(:call) }
+            app, path = options.find { |k, _| k.respond_to?(:call) }
             options.delete(app) if app
           end
 
@@ -513,6 +513,11 @@ module ActionDispatch
           scope(scope) do
             instance_exec(&block)
           end
+        end
+
+        # Query if the following named route was already defined.
+        def has_named_route?(name)
+          @set.named_routes.routes[name.to_sym]
         end
 
         private
@@ -869,6 +874,10 @@ module ActionDispatch
             child
           end
 
+          def merge_action_scope(parent, child) #:nodoc:
+            child
+          end
+
           def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
@@ -945,6 +954,8 @@ module ActionDispatch
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
+        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
+        RESOURCE_SCOPES = [:resource, :resources]
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
@@ -1361,7 +1372,7 @@ module ActionDispatch
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
-            path, to = options.find { |name, value| name.is_a?(String) }
+            path, to = options.find { |name, _value| name.is_a?(String) }
             options[:to] = to
             options.delete(path)
             paths = [path]
@@ -1374,6 +1385,10 @@ module ActionDispatch
 
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+          end
+
+          if @scope[:controller] && @scope[:action]
+            options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
           end
 
           paths.each do |_path|
@@ -1499,11 +1514,11 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            [:resource, :resources].include? @scope[:scope_level]
+            RESOURCE_SCOPES.include? @scope[:scope_level]
           end
 
           def resource_method_scope? #:nodoc:
-            [:collection, :member, :new].include? @scope[:scope_level]
+            RESOURCE_METHOD_SCOPES.include? @scope[:scope_level]
           end
 
           def with_exclusive_scope

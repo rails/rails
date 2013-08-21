@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-require 'active_support/inflector/inflections'
 require 'active_support/inflections'
 
 module ActiveSupport
@@ -73,7 +72,9 @@ module ActiveSupport
       else
         string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { $&.downcase }
       end
-      string.gsub(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }.gsub('/', '::')
+      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
+      string.gsub!('/', '::')
+      string
     end
 
     # Makes an underscored, lowercase form from the expression in the string.
@@ -88,8 +89,7 @@ module ActiveSupport
     #
     #   'SSLError'.underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
-      word = camel_cased_word.to_s.dup
-      word.gsub!('::', '/')
+      word = camel_cased_word.to_s.gsub('::', '/')
       word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
       word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
@@ -185,7 +185,7 @@ module ActiveSupport
     #
     # See also +demodulize+.
     def deconstantize(path)
-      path.to_s[0...(path.rindex('::') || 0)] # implementation based on the one in facets' Module#spacename
+      path.to_s[0, path.rindex('::') || 0] # implementation based on the one in facets' Module#spacename
     end
 
     # Creates a foreign key name from a class name.
@@ -219,7 +219,12 @@ module ActiveSupport
     # unknown.
     def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
-      names.shift if names.empty? || names.first.empty?
+
+      # Trigger a builtin NameError exception including the ill-formed constant in the message.
+      Object.const_get(camel_cased_word) if names.empty?
+
+      # Remove the first blank element in case of '::ClassName' notation.
+      names.shift if names.size > 1 && names.first.empty?
 
       names.inject(Object) do |constant, name|
         if constant == Object
@@ -314,9 +319,14 @@ module ActiveSupport
     private
 
     # Mount a regular expression that will match part by part of the constant.
-    # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?
+    #
+    #   const_regexp("Foo::Bar::Baz") # => /Foo(::Bar(::Baz)?)?/
+    #   const_regexp("::")            # => /::/
     def const_regexp(camel_cased_word) #:nodoc:
       parts = camel_cased_word.split("::")
+
+      return Regexp.escape(camel_cased_word) if parts.blank?
+
       last  = parts.pop
 
       parts.reverse.inject(last) do |acc, part|

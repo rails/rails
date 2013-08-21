@@ -13,9 +13,10 @@ module ApplicationTests
 
       @simple_plugin = engine "weblog"
       @plugin = engine "blog"
+      @metrics_plugin = engine "metrics"
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
           get "/engine_route" => "application_generating#engine_route"
@@ -28,6 +29,7 @@ module ApplicationTests
           scope "/:user", :user => "anonymous" do
             mount Blog::Engine => "/blog"
           end
+          mount Metrics::Engine => "/metrics"
           root :to => 'main#index'
         end
       RUBY
@@ -54,6 +56,34 @@ module ApplicationTests
         end
       RUBY
 
+      @metrics_plugin.write "lib/metrics.rb", <<-RUBY
+        module Metrics
+          class Engine < ::Rails::Engine
+            isolate_namespace(Metrics)
+          end
+        end
+      RUBY
+
+      @metrics_plugin.write "config/routes.rb", <<-RUBY
+        Metrics::Engine.routes.draw do
+          get '/generate_blog_route', to: 'generating#generate_blog_route'
+          get '/generate_blog_route_in_view', to: 'generating#generate_blog_route_in_view'
+        end
+      RUBY
+
+      @metrics_plugin.write "app/controllers/metrics/generating_controller.rb", <<-RUBY
+        module Metrics
+          class GeneratingController < ActionController::Base
+            def generate_blog_route
+              render text: blog.post_path(1)
+            end
+
+            def generate_blog_route_in_view
+              render inline: "<%= blog.post_path(1) -%>"
+            end
+          end
+        end
+      RUBY
 
       @plugin.write "app/models/blog/post.rb", <<-RUBY
         module Blog
@@ -200,6 +230,21 @@ module ApplicationTests
 
       get "/somone/blog/application_route_in_view"
       assert_equal "/", last_response.body
+
+      # test generating engine's route from other engine
+      get "/metrics/generate_blog_route"
+      assert_equal '/anonymous/blog/posts/1', last_response.body
+
+      get "/metrics/generate_blog_route_in_view"
+      assert_equal '/anonymous/blog/posts/1', last_response.body
+
+      # test generating engine's route from other engine with default_url_options
+      get "/metrics/generate_blog_route", {}, 'SCRIPT_NAME' => '/foo'
+      assert_equal '/foo/anonymous/blog/posts/1', last_response.body
+
+      get "/metrics/generate_blog_route_in_view", {}, 'SCRIPT_NAME' => '/foo'
+      assert_equal '/foo/anonymous/blog/posts/1', last_response.body
+
 
       # test generating application's route from engine with default_url_options
       get "/someone/blog/generate_application_route", {}, 'SCRIPT_NAME' => '/foo'

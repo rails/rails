@@ -229,6 +229,27 @@ module ActiveRecord
     #     belongs_to :member, inverse_of: :posts
     #     validates_presence_of :member
     #   end
+    #
+    # Note that if you do not specify the <tt>inverse_of</tt> option, then
+    # Active Record will try to automatically guess the inverse association
+    # based on heuristics.
+    #
+    # For one-to-one nested associations, if you build the new (in-memory)
+    # child object yourself before assignment, then this module will not
+    # overwrite it, e.g.:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_one :avatar
+    #     accepts_nested_attributes_for :avatar
+    #
+    #     def avatar
+    #       super || build_avatar(width: 200)
+    #     end
+    #   end
+    #
+    #   member = Member.new
+    #   member.avatar_attributes = {icon: 'sad'}
+    #   member.avatar.width # => 200
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
 
@@ -285,7 +306,7 @@ module ActiveRecord
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
-            reflection.options[:autosave] = true
+            reflection.autosave = true
             add_autosave_association_callbacks(reflection)
 
             nested_attributes_options = self.nested_attributes_options.dup
@@ -356,20 +377,28 @@ module ActiveRecord
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
+      existing_record = send(association_name)
 
-      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
-          (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
+      if (options[:update_only] || !attributes['id'].blank?) && existing_record &&
+          (options[:update_only] || existing_record.id.to_s == attributes['id'].to_s)
+        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
       elsif attributes['id'].present?
         raise_nested_attributes_record_not_found!(association_name, attributes['id'])
 
       elsif !reject_new_record?(association_name, attributes)
-        method = "build_#{association_name}"
-        if respond_to?(method)
-          send(method, attributes.except(*UNASSIGNABLE_KEYS))
+        assignable_attributes = attributes.except(*UNASSIGNABLE_KEYS)
+
+        if existing_record && existing_record.new_record?
+          existing_record.assign_attributes(assignable_attributes)
+          association(association_name).initialize_attributes(existing_record)
         else
-          raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+          method = "build_#{association_name}"
+          if respond_to?(method)
+            send(method, assignable_attributes)
+          else
+            raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+          end
         end
       end
     end
@@ -436,19 +465,17 @@ module ActiveRecord
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          unless association.loaded? || call_reject_if(association_name, attributes)
+          unless call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
-            target_record = association.target.detect { |record| record == existing_record }
-
+            # Take into account that the proxy_target may have changed due to callbacks
+            target_record = association.target.detect { |record| record.id.to_s == attributes['id'].to_s }
             if target_record
               existing_record = target_record
             else
-              association.add_to_target(existing_record)
+              association.add_to_target(existing_record, :skip_callbacks)
             end
-          end
 
-          if !call_reject_if(association_name, attributes)
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else

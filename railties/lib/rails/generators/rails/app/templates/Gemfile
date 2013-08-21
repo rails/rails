@@ -4,29 +4,27 @@ source 'https://rubygems.org'
 
 <%= database_gemfile_entry -%>
 
-<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
-
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry -%>
+
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem 'jbuilder', '~> 1.2'
 
 group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
   gem 'sdoc', require: false
 end
 
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-gem 'jbuilder', '~> 1.0.1'
-
-# To use ActiveModel has_secure_password
-# gem 'bcrypt-ruby', '~> 3.0.0'
+# Use ActiveModel has_secure_password
+# gem 'bcrypt-ruby', '~> 3.1.0'
 
 # Use unicorn as the app server
 # gem 'unicorn'
 
-# Deploy with Capistrano
+# Use Capistrano for deployment
 # gem 'capistrano', group: :development
 
 <% unless defined?(JRUBY_VERSION) -%>
-# To use debugger
+# Use debugger
 # gem 'debugger', group: [:development, :test]
 <% end -%>

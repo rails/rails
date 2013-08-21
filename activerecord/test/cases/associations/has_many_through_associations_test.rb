@@ -5,6 +5,7 @@ require 'models/reference'
 require 'models/job'
 require 'models/reader'
 require 'models/comment'
+require 'models/rating'
 require 'models/tag'
 require 'models/tagging'
 require 'models/author'
@@ -55,6 +56,47 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert post.reload.people(true).include?(person)
+  end
+
+  def test_delete_all_for_with_dependent_option_destroy
+    person = people(:david)
+    assert_equal 1, person.jobs_with_dependent_destroy.count
+
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -1 do
+        person.reload.jobs_with_dependent_destroy.delete_all
+      end
+    end
+  end
+
+  def test_delete_all_for_with_dependent_option_nullify
+    person = people(:david)
+    assert_equal 1, person.jobs_with_dependent_nullify.count
+
+    assert_no_difference 'Job.count' do
+      assert_no_difference 'Reference.count' do
+        person.reload.jobs_with_dependent_nullify.delete_all
+      end
+    end
+  end
+
+  def test_delete_all_for_with_dependent_option_delete_all
+    person = people(:david)
+    assert_equal 1, person.jobs_with_dependent_delete_all.count
+
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -1 do
+        person.reload.jobs_with_dependent_delete_all.delete_all
+      end
+    end
+  end
+
+  def test_concat
+    person = people(:david)
+    post   = posts(:thinking)
+    post.people.concat [person]
+    assert_equal 1, post.people.size
+    assert_equal 1, post.people(true).size
   end
 
   def test_associate_existing_record_twice_should_add_to_target_twice
@@ -580,6 +622,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(:favorite_author_id => 2)
     author.author_favorites.create(:favorite_author_id => 3)
     assert_equal post.author.author_favorites, post.author_favorites
+  end
+
+  def test_merge_join_association_with_has_many_through_association_proxy
+    author = authors(:mary)
+    assert_nothing_raised { author.comments.ratings.to_sql }
   end
 
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys

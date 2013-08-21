@@ -182,9 +182,15 @@ Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: the guides help you in learning about Ruby on Rails, and the API is a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/lifo/docrails/translating-rails-guides).
+You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
-If you're confident about your changes, you can push them directly yourself via [docrails](https://github.com/lifo/docrails). Docrails is a branch with an **open commit policy** and public write access. Commits to docrails are still reviewed, but this happens after they are pushed. Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can either open a pull request to [Rails](http://github.com/rails/rails) or
+ask the [Rails core team](http://rubyonrails.org/core) for commit access on
+[docrails](http://github.com/rails/docrails) if you contribute regularly.
+Please do not open pull requests in docrails, if you'd like to get feedback on your
+change, ask for it in [Rails](http://github.com/rails/rails) instead.
+
+Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
 If you are unsure of the documentation changes, you can create an issue in the [Rails](https://github.com/rails/rails/issues) issues tracker on GitHub.
 
@@ -232,8 +238,8 @@ workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 As a compromise, test what your code obviously affects, and if the change is
 not in railties run the whole test suite of the affected component. If all is
-green that's enough to propose your contribution. We have [Travis CI](https
-://travis-ci.org/) as a safety net for catching unexpected breakages
+green that's enough to propose your contribution. We have [Travis CI](https://travis-ci.org/rails/rails)
+as a safety net for catching unexpected breakages
 elsewhere.
 
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
@@ -262,7 +268,7 @@ The CHANGELOG is an important part of every release. It keeps the list of change
 
 You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, committing a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
 
-A CHANGELOG entry should summarize what was changed and should end with author's name. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
+A CHANGELOG entry should summarize what was changed and should end with author's name and it should go on top of a CHANGELOG. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
 
 ```
 *   Summary of a change that briefly describes what was changed. You can use multiple

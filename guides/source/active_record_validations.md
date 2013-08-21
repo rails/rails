@@ -120,8 +120,8 @@ database only if the object is valid:
 * `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't: `save` and `update` return `false`,
-`create` and `update` just return the objects.
+The non-bang versions don't, `save` and `update` return `false`,
+`create` just returns the object.
 
 ### Skipping Validations
 
@@ -162,8 +162,8 @@ Person.create(name: nil).valid? # => false
 ```
 
 After Active Record has performed validations, any errors found can be accessed
-through the `errors` instance method, which returns a collection of errors. By
-definition, an object is valid if this collection is empty after running
+through the `errors.messages` instance method, which returns a collection of errors.
+By definition, an object is valid if this collection is empty after running
 validations.
 
 Note that an object instantiated with `new` will not report errors even if it's
@@ -176,17 +176,17 @@ end
 
 >> p = Person.new
 #=> #<Person id: nil, name: nil>
->> p.errors
+>> p.errors.messages
 #=> {}
 
 >> p.valid?
 #=> false
->> p.errors
+>> p.errors.messages
 #=> {name:["can't be blank"]}
 
 >> p = Person.create
 #=> #<Person id: nil, name: nil>
->> p.errors
+>> p.errors.messages
 #=> {name:["can't be blank"]}
 
 >> p.save
@@ -243,7 +243,7 @@ line of code you can add the same kind of validation to several attributes.
 All of them accept the `:on` and `:message` options, which define when the
 validation should be run and what message should be added to the `errors`
 collection if it fails, respectively. The `:on` option takes one of the values
-`:save` (the default), `:create`  or `:update`. There is a default error
+`:create` or `:update`. There is a default error
 message for each one of the validation helpers. These messages are used when
 the `:message` option isn't specified. Let's take a look at each one of the
 available helpers.
@@ -357,7 +357,7 @@ given regular expression, which is specified using the `:with` option.
 ```ruby
 class Product < ActiveRecord::Base
   validates :legacy_code, format: { with: /\A[a-zA-Z]+\z/,
-    message: "Only letters allowed" }
+    message: "only allows letters" }
 end
 ```
 
@@ -434,7 +434,7 @@ end
 
 Note that the default error messages are plural (e.g., "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a personalized message or use `validates_presence_of` instead. When
+provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
 
@@ -677,13 +677,13 @@ class GoodnessValidator
   def initialize(person)
     @person = person
   end
-  
+
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
       @person.errors[:base] << "This person is evil"
     end
   end
-  
+
   # …
 end
 ```
@@ -736,8 +736,8 @@ class Topic < ActiveRecord::Base
   validates :title, length: { is: 5 }, allow_blank: true
 end
 
-Topic.create("title" => "").valid?  # => true
-Topic.create("title" => nil).valid? # => true
+Topic.create(title: "").valid?  # => true
+Topic.create(title: nil).valid? # => true
 ```
 
 ### `:message`
@@ -765,7 +765,7 @@ class Person < ActiveRecord::Base
   validates :age, numericality: true, on: :update
 
   # the default (validates on both create and update)
-  validates :name, presence: true, on: :save
+  validates :name, presence: true
 end
 ```
 
@@ -992,12 +992,12 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors
+person.errors.messages
  # => {:name=>["can't be blank", "is too short (minimum is 3 characters)"]}
 
 person = Person.new(name: "John Doe")
 person.valid? # => true
-person.errors # => []
+person.errors.messages # => {}
 ```
 
 ### `errors[]`

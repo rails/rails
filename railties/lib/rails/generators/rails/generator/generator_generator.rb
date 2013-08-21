@@ -10,6 +10,8 @@ module Rails
         directory '.', generator_dir
       end
 
+      hook_for :test_framework
+
       protected
 
         def generator_dir

@@ -2,15 +2,15 @@ module ActiveRecord
   module Validations
     class AssociatedValidator < ActiveModel::EachValidator #:nodoc:
       def validate_each(record, attribute, value)
-        if Array.wrap(value).reject {|r| r.marked_for_destruction? || r.valid?(record.validation_context) }.any?
+        if Array.wrap(value).reject {|r| r.marked_for_destruction? || r.valid?}.any?
           record.errors.add(attribute, :invalid, options.merge(:value => value))
         end
       end
     end
 
     module ClassMethods
-      # Validates whether the associated object or objects are all valid
-      # themselves. Works with any kind of association.
+      # Validates whether the associated object or objects are all valid.
+      # Works with any kind of association.
       #
       #   class Book < ActiveRecord::Base
       #     has_many :pages

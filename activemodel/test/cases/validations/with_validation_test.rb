@@ -72,26 +72,26 @@ class ValidatesWithTest < ActiveModel::TestCase
   end
 
   test "with if statements that return false" do
-    Topic.validates_with(ValidatorThatAddsErrors, :if => "1 == 2")
+    Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 2")
     topic = Topic.new
     assert topic.valid?
   end
 
   test "with if statements that return true" do
-    Topic.validates_with(ValidatorThatAddsErrors, :if => "1 == 1")
+    Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 1")
     topic = Topic.new
     assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
   test "with unless statements that return true" do
-    Topic.validates_with(ValidatorThatAddsErrors, :unless => "1 == 1")
+    Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 1")
     topic = Topic.new
     assert topic.valid?
   end
 
   test "with unless statements that returns false" do
-    Topic.validates_with(ValidatorThatAddsErrors, :unless => "1 == 2")
+    Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 2")
     topic = Topic.new
     assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
@@ -100,45 +100,23 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = mock()
-    validator.expects(:new).with(:foo => :bar, :if => "1 == 1").returns(validator)
+    validator.expects(:new).with(foo: :bar, if: "1 == 1", class: Topic).returns(validator)
     validator.expects(:validate).with(topic)
 
-    Topic.validates_with(validator, :if => "1 == 1", :foo => :bar)
-    assert topic.valid?
-  end
-
-  test "calls setup method of validator passing in self when validator has setup method" do
-    topic = Topic.new
-    validator = stub_everything
-    validator.stubs(:new).returns(validator)
-    validator.stubs(:validate)
-    validator.stubs(:respond_to?).with(:setup).returns(true)
-    validator.expects(:setup).with(Topic).once
-    Topic.validates_with(validator)
-    assert topic.valid?
-  end
-
-  test "doesn't call setup method of validator when validator has no setup method" do
-    topic = Topic.new
-    validator = stub_everything
-    validator.stubs(:new).returns(validator)
-    validator.stubs(:validate)
-    validator.stubs(:respond_to?).with(:setup).returns(false)
-    validator.expects(:setup).with(Topic).never
-    Topic.validates_with(validator)
+    Topic.validates_with(validator, if: "1 == 1", foo: :bar)
     assert topic.valid?
   end
 
   test "validates_with with options" do
-    Topic.validates_with(ValidatorThatValidatesOptions, :field => :first_name)
+    Topic.validates_with(ValidatorThatValidatesOptions, field: :first_name)
     topic = Topic.new
     assert topic.invalid?
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
   test "validates_with each validator" do
-    Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content])
-    topic = Topic.new :title => "Title", :content => "Content"
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content])
+    topic = Topic.new title: "Title", content: "Content"
     assert topic.invalid?
     assert_equal ["Value is Title"], topic.errors[:title]
     assert_equal ["Value is Content"], topic.errors[:content]
@@ -146,7 +124,7 @@ class ValidatesWithTest < ActiveModel::TestCase
 
   test "each validator checks validity" do
     assert_raise RuntimeError do
-      Topic.validates_with(ValidatorCheckValidity, :attributes => [:title])
+      Topic.validates_with(ValidatorCheckValidity, attributes: [:title])
     end
   end
 
@@ -157,25 +135,25 @@ class ValidatesWithTest < ActiveModel::TestCase
   end
 
   test "each validator skip nil values if :allow_nil is set to true" do
-    Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content], :allow_nil => true)
-    topic = Topic.new :content => ""
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_nil: true)
+    topic = Topic.new content: ""
     assert topic.invalid?
     assert topic.errors[:title].empty?
     assert_equal ["Value is "], topic.errors[:content]
   end
 
   test "each validator skip blank values if :allow_blank is set to true" do
-    Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content], :allow_blank => true)
-    topic = Topic.new :content => ""
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: true)
+    topic = Topic.new content: ""
     assert topic.valid?
     assert topic.errors[:title].empty?
     assert topic.errors[:content].empty?
   end
 
   test "validates_with can validate with an instance method" do
-    Topic.validates :title, :with => :my_validation
+    Topic.validates :title, with: :my_validation
 
-    topic = Topic.new :title => "foo"
+    topic = Topic.new title: "foo"
     assert topic.valid?
     assert topic.errors[:title].empty?
 
@@ -185,9 +163,9 @@ class ValidatesWithTest < ActiveModel::TestCase
   end
 
   test "optionally pass in the attribute being validated when validating with an instance method" do
-    Topic.validates :title, :content, :with => :my_validation_with_arg
+    Topic.validates :title, :content, with: :my_validation_with_arg
 
-    topic = Topic.new :title => "foo"
+    topic = Topic.new title: "foo"
     assert !topic.valid?
     assert topic.errors[:title].empty?
     assert_equal ['is missing'], topic.errors[:content]

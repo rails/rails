@@ -27,6 +27,16 @@ A controller can thus be thought of as a middle man between models and views. It
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
+Controller Naming Convention
+----------------------------
+
+The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
+
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+
+NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+
+
 Methods and Actions
 -------------------
 
@@ -119,7 +129,7 @@ Note that the `params` hash is actually an instance of `ActiveSupport::HashWithI
 
 ### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -138,7 +148,7 @@ Also, if you've turned on `config.wrap_parameters` in your initializer or callin
 And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
 
 ```ruby
-{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" } }
+{ name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
@@ -150,7 +160,7 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', foo: 'bar'
+get '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -236,7 +246,7 @@ To declare that the value in `params` must be an array of permitted
 scalar values map the key to an empty array:
 
 ```ruby
-params.permit(:id => [])
+params.permit(id: [])
 ```
 
 To whitelist an entire hash of parameters, the `permit!` method can be
@@ -247,7 +257,7 @@ params.require(:log_entry).permit!
 ```
 
 This will mark the `:log_entry` parameters hash and any subhash of it
-permitted.  Extreme care should be taken when using `permit!` as it
+permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
 
@@ -256,9 +266,9 @@ mass-assigned.
 You can also use permit on nested parameters, like:
 
 ```ruby
-params.permit(:name, {:emails => []},
-              :friends => [ :name,
-                            { :family => [ :name ], :hobbies => [] }])
+params.permit(:name, { emails: [] },
+              friends: [ :name,
+                         { family: [ :name ], hobbies: [] }])
 ```
 
 This declaration whitelists the `name`, `emails` and `friends`
@@ -336,7 +346,7 @@ Your application has a session for each user in which you can store small amount
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
-For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
+For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
 
 The CookieStore can store around 4kB of data — much less than the others — but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
@@ -400,7 +410,7 @@ class ApplicationController < ActionController::Base
   # logging out removes it.
   def current_user
     @_current_user ||= session[:current_user_id] &&
-      User.find_by_id(session[:current_user_id])
+      User.find_by(id: session[:current_user_id])
   end
 end
 ```
@@ -558,10 +568,10 @@ end
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
-Rendering xml and json data
+Rendering XML and JSON data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffolding then it would look something like this:
+ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -576,7 +586,7 @@ class UsersController < ApplicationController
 end
 ```
 
-Notice that in the above case code is `render xml: @users` and not `render xml: @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
+You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
 Filters
 -------
@@ -598,15 +608,6 @@ class ApplicationController < ActionController::Base
       flash[:error] = "You must be logged in to access this section"
       redirect_to new_login_url # halts request cycle
     end
-  end
-
-  # The logged_in? method simply returns true if the user is logged
-  # in and false otherwise. It does this by "booleanizing" the
-  # current_user method we created previously using a double ! operator.
-  # Note that this is not common in Ruby and is discouraged unless you
-  # really mean to convert something into true or false.
-  def logged_in?
-    !!current_user
   end
 end
 ```
@@ -788,7 +789,7 @@ Rails comes with two built-in HTTP authentication mechanisms:
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, `http_basic_authenticate_with`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 ```
@@ -800,7 +801,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, `authenticate_or_request_with_http_digest`.
 
 ```ruby
-class AdminController < ApplicationController
+class AdminsController < ApplicationController
   USERS = { "lifo" => "world" }
 
   before_action :authenticate
@@ -905,6 +906,92 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 ```bash
 GET /clients/1.pdf
 ```
+
+### Live Streaming of Arbitrary Data
+
+Rails allows you to stream more than just files. In fact, you can stream anything
+you would like in a response object. The `ActionController::Live` module allows
+you to create a persistent connection with a browser. Using this module, you will
+be able to send arbitrary data to the browser at specific points in time.
+
+#### Incorporating Live Streaming
+
+Including `ActionController::Live` inside of your controller class will provide
+all actions inside of the controller the ability to stream data. You can mix in
+the module like so:
+
+```ruby
+class MyController < ActionController::Base
+  include ActionController::Live
+
+  def stream
+    response.headers['Content-Type'] = 'text/event-stream'
+    100.times {
+      response.stream.write "hello world\n"
+      sleep 1
+    }
+  ensure
+    response.stream.close
+  end
+end
+```
+
+The above code will keep a persistent connection with the browser and send 100
+messages of `"hello world\n"`, each one second apart.
+
+There are a couple of things to notice in the above example. We need to make
+sure to close the response stream. Forgetting to close the stream will leave
+the socket open forever. We also have to set the content type to `text/event-stream`
+before we write to the response stream. This is because headers cannot be written
+after the response has been committed (when `response.committed` returns a truthy
+value), which occurs when you `write` or `commit` the response stream.
+
+#### Example Usage
+
+Let's suppose that you were making a Karaoke machine and a user wants to get the
+lyrics for a particular song. Each `Song` has a particular number of lines and
+each line takes time `num_beats` to finish singing.
+
+If we wanted to return the lyrics in Karaoke fashion (only sending the line when
+the singer has finished the previous line), then we could use `ActionController::Live`
+as follows:
+
+```ruby
+class LyricsController < ActionController::Base
+  include ActionController::Live
+
+  def show
+    response.headers['Content-Type'] = 'text/event-stream'
+    song = Song.find(params[:id])
+
+    song.each do |line|
+      response.stream.write line.lyrics
+      sleep line.num_beats
+    end
+  ensure
+    response.stream.close
+  end
+end
+```
+
+The above code sends the next line only after the singer has completed the previous
+line.
+
+#### Streaming Considerations
+
+Streaming arbitrary data is an extremely powerful tool. As shown in the previous
+examples, you can choose when and what to send across a response stream. However,
+you should also note the following things:
+
+* Each response stream creates a new thread and copies over the thread local
+  variables from the original thread. Having too many thread local variables can
+  negatively impact performance. Similarly, a large number of threads can also
+  hinder performance.
+* Failing to close the response stream will leave the corresponding socket open
+  forever. Make sure to call `close` whenever you are using a response stream.
+* WEBrick servers buffer all responses, and so including `ActionController::Live`
+  will not work. You must use a web server which does not automatically buffer 
+  responses.
 
 Log Filtering
 -------------

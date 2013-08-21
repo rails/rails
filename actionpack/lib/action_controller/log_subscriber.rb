@@ -33,7 +33,7 @@ module ActionController
     end
 
     def halted_callback(event)
-      info("Filter chain halted as #{event.payload[:filter]} rendered or redirected")
+      info("Filter chain halted as #{event.payload[:filter].inspect} rendered or redirected")
     end
 
     def send_file(event)

@@ -12,7 +12,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_each_should_execute_one_query_per_batch
-    assert_queries(Post.count + 1) do
+    assert_queries(@total + 1) do
       Post.find_each(:batch_size => 1) do |post|
         assert_kind_of Post, post
       end
@@ -23,6 +23,24 @@ class EachTest < ActiveRecord::TestCase
     assert_queries(1) do
       result = Post.find_each(:batch_size => 100000){ }
       assert_nil result
+    end
+  end
+
+  def test_each_should_return_an_enumerator_if_no_block_is_present
+    assert_queries(1) do
+      Post.find_each(:batch_size => 100000).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
+  def test_each_enumerator_should_execute_one_query_per_batch
+    assert_queries(@total + 1) do
+      Post.find_each(:batch_size => 1).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
     end
   end
 
@@ -50,8 +68,18 @@ class EachTest < ActiveRecord::TestCase
     Post.order("title").find_each { |post| post }
   end
 
+  def test_logger_not_required
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = nil
+    assert_nothing_raised do
+      Post.limit(1).find_each { |post| post }
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
+  end
+
   def test_find_in_batches_should_return_batches
-    assert_queries(Post.count + 1) do
+    assert_queries(@total + 1) do
       Post.find_in_batches(:batch_size => 1) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -60,7 +88,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_start_from_the_start_option
-    assert_queries(Post.count) do
+    assert_queries(@total) do
       Post.find_in_batches(:batch_size => 1, :start => 2) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -69,14 +97,12 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_shouldnt_execute_query_unless_needed
-    post_count = Post.count
-
     assert_queries(2) do
-      Post.find_in_batches(:batch_size => post_count) {|batch| assert_kind_of Array, batch }
+      Post.find_in_batches(:batch_size => @total) {|batch| assert_kind_of Array, batch }
     end
 
     assert_queries(1) do
-      Post.find_in_batches(:batch_size => post_count + 1) {|batch| assert_kind_of Array, batch }
+      Post.find_in_batches(:batch_size => @total + 1) {|batch| assert_kind_of Array, batch }
     end
   end
 

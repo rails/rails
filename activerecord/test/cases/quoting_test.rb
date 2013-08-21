@@ -53,50 +53,40 @@ module ActiveRecord
       end
 
       def test_quoted_time_utc
-        before = ActiveRecord::Base.default_timezone
-        ActiveRecord::Base.default_timezone = :utc
-        t = Time.now
-        assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
-      ensure
-        ActiveRecord::Base.default_timezone = before
+        with_active_record_default_timezone :utc do
+          t = Time.now
+          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+        end
       end
 
       def test_quoted_time_local
-        before = ActiveRecord::Base.default_timezone
-        ActiveRecord::Base.default_timezone = :local
-        t = Time.now
-        assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
-      ensure
-        ActiveRecord::Base.default_timezone = before
+        with_active_record_default_timezone :local do
+          t = Time.now
+          assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
+        end
       end
 
       def test_quoted_time_crazy
-        before = ActiveRecord::Base.default_timezone
-        ActiveRecord::Base.default_timezone = :asdfasdf
-        t = Time.now
-        assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
-      ensure
-        ActiveRecord::Base.default_timezone = before
+        with_active_record_default_timezone :asdfasdf do
+          t = Time.now
+          assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
+        end
       end
 
       def test_quoted_datetime_utc
-        before = ActiveRecord::Base.default_timezone
-        ActiveRecord::Base.default_timezone = :utc
-        t = DateTime.now
-        assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
-      ensure
-        ActiveRecord::Base.default_timezone = before
+        with_active_record_default_timezone :utc do
+          t = DateTime.now
+          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+        end
       end
 
       ###
       # DateTime doesn't define getlocal, so make sure it does nothing
       def test_quoted_datetime_local
-        before = ActiveRecord::Base.default_timezone
-        ActiveRecord::Base.default_timezone = :local
-        t = DateTime.now
-        assert_equal t.to_s(:db), @quoter.quoted_date(t)
-      ensure
-        ActiveRecord::Base.default_timezone = before
+        with_active_record_default_timezone :local do
+          t = DateTime.now
+          assert_equal t.to_s(:db), @quoter.quoted_date(t)
+        end
       end
 
       def test_quote_with_quoted_id
@@ -192,25 +182,6 @@ module ActiveRecord
 
       def test_quote_binary_without_string_to_binary
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:binary))
-      end
-
-      def test_quote_binary_with_string_to_binary
-        col = Class.new(FakeColumn) {
-          def string_to_binary(value)
-            'foo'
-          end
-        }.new(:binary)
-        assert_equal "'foo'", @quoter.quote('lo\l', col)
-      end
-
-      def test_quote_as_mb_chars_binary_column_with_string_to_binary
-        col = Class.new(FakeColumn) {
-          def string_to_binary(value)
-            'foo'
-          end
-        }.new(:binary)
-        string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'foo'", @quoter.quote(string, col)
       end
 
       def test_string_with_crazy_column

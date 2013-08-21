@@ -1,20 +1,21 @@
 module ActiveRecord
   module Querying
-    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :to => :all
-    delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :all
-    delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, :to => :all
-    delegate :find_by, :find_by!, :to => :all
-    delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :all
-    delegate :find_each, :find_in_batches, :to => :all
+    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, to: :all
+    delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
+    delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
+    delegate :find_by, :find_by!, to: :all
+    delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, to: :all
+    delegate :find_each, :find_in_batches, to: :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
-             :having, :create_with, :uniq, :distinct, :references, :none, :to => :all
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :ids, :to => :all
+             :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all
+    delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
+    delegate :pluck, :ids, to: :all
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call
     # this method from. If you call <tt>Product.find_by_sql</tt> then the results will be returned in
-    # a Product object with the attributes you specified in the SQL query.
+    # a +Product+ object with the attributes you specified in the SQL query.
     #
     # If you call a complicated SQL query which spans multiple tables the columns specified by the
     # SELECT will be attributes of the model, whether or not they are columns of the corresponding
@@ -29,9 +30,10 @@ module ActiveRecord
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
     #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
     #
-    #   # You can use the same string replacement techniques as you can with ActiveRecord#find
+    # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
+    #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
+    #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     def find_by_sql(sql, binds = [])
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
       column_types = {}

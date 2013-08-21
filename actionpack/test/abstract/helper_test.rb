@@ -48,6 +48,14 @@ module AbstractController
       end
     end
 
+    class AbstractInvalidHelpers < AbstractHelpers
+      include ActionController::Helpers
+
+      path = File.join(File.expand_path('../../fixtures', __FILE__), "helpers_missing")
+      $:.unshift(path)
+      self.helpers_path = path
+    end
+
     class TestHelpers < ActiveSupport::TestCase
       def setup
         @controller = AbstractHelpers.new
@@ -95,6 +103,23 @@ module AbstractController
       def test_includes_controller_default_helper
         @controller.process(:with_block)
         assert_equal "Hello Default", @controller.response_body
+      end
+    end
+
+    class InvalidHelpersTest < ActiveSupport::TestCase
+      def test_controller_raise_error_about_real_require_problem
+        e = assert_raise(LoadError) { AbstractInvalidHelpers.helper(:invalid_require) }
+        assert_equal "No such file to load -- very_invalid_file_name", e.message
+      end
+
+      def test_controller_raise_error_about_missing_helper
+        e = assert_raise(AbstractController::Helpers::MissingHelperError) { AbstractInvalidHelpers.helper(:missing) }
+        assert_equal "Missing helper file helpers/missing_helper.rb", e.message
+      end
+
+      def test_missing_helper_error_has_the_right_path
+        e = assert_raise(AbstractController::Helpers::MissingHelperError) { AbstractInvalidHelpers.helper(:missing) }
+        assert_equal "helpers/missing_helper.rb", e.path
       end
     end
   end

@@ -15,13 +15,3 @@ To run a single test suite
 which can be further narrowed down to one test:
 
    rake test TEST=path/to/test.rb TESTOPTS="--name=test_something"
-
-== Dependency on Active Record and database setup
-
-Test cases in the test/active_record/ directory depend on having
-activerecord and sqlite installed. If Active Record is not in
-actionpack/../activerecord directory, or the sqlite rubygem is not installed,
-these tests are skipped.
-
-Other tests are runnable from a fresh copy of actionpack without any configuration.
-

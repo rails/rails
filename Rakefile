@@ -8,10 +8,10 @@ require 'railties/lib/rails/api/task'
 desc "Build gem files for all projects"
 task :build => "all:build"
 
-desc "Release all gems to gemcutter and create a tag"
+desc "Release all gems to rubygems and create a tag"
 task :release => "all:release"
 
-PROJECTS = %w(activesupport activemodel actionpack actionmailer activerecord railties)
+PROJECTS = %w(activesupport activemodel actionpack actionview actionmailer activerecord railties)
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
@@ -36,7 +36,7 @@ task :smoke do
 end
 
 desc "Install gems for all projects."
-task :install => :gem do
+task :install => :build do
   version = File.read("RAILS_VERSION").strip
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
@@ -47,20 +47,25 @@ task :install => :gem do
 end
 
 desc "Generate documentation for the Rails framework"
-Rails::API::RepoTask.new('rdoc')
+if ENV['EDGE']
+  Rails::API::EdgeTask.new('rdoc')
+else
+  Rails::API::StableTask.new('rdoc')
+end
 
 desc 'Bump all versions to match version.rb'
 task :update_versions do
   require File.dirname(__FILE__) + "/version"
 
   File.open("RAILS_VERSION", "w") do |f|
-    f.puts Rails.version
+    f.puts Rails::VERSION::STRING
   end
 
   constants = {
     "activesupport"   => "ActiveSupport",
     "activemodel"     => "ActiveModel",
     "actionpack"      => "ActionPack",
+    "actionview"      => "ActionView",
     "actionmailer"    => "ActionMailer",
     "activerecord"    => "ActiveRecord",
     "railties"        => "Rails"
@@ -78,7 +83,7 @@ task :update_versions do
 end
 
 #
-# We have a webhook configured in Github that gets invoked after pushes.
+# We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
 #
 #   * updates the local checkout

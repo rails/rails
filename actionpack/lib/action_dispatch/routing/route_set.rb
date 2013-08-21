@@ -170,9 +170,10 @@ module ActionDispatch
 
             def call(t, args)
               if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
-                @options.merge!(t.url_options) if t.respond_to?(:url_options)
-                @options[:path] = optimized_helper(args)
-                ActionDispatch::Http::URL.url_for(@options)
+                options = @options.dup
+                options.merge!(t.url_options) if t.respond_to?(:url_options)
+                options[:path] = optimized_helper(args)
+                ActionDispatch::Http::URL.url_for(options)
               else
                 super
               end
@@ -185,16 +186,41 @@ module ActionDispatch
               klass = Journey::Router::Utils
 
               @path_parts.zip(args) do |part, arg|
+                parameterized_arg = arg.to_param
+
+                if parameterized_arg.nil? || parameterized_arg.empty?
+                  raise_generation_error(args)
+                end
+
                 # Replace each route parameter
                 # e.g. :id for regular parameter or *path for globbing
                 # with ruby string interpolation code
-                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(arg.to_param))
+                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(parameterized_arg))
               end
               path
             end
 
             def optimize_routes_generation?(t)
               t.send(:optimize_routes_generation?)
+            end
+
+            def raise_generation_error(args)
+              parts, missing_keys = [], []
+
+              @path_parts.zip(args) do |part, arg|
+                parameterized_arg = arg.to_param
+
+                if parameterized_arg.nil? || parameterized_arg.empty?
+                  missing_keys << part
+                end
+
+                parts << [part, arg]
+              end
+
+              message = "No route matches #{Hash[parts].inspect}"
+              message << " missing required keys: #{missing_keys.inspect}"
+
+              raise ActionController::UrlGenerationError, message
             end
           end
 
@@ -217,6 +243,7 @@ module ActionDispatch
                 keys -= t.url_options.keys if t.respond_to?(:url_options)
                 keys -= options.keys
               end
+              keys -= inner_options.keys
               result.merge!(Hash[keys.zip(args)])
             end
 
@@ -665,7 +692,7 @@ module ActionDispatch
         end
 
         req = @request_class.new(env)
-        @router.recognize(req) do |route, matches, params|
+        @router.recognize(req) do |route, _matches, params|
           params.merge!(extras)
           params.each do |key, value|
             if value.is_a?(String)

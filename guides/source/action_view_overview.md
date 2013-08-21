@@ -172,7 +172,7 @@ That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 
 #### Using Partials to simplify Views
 
-One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
+One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
 
 ```html+erb
 <%= render "shared/ad_banner" %>
@@ -269,12 +269,7 @@ Rails will render the `_product_ruler` partial (with no data passed to it) betwe
 
 ### Layouts
 
-TODO...
-
-Using Templates, Partials and Layouts "The Rails Way"
---------------------------------------------------------
-
-TODO...
+Layouts can be used to render a common view template around the results of Rails controller actions. Typically, every Rails has a couple of overall layouts that most pages are rendered within. For example, a site might have a layout for a logged in user, and a layout for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us." You would expect each layout to have a different look and feel. You can read more details about Layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 Partial Layouts
 ---------------
@@ -780,8 +775,8 @@ select_day(5)
 Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
 
 ```ruby
-# Generates a select field for minutes that defaults to the minutes for the time provided
-select_minute(Time.now + 6.hours)
+# Generates a select field for hours that defaults to the hours for the time provided
+select_hour(Time.now + 6.hours)
 ```
 
 #### select_minute
@@ -946,9 +941,9 @@ Creates a form and a scope around a specific model object that is used as a base
 ```html+erb
 <%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
-  <%= f.text_field :title %><br />
+  <%= f.text_field :title %><br>
   <%= f.label :body, 'Body' %>:
-  <%= f.text_area :body %><br />
+  <%= f.text_area :body %><br>
 <% end %>
 ```
 
@@ -1009,6 +1004,24 @@ Returns an input tag of the "text" type tailored for accessing a specified attri
 ```ruby
 text_field(:post, :title)
 # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" />
+```
+
+#### email_field
+
+Returns an input tag of the "email" type tailored for accessing a specified attribute.
+
+```ruby
+email_field(:user, :email)
+# => <input type="email" id="user_email" name="user[email]" value="#{@user.email}" />
+```
+
+#### url_field
+
+Returns an input tag of the "url" type tailored for accessing a specified attribute.
+
+```ruby
+url_field(:user, :url)
+# => <input type="url" id="user_url" name="user[url]" value="#{@user.url}" />
 ```
 
 ### FormOptionsHelper
@@ -1095,7 +1108,7 @@ Example object structure for use with this method:
 
 ```ruby
 class Post < ActiveRecord::Base
-  has_and_belongs_to_many :author
+  has_and_belongs_to_many :authors
 end
 
 class Author < ActiveRecord::Base
@@ -1235,6 +1248,14 @@ Return select and option tags for the given object and method, using `time_zone_
 time_zone_select( "user", "time_zone")
 ```
 
+#### date_field
+
+Returns an input tag of the "date" type tailored for accessing a specified attribute.
+
+```ruby
+date_field("user", "dob")
+```
+
 ### FormTagHelper
 
 Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
@@ -1369,6 +1390,33 @@ text_field_tag 'name'
 # => <input id="name" name="name" type="text" />
 ```
 
+#### email_field_tag
+
+Creates a standard input field of email type.
+
+```ruby
+email_field_tag 'email'
+# => <input id="email" name="email" type="email" />
+```
+
+#### url_field_tag
+
+Creates a standard input field of url type.
+
+```ruby
+url_field_tag 'url'
+# => <input id="url" name="url" type="url" />
+```
+
+#### date_field_tag
+
+Creates a standard input field of date type.
+
+```ruby
+date_field_tag "dob"
+# => <input id="dob" name="dob" type="date" />
+```
+
 ### JavaScriptHelper
 
 Provides functionality for working with JavaScript in your views.
@@ -1444,7 +1492,7 @@ number_to_human_size(1234567)       # => 1.2 MB
 Formats a number as a percentage string.
 
 ```ruby
-number_to_percentage(100, :precision => 0)        # => 100%
+number_to_percentage(100, precision: 0)        # => 100%
 ```
 
 #### number_to_phone
@@ -1472,6 +1520,72 @@ number_with_precision(111.2345)     # => 111.235
 number_with_precision(111.2345, 2)  # => 111.23
 ```
 
+### SanitizeHelper
+
+The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
+
+#### sanitize
+
+This sanitize helper will html encode all tags and strip all attributes that aren’t specifically allowed.
+
+```ruby
+sanitize @article.body
+```
+
+If either the :attributes or :tags options are passed, only the mentioned tags and attributes are allowed and nothing else.
+
+```ruby
+sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
+```
+
+To change defaults for multiple uses, for example adding table tags to the default:
+
+```ruby
+class Application < Rails::Application
+  config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+end
+```
+
+#### sanitize_css(style)
+
+Sanitizes a block of CSS code.
+
+#### strip_links(html) 
+Strips all link tags from text leaving just the link text.
+
+```ruby
+strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+# => Ruby on Rails
+```
+
+```ruby
+strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+# => emails to me@email.com.
+```
+
+```ruby
+strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
+# => Blog: Visit.
+```
+
+#### strip_tags(html) 
+
+Strips all HTML tags from the html, including comments. 
+This uses the html-scanner tokenizer and so its HTML parsing ability is limited by that of html-scanner.
+
+```ruby
+strip_tags("Strip <i>these</i> tags!")
+# => Strip these tags!
+```
+
+```ruby
+strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
+# => Bold no more!  See more
+```
+
+NB: The output may still contain unescaped ‘<’, ‘>’, ‘&’ characters and confuse browsers.
+
+
 Localized Views
 ---------------
 
@@ -1494,72 +1608,3 @@ end
 Then you could create special views like `app/views/posts/show.expert.html.erb` that would only be displayed to expert users.
 
 You can read more about the Rails Internationalization (I18n) API [here](i18n.html).
-
-Using Action View outside of Rails
-----------------------------------
-
-Action View is a Rails component, but it can also be used without Rails. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
-
-Let's start by ensuring that you have the Action Pack and Rack gems installed:
-
-```bash
-$ gem install actionpack
-$ gem install rack
-```
-
-Now we'll create a simple "Hello World" application that uses the `titleize` method provided by Active Support.
-
-**hello_world.rb:**
-
-```ruby
-require 'active_support/core_ext/string/inflections'
-require 'rack'
-
-def hello_world(env)
-  [200, {"Content-Type" => "text/html"}, "hello world".titleize]
-end
-
-Rack::Handler::Mongrel.run method(:hello_world), Port: 4567
-```
-
-We can see this all come together by starting up the application and then visiting `http://localhost:4567/`
-
-```bash
-$ ruby hello_world.rb
-```
-
-TODO needs a screenshot? I have one - not sure where to put it.
-
-Notice how 'hello world' has been converted into 'Hello World' by the `titleize` helper method.
-
-Action View can also be used with [Sinatra](http://www.sinatrarb.com/) in the same way.
-
-Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
-
-```bash
-$ gem install actionpack
-$ gem install sinatra
-```
-
-Now we'll create the same "Hello World" application in Sinatra.
-
-**hello_world.rb:**
-
-```ruby
-require 'action_view'
-require 'sinatra'
-
-get '/' do
-  erb 'hello world'.titleize
-end
-```
-
-Then, we can run the application:
-
-```bash
-$ ruby hello_world.rb
-```
-
-Once the application is running, you can see Sinatra and Action View working together by visiting `http://localhost:4567/`
-
-TODO needs a screenshot? I have one - not sure where to put it.

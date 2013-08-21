@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/range'
-require 'active_support/core_ext/numeric'
 
 class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_dates
@@ -17,7 +16,6 @@ class RangeTest < ActiveSupport::TestCase
   def test_date_range
     assert_instance_of Range, DateTime.new..DateTime.new
     assert_instance_of Range, DateTime::Infinity.new..DateTime::Infinity.new
-    assert_instance_of Range, DateTime.new..DateTime::Infinity.new
   end
 
   def test_overlaps_last_inclusive
@@ -56,7 +54,7 @@ class RangeTest < ActiveSupport::TestCase
     assert((1...10) === (1...10))
   end
 
-  def test_should_compare_other_with_exlusive_end
+  def test_should_compare_other_with_exclusive_end
     assert((1..10) === (1...10))
   end
 
@@ -91,29 +89,5 @@ class RangeTest < ActiveSupport::TestCase
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
     assert !time_range_1.overlaps?(time_range_2)
-  end
-
-  def test_infinite_bounds
-    time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-
-    time = Time.now
-    date = Date.today
-    datetime = DateTime.now
-    twz = ActiveSupport::TimeWithZone.new(time, time_zone)
-
-    infinity1 = Float::INFINITY
-    infinity2 = BigDecimal.new('Infinity')
-
-    [infinity1, infinity2].each do |infinity|
-      [time, date, datetime, twz].each do |bound|
-        [time, date, datetime, twz].each do |value|
-          assert Range.new(bound, infinity).include?(value + 10.years)
-          assert Range.new(-infinity, bound).include?(value - 10.years)
-
-          assert !Range.new(bound, infinity).include?(value - 10.years)
-          assert !Range.new(-infinity, bound).include?(value + 10.years)
-        end
-      end
-    end
   end
 end

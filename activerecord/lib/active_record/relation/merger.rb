@@ -22,7 +22,7 @@ module ActiveRecord
       # build a relation to merge in rather than directly merging
       # the values.
       def other
-        other = Relation.new(relation.klass, relation.table)
+        other = Relation.create(relation.klass, relation.table)
         hash.each { |k, v|
           if k == :joins
             if Hash === v
@@ -39,20 +39,17 @@ module ActiveRecord
     end
 
     class Merger # :nodoc:
-      attr_reader :relation, :values
+      attr_reader :relation, :values, :other
 
       def initialize(relation, other)
-        if other.default_scoped? && other.klass != relation.klass
-          other = other.with_default_scope
-        end
-
         @relation = relation
         @values   = other.values
+        @other    = other
       end
 
       NORMAL_VALUES = Relation::SINGLE_VALUE_METHODS +
                       Relation::MULTI_VALUE_METHODS -
-                      [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
+                      [:joins, :where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -66,21 +63,69 @@ module ActiveRecord
 
         merge_multi_values
         merge_single_values
+        merge_joins
 
         relation
       end
 
       private
 
+      def merge_joins
+        return if values[:joins].blank?
+
+        if other.klass == relation.klass
+          relation.joins!(*values[:joins])
+        else
+          joins_dependency, rest = values[:joins].partition do |join|
+            case join
+            when Hash, Symbol, Array
+              true
+            else
+              false
+            end
+          end
+
+          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
+                                                                           joins_dependency,
+                                                                           [])
+          relation.joins! rest
+
+          @relation = join_dependency.join_relation(relation)
+        end
+      end
+
       def merge_multi_values
-        relation.where_values = merged_wheres
-        relation.bind_values  = merged_binds
+        lhs_wheres = relation.where_values
+        rhs_wheres = values[:where] || []
+
+        lhs_binds  = relation.bind_values
+        rhs_binds  = values[:bind] || []
+
+        removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
+
+        where_values = kept + rhs_wheres
+        bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
+
+        conn = relation.klass.connection
+        bviter = bind_values.each.with_index
+        where_values.map! do |node|
+          if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
+            (column, _), i = bviter.next
+            substitute = conn.substitute_at column, i
+            Arel::Nodes::Equality.new(node.left, substitute)
+          else
+            node
+          end
+        end
+
+        relation.where_values = where_values
+        relation.bind_values  = bind_values
 
         if values[:reordering]
           # override any order specified in the original relation
           relation.reorder! values[:order]
         elsif values[:order]
-          # merge in order_values from r
+          # merge in order_values from relation
           relation.order! values[:order]
         end
 
@@ -97,35 +142,28 @@ module ActiveRecord
         end
       end
 
-      def merged_binds
-        if values[:bind]
-          (relation.bind_values + values[:bind]).uniq(&:first)
-        else
-          relation.bind_values
-        end
+      def filter_binds(lhs_binds, removed_wheres)
+        return lhs_binds if removed_wheres.empty?
+
+        set = Set.new removed_wheres.map { |x| x.left.name }
+        lhs_binds.dup.delete_if { |col,_| set.include? col.name }
       end
 
-      def merged_wheres
-        values[:where] ||= []
+      # Remove equalities from the existing relation with a LHS which is
+      # present in the relation being merged in.
+      # returns [things_to_remove, things_to_keep]
+      def partition_overwrites(lhs_wheres, rhs_wheres)
+        if lhs_wheres.empty? || rhs_wheres.empty?
+          return [[], lhs_wheres]
+        end
 
-        if values[:where].empty? || relation.where_values.empty?
-          relation.where_values + values[:where]
-        else
-          # Remove equalities from the existing relation with a LHS which is
-          # present in the relation being merged in.
+        nodes = rhs_wheres.find_all do |w|
+          w.respond_to?(:operator) && w.operator == :==
+        end
+        seen = Set.new(nodes) { |node| node.left }
 
-          seen = Set.new
-          values[:where].each { |w|
-            if w.respond_to?(:operator) && w.operator == :==
-              seen << w.left
-            end
-          }
-
-          relation.where_values.reject { |w|
-            w.respond_to?(:operator) &&
-              w.operator == :== &&
-              seen.include?(w.left)
-          } + values[:where]
+        lhs_wheres.partition do |w|
+          w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
       end
     end

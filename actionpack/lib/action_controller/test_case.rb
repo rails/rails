@@ -455,13 +455,14 @@ module ActionController
       #
       # - +action+: The controller action to call.
       # - +parameters+: The HTTP parameters that you want to pass. This may
-      #   be +nil+, a Hash, or a String that is appropriately encoded
+      #   be +nil+, a hash, or a string that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
-      # - +session+: A Hash of parameters to store in the session. This may be +nil+.
-      # - +flash+: A Hash of parameters to store in the flash. This may be +nil+.
+      # - +session+: A hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
-      # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
-      # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
+      # You can also simulate POST, PATCH, PUT, DELETE, HEAD, and OPTIONS requests with
+      # +post+, +patch+, +put+, +delete+, +head+, and +options+.
+      #
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
       def get(action, *args)
@@ -469,39 +470,33 @@ module ActionController
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
-      # See +#get+ for more details.
+      # See +get+ for more details.
       def post(action, *args)
         process(action, "POST", *args)
       end
 
       # Simulate a PATCH request with the given parameters and set/volley the response.
-      # See +#get+ for more details.
+      # See +get+ for more details.
       def patch(action, *args)
         process(action, "PATCH", *args)
       end
 
       # Simulate a PUT request with the given parameters and set/volley the response.
-      # See +#get+ for more details.
+      # See +get+ for more details.
       def put(action, *args)
         process(action, "PUT", *args)
       end
 
       # Simulate a DELETE request with the given parameters and set/volley the response.
-      # See +#get+ for more details.
+      # See +get+ for more details.
       def delete(action, *args)
         process(action, "DELETE", *args)
       end
 
       # Simulate a HEAD request with the given parameters and set/volley the response.
-      # See +#get+ for more details.
+      # See +get+ for more details.
       def head(action, *args)
         process(action, "HEAD", *args)
-      end
-
-      # Simulate a OPTIONS request with the given parameters and set/volley the response.
-      # See +#get+ for more details.
-      def options(action, *args)
-        process(action, "OPTIONS", *args)
       end
 
       def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
@@ -529,7 +524,6 @@ module ActionController
 
       def process(action, http_method = 'GET', *args)
         check_required_ivars
-        http_method, args = handle_old_process_api(http_method, args, caller)
 
         if args.first.is_a?(String) && http_method != 'HEAD'
           @request.env['RAW_POST_DATA'] = args.shift
@@ -557,7 +551,7 @@ module ActionController
         parameters ||= {}
         controller_class_name = @controller.class.anonymous? ?
           "anonymous" :
-          @controller.class.name.underscore.sub(/_controller$/, '')
+          @controller.class.controller_path
 
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
@@ -631,17 +625,6 @@ module ActionController
             raise "#{iv_name} is nil: make sure you set it in your test's setup method."
           end
         end
-      end
-
-      def handle_old_process_api(http_method, args, callstack)
-        # 4.0: Remove this method.
-        if http_method.is_a?(Hash)
-          ActiveSupport::Deprecation.warn("TestCase#process now expects the HTTP method as second argument: process(action, http_method, params, session, flash)", callstack)
-          args.unshift(http_method)
-          http_method = args.last.is_a?(String) ? args.last : "GET"
-        end
-
-        [http_method, args]
       end
 
       def build_request_uri(action, parameters)

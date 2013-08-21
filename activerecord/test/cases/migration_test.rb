@@ -177,20 +177,18 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_filtering_migrations
-    assert !Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
     assert !Reminder.table_exists?
 
     name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
 
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name)
+    assert_column Person, :last_name
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
 
-    Person.reset_column_information
-    assert !Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
@@ -237,7 +235,7 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    assert_not Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
 
     migration = Class.new(ActiveRecord::Migration) {
       def version; 100 end
@@ -253,9 +251,33 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
 
-    Person.reset_column_information
-    assert_not Person.column_methods_hash.include?(:last_name),
+    assert_no_column Person, :last_name,
      "On error, the Migrator should revert schema changes but it did not."
+  end
+
+  def test_migrator_one_up_with_exception_and_rollback_using_run
+    unless ActiveRecord::Base.connection.supports_ddl_transactions?
+      skip "not supported on #{ActiveRecord::Base.connection.class}"
+    end
+
+    assert_no_column Person, :last_name
+
+    migration = Class.new(ActiveRecord::Migration) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+        raise 'Something broke'
+      end
+    }.new
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+
+    e = assert_raise(StandardError) { migrator.run }
+
+    assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
+
+    assert_no_column Person, :last_name,
+      "On error, the Migrator should revert schema changes but it did not."
   end
 
   def test_migration_without_transaction
@@ -263,7 +285,7 @@ class MigrationTest < ActiveRecord::TestCase
       skip "not supported on #{ActiveRecord::Base.connection.class}"
     end
 
-    assert_not Person.column_methods_hash.include?(:last_name)
+    assert_no_column Person, :last_name
 
     migration = Class.new(ActiveRecord::Migration) {
       self.disable_ddl_transaction!
@@ -279,12 +301,11 @@ class MigrationTest < ActiveRecord::TestCase
     e = assert_raise(StandardError) { migrator.migrate }
     assert_equal "An error has occurred, all later migrations canceled:\n\nSomething broke", e.message
 
-    Person.reset_column_information
-    assert Person.column_methods_hash.include?(:last_name),
+    assert_column Person, :last_name,
      "without ddl transactions, the Migrator should not rollback on error but it did."
   ensure
     Person.reset_column_information
-    if Person.column_methods_hash.include?(:last_name)
+    if Person.column_names.include?('last_name')
       Person.connection.remove_column('people', 'last_name')
     end
   end
@@ -822,5 +843,14 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     end
   ensure
     clear
+  end
+
+  def test_check_pending_with_stdlib_logger
+    old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
+    quietly do
+      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({}) }
+    end
+  ensure
+    ActiveRecord::Base.logger = old
   end
 end

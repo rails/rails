@@ -11,6 +11,12 @@ module ActiveRecord
       end
 
       module ClassMethods
+        ##
+        # :method: serialized_attributes
+        #
+        # Returns a hash of all the attributes that have been specified for
+        # serialization as keys and their class restriction as values.
+
         # If you have an attribute that needs to be saved to the database as an
         # object, and retrieved as the same object, then specify the name of that
         # attribute using this method and it will be handled automatically. The
@@ -44,19 +50,17 @@ module ActiveRecord
         end
       end
 
-      def serialized_attributes
-        message = "Instance level serialized_attributes method is deprecated, please use class level method."
-        ActiveSupport::Deprecation.warn message
-        defined?(@serialized_attributes) ? @serialized_attributes : self.class.serialized_attributes
-      end
-
       class Type # :nodoc:
         def initialize(column)
           @column = column
         end
 
         def type_cast(value)
-          value.unserialized_value
+          if value.state == :serialized
+            value.unserialized_value @column.type_cast value.value
+          else
+            value.unserialized_value
+          end
         end
 
         def type
@@ -65,17 +69,17 @@ module ActiveRecord
       end
 
       class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
-        def unserialized_value
-          state == :serialized ? unserialize : value
+        def unserialized_value(v = value)
+          state == :serialized ? unserialize(v) : value
         end
 
         def serialized_value
           state == :unserialized ? serialize : value
         end
 
-        def unserialize
+        def unserialize(v)
           self.state = :unserialized
-          self.value = coder.load(value)
+          self.value = coder.load(v)
         end
 
         def serialize
@@ -86,10 +90,10 @@ module ActiveRecord
 
       # This is only added to the model when serialize is called, which
       # ensures we do not make things slower when serialization is not used.
-      module Behavior #:nodoc:
+      module Behavior # :nodoc:
         extend ActiveSupport::Concern
 
-        module ClassMethods
+        module ClassMethods # :nodoc:
           def initialize_attributes(attributes, options = {})
             serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
             super(attributes, options)

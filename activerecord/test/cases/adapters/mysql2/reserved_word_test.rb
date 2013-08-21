@@ -2,7 +2,7 @@ require "cases/helper"
 
 class Group < ActiveRecord::Base
   Group.table_name = 'group'
-  belongs_to :select, :class_name => 'Select'
+  belongs_to :select
   has_one :values
 end
 

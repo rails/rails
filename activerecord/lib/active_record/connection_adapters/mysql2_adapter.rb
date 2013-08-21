@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 
-gem 'mysql2', '~> 0.3.10'
+gem 'mysql2', '~> 0.3.13'
 require 'mysql2'
 
 module ActiveRecord
@@ -213,9 +213,11 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
-        # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-        # made since we established the connection
-        @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+        if @connection
+          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+          # made since we established the connection
+          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+        end
 
         super
       end
@@ -227,8 +229,7 @@ module ActiveRecord
 
       alias exec_without_stmt exec_query
 
-      # Returns an array of record hashes with the column names as keys and
-      # column values as values.
+      # Returns an ActiveRecord::Result instance. 
       def select(sql, name = nil, binds = [])
         exec_query(sql, name)
       end
@@ -267,6 +268,10 @@ module ActiveRecord
 
       def version
         @version ||= @connection.info[:version].scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      end
+
+      def set_field_encoding field_name
+        field_name
       end
     end
   end

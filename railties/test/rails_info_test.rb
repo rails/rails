@@ -37,6 +37,11 @@ class InfoTest < ActiveSupport::TestCase
     assert_property 'Goodbye', 'World'
   end
 
+  def test_rails_version
+    assert_property 'Rails version', 
+      File.read(File.realpath('../../../RAILS_VERSION', __FILE__)).chomp
+  end
+
   def test_framework_version
     assert_property 'Active Support version', ActiveSupport.version.to_s
   end

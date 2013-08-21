@@ -124,7 +124,7 @@ module ActiveRecord
         @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
-        @relation          = Relation.new(self, arel_table)
+        @relation          = Relation.create(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -251,19 +251,6 @@ module ActiveRecord
       # and columns used for single table inheritance have been removed.
       def content_columns
         @content_columns ||= columns.reject { |c| c.primary || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
-      end
-
-      # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
-      # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
-      # is available.
-      def column_methods_hash #:nodoc:
-        @dynamic_methods_hash ||= column_names.each_with_object(Hash.new(false)) do |attr, methods|
-          attr_name = attr.to_s
-          methods[attr.to_sym]       = attr_name
-          methods["#{attr}=".to_sym] = attr_name
-          methods["#{attr}?".to_sym] = attr_name
-          methods["#{attr}_before_type_cast".to_sym] = attr_name
-        end
       end
 
       # Resets all the cached information about columns, which will cause them

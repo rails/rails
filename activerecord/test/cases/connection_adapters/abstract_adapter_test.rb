@@ -2,6 +2,15 @@ require "cases/helper"
 
 module ActiveRecord
   module ConnectionAdapters
+    class ConnectionPool
+      def insert_connection_for_test!(c)
+        synchronize do
+          @connections << c
+          @available.add c
+        end
+      end
+    end
+
     class AbstractAdapterTest < ActiveRecord::TestCase
       attr_reader :adapter
 

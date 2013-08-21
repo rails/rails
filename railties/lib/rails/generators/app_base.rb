@@ -115,7 +115,11 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
+        options[:skip_active_record] ? "" :
+          <<-GEMFILE.strip_heredoc
+            # Use #{options[:database]} as the database for Active Record
+            gem '#{gem_for_database}'
+          GEMFILE
       end
 
       def include_all_railties?
@@ -131,13 +135,11 @@ module Rails
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'arel',      github: 'rails/arel'
-            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     github: 'rails/rails'
             gem 'arel',      github: 'rails/arel'
-            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
@@ -178,58 +180,56 @@ module Rails
         return if options[:skip_sprockets]
 
         gemfile = if options.dev? || options.edge?
-          <<-GEMFILE.gsub(/^ {12}/, '')
+          <<-GEMFILE.strip_heredoc
             # Use edge version of sprockets-rails
             gem 'sprockets-rails', github: 'rails/sprockets-rails'
 
             # Use SCSS for stylesheets
-            gem 'sass-rails',   github: 'rails/sass-rails'
-
-            # To use Uglifier as compressor for JavaScript assets
-            gem 'uglifier', '~> 1.3'
+            gem 'sass-rails', github: 'rails/sass-rails'
           GEMFILE
         else
-          <<-GEMFILE.gsub(/^ {12}/, '')
+          <<-GEMFILE.strip_heredoc
             # Use SCSS for stylesheets
-            gem 'sass-rails',   '~> 4.0.0.beta1'
-
-            # To use Uglifier as compressor for JavaScript assets
-            gem 'uglifier', '~> 1.3'
+            gem 'sass-rails', '~> 4.0.0.rc1'
           GEMFILE
         end
 
+        gemfile += <<-GEMFILE.strip_heredoc
+
+          # Use Uglifier as compressor for JavaScript assets
+          gem 'uglifier', '>= 1.3.0'
+        GEMFILE
+
         if options[:skip_javascript]
-          gemfile += <<-GEMFILE.gsub(/^ {12}/, '')
+          gemfile += <<-GEMFILE
             #{coffee_gemfile_entry}
             #{javascript_runtime_gemfile_entry}
           GEMFILE
         end
 
-        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
+        gemfile.gsub(/^[ \t]+/, '')
       end
 
       def coffee_gemfile_entry
-        gemfile = if options.dev? || options.edge?
-          <<-GEMFILE.gsub(/^ {12}/, '')
+        if options.dev? || options.edge?
+          <<-GEMFILE
             # Use CoffeeScript for .js.coffee assets and views
             gem 'coffee-rails', github: 'rails/coffee-rails'
           GEMFILE
         else
-          <<-GEMFILE.gsub(/^ {12}/, '')
+          <<-GEMFILE
             # Use CoffeeScript for .js.coffee assets and views
-            gem 'coffee-rails', '~> 4.0.0.beta1'
+            gem 'coffee-rails', '~> 4.0.0'
           GEMFILE
         end
-
-        gemfile.strip_heredoc.gsub(/^[ \t]*$/, '')
       end
 
       def javascript_gemfile_entry
         unless options[:skip_javascript]
-          <<-GEMFILE.gsub(/^ {12}/, '').strip_heredoc
+          <<-GEMFILE.gsub(/^[ \t]+/, '')
             #{coffee_gemfile_entry}
             #{javascript_runtime_gemfile_entry}
-
+            # Use #{options[:javascript]} as the JavaScript library
             gem '#{options[:javascript]}-rails'
 
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
@@ -244,7 +244,7 @@ module Rails
         else
           "# gem 'therubyracer', platforms: :ruby"
         end
-        <<-GEMFILE.gsub(/^ {10}/, '')
+        <<-GEMFILE
           # See https://github.com/sstephenson/execjs#readme for more supported runtimes
           #{runtime}
         GEMFILE

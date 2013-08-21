@@ -18,8 +18,7 @@ module ActiveRecord
         end
       end
 
-      # Returns an array of record hashes with the column names as keys and
-      # column values as values.
+      # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
         select(to_sql(arel, binds), name, binds)
       end
@@ -27,8 +26,7 @@ module ActiveRecord
       # Returns a record hash with the column names as keys and column values
       # as values.
       def select_one(arel, name = nil, binds = [])
-        result = select_all(arel, name, binds)
-        result.first if result
+        select_all(arel, name, binds).first
       end
 
       # Returns a single value from a record
@@ -41,8 +39,8 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        result = select_rows(to_sql(arel, []), name)
-        result.map { |v| v[0] }
+        select_rows(to_sql(arel, []), name)
+          .map { |v| v[0] }
       end
 
       # Returns an array of arrays containing the field values.
@@ -355,8 +353,7 @@ module ActiveRecord
           subselect
         end
 
-        # Returns an array of record hashes with the column names as keys and
-        # column values as values.
+        # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
         end
         undef_method :select
@@ -377,14 +374,14 @@ module ActiveRecord
           update_sql(sql, name)
         end
 
-      def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-        [sql, binds]
-      end
-
-      def last_inserted_id(result)
-        row = result.rows.first
-        row && row.first
-      end
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+          [sql, binds]
+        end
+  
+        def last_inserted_id(result)
+          row = result.rows.first
+          row && row.first
+        end
     end
   end
 end

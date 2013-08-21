@@ -244,11 +244,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_each_after_yaml_serialization
-    values = []
-    @deserialized_ordered_hash = YAML.load(YAML.dump(@ordered_hash))
-
-    @deserialized_ordered_hash.each {|key, value| values << value}
-    assert_equal @values, values
+    assert_equal @values, YAML.load(YAML.dump(@ordered_hash)).values
   end
 
   def test_each_when_yielding_to_block_with_splat

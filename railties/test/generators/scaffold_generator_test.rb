@@ -239,11 +239,25 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end
 
-  def test_scaffold_generator_no_assets
+  def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
+  end
+
+  def test_scaffold_generator_no_assets_with_switch_assets_false
+    run_generator [ "posts", "--assets=false" ]
+    assert_no_file "app/assets/stylesheets/scaffold.css"
+    assert_no_file "app/assets/javascripts/posts.js"
+    assert_no_file "app/assets/stylesheets/posts.css"
+  end
+
+  def test_scaffold_generator_no_assets_with_switch_resource_route_false
+    run_generator [ "posts", "--resource-route=false" ]
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/resources :posts$/, route)
+    end
   end
 
   def test_scaffold_generator_no_stylesheets
@@ -269,6 +283,30 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/t\.text :body/, up)
         assert_match(/t\.string :author/, up)
       end
+    end
+  end
+
+  def test_scaffold_generator_belongs_to
+    run_generator ["account", "name", "currency:belongs_to"]
+
+    assert_file "app/models/account.rb", /belongs_to :currency/
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.belongs_to :currency/, up)
+      end
+    end
+
+    assert_file "app/controllers/accounts_controller.rb" do |content|
+      assert_instance_method :account_params, content do |m|
+        assert_match(/permit\(:name, :currency_id\)/, m)
+      end
+    end
+
+    assert_file "app/views/accounts/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= f\.text_field :name %>/, content)
+      assert_match(/^\W{4}<%= f\.text_field :currency_id %>/, content)
     end
   end
 

@@ -41,7 +41,7 @@ module ApplicationTests
 
     test "allows me to configure default url options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
         end
       RUBY
@@ -52,7 +52,7 @@ module ApplicationTests
 
     test "does not include url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
         end
       RUBY
@@ -115,7 +115,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/:controller(/:action)"
         end
       RUBY
@@ -182,7 +182,7 @@ module ApplicationTests
       end
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
-      assert ActiveRecord::Base.connection.schema_cache.tables["posts"]
+      assert ActiveRecord::Base.connection.schema_cache.tables("posts")
     end
 
     test "expire schema cache dump" do
@@ -192,7 +192,7 @@ module ApplicationTests
       end
       silence_warnings {
         require "#{app_path}/config/environment"
-        assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
+        assert !ActiveRecord::Base.connection.schema_cache.tables("posts")
       }
     end
 

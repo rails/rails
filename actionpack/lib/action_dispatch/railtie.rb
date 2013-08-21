@@ -20,8 +20,7 @@ module ActionDispatch
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'SAMEORIGIN',
       'X-XSS-Protection' => '1; mode=block',
-      'X-Content-Type-Options' => 'nosniff',
-      'X-UA-Compatible' => 'chrome=1'
+      'X-Content-Type-Options' => 'nosniff'
     }
 
     config.eager_load_namespaces << ActionDispatch

@@ -95,14 +95,39 @@ module ActiveRecord
         assert_equal @conn.default_sequence_name('ex_with_custom_index_type_pk', 'id'), seq
       end
 
+      def test_tinyint_integer_typecasting
+        @conn.exec_query('drop table if exists ex_with_non_boolean_tinyint_column')
+        @conn.exec_query(<<-eosql)
+          CREATE TABLE `ex_with_non_boolean_tinyint_column` (
+            `status` TINYINT(4))
+        eosql
+        insert(@conn, { 'status' => 2 }, 'ex_with_non_boolean_tinyint_column')
+
+        result = @conn.exec_query('SELECT status FROM ex_with_non_boolean_tinyint_column')
+
+        assert_equal 2, result.column_types['status'].type_cast(result.last['status'])
+      end
+
+      def test_supports_extensions
+        assert_not @conn.supports_extensions?, 'does not support extensions'
+      end
+
+      def test_respond_to_enable_extension
+        assert @conn.respond_to?(:enable_extension)
+      end
+
+      def test_respond_to_disable_extension
+        assert @conn.respond_to?(:disable_extension)
+      end
+
       private
-      def insert(ctx, data)
+      def insert(ctx, data, table='ex')
         binds   = data.map { |name, value|
-          [ctx.columns('ex').find { |x| x.name == name }, value]
+          [ctx.columns(table).find { |x| x.name == name }, value]
         }
         columns = binds.map(&:first).map(&:name)
 
-        sql = "INSERT INTO ex (#{columns.join(", ")})
+        sql = "INSERT INTO #{table} (#{columns.join(", ")})
                VALUES (#{(['?'] * columns.length).join(', ')})"
 
         ctx.exec_insert(sql, 'SQL', binds)

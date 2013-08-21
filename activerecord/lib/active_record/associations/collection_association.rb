@@ -34,7 +34,7 @@ module ActiveRecord
           reload
         end
 
-        @proxy ||= CollectionProxy.new(klass, self)
+        @proxy ||= CollectionProxy.create(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -44,7 +44,7 @@ module ActiveRecord
 
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
-        if loaded? || options[:finder_sql]
+        if loaded?
           load_target.map do |record|
             record.send(reflection.association_primary_key)
           end
@@ -79,9 +79,7 @@ module ActiveRecord
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          if options[:finder_sql]
-            find_by_scan(*args)
-          elsif options[:inverse_of]
+          if options[:inverse_of] && loaded?
             args = args.flatten
             raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args.blank?
 
@@ -153,11 +151,35 @@ module ActiveRecord
         end
       end
 
-      # Remove all records from this association.
+      # Removes all records from the association without calling callbacks
+      # on the associated records. It honors the `:dependent` option. However
+      # if the `:dependent` value is `:destroy` then in that case the default
+      # deletion strategy for the association is applied.
+      #
+      # You can force a particular deletion strategy by passing a parameter.
+      #
+      # Example:
+      #
+      # @author.books.delete_all(:nullify)
+      # @author.books.delete_all(:delete_all)
       #
       # See delete for more info.
-      def delete_all
-        delete(:all).tap do
+      def delete_all(dependent = nil)
+        if dependent.present? && ![:nullify, :delete_all].include?(dependent)
+          raise ArgumentError, "Valid values are :nullify or :delete_all"
+        end
+
+        dependent = if dependent.present?
+                      dependent
+                    elsif options[:dependent] == :destroy
+                      # since delete_all should not invoke callbacks so use the default deletion strategy
+                      # for :destroy
+                      reflection.is_a?(ActiveRecord::Reflection::ThroughReflection) ? :delete_all : :nullify
+                    else
+                      options[:dependent]
+                    end
+
+        delete(:all, dependent: dependent).tap do
           reset
           loaded!
         end
@@ -173,36 +195,27 @@ module ActiveRecord
         end
       end
 
-      # Count all records using SQL. If the +:counter_sql+ or +:finder_sql+ option is set for the
-      # association, it will be used for the query. Otherwise, construct options and pass them with
+      # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
       def count(column_name = nil, count_options = {})
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
-        if options[:counter_sql] || options[:finder_sql]
-          unless count_options.blank?
-            raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
-          end
+        relation = scope
+        if association_scope.distinct_value
+          # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
+          column_name ||= reflection.klass.primary_key
+          relation = relation.distinct
+        end
 
-          reflection.klass.count_by_sql(custom_counter_sql)
+        value = relation.count(column_name)
+
+        limit  = options[:limit]
+        offset = options[:offset]
+
+        if limit || offset
+          [ [value - offset.to_i, 0].max, limit.to_i ].min
         else
-          relation = scope
-          if association_scope.distinct_value
-            # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-            column_name ||= reflection.klass.primary_key
-            relation = relation.distinct
-          end
-
-          value = relation.count(column_name)
-
-          limit  = options[:limit]
-          offset = options[:offset]
-
-          if limit || offset
-            [ [value - offset.to_i, 0].max, limit.to_i ].min
-          else
-            value
-          end
+          value
         end
       end
 
@@ -214,18 +227,10 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        dependent = options[:dependent]
+        _options = records.extract_options!
+        dependent = _options[:dependent] || options[:dependent]
 
         if records.first == :all
-
-          if dependent && dependent == :destroy
-            message = 'In Rails 4.1 delete_all on associations would not fire callbacks. ' \
-                      'It means if the :dependent option is :destroy then the associated ' \
-                      'records would be deleted without loading and invoking callbacks.'
-
-            ActiveRecord::Base.logger ? ActiveRecord::Base.logger.warn(message) : $stderr.puts(message)
-          end
-
           if loaded? || dependent == :destroy
             delete_or_destroy(load_target, dependent)
           else
@@ -237,11 +242,11 @@ module ActiveRecord
         end
       end
 
-      # Destroy +records+ and remove them from this association calling
-      # +before_remove+ and +after_remove+ callbacks.
+      # Deletes the +records+ and removes them from this association calling
+      # +before_remove+ , +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
       #
-      # Note that this method will _always_ remove records from the database
-      # ignoring the +:dependent+ option.
+      # Note that this method removes records from the database ignoring the
+      # +:dependent+ option.
       def destroy(*records)
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
@@ -285,14 +290,14 @@ module ActiveRecord
 
       # Returns true if the collection is empty.
       #
-      # If the collection has been loaded or the <tt>:counter_sql</tt> option
-      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # If the collection has been loaded
+      # it is equivalent to <tt>collection.size.zero?</tt>. If the
       # collection has not been loaded, it is equivalent to
       # <tt>collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || options[:counter_sql]
+        if loaded?
           size.zero?
         else
           @target.blank? && !scope.exists?
@@ -345,7 +350,6 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            load_target if options[:finder_sql]
             loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
@@ -362,8 +366,8 @@ module ActiveRecord
         target
       end
 
-      def add_to_target(record)
-        callback(:before_add, record)
+      def add_to_target(record, skip_callbacks = false)
+        callback(:before_add, record) unless skip_callbacks
         yield(record) if block_given?
 
         if association_scope.distinct_value && index = @target.index(record)
@@ -372,7 +376,7 @@ module ActiveRecord
           @target << record
         end
 
-        callback(:after_add, record)
+        callback(:after_add, record) unless skip_callbacks
         set_inverse_instance(record)
 
         record
@@ -390,31 +394,8 @@ module ActiveRecord
 
       private
 
-        def custom_counter_sql
-          if options[:counter_sql]
-            interpolate(options[:counter_sql])
-          else
-            # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
-            interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
-              count_with = $2.to_s
-              count_with = '*' if count_with.blank? || count_with =~ /,/ || count_with =~ /\.\*/
-              "SELECT #{$1}COUNT(#{count_with}) FROM"
-            end
-          end
-        end
-
-        def custom_finder_sql
-          interpolate(options[:finder_sql])
-        end
-
         def find_target
-          records =
-            if options[:finder_sql]
-              reflection.klass.find_by_sql(custom_finder_sql)
-            else
-              scope.to_a
-            end
-
+          records = scope.to_a
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -529,20 +510,13 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            case callback
-            when Symbol
-              owner.send(callback, record)
-            when Proc
-              callback.call(owner, record)
-            else
-              callback.send(method, owner, record)
-            end
+            callback.call(method, owner, record)
           end
         end
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{reflection.name}"
-          owner.class.send(full_callback_name.to_sym) || []
+          owner.class.send(full_callback_name)
         end
 
         # Should we deal with assoc.first or assoc.last by issuing an independent query to
@@ -553,7 +527,6 @@ module ActiveRecord
         # Otherwise, go to the database only if none of the following are true:
         #   * target already loaded
         #   * owner is new record
-        #   * custom :finder_sql exists
         #   * target contains new or changed record(s)
         #   * the first arg is an integer (which indicates the number of records to be returned)
         def fetch_first_or_last_using_find?(args)
@@ -562,7 +535,6 @@ module ActiveRecord
           else
             !(loaded? ||
               owner.new_record? ||
-              options[:finder_sql] ||
               target.any? { |record| record.new_record? || record.changed? } ||
               args.first.kind_of?(Integer))
           end
@@ -579,7 +551,7 @@ module ActiveRecord
           end
         end
 
-        # If using a custom finder_sql or if the :inverse_of option has been
+        # If the :inverse_of option has been
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)

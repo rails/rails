@@ -12,8 +12,8 @@ module Rails
         ::Debugger.settings[:autoeval] = true if ::Debugger.respond_to?(:settings)
         puts "=> Debugger enabled"
       rescue LoadError
-        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle, and try again."
-        exit
+        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
+        exit(1)
       end
 
       def call(env)

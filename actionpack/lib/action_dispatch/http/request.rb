@@ -18,10 +18,10 @@ module ActionDispatch
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
-    include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
     autoload :Session, 'action_dispatch/request/session'
+    autoload :Utils,   'action_dispatch/request/utils'
 
     LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
@@ -225,7 +225,7 @@ module ActionDispatch
     def raw_post
       unless @env.include? 'RAW_POST_DATA'
         raw_post_body = body
-        @env['RAW_POST_DATA'] = raw_post_body.read(@env['CONTENT_LENGTH'].to_i)
+        @env['RAW_POST_DATA'] = raw_post_body.read(content_length)
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
       @env['RAW_POST_DATA']
@@ -299,26 +299,10 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    # Remove nils from the params hash
-    def deep_munge(hash)
-      hash.each do |k, v|
-        case v
-        when Array
-          v.grep(Hash) { |x| deep_munge(x) }
-          v.compact!
-          hash[k] = nil if v.empty?
-        when Hash
-          deep_munge(v)
-        end
-      end
-
-      hash
-    end
-
     protected
 
     def parse_query(qs)
-      deep_munge(super)
+      Utils.deep_munge(super)
     end
 
     private

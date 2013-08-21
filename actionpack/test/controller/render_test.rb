@@ -32,6 +32,10 @@ class TestControllerWithExtraEtags < ActionController::Base
   def fresh
     render text: "stale" if stale?(etag: '123')
   end
+
+  def array
+    render text: "stale" if stale?(etag: %w(1 2 3))
+  end
 end
 
 class TestController < ActionController::Base
@@ -1085,6 +1089,12 @@ class RenderTest < ActionController::TestCase
     assert_equal '<test>passed formatted html erb</test>', @response.body
   end
 
+  def test_should_render_formatted_html_erb_template_with_bad_accepts_header
+    @request.env["HTTP_ACCEPT"] = "; a=dsf"
+    get :formatted_xml_erb
+    assert_equal '<test>passed formatted html erb</test>', @response.body
+  end
+
   def test_should_render_formatted_html_erb_template_with_faulty_accepts_header
     @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, appliction/x-shockwave-flash, */*"
     get :formatted_xml_erb
@@ -1649,7 +1659,6 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
-
   def test_request_with_bang_gets_last_modified
     get :conditional_hello_with_bangs
     assert_equal @last_modified, @response.headers['Last-Modified']
@@ -1678,13 +1687,27 @@ class EtagRenderTest < ActionController::TestCase
   end
 
   def test_multiple_etags
-    @request.if_none_match = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key([ "123", 'ab', :cde, [:f] ]))}")
+    @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
     get :fresh
     assert_response :not_modified
 
     @request.if_none_match = %("nomatch")
     get :fresh
     assert_response :success
+  end
+
+  def test_array
+    @request.if_none_match = etag([%w(1 2 3), 'ab', :cde, [:f]])
+    get :array
+    assert_response :not_modified
+
+    @request.if_none_match = %("nomatch")
+    get :array
+    assert_response :success
+  end
+
+  def etag(record)
+    Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record)).inspect
   end
 end
 

@@ -1,10 +1,6 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-require 'date'
-require 'rbconfig'
-
-
 task :default => :test
 
 desc "Run all unit tests"
@@ -12,8 +8,9 @@ task :test => 'test:isolated'
 
 namespace :test do
   task :isolated do
-    dir = ENV["TEST_DIR"] || "**"
-    Dir["test/#{dir}/*_test.rb"].each do |file|
+    dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
+    test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
+    Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
       dash_i = [
         'test',
@@ -34,15 +31,6 @@ Rake::TestTask.new('test:regular') do |t|
   t.verbose = true
 end
 
-# Update spinoffs -------------------------------------------------------------------
-
-desc "Updates application README to the latest version Railties README"
-task :update_readme do
-  readme = "lib/rails/generators/rails/app/templates/README"
-  rm readme
-  cp "./README.rdoc", readme
-end
-
 # Generate GEM ----------------------------------------------------------------------------
 
 spec = eval(File.read('railties.gemspec'))
@@ -53,7 +41,7 @@ end
 
 # Publishing -------------------------------------------------------
 
-desc "Release to gemcutter"
+desc "Release to rubygems"
 task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define

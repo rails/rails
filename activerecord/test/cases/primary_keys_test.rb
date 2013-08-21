@@ -205,7 +205,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
-    def test_primaery_key_method_with_ansi_quotes
+    def test_primary_key_method_with_ansi_quotes
       con = ActiveRecord::Base.connection
       con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
       assert_equal "id", con.primary_key("topics")

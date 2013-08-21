@@ -1124,6 +1124,35 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "Not Found", @response.body
   end
 
+  def test_resources_with_format_false_from_scope
+    draw do
+      scope format: false do
+        resources :posts
+        resource :user
+      end
+    end
+
+    get "/posts"
+    assert_response :success
+    assert_equal "posts#index", @response.body
+    assert_equal "/posts", posts_path
+
+    get "/posts.html"
+    assert_response :not_found
+    assert_equal "Not Found", @response.body
+    assert_equal "/posts?format=html", posts_path(format: "html")
+
+    get "/user"
+    assert_response :success
+    assert_equal "users#show", @response.body
+    assert_equal "/user", user_path
+
+    get "/user.html"
+    assert_response :not_found
+    assert_equal "Not Found", @response.body
+    assert_equal "/user?format=html", user_path(format: "html")
+  end
+
   def test_index
     draw do
       get '/info' => 'projects#info', :as => 'info'
@@ -1222,6 +1251,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/api/v3/en/products/list'
     assert_equal 'api/v3/products#list', @response.body
+  end
+
+  def test_controller_option_with_nesting_and_leading_slash
+    draw do
+      scope '/job', controller: 'job' do
+        scope ':id', action: 'manage_applicant' do
+          get "/active"
+        end
+      end
+    end
+
+    get '/job/5/active'
+    assert_equal 'job#manage_applicant', @response.body
   end
 
   def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
@@ -2633,6 +2675,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ArgumentError) { routes.redirect Object.new }
   end
 
+  def test_named_route_check
+    before, after = nil
+
+    draw do
+      before = has_named_route?(:hello)
+      get "/hello", as: :hello, to: "hello#world"
+      after = has_named_route?(:hello)
+    end
+
+    assert !before, "expected to not have named route :hello before route definition"
+    assert after, "expected to have named route :hello after route definition"
+  end
+
   def test_explicitly_avoiding_the_named_route
     draw do
       scope :as => "routes" do
@@ -3322,6 +3377,10 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
       end
 
       get '/' => ok, :as => :alternate_root, :constraints => { :port => 8080 }
+
+      get '/search' => ok, :constraints => { :subdomain => false }
+
+      get '/logs' => ok, :constraints => { :subdomain => true }
     end
   end
 
@@ -3347,6 +3406,24 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
 
     get 'http://www.example.com:8080/'
     assert_response :success
+  end
+
+  test "false constraint expressions check for absence of values" do
+    get 'http://example.com/search'
+    assert_response :success
+    assert_equal 'http://example.com/search', search_url
+
+    get 'http://api.example.com/search'
+    assert_response :not_found
+  end
+
+  test "true constraint expressions check for presence of values" do
+    get 'http://api.example.com/logs'
+    assert_response :success
+    assert_equal 'http://api.example.com/logs', logs_url
+
+    get 'http://example.com/logs'
+    assert_response :not_found
   end
 end
 
@@ -3541,5 +3618,58 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
 
   def test_route_defaults_are_not_required_for_url_for
     assert_equal '/projects/1', url_for(controller: 'projects', action: 'show', id: 1, only_path: true)
+  end
+end
+
+class TestRackAppRouteGeneration < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      rack_app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      mount rack_app, at: '/account', as: 'account'
+      mount rack_app, at: '/:locale/account', as: 'localized_account'
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_mounted_application_doesnt_match_unnamed_route
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/account?controller=products', url_for(controller: 'products', action: 'index', only_path: true)
+    end
+
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
+    end
+  end
+end
+
+class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      get '/account', to: redirect('/myaccount'), as: 'account'
+      get '/:locale/account', to: redirect('/%{locale}/myaccount'), as: 'localized_account'
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_redirect_doesnt_match_unnamed_route
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/account?controller=products', url_for(controller: 'products', action: 'index', only_path: true)
+    end
+
+    assert_raise(ActionController::UrlGenerationError) do
+      assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
+    end
   end
 end

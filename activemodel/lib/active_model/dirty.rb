@@ -91,7 +91,7 @@ module ActiveModel
 
     included do
       attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-      attribute_method_affix :prefix => 'reset_', :suffix => '!'
+      attribute_method_affix prefix: 'reset_', suffix: '!'
     end
 
     # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.
@@ -142,21 +142,21 @@ module ActiveModel
       @changed_attributes ||= {}
     end
 
-    private
+    # Handle <tt>*_changed?</tt> for +method_missing+.
+    def attribute_changed?(attr)
+      changed_attributes.include?(attr)
+    end
 
-      # Handle <tt>*_changed?</tt> for +method_missing+.
-      def attribute_changed?(attr)
-        changed_attributes.include?(attr)
-      end
+    # Handle <tt>*_was</tt> for +method_missing+.
+    def attribute_was(attr)
+      attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+    end
+
+    private
 
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
-      end
-
-      # Handle <tt>*_was</tt> for +method_missing+.
-      def attribute_was(attr)
-        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
