@@ -73,6 +73,8 @@ class ThreadExt < ActiveSupport::TestCase
   end
 
   def test_thread_variable_security
+    rubinius_skip "$SAFE is not supported on Rubinius."
+
     t = Thread.new { sleep }
 
     assert_raises(SecurityError) do
