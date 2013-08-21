@@ -8,7 +8,7 @@
 </header>
 
 <div id="container">
-  <h2><%= @exception.message %></h2>
+  <h2><%= h @exception.message %></h2>
 
   <%= render template: "rescues/_source" %>
   <%= render template: "rescues/_trace" %>
