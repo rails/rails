@@ -312,11 +312,17 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_first_and_last_with_integer_should_use_default_order
     assert_sql(/ORDER BY .topics.\..id./) { Topic.first(2).entries }
-    assert_sql(/ORDER BY id DESC/) { Topic.last(5).entries }
+    assert_sql(/ORDER BY .topics.\..id. DESC/) { Topic.last(5).entries }
   end
 
   def test_last_with_integer_and_order_should_keep_the_order
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
+  end
+
+  def test_last_with_integer_should_work_with_joins
+    assert_nothing_raised do
+      Post.joins(:comments).last(2)
+    end
   end
 
   def test_last_with_integer_and_order_should_not_use_sql_limit

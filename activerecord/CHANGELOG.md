@@ -1,4 +1,9 @@
 ## unreleased ##
+*   Fix FinderMethods#last unscoped primary key.
+    Addresses #11917
+
+    *Eugene Kalenkovich*
+
 *   Add default ordering by primary_key to #first.
     Fixes #11774
     
