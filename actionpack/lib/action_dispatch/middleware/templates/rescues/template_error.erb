@@ -10,7 +10,7 @@
   <p>
     Showing <i><%= @exception.file_name %></i> where line <b>#<%= @exception.line_number %></b> raised:
   </p>
-  <pre><code><%= @exception.message %></code></pre>
+  <pre><code><%= h @exception.message %></code></pre>
 
   <div class="source">
     <div class="info">
