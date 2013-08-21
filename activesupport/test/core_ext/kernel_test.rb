@@ -66,6 +66,16 @@ class KernelTest < ActiveSupport::TestCase
     assert_equal "STDERR\n", capture(:stderr) { system('echo STDERR 1>&2') }
     assert_equal "STDOUT\n", capture(:stdout) { system('echo STDOUT') }
   end
+
+  def test_truth_aliases_yes_and_on
+    assert_equal true, yes
+    assert_equal true, on
+  end
+
+  def test_false_aliases_no_and_off
+    assert_equal false, no
+    assert_equal false, off
+  end
 end
 
 class KernelSuppressTest < ActiveSupport::TestCase
