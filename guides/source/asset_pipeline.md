@@ -760,8 +760,8 @@ headers.
 For Apache:
 
 ```apache
-# The Expires* directives requires the Apache module `mod_expires` to be
-# enabled.
+# The Expires* directives requires the Apache module
+# `mod_expires` to be enabled.
 <Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag FileETag None
