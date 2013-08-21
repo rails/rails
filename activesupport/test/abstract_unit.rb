@@ -24,3 +24,7 @@ Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
+
+def rubinius_skip(message = '')
+  skip message if RUBY_ENGINE == 'rbx'
+end
