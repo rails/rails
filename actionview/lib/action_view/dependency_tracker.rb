@@ -69,18 +69,18 @@ module ActionView
 
         def render_dependencies
           source.scan(RENDER_DEPENDENCY).
-            collect(&:second).uniq.
+            collect!(&:second).uniq.
 
             # render(@topic)         => render("topics/topic")
             # render(topics)         => render("topics/topic")
             # render(message.topics) => render("topics/topic")
-            collect { |name| name.sub(/\A@?([a-z_]+\.)*([a-z_]+)\z/) { "#{$2.pluralize}/#{$2.singularize}" } }.
+            collect! { |name| name.sub(/\A@?([a-z_]+\.)*([a-z_]+)\z/) { "#{$2.pluralize}/#{$2.singularize}" } }.
 
             # render("headline") => render("message/headline")
-            collect { |name| name.include?("/") ? name : "#{directory}/#{name}" }.
+            collect! { |name| name.include?("/") ? name : "#{directory}/#{name}" }.
 
             # replace quotes from string renders
-            collect { |name| name.gsub(/["']/, "") }
+            collect! { |name| name.gsub(/["']/, "") }
         end
 
         def explicit_dependencies

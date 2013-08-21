@@ -299,7 +299,7 @@ module ActiveRecord
       calculated_data = @klass.connection.select_all(relation, nil, bind_values)
 
       if association
-        key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
+        key_ids     = calculated_data.collect! { |row| row[group_aliases.first] }
         key_records = association.klass.base_class.find(key_ids)
         key_records = Hash[key_records.map { |r| [r.id, r] }]
       end

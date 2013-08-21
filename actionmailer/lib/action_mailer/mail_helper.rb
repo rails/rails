@@ -6,7 +6,7 @@ module ActionMailer
     # Take the text and format it, indented two spaces for each line, and
     # wrapped at 72 columns.
     def block_format(text)
-      formatted = text.split(/\n\r?\n/).collect { |paragraph|
+      formatted = text.split(/\n\r?\n/).collect! { |paragraph|
         format_paragraph(paragraph)
       }.join("\n\n")
 

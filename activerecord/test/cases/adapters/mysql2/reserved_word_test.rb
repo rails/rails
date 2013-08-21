@@ -100,7 +100,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     gs = nil
     assert_nothing_raised { gs = Select.find(2).groups }
     assert_equal gs.length, 2
-    assert(gs.collect{|x| x.id}.sort == [2, 3])
+    assert(gs.collect!{|x| x.id}.sort == [2, 3])
   end
 
   # has_and_belongs_to_many with reserved-word table name
@@ -109,7 +109,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     s = nil
     assert_nothing_raised { s = Distinct.find(1).selects }
     assert_equal s.length, 2
-    assert(s.collect{|x|x.id}.sort == [1, 2])
+    assert(s.collect!{|x|x.id}.sort == [1, 2])
   end
 
   # activerecord model introspection with reserved-word table and column names

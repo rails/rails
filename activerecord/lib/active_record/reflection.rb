@@ -612,7 +612,7 @@ module ActiveRecord
       #   # => [:tag, :tags]
       #
       def source_reflection_names
-        (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }.uniq
+        (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect!(&:to_sym).uniq
       end
 
       def source_reflection_name # :nodoc:

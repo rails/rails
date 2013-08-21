@@ -690,7 +690,7 @@ module ActiveRecord
         # * <tt>schema_name."table.name"</tt>
         # * <tt>"schema.name"."table name"</tt>
         def extract_schema_and_table(name)
-          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
+          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect!{|m| m.gsub(/(^"|"$)/,'') }.reverse
           [schema, table]
         end
       end
