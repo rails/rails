@@ -197,8 +197,6 @@ module ApplicationTests
           end
         RUBY
 
-        sleep 0.1
-
         get '/foo'
         assert_equal expected, last_response.body
       end
