@@ -133,11 +133,18 @@ $ cd railties
 $ TEST_DIR=generators bundle exec rake test
 ```
 
-You can run any single test separately too:
+You can run the tests for a particular file by using:
 
 ```bash
 $ cd actionpack
 $ bundle exec ruby -Itest test/template/form_helper_test.rb
+```
+
+Or, you can run a single test in a particular file:
+
+```bash
+$ cd actionpack
+$ bundle exec ruby -Itest path/to/test.rb -n test_name
 ```
 
 ### Active Record Setup
