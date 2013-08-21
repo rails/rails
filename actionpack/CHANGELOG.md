@@ -1,3 +1,7 @@
+*   Development mode exceptions are rendered in text format in case of XHR request.
+
+    *Kir Shatrov*
+
 *   Fix an issue where :if and :unless controller action procs were being run
     before checking for the correct action in the :only and :unless options.
 
