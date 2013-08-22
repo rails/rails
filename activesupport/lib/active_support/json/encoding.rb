@@ -12,7 +12,6 @@ require 'time'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/conversions'
 require 'active_support/core_ext/date/conversions'
-require 'set'
 
 module ActiveSupport
   class << self
@@ -36,53 +35,20 @@ module ActiveSupport
     end
 
     module Encoding #:nodoc:
-      class CircularReferenceError < StandardError; end
-
       class Encoder
         attr_reader :options
 
         def initialize(options = nil)
           @options = options || {}
-          @seen = Set.new
         end
 
-        def encode(value, use_options = true)
-          check_for_circular_references(value) do
-            jsonified = use_options ? value.as_json(options_for(value)) : value.as_json
-            jsonified.encode_json(self)
-          end
-        end
-
-        # like encode, but only calls as_json, without encoding to string.
-        def as_json(value, use_options = true)
-          check_for_circular_references(value) do
-            use_options ? value.as_json(options_for(value)) : value.as_json
-          end
-        end
-
-        def options_for(value)
-          if value.is_a?(Array) || value.is_a?(Hash)
-            # hashes and arrays need to get encoder in the options, so that
-            # they can detect circular references.
-            options.merge(:encoder => self)
-          else
-            options.dup
-          end
+        def encode(value)
+          value.as_json(options.dup).encode_json(self)
         end
 
         def escape(string)
           Encoding.escape(string)
         end
-
-        private
-          def check_for_circular_references(value)
-            unless @seen.add?(value.__id__)
-              raise CircularReferenceError, 'object references itself'
-            end
-            yield
-          ensure
-            @seen.delete(value.__id__)
-          end
       end
 
 
@@ -139,6 +105,21 @@ module ActiveSupport
           json = %("#{json}")
           json.force_encoding(::Encoding::UTF_8)
           json
+        end
+
+        # Deprecate CircularReferenceError
+        def const_missing(name)
+          if name == :CircularReferenceError
+            message = "Since Rails 4.1, the JSON encoder no longer offer protection from circular " \
+                      "references. You should stop relying on ActiveSupport::Encoding::CircularReferenceError " \
+                      "as it will be removed from Rails in future."
+
+            ActiveSupport::Deprecation.warn message
+
+            SystemStackError
+          else
+            super
+          end
         end
       end
 
@@ -271,14 +252,11 @@ end
 
 class Array
   def as_json(options = nil) #:nodoc:
-    # use encoder as a proxy to call as_json on all elements, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    map { |v| encoder.as_json(v, options) }
+    map{ |v| v.as_json(options && options.dup) }
   end
 
   def encode_json(encoder) #:nodoc:
-    # we assume here that the encoder has already run as_json on self and the elements, so we run encode_json directly
-    "[#{map { |v| v.encode_json(encoder) } * ','}]"
+    "[#{map { |v| v.as_json.encode_json(encoder) } * ','}]"
   end
 end
 
@@ -297,19 +275,11 @@ class Hash
       self
     end
 
-    # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
+    Hash[subset.map { |k, v| [k.to_s, v.as_json(options && options.dup)] }]
   end
 
   def encode_json(encoder) #:nodoc:
-    # values are encoded with use_options = false, because we don't want hash representations from ActiveModel to be
-    # processed once again with as_json with options, as this could cause unexpected results (i.e. missing fields);
-
-    # on the other hand, we need to run as_json on the elements, because the model representation may contain fields
-    # like Time/Date in their original (not jsonified) form, etc.
-
-    "{#{map { |k,v| "#{encoder.encode(k.to_s)}:#{encoder.encode(v, false)}" } * ','}}"
+    "{#{map { |k,v| "#{k.as_json.encode_json(encoder)}:#{v.as_json.encode_json(encoder)}" } * ','}}"
   end
 end
 
