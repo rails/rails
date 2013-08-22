@@ -21,6 +21,11 @@ class FinderRespondToTest < ActiveRecord::TestCase
     assert_respond_to Topic, :find_by_title
   end
 
+  def test_should_respond_to_find_by_with_bang
+    ensure_topic_method_is_not_cached(:find_by_title!)
+    assert_respond_to Topic, :find_by_title!
+  end
+
   def test_should_respond_to_find_by_two_attributes
     ensure_topic_method_is_not_cached(:find_by_title_and_author_name)
     assert_respond_to Topic, :find_by_title_and_author_name
