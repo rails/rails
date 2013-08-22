@@ -26,8 +26,7 @@ module ActionController
 
     class UnsupportedOperationError < StandardError
       def initialize
-        super "Unsupported render operation. BasicRendering supports only :text
-        and :nothing options. For more, you need to include ActionView."
+        super "Unsupported render operation. BasicRendering supports only :text and :nothing options. For more, you need to include ActionView."
       end
     end
   end
