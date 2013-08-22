@@ -138,7 +138,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       activerecord.reload
       assert activerecord.developers_with_callbacks.size == 2
     end
-    log_array = activerecord.developers_with_callbacks.collect {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.flatten.sort
+    log_array = activerecord.developers_with_callbacks.collect! {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.flatten.sort
     assert activerecord.developers_with_callbacks.clear
     assert_equal log_array, activerecord.developers_log.sort
   end

@@ -633,7 +633,7 @@ module ActiveRecord
       end
 
       def column_names
-        @column_names ||= @connection.columns(@table_name).collect { |c| c.name }
+        @column_names ||= @connection.columns(@table_name).collect!(&:name)
       end
 
       def read_fixture_files

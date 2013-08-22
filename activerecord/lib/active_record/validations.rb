@@ -34,7 +34,7 @@ module ActiveRecord
       # so an exception is raised if the record is invalid.
       def create!(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
+          attributes.collect! { |attr| create!(attr, &block) }
         else
           object = new(attributes)
           yield(object) if block_given?
