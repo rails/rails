@@ -848,8 +848,6 @@ module ActiveRecord
       def scope
         @association.scope
       end
-
-      # :nodoc:
       alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
