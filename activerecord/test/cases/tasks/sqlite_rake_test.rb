@@ -148,44 +148,110 @@ module ActiveRecord
   class SqliteStructureDumpTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
+      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
       @configuration = {
         'adapter'  => 'sqlite3',
         'database' => @database
       }
+      @filename = "awesome-file.sql"
+
+      Pathname.stubs(:new).returns(@path)
+      File.stubs(:join).returns('/former/relative/path')
+      FileUtils.stubs(:rm).returns(true)
     end
 
-    def test_structure_dump
-      dbfile   = @database
-      filename = "awesome-file.sql"
+    def test_creates_path_from_database
+      Pathname.expects(:new).with(@database).returns(@path)
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, '/rails/root'
-      assert File.exists?(dbfile)
-      assert File.exists?(filename)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.stubs(:`)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
+    end
+
+    def test_dumps_structure_with_absolute_path
+      File.stubs(:exist?).returns(true)
+      @path.stubs(:absolute?).returns(true)
+
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 /absolute/path .schema > "#{@filename}"))
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
+    end
+
+    def test_generates_absolute_path_with_given_root
+      @path.stubs(:absolute?).returns(false)
+
+      File.expects(:join).with('/rails/root', @path).
+        returns('/former/relative/path')
+
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.stubs(:`)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
+    end
+
+    def test_dumps_structure_with_relative_path
+      File.stubs(:exist?).returns(true)
+      @path.stubs(:absolute?).returns(false)
+
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 /former/relative/path .schema > "#{@filename}"))
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
     end
   end
 
   class SqliteStructureLoadTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
+      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
       @configuration = {
         'adapter'  => 'sqlite3',
         'database' => @database
       }
+      @filename = "awesome-file.sql"
+
+      Pathname.stubs(:new).returns(@path)
+      File.stubs(:join).returns('/former/relative/path')
+      FileUtils.stubs(:rm).returns(true)
     end
 
-    def test_structure_load
-      dbfile   = @database
-      filename = "awesome-file.sql"
+    def test_creates_path_from_database
+      Pathname.expects(:new).with(@database).returns(@path)
 
-      open(filename, 'w') { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, '/rails/root'
-      assert File.exists?(dbfile)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.stubs(:`)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
+    end
+
+    def test_loads_structure_with_absolute_path
+      File.stubs(:exist?).returns(true)
+      @path.stubs(:absolute?).returns(true)
+
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 /absolute/path < "#{@filename}"))
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
+    end
+
+    def test_generates_absolute_path_with_given_root
+      @path.stubs(:absolute?).returns(false)
+
+      File.expects(:join).with('/rails/root', @path).
+        returns('/former/relative/path')
+
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.stubs(:`)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
+    end
+
+    def test_loads_structure_with_relative_path
+      File.stubs(:exist?).returns(true)
+      @path.stubs(:absolute?).returns(false)
+
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 /former/relative/path < "#{@filename}"))
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
     end
   end
 end

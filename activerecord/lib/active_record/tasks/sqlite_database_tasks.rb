@@ -15,10 +15,7 @@ module ActiveRecord
       end
 
       def drop
-        require 'pathname'
-        path = Pathname.new configuration['database']
-        file = path.absolute? ? path.to_s : File.join(root, path)
-
+        file = dbfile
         FileUtils.rm(file) if File.exist?(file)
       end
       alias :purge :drop
@@ -28,16 +25,20 @@ module ActiveRecord
       end
 
       def structure_dump(filename)
-        dbfile = configuration['database']
-        `sqlite3 #{dbfile} .schema > #{filename}`
+        `sqlite3 #{dbfile} .schema > "#{filename}"`
       end
 
       def structure_load(filename)
-        dbfile = configuration['database']
         `sqlite3 #{dbfile} < "#{filename}"`
       end
 
       private
+
+      def dbfile
+        require 'pathname'
+        path = Pathname.new configuration['database']
+        path.absolute? ? path.to_s : File.join(root, path)
+      end
 
       def configuration
         @configuration
