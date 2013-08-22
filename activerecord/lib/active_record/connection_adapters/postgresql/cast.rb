@@ -97,12 +97,10 @@ module ActiveRecord
         end
 
         def string_to_cidr(string)
-          if string.nil?
-            nil
-          elsif String === string
+          if String === string
             begin
               IPAddr.new(string)
-            rescue ArgumentError
+            rescue IPAddr::InvalidAddressError
               nil
             end
           else
