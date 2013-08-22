@@ -157,10 +157,10 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 ### run(command)
 
-Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `README.rdoc` file:
+Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `README.md` file:
 
 ```ruby
-run "rm README.rdoc"
+run "rm README.md"
 ```
 
 ### rake(command, options = {})
@@ -179,7 +179,7 @@ rake "db:migrate", env: 'production'
 
 ### route(routing_code)
 
-Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.rdoc`. Now, to make `PeopleController#index` the default page for the application:
+Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.md`. Now, to make `PeopleController#index` the default page for the application:
 
 ```ruby
 route "root to: 'person#index'"

@@ -203,14 +203,14 @@ class ActionsTest < Rails::Generators::TestCase
   def test_readme
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_match "application up and running", action(:readme, "README.rdoc")
+    assert_match "application up and running", action(:readme, "README.md")
   end
 
   def test_readme_with_quiet
     generator(default_arguments, quiet: true)
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_no_match "application up and running", action(:readme, "README.rdoc")
+    assert_no_match "application up and running", action(:readme, "README.md")
   end
 
   def test_log
