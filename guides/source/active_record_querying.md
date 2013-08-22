@@ -524,12 +524,18 @@ To retrieve records from the database in a specific order, you can use the `orde
 For example, if you're getting a set of records and want to order them in ascending order by the `created_at` field in your table:
 
 ```ruby
+Client.order(:created_at)
+# OR
 Client.order("created_at")
 ```
 
 You could specify `ASC` or `DESC` as well:
 
 ```ruby
+Client.order(created_at: :desc)
+# OR
+Client.order(created_at: :asc)
+# OR
 Client.order("created_at DESC")
 # OR
 Client.order("created_at ASC")
@@ -538,6 +544,10 @@ Client.order("created_at ASC")
 Or ordering by multiple fields:
 
 ```ruby
+Client.order(orders_count: :asc, created_at: :desc)
+# OR
+Client.order(:orders_count, created_at: :desc)
+# OR
 Client.order("orders_count ASC, created_at DESC")
 # OR
 Client.order("orders_count ASC", "created_at DESC")
