@@ -59,7 +59,7 @@ module ActiveRecord
   class SqliteDBDropTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
-      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
+      @path          = stub(to_s: '/absolute/path', absolute?: true)
       @configuration = {
         'adapter'  => 'sqlite3',
         'database' => @database
@@ -148,7 +148,7 @@ module ActiveRecord
   class SqliteStructureDumpTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
-      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
+      @path          = stub(to_s: '/absolute/path', absolute?: true)
       @configuration = {
         'adapter'  => 'sqlite3',
         'database' => @database
@@ -173,7 +173,7 @@ module ActiveRecord
       @path.stubs(:absolute?).returns(true)
 
       ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
-        with(%Q(sqlite3 /absolute/path .schema > "#{@filename}"))
+        with(%Q(sqlite3 "/absolute/path" .schema > "#{@filename}"))
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
     end
@@ -194,7 +194,7 @@ module ActiveRecord
       @path.stubs(:absolute?).returns(false)
 
       ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
-        with(%Q(sqlite3 /former/relative/path .schema > "#{@filename}"))
+        with(%Q(sqlite3 "/former/relative/path" .schema > "#{@filename}"))
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
     end
@@ -203,7 +203,7 @@ module ActiveRecord
   class SqliteStructureLoadTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
-      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
+      @path          = stub(to_s: '/absolute/path', absolute?: true)
       @configuration = {
         'adapter'  => 'sqlite3',
         'database' => @database
@@ -228,7 +228,7 @@ module ActiveRecord
       @path.stubs(:absolute?).returns(true)
 
       ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
-        with(%Q(sqlite3 /absolute/path < "#{@filename}"))
+        with(%Q(sqlite3 "/absolute/path" < "#{@filename}"))
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
     end
@@ -249,7 +249,7 @@ module ActiveRecord
       @path.stubs(:absolute?).returns(false)
 
       ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
-        with(%Q(sqlite3 /former/relative/path < "#{@filename}"))
+        with(%Q(sqlite3 "/former/relative/path" < "#{@filename}"))
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
     end
