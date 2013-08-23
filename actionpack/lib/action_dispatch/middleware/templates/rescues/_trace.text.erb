@@ -1,0 +1,15 @@
+<%
+  traces = { "Application Trace" => @application_trace,
+             "Framework Trace"   => @framework_trace,
+             "Full Trace"        => @full_trace }
+%>
+
+Rails.root: <%= defined?(Rails) && Rails.respond_to?(:root) ? Rails.root : "unset" %>
+
+<% traces.each do |name, trace| %>
+<% if trace.any? %>
+<%= name %>
+<%= trace.join("\n") %>
+
+<% end %>
+<% end %>

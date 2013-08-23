@@ -1,0 +1,8 @@
+<% @source_extract = @exception.source_extract(0, :html) %>
+<%= @exception.original_exception.class.to_s %> in <%= @request.parameters["controller"].camelize if @request.parameters["controller"] %>#<%= @request.parameters["action"] %>
+
+Showing <%= @exception.file_name %> where line #<%= @exception.line_number %> raised:
+<%= @exception.message %>
+<%= @exception.sub_template_message %>
+<%= render template: "rescues/_trace", format: :text %>
+<%= render template: "rescues/_request_and_response", format: :text %>
