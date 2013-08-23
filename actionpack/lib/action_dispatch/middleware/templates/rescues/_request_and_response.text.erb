@@ -1,0 +1,23 @@
+<%
+  clean_params = @request.filtered_parameters.clone
+  clean_params.delete("action")
+  clean_params.delete("controller")
+
+  request_dump = clean_params.empty? ? 'None' : clean_params.inspect.gsub(',', ",\n")
+
+  def debug_hash(object)
+    object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
+  end unless self.class.method_defined?(:debug_hash)
+%>
+
+Request parameters
+<%= request_dump %>
+
+Session dump
+<%= debug_hash @request.session %>
+
+Env dump
+<%= debug_hash @request.env.slice(*@request.class::ENV_METHODS) %>
+
+Response headers
+<%= defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %>
