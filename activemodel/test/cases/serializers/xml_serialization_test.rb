@@ -53,8 +53,7 @@ class XmlSerializationTest < ActiveModel::TestCase
     @contact.address.city = "Springfield"
     @contact.address.apt_number = 35
     @contact.friends = [Contact.new, Contact.new]
-    @related_contact = SerializableContact.new
-    @contact.contact = @related_contact
+    @contact.contact = SerializableContact.new
   end
 
   test "should serialize default root" do
