@@ -912,7 +912,7 @@ Testing mailer classes requires some specific tools to do a thorough job.
 
 ### Keeping the Postman in Check
 
-Your mailer classes — like every other part of your Rails application — should be tested to ensure that it is working as expected.
+Your mailer classes - like every other part of your Rails application - should be tested to ensure that it is working as expected.
 
 The goals of testing your mailer classes are to ensure that:
 

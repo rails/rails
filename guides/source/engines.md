@@ -579,7 +579,7 @@ Run this migration using this command:
 $ rake db:migrate
 ```
 
-Now with all the pieces in place, an action will take place that will associate an author — represented by a record in the `users` table — with a post, represented by the `blorgh_posts` table from the engine.
+Now with all the pieces in place, an action will take place that will associate an author - represented by a record in the `users` table - with a post, represented by the `blorgh_posts` table from the engine.
 
 Finally, the author's name should be displayed on the post's page. Add this code above the "Title" output inside `app/views/blorgh/posts/show.html.erb`:
 
@@ -689,8 +689,8 @@ There are now no strict dependencies on what the class is, only what the API for
 
 Within an engine, there may come a time where you wish to use things such as initializers, internationalization or other configuration options. The great news is that these things are entirely possible because a Rails engine shares much the same functionality as a Rails application. In fact, a Rails application's functionality is actually a superset of what is provided by engines!
 
-If you wish to use an initializer — code that should run before the engine is
-loaded — the place for it is the `config/initializers` folder. This directory's
+If you wish to use an initializer - code that should run before the engine is
+loaded - the place for it is the `config/initializers` folder. This directory's
 functionality is explained in the
 [Initializers section](configuring.html#initializers) of the Configuring guide,
 and works precisely the same way as the `config/initializers` directory inside
@@ -707,7 +707,7 @@ The `test` directory should be treated like a typical Rails testing environment,
 
 ### Functional tests
 
-A matter worth taking into consideration when writing functional tests is that the tests are going to be running on an application — the `test/dummy` application — rather than your engine. This is due to the setup of the testing environment; an engine needs an application as a host for testing its main functionality, especially controllers. This means that if you were to make a typical `GET` to a controller in a controller's functional test like this:
+A matter worth taking into consideration when writing functional tests is that the tests are going to be running on an application - the `test/dummy` application - rather than your engine. This is due to the setup of the testing environment; an engine needs an application as a host for testing its main functionality, especially controllers. This means that if you were to make a typical `GET` to a controller in a controller's functional test like this:
 
 ```ruby
 get :index

@@ -172,7 +172,7 @@ In lists of options, parameters, etc. use a hyphen between the item and its desc
 # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
 ```
 
-The description starts in upper case and ends with a full stop—it's standard English.
+The description starts in upper case and ends with a full stop-it's standard English.
 
 Dynamically Generated Methods
 -----------------------------

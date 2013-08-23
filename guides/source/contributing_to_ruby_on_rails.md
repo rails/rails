@@ -11,7 +11,7 @@ After reading this guide, you will know:
 * How to contribute to the Ruby on Rails documentation.
 * How to contribute to the Ruby on Rails code.
 
-Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation — all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 --------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself — and others — to replicate the bug and figure out a fix.
+At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
@@ -174,7 +174,7 @@ After applying their branch, test it out! Here are some things to think about:
 Once you're happy that the pull request contains a good change, comment on the GitHub issue indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
 
 <blockquote>
-I like the way you've restructured that code in generate_finder_sql — much nicer. The tests look good too.
+I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
 </blockquote>
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
@@ -222,11 +222,11 @@ $ cd rails
 $ git checkout -b my_new_branch
 ```
 
-It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
+It doesn't matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
 ### Write Your Code
 
-Now get busy and add or edit code. You’re on your branch now, so you can write whatever you want (you can check to make sure you’re on the right branch with `git branch -a`). But if you’re planning to submit your change back for inclusion in Rails, keep a few things in mind:
+Now get busy and add or edit code. You're on your branch now, so you can write whatever you want (you can check to make sure you're on the right branch with `git branch -a`). But if you're planning to submit your change back for inclusion in Rails, keep a few things in mind:
 
 * Get the code right.
 * Use Rails idioms and helpers.
@@ -262,7 +262,7 @@ Rails follows a simple set of coding style conventions:
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
-The above are guidelines — please use your best judgment in using them.
+The above are guidelines - please use your best judgment in using them.
 
 ### Updating the CHANGELOG
 
@@ -291,7 +291,7 @@ Your name can be added directly after the last word if you don't provide any cod
 
 ### Sanity Check
 
-You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
+You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you're doing and ask for feedback. Doing this in private before you push a patch out publicly is the "smoke test" for a patch: if you can't convince one other developer of the beauty of your code, you're unlikely to convince the core team either.
 
 ### Commit Your Changes
 
@@ -335,7 +335,7 @@ TIP. Please squash your commits into a single commit when appropriate. This simp
 
 ### Update Your Branch
 
-It’s pretty likely that other changes to master have happened while you were working. Go get them:
+It's pretty likely that other changes to master have happened while you were working. Go get them:
 
 ```bash
 $ git checkout master
@@ -419,7 +419,7 @@ Now you need to get other people to look at your patch, just as you've looked at
 
 ### Iterate as Necessary
 
-It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
+It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
 
 #### Squashing commits
 

@@ -74,7 +74,7 @@ ports.
 
 If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
-Also, SQLite3 and its development files for the `sqlite3-ruby` gem — in Ubuntu you're done with just
+Also, SQLite3 and its development files for the `sqlite3-ruby` gem - in Ubuntu you're done with just
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
@@ -272,4 +272,4 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
-If you’re using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
