@@ -237,7 +237,7 @@ If you're one of the people who has always been bothered by the special-case nam
 
 ### HTTP Digest Authentication Support
 
-Rails now has built-in support for HTTP digest authentication. To use it, you call `authenticate_or_request_with_http_digest` with a block that returns the uses's password (which is then hashed and compared against the transmitted credentials):
+Rails now has built-in support for HTTP digest authentication. To use it, you call `authenticate_or_request_with_http_digest` with a block that returns the user's password (which is then hashed and compared against the transmitted credentials):
 
 ```ruby
 class PostsController < ApplicationController
