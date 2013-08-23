@@ -102,7 +102,7 @@ module Rails
   #     paths["config"]              # => ["config"]
   #     paths["config/initializers"] # => ["config/initializers"]
   #     paths["config/locales"]      # => ["config/locales"]
-  #     paths["config/routes"]       # => ["config/routes.rb"]
+  #     paths["config/routes.rb"]    # => ["config/routes.rb"]
   #   end
   #
   # The <tt>Application</tt> class adds a couple more paths to this set. And as in your
