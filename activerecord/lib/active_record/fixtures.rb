@@ -507,6 +507,7 @@ module ActiveRecord
       if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
         @model_class = class_name
       else
+        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.1, consider using the class itself instead.")
         @model_class = class_name.constantize rescue nil
       end
 
@@ -743,13 +744,6 @@ module ActiveRecord
       #                     'namespaced/fixture' => Another::Model
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.
-      #--
-      # It is also possible to pass the class name instead of the class:
-      #   set_fixture_class 'some_fixture' => 'SomeModel'
-      # I think this option is redundant, i propose to deprecate it.
-      # Isn't it easier to always pass the class itself?
-      # (2011-12-20 alexeymuranov)
-      #++
       def set_fixture_class(class_names = {})
         self.fixture_class_names = self.fixture_class_names.merge(class_names.stringify_keys)
       end
