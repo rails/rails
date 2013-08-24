@@ -1,3 +1,11 @@
+*   Fix: joins association, with defined in the scope block constraints by using several
+    where constraints and at least of them is not `Arel::Nodes::Equality`,
+    generates invalid SQL expression.
+
+    Fixes: #11963
+
+    *Paul Nikitochkin*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*
