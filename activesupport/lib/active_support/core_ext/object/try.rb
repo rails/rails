@@ -56,7 +56,7 @@ class Object
     if a.empty? && block_given?
       yield self
     elsif a.empty?
-      ActiveSupport::TryProxy::Raising.new(self)
+      self
     else
       public_send(*a, &b)
     end
