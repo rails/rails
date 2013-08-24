@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix to render partial by context(#11605).
+
+    *Kassio Borges*
+
+
 *   Fix `ActionDispatch::Assertions::ResponseAssertions#assert_redirected_to`
     does not show user-supplied message.
 
