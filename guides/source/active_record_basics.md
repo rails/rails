@@ -181,7 +181,7 @@ definition:
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: 'Joke'
+  set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   ...
 end
