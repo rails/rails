@@ -1,3 +1,8 @@
+*   Removed circular reference protection in JSON encoder, deprecated 
+    ActiveSupport::JSON::Encoding::CircularReferenceError.
+
+    *Godfrey Chan*, *Sergio Campamá*
+
 *   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
 
     *DHH*
