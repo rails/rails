@@ -1,3 +1,9 @@
+*   Refactored `collapse_wheres` to collapse where constraints to one `Arel::Nodes::And` constraint.
+
+    Fixes: #11963
+
+    *Paul Nikitochkin*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*

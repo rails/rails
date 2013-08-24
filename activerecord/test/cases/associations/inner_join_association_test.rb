@@ -41,6 +41,15 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_no_match(/WHERE/i, sql)
   end
 
+  def test_join_association_conditions_added_to_join_clause
+    sql = Author.joins(:welcome_posts_with_comment).to_sql
+    assert_match(/AND \(comments_count = 1\)/i, sql)
+
+    sql = Author.joins(:welcome_posts_with_comments).to_sql
+    assert_match(/AND \(.posts.\..comments_count. > 0\)/i, sql)
+
+  end
+
   def test_join_conditions_allow_nil_associations
     authors = Author.includes(:essays).where(:essays => {:id => nil})
     assert_equal 2, authors.count
