@@ -322,11 +322,19 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_proper_table_name_on_migrator
-    assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
-    assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
-    assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(Reminder)
+    assert_deprecated do
+      assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
+    end
+    assert_deprecated do
+      assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
+    end
+    assert_deprecated do
+      assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(Reminder)
+    end
     Reminder.reset_table_name
-    assert_equal Reminder.table_name, ActiveRecord::Migrator.proper_table_name(Reminder)
+    assert_deprecated do
+      assert_equal Reminder.table_name, ActiveRecord::Migrator.proper_table_name(Reminder)
+    end
 
     # Use the model's own prefix/suffix if a model is given
     ActiveRecord::Base.table_name_prefix = "ARprefix_"
@@ -334,7 +342,9 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.table_name_prefix = 'prefix_'
     Reminder.table_name_suffix = '_suffix'
     Reminder.reset_table_name
-    assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(Reminder)
+    assert_deprecated do
+      assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(Reminder)
+    end
     Reminder.table_name_prefix = ''
     Reminder.table_name_suffix = ''
     Reminder.reset_table_name
@@ -343,8 +353,12 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
-    assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
-    assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
+    assert_deprecated do
+      assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
+    end
+    assert_deprecated do
+      assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
+    end
   end
 
   def test_proper_table_name_on_migration
