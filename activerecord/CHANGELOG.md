@@ -1,3 +1,13 @@
+*   Allow passing string values to AR order method:
+
+    Example:
+
+        Model.order(id: 'asc').to_sql == Model.order(id: :asc).to_sql
+
+    Fixes #10732
+
+    *Marcelo Casiraghi*
+
 *   Stop interpreting SQL 'string' columns as :string type because there is no
     common STRING datatype in SQL.
 
