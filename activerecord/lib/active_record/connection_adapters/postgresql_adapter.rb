@@ -168,9 +168,9 @@ module ActiveRecord
 
         def extract_limit(sql_type)
           case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          when /^timestamp/i; nil
+          when /^bigint/;    8
+          when /^smallint/;  2
+          when /^timestamp/; nil
           else super
           end
         end
@@ -178,14 +178,14 @@ module ActiveRecord
         # Extracts the scale from PostgreSQL-specific data types.
         def extract_scale(sql_type)
           # Money type has a fixed scale of 2.
-          sql_type =~ /^money/ ? 2 : super
+          sql_type == 'money' ? 2 : super
         end
 
         # Extracts the precision from PostgreSQL-specific data types.
         def extract_precision(sql_type)
           if sql_type == 'money'
             self.class.money_precision
-          elsif sql_type =~ /timestamp/i
+          elsif sql_type =~ /^timestamp/
             $1.to_i if sql_type =~ /\((\d+)\)/
           else
             super
@@ -195,14 +195,16 @@ module ActiveRecord
         # Maps PostgreSQL-specific data types to logical Rails types.
         def simplified_type(field_type)
           case field_type
-          # Numeric and monetary types
-          when /^(?:real|double precision)$/
+          # Numeric type
+          when 'real'
             :float
-          # Monetary types
+          # Monetary type
           when 'money'
             :decimal
+          # Key/value pair type
           when 'hstore'
             :hstore
+          # Tree-like type
           when 'ltree'
             :ltree
           # Network address types
@@ -212,14 +214,13 @@ module ActiveRecord
             :cidr
           when 'macaddr'
             :macaddr
-          # Character types
-          when /^(?:character varying|bpchar)(?:\(\d+\))?$/
-            :string
-          # Binary data types
+          # Binary data type
           when 'bytea'
             :binary
           # Date/time types
-          when /^timestamp with(?:out)? time zone$/
+          # Only timestamps *without* time zone are of type :datetime.
+          # Timestamps *with* time zone are of type :timestamp and are handled by super.
+          when /^timestamp(?:\(\d+\))? without time zone$/
             :datetime
           when /^interval(?:|\(\d+\))$/
             :string
@@ -238,7 +239,7 @@ module ActiveRecord
           # Arrays
           when /^\D+\[\]$/
             :string
-          # Object identifier types
+          # Object identifier type
           when 'oid'
             :integer
           # UUID type
@@ -247,9 +248,7 @@ module ActiveRecord
           # JSON type
           when 'json'
             :json
-          # Small and big integer types
-          when /^(?:small|big)int$/
-            :integer
+          # Range types
           when /(num|date|tstz|ts|int4|int8)range$/
             field_type.to_sym
           # Pass through all types that are not specific to PostgreSQL.
@@ -421,8 +420,8 @@ module ActiveRecord
         integer:     { name: "integer" },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
-        datetime:    { name: "timestamp" },
-        timestamp:   { name: "timestamp" },
+        datetime:    { name: "timestamp without time zone" },
+        timestamp:   { name: "timestamp with time zone" },
         time:        { name: "time" },
         date:        { name: "date" },
         daterange:   { name: "daterange" },

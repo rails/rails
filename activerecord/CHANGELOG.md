@@ -1,3 +1,13 @@
+*   Fix handling of timestamp and datetime columns on PostgreSQL.
+
+    Timestamp columns are defined as `timestamp with time zone`,
+    datetime columns as `timestamp without time zone`. PostgreSQL
+    converts timestamp values from the local time zone to UTC for
+    storage and back; datetime values are treated as-is. This is in
+    line with MySQL.
+
+    *Roderick van Domburg*
+
 *   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
     and `ActiveRecord::Base.symbolized_sti_name` without replacement.
 
