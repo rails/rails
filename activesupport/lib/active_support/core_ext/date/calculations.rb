@@ -49,35 +49,11 @@ class Date
   end
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
-  # and then subtracts the specified number of seconds.
-  def ago(seconds)
-    in_time_zone.since(-seconds)
-  end
-
-  # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
   # and then adds the specified number of seconds
   def since(seconds)
     in_time_zone.since(seconds)
   end
   alias :in :since
-
-  # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
-  def beginning_of_day
-    in_time_zone
-  end
-  alias :midnight :beginning_of_day
-  alias :at_midnight :beginning_of_day
-  alias :at_beginning_of_day :beginning_of_day
-
-  # Converts Date to a Time (or DateTime if necessary) with the time portion set to the middle of the day (12:00)
-  def middle_of_day
-    in_time_zone.middle_of_day
-  end
-  alias :midday :middle_of_day
-  alias :noon :middle_of_day
-  alias :at_midday :middle_of_day
-  alias :at_noon :middle_of_day
-  alias :at_middle_of_day :middle_of_day
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the end of the day (23:59:59)
   def end_of_day
@@ -123,11 +99,15 @@ class Date
   #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
   #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
   def change(options)
-    ::Date.new(
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day)
-    )
+    if (options.keys & [:hour, :min, :sec, :usec]).empty?
+      ::Date.new(
+        options.fetch(:year, year),
+        options.fetch(:month, month),
+        options.fetch(:day, day)
+      )
+    else
+      in_time_zone.change(options)
+    end
   end
   
   # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.

@@ -238,4 +238,19 @@ module DateAndTimeBehavior
   ensure
     Date.beginning_of_week = old_bw
   end
+
+  def test_ago
+    assert_equal date_time_init(2005,2,22,10,10,9),  date_time_init(2005,2,22,10,10,10).ago(1)
+    assert_equal date_time_init(2005,2,22,9,10,10),  date_time_init(2005,2,22,10,10,10).ago(3600)
+    assert_equal date_time_init(2005,2,20,10,10,10), date_time_init(2005,2,22,10,10,10).ago(86400*2)
+    assert_equal date_time_init(2005,2,20,9,9,45),   date_time_init(2005,2,22,10,10,10).ago(86400*2 + 3600 + 25)
+  end
+
+  def test_beginning_of_hour
+    assert_equal date_time_init(2005,2,4,19,0,0), date_time_init(2005,2,4,19,30,10).beginning_of_hour
+  end
+
+  def test_beginning_of_minute
+    assert_equal date_time_init(2005,2,4,19,30,0), date_time_init(2005,2,4,19,30,10).beginning_of_minute
+  end
 end

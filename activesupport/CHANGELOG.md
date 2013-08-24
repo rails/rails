@@ -1,3 +1,10 @@
+*   Add Date#seconds_until_end_of_day, Date#beginning_of_hour and
+    Date#beginning_of_minute. All of which convert the Date to a TimeWithZone
+    at the same date at midnight, and then use the equivalent Time logic for
+    the methods.
+
+    *Gilad Zohari*
+
 *   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
 
     *DHH*

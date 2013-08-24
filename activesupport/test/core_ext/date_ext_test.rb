@@ -248,6 +248,14 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
   end
 
+  def test_beginning_of_hour
+    assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_hour
+  end
+
+  def test_beginning_of_minute
+    assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_minute
+  end
+
   def test_middle_of_day
     assert_equal Time.local(2005,2,21,12,0,0), Date.new(2005,2,21).middle_of_day
   end
@@ -348,11 +356,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     ensure
       Time.zone = old_tz
     end
+
 end
 
 class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
     assert Date.new.acts_like_date?
+  end
+
+  def test_date_does_not_act_like_time
+    assert !Date.new.acts_like?(:time)
   end
 
   def test_freeze_doesnt_clobber_memoized_instance_methods

@@ -67,12 +67,6 @@ class DateTime
     end
   end
 
-  # Returns a new DateTime representing the time a number of seconds ago.
-  # Do not use this method in combination with x.months, use months_ago instead!
-  def ago(seconds)
-    since(-seconds)
-  end
-
   # Returns a new DateTime representing the time a number of seconds since the
   # instance time. Do not use this method in combination with x.months, use
   # months_since instead!
@@ -81,47 +75,17 @@ class DateTime
   end
   alias :in :since
 
-  # Returns a new DateTime representing the start of the day (0:00).
-  def beginning_of_day
-    change(:hour => 0)
-  end
-  alias :midnight :beginning_of_day
-  alias :at_midnight :beginning_of_day
-  alias :at_beginning_of_day :beginning_of_day
-
-  # Returns a new DateTime representing the middle of the day (12:00)
-  def middle_of_day
-    change(:hour => 12)
-  end
-  alias :midday :middle_of_day
-  alias :noon :middle_of_day
-  alias :at_midday :middle_of_day
-  alias :at_noon :middle_of_day
-  alias :at_middle_of_day :middle_of_day
-
   # Returns a new DateTime representing the end of the day (23:59:59).
   def end_of_day
     change(:hour => 23, :min => 59, :sec => 59)
   end
   alias :at_end_of_day :end_of_day
 
-  # Returns a new DateTime representing the start of the hour (hh:00:00).
-  def beginning_of_hour
-    change(:min => 0)
-  end
-  alias :at_beginning_of_hour :beginning_of_hour
-
   # Returns a new DateTime representing the end of the hour (hh:59:59).
   def end_of_hour
     change(:min => 59, :sec => 59)
   end
   alias :at_end_of_hour :end_of_hour
-
-  # Returns a new DateTime representing the start of the minute (hh:mm:00).
-  def beginning_of_minute
-    change(:sec => 0)
-  end
-  alias :at_beginning_of_minute :beginning_of_minute
 
   # Returns a new DateTime representing the end of the minute (hh:mm:59).
   def end_of_minute
@@ -153,5 +117,4 @@ class DateTime
   def <=>(other)
     super other.to_datetime
   end
-
 end
