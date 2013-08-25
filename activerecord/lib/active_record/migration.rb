@@ -828,7 +828,7 @@ module ActiveRecord
       end
 
       def proper_table_name(name, options = {})
-        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.1. Use the proper_table_name instance method on ActiveRecord::Migration instead"
+        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
         options = {
           table_name_prefix: ActiveRecord::Base.table_name_prefix,
           table_name_suffix: ActiveRecord::Base.table_name_suffix
