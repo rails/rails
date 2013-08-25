@@ -455,7 +455,7 @@ module ActiveRecord
             fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
               connection,
               fs_name,
-              class_names[fs_name] || default_fixture_model_name(fs_name),
+              class_names[fs_name] || (default_fixture_model_name(fs_name).safe_constantize),
               ::File.join(fixtures_directory, fs_name))
           end
 
@@ -504,11 +504,14 @@ module ActiveRecord
       @name     = name
       @path     = path
 
+      if class_name.is_a?(String)
+        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.2, consider using the class itself instead.")
+      end
+
       if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
         @model_class = class_name
       else
-        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.1, consider using the class itself instead.")
-        @model_class = class_name.constantize rescue nil
+        @model_class = class_name.safe_constantize if class_name
       end
 
       @connection  = ( model_class.respond_to?(:connection) ?
