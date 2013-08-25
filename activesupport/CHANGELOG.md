@@ -1,3 +1,8 @@
+*   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
+    UUID fixtures on PostgreSQL.
+
+    *Roderick van Domburg*
+
 *   Maintain proleptic gregorian in Time#advance
 
     `Time#advance` uses `Time#to_date` and `Date#advance` to calculate a new date.
