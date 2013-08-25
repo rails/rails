@@ -120,11 +120,6 @@ class Time
     end
   end
 
-  # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
-  def ago(seconds)
-    since(-seconds)
-  end
-
   # Returns a new Time representing the time a number of seconds since the instance time
   def since(seconds)
     self + seconds
@@ -133,24 +128,6 @@ class Time
   end
   alias :in :since
 
-  # Returns a new Time representing the start of the day (0:00)
-  def beginning_of_day
-    #(self - seconds_since_midnight).change(usec: 0)
-    change(:hour => 0)
-  end
-  alias :midnight :beginning_of_day
-  alias :at_midnight :beginning_of_day
-  alias :at_beginning_of_day :beginning_of_day
-
-  # Returns a new Time representing the middle of the day (12:00)
-  def middle_of_day
-    change(:hour => 12)
-  end
-  alias :midday :middle_of_day
-  alias :noon :middle_of_day
-  alias :at_midday :middle_of_day
-  alias :at_noon :middle_of_day
-  alias :at_middle_of_day :middle_of_day
 
   # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
   def end_of_day
@@ -163,12 +140,6 @@ class Time
   end
   alias :at_end_of_day :end_of_day
 
-  # Returns a new Time representing the start of the hour (x:00)
-  def beginning_of_hour
-    change(:min => 0)
-  end
-  alias :at_beginning_of_hour :beginning_of_hour
-
   # Returns a new Time representing the end of the hour, x:59:59.999999 (.999999999 in ruby1.9)
   def end_of_hour
     change(
@@ -179,11 +150,6 @@ class Time
   end
   alias :at_end_of_hour :end_of_hour
 
-  # Returns a new Time representing the start of the minute (x:xx:00)
-  def beginning_of_minute
-    change(:sec => 0)
-  end
-  alias :at_beginning_of_minute :beginning_of_minute
 
   # Returns a new Time representing the end of the minute, x:xx:59.999999 (.999999999 in ruby1.9)
   def end_of_minute

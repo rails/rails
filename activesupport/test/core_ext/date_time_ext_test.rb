@@ -90,16 +90,8 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,2,4,23,59,59), DateTime.civil(2005,2,4,10,10,10).end_of_day
   end
 
-  def test_beginning_of_hour
-    assert_equal DateTime.civil(2005,2,4,19,0,0), DateTime.civil(2005,2,4,19,30,10).beginning_of_hour
-  end
-
   def test_end_of_hour
     assert_equal DateTime.civil(2005,2,4,19,59,59), DateTime.civil(2005,2,4,19,30,10).end_of_hour
-  end
-
-  def test_beginning_of_minute
-    assert_equal DateTime.civil(2005,2,4,19,30,0), DateTime.civil(2005,2,4,19,30,10).beginning_of_minute
   end
 
   def test_end_of_minute
@@ -114,13 +106,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_last_year
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).last_year
-  end
-
-  def test_ago
-    assert_equal DateTime.civil(2005,2,22,10,10,9),  DateTime.civil(2005,2,22,10,10,10).ago(1)
-    assert_equal DateTime.civil(2005,2,22,9,10,10),  DateTime.civil(2005,2,22,10,10,10).ago(3600)
-    assert_equal DateTime.civil(2005,2,20,10,10,10), DateTime.civil(2005,2,22,10,10,10).ago(86400*2)
-    assert_equal DateTime.civil(2005,2,20,9,9,45),   DateTime.civil(2005,2,22,10,10,10).ago(86400*2 + 3600 + 25)
   end
 
   def test_since

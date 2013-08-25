@@ -129,14 +129,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_beginning_of_hour
-    assert_equal Time.local(2005,2,4,19,0,0), Time.local(2005,2,4,19,30,10).beginning_of_hour
-  end
-
-  def test_beginning_of_minute
-    assert_equal Time.local(2005,2,4,19,30,0), Time.local(2005,2,4,19,30,10).beginning_of_minute
-  end
-
   def test_end_of_day
     assert_equal Time.local(2007,8,12,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,12,10,10,10).end_of_day
     with_env_tz 'US/Eastern' do
@@ -159,13 +151,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_last_year
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
-  end
-
-  def test_ago
-    assert_equal Time.local(2005,2,22,10,10,9),  Time.local(2005,2,22,10,10,10).ago(1)
-    assert_equal Time.local(2005,2,22,9,10,10),  Time.local(2005,2,22,10,10,10).ago(3600)
-    assert_equal Time.local(2005,2,20,10,10,10), Time.local(2005,2,22,10,10,10).ago(86400*2)
-    assert_equal Time.local(2005,2,20,9,9,45),   Time.local(2005,2,22,10,10,10).ago(86400*2 + 3600 + 25)
   end
 
   def test_daylight_savings_time_crossings_backward_start
