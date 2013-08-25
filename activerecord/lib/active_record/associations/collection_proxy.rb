@@ -116,6 +116,7 @@ module ActiveRecord
         proxy_association.concat(records) && self
       end
       alias_method :push, :<<
+      alias_method :+, :<<
 
       def clear
         delete_all
