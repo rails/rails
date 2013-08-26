@@ -24,7 +24,6 @@ require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
-require 'action_controller/caching'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
@@ -268,6 +267,10 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 end
 
+# Emulate AV railtie.
+ActionController::Base.superclass.send(:include, ActionView::Layouts)
+ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+
 module ActionController
   class Base
     include ActionController::Testing
@@ -288,9 +291,6 @@ module ActionController
     include ActionDispatch::TestProcess
     include ActionDispatch::SharedRoutes
   end
-end
-
-class ::ApplicationController < ActionController::Base
 end
 
 module ActionView
@@ -330,53 +330,3 @@ module ActionDispatch
   end
 end
 
-module ActionDispatch
-  module RoutingVerbs
-    def get(uri_or_host, path = nil)
-      host = uri_or_host.host unless path
-      path ||= uri_or_host.path
-
-      params = {'PATH_INFO'      => path,
-                'REQUEST_METHOD' => 'GET',
-                'HTTP_HOST'      => host}
-
-      routes.call(params)[2].join
-    end
-  end
-end
-
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_recall => recall))
-  end
-end
-
-class ResourcesController < ActionController::Base
-  def index() render :nothing => true end
-  alias_method :show, :index
-end
-
-class ThreadsController  < ResourcesController; end
-class MessagesController < ResourcesController; end
-class CommentsController < ResourcesController; end
-class ReviewsController < ResourcesController; end
-class AuthorsController < ResourcesController; end
-class LogosController < ResourcesController; end
-
-class AccountsController <  ResourcesController; end
-class AdminController   <  ResourcesController; end
-class ProductsController < ResourcesController; end
-class ImagesController < ResourcesController; end
-class PreferencesController < ResourcesController; end
-
-module Backoffice
-  class ProductsController < ResourcesController; end
-  class TagsController < ResourcesController; end
-  class ManufacturersController < ResourcesController; end
-  class ImagesController < ResourcesController; end
-
-  module Admin
-    class ProductsController < ResourcesController; end
-    class ImagesController < ResourcesController; end
-  end
-end
