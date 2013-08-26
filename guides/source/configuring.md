@@ -131,8 +131,6 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.beginning_of_week` sets the default beginning of week for the application. Accepts a valid week day symbol (e.g. `:monday`).
 
-* `config.whiny_nils` enables or disables warnings when a certain set of methods are invoked on `nil` and it does not respond to them. Defaults to true in development and test environments.
-
 ### Configuring Assets
 
 * `config.assets.enabled` a flag that controls whether the asset
@@ -632,11 +630,11 @@ WARNING: Some parts of your application, notably routing, are not yet set up at 
 
 ### `Rails::Railtie#initializer`
 
-Rails has several initializers that run on startup that are all defined by using the `initializer` method from `Rails::Railtie`. Here's an example of the `initialize_whiny_nils` initializer from Active Support:
+Rails has several initializers that run on startup that are all defined by using the `initializer` method from `Rails::Railtie`. Here's an example of the `set_helpers_path` initializer from Action Controller:
 
 ```ruby
-initializer "active_support.initialize_whiny_nils" do |app|
-  require 'active_support/whiny_nil' if app.config.whiny_nils
+initializer "action_controller.set_helpers_path" do |app|
+  ActionController::Helpers.helpers_path = app.helpers_paths
 end
 ```
 
@@ -669,20 +667,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `bootstrap_hook` Runs all configured `before_initialize` blocks.
 
 * `i18n.callbacks` In the development environment, sets up a `to_prepare` callback which will call `I18n.reload!` if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
-
-* `active_support.initialize_whiny_nils` Requires `active_support/whiny_nil` if `config.whiny_nils` is true. This file will output errors such as:
-
-    ```
-    Called id for nil, which would mistakenly be 4 - if you really wanted the id of nil, use object_id
-    ```
-
-    And:
-
-    ```
-    You have a nil object when you didn't expect it!
-    You might have expected an instance of Array.
-    The error occurred while evaluating nil.each
-    ```
 
 * `active_support.deprecation_behavior` Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values.
 
