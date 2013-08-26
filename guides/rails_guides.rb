@@ -39,6 +39,25 @@ ERROR
   exit 1
 end
 
+begin
+  require 'nokogiri'
+rescue LoadError
+  # This can happen if doc:guides is executed in an application.
+  $stderr.puts('Generating guides requires Nokogiri.')
+  $stderr.puts(<<ERROR) if bundler?
+Please add
+
+  gem 'nokogiri'
+
+to the Gemfile, run
+
+  bundle install
+
+and try again.
+ERROR
+  exit 1
+end
+
 require 'rails_guides/markdown'
 require "rails_guides/generator"
 RailsGuides::Generator.new.generate
