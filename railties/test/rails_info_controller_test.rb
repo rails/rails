@@ -1,5 +1,7 @@
 require 'abstract_unit'
 
+ActionController::Base.superclass.send(:include, ActionView::Layouts)
+
 module ActionController
   class Base
     include ActionController::Testing

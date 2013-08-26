@@ -8,6 +8,9 @@ require 'abstract_unit'
 require 'controller/fake_controllers'
 
 require 'action_mailer'
+require 'action_view'
+
+ActionMailer::Base.send(:include, ActionView::Layouts)
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
 class AssertSelectTest < ActionController::TestCase
