@@ -58,7 +58,7 @@
     to allow the connection adapter to properly determine how to quote the value. This was
     affecting certain databases that use specific column types.
 
-    Fixes: #6763
+    Fixes #6763.
 
     *Alfred Wong*
 
@@ -66,16 +66,16 @@
 
     *Yves Senn*
 
-*   fixes bug introduced by #3329.  Now, when autosaving associations,
-    deletions happen before inserts and saves.  This prevents a 'duplicate
-    unique value' database error that would occur if a record being created had
+*   Fixes bug introduced by #3329. Now, when autosaving associations,
+    deletions happen before inserts and saves. This prevents a
+    'duplicate unique value' database error that would occur if a record being created had
     the same value on a unique indexed field as that of a record being destroyed.
 
     *Johnny Holton*
 
-*   Flatten merged join_values before building the joins.
+*   Flatten merged join values before building the joins.
 
-    While joining_values special treatment is given to string values.
+    While joining values special treatment is given to string values.
     By flattening the array it ensures that string values are detected
     as strings and not arrays.
 
@@ -83,10 +83,10 @@
 
     *Neeraj Singh and iwiznia*
 
-*   Remove extra select and update queries on save/touch/destroy ActiveRecord model
+*   Remove extra select and update queries on `save`/`touch`/`destroy` Active Record model
     with belongs to reflection with option `touch: true`.
 
-    Fixes: #11288
+    Fixes: #11288.
 
     *Paul Nikitochkin*
 
@@ -116,6 +116,7 @@
 *   `inspect` on Active Record model classes does not initiate a
     new connection. This means that calling `inspect`, when the
     database is missing, will no longer raise an exception.
+
     Fixes #10936.
 
     Example:
@@ -131,6 +132,7 @@
 
 *   Remove column restrictions for `count`, let the database raise if the SQL is
     invalid. The previos behavior was untested and surprising for the user.
+
     Fixes #5554.
 
     Example:
@@ -146,6 +148,7 @@
     *Yves Senn*
 
 *   Fix the `:primary_key` option for `has_many` associations.
+
     Fixes #10693.
 
     *Yves Senn*
@@ -165,7 +168,9 @@
 
     *Ben Woosley#
 
-*   Remove not needed bind variables. Port of commit #5082345. Fixes #10958.
+*   Remove not needed bind variables. Port of commit #5082345.
+
+    Fixes #10958.
 
     *Neeraj Singh*
 
