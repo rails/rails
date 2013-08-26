@@ -421,7 +421,24 @@ Fill in some details about your potential patch including a meaningful title. Wh
 
 ### Get some Feedback
 
-Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the [rubyonrails-core mailing list](http://groups.google.com/group/rubyonrails-core/) or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+Most pull requests will go through a few iterations before they get merged.
+Different contributors will sometimes have different opinions, and often
+patches will need revised before they can get merged.
+
+Some contributors to Rails have email notifications from GitHub turned on, but
+others do not. Furthermore, (almost) everyone who works on Rails is a
+volunteer, and so it may take a few days for you to get your first feedback on
+a pull request. Don't despair! Sometimes it's quick, sometimes it's slow. Such
+is the open source life.
+
+If it's been over a week, and you haven't heard anything, you might want to try
+and nudge things along. You can use the [rubyonrails-core mailing
+list](http://groups.google.com/group/rubyonrails-core/) for this. You can also
+leave another comment on the pull request.
+
+While you're waiting for feedback on your pull request, open up a few other
+pull requests and give someone else some! I'm sure they'll appreciate it in
+the same way that you appreciate feedback on your patches.
 
 ### Iterate as Necessary
 
