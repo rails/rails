@@ -93,6 +93,18 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:commit_on_create], @new_record.history
   end
 
+  def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record_on_touch
+    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
+    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
+    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
+    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
+    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
+    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+
+    @first.touch
+    assert_equal [:commit_on_update], @first.history
+  end
+
   def test_call_after_rollback_after_transaction_rollsback
     @first.after_commit_block{|r| r.history << :after_commit}
     @first.after_rollback_block{|r| r.history << :after_rollback}
@@ -115,6 +127,22 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     Topic.transaction do
       @first.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [:rollback_on_update], @first.history
+  end
+
+  def test_only_call_after_rollback_on_update_after_transaction_rollsback_for_existing_record_on_touch
+    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
+    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
+    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
+    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
+    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
+    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+
+    Topic.transaction do
+      @first.touch
       raise ActiveRecord::Rollback
     end
 

@@ -8,6 +8,7 @@ require 'models/task'
 
 class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets, :toys, :cars, :tasks
+  self.use_transactional_fixtures = false
 
   def setup
     @developer = Developer.order(:id).first
@@ -160,6 +161,22 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal time, owner.updated_at
   ensure
     Toy.belongs_to :pet
+  end
+
+
+  def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_call_callbacks_on_the_parent_object
+    pet   = Pet.first
+    owner = pet.owner
+    flag = false
+
+    owner.on_after_commit do
+      flag = true
+    end
+
+    pet.name = "Fluffy the Third"
+    pet.save
+
+    assert flag
   end
 
   def test_timestamp_attributes_for_create
