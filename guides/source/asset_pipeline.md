@@ -126,6 +126,11 @@ Pipeline assets can be placed inside an application in one of three locations: `
 
 * `vendor/assets` is for assets that are owned by outside entities, such as code for JavaScript plugins and CSS frameworks.
 
+WARNING: If you are upgrading from Rails 3, please take into account that assets
+under `lib/assets` or `vendor/assets` are available for inclusion via the
+application manifests but no longer part of the precompile array. See
+[Precompiling Assets](#precompiling-assets) for guidance.
+
 #### Search Paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches the three default asset locations for it.
