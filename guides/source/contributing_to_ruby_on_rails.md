@@ -46,9 +46,28 @@ WARNING: Please do not report security vulnerabilities with public GitHub issue 
 
 ### What about Feature Requests?
 
-Please don't put "feature request" items into GitHub Issues. If there's a new feature that you want to see added to Ruby on Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
+Please don't put "feature request" items into GitHub Issues. If there's a new
+feature that you want to see added to Ruby on Rails, you'll need to write the
+code yourself - or convince someone else to partner with you to write the code.
+Later in this guide you'll find detailed instructions for proposing a patch to
+Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you
+can expect it to be marked "invalid" as soon as it's reviewed.
 
-If you'd like feedback on an idea for a feature before doing the work for make a patch, please send an email to the [rails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You might get no response, which means that everyone is indifferent. You might find someone who's also interested in building that feature. You might get a "This won't be accepted." But it's the proper place to discuss new ideas. GitHub Issues are not a particularly good venue for the sometimes long and involved discussions new features require.
+Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
+Generally, a feature is anything that adds new behavior, while a bug is
+anything that fixes already existing behavior that is mis-behaving. Sometimes,
+the core team will have to make a judgement call. That said, the distinction
+generally just affects which release your patch will get in to; we love feature
+submissions! They just won't get backported to maintenance branches.
+
+If you'd like feedback on an idea for a feature before doing the work for make
+a patch, please send an email to the [rails-core mailing
+list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
+might get no response, which means that everyone is indifferent. You might find
+someone who's also interested in building that feature. You might get a "This
+won't be accepted." But it's the proper place to discuss new ideas. GitHub
+Issues are not a particularly good venue for the sometimes long and involved
+discussions new features require.
 
 Setting Up a Development Environment
 ------------------------------------
