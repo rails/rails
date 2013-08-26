@@ -1,16 +1,16 @@
 ## unreleased ##
 
-*   Fix an issue where :if and :unless controller action procs were being run
-    before checking for the correct action in the :only and :unless options.
+*   Fix an issue where `:if` and `:unless` controller action procs were being run
+    before checking for the correct action in the `:only` and `:unless` options.
 
-    Fixes #11799
+    Fixes #11799.
 
     *Nicholas Jakobsen*
 
 *   Fix an issue where `assert_dom_equal` and `assert_dom_not_equal` were
     ignoring the passed failure message argument.
 
-    Fixes #11751
+    Fixes #11751.
 
     *Ryan McGeary*
 
@@ -19,10 +19,10 @@
 
     *Rafael Mendonça França*
 
-*   Allow REMOTE_ADDR, HTTP_HOST and HTTP_USER_AGENT to be overridden from
+*   Allow `REMOTE_ADDR`, `HTTP_HOST` and `HTTP_USER_AGENT` to be overridden from
     the environment passed into `ActionDispatch::TestRequest.new`.
 
-    Fixes #11590
+    Fixes #11590.
 
     *Andrew White*
 
@@ -51,21 +51,21 @@
 *   Skip routes pointing to a redirect or mounted application when generating urls
     using an options hash as they aren't relevant and generate incorrect urls.
 
-    Fixes #8018
+    Fixes #8018.
 
     *Andrew White*
 
-*   Fix default rendered format problem when calling `render` without :content_type option.
-    It should return :html.
+*   Fix default rendered format problem when calling `render` without `:content_type` option.
+    It should return `:html`.
 
-    Fixes #11393
+    Fixes #11393.
 
-    *Gleb Mazovetskiy* *Oleg* *kennyj*
+    *Gleb Mazovetskiy*, *Oleg*, *kennyj*
 
 *   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind body input stream on
     parsing json params.
 
-    Fixes #11345
+    Fixes #11345.
 
     *Yuri Bol*, *Paul Nikitochkin*
 
@@ -97,7 +97,7 @@
     was setting `request.formats` with an array containing a `nil` value, which
     raised an error when setting the controller formats.
 
-    Fixes #10965
+    Fixes #10965.
 
     *Becker*
 
