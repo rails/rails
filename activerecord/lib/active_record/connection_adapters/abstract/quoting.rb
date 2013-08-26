@@ -51,7 +51,6 @@ module ActiveRecord
           return value unless column
 
           case column.type
-          when :binary then value
           when :integer then value.to_i
           when :float then value.to_f
           else
