@@ -574,7 +574,7 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   end
 
   private
-    def load_fixtures
+    def load_fixtures(config)
       raise 'argh'
     end
 end
