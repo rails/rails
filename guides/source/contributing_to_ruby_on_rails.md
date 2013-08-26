@@ -291,7 +291,13 @@ Your name can be added directly after the last word if you don't provide any cod
 
 ### Sanity Check
 
-You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you're doing and ask for feedback. Doing this in private before you push a patch out publicly is the "smoke test" for a patch: if you can't convince one other developer of the beauty of your code, you're unlikely to convince the core team either.
+You should not be the only person who looks at the code before you submit it.
+If you know someone else who uses Rails, try asking them if they'll check out
+your work. If you don't know anyone else using Rails, try hopping into the IRC
+room or posting about your idea to the rails-core mailing list.  Doing this in
+private before you push a patch out publicly is the “smoke test” for a patch:
+if you can’t convince one other developer of the beauty of your code, you’re
+unlikely to convince the core team either.
 
 ### Commit Your Changes
 
