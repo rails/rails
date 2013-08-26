@@ -74,6 +74,18 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
 * Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
 
+* Rails 4.0 has deprecated the old-style hash based finder API. This means that
+  methods which previously accepted "finder options" no longer do.
+
+* All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated.
+  Here's how you can handle the changes:
+
+      * `find_all_by_...`           becomes `where(...)`.
+      * `find_last_by_...`          becomes `where(...).last`.
+      * `scoped_by_...`             becomes `where(...)`.
+      * `find_or_initialize_by_...` becomes `find_or_initialize_by(...)`.
+      * `find_or_create_by_...`     becomes `find_or_create_by(...)`.
+
 ### Active Resource
 
 Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
