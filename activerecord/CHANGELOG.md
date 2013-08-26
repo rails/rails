@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   PostgreSQL adapter recognizes negative money values formatted with
+    parentheses (eg. `($1.25) # => -1.25`)).
+    Fixes #11899.
+
+    * Yves Senn*
+
 *   Do not load all child records for inverse case.
 
     currently `post.comments.find(Comment.first.id)` would load all
