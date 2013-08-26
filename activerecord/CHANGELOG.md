@@ -1,3 +1,8 @@
+*   Fix validate uniqueness in has_many :through association using `+=`
+    operator.
+
+    *Kassio Borges*
+
 *   Stop interpreting SQL 'string' columns as :string type because there is no
     common STRING datatype in SQL.
 

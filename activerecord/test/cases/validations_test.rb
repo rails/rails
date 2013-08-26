@@ -6,6 +6,9 @@ require 'models/person'
 require 'models/developer'
 require 'models/parrot'
 require 'models/company'
+require 'models/category'
+require 'models/author'
+require 'models/categorization'
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -121,4 +124,38 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal 1, Company.validators_on(:name).size
   end
 
+end
+
+class ValidatesUniquenessInHasManyThroughTest < ActiveRecord::TestCase
+  fixtures :authors, :categories, :categorizations
+  repair_validations(Categorization)
+
+  def setup
+    Categorization.validates :category_id, :uniqueness => { :scope => :author_id }
+
+    @author = authors(:mary)
+    @category = categories(:technology)
+  end
+
+  def test_raise_exception_with_concatanation_operation
+    @author.categories << @category
+
+    assert_raises(ActiveRecord::RecordInvalid) {
+      @author.categories += [@category]
+    }
+  end
+
+  def test_raise_exception_with_append_operation
+    @author.categories << @category
+
+    assert_raises(ActiveRecord::RecordInvalid) {
+      @author.categories << [@category]
+    }
+  end
+
+  def test_raise_exception_with_assignment_operation
+    assert_raises(ActiveRecord::RecordInvalid) {
+      @author.categories = [@category, @category]
+    }
+  end
 end

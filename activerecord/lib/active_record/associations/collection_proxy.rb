@@ -941,6 +941,7 @@ module ActiveRecord
       end
       alias_method :push, :<<
       alias_method :append, :<<
+      alias_method :+, :<<
 
       def prepend(*args)
         raise NoMethodError, "prepend on association is not defined. Please use << or append"
