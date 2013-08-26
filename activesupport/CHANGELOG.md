@@ -1,11 +1,11 @@
 ## unreleased ##
 
 *   Adds a new deprecation behaviour that raises an exception. Throwing this
-    line into +config/environments/development.rb+
+    line into `config/environments/development.rb`:
 
         ActiveSupport::Deprecation.behavior = :raise
 
-    will cause the application to raise an +ActiveSupport::DeprecationException+
+    will cause the application to raise an `ActiveSupport::DeprecationException`
     on deprecations.
 
     Use this for aggressive deprecation cleanups.
@@ -21,30 +21,33 @@
 
     The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
     estimation](https://gist.github.com/ssimeonov/6047200) for 64-bit MRI on
-    1.9.3 and 2.0. GH#11512
+    1.9.3 and 2.0.
+
+    Fixes #11512.
 
     *Simeon Simeonov*
 
 *   Only raise `Module::DelegationError` if it's the source of the exception.
 
-    Fixes #10559
+    Fixes #10559.
 
 *   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
     sub-second resolution when wrapping a `DateTime` value.
-    Fixes #10855
+
+    Fixes #10855.
 
     *Andrew White*
 
 *   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
-    Fixes #11350
+    Fixes #11350.
 
     *Neer Friedman*, *Andrew White*
 
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 
-    Fixes #11030
+    Fixes #11030.
 
     *Mark J. Titorenko*
 
