@@ -275,6 +275,10 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
+    def touch(*)
+      with_transaction_returning_status { super }
+    end
+
     # Reset id and @new_record if the transaction rolls back.
     def rollback_active_record_state!
       remember_transaction_record_state
