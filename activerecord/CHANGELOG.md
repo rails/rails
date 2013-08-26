@@ -1,3 +1,9 @@
+*   PostgreSQL adapter recognizes negative money values formatted with
+    parentheses (eg. `($1.25) # => -1.25`)).
+    Fixes #11899.
+
+    * Yves Senn*
+
 *   Stop interpreting SQL 'string' columns as :string type because there is no
     common STRING datatype in SQL.
 

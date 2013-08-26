@@ -298,6 +298,14 @@ _SQL
     assert_equal(-567.89, @second_money.wealth)
   end
 
+  def test_money_type_cast
+    column = PostgresqlMoney.columns.find { |c| c.name == 'wealth' }
+    assert_equal(12345678.12, column.type_cast("$12,345,678.12"))
+    assert_equal(12345678.12, column.type_cast("$12.345.678,12"))
+    assert_equal(-1.15, column.type_cast("-$1.15"))
+    assert_equal(-2.25, column.type_cast("($2.25)"))
+  end
+
   def test_create_tstzrange
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     tstzrange = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2011-02-02 14:30:00 CDT')
