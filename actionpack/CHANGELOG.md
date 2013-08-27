@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Only cache template digests if `config.cache_template_loading` is true.
+
+    *Josh Lauer*, *Justin Ridgewell*
+
 *   Fix an issue where `:if` and `:unless` controller action procs were being run
     before checking for the correct action in the `:only` and `:unless` options.
 

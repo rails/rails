@@ -184,6 +184,15 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_equal digest_phone, digest_fridge_phone
   end
 
+  def test_cache_template_loading
+    resolver_before = ActionView::Resolver.caching
+    ActionView::Resolver.caching = false
+    assert_digest_difference("messages/edit", true) do
+      change_template("comments/_comment")
+    end
+    ActionView::Resolver.caching = resolver_before
+  end
+
   private
     def assert_logged(message)
       old_logger = ActionView::Base.logger
@@ -200,9 +209,9 @@ class TemplateDigestorTest < ActionView::TestCase
       end
     end
 
-    def assert_digest_difference(template_name)
+    def assert_digest_difference(template_name, persistent = false)
       previous_digest = digest(template_name)
-      ActionView::Digestor.cache.clear
+      ActionView::Digestor.cache.clear unless persistent
 
       yield
 
