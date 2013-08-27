@@ -548,6 +548,41 @@ which we'll define later.
 TIP: As we'll see later, `@post.save` returns a boolean indicating
 whether the model was saved or not.
 
+If you now go to
+<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
+it! You should get an error that looks like this:
+
+![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
+
+Rails has several security features that help you write secure applications,
+and you're running into one of them now. This one is called
+`strong_parameters`, which requires us to tell Rails exactly which parameters
+we want to accept in our controllers. In this case, we want to allow the
+`title` and `text` parameters, so change your `create` controller action to
+look like this:
+
+```ruby
+def create
+  @post = Post.new(post_params)
+
+  @post.save
+  redirect_to @post
+end
+
+private
+  def post_params
+    params.require(:post).permit(:title, :text)
+  end
+```
+
+See the `permit`? It allows us to accept both `title` and `text` in this
+action.
+
+TIP: Note that `def post_params` is private. This new approach prevents an attacker from
+setting the model's attributes by manipulating the hash passed to the model.
+For more information, refer to
+[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+
 ### Showing Posts
 
 If you submit the form again now, Rails will complain about not finding
@@ -590,37 +625,10 @@ content:
 </p>
 ```
 
-If you now go to
-<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
-it! You should get an error that looks like this:
-
-![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
-
-Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called
-`strong_parameters`, which requires us to tell Rails exactly which parameters
-we want to accept in our controllers. In this case, we want to allow the
-`title` and `text` parameters, so change your `create` controller action to
-look like this:
-
-```
-  def create
-    @post = Post.new(params[:post].permit(:title, :text))
-
-    @post.save
-    redirect_to @post
-  end
-```
-
-See the `permit`? It allows us to accept both `title` and `text` in this
-action. With this change, you should finally be able to create new posts.
+With this change, you should finally be able to create new posts.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
-
-TIP: Note that `def post_params` is private. This new approach prevents an
-attacker from setting the model's attributes by manipulating the hash passed
-to the model. For more information, refer to [this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Listing all posts
 
