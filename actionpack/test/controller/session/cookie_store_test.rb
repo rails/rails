@@ -7,7 +7,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
   DispatcherApp = ActionController::Dispatcher.new
 
-  Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
+  Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, digest: 'SHA1')
 
   SignedBar = "BAh7BjoIZm9vIghiYXI%3D--fef868465920f415f2c0652d6910d3af288a0367"
 
