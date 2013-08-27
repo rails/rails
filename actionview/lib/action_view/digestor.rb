@@ -32,9 +32,13 @@ module ActionView
           Digestor
         end
 
-        @@cache[cache_key] = digest = klass.new(name, format, finder, options).digest # Store the actual digest
-      ensure
-        @@cache.delete_pair(cache_key, false) if pre_stored && !digest # something went wrong, make sure not to corrupt the @@cache
+        # Store the actual digest if config.cache_template_loading is true
+        klass.new(name, format, finder, options).digest.tap do |digest|
+          @@cache[cache_key] = digest if ActionView::Resolver.caching?
+        end
+      rescue Exception
+        @@cache.delete_pair(cache_key, false) if pre_stored # something went wrong, make sure not to corrupt the @@cache
+        raise
       end
     end
 
