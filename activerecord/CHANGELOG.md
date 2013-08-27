@@ -1,3 +1,9 @@
+*   SQLite db:structure_dump and db:structure_load tasks now support being run
+    not from the Rails.root path when a relative SQLite DB path is specified.
+    This is particularly useful when developing engines.
+
+    *Yury "Exoth" Trofimenko*
+
 *   Stop interpreting SQL 'string' columns as :string type because there is no
     common STRING datatype in SQL.
 
