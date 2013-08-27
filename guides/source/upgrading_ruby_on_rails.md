@@ -184,6 +184,12 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
       * `find_or_initialize_by_...` becomes `find_or_initialize_by(...)`.
       * `find_or_create_by_...`     becomes `find_or_create_by(...)`.
 
+* Note that `where(...)` returns a relation, not an array like the old finders. If you require an `Array`, use `where(...).to_a`.
+
+* These equivalent methods may not execute the same SQL as the previous implementation.
+
+* To re-enable the old finders, you can use the [activerecord-deprecated_finders gem](https://github.com/rails/activerecord-deprecated_finders).
+
 ### Active Resource
 
 Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
