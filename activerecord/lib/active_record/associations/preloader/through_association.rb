@@ -32,12 +32,10 @@ module ActiveRecord
 
           owners.each_with_object({}) do |owner, h|
             association = owner.association through_reflection.name
-            through_records = Array(association.reader)
+            h[owner] = Array(association.reader)
 
             # Dont cache the association - we would only be caching a subset
             association.reset if should_reset
-
-            h[owner] = through_records
           end
         end
 
