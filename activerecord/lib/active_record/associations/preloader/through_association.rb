@@ -27,15 +27,15 @@ module ActiveRecord
         def through_records_by_owner
           Preloader.new(owners, through_reflection.name, through_scope).run
 
+          should_reset = (through_scope != through_reflection.klass.unscoped) ||
+             (reflection.options[:source_type] && through_reflection.collection?)
+
           owners.each_with_object({}) do |owner, h|
             association = owner.association through_reflection.name
             through_records = Array(association.reader)
 
             # Dont cache the association - we would only be caching a subset
-            if (through_scope != through_reflection.klass.unscoped) ||
-               (reflection.options[:source_type] && through_reflection.collection?)
-              association.reset
-            end
+            association.reset if should_reset
 
             h[owner] = through_records
           end
