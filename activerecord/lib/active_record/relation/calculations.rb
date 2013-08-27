@@ -194,6 +194,7 @@ module ActiveRecord
           distinct = true
         end
 
+        column_name = :all if column_name =~ /\s*\.\*\s*/
         column_name = primary_key if column_name == :all && distinct
         distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
       end

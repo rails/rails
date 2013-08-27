@@ -129,6 +129,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, accounts.select(:firm_id).count
   end
 
+  def test_should_count_with_custom_select_all_and_limit
+    assert_nothing_raised do
+      assert_equal 2, Account.select("#{Account.table_name}.*").limit(2).count
+    end
+  end
+
   def test_count_should_shortcut_with_limit_zero
     accounts = Account.limit(0)
 
