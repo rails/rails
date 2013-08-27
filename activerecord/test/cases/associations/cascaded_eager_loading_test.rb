@@ -52,12 +52,10 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   def test_cascaded_eager_association_loading_with_join_for_count
     categories = Category.joins(:categorizations).includes([{:posts=>:comments}, :authors])
 
-    assert_nothing_raised do
-      assert_equal 4, categories.count
-      assert_equal 4, categories.to_a.count
-      assert_equal 3, categories.distinct.count
-      assert_equal 3, categories.to_a.uniq.size # Must uniq since instantiating with inner joins will get dupes
-    end
+    assert_equal 4, categories.count
+    assert_equal 4, categories.to_a.count
+    assert_equal 3, categories.distinct.count
+    assert_equal 3, categories.to_a.uniq.size # Must uniq since instantiating with inner joins will get dupes
   end
 
   def test_cascaded_eager_association_loading_with_duplicated_includes
