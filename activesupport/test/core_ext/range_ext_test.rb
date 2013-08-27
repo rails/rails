@@ -12,7 +12,7 @@ class RangeTest < ActiveSupport::TestCase
     date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
   end
-  
+
   def test_date_range
     assert_instance_of Range, DateTime.new..DateTime.new
     assert_instance_of Range, DateTime::Infinity.new..DateTime::Infinity.new
@@ -20,6 +20,18 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_overlaps_last_inclusive
     assert((1..5).overlaps?(5..10))
+  end
+
+  def test_limit_greater_than
+    assert_equal 5, (1..5).limit(9)
+  end
+
+  def test_limit_less_than
+    assert_equal 1, (1..5).limit(-1)
+  end
+
+  def test_limit_inclusive
+    assert_equal 3, (1..5).limit(3)
   end
 
   def test_overlaps_last_exclusive
