@@ -575,16 +575,7 @@ whether the model was saved or not.
 
 If you now go to
 <http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
-it! You should get an error that looks like this:
-
-![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
-
-Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called
-`strong_parameters`, which requires us to tell Rails exactly which parameters
-we want to accept in our controllers. In this case, we want to allow the
-`title` and `text` parameters, so change your `create` controller action to
-look like this:
+it! You should something like this:
 
 ```ruby
 def create
