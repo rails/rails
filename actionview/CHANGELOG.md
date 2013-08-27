@@ -1,8 +1,6 @@
-*   Only cache template digests if config.cache_template_loading, since
-    ActionView::Resolver.caching is set to the same value as
-    config.cache_template_loading
+*   Only cache template digests if `config.cache_template_loading` id true.
 
-    *Josh Lauer* *Justin Ridgewell*
+    *Josh Lauer*, *Justin Ridgewell*
 
 *   Added an `extname` hash option for `javascript_include_tag` method.
 
