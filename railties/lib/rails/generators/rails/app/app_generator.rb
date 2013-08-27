@@ -103,7 +103,7 @@ module Rails
       directory "script" do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, :verbose => false
+      chmod "script", 0755 & ~File.umask, :verbose => false
     end
 
     def test
