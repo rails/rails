@@ -224,13 +224,20 @@ module ActiveRecord
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
-        columns_hash.each do |name, col|
-          if serialized_attributes.key?(name)
-            columns_hash[name] = AttributeMethods::Serialization::Type.new(col)
-          end
-          if create_time_zone_conversion_attribute?(name, col)
-            columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
-          end
+        @serialized_column_names ||= self.columns_hash.keys.find_all do |name|
+          serialized_attributes.key?(name)
+        end
+
+        @serialized_column_names.each do |name|
+          columns_hash[name] = AttributeMethods::Serialization::Type.new(columns_hash[name])
+        end
+
+        @time_zone_column_names ||= self.columns_hash.find_all do |name, col|
+          create_time_zone_conversion_attribute?(name, col)
+        end.map!(&:first)
+
+        @time_zone_column_names.each do |name|
+          columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(columns_hash[name])
         end
 
         columns_hash
@@ -284,16 +291,19 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @arel_engine          = nil
-        @column_defaults      = nil
-        @column_names         = nil
-        @columns              = nil
-        @columns_hash         = nil
-        @column_types         = nil
-        @content_columns      = nil
-        @dynamic_methods_hash = nil
-        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
-        @relation             = nil
+        @arel_engine             = nil
+        @column_defaults         = nil
+        @column_names            = nil
+        @columns                 = nil
+        @columns_hash            = nil
+        @column_types            = nil
+        @content_columns         = nil
+        @dynamic_methods_hash    = nil
+        @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+        @relation                = nil
+        @serialized_column_names = nil
+        @time_zone_column_names  = nil
+        @cached_time_zone        = nil
       end
 
       # This is a hook for use by modules that need to do extra stuff to
