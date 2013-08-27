@@ -1,8 +1,13 @@
-*   invoke mailer defaults as procs only if they are procs, do not convert
-    with to_proc.  That an object is convertible to a proc does not mean it's
-    meant to be always used as a proc.  Fixes #11533
+## unreleased ##
+
+*   Invoke mailer defaults as procs only if they are procs, do not convert
+    with `to_proc`. That an object is convertible to a proc does not mean it's
+    meant to be always used as a proc.
+
+    Fixes #11533.
 
     *Alex Tsukernik*
+
 
 ## Rails 4.0.0 (June 25, 2013) ##
 
