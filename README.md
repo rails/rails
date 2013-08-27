@@ -38,7 +38,7 @@ Active Record, Action Pack, and Action View can each be used independently outsi
 In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
 to generate and send emails; and Active Support ([README](activesupport/README.rdoc)), a collection of
 utility classes and standard library extensions that are useful for Rails, and may also be used
-independently outisde Rails.
+independently outside Rails.
 
 ## Getting Started
 
