@@ -7,7 +7,6 @@ rescue LoadError, NameError
   $stderr.puts "Skipping MessageVerifier test: broken OpenSSL install"
 else
 
-require 'active_support/time'
 require 'active_support/json'
 
 class MessageVerifierTest < ActiveSupport::TestCase
@@ -47,7 +46,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
   def test_alternative_serialization_method
     verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :serializer => JSONSerializer.new)
     message = verifier.generate({ :foo => 123, 'bar' => Time.utc(2010) })
-    assert_equal verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
+    assert_equal verifier.verify(message), { "foo" => 123, "bar" => "2010/01/01 00:00:00 +0000" }
   end
   
   def test_digest_algorithm_as_second_parameter_deprecation
