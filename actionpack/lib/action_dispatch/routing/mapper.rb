@@ -1264,12 +1264,15 @@ module ActionDispatch
             concerns(options[:concerns]) if options[:concerns]
 
             collection do
+              options[:constraints] ||= {}
               actions = parent_resource.actions
               get    :index, options if actions.include?(:index)
               post   :create, options if actions.include?(:create)
-              put    :replace, options if actions.include?(:replace) and options[:collection] == true
-              patch  :update_many, options if actions.include?(:update_many) and options[:collection] == true
-              delete :destroy_many, options if actions.include?(:destroy_many) and options[:collection] == true
+              if collection_routing?(options)
+                put    :replace, options if actions.include?(:replace)
+                patch  :update_many, options if actions.include?(:update_many)
+                delete :destroy_many, options if actions.include?(:destroy_many)
+              end
             end
             
 
@@ -1296,6 +1299,10 @@ module ActionDispatch
           end
 
           self
+        end
+
+        def collection_routing?(options)
+          options[:collection] == true
         end
 
         # To add a route to the collection:
@@ -1460,8 +1467,12 @@ module ActionDispatch
           path = path_for_action(action, options.delete(:path))
 
           if options[:collection] == true
-            path.sub!(/^([\w\/]+)(\.:format)?$/, '\1/:ids/\2')
-            options[:constraints] = {ids: /(?:[^\.\/\?]|\.\.)+/}
+            if action == :index
+              path.sub!(/^([\w\/]+)(\.:format)?$/, '\1/(:ids)(.:format)')
+            else
+              path.sub!(/^([\w\/]+)(\.:format)?$/, '\1/:ids/\2')
+            end
+            options[:constraints].merge! ids: /(?:[^\.\/\?]|\.\.)+/
           end
 
           action = action.to_s.dup
