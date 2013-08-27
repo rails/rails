@@ -87,7 +87,6 @@ module ActionView
     super
     ActionView::Helpers.eager_load!
     ActionView::Template.eager_load!
-    HTML.eager_load!
   end
 end
 
