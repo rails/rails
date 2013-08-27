@@ -209,7 +209,7 @@ module ActionController
 
         def verifier_for(secret, digest)
           key = secret.respond_to?(:call) ? secret.call : secret
-          ActiveSupport::MessageVerifier.new(key, digest)
+          ActiveSupport::MessageVerifier.new(key, digest: digest)
         end
 
         def generate_sid
