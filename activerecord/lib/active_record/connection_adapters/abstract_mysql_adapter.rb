@@ -165,6 +165,7 @@ module ActiveRecord
         @quoted_column_names, @quoted_table_names = {}, {}
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+          @prepared_statements = true
           @visitor = Arel::Visitors::MySQL.new self
         else
           @visitor = unprepared_visitor

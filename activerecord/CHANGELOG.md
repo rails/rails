@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fix inserts with prepared statements disabled.
+
+    Fixes #12023.
+
+    *Rafael Mendonça França*
+
 *   Setting a has_one association on a new record no longer causes an empty
     transaction.
 

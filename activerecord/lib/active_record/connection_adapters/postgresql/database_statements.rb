@@ -135,8 +135,8 @@ module ActiveRecord
 
         def exec_query(sql, name = 'SQL', binds = [])
           log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
+            result = without_prepared_statement?(binds) ? exec_no_cache(sql, binds) :
+                                                          exec_cache(sql, binds)
 
             types = {}
             fields = result.fields
