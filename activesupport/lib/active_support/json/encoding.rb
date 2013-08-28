@@ -43,14 +43,47 @@ module ActiveSupport
         end
 
         def encode(value)
-          value.as_json(options.dup).encode_json(self)
+          jsonify(value, true).encode_json(self)
         end
 
         def escape(string)
           Encoding.escape(string)
         end
-      end
 
+        def jsonify(value, use_options = false)
+          if value.respond_to?(:as_json)
+            value = value.as_json(use_options ? options.dup : nil)
+          end
+
+          case value
+          when TrueClass, FalseClass, NilClass, String, Numeric
+            jsonify_scalar(value)
+          when Hash
+            jsonify_hash(value)
+          when Array
+            jsonify_array(value)
+          else
+            jsonify_other(value)
+          end
+        end
+
+        protected
+          def jsonify_scalar(value)
+            value
+          end
+
+          def jsonify_hash(value)
+            Hash[value.map { |k, v| [self.jsonify(k.to_s), self.jsonify(v)] }]
+          end
+
+          def jsonify_array(value)
+            value.map { |item| self.jsonify(item) }
+          end
+
+          def jsonify_other(value)
+            raise TypeError, "Don't know how to jsonify #{value.inspect}"
+          end
+      end
 
       ESCAPED_CHARS = {
         "\x00" => '\u0000', "\x01" => '\u0001', "\x02" => '\u0002',
