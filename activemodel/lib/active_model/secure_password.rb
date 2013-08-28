@@ -2,7 +2,9 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
-    class << self; attr_accessor :min_cost; end
+    class << self
+      attr_accessor :min_cost # :nodoc:
+    end
     self.min_cost = false
 
     module ClassMethods
