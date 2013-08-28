@@ -12,6 +12,7 @@ require 'time'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/conversions'
 require 'active_support/core_ext/date/conversions'
+require 'json'
 
 module ActiveSupport
   class << self
@@ -43,11 +44,15 @@ module ActiveSupport
         end
 
         def encode(value)
-          jsonify(value, true).encode_json(self)
-        end
+          json = ::JSON.generate(jsonify(value, true), max_nesting: false, quirks_mode: true)
 
-        def escape(string)
-          Encoding.escape(string)
+          if Encoding.escape_html_entities_in_json
+            escape_regex = /[><&\u2028\u2029]/
+          else
+            escape_regex = /[\u2028\u2029]/
+          end
+
+          json.gsub(escape_regex, Encoding::ESCAPED_CHARS)
         end
 
         def jsonify(value, use_options = false)
@@ -86,29 +91,11 @@ module ActiveSupport
       end
 
       ESCAPED_CHARS = {
-        "\x00" => '\u0000', "\x01" => '\u0001', "\x02" => '\u0002',
-        "\x03" => '\u0003', "\x04" => '\u0004', "\x05" => '\u0005',
-        "\x06" => '\u0006', "\x07" => '\u0007', "\x0B" => '\u000B',
-        "\x0E" => '\u000E', "\x0F" => '\u000F', "\x10" => '\u0010',
-        "\x11" => '\u0011', "\x12" => '\u0012', "\x13" => '\u0013',
-        "\x14" => '\u0014', "\x15" => '\u0015', "\x16" => '\u0016',
-        "\x17" => '\u0017', "\x18" => '\u0018', "\x19" => '\u0019',
-        "\x1A" => '\u001A', "\x1B" => '\u001B', "\x1C" => '\u001C',
-        "\x1D" => '\u001D', "\x1E" => '\u001E', "\x1F" => '\u001F',
-        "\010" =>  '\b',
-        "\f"   =>  '\f',
-        "\n"   =>  '\n',
-        "\xe2\x80\xa8" => '\u2028',
-        "\xe2\x80\xa9" => '\u2029',
-        "\r"   =>  '\r',
-        "\t"   =>  '\t',
-        '"'    =>  '\"',
-        '\\'   =>  '\\\\',
-        '>'    =>  '\u003E',
-        '<'    =>  '\u003C',
-        '&'    =>  '\u0026',
-        "#{0xe2.chr}#{0x80.chr}#{0xa8.chr}" => '\u2028',
-        "#{0xe2.chr}#{0x80.chr}#{0xa9.chr}" => '\u2029',
+        '>'      => '\u003E',
+        '<'      => '\u003C',
+        '&'      => '\u0026',
+        "\u2028" => '\u2028',
+        "\u2029" => '\u2029',
         }
 
       class << self
@@ -119,26 +106,7 @@ module ActiveSupport
         # If false, serializes BigDecimal objects as numeric instead of wrapping
         # them in a string.
         attr_accessor :encode_big_decimal_as_string
-
-        attr_accessor :escape_regex
-        attr_reader :escape_html_entities_in_json
-
-        def escape_html_entities_in_json=(value)
-          self.escape_regex = \
-            if @escape_html_entities_in_json = value
-              /\xe2\x80\xa8|\xe2\x80\xa9|[\x00-\x1F"\\><&]/
-            else
-              /\xe2\x80\xa8|\xe2\x80\xa9|[\x00-\x1F"\\]/
-            end
-        end
-
-        def escape(string)
-          string = string.encode(::Encoding::UTF_8, :undef => :replace).force_encoding(::Encoding::BINARY)
-          json = string.gsub(escape_regex) { |s| ESCAPED_CHARS[s] }
-          json = %("#{json}")
-          json.force_encoding(::Encoding::UTF_8)
-          json
-        end
+        attr_accessor :escape_html_entities_in_json
 
         # Deprecate CircularReferenceError
         def const_missing(name)
@@ -183,19 +151,11 @@ class TrueClass
   def as_json(options = nil) #:nodoc:
     self
   end
-
-  def encode_json(encoder) #:nodoc:
-    to_s
-  end
 end
 
 class FalseClass
   def as_json(options = nil) #:nodoc:
     self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    to_s
   end
 end
 
@@ -203,19 +163,11 @@ class NilClass
   def as_json(options = nil) #:nodoc:
     self
   end
-
-  def encode_json(encoder) #:nodoc:
-    'null'
-  end
 end
 
 class String
   def as_json(options = nil) #:nodoc:
     self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    encoder.escape(self)
   end
 end
 
@@ -228,10 +180,6 @@ end
 class Numeric
   def as_json(options = nil) #:nodoc:
     self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    to_s
   end
 end
 
@@ -263,6 +211,14 @@ class BigDecimal
       nil
     end
   end
+
+  def to_json(options = nil) #:nodoc:
+    if finite?
+      ActiveSupport.encode_big_decimal_as_string ? %("#{to_s}") : to_s
+    else
+      "null"
+    end
+  end
 end
 
 class Regexp
@@ -287,10 +243,6 @@ class Array
   def as_json(options = nil) #:nodoc:
     map{ |v| v.as_json(options && options.dup) }
   end
-
-  def encode_json(encoder) #:nodoc:
-    "[#{map { |v| v.as_json.encode_json(encoder) } * ','}]"
-  end
 end
 
 class Hash
@@ -309,10 +261,6 @@ class Hash
     end
 
     Hash[subset.map { |k, v| [k.to_s, v.as_json(options && options.dup)] }]
-  end
-
-  def encode_json(encoder) #:nodoc:
-    "{#{map { |k,v| "#{k.as_json.encode_json(encoder)}:#{v.as_json.encode_json(encoder)}" } * ','}}"
   end
 end
 
