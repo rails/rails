@@ -1176,4 +1176,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
     assert_equal authors(:bob), author
   end
+
+  test "custom select with select_values" do
+    club = Club.last
+
+    first_member, second_member = Member.last(2)
+
+    club.memberships.create!(member: first_member.reload)
+    club.memberships.create!(member: second_member.reload)
+
+    connection = Club.connection
+    memberships = club.reload.memberships.select('member_id')
+
+    assert_equal [first_member.id, second_member.id], connection.select_values(memberships)
+  end
 end
