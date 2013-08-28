@@ -329,6 +329,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert !cbs[1].frickinawesome
   end
 
+  def test_create_without_prepared_statement
+    cb = CustomBulb.connection.unprepared_statement do
+      CustomBulb.create(name: 'Dude')
+    end
+
+    assert_equal('Dude', cb.name)
+  end
+
   def test_load
     topics = Topic.all.merge!(:order => 'id').to_a
     assert_equal(4, topics.size)
