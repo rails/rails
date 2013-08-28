@@ -64,6 +64,14 @@ module AbstractController
       hash
     end
 
+    # Flag if ImplicitRender should be called
+    # By default `BasicRendering` is used so we force user to
+    # render explicitly
+    # :api: private
+    def implicit_render?
+      false
+    end
+
     # Normalize args by converting render "foo" to render :action => "foo" and
     # render "foo/bar" to render :file => "foo/bar".
     # :api: plugin

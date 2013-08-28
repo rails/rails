@@ -29,6 +29,12 @@ module ActionController
         super "Unsupported render operation. BasicRendering supports only :text and :nothing options. For more, you need to include ActionView."
       end
     end
+
+    class NoRenderError < StandardError
+      def initialize
+        super "BasicRendering requires controller action to invoke `render` method explicitly, with :text or :nothing option. For more, you need to include ActionView."
+      end
+    end
   end
 
   module Rendering
@@ -43,7 +49,7 @@ module ActionController
     # Check for double render errors and set the content_type after rendering.
     def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if self.response_body
-      super
+      super(*args)
       self.content_type ||= rendered_format.to_s
       self.response_body
     end
