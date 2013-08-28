@@ -531,6 +531,7 @@ module ActiveRecord
         super(connection, logger)
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+          @prepared_statements = true
           @visitor = Arel::Visitors::PostgreSQL.new self
         else
           @visitor = unprepared_visitor

@@ -113,6 +113,7 @@ module ActiveRecord
         @config = config
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+          @prepared_statements = true
           @visitor = Arel::Visitors::SQLite.new self
         else
           @visitor = unprepared_visitor
@@ -293,8 +294,8 @@ module ActiveRecord
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
 
-          # Don't cache statements without bind values
-          if binds.empty?
+          # Don't cache statements if they are not prepared
+          if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
             cols    = stmt.columns
             records = stmt.to_a

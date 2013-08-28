@@ -97,6 +97,7 @@ module ActiveRecord
         @pool                = pool
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
+        @prepared_statements = false
       end
 
       def valid_type?(type)
@@ -439,6 +440,10 @@ module ActiveRecord
       def translate_exception(exception, message)
         # override in derived class
         ActiveRecord::StatementInvalid.new(message, exception)
+      end
+
+      def without_prepared_statement?(binds)
+        @prepared_statements || binds.empty?
       end
     end
   end

@@ -283,7 +283,7 @@ module ActiveRecord
         # always be empty, since the bind variables will have been already
         # substituted and removed from binds by BindVisitor, so this will
         # effectively disable prepared statement usage completely.
-        if binds.empty?
+        if without_prepared_statement?(binds)
           result_set, affected_rows = exec_without_stmt(sql, name)
         else
           result_set, affected_rows = exec_stmt(sql, name, binds)
