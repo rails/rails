@@ -84,44 +84,44 @@ module ActionDispatch
 
       # Used for formatting urls (url_for)
       class Formatter < Visitor # :nodoc:
-        attr_reader :options, :consumed
+        attr_reader :options
 
         def initialize(options)
           @options  = options
-          @consumed = {}
         end
 
         private
 
-          def visit_GROUP(node)
-            if consumed == options
-              nil
-            else
-              route = visit(node.left)
-              route.include?("\0") ? nil : route
+          def visit(node, optional = false)
+            case node.type
+            when :LITERAL, :SLASH, :DOT
+              node.left
+            when :STAR
+              visit(node.left)
+            when :GROUP
+              visit(node.left, true)
+            when :CAT
+              visit_CAT(node, optional)
+            when :SYMBOL
+              visit_SYMBOL(node)
             end
           end
 
-          def terminal(node)
-            node.left
-          end
-
-          def binary(node)
-            [visit(node.left), visit(node.right)].join
-          end
-
-          def nary(node)
-            node.children.map { |c| visit(c) }.join
+          def visit_CAT(node, optional)
+            left = visit(node.left, optional)
+            right = visit(node.right, optional)
+            if optional && !(right && left)
+              ""
+            else
+              left +  right
+            end
           end
 
           def visit_SYMBOL(node)
-            key = node.to_sym
-
-            if value = options[key]
-              consumed[key] = value
+            if value = options[node.to_sym]
               Router::Utils.escape_path(value)
             else
-              "\0"
+              nil
             end
           end
       end
