@@ -971,16 +971,17 @@ module ActionDispatch
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
-          attr_reader :collection_routing
+          attr_reader :collection_routing, :collection_param
 
           def initialize(entities, options = {})
-            @name       = entities.to_s
-            @path       = (options[:path] || @name).to_s
-            @controller = (options[:controller] || @name).to_s
-            @as         = options[:as]
-            @param      = (options[:param] || :id).to_sym
-            @options    = options
-            @collection_routing = @options[:collection]
+            @name               = entities.to_s
+            @path               = (options[:path] || @name).to_s
+            @controller         = (options[:controller] || @name).to_s
+            @as                 = options[:as]
+            @param              = (options[:param] || :id).to_sym
+            @options            = options
+            @collection_param   = (options[:collection_param] || :ids).to_sym
+            @collection_routing = @options[:collection] || false
           end
 
           def collection_routing?
@@ -988,7 +989,7 @@ module ActionDispatch
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many]
+            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many, :edit_many]
           end
 
           def actions
@@ -1025,7 +1026,13 @@ module ActionDispatch
             { :controller => controller }
           end
 
-          alias :collection_scope :path
+          def collection_scope
+            if collection_routing?
+              "#{path}/:#{collection_param}"
+            else
+              path
+            end
+          end
 
           def member_scope
             "#{path}/:#{param}"
@@ -1270,30 +1277,30 @@ module ActionDispatch
             concerns(options[:concerns]) if options[:concerns]
 
             collection do
-              options[:constraints] ||= {}
               actions = parent_resource.actions
+              (options[:constraints] ||= {}).merge! ids: /(?:[^\.\/\?]|\.\.)+/ if parent_resource.collection_routing?
               get    :index, options if actions.include?(:index)
               post   :create, options if actions.include?(:create)
               if parent_resource.collection_routing?
                 put    :replace, options if actions.include?(:replace)
                 patch  :update_many, options if actions.include?(:update_many)
                 delete :destroy_many, options if actions.include?(:destroy_many)
+                get    :edit_many, options.merge(as: 'edit') if actions.include?(:edit_many)
               end
             end
 
-            # get    '/posts',             to: 'posts#index',        as: 'posts_index'
+            # get    '/posts(/:ids)',      to: 'posts#index',        as: 'posts',        ids: /(?:[^\.\/\?]|\.\.)+/
             # post   '/posts',             to: 'posts#create',       as:  nil
             # get    '/posts/new',         to: 'posts#new',          as: 'new_post'
             # get    '/posts/:ids/edit',   to: 'posts#edit_many',    as: 'edit_posts', ids: /(?:[^\.\/\?]|\.\.)+/
             # get    '/posts/:id/edit',    to: 'posts#edit',         as: 'edit_post',  id:  /[^,\.\/\?]+/
-            # get    '/posts/:ids',        to: 'posts#show_many',    as: 'posts',      ids: /(?:[^\.\/\?]|\.\.)+/
             # get    '/posts/:id',         to: 'posts#show',         as: 'post',       id:  /[^,\.\/\?]+/
             # put    '/posts/:ids',        to: 'posts#replace_many', as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
             # patch  '/posts/:ids',        to: 'posts#update_many',  as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
             # put    '/posts/:id',         to: 'posts#replace',      as:  nil,         id:  /[^,\.\/\?]+/
             # patch  '/posts/:id',         to: 'posts#update',       as:  nil,         id:  /[^,\.\/\?]+/
             # delete '/posts/:ids',        to: 'posts#destroy_many', as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
-            # delete '/posts/:id',         to: 'posts#destroy',      as:  nil
+            # delete '/posts/:id',         to: 'posts#destroy',      as:  nil          id:  /[^,\.\/\?]+/
 
             new do
               get :new
@@ -1466,13 +1473,13 @@ module ActionDispatch
         def add_route(action, options) # :nodoc:
           path = path_for_action(action, options.delete(:path))
 
-          if options[:collection] == true
-            if action == :index
-              path.sub!(/^([\w\/]+)(\.:format)?$/, '\1/(:ids)(.:format)')
-            else
-              path.sub!(/^([\w\/]+)(\.:format)?$/, '\1/:ids/\2')
+          if options[:collection] == true 
+            case action
+            when :index
+              path = path.sub(/(\/:ids)/, '(/:ids)')
+            when :create
+              path = path.sub(/(\/:ids)/, '')
             end
-            options[:constraints].merge! ids: /(?:[^\.\/\?]|\.\.)+/
           end
 
           action = action.to_s.dup
