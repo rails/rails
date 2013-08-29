@@ -228,7 +228,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
+    #   (defaults to 3). Keeps the number's precision if nil.
     # * <tt>:significant</tt> - If +true+, precision will be the #
     #   of significant_digits. If +false+, the # of fractional
     #   digits (defaults to +false+).
@@ -250,6 +250,7 @@ module ActiveSupport
     #   number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
     #   number_to_percentage(302.24398923423, precision: 5)        # => 302.24399%
     #   number_to_percentage(1000, locale: :fr)                    # => 1 000,000%
+    #   number_to_percentage:(1000, precision: nil)                 # => 1000%
     #   number_to_percentage('98a')                                # => 98a%
     #   number_to_percentage(100, format: '%n  %')                 # => 100  %
     def number_to_percentage(number, options = {})
@@ -310,7 +311,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
+    #   (defaults to 3). Keeps the number's precision if nil.
     # * <tt>:significant</tt> - If +true+, precision will be the #
     #   of significant_digits. If +false+, the # of fractional
     #   digits (defaults to +false+).
@@ -331,6 +332,7 @@ module ActiveSupport
     #   number_to_rounded(111.2345, significant: true)               # => 111
     #   number_to_rounded(111.2345, precision: 1, significant: true) # => 100
     #   number_to_rounded(13, precision: 5, significant: true)       # => 13.000
+    #   number_to_rounded(13, precision: nil)                        # => 13
     #   number_to_rounded(111.234, locale: :fr)                      # => 111,234
     #
     #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
@@ -341,7 +343,6 @@ module ActiveSupport
     #   # => 1.111,23
     def number_to_rounded(number, options = {})
       return number unless valid_float?(number)
-      number  = Float(number)
       options = options.symbolize_keys
 
       defaults = format_options(options[:locale], :precision)
@@ -351,22 +352,27 @@ module ActiveSupport
       significant = options.delete :significant
       strip_insignificant_zeros = options.delete :strip_insignificant_zeros
 
-      if significant && precision > 0
-        if number == 0
-          digits, rounded_number = 1, 0
-        else
-          digits = (Math.log10(number.abs) + 1).floor
-          multiplier = 10 ** (digits - precision)
-          rounded_number = (BigDecimal.new(number.to_s) / BigDecimal.new(multiplier.to_f.to_s)).round.to_f * multiplier
-          digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
-        end
-        precision -= digits
-        precision = 0 if precision < 0 # don't let it be negative
+      if precision.nil?
+        formatted_number =  self.number_to_delimited(number, options)
       else
-        rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
-        rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
+        number  = Float(number)
+        if significant && precision > 0
+          if number == 0
+            digits, rounded_number = 1, 0
+          else
+            digits = (Math.log10(number.abs) + 1).floor
+            multiplier = 10 ** (digits - precision)
+            rounded_number = (BigDecimal.new(number.to_s) / BigDecimal.new(multiplier.to_f.to_s)).round.to_f * multiplier
+            digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
+          end
+          precision -= digits
+          precision = 0 if precision < 0 # don't let it be negative
+        else
+          rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
+          rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
+        end
+        formatted_number = self.number_to_delimited("%01.#{precision}f" % rounded_number, options)
       end
-      formatted_number = self.number_to_delimited("%01.#{precision}f" % rounded_number, options)
       if strip_insignificant_zeros
         escaped_separator = Regexp.escape(options[:separator])
         formatted_number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
