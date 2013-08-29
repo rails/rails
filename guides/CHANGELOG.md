@@ -1,3 +1,7 @@
+*   Expect secret_key_base via ENV['SECRET_TOKEN'].
+
+    *Gary S. Weaver*
+
 *   Removed repetitive th tags. Instead of them added one th tag with a colspan attribute.
 
     *Sıtkı Bağdat*

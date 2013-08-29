@@ -278,10 +278,6 @@ module Rails
         end
       end
 
-      def app_secret
-        SecureRandom.hex(64)
-      end
-
       def mysql_socket
         @mysql_socket ||= [
           "/tmp/mysql.sock",                        # default
