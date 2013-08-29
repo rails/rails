@@ -694,8 +694,8 @@ version to migrate to.
 
 ### Resetting the Database
 
-The `rake db:reset` task will drop the database, recreate it and load the
-current schema into it.
+The `rake db:reset` task will drop the database and set it up again. This is
+functionally eqivalent to `rake db:drop db:setup`
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current schema.rb file. If a migration can't be rolled back,
