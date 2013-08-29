@@ -87,13 +87,17 @@ module ActiveRecord
           # Each record may have multiple owners, and vice-versa
           records_by_owner = Hash[owners.map { |owner| [owner, []] }]
           records.each do |record|
-            owner_key = record[association_key_name].to_s
+            owner_key = owner_id_for records, record
 
             owners_map[owner_key].each do |owner|
               records_by_owner[owner] << record
             end
           end
           records_by_owner
+        end
+
+        def owner_id_for(results, record)
+          record[association_key_name].to_s
         end
 
         def reflection_scope
