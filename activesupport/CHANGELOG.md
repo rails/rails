@@ -1,3 +1,9 @@
+*   Add proper check for value presence in Hash#deep_merge! when yielding a block.
+
+    Fixes #12072.
+
+    *Samuel Molnár*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 

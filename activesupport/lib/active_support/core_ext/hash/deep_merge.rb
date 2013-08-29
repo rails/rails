@@ -19,7 +19,7 @@ class Hash
       if tv.is_a?(Hash) && v.is_a?(Hash)
         self[k] = tv.deep_merge(v, &block)
       else
-        self[k] = block && tv ? block.call(k, tv, v) : v
+        self[k] = block && !tv.nil? ? block.call(k, tv, v) : v
       end
     end
     self
