@@ -12,3 +12,9 @@ require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/object/with_options'
+
+class Object
+  def but_not obj
+    self && !obj
+  end
+end
