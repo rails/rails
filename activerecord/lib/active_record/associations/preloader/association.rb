@@ -29,7 +29,7 @@ module ActiveRecord
         end
 
         def records_for(ids)
-          query_scope(ids).to_a
+          query_scope(ids)
         end
 
         def query_scope(ids)
