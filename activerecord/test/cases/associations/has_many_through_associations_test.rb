@@ -36,6 +36,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create :person_id => 0, :post_id => 0
   end
 
+  def test_pk_is_not_required_for_join
+    post  = Post.includes(:scategories).first
+    post2 = Post.includes(:categories).first
+
+    assert_equal post2.categories, post.categories
+  end
+
   def test_include?
     person = Person.new
     post = Post.new
