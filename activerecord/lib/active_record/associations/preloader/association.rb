@@ -56,12 +56,9 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        # We're converting to a string here because postgres will return the aliased association
-        # key in a habtm as a string (for whatever reason)
         def owners_by_key
           @owners_by_key ||= owners.group_by do |owner|
-            key = owner[owner_key_name]
-            key && key.to_s
+            owner[owner_key_name]
           end
         end
 
@@ -84,8 +81,9 @@ module ActiveRecord
             sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
             sliced.each { |slice|
               records = records_for(slice)
+              caster = type_caster(records, association_key_name)
               records.each do |record|
-                owner_key = owner_id_for records, record
+                owner_key = caster.call record[association_key_name]
 
                 owners_map[owner_key].each do |owner|
                   records_by_owner[owner] << record
@@ -97,8 +95,9 @@ module ActiveRecord
           records_by_owner
         end
 
-        def owner_id_for(results, record)
-          record[association_key_name].to_s
+        IDENTITY = lambda { |value| value }
+        def type_caster(results, name)
+          IDENTITY
         end
 
         def reflection_scope
