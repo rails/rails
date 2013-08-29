@@ -1,12 +1,19 @@
-# Be sure to restart your server when you modify this file.
+# Be sure to restart your server if you modify the value of secret_key_base.
 
-# Your secret key for verifying the integrity of signed cookies.
+# Your secret key is used for verifying the integrity of signed cookies.
 # If you change this key, all old signed cookies will become invalid!
 
-# Make sure the secret is at least 30 characters and all random,
-# no regular words or you'll be exposed to dictionary attacks.
-# You can use `rake secret` to generate a secure secret key.
+# Make sure the secret is at least 30 characters and all random, no regular
+# words or you'll be exposed to dictionary attacks.
 
-# Make sure your secret_key_base is kept private
-# if you're sharing your code publicly.
-Blog::Application.config.secret_key_base = 'e8aab50cec8a06a75694111a4cbaf6e22fc288ccbc6b268683aae7273043c69b15ca07d10c92a788dd6077a54762cbfcc55f19c3459f7531221b3169f8171a53'
+# You may use `rake secret` to generate a secure secret key, then set that
+# value in the 'SECRET_TOKEN' environment variable, or set the value of
+# Rails.application.config.secret_key_base below below to the secret string.
+
+# Make sure your secret_key_base is kept private!
+
+raise "You must set a secret token in the 'SECRET_TOKEN' environment "\
+  "variable or "\
+  "in config/initializers/secret_token.rb" if ENV['SECRET_TOKEN'].blank?
+
+Rails.application.config.secret_key_base = ENV['SECRET_TOKEN']

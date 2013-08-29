@@ -1,3 +1,7 @@
+*   New applications expect secret_key_base via ENV['SECRET_TOKEN'].
+
+    *Gary S. Weaver*
+
 *   rake notes now searches *.less files
 
     *Josh Crowder*
