@@ -19,14 +19,14 @@ module ApplicationTests
 
     test "the queue is a SynchronousQueue in test mode" do
       app("test")
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.application.queue.default
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.queue.default
     end
 
     test "the queue is a SynchronousQueue in development mode" do
       app("development")
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.application.queue.default
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.queue.default
     end
 
     class ThreadTrackingJob
@@ -79,6 +79,7 @@ module ApplicationTests
       assert_nil Rails.application.config.queue_consumer
       assert_kind_of ActiveSupport::ThreadedQueueConsumer, Rails.application.queue_consumer
       assert_equal Rails.logger, Rails.application.queue_consumer.logger
+      assert_not_nil Rails.application.queue_consumer.instance_eval("@thread")
     end
 
     test "attempting to marshal a queue will raise an exception" do
@@ -108,7 +109,7 @@ module ApplicationTests
     test "a custom queue implementation can be provided" do
       setup_custom_queue
 
-      assert_kind_of MyQueue, Rails.queue
+      assert_kind_of MyQueue, Rails.queue.default
 
       job = Struct.new(:id, :ran) do
         def run
@@ -149,6 +150,57 @@ module ApplicationTests
       setup_custom_queue
 
       assert_nil Rails.application.queue_consumer
+    end
+
+    ["test", "development", "production"].each do |environment|
+      test "queue wrapper is a MultiQueue in #{environment} environment" do
+        app(environment)
+        assert_kind_of ActiveSupport::MultiQueue, Rails.application.queue
+        assert_kind_of ActiveSupport::MultiQueue, Rails.queue
+        assert_equal Rails.queue, Rails.application.queue
+      end
+    end
+
+    test "setting Rails.application.queue sets default queues" do
+      add_to_env_config "production", <<-RUBY
+        Rails.application.queue = ActiveSupport::SynchronousQueue.new
+      RUBY
+      app("production")
+      assert_instance_of ActiveSupport::MultiQueue, Rails.application.queue
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.application.queue.default
+    end
+
+    test "setting Rails.queue sets default queue" do
+      add_to_env_config "development", <<-RUBY
+        Rails.queue = ActiveSupport::Queue.new
+      RUBY
+      app("development")
+      assert_instance_of ActiveSupport::MultiQueue, Rails.application.queue
+      assert_instance_of ActiveSupport::Queue, Rails.application.queue.default
+    end
+
+    test "queues can be accessed by namespace" do
+      add_to_config <<-RUBY
+        require 'my_queue'
+        config.queue = ActiveSupport::SynchronousQueue.new
+        config.queue[:mail] = ActiveSupport::Queue.new
+        config.queue[:test] = MyQueue.new
+      RUBY
+
+      app_file "lib/my_queue.rb", <<-RUBY
+        class MyQueue
+          def push(job)
+            job.run
+          end
+        end
+      RUBY
+
+      app
+
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.queue.default
+      assert_instance_of ActiveSupport::Queue, Rails.queue[:mail]
+      assert_instance_of MyQueue, Rails.queue[:test]
+      assert_instance_of ActiveSupport::SynchronousQueue, Rails.queue[:nothing]
     end
   end
 end

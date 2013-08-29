@@ -2,6 +2,27 @@ require 'delegate'
 require 'thread'
 
 module ActiveSupport
+  # A queue wrapper that implements the ability to namespace
+  # multiple queues while adhering to the standard queue
+  # interface.
+  #
+  # The queue inherits from STDLIB's Hash. When
+  # initializing, the argument passed will be the default
+  # queue.
+  class MultiQueue < Hash
+    def self.default
+      self.new(ActiveSupport::Queue.new)
+    end
+
+    def method_missing(*args, &block)
+      default.send(*args, &block)
+    end
+
+    def respond_to? method
+      Hash.new.respond_to?(method) || default.respond_to?(method)
+    end
+  end
+
   # A Queue that simply inherits from STDLIB's Queue. When this
   # queue is used, Rails automatically starts a job runner in a
   # background thread.

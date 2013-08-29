@@ -13,10 +13,10 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :queue, :queue_consumer, :beginning_of_week, :filter_redirect
+                    :queue_consumer, :beginning_of_week, :filter_redirect
 
       attr_writer :log_level
-      attr_reader :encoding
+      attr_reader :encoding, :queue
 
       def initialize(*)
         super
@@ -45,7 +45,7 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @queue                         = ActiveSupport::SynchronousQueue.new
+        @queue                         = ActiveSupport::MultiQueue.default
         @queue_consumer                = nil
         @eager_load                    = nil
         @secret_token                  = nil
@@ -143,6 +143,9 @@ module Rails
         end
       end
 
+      def queue= queue
+        @queue.default = queue
+      end
     end
   end
 end

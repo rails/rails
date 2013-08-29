@@ -100,7 +100,6 @@ module Rails
     attr_accessor :assets, :sandbox, :queue_consumer
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
-    attr_writer :queue
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -272,8 +271,12 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
+    def queue= newQueue
+      queue.default = newQueue
+    end
+
     def queue #:nodoc:
-      @queue ||= config.queue || ActiveSupport::Queue.new
+      @queue ||= config.queue || ActiveSupport::MultiQueue.default
     end
 
     def config=(configuration) #:nodoc:
