@@ -1,3 +1,7 @@
+*   Test that PostgreSQL adapter includes `usec` when quoting `DateTime` objects
+
+    *Ben Cherry*
+
 *   Fix PredicateBuilder so polymorhic association keys in `where` clause can
     also accept not only `ActiveRecord::Base` direct descendances (decorated
     models, for example).
