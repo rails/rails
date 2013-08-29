@@ -373,8 +373,6 @@ module ActionMailer
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
 
-    self.protected_instance_variables = [:@_action_has_layout]
-
     helper ActionMailer::MailHelper
 
     private_class_method :new #:nodoc:
@@ -386,6 +384,10 @@ module ActionMailer
       content_type: "text/plain",
       parts_order:  [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
+
+    def self.default_protected_instance_vars
+      super.concat [:@_action_has_layout]
+    end
 
     class << self
       # Register one or more Observers which will be notified when mail is delivered.
