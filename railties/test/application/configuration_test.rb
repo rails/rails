@@ -671,5 +671,27 @@ module ApplicationTests
         end
       end
     end
+
+    test "config.queue= sets the default queue to the argument given" do
+      add_to_config <<-RUBY
+        config.queue = ActiveSupport::SynchronousQueue.new
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert Rails.queue.instance_of?(ActiveSupport::MultiQueue)
+      assert Rails.queue.default.instance_of?(ActiveSupport::SynchronousQueue)
+    end
+
+    test "Rails.queue= sets the default queue to the argument given" do
+      add_to_config <<-RUBY
+        Rails.queue = ActiveSupport::SynchronousQueue.new
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert Rails.queue.instance_of?(ActiveSupport::MultiQueue)
+      assert Rails.queue.default.instance_of?(ActiveSupport::SynchronousQueue)
+    end
   end
 end

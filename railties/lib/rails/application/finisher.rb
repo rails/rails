@@ -110,7 +110,7 @@ module Rails
       end
 
       initializer :activate_queue_consumer do |app|
-        if config.queue.class == ActiveSupport::Queue
+        if config.queue.respond_to?(:default) && config.queue.default.instance_of?(ActiveSupport::Queue)
           app.queue_consumer = config.queue_consumer || config.queue.consumer
           app.queue_consumer.logger ||= Rails.logger if app.queue_consumer.respond_to?(:logger=)
           app.queue_consumer.start

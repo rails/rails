@@ -30,4 +30,7 @@ Rails.application.configure do
   # number of complex assets.
   config.assets.debug = true
   <%- end -%>
+
+  # Use the synchronous queue to run jobs immediately.
+  # config.queue = ActiveSupport::SynchronousQueue.new
 end

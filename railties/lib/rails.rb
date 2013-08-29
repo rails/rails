@@ -56,6 +56,10 @@ module Rails
       application.queue
     end
 
+    def queue= newQueue
+      application.queue = newQueue
+    end
+
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
         # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
