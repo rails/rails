@@ -189,4 +189,9 @@
 
     *Daniel Schierbeck*
 
+*   Enable number_to_percentage to keep the number's precision by allowing :precision to be nil
+    
+
+    *Jack Xu*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.

@@ -79,6 +79,10 @@ module ActiveSupport
           assert_equal("123.4%", number_helper.number_to_percentage(123.400, :precision => 3, :strip_insignificant_zeros => true))
           assert_equal("1.000,000%", number_helper.number_to_percentage(1000, :delimiter => '.', :separator => ','))
           assert_equal("1000.000  %", number_helper.number_to_percentage(1000, :format => "%n  %"))
+          assert_equal("1000%", number_helper.number_to_percentage(1000, precision: nil))
+          assert_equal("1000%", number_helper.number_to_percentage(1000, precision: nil))
+          assert_equal("1000.1%", number_helper.number_to_percentage(1000.1, precision: nil))
+          assert_equal("-0.13 %", number_helper.number_to_percentage("-0.13", precision: nil, :format => "%n %"))
         end
       end
 
