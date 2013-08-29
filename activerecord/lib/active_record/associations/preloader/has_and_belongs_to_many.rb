@@ -12,7 +12,7 @@ module ActiveRecord
         # Unlike the other associations, we want to get a raw array of rows so that we can
         # access the aliased column on the join table
         def records_for(ids)
-          scope = super
+          scope = query_scope ids
           klass.connection.select_all(scope.arel, 'SQL', scope.bind_values)
         end
 

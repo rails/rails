@@ -29,6 +29,10 @@ module ActiveRecord
         end
 
         def records_for(ids)
+          query_scope(ids).to_a
+        end
+
+        def query_scope(ids)
           scope.where(association_key.in(ids))
         end
 
@@ -77,7 +81,7 @@ module ActiveRecord
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-            records = sliced.flat_map { |slice| records_for(slice).to_a }
+            records = sliced.flat_map { |slice| records_for(slice) }
           end
 
           # Each record may have multiple owners, and vice-versa
