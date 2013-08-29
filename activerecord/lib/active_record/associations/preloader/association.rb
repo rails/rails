@@ -82,15 +82,16 @@ module ActiveRecord
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-            records = sliced.flat_map { |slice| records_for(slice) }
+            sliced.each { |slice|
+              records = records_for(slice)
+              records.each do |record|
+                owner_key = owner_id_for records, record
 
-            records.each do |record|
-              owner_key = owner_id_for records, record
-
-              owners_map[owner_key].each do |owner|
-                records_by_owner[owner] << record
+                owners_map[owner_key].each do |owner|
+                  records_by_owner[owner] << record
+                end
               end
-            end
+            }
           end
 
           records_by_owner
