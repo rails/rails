@@ -124,7 +124,10 @@ Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
     end
 
     def hash
-      [@name, @engine, @aliases, @table_alias].hash
+      # Perf note: aliases, table alias and engine is excluded from the hash
+      #  aliases can have a loop back to this table breaking hashes in parent
+      #  relations, for the vast majority of cases @name is unique to a query
+      @name.hash
     end
 
     def eql? other
