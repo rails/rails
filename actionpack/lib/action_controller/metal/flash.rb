@@ -29,15 +29,15 @@ module ActionController #:nodoc:
       # This method will automatically define a new method for each of the given
       # names, and it will be available in your views.
       def add_flash_types(*types)
-        types.each do |type|
-          next if _flash_types.include?(type)
-
-          define_method(type) do
-            request.flash[type]
+        types.each do |type|        
+          unless respond_to?(type)
+            define_method(type) do
+              request.flash[type]
+            end
+            helper_method type
           end
-          helper_method type
 
-          _flash_types << type
+          _flash_types << type unless _flash_types.include?(type)
         end
       end
     end

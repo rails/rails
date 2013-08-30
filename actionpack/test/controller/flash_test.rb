@@ -237,6 +237,18 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       render :inline => "flash: #{flash["that"]}"
     end
 
+    def show_bar
+      render :inline => "bar is: #{bar}"
+    end
+
+    def raise_error
+      raise 'Error'
+    end
+
+    def set_another_bar
+      redirect_to action: 'raise_error', bar: 'foo'
+    end
+
     def set_bar
       flash[:bar] = "for great justice"
       head :ok
@@ -286,6 +298,25 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal 'for great justice', @controller.bar
     end
+  end
+
+  class MyController < ActionController::Base
+    
+  end
+
+  def test_added_flash_types_exists_after_error
+    MyController.add_flash_types :bar
+    ctrl1 = MyController.new
+
+    flash_h = {:bar => 'foo'}
+    req = mock
+    req.stubs(:flash).returns(flash_h)
+    ctrl1.stubs(:request).returns(req)
+    ctrl1.flash[:bar] = 'foo'
+    assert_equal 'foo', ctrl1.bar 
+    ctrl2 = MyController.new
+    ctrl2.stubs(:request).returns(req)    
+    ctrl2.bar
   end
 
   private
