@@ -90,11 +90,7 @@ module ActiveRecord
             # Cache#compute_if_absent guarantees that the block will only executed once for the given klass_name
             subclass_name = "#{name.gsub('::', '_')}_#{klass_name.gsub('::', '_')}"
 
-            if const_defined?(subclass_name)
-              const_get(subclass_name)
-            else
-              const_set(subclass_name, Class.new(self) { include ClassSpecificRelation })
-            end
+            const_set(subclass_name, Class.new(self) { include ClassSpecificRelation })
           end
         else
           self
