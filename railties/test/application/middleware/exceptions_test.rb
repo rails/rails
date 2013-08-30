@@ -60,6 +60,47 @@ module ApplicationTests
       assert_equal "YOU FAILED BRO", last_response.body
     end
 
+    test "can modify cookies in custom exception app" do
+      FileUtils.rm_rf "#{app_path}/config/environments"
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get 'good', to: 'app#good'
+          get '404', to: 'app#bad'
+        end
+      RUBY
+
+      controller :app, <<-RUBY
+        class AppController < ActionController::Base
+
+          def bad
+            cookies[:foo] = 'foo'
+            render text: '404TEXT', status: 404
+          end
+
+          def good
+            render text: cookies[:foo]
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.action_dispatch.show_exceptions = true
+        config.exceptions_app = self.routes
+        config.consider_all_requests_local = false
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get '/bad'
+      assert_equal 404, last_response.status
+      assert_equal '404TEXT', last_response.body
+
+      get '/good'
+      assert_equal 'foo', last_request.cookies['foo']
+      assert_equal 'foo', last_response.body
+    end
+
     test "unspecified route when action_dispatch.show_exceptions is not set raises an exception" do
       app.config.action_dispatch.show_exceptions = false
 
