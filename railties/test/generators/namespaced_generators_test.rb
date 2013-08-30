@@ -44,7 +44,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     end
   end
 
-  def test_helpr_is_also_namespaced
+  def test_helper_is_also_namespaced
     run_generator
     assert_file "app/helpers/test_app/account_helper.rb", /module TestApp/, /  module AccountHelper/
     assert_file "test/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
