@@ -32,22 +32,26 @@ module Rails
           # namespace :foo do
           #   namespace :bar do
           namespace_ladder = class_path.each_with_index.map do |ns, i|
-            %{#{" " * i * 2}namespace :#{ns} do\n  }
+            %{#{indent(i)}namespace :#{ns} do\n  }
           end.join
 
           # Create route
           #     get "baz/index"
-          route = %{#{" " * depth * 2}get "#{file_name}/#{action}"\n}
+          route = %{#{indent(depth)}get "#{file_name}/#{action}"\n}
 
           # Create `end` ladder
           #   end
           # end
           end_ladder = (1..depth).reverse_each.map do |i|
-            "#{" " * i * 2}end\n"
+            "#{indent(i)}end\n"
           end.join
 
           # Combine the 3 parts to generate complete route entry
           namespace_ladder + route + end_ladder
+        end
+
+        def indent(depth)
+          " " * depth * 2
         end
     end
   end
