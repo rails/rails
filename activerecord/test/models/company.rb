@@ -12,6 +12,11 @@ class Company < AbstractCompany
   has_many :contracts
   has_many :developers, :through => :contracts
 
+  scope :of_first_firm, lambda {
+    joins(:account => :firm).
+    where('firms.id' => 1)
+  }
+
   def arbitrary_method
     "I am Jack's profound disappointment"
   end
