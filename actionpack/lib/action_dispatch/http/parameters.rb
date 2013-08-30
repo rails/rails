@@ -18,10 +18,30 @@ module ActionDispatch
             query_parameters.dup
           end
           params.merge!(path_parameters)
+          parse_ranges(params)
           params.with_indifferent_access
         end
       end
       alias :params :parameters
+
+      def parse_ranges(params)
+        params.each_key do |p|
+          new_param = params[p].to_s.split(',').map do |r|
+            if matches = /^(\d)\.\.(\d)$/.match(r)
+              r = matches[1].to_i..matches[2].to_i
+            elsif /^\d$/ =~ r
+              r = r.to_i
+            else
+              nil
+            end
+          end.compact
+          if !new_param || new_param.empty?
+            params[p]
+          else
+            params[p] = new_param
+          end
+        end
+      end
 
       def path_parameters=(parameters) #:nodoc:
         @symbolized_path_params = nil
