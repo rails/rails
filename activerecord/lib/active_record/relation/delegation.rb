@@ -95,7 +95,7 @@ module ActiveRecord
             end
           end
         else
-          ActiveRecord::Relation
+          self
         end
       end
     end
