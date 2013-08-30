@@ -9,6 +9,10 @@ module ActiveRecord
     fixtures :posts, :comments, :authors
 
     class FakeKlass < Struct.new(:table_name, :name)
+      extend ActiveRecord::Delegation::DelegateCache
+
+      inherited self
+
       def self.connection
         Post.connection
       end
@@ -76,8 +80,8 @@ module ActiveRecord
     end
 
     def test_table_name_delegates_to_klass
-      relation = Relation.new FakeKlass.new('foo'), :b
-      assert_equal 'foo', relation.table_name
+      relation = Relation.new FakeKlass.new('posts'), :b
+      assert_equal 'posts', relation.table_name
     end
 
     def test_scope_for_create
@@ -177,8 +181,12 @@ module ActiveRecord
     end
 
     test 'merging a hash interpolates conditions' do
-      klass = stub_everything
-      klass.stubs(:sanitize_sql).with(['foo = ?', 'bar']).returns('foo = bar')
+      klass = Class.new(FakeKlass) do
+        def self.sanitize_sql(args)
+          raise unless args == ['foo = ?', 'bar']
+          'foo = bar'
+        end
+      end
 
       relation = Relation.new(klass, :b)
       relation.merge!(where: ['foo = ?', 'bar'])
@@ -210,12 +218,19 @@ module ActiveRecord
 
   class RelationMutationTest < ActiveSupport::TestCase
     class FakeKlass < Struct.new(:table_name, :name)
+      extend ActiveRecord::Delegation::DelegateCache
+      inherited self
+
       def arel_table
         Post.arel_table
       end
 
       def connection
         Post.connection
+      end
+
+      def relation_delegate_class(klass)
+        self.class.relation_delegate_class(klass)
       end
     end
 

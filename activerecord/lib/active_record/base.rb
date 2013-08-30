@@ -18,6 +18,7 @@ require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
+require 'active_record/relation/delegation'
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -290,6 +291,7 @@ module ActiveRecord #:nodoc:
     extend Translation
     extend DynamicMatchers
     extend Explain
+    extend Delegation::DelegateCache
 
     include Persistence
     include ReadonlyAttributes
