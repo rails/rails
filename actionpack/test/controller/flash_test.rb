@@ -237,18 +237,6 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       render :inline => "flash: #{flash["that"]}"
     end
 
-    def show_bar
-      render :inline => "bar is: #{bar}"
-    end
-
-    def raise_error
-      raise 'Error'
-    end
-
-    def set_another_bar
-      redirect_to action: 'raise_error', bar: 'foo'
-    end
-
     def set_bar
       flash[:bar] = "for great justice"
       head :ok
