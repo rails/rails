@@ -86,7 +86,6 @@ And if you are on Fedora or CentOS, you're done with
 $ sudo yum install sqlite3 sqlite3-devel
 ```
 
-<<<<<<< HEAD
 If you are on Arch Linux, you will need to run:
 
 ```bash
@@ -101,8 +100,6 @@ For FreeBSD users, you're done with:
 
 Or compile the `databases/sqlite3` port.
 
-=======
->>>>>>> ec8ef1e1055c4e1598da13f49d30261f07f4a9b4
 Get a recent version of [Bundler](http://gembundler.com/)
 
 ```bash
@@ -158,11 +155,18 @@ $ cd railties
 $ TEST_DIR=generators bundle exec rake test
 ```
 
-You can run any single test separately too:
+You can run the tests for a particular file by using:
 
 ```bash
 $ cd actionpack
 $ bundle exec ruby -Itest test/template/form_helper_test.rb
+```
+
+Or, you can run a single test in a particular file:
+
+```bash
+$ cd actionpack
+$ bundle exec ruby -Itest path/to/test.rb -n test_name
 ```
 
 ### Active Record Setup
@@ -191,7 +195,6 @@ $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
 ```
 
-<<<<<<< HEAD
 If you are running Arch Linux, MySQL isn't supported anymore so you will need to
 use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/)):
 
@@ -211,8 +214,6 @@ Or install them through ports (they are located under the `databases` folder).
 If you run into troubles during the installation of MySQL, please see
 [the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
 
-=======
->>>>>>> ec8ef1e1055c4e1598da13f49d30261f07f4a9b4
 After that, run:
 
 ```bash
