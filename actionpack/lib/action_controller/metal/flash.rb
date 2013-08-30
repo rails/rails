@@ -30,7 +30,7 @@ module ActionController #:nodoc:
       # names, and it will be available in your views.
       def add_flash_types(*types)
         types.each do |type|        
-          unless respond_to?(type)
+          unless instance_methods(false).include?(type)
             define_method(type) do
               request.flash[type]
             end

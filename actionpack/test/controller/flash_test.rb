@@ -300,23 +300,20 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  class MyController < ActionController::Base
-    
-  end
-
   def test_added_flash_types_exists_after_error
-    MyController.add_flash_types :bar
-    ctrl1 = MyController.new
 
-    flash_h = {:bar => 'foo'}
+    TestController.add_flash_types :bar
+    controller = TestController.new
     req = mock
-    req.stubs(:flash).returns(flash_h)
-    ctrl1.stubs(:request).returns(req)
-    ctrl1.flash[:bar] = 'foo'
-    assert_equal 'foo', ctrl1.bar 
-    ctrl2 = MyController.new
-    ctrl2.stubs(:request).returns(req)    
-    ctrl2.bar
+    req.stubs(:flash).returns({:bar => 'foo'})
+
+    controller.stubs(:request).returns(req)
+    assert_equal 'foo', controller.bar 
+
+    controller = TestController.new
+    controller.stubs(:request).returns(req)
+
+    assert_equal 'foo', controller.bar
   end
 
   private
