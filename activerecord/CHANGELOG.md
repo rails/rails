@@ -1,7 +1,3 @@
-*   Test that PostgreSQL adapter includes `usec` when quoting `DateTime` objects
-
-    *Ben Cherry*
-
 *   Fix PredicateBuilder so polymorhic association keys in `where` clause can
     also accept not only `ActiveRecord::Base` direct descendances (decorated
     models, for example).
@@ -12,7 +8,7 @@
     parentheses (eg. `($1.25) # => -1.25`)).
     Fixes #11899.
 
-    * Yves Senn*
+    *Yves Senn*
 
 *   Stop interpreting SQL 'string' columns as :string type because there is no
     common STRING datatype in SQL.
@@ -28,7 +24,6 @@
     Example:
 
         record = User.new
-
         record.logged_in_from_ip # is type of an inet or a cidr
 
         # Before:
