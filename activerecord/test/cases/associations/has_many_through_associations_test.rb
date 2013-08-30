@@ -28,7 +28,8 @@ require 'models/club'
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
-           :subscribers, :books, :subscriptions, :developers, :categorizations, :essays
+           :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
+           :categories_posts
 
   # Dummies to force column loads so query counts are clean.
   def setup
