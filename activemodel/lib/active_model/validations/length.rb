@@ -59,7 +59,7 @@ module ActiveModel
       end
 
       def remove_marked_for_destruction(value)
-        if value.all?{|i| i.respond_to?(:marked_for_destruction?)}
+        if value.respond_to?(:all?) && value.all?{|i| i.respond_to?(:marked_for_destruction?)}
           value.reject(&:marked_for_destruction?)
         else
           value
