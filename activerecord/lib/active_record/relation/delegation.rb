@@ -81,7 +81,9 @@ module ActiveRecord
       # Cache the constants in @@subclasses because looking them up via const_get
       # make instantiation significantly slower.
       def relation_class_for(klass)
-        if klass && (klass_name = klass.name)
+        klass_name = klass.name
+
+        if klass_name
           my_cache = @@subclasses.compute_if_absent(self) { ThreadSafe::Cache.new }
           # This hash is keyed by klass.name to avoid memory leaks in development mode
           my_cache.compute_if_absent(klass_name) do
