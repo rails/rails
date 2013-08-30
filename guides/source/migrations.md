@@ -695,12 +695,12 @@ version to migrate to.
 ### Setup the Database
 
 The `rake db:setup` task will create the database, load the schema and initialize
-it with seed data.
+it with the seed data.
 
 ### Resetting the Database
 
 The `rake db:reset` task will drop the database and set it up again. This is
-functionally eqivalent to `rake db:drop db:setup`
+functionally equivalent to `rake db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current schema.rb file. If a migration can't be rolled back,
