@@ -15,7 +15,7 @@ module ActiveRecord
           ActiveRecord::AssociationRelation
         ].each do |klass|
           delegate = Class.new(klass) {
-            include ActiveRecord::Relation::ClassSpecificRelation
+            include ClassSpecificRelation
           }
           const_set klass.name.gsub('::', '_'), delegate
           cache[klass] = delegate
