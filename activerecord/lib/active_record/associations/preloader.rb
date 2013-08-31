@@ -85,8 +85,10 @@ module ActiveRecord
       def initialize(records, associations, preload_scope = nil)
         @records       = Array.wrap(records).compact.uniq
         @associations  = Array.wrap(associations)
-        @preload_scope = preload_scope || Relation.new(nil, nil)
+        @preload_scope = preload_scope || NULL_RELATION
       end
+
+      NULL_RELATION = Struct.new(:values).new({})
 
       def run
         unless records.empty?
