@@ -266,9 +266,9 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
       * `find_all_by_...` can be rewritten using `where(...)`.
       * `find_last_by_...` can be rewritten using `where(...).last`.
       * `scoped_by_...` can be rewritten using `where(...)`.
-      * `find_or_initialize_by_...` can be rewritten using `where(...).first_or_initialize`.
-      * `find_or_create_by_...` can be rewritten using `find_or_create_by(...)` or `where(...).first_or_create`.
-      * `find_or_create_by_...!` can be rewritten using `find_or_create_by!(...)` or `where(...).first_or_create!`.
+      * `find_or_initialize_by_...` can be rewritten using `find_or_initialize_by(...)`.
+      * `find_or_create_by_...` can be rewritten using `find_or_create_by(...)`.
+      * `find_or_create_by_...!` can be rewritten using `find_or_create_by!(...)`. 
 
 Credits
 -------
