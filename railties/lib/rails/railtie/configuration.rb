@@ -80,7 +80,7 @@ module Rails
         to_prepare_blocks << blk if blk
       end
 
-      def respond_to?(name)
+      def respond_to?(name, include_private = false)
         super || @@options.key?(name.to_sym)
       end
 

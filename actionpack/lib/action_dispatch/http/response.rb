@@ -181,7 +181,7 @@ module ActionDispatch # :nodoc:
     end
     alias_method :status_message, :message
 
-    def respond_to?(method)
+    def respond_to?(method, include_private = false)
       if method.to_s == 'to_path'
         stream.respond_to?(:to_path)
       else
