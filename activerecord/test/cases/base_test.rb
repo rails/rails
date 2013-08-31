@@ -1337,6 +1337,9 @@ class BasicsTest < ActiveRecord::TestCase
     })
 
     rd, wr = IO.pipe
+
+    ActiveRecord::Base.connection_handler.clear_all_connections!
+
     fork do
       rd.close
       post = Post.new
