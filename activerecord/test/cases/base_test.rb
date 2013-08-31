@@ -1337,7 +1337,7 @@ class BasicsTest < ActiveRecord::TestCase
     })
 
     rd, wr = IO.pipe
-    pid = fork do
+    fork do
       rd.close
       post = Post.new
       post.comments.build
