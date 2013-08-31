@@ -9,6 +9,7 @@ module ActiveRecord
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
+          binds = binds.dup
           visitor.accept(arel.ast) do
             quote(*binds.shift.reverse)
           end
@@ -376,7 +377,7 @@ module ActiveRecord
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
           [sql, binds]
         end
-
+  
         def last_inserted_id(result)
           row = result.rows.first
           row && row.first

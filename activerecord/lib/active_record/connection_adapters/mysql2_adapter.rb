@@ -229,7 +229,7 @@ module ActiveRecord
 
       alias exec_without_stmt exec_query
 
-      # Returns an ActiveRecord::Result instance.
+      # Returns an ActiveRecord::Result instance. 
       def select(sql, name = nil, binds = [])
         exec_query(sql, name)
       end
