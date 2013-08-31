@@ -1348,6 +1348,8 @@ class BasicsTest < ActiveRecord::TestCase
     wr.close
     assert Marshal.load rd.read
     rd.close
+  ensure
+    ActiveRecord::Base.connection.reconnect!
   end
 
   def test_marshalling_new_record_round_trip_with_associations
