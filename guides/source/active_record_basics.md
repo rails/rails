@@ -188,11 +188,11 @@ end
 ```
 
 It's also possible to override the column that should be used as the table's
-primary key using the `ActiveRecord::Base.set_primary_key` method:
+primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
 class Product < ActiveRecord::Base
-  set_primary_key "product_id"
+  self.primary_key = "product_id"
 end
 ```
 
