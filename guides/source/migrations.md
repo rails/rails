@@ -692,10 +692,15 @@ Neither of these Rake tasks do anything you could not do with `db:migrate`. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
+### Setup the Database
+
+The `rake db:setup` task will create the database, load the schema and initialize
+it with the seed data.
+
 ### Resetting the Database
 
-The `rake db:reset` task will drop the database, recreate it and load the
-current schema into it.
+The `rake db:reset` task will drop the database and set it up again. This is
+functionally equivalent to `rake db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current schema.rb file. If a migration can't be rolled back,

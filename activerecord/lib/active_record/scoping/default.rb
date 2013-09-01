@@ -100,11 +100,7 @@ module ActiveRecord
           elsif default_scopes.any?
             evaluate_default_scope do
               default_scopes.inject(relation) do |default_scope, scope|
-                if !scope.is_a?(Relation) && scope.respond_to?(:call)
-                  default_scope.merge(unscoped { scope.call })
-                else
-                  default_scope.merge(scope)
-                end
+                default_scope.merge(unscoped { scope.call })
               end
             end
           end

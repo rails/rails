@@ -12,7 +12,7 @@ module ActiveRecord
         # Unlike the other associations, we want to get a raw array of rows so that we can
         # access the aliased column on the join table
         def records_for(ids)
-          scope = super
+          scope = query_scope ids
           klass.connection.select_all(scope.arel, 'SQL', scope.bind_values)
         end
 
@@ -38,6 +38,11 @@ module ActiveRecord
           super.each_value do |rows|
             rows.map! { |row| records[row[klass.primary_key]] ||= klass.instantiate(row) }
           end
+        end
+
+        def type_caster(results, name)
+          caster = results.column_types.fetch(name, results.identity_type)
+          lambda { |value| caster.type_cast value }
         end
 
         def build_scope

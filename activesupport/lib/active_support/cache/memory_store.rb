@@ -124,7 +124,6 @@ module ActiveSupport
 
       protected
 
-        # See https://gist.github.com/ssimeonov/6047200
         PER_ENTRY_OVERHEAD = 240
 
         def cached_size(key, entry)

@@ -73,18 +73,5 @@ module ActionDispatch
         filename.force_encoding(Encoding::UTF_8).encode! if filename
       end
     end
-
-    module Upload # :nodoc:
-      # Replace file upload hash with UploadedFile objects
-      # when normalize and encode parameters.
-      def normalize_encode_params(value)
-        if Hash === value && value.has_key?(:tempfile)
-          UploadedFile.new(value)
-        else
-          super
-        end
-      end
-      private :normalize_encode_params
-    end
   end
 end

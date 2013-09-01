@@ -1,3 +1,8 @@
+*   Ensure that autoloaded constants in all-caps nestings are marked as
+    autoloaded.
+
+    *Simon Coffey*
+
 *   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
 
     *DHH*

@@ -1,3 +1,16 @@
+*   Introduce `BasicRendering` which is the most basic rendering implementation. It
+    allows to `render :text` and `render :nothing` without depending on Action View.
+
+    *Łukasz Strzałkowski*
+
+*   Separate Action View completely from Action Pack.
+
+    *Łukasz Strzałkowski*
+
+*   Development mode exceptions are rendered in text format in case of XHR request.
+
+    *Kir Shatrov*
+
 *   Fix an issue where :if and :unless controller action procs were being run
     before checking for the correct action in the :only and :unless options.
 

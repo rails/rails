@@ -49,6 +49,7 @@ class Firm < Company
   has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, :class_name => "Client"
   has_many :clients_like_ms_with_hash_conditions, -> { where(:name => 'Microsoft').order("id") }, :class_name => "Client"
   has_many :plain_clients, :class_name => 'Client'
+  has_many :readonly_clients, -> { readonly }, :class_name => 'Client'
   has_many :clients_using_primary_key, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name'
   has_many :clients_using_primary_key_with_delete_all, :class_name => 'Client',
@@ -166,6 +167,7 @@ class ExclusivelyDependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :delete
   has_many :dependent_sanitized_conditional_clients_of_firm, -> { order("id").where("name = 'BigShot Inc.'") }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
   has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
+  has_many :dependent_hash_conditional_clients_of_firm, -> { order("id").where(:name => 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
 end
 
 class SpecialClient < Client

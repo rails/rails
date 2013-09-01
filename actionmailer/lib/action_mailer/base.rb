@@ -3,6 +3,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
+
 require 'action_mailer/log_subscriber'
 
 module ActionMailer
@@ -361,17 +362,16 @@ module ActionMailer
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   class Base < AbstractController::Base
     include DeliveryMethods
+
     abstract!
 
-    include AbstractController::Logger
     include AbstractController::Rendering
-    include AbstractController::Layouts
+
+    include AbstractController::Logger
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
-
-    self.protected_instance_variables = [:@_action_has_layout]
 
     helper ActionMailer::MailHelper
 
@@ -384,6 +384,10 @@ module ActionMailer
       content_type: "text/plain",
       parts_order:  [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
+
+    def self.default_protected_instance_vars
+      super.concat [:@_action_has_layout]
+    end
 
     class << self
       # Register one or more Observers which will be notified when mail is delivered.

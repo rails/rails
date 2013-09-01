@@ -1,4 +1,10 @@
 class Post < ActiveRecord::Base
+  class CategoryPost < ActiveRecord::Base
+    self.table_name = "categories_posts"
+    belongs_to :category
+    belongs_to :post
+  end
+
   module NamedExtension
     def author
       'lifo'
@@ -72,6 +78,8 @@ class Post < ActiveRecord::Base
   has_many :special_comments_ratings, :through => :special_comments, :source => :ratings
   has_many :special_comments_ratings_taggings, :through => :special_comments_ratings, :source => :taggings
 
+  has_many :category_posts, :class_name => 'CategoryPost'
+  has_many :scategories, through: :category_posts, source: :category
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
@@ -122,6 +130,7 @@ class Post < ActiveRecord::Base
   has_many :secure_readers
   has_many :readers_with_person, -> { includes(:person) }, :class_name => "Reader"
   has_many :people, :through => :readers
+  has_many :secure_people, :through => :secure_readers
   has_many :single_people, :through => :readers
   has_many :people_with_callbacks, :source=>:person, :through => :readers,
               :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },

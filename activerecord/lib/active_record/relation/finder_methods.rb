@@ -171,21 +171,21 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Returns truthy if a record exists in the table that matches the +id+ or
-    # conditions given, or falsy otherwise. The argument can take six forms:
+    # Returns +true+ if a record exists in the table that matches the +id+ or
+    # conditions given, or +false+ otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
     #   string (such as <tt>'5'</tt>).
     # * Array - Finds the record that matches these +find+-style conditions
-    #   (such as <tt>['color = ?', 'red']</tt>).
+    #   (such as <tt>['name LIKE ?', "%#{query}%"]</tt>).
     # * Hash - Finds the record that matches these +find+-style conditions
-    #   (such as <tt>{color: 'red'}</tt>).
+    #   (such as <tt>{name: 'David'}</tt>).
     # * +false+ - Returns always +false+.
     # * No args - Returns +false+ if the table is empty, +true+ otherwise.
     #
-    # For more information about specifying conditions as a Hash or Array,
-    # see the Conditions section in the introduction to ActiveRecord::Base.
+    # For more information about specifying conditions as a hash or array,
+    # see the Conditions section in the introduction to <tt>ActiveRecord::Base</tt>.
     #
     # Note: You can't pass in a condition as a string (like <tt>name =
     # 'Jamie'</tt>), since it would be sanitized and then queried against
@@ -213,7 +213,7 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
-      connection.select_value(relation.arel, "#{name} Exists", relation.bind_values)
+      connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
     # This method is called whenever no records are found with either a single

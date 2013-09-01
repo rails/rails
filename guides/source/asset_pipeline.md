@@ -151,7 +151,7 @@ environments. You can enable or disable it in your configuration through the
 More reading:
 
 * [Optimize caching](http://code.google.com/speed/page-speed/docs/caching.html)
-* [Revving Filenames: don’t use
+* [Revving Filenames: don't use
 * querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
 
 
@@ -234,6 +234,11 @@ scope of the application or those libraries which are shared across applications
 
 * `vendor/assets` is for assets that are owned by outside entities, such as
 code for JavaScript plugins and CSS frameworks.
+
+WARNING: If you are upgrading from Rails 3, please take into account that assets
+under `lib/assets` or `vendor/assets` are available for inclusion via the
+application manifests but no longer part of the precompile array. See
+[Precompiling Assets](#precompiling-assets) for guidance.
 
 #### Search Paths
 
@@ -378,8 +383,8 @@ it would make sense to have an image in one of the asset load paths, such as
 already available in `public/assets` as a fingerprinted file, then that path is
 referenced.
 
-If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) —
-a method of embedding the image data directly into the CSS file — you can use
+If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -
+a method of embedding the image data directly into the CSS file - you can use
 the `asset_data_uri` helper.
 
 ```css
@@ -428,7 +433,7 @@ $('#logo').attr src: "<%= asset_path('logo.png') %>"
 ### Manifest Files and Directives
 
 Sprockets uses manifest files to determine which assets to include and serve.
-These manifest files contain _directives_ — instructions that tell Sprockets
+These manifest files contain _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file. With
 these directives, Sprockets loads the files specified, processes them if
 necessary, concatenates them into one single file and then compresses them (if
@@ -536,7 +541,7 @@ Additional layers of preprocessing can be requested by adding other extensions,
 where each extension is processed in a right-to-left manner. These should be
 used in the order the processing should be applied. For example, a stylesheet
 called `app/assets/stylesheets/projects.css.scss.erb` is first processed as ERB,
-then SCSS, and finally served as CSS. The same applies to a JavaScript file —
+then SCSS, and finally served as CSS. The same applies to a JavaScript file -
 `app/assets/javascripts/projects.js.coffee.erb` is processed as ERB, then
 CoffeeScript, and served as JavaScript.
 
@@ -589,7 +594,7 @@ generate instead:
 
 Assets are compiled and cached on the first request after the server is started.
 Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request
-overhead on subsequent requests — on these the browser gets a 304 (Not Modified)
+overhead on subsequent requests - on these the browser gets a 304 (Not Modified)
 response.
 
 If any of the files in the manifest have changed between requests, the server
@@ -760,8 +765,8 @@ headers.
 For Apache:
 
 ```apache
-# The Expires* directives requires the Apache module `mod_expires` to be
-# enabled.
+# The Expires* directives requires the Apache module
+# `mod_expires` to be enabled.
 <Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag FileETag None

@@ -169,7 +169,7 @@ This will fire up WEBrick, a webserver built into Ruby by default. To see your a
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. To verify the server has stopped you should see your command prompt cursor again. For most UNIX-like systems including Mac OS X this will be a dollar sign `$`. In development mode, Rails does not generally require you to restart the server; changes you make in files will be automatically picked up by the server.
 
-The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
+The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application's environment_ link to see a summary of your application's environment.
 
 ### Say "Hello", Rails
 
@@ -343,7 +343,7 @@ That's quite a lot of text! Let's quickly go through and understand what each pa
 
 The first part identifies what template is missing. In this case, it's the `posts/new` template. Rails will first look for this template. If not found, then it will attempt to load a template called `application/new`. It looks for one here because the `PostsController` inherits from `ApplicationController`.
 
-The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English — or "en" — template. The next key, `:formats` specifies the format of template to be served in response. The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
+The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English - or "en" - template. The next key, `:formats` specifies the format of template to be served in response. The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
 
 The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
 
@@ -386,7 +386,7 @@ If you refresh the page now, you'll see the exact same form as in the example. B
 When you call `form_for`, you pass it an identifying object for this
 form. In this case, it's the symbol `:post`. This tells the `form_for`
 helper what this form is for. Inside the block for this method, the
-`FormBuilder` object — represented by `f` — is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to `submit` on the `f` object will create a submit button for the form.
+`FormBuilder` object - represented by `f` - is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to `submit` on the `f` object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the `action` attribute for the form is pointing at `/posts/new`. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
 
@@ -573,6 +573,41 @@ Finally, we redirect the user to the `show` action, which we'll define later.
 TIP: As we'll see later, `@post.save` returns a boolean indicating
 whether the model was saved or not.
 
+If you now go to
+<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
+it! You should get an error that looks like this:
+
+![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
+
+Rails has several security features that help you write secure applications,
+and you're running into one of them now. This one is called
+`strong_parameters`, which requires us to tell Rails exactly which parameters
+we want to accept in our controllers. In this case, we want to allow the
+`title` and `text` parameters, so change your `create` controller action to
+look like this:
+
+```ruby
+def create
+  @post = Post.new(post_params)
+
+  @post.save
+  redirect_to @post
+end
+
+private
+  def post_params
+    params.require(:post).permit(:title, :text)
+  end
+```
+
+See the `permit`? It allows us to accept both `title` and `text` in this
+action.
+
+TIP: Note that `def post_params` is private. This new approach prevents an attacker from
+setting the model's attributes by manipulating the hash passed to the model.
+For more information, refer to
+[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+
 ### Showing Posts
 
 If you submit the form again now, Rails will complain about not finding
@@ -598,8 +633,9 @@ end
 ```
 
 A couple of things to note. We use `Post.find` to find the post we're
-interested in. We also use an instance variable (prefixed by `@`) to
-hold a reference to the post object. We do this because Rails will pass all instance
+interested in, passing in `params[:id]` to get the `:id` parameter from the
+request. We also use an instance variable (prefixed by `@`) to hold a
+reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
 Now, create a new file `app/views/posts/show.html.erb` with the following
@@ -617,43 +653,10 @@ content:
 </p>
 ```
 
-If you now go to
-<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
-it! You should get an error that looks like this:
-
-![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
-
-Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called
-`strong_parameters`, which requires us to tell Rails exactly which parameters
-we want to accept in our controllers. In this case, we want to allow the
-`title` and `text` parameters, so change your `create` controller action to
-look like this:
-
-```
-def create
-  @post = Post.new(post_params)
-
-  @post.save
-  redirect_to @post
-end
-
-private
-  def post_params
-    params.require(:post).permit(:title, :text)
-  end
-```
-
-See the `permit`? It allows us to accept both `title` and `text` in this
-action. With this change, you should finally be able to create new posts.
+With this change, you should finally be able to create new posts.
 Visit <http://localhost:3000/posts/new> and give it a try!
 
 ![Show action for posts](images/getting_started/show_action_for_posts.png)
-
-TIP: Note that `def post_params` is private. This new approach prevents an attacker from
-setting the model's attributes by manipulating the hash passed to the model.
-For more information, refer to
-[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Listing all posts
 
@@ -716,7 +719,7 @@ Let's add links to the other views as well, starting with adding this "New Post"
 <%= link_to 'New post', new_post_path %>
 ```
 
-This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template — `app/views/posts/new.html.erb` — to go back to the `index` action. Do this by adding this underneath the form in this template:
+This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template - `app/views/posts/new.html.erb` - to go back to the `index` action. Do this by adding this underneath the form in this template:
 
 ```erb
 <%= form_for :post do |f| %>

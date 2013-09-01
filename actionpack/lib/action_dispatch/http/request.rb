@@ -18,7 +18,6 @@ module ActionDispatch
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
-    include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
     autoload :Session, 'action_dispatch/request/session'

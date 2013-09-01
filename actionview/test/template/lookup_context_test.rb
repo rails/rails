@@ -68,7 +68,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "delegates changing the locale to the I18n configuration object if it contains a lookup_context object" do
     begin
-      I18n.config = AbstractController::I18nProxy.new(I18n.config, @lookup_context)
+      I18n.config = ActionView::I18nProxy.new(I18n.config, @lookup_context)
       @lookup_context.locale = :pt
       assert_equal :pt, I18n.locale
       assert_equal :pt, @lookup_context.locale

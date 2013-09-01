@@ -5,7 +5,7 @@ A Rails plugin is either an extension or a modification of the core framework. P
 
 * a way for developers to share bleeding-edge ideas without hurting the stable code base
 * a segmented architecture so that units of code can be fixed or updated on their own release schedule
-* an outlet for the core developers so that they don’t have to include every cool new feature under the sun
+* an outlet for the core developers so that they don't have to include every cool new feature under the sun
 
 After reading this guide, you will know:
 

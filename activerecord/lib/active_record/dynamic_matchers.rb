@@ -35,7 +35,7 @@ module ActiveRecord
         end
 
         def pattern
-          /^#{prefix}_([_a-zA-Z]\w*)#{suffix}$/
+          @pattern ||= /\A#{prefix}_([_a-zA-Z]\w*)#{suffix}\Z/
         end
 
         def prefix

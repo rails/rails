@@ -1,3 +1,5 @@
+require 'active_support/log_subscriber'
+
 module ActionMailer
   # Implements the ActiveSupport::LogSubscriber for logging notifications when
   # email is delivered and received.

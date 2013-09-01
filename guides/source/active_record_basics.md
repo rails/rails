@@ -181,18 +181,18 @@ definition:
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: 'Joke'
+  set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   ...
 end
 ```
 
 It's also possible to override the column that should be used as the table's
-primary key using the `ActiveRecord::Base.set_primary_key` method:
+primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
 class Product < ActiveRecord::Base
-  set_primary_key "product_id"
+  self.primary_key = "product_id"
 end
 ```
 

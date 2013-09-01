@@ -1324,6 +1324,35 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.length
   end
 
+  def test_marshal_between_processes
+    skip "fork isn't supported" unless Process.respond_to?(:fork)
+
+    # Define a new model to ensure there are no caches
+    if self.class.const_defined?("Post", false)
+      flunk "there should be no post constant"
+    end
+
+    self.class.const_set("Post", Class.new(ActiveRecord::Base) {
+      has_many :comments
+    })
+
+    rd, wr = IO.pipe
+
+    ActiveRecord::Base.connection_handler.clear_all_connections!
+
+    fork do
+      rd.close
+      post = Post.new
+      post.comments.build
+      wr.write Marshal.dump(post)
+      wr.close
+    end
+
+    wr.close
+    assert Marshal.load rd.read
+    rd.close
+  end
+
   def test_marshalling_new_record_round_trip_with_associations
     post = Post.new
     post.comments.build

@@ -1,3 +1,5 @@
+require 'action_view/record_identifier'
+
 module ActionView
   # = Action View Record Tag Helpers
   module Helpers

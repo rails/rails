@@ -61,13 +61,13 @@ platforms :ruby do
 end
 
 platforms :jruby do
-    git 'git://github.com/jruby/activerecord-jdbc-adapter.git' do
-      gem 'activerecord-jdbcsqlite3-adapter'
-      group :db do
-        gem 'activerecord-jdbcmysql-adapter'
-        gem 'activerecord-jdbcpostgresql-adapter'
-      end
-    end
+  gem 'json'
+  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.3.0'
+
+  group :db do
+    gem 'activerecord-jdbcmysql-adapter', '>= 1.3.0'
+    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.3.0'
+  end
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database

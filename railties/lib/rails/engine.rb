@@ -102,7 +102,7 @@ module Rails
   #     paths["config"]              # => ["config"]
   #     paths["config/initializers"] # => ["config/initializers"]
   #     paths["config/locales"]      # => ["config/locales"]
-  #     paths["config/routes"]       # => ["config/routes.rb"]
+  #     paths["config/routes.rb"]    # => ["config/routes.rb"]
   #   end
   #
   # The <tt>Application</tt> class adds a couple more paths to this set. And as in your
@@ -351,13 +351,8 @@ module Rails
           Rails::Railtie::Configuration.eager_load_namespaces << base
 
           base.called_from = begin
-            call_stack = if Kernel.respond_to?(:caller_locations)
-              caller_locations.map(&:path)
-            else
-              # Remove the line number from backtraces making sure we don't leave anything behind
-              caller.map { |p| p.sub(/:\d+.*/, '') }
-            end
-
+            # Remove the line number from backtraces making sure we don't leave anything behind
+            call_stack = caller.map { |p| p.sub(/:\d+.*/, '') }
             File.dirname(call_stack.detect { |p| p !~ %r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack] })
           end
         end

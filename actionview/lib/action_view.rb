@@ -34,10 +34,13 @@ module ActionView
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
+    autoload :Layouts
     autoload :PathSet
     autoload :RecordIdentifier
+    autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
+    autoload :ViewPaths
 
     autoload_under "renderer" do
       autoload :Renderer
@@ -82,6 +85,7 @@ module ActionView
   def self.eager_load!
     super
     ActionView::Template.eager_load!
+    HTML.eager_load!
   end
 end
 

@@ -8,6 +8,7 @@ require 'fileutils'
 
 require 'active_support'
 require 'action_controller'
+require 'action_view'
 require 'rails/all'
 
 module TestApp

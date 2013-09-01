@@ -1,5 +1,6 @@
 require 'action_dispatch/http/response'
 require 'delegate'
+require 'active_support/json'
 
 module ActionController
   # Mix this module in to your controller, and all actions in that controller
@@ -32,6 +33,79 @@ module ActionController
   # the main thread. Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
   module Live
+    # This class provides the ability to write an SSE (Server Sent Event)
+    # to an IO stream. The class is initialized with a stream and can be used
+    # to either write a JSON string or an object which can be converted to JSON.
+    #
+    # Writing an object will convert it into standard SSE format with whatever
+    # options you have configured. You may choose to set the following options:
+    #
+    #   1) Event. If specified, an event with this name will be dispatched on
+    #   the browser.
+    #   2) Retry. The reconnection time in milliseconds used when attempting
+    #   to send the event.
+    #   3) Id. If the connection dies while sending an SSE to the browser, then
+    #   the server will receive a +Last-Event-ID+ header with value equal to +id+.
+    #
+    # After setting an option in the constructor of the SSE object, all future
+    # SSEs sent accross the stream will use those options unless overridden.
+    #
+    # Example Usage:
+    #
+    #   class MyController < ActionController::Base
+    #     include ActionController::Live
+    #
+    #     def index
+    #       response.headers['Content-Type'] = 'text/event-stream'
+    #       sse = SSE.new(response.stream, retry: 300, event: "event-name")
+    #       sse.write({ name: 'John'})
+    #       sse.write({ name: 'John'}, id: 10)
+    #       sse.write({ name: 'John'}, id: 10, event: "other-event")
+    #       sse.write({ name: 'John'}, id: 10, event: "other-event", retry: 500)
+    #     ensure
+    #       sse.close
+    #     end
+    #   end
+    #
+    # Note: SSEs are not currently supported by IE. However, they are supported
+    # by Chrome, Firefox, Opera, and Safari.
+    class SSE
+
+      WHITELISTED_OPTIONS = %w( retry event id )
+
+      def initialize(stream, options = {})
+        @stream = stream
+        @options = options
+      end
+
+      def close
+        @stream.close
+      end
+
+      def write(object, options = {})
+        case object
+        when String
+          perform_write(object, options)
+        else
+          perform_write(ActiveSupport::JSON.encode(object), options)
+        end
+      end
+
+      private
+
+        def perform_write(json, options)
+          current_options = @options.merge(options).stringify_keys
+
+          WHITELISTED_OPTIONS.each do |option_name|
+            if (option_value = current_options[option_name])
+              @stream.write "#{option_name}: #{option_value}\n"
+            end
+          end
+
+          @stream.write "data: #{json}\n\n"
+        end
+    end
+
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       def initialize(response)
         @error_callback = nil

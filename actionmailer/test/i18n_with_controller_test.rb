@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_view'
 require 'action_controller'
 
 class I18nTestMailer < ActionMailer::Base
@@ -13,6 +14,9 @@ class I18nTestMailer < ActionMailer::Base
       from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
 end
+
+# Emulate AV railtie
+ActionController::Base.superclass.send(:include, ActionView::Layouts)
 
 class TestController < ActionController::Base
   def send_mail

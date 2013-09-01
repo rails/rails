@@ -684,7 +684,7 @@ class GoodnessValidator
     end
   end
 
-  # …
+  # ...
 end
 ```
 
