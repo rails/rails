@@ -1,3 +1,8 @@
+*   Fix SchemaDumper to emit unknown column types properly for SQLite
+    Fixes #2708
+
+    *Vipul A M*
+
 *   Fix PredicateBuilder so polymorhic association keys in `where` clause can
     also accept not only `ActiveRecord::Base` direct descendances (decorated
     models, for example).

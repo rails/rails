@@ -436,7 +436,7 @@ module ActiveRecord
 
       # Adds `:array` option to the default set provided by the
       # AbstractAdapter
-      def prepare_column_options(column, types)
+      def prepare_column_options(column)
         spec = super
         spec[:array] = 'true' if column.respond_to?(:array) && column.array
         spec
