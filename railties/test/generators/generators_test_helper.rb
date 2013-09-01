@@ -16,6 +16,7 @@ Rails.application.load_generators
 
 require 'active_record'
 require 'action_dispatch'
+require 'action_view'
 
 module GeneratorsTestHelper
   def self.included(base)

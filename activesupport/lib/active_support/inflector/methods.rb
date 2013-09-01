@@ -36,7 +36,7 @@ module ActiveSupport
     # string.
     #
     # If passed an optional +locale+ parameter, the word will be
-    # pluralized using rules defined for that language. By default,
+    # singularized using rules defined for that language. By default,
     # this parameter is set to <tt>:en</tt>.
     #
     #   'posts'.singularize            # => "post"

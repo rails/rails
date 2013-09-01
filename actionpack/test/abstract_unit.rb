@@ -64,28 +64,6 @@ module RackTestUtils
   extend self
 end
 
-module RenderERBUtils
-  def view
-    @view ||= begin
-      path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-      view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths)
-    end
-  end
-
-  def render_erb(string)
-    @virtual_path = nil
-
-    template = ActionView::Template.new(
-      string.strip,
-      "test template",
-      ActionView::Template::Handlers::ERB,
-      {})
-
-    template.render(self, {}).strip
-  end
-end
-
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 module ActionDispatch
@@ -268,6 +246,8 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 end
 
+ActionController::Base.superclass.send(:include, ActionView::Layouts)
+
 module ActionController
   class Base
     include ActionController::Testing
@@ -290,15 +270,8 @@ module ActionController
   end
 end
 
-class ::ApplicationController < ActionController::Base
-end
 
-module ActionView
-  class TestCase
-    # Must repeat the setup because AV::TestCase is a duplication
-    # of AC::TestCase
-    include ActionDispatch::SharedRoutes
-  end
+class ::ApplicationController < ActionController::Base
 end
 
 class Workshop

@@ -1,4 +1,10 @@
 class Post < ActiveRecord::Base
+  class CategoryPost < ActiveRecord::Base
+    self.table_name = "categories_posts"
+    belongs_to :category
+    belongs_to :post
+  end
+
   module NamedExtension
     def author
       'lifo'
@@ -72,6 +78,8 @@ class Post < ActiveRecord::Base
   has_many :special_comments_ratings, :through => :special_comments, :source => :ratings
   has_many :special_comments_ratings_taggings, :through => :special_comments_ratings, :source => :taggings
 
+  has_many :category_posts, :class_name => 'CategoryPost'
+  has_many :scategories, through: :category_posts, source: :category
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 

@@ -9,7 +9,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide assumes the user knows how to use the [Rails form helpers](form_helpers.html) in general. Also, it’s **not** an API reference. For a complete reference please visit [the Rails API documentation](http://api.rubyonrails.org/).
+NOTE: This guide assumes the user knows how to use the [Rails form helpers](form_helpers.html) in general. Also, it's **not** an API reference. For a complete reference please visit [the Rails API documentation](http://api.rubyonrails.org/).
 
 
 Model setup
@@ -56,7 +56,7 @@ end
 
 ### Custom model
 
-As you might have inflected from this explanation, you _don’t_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behavior:
+As you might have inflected from this explanation, you _don't_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behavior:
 
 #### Single associated object
 
@@ -177,7 +177,7 @@ When this form is posted the Rails parameter parser will construct a hash like t
 }
 ```
 
-That’s it. The controller will simply pass this hash on to the model from the `create` action. The model will then handle building the `address` association for you and automatically save it when the parent (`person`) is saved.
+That's it. The controller will simply pass this hash on to the model from the `create` action. The model will then handle building the `address` association for you and automatically save it when the parent (`person`) is saved.
 
 #### Nested form for a collection of associated objects
 

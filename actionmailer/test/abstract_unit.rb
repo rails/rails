@@ -11,11 +11,11 @@ end
 require 'active_support/testing/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
+require 'mail'
 
-silence_warnings do
-  # These external dependencies have warnings :/
-  require 'mail'
-end
+# Emulate AV railtie
+require 'action_view'
+ActionMailer::Base.send(:include, ActionView::Layouts)
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

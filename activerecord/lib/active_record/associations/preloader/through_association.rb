@@ -27,17 +27,16 @@ module ActiveRecord
         def through_records_by_owner
           Preloader.new(owners, through_reflection.name, through_scope).run
 
-          Hash[owners.map do |owner|
-            through_records = Array.wrap(owner.send(through_reflection.name))
+          should_reset = (through_scope != through_reflection.klass.unscoped) ||
+             (reflection.options[:source_type] && through_reflection.collection?)
+
+          owners.each_with_object({}) do |owner, h|
+            association = owner.association through_reflection.name
+            h[owner] = Array(association.reader)
 
             # Dont cache the association - we would only be caching a subset
-            if (through_scope != through_reflection.klass.unscoped) ||
-               (reflection.options[:source_type] && through_reflection.collection?)
-              owner.association(through_reflection.name).reset
-            end
-
-            [owner, through_records]
-          end]
+            association.reset if should_reset
+          end
         end
 
         def through_scope

@@ -35,5 +35,18 @@ module ActionView
         end
       end
     end
+
+    initializer "action_view.setup_action_pack", before: :add_view_paths do |app|
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::Base.superclass.send(:include, ActionView::Layouts)
+        ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+      end
+    end
+
+    initializer "action_view.setup_action_mailer", before: :add_view_paths do |app|
+      ActiveSupport.on_load(:action_mailer) do
+        ActionMailer::Base.send(:include, ActionView::Layouts)
+      end
+    end
   end
 end

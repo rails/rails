@@ -135,6 +135,7 @@ module TestHelpers
     def make_basic_app
       require "rails"
       require "action_controller/railtie"
+      require "action_view/railtie"
 
       app = Class.new(Rails::Application)
       app.config.eager_load = false
@@ -240,6 +241,12 @@ module TestHelpers
       File.open("#{app_path}/#{path}", 'w') do |f|
         f.puts contents
       end
+    end
+
+    def gsub_app_file(path, regexp, *args, &block)
+      path = "#{app_path}/#{path}"
+      content = File.read(path).gsub(regexp, *args, &block)
+      File.open(path, 'wb') { |f| f.write(content) }
     end
 
     def remove_file(path)

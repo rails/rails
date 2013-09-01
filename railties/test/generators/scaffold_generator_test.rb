@@ -305,8 +305,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
-      assert_match(/<%= f\.text_field :name %>/, content)
-      assert_match(/<%= f\.text_field :currency_id %>/, content)
+      assert_match(/^\W{4}<%= f\.text_field :name %>/, content)
+      assert_match(/^\W{4}<%= f\.text_field :currency_id %>/, content)
     end
   end
 

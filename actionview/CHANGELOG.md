@@ -1,3 +1,7 @@
+*   Only cache template digests if `config.cache_template_loading` id true.
+
+    *Josh Lauer*, *Justin Ridgewell*
+
 *   Added an `extname` hash option for `javascript_include_tag` method.
 
     Before:

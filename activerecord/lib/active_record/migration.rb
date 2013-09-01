@@ -373,23 +373,23 @@ module ActiveRecord
     class << self
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
-    end
 
-    def self.check_pending!
-      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
-    end
+      def check_pending!
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
+      end
 
-    def self.method_missing(name, *args, &block) # :nodoc:
-      (delegate || superclass.delegate).send(name, *args, &block)
-    end
+      def method_missing(name, *args, &block) # :nodoc:
+        (delegate || superclass.delegate).send(name, *args, &block)
+      end
 
-    def self.migrate(direction)
-      new.migrate direction
-    end
+      def migrate(direction)
+        new.migrate direction
+      end
 
-    # Disable DDL transactions for this migration.
-    def self.disable_ddl_transaction!
-      @disable_ddl_transaction = true
+      # Disable DDL transactions for this migration.
+      def disable_ddl_transaction!
+        @disable_ddl_transaction = true
+      end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -617,8 +617,8 @@ module ActiveRecord
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
           unless arguments.empty? || method == :execute
-            arguments[0] = Migrator.proper_table_name(arguments.first)
-            arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
+            arguments[0] = proper_table_name(arguments.first, table_name_options)
+            arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
           end
         end
         return super unless connection.respond_to?(method)
@@ -671,6 +671,17 @@ module ActiveRecord
       copied
     end
 
+    # Finds the correct table name given an Active Record object.
+    # Uses the Active Record object's own table_name, or pre/suffix from the
+    # options passed in.
+    def proper_table_name(name, options = {})
+      if name.respond_to? :table_name
+        name.table_name
+      else
+        "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
+      end
+    end
+
     # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
@@ -678,6 +689,13 @@ module ActiveRecord
       else
         "%.3d" % number
       end
+    end
+
+    def table_name_options(config = ActiveRecord::Base)
+      {
+        table_name_prefix: config.table_name_prefix,
+        table_name_suffix: config.table_name_suffix
+      }
     end
 
     private
@@ -809,12 +827,16 @@ module ActiveRecord
         migrations(migrations_paths).last || NullMigration.new
       end
 
-      def proper_table_name(name)
-        # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
+      def proper_table_name(name, options = {})
+        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
+        options = {
+          table_name_prefix: ActiveRecord::Base.table_name_prefix,
+          table_name_suffix: ActiveRecord::Base.table_name_suffix
+        }.merge(options)
         if name.respond_to? :table_name
           name.table_name
         else
-          "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
         end
       end
 

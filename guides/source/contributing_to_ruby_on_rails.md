@@ -11,7 +11,7 @@ After reading this guide, you will know:
 * How to contribute to the Ruby on Rails documentation.
 * How to contribute to the Ruby on Rails code.
 
-Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation — all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 --------------------------------------------------------------------------------
 
@@ -26,16 +26,18 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself — and others — to replicate the bug and figure out a fix.
+At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
-### Create a Self-Contained gist for Active Record Issues
+### Create a Self-Contained gist for Active Record and Action Controller Issues
 
-If you are filing a bug report for Active Record, please use
-[this template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb)
+If you are filing a bug report, please use
+[Active Record template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb) or
+[Action Controller template for gems](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb)
 if the bug is found in a published gem, and
-[this template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+[Active Record template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb) or
+[Action Controller template for master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
 if the bug happens in the master branch.
 
 ### Special Treatment for Security Issues
@@ -44,9 +46,28 @@ WARNING: Please do not report security vulnerabilities with public GitHub issue 
 
 ### What about Feature Requests?
 
-Please don't put "feature request" items into GitHub Issues. If there's a new feature that you want to see added to Ruby on Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
+Please don't put "feature request" items into GitHub Issues. If there's a new
+feature that you want to see added to Ruby on Rails, you'll need to write the
+code yourself - or convince someone else to partner with you to write the code.
+Later in this guide you'll find detailed instructions for proposing a patch to
+Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you
+can expect it to be marked "invalid" as soon as it's reviewed.
 
-If you'd like feedback on an idea for a feature before doing the work for make a patch, please send an email to the [rails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You might get no response, which means that everyone is indifferent. You might find someone who's also interested in building that feature. You might get a "This won't be accepted." But it's the proper place to discuss new ideas. GitHub Issues are not a particularly good venue for the sometimes long and involved discussions new features require.
+Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
+Generally, a feature is anything that adds new behavior, while a bug is
+anything that fixes already existing behavior that is mis-behaving. Sometimes,
+the core team will have to make a judgement call. That said, the distinction
+generally just affects which release your patch will get in to; we love feature
+submissions! They just won't get backported to maintenance branches.
+
+If you'd like feedback on an idea for a feature before doing the work for make
+a patch, please send an email to the [rails-core mailing
+list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
+might get no response, which means that everyone is indifferent. You might find
+someone who's also interested in building that feature. You might get a "This
+won't be accepted." But it's the proper place to discuss new ideas. GitHub
+Issues are not a particularly good venue for the sometimes long and involved
+discussions new features require.
 
 Setting Up a Development Environment
 ------------------------------------
@@ -172,7 +193,7 @@ After applying their branch, test it out! Here are some things to think about:
 Once you're happy that the pull request contains a good change, comment on the GitHub issue indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
 
 <blockquote>
-I like the way you've restructured that code in generate_finder_sql — much nicer. The tests look good too.
+I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
 </blockquote>
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
@@ -184,7 +205,11 @@ Ruby on Rails has two main sets of documentation: the guides help you in learnin
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
-You can either ask for commit bit if you'd like to contribute to [Docrails](http://github.com/rails/docrails) regularly (Please contact anyone from [the core team](http://rubyonrails.org/core)), or else open a pull request to [Rails](http://github.com/rails/rails) itself.
+You can either open a pull request to [Rails](http://github.com/rails/rails) or
+ask the [Rails core team](http://rubyonrails.org/core) for commit access on
+[docrails](http://github.com/rails/docrails) if you contribute regularly.
+Please do not open pull requests in docrails, if you'd like to get feedback on your
+change, ask for it in [Rails](http://github.com/rails/rails) instead.
 
 Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
@@ -216,11 +241,11 @@ $ cd rails
 $ git checkout -b my_new_branch
 ```
 
-It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
+It doesn't matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
 ### Write Your Code
 
-Now get busy and add or edit code. You’re on your branch now, so you can write whatever you want (you can check to make sure you’re on the right branch with `git branch -a`). But if you’re planning to submit your change back for inclusion in Rails, keep a few things in mind:
+Now get busy and add or edit code. You're on your branch now, so you can write whatever you want (you can check to make sure you're on the right branch with `git branch -a`). But if you're planning to submit your change back for inclusion in Rails, keep a few things in mind:
 
 * Get the code right.
 * Use Rails idioms and helpers.
@@ -256,7 +281,7 @@ Rails follows a simple set of coding style conventions:
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
-The above are guidelines — please use your best judgment in using them.
+The above are guidelines - please use your best judgment in using them.
 
 ### Updating the CHANGELOG
 
@@ -285,7 +310,13 @@ Your name can be added directly after the last word if you don't provide any cod
 
 ### Sanity Check
 
-You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
+You should not be the only person who looks at the code before you submit it.
+If you know someone else who uses Rails, try asking them if they'll check out
+your work. If you don't know anyone else using Rails, try hopping into the IRC
+room or posting about your idea to the rails-core mailing list.  Doing this in
+private before you push a patch out publicly is the “smoke test” for a patch:
+if you can’t convince one other developer of the beauty of your code, you’re
+unlikely to convince the core team either.
 
 ### Commit Your Changes
 
@@ -329,7 +360,7 @@ TIP. Please squash your commits into a single commit when appropriate. This simp
 
 ### Update Your Branch
 
-It’s pretty likely that other changes to master have happened while you were working. Go get them:
+It's pretty likely that other changes to master have happened while you were working. Go get them:
 
 ```bash
 $ git checkout master
@@ -409,11 +440,28 @@ Fill in some details about your potential patch including a meaningful title. Wh
 
 ### Get some Feedback
 
-Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the [rubyonrails-core mailing list](http://groups.google.com/group/rubyonrails-core/) or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+Most pull requests will go through a few iterations before they get merged.
+Different contributors will sometimes have different opinions, and often
+patches will need revised before they can get merged.
+
+Some contributors to Rails have email notifications from GitHub turned on, but
+others do not. Furthermore, (almost) everyone who works on Rails is a
+volunteer, and so it may take a few days for you to get your first feedback on
+a pull request. Don't despair! Sometimes it's quick, sometimes it's slow. Such
+is the open source life.
+
+If it's been over a week, and you haven't heard anything, you might want to try
+and nudge things along. You can use the [rubyonrails-core mailing
+list](http://groups.google.com/group/rubyonrails-core/) for this. You can also
+leave another comment on the pull request.
+
+While you're waiting for feedback on your pull request, open up a few other
+pull requests and give someone else some! I'm sure they'll appreciate it in
+the same way that you appreciate feedback on your patches.
 
 ### Iterate as Necessary
 
-It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
+It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
 
 #### Squashing commits
 

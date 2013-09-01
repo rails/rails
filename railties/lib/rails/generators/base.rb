@@ -168,15 +168,15 @@ module Rails
         as_hook = options.delete(:as) || generator_name
 
         names.each do |name|
-          defaults = if options[:type] == :boolean
-            { }
-          elsif [true, false].include?(default_value_for_option(name, options))
-            { banner: "" }
-          else
-            { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
-          end
-
           unless class_options.key?(name)
+            defaults = if options[:type] == :boolean
+              { }
+            elsif [true, false].include?(default_value_for_option(name, options))
+              { banner: "" }
+            else
+              { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
+            end
+
             class_option(name, defaults.merge!(options))
           end
 
@@ -255,18 +255,21 @@ module Rails
             # Split the class from its module nesting
             nesting = class_name.split('::')
             last_name = nesting.pop
-
-            # Extract the last Module in the nesting
-            last = nesting.inject(Object) do |last_module, nest|
-              break unless last_module.const_defined?(nest, false)
-              last_module.const_get(nest)
-            end
+            last = extract_last_module(nesting)
 
             if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " <<
                            "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
                            "this generator again."
             end
+          end
+        end
+
+        # Takes in an array of nested modules and extracts the last module
+        def extract_last_module(nesting)
+          nesting.inject(Object) do |last_module, nest|
+            break unless last_module.const_defined?(nest, false)
+            last_module.const_get(nest)
           end
         end
 

@@ -152,7 +152,7 @@ By default, Rails will compile each template to a method in order to render it. 
 
 ### Partials
 
-Partial templates – usually just called "partials" – are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.
+Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.
 
 #### Naming Partials
 
@@ -1526,7 +1526,7 @@ The SanitizeHelper module provides a set of methods for scrubbing text of undesi
 
 #### sanitize
 
-This sanitize helper will html encode all tags and strip all attributes that aren’t specifically allowed.
+This sanitize helper will html encode all tags and strip all attributes that aren't specifically allowed.
 
 ```ruby
 sanitize @article.body
@@ -1583,7 +1583,7 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 # => Bold no more!  See more
 ```
 
-NB: The output may still contain unescaped ‘<’, ‘>’, ‘&’ characters and confuse browsers.
+NB: The output may still contain unescaped '<', '>', '&' characters and confuse browsers.
 
 
 Localized Views

@@ -68,7 +68,7 @@ module Rails
       directory "bin" do |content|
         "#{shebang}\n" + content
       end
-      chmod "bin", 0755, verbose: false
+      chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
     def config

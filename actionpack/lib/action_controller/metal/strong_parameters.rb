@@ -298,7 +298,7 @@ module ActionController
     #   params.slice(:d)     # => {}
     def slice(*keys)
       self.class.new(super).tap do |new_instance|
-        new_instance.instance_variable_set :@permitted, @permitted
+        new_instance.permitted = @permitted
       end
     end
 
@@ -312,9 +312,14 @@ module ActionController
     #   copy_params.permitted?   # => true
     def dup
       super.tap do |duplicate|
-        duplicate.instance_variable_set :@permitted, @permitted
+        duplicate.permitted = @permitted
       end
     end
+
+    protected
+      def permitted=(new_permitted)
+        @permitted = new_permitted
+      end
 
     private
       def convert_hashes_to_parameters(key, value)
