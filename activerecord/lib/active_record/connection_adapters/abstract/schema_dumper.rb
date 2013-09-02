@@ -8,8 +8,8 @@ module ActiveRecord
     # We can then redefine how certain data types may be handled in the schema dumper on the
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
-      def column_spec(column, types)
-        spec = prepare_column_options(column, types)
+      def column_spec(column)
+        spec = prepare_column_options(column)
         (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.to_s}: ")}
         spec
       end
@@ -17,18 +17,19 @@ module ActiveRecord
       # This can be overridden on a Adapter level basis to support other
       # extended datatypes (Example: Adding an array option in the
       # PostgreSQLAdapter)
-      def prepare_column_options(column, types)
+      def prepare_column_options(column)
         spec = {}
         spec[:name]      = column.name.inspect
-
         # AR has an optimization which handles zero-scale decimals as integers. This
         # code ensures that the dumper still dumps the column as a decimal.
         spec[:type]      = if column.type == :integer && /^(numeric|decimal)/ =~ column.sql_type
                              'decimal'
+                           elsif column.type == nil
+                             column.sql_type.to_s
                            else
                              column.type.to_s
                            end
-        spec[:limit]     = column.limit.inspect if column.limit != types[column.type][:limit] && spec[:type] != 'decimal'
+        spec[:limit]     = column.limit.inspect if column.limit != (native_database_types[column.type]|| {})[:limit]  && spec[:type] != 'decimal'
         spec[:precision] = column.precision.inspect if column.precision
         spec[:scale]     = column.scale.inspect if column.scale
         spec[:null]      = 'false' unless column.null
@@ -41,7 +42,42 @@ module ActiveRecord
         [:name, :limit, :precision, :scale, :default, :null]
       end
 
+      def dump_columns(tbl, columns, pk)
+        # dump all non-primary key columns
+        column_specs = columns.map do |column|
+          raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless valid_type?(column.type)
+          next if column.name == pk
+          column_spec(column)
+        end.compact
+        # figure out the lengths for each column based on above keys
+        format_string, lengths = format_string(column_specs)
+        column_specs.each do |colspec|
+          values = migration_keys.zip(lengths).map { |key, len| colspec.key?(key) ? "#{colspec[key]}, " : " " * len }
+          values.unshift colspec[:type]
+          tbl.print((format_string % values).gsub(/,\s*$/, ''))
+          tbl.puts
+        end
+        tbl.puts "  end"
+        tbl.puts
+      end
+
       private
+
+        def format_string(column_specs )
+          lengths = migration_keys.map { |key|
+            column_specs.map { |spec|
+              spec[key] ? spec[key].length + 2 : 0
+            }.max
+          }
+          # the string we're going to sprintf our values against, with standardized column widths
+          format_string = lengths.map { |len| "%-#{len}s" }
+          # find the max length for the 'type' column, which is special
+          type_length = column_specs.map { |column| column[:type].length }.max
+          # add column type definition to our format string
+          format_string.unshift "    t.%-#{type_length}s "
+          format_string *= ''
+          [format_string, lengths]
+        end
 
         def default_string(value)
           case value

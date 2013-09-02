@@ -388,4 +388,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     $stdout = original
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_random_type_dump
+      output = standard_dump
+      assert_match %r{create_table "unknown_columns_table"}, output
+      assert_match %r{t\.random_type "random_column"}, output
+    end
+  end
+
 end

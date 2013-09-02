@@ -22,4 +22,13 @@ _SQL
     FOREIGN KEY ('fk_id') REFERENCES 'fk_test_has_pk'('id')
   );
 _SQL
+
+  execute "DROP TABLE unknown_columns_table" rescue nil
+  execute <<_SQL
+  CREATE TABLE 'unknown_columns_table' (
+    'bool_column' bool,
+    'random_column' random_type
+  );
+_SQL
+
 end
