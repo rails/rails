@@ -13,8 +13,13 @@ module AbstractController
   module Rendering
     extend ActiveSupport::Concern
 
-    def self.default_protected_instance_vars
-      super.concat [:@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config]
+    included do
+      class_attribute :protected_instance_variables
+      self.protected_instance_variables = []
+    end
+
+    def default_protected_instance_vars
+      [:@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config]
     end
 
     # Raw rendering of a template to a string.
@@ -52,9 +57,10 @@ module AbstractController
     # :api: public
     def view_assigns
       hash = {}
-      (instance_variables - self.class.default_protected_instance_vars).each do |name|
-        hash[name[1..-1]] = instance_variable_get(name)
-      end
+      variables  = instance_variables
+      variables -= protected_instance_variables
+      variables -= default_protected_instance_vars
+      variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
       hash
     end
 
