@@ -170,6 +170,7 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 ```
 
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
+
 * Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
 
 * Rails 4.0 has deprecated the old-style hash based finder API. This means that
