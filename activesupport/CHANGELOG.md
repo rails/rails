@@ -1,3 +1,15 @@
+*   DateTime `advance` now supports partial days.
+
+    Before:
+
+        DateTime.now.advance(days: 1, hours: 12)
+
+    After:
+
+        DateTime.now.advance(days: 1.5)
+
+    *Shay Davidson*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 
@@ -188,9 +200,5 @@
         end
 
     *Daniel Schierbeck*
-
-*   DateTime `advance` now supports partial days (`days: 1.5`)
-
-    *Shay Davidson*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
