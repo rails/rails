@@ -116,7 +116,7 @@ Documentation
 Railties
 --------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -139,7 +139,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 Action Mailer
 -------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionmailer/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/actionmailer/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -148,7 +148,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actio
 Active Model
 ------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activemodel/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -161,7 +161,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 Active Support
 --------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activesupport/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -203,7 +203,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 Action Pack
 -----------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionpack/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -215,7 +215,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actio
 Active Record
 -------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activerecord/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
