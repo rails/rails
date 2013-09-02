@@ -18,10 +18,6 @@ module AbstractController
       self.protected_instance_variables = []
     end
 
-    def default_protected_instance_vars
-      [:@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config]
-    end
-
     # Raw rendering of a template to a string.
     #
     # It is similar to render, except that it does not
@@ -52,6 +48,11 @@ module AbstractController
     def rendered_format
     end
 
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
+      @_action_name @_response_body @_formats @_prefixes @_config
+      @_view_context_class @_view_renderer @_lookup_context
+    )
+
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public
@@ -59,7 +60,7 @@ module AbstractController
       hash = {}
       variables  = instance_variables
       variables -= protected_instance_variables
-      variables -= default_protected_instance_vars
+      variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
       variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
       hash
     end
