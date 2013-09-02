@@ -13,8 +13,9 @@ module AbstractController
   module Rendering
     extend ActiveSupport::Concern
 
-    def self.default_protected_instance_vars
-      super.concat [:@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config]
+    included do
+      class_attribute :protected_instance_variables
+      self.protected_instance_variables = []
     end
 
     # Raw rendering of a template to a string.
@@ -47,14 +48,20 @@ module AbstractController
     def rendered_format
     end
 
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
+      @_action_name @_response_body @_formats @_prefixes @_config
+      @_view_context_class @_view_renderer @_lookup_context
+    )
+
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
       hash = {}
-      (instance_variables - self.class.default_protected_instance_vars).each do |name|
-        hash[name[1..-1]] = instance_variable_get(name)
-      end
+      variables  = instance_variables
+      variables -= protected_instance_variables
+      variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
+      variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
       hash
     end
 

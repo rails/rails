@@ -261,12 +261,11 @@ module ActionController
       include mod
     end
 
-    def self.default_protected_instance_vars
-      super.concat [
-        :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
-        :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
-      ]
-    end
+    # Define some internal variables that should not be propagated to the view.
+    self.protected_instance_variables = [
+      :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
+      :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
+    ]
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
