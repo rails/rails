@@ -5,12 +5,6 @@ require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
 
 module AbstractController
-  class Error < StandardError #:nodoc:
-  end
-
-  class ActionNotFound < StandardError #:nodoc:
-  end
-
   # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means

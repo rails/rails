@@ -1,5 +1,5 @@
 module ActionController
-  class RedirectBackError < AbstractController::Error #:nodoc:
+  class RedirectBackError < AbstractController::AbstractControllerError #:nodoc:
     DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify request.env["HTTP_REFERER"].'
 
     def initialize(message = nil)

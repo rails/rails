@@ -1,3 +1,5 @@
+require 'abstract_controller/errors'
+
 module ActionController
   # Basic rendering implements the most minimal rendering layer.
   # It only supports rendering :text and :nothing. Passing any other option will
@@ -16,18 +18,12 @@ module ActionController
       elsif opts.has_key?(:nothing) && opts[:nothing]
         self.response_body = " "
       else
-        raise UnsupportedOperationError
+        raise ::AbstractController::UnsupportedOperationError
       end
     end
 
     def rendered_format
       Mime::TEXT
-    end
-
-    class UnsupportedOperationError < StandardError
-      def initialize
-        super "Unsupported render operation. BasicRendering supports only :text and :nothing options. For more, you need to include ActionView."
-      end
     end
   end
 
@@ -43,7 +39,7 @@ module ActionController
     # Check for double render errors and set the content_type after rendering.
     def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if self.response_body
-      super
+      super(*args)
       self.content_type ||= rendered_format.to_s
       self.response_body
     end
