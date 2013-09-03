@@ -84,20 +84,6 @@ module ActionView
       self.response_body = render_to_body(options)
     end
 
-    # Raw rendering of a template to a string.
-    # :api: public
-    def render_to_string(*args, &block)
-      options = _normalize_render(*args, &block)
-      render_to_body(options)
-    end
-
-    # Raw rendering of a template.
-    # :api: public
-    def render_to_body(options = {})
-      _process_options(options)
-      _render_template(options)
-    end
-
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
@@ -110,14 +96,6 @@ module ActionView
     end
 
     private
-
-      # Normalize args and options.
-      # :api: private
-      def _normalize_render(*args, &block)
-        options = _normalize_args(*args, &block)
-        _normalize_options(options)
-        options
-      end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
       # render "foo/bar" to render :file => "foo/bar".
