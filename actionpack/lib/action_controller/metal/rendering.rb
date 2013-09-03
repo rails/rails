@@ -1,32 +1,4 @@
 module ActionController
-  # Basic rendering implements the most minimal rendering layer.
-  # It only supports rendering :text and :nothing. Passing any other option will
-  # result in `UnsupportedOperationError` exception. For more functionality like
-  # different formats, layouts etc. you should use `ActionView` gem.
-  module BasicRendering
-    extend ActiveSupport::Concern
-
-    # Render text or nothing (empty string) to response_body
-    # :api: public
-    def render(*args, &block)
-      super(*args, &block)
-      opts = args.first
-      if opts.has_key?(:text) && opts[:text].present?
-        self.response_body = opts[:text]
-      elsif opts.has_key?(:nothing) && opts[:nothing]
-        self.response_body = " "
-      else
-        raise UnsupportedOperationError
-      end
-    end
-
-    class UnsupportedOperationError < StandardError
-      def initialize
-        super "Unsupported render operation. BasicRendering supports only :text and :nothing options. For more, you need to include ActionView."
-      end
-    end
-  end
-
   module Rendering
     extend ActiveSupport::Concern
 
