@@ -143,9 +143,9 @@ module ActionView
 
         "#{source}#{tail}"
       end
-      alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with a asset_path named route
+      alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
 
-      # Computes the full URL to a asset in the public directory. This
+      # Computes the full URL to an asset in the public directory. This
       # will use +asset_path+ internally, so most of their behaviors
       # will be the same.
       def asset_url(source, options = {})
