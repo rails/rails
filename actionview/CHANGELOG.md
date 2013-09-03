@@ -162,4 +162,8 @@
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
 
+*   Fix simple_format with sanitizing option #12115.
+
+    *versioncontrol*
+
 Please check [4-0-stable (ActionPack's CHANGELOG)](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.

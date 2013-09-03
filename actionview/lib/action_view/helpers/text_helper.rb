@@ -260,7 +260,7 @@ module ActionView
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
-        text = escape_once(text)
+        text = escape_once(text) if options[:sanitize]
         text = sanitize(text) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 

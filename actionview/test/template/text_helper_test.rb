@@ -37,7 +37,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => 'test')
     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
 
-    assert_equal "<p>foo \n<br /> bar </p>\n\n<p> baz &lt;hr&gt; bab</p>", simple_format("foo \n bar \n\n baz <hr> bab", {}, {sanitize: true})
+    assert_equal "<p>foo \n<br /> bar </p>\n\n<p> baz &lt;hr&gt; bab</p>",
+      simple_format("foo \n bar \n\n baz <hr> bab", {}, sanitize: true)
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
