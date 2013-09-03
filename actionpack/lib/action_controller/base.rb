@@ -14,7 +14,7 @@ module ActionController
   #
   metal = Class.new(Metal) do
     include AbstractController::Rendering
-    include ActionController::BasicRendering
+    include AbstractController::BasicRendering
   end
 
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
