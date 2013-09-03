@@ -121,6 +121,7 @@ module ActiveRecord
         @scope         = scope
         @options       = options
         @active_record = active_record
+        @klass         = options[:class]
         @plural_name   = active_record.pluralize_table_names ?
                             name.to_s.pluralize : name.to_s
       end

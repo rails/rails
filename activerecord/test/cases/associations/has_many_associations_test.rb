@@ -45,6 +45,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_anonymous_has_many
+    developer = Class.new(ActiveRecord::Base) {
+      self.table_name = 'developers'
+      dev = self
+
+      developer_project = Class.new(ActiveRecord::Base) {
+        self.table_name = 'developers_projects'
+        belongs_to :developer, :class => dev
+      }
+      has_many :developer_projects, :class => developer_project, :foreign_key => 'developer_id'
+    }
+    dev = developer.first
+    named = Developer.find(dev.id)
+    assert_operator dev.developer_projects.count, :>, 0
+    assert_equal named.projects.map(&:id).sort,
+                 dev.developer_projects.map(&:project_id).sort
+  end
+
   def test_create_from_association_should_respect_default_scope
     car = Car.create(:name => 'honda')
     assert_equal 'honda', car.name
