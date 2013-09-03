@@ -40,7 +40,7 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
       ben.lessons << sicp
       ben.save!
       ben.destroy
-      assert !ben.reload.lessons.empty?
+      assert !ben.lessons.empty?
     ensure
       # get rid of it so Student is still like it was
       Student.reset_callbacks(:destroy)
@@ -56,6 +56,6 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     assert_raises LessonError do
       sicp.destroy
     end
-    assert !sicp.reload.students.empty?
+    assert !sicp.students.empty?
   end
 end

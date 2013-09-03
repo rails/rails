@@ -372,6 +372,7 @@ module ActiveRecord
     #   end
     #
     def reload(options = nil)
+      raise ActiveRecordError, "can not reload on a non-persisted record" unless persisted?
       clear_aggregation_cache
       clear_association_cache
 

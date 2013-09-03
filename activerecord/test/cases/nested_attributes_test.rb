@@ -84,7 +84,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     pirate.update(ship_attributes: { '_destroy' => true, :id => ship.id })
 
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.ship.reload }
+    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.ship }
   end
 
   def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
@@ -484,7 +484,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     [1, '1', true, 'true'].each do |truth|
       pirate = @ship.reload.create_pirate(catchphrase: 'Arr')
       @ship.update(pirate_attributes: { id: pirate.id, _destroy: truth })
-      assert_raise(ActiveRecord::RecordNotFound) { pirate.reload }
+      assert_raise(ActiveRecord::RecordNotFound) { Pirate.find(pirate) }
     end
   end
 
@@ -572,7 +572,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     @ship.update(update_only_pirate_attributes: { catchphrase: 'Arr', id: @pirate.id, _destroy: true })
 
-    assert_raise(ActiveRecord::RecordNotFound) { @pirate.reload }
+    assert_raise(ActiveRecord::RecordNotFound) { Pirate.find(@pirate) }
 
     Ship.accepts_nested_attributes_for :update_only_pirate, :update_only => true, :allow_destroy => false
   end
