@@ -77,7 +77,8 @@ module ActionView
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
-    # Render template to response_body
+    # Normalize arguments, options and then delegates render_to_body and
+    # sticks the result in self.response_body.
     # :api: public
     def render(*args, &block)
       options = _normalize_render(*args, &block)
