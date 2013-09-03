@@ -1,3 +1,8 @@
+*   Fix `simple_format` with sanitizing option when the text contains
+    single line feed. Fix #12115.
+
+    *kennyj*
+
 *   Only cache template digests if `config.cache_template_loading` id true.
 
     *Josh Lauer*, *Justin Ridgewell*
