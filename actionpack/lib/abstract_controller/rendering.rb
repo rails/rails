@@ -18,8 +18,7 @@ module AbstractController
       self.protected_instance_variables = []
     end
 
-    # Normalize arguments, options and then delegates render_to_body and
-    # sticks the result in self.response_body.
+    # Render action and set response_body
     # :api: public
     def render(*args, &block)
     end
