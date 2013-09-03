@@ -260,14 +260,15 @@ module ActionView
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
+        text = escape_once(text)
         text = sanitize(text) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?
-          content_tag(wrapper_tag, nil, html_options)
+          content_tag(wrapper_tag, nil, html_options, false)
         else
           paragraphs.map! { |paragraph|
-            content_tag(wrapper_tag, paragraph, html_options, options[:sanitize])
+            content_tag(wrapper_tag, paragraph, html_options, false)
           }.join("\n\n").html_safe
         end
       end
