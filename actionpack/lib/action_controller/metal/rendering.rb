@@ -20,10 +20,6 @@ module ActionController
       end
     end
 
-    def rendered_format
-      Mime::TEXT
-    end
-
     class UnsupportedOperationError < StandardError
       def initialize
         super "Unsupported render operation. BasicRendering supports only :text and :nothing options. For more, you need to include ActionView."
