@@ -37,6 +37,33 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create :person_id => 0, :post_id => 0
   end
 
+  def make_model(name)
+    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+  end
+
+  def test_singleton_has_many_through
+    book         = make_model "Book"
+    subscription = make_model "Subscription"
+    subscriber   = make_model "Subscriber"
+
+    subscriber.primary_key = 'nick'
+    subscription.belongs_to :book,       class: book
+    subscription.belongs_to :subscriber, class: subscriber
+
+    book.has_many :subscriptions, class: subscription
+    book.has_many :subscribers, through: :subscriptions, class: subscriber
+
+    anonbook = book.first
+    namebook = Book.find anonbook.id
+
+    assert_operator anonbook.subscribers.count, :>, 0
+    anonbook.subscribers.each do |s|
+      assert_instance_of subscriber, s
+    end
+    assert_equal namebook.subscribers.map(&:id).sort,
+                 anonbook.subscribers.map(&:id).sort
+  end
+
   def test_pk_is_not_required_for_join
     post  = Post.includes(:scategories).first
     post2 = Post.includes(:categories).first
