@@ -1,3 +1,7 @@
+*   Return HashWithIndifferentAccess instance when calling `attributes` method.
+
+    *kennyj*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*

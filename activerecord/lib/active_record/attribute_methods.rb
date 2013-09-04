@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/enumerable'
 require 'mutex_m'
 
@@ -245,7 +246,7 @@ module ActiveRecord
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
-      attribute_names.each_with_object({}) { |name, attrs|
+      attribute_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) { |name, attrs|
         attrs[name] = read_attribute(name)
       }
     end
