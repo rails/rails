@@ -66,10 +66,6 @@ class SanitizersTest < ActionController::TestCase
     # Actual: ""
     assert_equal("<<<bad html", sanitizer.sanitize("<<<bad html"))
 
-    # Same as above
-    # Actual: ""
-    assert_equal("<<", sanitizer.sanitize("<<<bad html>"))
-
     # Actual: "Weia onclick='alert(document.cookie);'/&gt;rdos"
     assert_equal("Weirdos", sanitizer.sanitize("Wei<<a>a onclick='alert(document.cookie);'</a>/>rdos"))
 
@@ -101,6 +97,8 @@ class SanitizersTest < ActionController::TestCase
     assert_equal("Dont touch me", sanitizer.sanitize("Dont touch me"))
     assert_equal("This is a test.", sanitizer.sanitize("<p>This <u>is<u> a <a href='test.html'><strong>test</strong></a>.</p>"))
 
+    assert_equal("", sanitizer.sanitize("<<<bad html>"))
+    
     assert_equal("This is a test.", sanitizer.sanitize("This is a test."))
 
     assert_equal "This has a  here.", sanitizer.sanitize("This has a <!-- comment --> here.")
