@@ -722,7 +722,7 @@ Let's add links to the other views as well, starting with adding this "New Post"
 This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template - `app/views/posts/new.html.erb` - to go back to the `index` action. Do this by adding this underneath the form in this template:
 
 ```erb
-<%= form_for :post do |f| %>
+<%= form_for :post, url: posts_path do |f| %>
   ...
 <% end %>
 

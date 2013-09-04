@@ -1,3 +1,7 @@
+*   Fix an error in getting-started page.
+
+    *Snowmanzzz*
+
 *   Removed repetitive th tags. Instead of them added one th tag with a colspan attribute.
 
     *Sıtkı Bağdat*
