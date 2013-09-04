@@ -943,7 +943,7 @@ WARNING: This method only works with `INNER JOIN`.
 
 Active Record lets you use the names of the [associations](association_basics.html) defined on the model as a shortcut for specifying `JOIN` clause for those associations when using the `joins` method.
 
-For example, consider the following `Category`, `Post`, `Comments` and `Guest` models:
+For example, consider the following `Category`, `Post`, `Comment`, `Guest` and `Tag` models:
 
 ```ruby
 class Category < ActiveRecord::Base
