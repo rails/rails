@@ -1,3 +1,8 @@
+*   Setting a has_one association on a new record no longer causes an empty
+    transaction.
+
+    *Dylan Thacker-Smith*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*
