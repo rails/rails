@@ -1,3 +1,8 @@
+*   `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed
+    query to fetch results rather than loading the entire collection.
+
+    *Lann Martin*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*

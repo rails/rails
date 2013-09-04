@@ -528,15 +528,13 @@ module ActiveRecord
         #   * target already loaded
         #   * owner is new record
         #   * target contains new or changed record(s)
-        #   * the first arg is an integer (which indicates the number of records to be returned)
         def fetch_first_or_last_using_find?(args)
           if args.first.is_a?(Hash)
             true
           else
             !(loaded? ||
               owner.new_record? ||
-              target.any? { |record| record.new_record? || record.changed? } ||
-              args.first.kind_of?(Integer))
+              target.any? { |record| record.new_record? || record.changed? })
           end
         end
 
