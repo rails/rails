@@ -1,3 +1,7 @@
+*   Add 'wave' => 'waves' irregular inflection to default inflections.
+
+    *Tamal White*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 
