@@ -1172,8 +1172,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
-  test "works in combination with order(:symbol)" do
-    author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
+  test "works in combination with order(:symbol) and reorder(:symbol)" do
+    author = Author.includes(:posts).references(:posts).order(:name).find_by('posts.title IS NOT NULL')
+    assert_equal authors(:bob), author
+
+    author = Author.includes(:posts).references(:posts).reorder(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
   end
 end

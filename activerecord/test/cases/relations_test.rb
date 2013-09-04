@@ -1344,6 +1344,24 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [], scope.references_values
   end
 
+  def test_automatically_added_reorder_references
+    scope = Post.reorder('comments.body')
+    assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder('comments.body', 'yaks.body')
+    assert_equal %w(comments yaks), scope.references_values
+
+    # Don't infer yaks, let's not go down that road again...
+    scope = Post.reorder('comments.body, yaks.body')
+    assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder('comments.body asc')
+    assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder('foo(comments.body)')
+    assert_equal [], scope.references_values
+  end
+
   def test_presence
     topics = Topic.all
 

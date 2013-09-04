@@ -289,17 +289,7 @@ module ActiveRecord
     end
 
     def order!(*args) # :nodoc:
-      args.flatten!
-      validate_order_args(args)
-
-      references = args.grep(String)
-      references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
-      references!(references) if references.any?
-
-      # if a symbol is given we prepend the quoted table name
-      args.map! do |arg|
-        arg.is_a?(Symbol) ? Arel::Nodes::Ascending.new(klass.arel_table[arg]) : arg
-      end
+      preprocess_order_args(args)
 
       self.order_values += args
       self
@@ -320,8 +310,7 @@ module ActiveRecord
     end
 
     def reorder!(*args) # :nodoc:
-      args.flatten!
-      validate_order_args(args)
+      preprocess_order_args(args)
 
       self.reordering_value = true
       self.order_values = args
@@ -1033,6 +1022,20 @@ module ActiveRecord
         unless (h.values - [:asc, :desc]).empty?
           raise ArgumentError, 'Direction should be :asc or :desc'
         end
+      end
+    end
+
+    def preprocess_order_args(order_args)
+      order_args.flatten!
+      validate_order_args(order_args)
+
+      references = order_args.grep(String)
+      references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+      references!(references) if references.any?
+
+      # if a symbol is given we prepend the quoted table name
+      order_args.map! do |arg|
+        arg.is_a?(Symbol) ? Arel::Nodes::Ascending.new(klass.arel_table[arg]) : arg
       end
     end
 

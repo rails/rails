@@ -311,6 +311,15 @@ module ActiveRecord
       assert relation.reordering_value
     end
 
+    test '#reorder! with symbol prepends the table name' do
+      assert relation.reorder!(:name).equal?(relation)
+      node = relation.order_values.first
+
+      assert node.ascending?
+      assert_equal :name, node.expr.name
+      assert_equal "posts", node.expr.relation.name
+    end
+
     test 'reverse_order!' do
       assert relation.reverse_order!.equal?(relation)
       assert relation.reverse_order_value
