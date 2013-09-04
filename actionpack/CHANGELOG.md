@@ -1,3 +1,9 @@
+*   Change `respond_to` behavior for PUT/PATCH API requests: rather than a
+    simple `head :no_content` (204), return :ok (200) and the entire updated
+    object in the response body.
+
+    *claudiob*
+
 *   Allows ActionDispatch::Request::LOCALHOST to match any IPv4 127.0.0.0/8
     loopback address.
 
