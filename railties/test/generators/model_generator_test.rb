@@ -25,7 +25,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_orm
     run_generator
-    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/account.rb", /class Account < ApplicationModel/
   end
 
   def test_model_with_parent_option
@@ -44,7 +44,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/admin.rb", /module Admin/
     assert_file "app/models/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/admin.rb", /'admin_'/
-    assert_file "app/models/admin/account.rb", /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/admin/account.rb", /class Admin::Account < ApplicationModel/
   end
 
   def test_migration

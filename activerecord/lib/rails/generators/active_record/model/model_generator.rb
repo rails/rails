@@ -44,7 +44,7 @@ module ActiveRecord
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          options[:parent] || "ActiveRecord::Base"
+          options[:parent] || "ApplicationModel"
         end
 
     end

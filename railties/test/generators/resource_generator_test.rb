@@ -61,14 +61,14 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
 
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
-    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/account.rb", /class Account < ApplicationModel/
     assert_file "test/models/account_test.rb", /class AccountTest/
     assert_match(/Plural version of the model detected, using singularized version. Override with --force-plural./, content)
   end
 
   def test_plural_names_can_be_forced
     content = run_generator ["accounts", "--force-plural"]
-    assert_file "app/models/accounts.rb", /class Accounts < ActiveRecord::Base/
+    assert_file "app/models/accounts.rb", /class Accounts < ApplicationModel/
     assert_file "test/models/accounts_test.rb", /class AccountsTest/
     assert_no_match(/Plural version of the model detected/, content)
   end

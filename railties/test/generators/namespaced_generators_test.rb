@@ -92,7 +92,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
 
   def test_adds_namespace_to_model
     run_generator
-    assert_file "app/models/test_app/account.rb", /module TestApp/, /  class Account < ActiveRecord::Base/
+    assert_file "app/models/test_app/account.rb", /module TestApp/, /  class Account < ApplicationModel/
   end
 
   def test_model_with_namespace
@@ -100,7 +100,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
-    assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ApplicationModel/
   end
 
   def test_migration
@@ -202,7 +202,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     run_generator
 
     # Model
-    assert_file "app/models/test_app/product_line.rb", /module TestApp\n  class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/test_app/product_line.rb", /module TestApp\n  class ProductLine < ApplicationModel/
     assert_file "test/models/test_app/product_line_test.rb", /module TestApp\n  class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/product_lines.yml"
     assert_migration "db/migrate/create_test_app_product_lines.rb"
@@ -271,7 +271,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ApplicationModel/
     assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_roles.rb"
@@ -340,7 +340,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin/user/special.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ApplicationModel/
     assert_file "test/models/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/user/special/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
