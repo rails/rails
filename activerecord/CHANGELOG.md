@@ -1,3 +1,9 @@
+*   Deprecate the delegation of Array bang methods for associations.
+    To use them, instead first call #to_a on the association to access the
+    array to be acted on.
+
+    *Ben Woosley*
+
 *   Fix PredicateBuilder so polymorhic association keys in `where` clause can
     also accept not only `ActiveRecord::Base` direct descendances (decorated
     models, for example).
