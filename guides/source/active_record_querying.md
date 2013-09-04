@@ -1514,9 +1514,9 @@ Client.exists?(1)
 The `exists?` method also takes multiple ids, but the catch is that it will return true if any one of those records exists.
 
 ```ruby
-Client.exists?(1,2,3)
-# or
-Client.exists?([1,2,3])
+Client.exists?id:[1,2,3]
+or
+Client.exists?name:['John','Sergei']
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.
