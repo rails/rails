@@ -34,7 +34,6 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
-
     # Report class name as 'Time' to thwart type checking.
     def self.name
       'Time'
@@ -144,6 +143,9 @@ module ActiveSupport
     # You can get %Y/%m/%d %H:%M:%S +offset style by setting
     # <tt>ActiveSupport::JSON::Encoding.use_standard_json_time_format</tt>
     # to +false+.
+    # You can specify the number of decimal places for fractional seconds by setting
+    # <tt>ActiveSupport::TimeWithZone.json_time_decimal_precision</tt>
+    # to a digit
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
@@ -154,7 +156,7 @@ module ActiveSupport
     #   # => "2005/02/01 15:15:10 +0000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(3)
+        xmlschema(ActiveSupport::JSON::Encoding.json_time_decimal_precision)
       else
         %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
       end

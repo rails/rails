@@ -19,6 +19,7 @@ module ActiveSupport
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
+      :json_time_decimal_precision, :json_time_decimal_precision=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
 
@@ -120,6 +121,14 @@ module ActiveSupport
         # If false, serializes BigDecimal objects as numeric instead of wrapping
         # them in a string.
         attr_accessor :encode_big_decimal_as_string
+
+        # Number of decimal places to show for fractional seconds when using
+        # ISO 8601 format for times. Default 0.
+        attr_writer :json_time_decimal_precision
+
+        def json_time_decimal_precision
+          @json_time_decimal_precision ||= 0
+        end
 
         attr_accessor :escape_regex
         attr_reader :escape_html_entities_in_json
@@ -316,7 +325,7 @@ end
 class Time
   def as_json(options = nil) #:nodoc:
     if ActiveSupport.use_standard_json_time_format
-      xmlschema
+      xmlschema(ActiveSupport::JSON::Encoding.json_time_decimal_precision)
     else
       %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
     end
@@ -336,7 +345,7 @@ end
 class DateTime
   def as_json(options = nil) #:nodoc:
     if ActiveSupport.use_standard_json_time_format
-      xmlschema
+      xmlschema(ActiveSupport::JSON::Encoding.json_time_decimal_precision)
     else
       strftime('%Y/%m/%d %H:%M:%S %z')
     end

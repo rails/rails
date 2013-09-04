@@ -176,6 +176,24 @@ class TestJSONEncoding < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = prev
   end
 
+  def test_time_to_json_respects_json_time_decimal_precision
+    prev = ActiveSupport.json_time_decimal_precision
+    ActiveSupport.json_time_decimal_precision = 3
+    with_env_tz 'US/Eastern' do
+      assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
+    end
+  ensure
+    ActiveSupport.json_time_decimal_precision = prev
+  end
+
+  def test_date_time_to_json_respects_json_time_decimal_precision
+    prev = ActiveSupport.json_time_decimal_precision
+    ActiveSupport.json_time_decimal_precision = 3
+    assert_equal %("2005-02-01T15:15:10.000+00:00"), ActiveSupport::JSON.encode(DateTime.new(2005,2,1,15,15,10))
+  ensure
+    ActiveSupport.json_time_decimal_precision = prev
+  end
+
   def test_hash_with_time_to_json
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = false

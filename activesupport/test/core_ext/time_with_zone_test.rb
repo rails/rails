@@ -73,16 +73,29 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = old
   end
 
+  def test_to_json_with_use_standard_json_time_format_config_set_to_true_with_xmlschema_fraction_digits_set
+    old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, true
+    ActiveSupport.json_time_decimal_precision = 0
+    assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(@twz)
+    ActiveSupport.json_time_decimal_precision = 3
+    assert_equal "\"1999-12-31T19:00:00.000-05:00\"", ActiveSupport::JSON.encode(@twz)
+    ActiveSupport.json_time_decimal_precision = 6
+    assert_equal "\"1999-12-31T19:00:00.000000-05:00\"", ActiveSupport::JSON.encode(@twz)
+  ensure
+    ActiveSupport.use_standard_json_time_format = old
+    ActiveSupport.json_time_decimal_precision = nil
+  end
+
   def test_to_json_with_use_standard_json_time_format_config_set_to_true
     old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, true
-    assert_equal "\"1999-12-31T19:00:00.000-05:00\"", ActiveSupport::JSON.encode(@twz)
+    assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(@twz)
   ensure
     ActiveSupport.use_standard_json_time_format = old
   end
 
   def test_to_json_when_wrapping_a_date_time
     twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone)
-    assert_equal '"1999-12-31T19:00:00.000-05:00"', ActiveSupport::JSON.encode(twz)
+    assert_equal '"1999-12-31T19:00:00-05:00"', ActiveSupport::JSON.encode(twz)
   end
 
   def test_nsec
