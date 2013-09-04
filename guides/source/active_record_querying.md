@@ -1505,18 +1505,21 @@ Person.ids
 Existence of Objects
 --------------------
 
-If you simply want to check for the existence of the object there's a method called `exists?`. This method will query the database using the same query as `find`, but instead of returning an object or collection of objects it will return either `true` or `false`.
+If you simply want to check for the existence of the object there's a method called `exists?`.
+This method will query the database using the same query as `find`, but instead of returning an
+object or collection of objects it will return either `true` or `false`.
 
 ```ruby
 Client.exists?(1)
 ```
 
-The `exists?` method also takes multiple ids, but the catch is that it will return true if any one of those records exists.
+The `exists?` method also takes multiple values, but the catch is that it will return `true` if any
+one of those records exists.
 
 ```ruby
-Client.exists?id:[1,2,3]
+Client.exists?(id: [1,2,3])
 or
-Client.exists?name:['John','Sergei']
+Client.exists?(name: ['John', 'Sergei'])
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.
@@ -1525,7 +1528,8 @@ It's even possible to use `exists?` without any arguments on a model or a relati
 Client.where(first_name: 'Ryan').exists?
 ```
 
-The above returns `true` if there is at least one client with the `first_name` 'Ryan' and `false` otherwise.
+The above returns `true` if there is at least one client with the `first_name` 'Ryan' and `false`
+otherwise.
 
 ```ruby
 Client.exists?
