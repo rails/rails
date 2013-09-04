@@ -51,6 +51,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.exists?(heading: "The First Topic")
     assert_equal true, Topic.exists?(:author_name => "Mary", :approved => true)
     assert_equal true, Topic.exists?(["parent_id = ?", 1])
+    assert_equal true, Topic.exists?(id: [1, 9999])
 
     assert_equal false, Topic.exists?(45)
     assert_equal false, Topic.exists?(Topic.new)
