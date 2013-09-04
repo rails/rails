@@ -362,8 +362,9 @@ module ActionDispatch
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id', to: PhotosController.action(:show)
         #
-        # Because request various HTTP verbs with a single action has security
-        # implications, is recommendable use HttpHelpers[rdoc-ref:HttpHelpers]
+        # Because requesting various HTTP verbs with a single action has security
+        # implications, you must either specify the actions in
+        # the via options or use one of the HtttpHelpers[rdoc-ref:HttpHelpers]
         # instead +match+
         #
         # === Options
