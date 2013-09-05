@@ -443,7 +443,16 @@ module ActiveRecord
       end
 
       def [](fs_name)
-        @class_names[fs_name] ||= default_fixture_model(fs_name, @config).safe_constantize
+        @class_names.fetch(fs_name) {
+          klass = default_fixture_model(fs_name, @config).safe_constantize
+
+          # We only want to deal with AR objects.
+          if klass && klass < ActiveRecord::Base
+            @class_names[fs_name] = klass
+          else
+            @class_names[fs_name] = nil
+          end
+        }
       end
 
       private
@@ -574,7 +583,7 @@ module ActiveRecord
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash
 
-        if model_class && model_class < ActiveRecord::Base
+        if model_class
           # fill in timestamp columns if they aren't specified and the model is set to record_timestamps
           if model_class.record_timestamps
             timestamp_column_names.each do |c_name|
