@@ -309,6 +309,7 @@ module InflectorTestCases
     'move'   => 'moves',
     'cow'    => 'kine',
     'zombie' => 'zombies',
-    'genus'  => 'genera'
+    'genus'  => 'genera',
+    'wave'   => 'waves'
   }
 end
