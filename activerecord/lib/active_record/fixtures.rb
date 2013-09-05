@@ -479,8 +479,9 @@ module ActiveRecord
 
           fixture_sets = files_to_read.map do |fs_name|
             klass = class_names[fs_name]
+            conn = klass ? klass.connection : connection
             fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              connection,
+              conn,
               fs_name,
               klass,
               ::File.join(fixtures_directory, fs_name))
@@ -542,8 +543,7 @@ module ActiveRecord
         @model_class = class_name.safe_constantize if class_name
       end
 
-      @connection  = ( model_class.respond_to?(:connection) ?
-                       model_class.connection : connection )
+      @connection  = connection
 
       @table_name = ( model_class.respond_to?(:table_name) ?
                       model_class.table_name :
