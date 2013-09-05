@@ -1466,7 +1466,7 @@ Client.pluck(:id, :name)
 # => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
 ```
 
-`pluck` makes it possible to replace code like
+`pluck` makes it possible to replace code like:
 
 ```ruby
 Client.select(:id).map { |c| c.id }
@@ -1476,12 +1476,43 @@ Client.select(:id).map(&:id)
 Client.select(:id, :name).map { |c| [c.id, c.name] }
 ```
 
-with
+with:
 
 ```ruby
 Client.pluck(:id)
 # or
 Client.pluck(:id, :name)
+```
+
+Unlike `select`, `pluck` directly converts a database result into a Ruby `Array`,
+without constructing `ActiveRecord` objects. This can mean better performance for
+a large or often-running query. However, any model method overrides will
+not be available. For example:
+
+```ruby
+class Client < ActiveRecord::Base
+  def name
+    "I am #{super}"
+  end
+end
+
+Client.select(:name).map &:name
+# => ["I am David", "I am Jeremy", "I am Jose"]
+
+Client.pluck(:name)
+# => ["David", "Jeremy", "Jose"]
+```
+
+Furthermore, unlike `select` and other `Relation` scopes, `pluck` triggers an immediate
+query, and thus cannot be chained with any further scopes, although it can work with
+scopes already constructed earlier:
+
+```ruby
+Client.pluck(:name).limit(1)
+# => NoMethodError: undefined method `limit' for #<Array:0x007ff34d3ad6d8>
+
+Client.limit(1).pluck(:name)
+# => ["David"]
 ```
 
 ### `ids`
