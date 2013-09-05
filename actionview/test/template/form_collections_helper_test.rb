@@ -194,7 +194,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=user_active_no]', 'No'
   end
 
-  test 'colection check box should sanitize collection values for labels correctly' do
+  test 'collection check box should sanitize collection values for labels correctly' do
     with_collection_check_boxes :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
     assert_select 'label[for=user_name_099]', '$0.99'
     assert_select 'label[for=user_name_199]', '$1.99'
