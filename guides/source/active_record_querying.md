@@ -1518,7 +1518,7 @@ one of those records exists.
 
 ```ruby
 Client.exists?(id: [1,2,3])
-or
+# or
 Client.exists?(name: ['John', 'Sergei'])
 ```
 
