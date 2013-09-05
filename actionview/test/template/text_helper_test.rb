@@ -75,6 +75,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_simple_format_with_sanitizing
+    assert_equal "<p>foo \n<br /> bar </p>\n\n<p> baz &lt;hr&gt; bab</p>",
+                 simple_format("foo \n bar \n\n baz <hr> bab", {}, sanitize: true)
+  end
+
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", :length => 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)

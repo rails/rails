@@ -267,10 +267,16 @@ module ActionView
           content_tag(wrapper_tag, nil, html_options)
         else
           paragraphs.map! { |paragraph|
-            content_tag(wrapper_tag, paragraph, html_options, options[:sanitize])
+            paragraph = ERB::Util.h(paragraph) if options[:sanitize]
+            paragraph.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />')
+ 
+            tag = content_tag(wrapper_tag, PARAGRAPH_PLACE_HOLDER, html_options, options[:sanitize])
+            tag.sub!(/#{PARAGRAPH_PLACE_HOLDER}(?=<\/#{wrapper_tag}>$)/, paragraph)
           }.join("\n\n").html_safe
         end
       end
+
+      PARAGRAPH_PLACE_HOLDER = "@".freeze
 
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
       # array every time it is called. This can be used for example, to alternate
@@ -415,9 +421,7 @@ module ActionView
         def split_paragraphs(text)
           return [] if text.blank?
 
-          text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
-            t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
-          end
+          text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/)
         end
 
         def cut_excerpt_part(part_position, part, separator, options)
