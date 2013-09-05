@@ -436,9 +436,26 @@ module ActiveRecord
     cattr_accessor :all_loaded_fixtures
     self.all_loaded_fixtures = {}
 
+    class ClassCache
+      def initialize(class_names, config)
+        @class_names = class_names.dup.stringify_keys
+        @config      = config
+      end
+
+      def [](fs_name)
+        @class_names[fs_name] ||= default_fixture_model(fs_name, @config).safe_constantize
+      end
+
+      private
+
+      def default_fixture_model(fs_name, config)
+        ActiveRecord::FixtureSet.default_fixture_model_name(fs_name, config)
+      end
+    end
+
     def self.create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
       fixture_set_names = Array(fixture_set_names).map(&:to_s)
-      class_names = class_names.stringify_keys
+      class_names = ClassCache.new class_names, config
 
       # FIXME: Apparently JK uses this.
       connection = block_given? ? yield : ActiveRecord::Base.connection
@@ -452,10 +469,11 @@ module ActiveRecord
           fixtures_map = {}
 
           fixture_sets = files_to_read.map do |fs_name|
+            klass = class_names[fs_name]
             fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
               connection,
               fs_name,
-              class_names[fs_name] || (default_fixture_model_name(fs_name, config).safe_constantize),
+              klass,
               ::File.join(fixtures_directory, fs_name))
           end
 
@@ -613,6 +631,7 @@ module ActiveRecord
       end
 
       def handle_habtm(rows, row, association)
+        # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           table_name = association.join_table
