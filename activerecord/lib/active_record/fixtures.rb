@@ -438,7 +438,7 @@ module ActiveRecord
 
     class ClassCache
       def initialize(class_names, config)
-        @class_names = class_names.dup.stringify_keys
+        @class_names = class_names.stringify_keys
         @config      = config
       end
 
