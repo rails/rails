@@ -528,7 +528,6 @@ module ActiveRecord
     attr_reader :table_name, :name, :fixtures, :model_class, :config
 
     def initialize(connection, name, class_name, path, config = ActiveRecord::Base)
-      @fixtures = {} # Ordered hash
       @name     = name
       @path     = path
       @config   = config
@@ -550,7 +549,7 @@ module ActiveRecord
                       model_class.table_name :
                       self.class.default_fixture_table_name(name, config) )
 
-      read_fixture_files
+      @fixtures = read_fixture_files path, @model_class
     end
 
     def [](x)
@@ -670,12 +669,12 @@ module ActiveRecord
         @column_names ||= @connection.columns(@table_name).collect { |c| c.name }
       end
 
-      def read_fixture_files
-        yaml_files = Dir["#{@path}/{**,*}/*.yml"].select { |f|
+      def read_fixture_files(path, model_class)
+        yaml_files = Dir["#{path}/{**,*}/*.yml"].select { |f|
           ::File.file?(f)
-        } + [yaml_file_path]
+        } + [yaml_file_path(path)]
 
-        yaml_files.each do |file|
+        yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
             fh.each do |fixture_name, row|
               fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
@@ -684,8 +683,8 @@ module ActiveRecord
         end
       end
 
-      def yaml_file_path
-        "#{@path}.yml"
+      def yaml_file_path(path)
+        "#{path}.yml"
       end
 
   end
