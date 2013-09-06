@@ -1681,6 +1681,18 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_namespace_and_as_option
+    form_for(@post, namespace: 'namespace', as: 'custom_name') do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_custom_name', 'edit_custom_name', method: 'patch') do
+      "<input id='namespace_custom_name_title' name='custom_name[title]' type='text' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_two_form_for_with_namespace
     form_for(@post, namespace: 'namespace_1') do |f|
       concat f.label(:title)
