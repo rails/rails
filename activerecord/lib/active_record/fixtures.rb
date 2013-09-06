@@ -532,6 +532,7 @@ module ActiveRecord
       @name     = name
       @path     = path
       @config   = config
+      @model_class = nil
 
       if class_name.is_a?(String)
         ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.2, consider using the class itself instead.")
