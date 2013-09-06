@@ -1,4 +1,4 @@
-class AbstractItem < ActiveRecord::Base
+class AbstractItem < ApplicationModel
   self.abstract_class = true
   has_one :tagging, :as => :taggable
 end

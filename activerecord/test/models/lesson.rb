@@ -1,7 +1,7 @@
 class LessonError < Exception
 end
 
-class Lesson < ActiveRecord::Base
+class Lesson < ApplicationModel
   has_and_belongs_to_many :students
   before_destroy :ensure_no_students
 

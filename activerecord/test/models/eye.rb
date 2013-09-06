@@ -1,4 +1,4 @@
-class Eye < ActiveRecord::Base
+class Eye < ApplicationModel
   attr_reader :after_create_callbacks_stack
   attr_reader :after_update_callbacks_stack
   attr_reader :after_save_callbacks_stack
@@ -32,6 +32,6 @@ class Eye < ActiveRecord::Base
   alias trace_after_save2 trace_after_save
 end
 
-class Iris < ActiveRecord::Base
+class Iris < ApplicationModel
   belongs_to :eye
 end

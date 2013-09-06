@@ -1,4 +1,4 @@
-class Membership < ActiveRecord::Base
+class Membership < ApplicationModel
   belongs_to :member
   belongs_to :club
 end

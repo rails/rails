@@ -1,4 +1,4 @@
-class Matey < ActiveRecord::Base
+class Matey < ApplicationModel
   belongs_to :pirate
   belongs_to :target, :class_name => 'Pirate'
 end

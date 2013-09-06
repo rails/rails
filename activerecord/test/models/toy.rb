@@ -1,4 +1,4 @@
-class Toy < ActiveRecord::Base
+class Toy < ApplicationModel
   self.primary_key = :toy_id
   belongs_to :pet
 

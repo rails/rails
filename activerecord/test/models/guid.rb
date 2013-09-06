@@ -1,2 +1,2 @@
-class Guid < ActiveRecord::Base
+class Guid < ApplicationModel
 end

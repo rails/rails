@@ -1,4 +1,4 @@
-class Tyre < ActiveRecord::Base
+class Tyre < ApplicationModel
   belongs_to :car
 
   def self.custom_find(id)

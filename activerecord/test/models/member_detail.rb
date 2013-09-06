@@ -1,4 +1,4 @@
-class MemberDetail < ActiveRecord::Base
+class MemberDetail < ApplicationModel
   belongs_to :member, :inverse_of => false
   belongs_to :organization
   has_one :member_type, :through => :member

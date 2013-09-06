@@ -1,4 +1,4 @@
-class Job < ActiveRecord::Base
+class Job < ApplicationModel
   has_many :references
   has_many :people, :through => :references
   belongs_to :ideal_reference, :class_name => 'Reference'

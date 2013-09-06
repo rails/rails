@@ -1,4 +1,4 @@
-class Face < ActiveRecord::Base
+class Face < ApplicationModel
   belongs_to :man, :inverse_of => :face
   belongs_to :polymorphic_man, :polymorphic => true, :inverse_of => :polymorphic_face
   # Oracle identifier lengh is limited to 30 bytes or less, `polymorphic` renamed `poly`

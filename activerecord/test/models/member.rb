@@ -1,4 +1,4 @@
-class Member < ActiveRecord::Base
+class Member < ApplicationModel
   has_one :current_membership
   has_one :selected_membership
   has_one :membership
@@ -32,7 +32,7 @@ class Member < ActiveRecord::Base
   has_one :premium_club, through: :admittable
 end
 
-class SelfMember < ActiveRecord::Base
+class SelfMember < ApplicationModel
   self.table_name = "members"
   has_and_belongs_to_many :friends, :class_name => "SelfMember", :join_table => "member_friends"
 end

@@ -1,4 +1,4 @@
-class Treasure < ActiveRecord::Base
+class Treasure < ApplicationModel
   has_and_belongs_to_many :parrots
   belongs_to :looter, :polymorphic => true
 

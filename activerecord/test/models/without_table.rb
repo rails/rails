@@ -1,3 +1,3 @@
-class WithoutTable < ActiveRecord::Base
+class WithoutTable < ApplicationModel
   default_scope -> { where(:published => true) }
 end
