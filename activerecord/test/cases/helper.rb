@@ -10,6 +10,7 @@ require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 require 'active_support/core_ext/string/strip'
+require 'models/application_model'
 
 require 'support/config'
 require 'support/connection'
