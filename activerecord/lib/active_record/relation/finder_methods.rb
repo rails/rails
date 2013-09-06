@@ -366,11 +366,7 @@ module ActiveRecord
     end
 
     def find_first_with_limit(limit)
-      if order_values.empty? && primary_key
-        order(arel_table[primary_key].asc).limit(limit).to_a
-      else
-        limit(limit).to_a
-      end
+      limit(limit).to_a
     end
 
     def find_last
