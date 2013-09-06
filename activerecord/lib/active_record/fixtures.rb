@@ -643,33 +643,33 @@ module ActiveRecord
         @primary_key_name ||= model_class && model_class.primary_key
       end
 
+      def join_rows(targets, row, lhs_key, rhs_key)
+        targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
+        targets.map { |target|
+          { lhs_key => row[primary_key_name],
+            rhs_key => ActiveRecord::FixtureSet.identify(target) }
+        }
+      end
+
       def handle_hmt(rows, row, association)
         # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
-          targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           table_name = association.join_table
-          lhs_key = association.through_reflection.foreign_key
-          rhs_key = association.foreign_key
+          lhs_key    = association.through_reflection.foreign_key
+          rhs_key    = association.foreign_key
 
-          rows[table_name].concat targets.map { |target|
-            { lhs_key => row[primary_key_name],
-              rhs_key => ActiveRecord::FixtureSet.identify(target) }
-          }
+          rows[table_name].concat join_rows(targets, row, lhs_key, rhs_key)
         end
       end
 
       def handle_habtm(rows, row, association)
         # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
-          targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           table_name = association.join_table
-          lhs_key = association.foreign_key
-          rhs_key = association.association_foreign_key
+          lhs_key    = association.foreign_key
+          rhs_key    = association.association_foreign_key
 
-          rows[table_name].concat targets.map { |target|
-            { lhs_key => row[primary_key_name],
-              rhs_key => ActiveRecord::FixtureSet.identify(target) }
-          }
+          rows[table_name].concat join_rows(targets, row, lhs_key, rhs_key)
         end
       end
 
