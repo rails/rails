@@ -623,6 +623,10 @@ module ActiveRecord
 
                 row[fk_name] = ActiveRecord::FixtureSet.identify(value)
               end
+            when :has_many
+              if association.options[:through]
+                handle_hmt(rows, row, association)
+              end
             when :has_and_belongs_to_many
               handle_habtm(rows, row, association)
             end
@@ -637,6 +641,18 @@ module ActiveRecord
     private
       def primary_key_name
         @primary_key_name ||= model_class && model_class.primary_key
+      end
+
+      def handle_hmt(rows, row, association)
+        # This is the case when the join table has no fixtures file
+        if (targets = row.delete(association.name.to_s))
+          targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
+          table_name = association.join_table
+          rows[table_name].concat targets.map { |target|
+            { association.through_reflection.foreign_key  => row[primary_key_name],
+              association.foreign_key => ActiveRecord::FixtureSet.identify(target) }
+          }
+        end
       end
 
       def handle_habtm(rows, row, association)

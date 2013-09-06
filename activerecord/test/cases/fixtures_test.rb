@@ -263,6 +263,41 @@ class FixturesTest < ActiveRecord::TestCase
   end
 end
 
+class HasManyThroughFixture < ActiveSupport::TestCase
+  def make_model(name)
+    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+  end
+
+  def test_has_many_through
+    pt = make_model "ParrotTreasure"
+    parrot = make_model "Parrot"
+    treasure = make_model "Treasure"
+
+    pt.table_name = "parrots_treasures"
+    pt.belongs_to :parrot, :class => parrot
+    pt.belongs_to :treasure, :class => treasure
+
+    parrot.has_many :parrot_treasures, :class => pt
+    parrot.has_many :treasures, :through => :parrot_treasures
+
+    parrots = File.join FIXTURES_ROOT, 'parrots'
+
+    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    rows = fs.table_rows
+    assert_equal load_has_and_belongs_to_many['parrots_treasures'], rows['parrots_treasures']
+  end
+
+  def load_has_and_belongs_to_many
+    parrot = make_model "Parrot"
+    parrot.has_and_belongs_to_many :treasures
+
+    parrots = File.join FIXTURES_ROOT, 'parrots'
+
+    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs.table_rows
+  end
+end
+
 if Account.connection.respond_to?(:reset_pk_sequence!)
   class FixturesResetPkSequenceTest < ActiveRecord::TestCase
     fixtures :accounts
