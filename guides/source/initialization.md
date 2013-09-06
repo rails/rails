@@ -217,12 +217,12 @@ With the `default_options` set to this:
 ```ruby
 def default_options
   {
-    :environment => ENV['RACK_ENV'] || "development",
-    :pid         => nil,
-    :Port        => 9292,
-    :Host        => "0.0.0.0",
-    :AccessLog   => [],
-    :config      => "config.ru"
+    environment: ENV['RACK_ENV'] || "development",
+    pid:         nil,
+    Port:        9292,
+    Host:        "0.0.0.0",
+    AccessLog:   [],
+    config:      "config.ru"
   }
 end
 ```

@@ -2736,14 +2736,14 @@ NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 The method `transform_keys` accepts a block and returns a hash that has applied the block operations to each of the keys in the receiver:
 
 ```ruby
-{nil => nil, 1 => 1, a: :a}.transform_keys{ |key| key.to_s.upcase }
+{nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
 # => {"" => nil, "A" => :a, "1" => 1}
 ```
 
 The result in case of collision is undefined:
 
 ```ruby
-{"a" => 1, a: 2}.transform_keys{ |key| key.to_s.upcase }
+{"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
 # => {"A" => 2}, in my test, can't rely on this result though
 ```
 
@@ -2751,11 +2751,11 @@ This method may be useful for example to build specialized conversions. For inst
 
 ```ruby
 def stringify_keys
-  transform_keys{ |key| key.to_s }
+  transform_keys { |key| key.to_s }
 end
 ...
 def symbolize_keys
-  transform_keys{ |key| key.to_sym rescue key }
+  transform_keys { |key| key.to_sym rescue key }
 end
 ```
 
@@ -2764,7 +2764,7 @@ There's also the bang variant `transform_keys!` that applies the block operation
 Besides that, one can use `deep_transform_keys` and `deep_transform_keys!` to perform the block operation on all the keys in the given hash and all the hashes nested into it. An example of the result is:
 
 ```ruby
-{nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_transform_keys{ |key| key.to_s.upcase }
+{nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_transform_keys { |key| key.to_s.upcase }
 # => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
 ```
 
