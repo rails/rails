@@ -915,6 +915,7 @@ module ActiveRecord
       case opts
       when Relation
         name ||= 'subquery'
+        self.bind_values = opts.bind_values + self.bind_values
         opts.arel.as(name.to_s)
       else
         opts
