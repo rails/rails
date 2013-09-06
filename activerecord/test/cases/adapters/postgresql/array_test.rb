@@ -7,7 +7,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   include InTimeZone
   OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
 
-  class PgArray < ActiveRecord::Base
+  class PgArray < ApplicationModel
     self.table_name = 'pg_arrays'
   end
 

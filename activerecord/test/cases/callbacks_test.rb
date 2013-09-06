@@ -2,7 +2,7 @@ require "cases/helper"
 require 'models/developer'
 require 'models/computer'
 
-class CallbackDeveloper < ActiveRecord::Base
+class CallbackDeveloper < ApplicationModel
   self.table_name = 'developers'
 
   class << self
@@ -54,7 +54,7 @@ class CallbackDeveloperWithHaltedValidation < CallbackDeveloper
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 
-class ParentDeveloper < ActiveRecord::Base
+class ParentDeveloper < ApplicationModel
   self.table_name = 'developers'
   attr_accessor :after_save_called
   before_validation {|record| record.after_save_called = true}
@@ -64,7 +64,7 @@ class ChildDeveloper < ParentDeveloper
 
 end
 
-class ImmutableDeveloper < ActiveRecord::Base
+class ImmutableDeveloper < ApplicationModel
   self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
@@ -78,7 +78,7 @@ class ImmutableDeveloper < ActiveRecord::Base
     end
 end
 
-class DeveloperWithCanceledCallbacks < ActiveRecord::Base
+class DeveloperWithCanceledCallbacks < ApplicationModel
   self.table_name = 'developers'
 
   validates_inclusion_of :salary, in: 50000..200000
@@ -92,7 +92,7 @@ class DeveloperWithCanceledCallbacks < ActiveRecord::Base
     end
 end
 
-class OnCallbacksDeveloper < ActiveRecord::Base
+class OnCallbacksDeveloper < ApplicationModel
   self.table_name = 'developers'
 
   before_validation { history << :before_validation }
@@ -112,7 +112,7 @@ class OnCallbacksDeveloper < ActiveRecord::Base
   end
 end
 
-class ContextualCallbacksDeveloper < ActiveRecord::Base
+class ContextualCallbacksDeveloper < ApplicationModel
   self.table_name = 'developers'
 
   before_validation { history << :before_validation }
@@ -138,7 +138,7 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
   end
 end
 
-class CallbackCancellationDeveloper < ActiveRecord::Base
+class CallbackCancellationDeveloper < ApplicationModel
   self.table_name = 'developers'
 
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called

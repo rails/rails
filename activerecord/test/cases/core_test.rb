@@ -4,7 +4,7 @@ require 'models/topic'
 require 'pp'
 require 'active_support/core_ext/string/strip'
 
-class NonExistentTable < ActiveRecord::Base; end
+class NonExistentTable < ApplicationModel; end
 
 class CoreTest < ActiveRecord::TestCase
   fixtures :topics

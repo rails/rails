@@ -11,7 +11,7 @@ module ActiveRecord
 
       self.use_transactional_fixtures = false
 
-      class DualEncoding < ActiveRecord::Base
+      class DualEncoding < ApplicationModel
       end
 
       def setup

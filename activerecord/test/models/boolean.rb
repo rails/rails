@@ -1,2 +1,2 @@
-class Boolean < ActiveRecord::Base
+class Boolean < ApplicationModel
 end

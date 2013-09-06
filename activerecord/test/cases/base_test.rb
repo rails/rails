@@ -30,37 +30,33 @@ require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
 
-class FirstAbstractClass < ActiveRecord::Base
+class FirstAbstractClass < ApplicationModel
   self.abstract_class = true
 end
 class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
-class Smarts < ActiveRecord::Base; end
-class CreditCard < ActiveRecord::Base
-  class PinNumber < ActiveRecord::Base
-    class CvvCode < ActiveRecord::Base; end
+class Smarts < ApplicationModel; end
+class CreditCard < ApplicationModel
+  class PinNumber < ApplicationModel
+    class CvvCode < ApplicationModel; end
     class SubCvvCode < CvvCode; end
   end
   class SubPinNumber < PinNumber; end
   class Brand < Category; end
 end
-class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
-class NonExistentTable < ActiveRecord::Base; end
-class TestOracleDefault < ActiveRecord::Base; end
+class MasterCreditCard < ApplicationModel; end
+class NonExistentTable < ApplicationModel; end
+class TestOracleDefault < ApplicationModel; end
 
 class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
-class Weird < ActiveRecord::Base; end
+class Weird < ApplicationModel; end
 
-class Boolean < ActiveRecord::Base
+class Boolean < ApplicationModel
   def has_fun
     super
   end
@@ -69,7 +65,7 @@ end
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
 
-  class LintModel < ActiveRecord::Base; end
+  class LintModel < ApplicationModel; end
 
   def setup
     @model = LintModel.new
@@ -900,7 +896,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  class NumericData < ActiveRecord::Base
+  class NumericData < ApplicationModel
     self.table_name = 'numeric_data'
 
     attribute :my_house_population, Type::Integer.new

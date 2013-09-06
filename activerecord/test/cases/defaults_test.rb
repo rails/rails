@@ -63,7 +63,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
 end
 
 class DefaultStringsTest < ActiveRecord::TestCase
-  class DefaultString < ActiveRecord::Base; end
+  class DefaultString < ApplicationModel; end
 
   setup do
     @connection = ActiveRecord::Base.connection

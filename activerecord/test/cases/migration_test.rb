@@ -12,16 +12,16 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
-class BigNumber < ActiveRecord::Base
+class BigNumber < ApplicationModel
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, Type::Integer.new
   end
   attribute :my_house_population, Type::Integer.new
 end
 
-class Reminder < ActiveRecord::Base; end
+class Reminder < ApplicationModel; end
 
-class Thing < ActiveRecord::Base; end
+class Thing < ApplicationModel; end
 
 class MigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

@@ -5,7 +5,7 @@ module ActiveRecord
   class PostgresqlConnectionTest < ActiveRecord::TestCase
     include ConnectionHelper
 
-    class NonExistentTable < ActiveRecord::Base
+    class NonExistentTable < ApplicationModel
     end
 
     fixtures :comments

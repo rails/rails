@@ -12,7 +12,7 @@ require 'models/speedometer'
 require 'models/ship_part'
 require 'models/treasure'
 
-class NumericData < ActiveRecord::Base
+class NumericData < ApplicationModel
   self.table_name = 'numeric_data'
 
   attribute :world_population, Type::Integer.new
