@@ -648,9 +648,12 @@ module ActiveRecord
         if (targets = row.delete(association.name.to_s))
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           table_name = association.join_table
+          lhs_key = association.through_reflection.foreign_key
+          rhs_key = association.foreign_key
+
           rows[table_name].concat targets.map { |target|
-            { association.through_reflection.foreign_key  => row[primary_key_name],
-              association.foreign_key => ActiveRecord::FixtureSet.identify(target) }
+            { lhs_key => row[primary_key_name],
+              rhs_key => ActiveRecord::FixtureSet.identify(target) }
           }
         end
       end
@@ -660,9 +663,12 @@ module ActiveRecord
         if (targets = row.delete(association.name.to_s))
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           table_name = association.join_table
+          lhs_key = association.foreign_key
+          rhs_key = association.association_foreign_key
+
           rows[table_name].concat targets.map { |target|
-            { association.foreign_key             => row[primary_key_name],
-              association.association_foreign_key => ActiveRecord::FixtureSet.identify(target) }
+            { lhs_key => row[primary_key_name],
+              rhs_key => ActiveRecord::FixtureSet.identify(target) }
           }
         end
       end
