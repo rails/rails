@@ -1,3 +1,7 @@
+*   Add Range#limit(value) as a method of ensuring a value is included within a given range
+
+    *Dermot Haughey*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 
