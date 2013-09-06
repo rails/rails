@@ -328,7 +328,7 @@ the job done:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name).tap do |whitelisted|
+  params.require(:product).permit(:data).tap do |whitelisted|
     whitelisted[:data] = params[:product][:data]
   end
 end
