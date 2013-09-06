@@ -9,6 +9,7 @@ require 'active_record'
 require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
+require 'models/application_model'
 
 require 'support/config'
 require 'support/connection'
