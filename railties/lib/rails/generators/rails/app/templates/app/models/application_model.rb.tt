@@ -1,3 +1,4 @@
 class ApplicationModel < ActiveRecord::Base
   self.abstract_class = true
+  configs_from Rails.application
 end

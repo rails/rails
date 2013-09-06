@@ -293,6 +293,7 @@ module ActiveRecord #:nodoc:
     extend Explain
     extend Delegation::DelegateCache
 
+    include ApplicationConfiguration
     include Persistence
     include ReadonlyAttributes
     include ModelSchema
