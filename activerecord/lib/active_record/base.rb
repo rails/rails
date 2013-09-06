@@ -284,6 +284,7 @@ module ActiveRecord #:nodoc:
     extend Delegation::DelegateCache
 
     include Core
+    include ApplicationConfiguration
     include Persistence
     include ReadonlyAttributes
     include ModelSchema
