@@ -1,3 +1,3 @@
-class LegacyThing < ActiveRecord::Base
+class LegacyThing < ApplicationModel
   self.locking_column = :version
 end

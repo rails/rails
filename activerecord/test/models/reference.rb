@@ -1,4 +1,4 @@
-class Reference < ActiveRecord::Base
+class Reference < ApplicationModel
   belongs_to :person
   belongs_to :job
 
@@ -16,7 +16,7 @@ class Reference < ActiveRecord::Base
   end
 end
 
-class BadReference < ActiveRecord::Base
+class BadReference < ApplicationModel
   self.table_name = 'references'
   default_scope { where(:favourite => false) }
 end

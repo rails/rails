@@ -1,4 +1,4 @@
-class Bulb < ActiveRecord::Base
+class Bulb < ApplicationModel
   default_scope { where(:name => 'defaulty') }
   belongs_to :car, :touch => true
 

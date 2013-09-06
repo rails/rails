@@ -1,4 +1,4 @@
-class Contract < ActiveRecord::Base
+class Contract < ApplicationModel
   belongs_to :company
   belongs_to :developer
 

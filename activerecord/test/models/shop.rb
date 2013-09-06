@@ -1,12 +1,12 @@
 module Shop
-  class Collection < ActiveRecord::Base
+  class Collection < ApplicationModel
     has_many :products, :dependent => :nullify
   end
 
-  class Product < ActiveRecord::Base
+  class Product < ApplicationModel
     has_many :variants, :dependent => :delete_all
   end
 
-  class Variant < ActiveRecord::Base
+  class Variant < ApplicationModel
   end
 end

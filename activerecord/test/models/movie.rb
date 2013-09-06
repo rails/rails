@@ -1,3 +1,3 @@
-class Movie < ActiveRecord::Base
+class Movie < ApplicationModel
   self.primary_key = "movieid"
 end

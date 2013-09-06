@@ -1,7 +1,7 @@
-class Joke < ActiveRecord::Base
+class Joke < ApplicationModel
   self.table_name = 'funny_jokes'
 end
 
-class GoodJoke < ActiveRecord::Base
+class GoodJoke < ApplicationModel
   self.table_name = 'funny_jokes'
 end
