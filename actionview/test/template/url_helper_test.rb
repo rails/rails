@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 
