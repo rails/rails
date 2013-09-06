@@ -1,4 +1,4 @@
-class AutoId < ActiveRecord::Base
+class AutoId < ApplicationModel
   def self.table_name () "auto_id_tests" end
   def self.primary_key () "auto_id" end
 end

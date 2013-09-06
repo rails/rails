@@ -1,4 +1,4 @@
-class ShipPart < ActiveRecord::Base
+class ShipPart < ApplicationModel
   belongs_to :ship
   has_many :trinkets, :class_name => "Treasure", :as => :looter
   accepts_nested_attributes_for :trinkets, :allow_destroy => true

@@ -1,3 +1,3 @@
-class Electron < ActiveRecord::Base
+class Electron < ApplicationModel
   belongs_to :molecule
 end

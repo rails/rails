@@ -1,3 +1,3 @@
-class StringKeyObject < ActiveRecord::Base
+class StringKeyObject < ApplicationModel
   self.primary_key = :id
 end

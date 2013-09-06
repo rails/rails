@@ -1,4 +1,4 @@
-class Author < ActiveRecord::Base
+class Author < ApplicationModel
   has_many :posts
   has_one :post
   has_many :very_special_comments, :through => :posts
@@ -178,7 +178,7 @@ class Author < ActiveRecord::Base
     end
 end
 
-class AuthorAddress < ActiveRecord::Base
+class AuthorAddress < ApplicationModel
   has_one :author
 
   def self.destroyed_author_address_ids
@@ -190,7 +190,7 @@ class AuthorAddress < ActiveRecord::Base
   end
 end
 
-class AuthorFavorite < ActiveRecord::Base
+class AuthorFavorite < ApplicationModel
   belongs_to :author
   belongs_to :favorite_author, :class_name => "Author"
 end

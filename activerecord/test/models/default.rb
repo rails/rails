@@ -1,2 +1,2 @@
-class Default < ActiveRecord::Base
+class Default < ApplicationModel
 end

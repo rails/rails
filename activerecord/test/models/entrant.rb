@@ -1,3 +1,3 @@
-class Entrant < ActiveRecord::Base
+class Entrant < ApplicationModel
   belongs_to :course
 end
