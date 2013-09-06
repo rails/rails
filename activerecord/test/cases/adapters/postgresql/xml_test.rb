@@ -5,7 +5,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlXMLTest < ActiveRecord::TestCase
-  class XmlDataType < ActiveRecord::Base
+  class XmlDataType < ApplicationModel
     self.table_name = 'xml_data_type'
   end
 

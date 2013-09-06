@@ -3,7 +3,7 @@ require 'cases/helper'
 class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  class Tag < ActiveRecord::Base
+  class Tag < ApplicationModel
   end
 
   setup do
@@ -22,11 +22,11 @@ end
 class TransactionIsolationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  class Tag < ActiveRecord::Base
+  class Tag < ApplicationModel
     self.table_name = 'tags'
   end
 
-  class Tag2 < ActiveRecord::Base
+  class Tag2 < ApplicationModel
     self.table_name = 'tags'
   end
 

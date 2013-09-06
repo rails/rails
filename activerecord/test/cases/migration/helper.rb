@@ -14,7 +14,7 @@ module ActiveRecord
 
       CONNECTION_METHODS = %w[add_column remove_column rename_column add_index change_column rename_table column_exists? index_exists? add_reference add_belongs_to remove_reference remove_references remove_belongs_to]
 
-      class TestModel < ActiveRecord::Base
+      class TestModel < ApplicationModel
         self.table_name = :test_models
       end
 
