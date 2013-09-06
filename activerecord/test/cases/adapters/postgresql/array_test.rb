@@ -4,7 +4,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlArrayTest < ActiveRecord::TestCase
-  class PgArray < ActiveRecord::Base
+  class PgArray < ApplicationModel
     self.table_name = 'pg_arrays'
   end
 

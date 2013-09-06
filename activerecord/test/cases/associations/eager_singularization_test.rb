@@ -1,40 +1,40 @@
 require "cases/helper"
 
-class Virus < ActiveRecord::Base
+class Virus < ApplicationModel
   belongs_to :octopus
 end
-class Octopus < ActiveRecord::Base
+class Octopus < ApplicationModel
   has_one :virus
 end
-class Pass < ActiveRecord::Base
+class Pass < ApplicationModel
   belongs_to :bus
 end
-class Bus < ActiveRecord::Base
+class Bus < ApplicationModel
   has_many :passes
 end
-class Mess < ActiveRecord::Base
+class Mess < ApplicationModel
   has_and_belongs_to_many :crises
 end
-class Crisis < ActiveRecord::Base
+class Crisis < ApplicationModel
   has_and_belongs_to_many :messes
   has_many :analyses, :dependent => :destroy
   has_many :successes, :through => :analyses
   has_many :dresses, :dependent => :destroy
   has_many :compresses, :through => :dresses
 end
-class Analysis < ActiveRecord::Base
+class Analysis < ApplicationModel
   belongs_to :crisis
   belongs_to :success
 end
-class Success < ActiveRecord::Base
+class Success < ApplicationModel
   has_many :analyses, :dependent => :destroy
   has_many :crises, :through => :analyses
 end
-class Dress < ActiveRecord::Base
+class Dress < ApplicationModel
   belongs_to :crisis
   has_many :compresses
 end
-class Compress < ActiveRecord::Base
+class Compress < ApplicationModel
   belongs_to :dress
 end
 

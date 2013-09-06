@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class MysqlConnectionTest < ActiveRecord::TestCase
-  class Klass < ActiveRecord::Base
+  class Klass < ApplicationModel
   end
 
   def setup

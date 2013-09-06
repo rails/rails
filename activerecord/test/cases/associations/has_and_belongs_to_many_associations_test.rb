@@ -22,7 +22,7 @@ require 'models/country'
 require 'models/treaty'
 require 'active_support/core_ext/string/conversions'
 
-class ProjectWithAfterCreateHook < ActiveRecord::Base
+class ProjectWithAfterCreateHook < ApplicationModel
   self.table_name = 'projects'
   has_and_belongs_to_many :developers,
     :class_name => "DeveloperForProjectWithAfterCreateHook",
@@ -38,7 +38,7 @@ class ProjectWithAfterCreateHook < ActiveRecord::Base
   end
 end
 
-class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
+class DeveloperForProjectWithAfterCreateHook < ApplicationModel
   self.table_name = 'developers'
   has_and_belongs_to_many :projects,
     :class_name => "ProjectWithAfterCreateHook",
@@ -47,7 +47,7 @@ class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
     :foreign_key => "developer_id"
 end
 
-class ProjectWithSymbolsForKeys < ActiveRecord::Base
+class ProjectWithSymbolsForKeys < ApplicationModel
   self.table_name = 'projects'
   has_and_belongs_to_many :developers,
     :class_name => "DeveloperWithSymbolsForKeys",
@@ -56,7 +56,7 @@ class ProjectWithSymbolsForKeys < ActiveRecord::Base
     :association_foreign_key => "developer_id"
 end
 
-class DeveloperWithSymbolsForKeys < ActiveRecord::Base
+class DeveloperWithSymbolsForKeys < ApplicationModel
   self.table_name = 'developers'
   has_and_belongs_to_many :projects,
     :class_name => "ProjectWithSymbolsForKeys",
