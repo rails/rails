@@ -574,7 +574,7 @@ module ActiveSupport
       #
       #   set_callback :save, :before_meth
       #
-      # The callback can specified as a symbol naming an instance method; as a
+      # The callback can be specified as a symbol naming an instance method; as a
       # proc, lambda, or block; as a string to be instance evaluated; or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
       # argument to +define_callback+.
