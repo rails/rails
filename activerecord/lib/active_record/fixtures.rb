@@ -625,10 +625,10 @@ module ActiveRecord
               end
             when :has_many
               if association.options[:through]
-                handle_hmt(rows, row, association)
+                add_join_records(rows, row, HasManyThroughProxy.new(association))
               end
             when :has_and_belongs_to_many
-              handle_habtm(rows, row, association)
+              add_join_records(rows, row, HABTMProxy.new(association))
             end
           end
         end
@@ -638,38 +638,57 @@ module ActiveRecord
       rows
     end
 
+    class ReflectionProxy # :nodoc:
+      def initialize(association)
+        @association = association
+      end
+
+      def join_table
+        @association.join_table
+      end
+
+      def name
+        @association.name
+      end
+    end
+
+    class HasManyThroughProxy < ReflectionProxy # :nodoc:
+      def rhs_key
+        @association.foreign_key
+      end
+
+      def lhs_key
+        @association.through_reflection.foreign_key
+      end
+    end
+
+    class HABTMProxy < ReflectionProxy # :nodoc:
+      def rhs_key
+        @association.association_foreign_key
+      end
+
+      def lhs_key
+        @association.foreign_key
+      end
+    end
+
     private
       def primary_key_name
         @primary_key_name ||= model_class && model_class.primary_key
       end
 
-      def join_rows(targets, row, lhs_key, rhs_key)
-        targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-        targets.map { |target|
-          { lhs_key => row[primary_key_name],
-            rhs_key => ActiveRecord::FixtureSet.identify(target) }
-        }
-      end
-
-      def handle_hmt(rows, row, association)
+      def add_join_records(rows, row, association)
         # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
           table_name = association.join_table
-          lhs_key    = association.through_reflection.foreign_key
-          rhs_key    = association.foreign_key
+          lhs_key    = association.lhs_key
+          rhs_key    = association.rhs_key
 
-          rows[table_name].concat join_rows(targets, row, lhs_key, rhs_key)
-        end
-      end
-
-      def handle_habtm(rows, row, association)
-        # This is the case when the join table has no fixtures file
-        if (targets = row.delete(association.name.to_s))
-          table_name = association.join_table
-          lhs_key    = association.foreign_key
-          rhs_key    = association.association_foreign_key
-
-          rows[table_name].concat join_rows(targets, row, lhs_key, rhs_key)
+          targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
+          rows[table_name].concat targets.map { |target|
+            { lhs_key => row[primary_key_name],
+              rhs_key => ActiveRecord::FixtureSet.identify(target) }
+          }
         end
       end
 
