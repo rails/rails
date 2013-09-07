@@ -99,7 +99,7 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 9     Test LOC: 0     Code to Test Ratio: 1:0.0",
+      assert_match "Code LOC: 8     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path){ `rake stats` }
     end
 
