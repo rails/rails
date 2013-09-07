@@ -46,11 +46,6 @@ module SharedGeneratorTests
     assert_no_file "test"
   end
 
-  def test_options_before_application_name_raises_an_error
-    content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
-    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin new)? --help\n/, content)
-  end
-
   def test_name_collision_raises_an_error
     reserved_words = %w[application destroy plugin runner test]
     reserved_words.each do |reserved|
