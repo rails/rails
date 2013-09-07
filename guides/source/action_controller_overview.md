@@ -321,10 +321,12 @@ in mind. It is not meant as a silver bullet to handle all your
 whitelisting problems. However you can easily mix the API with your
 own code to adapt to your situation.
 
-Imagine a scenario where you want to whitelist an attribute
-containing a hash with any keys. Using strong parameters you can't
-allow a hash with any keys but you can use a simple assignment to get
-the job done:
+Imagine a scenario where you have parameters representing a product
+name and a hash of arbitrary data associated with that product, and
+you want to whitelist the product name attribute but also the whole
+data hash. The strong parameters API doesn't let you directly
+whitelist the whole of a nested hash with any keys, but you can use a
+simple assignment to get the job done:
 
 ```ruby
 def product_params
@@ -333,6 +335,28 @@ def product_params
   end
 end
 ```
+
+Here, `params.require(:product).permit(:name)` will return a
+whitelisted version of `params` only containing the `name` attribute.
+Then the `tap` block injects the `data` hash back into it, and returns
+the result, which is still whitelisted.  The disadvantage of this
+approach is that the `.permit(:name)` invocation will emit a
+`Unpermitted parameters: data` warning which pollutes your logs.
+Therefore you may prefer to make `product_params` build a new `Hash`
+object from scratch, e.g.
+
+```ruby
+def product_params
+  params.require(:product).inject({}) do |whitelisted, (k, v)|
+    whitelisted[k] = v if %w(name data).include? k
+    whitelisted
+  end
+end
+```
+
+although this has the slight potential disadvantage of bypassing the
+`ActionController::Parameters.action_on_unpermitted_parameters`
+setting.
 
 Session
 -------
