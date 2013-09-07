@@ -182,6 +182,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_attributes_return_hash_with_indifferent_access
+    category = Category.new(name: "Test category")
+    assert_equal category.attributes["name"], category.attributes[:name]
+  end
+
   def test_read_attributes_before_type_cast_on_datetime
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new
