@@ -64,6 +64,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  anonbook.subscribers.map(&:id).sort
   end
 
+  def test_no_pk_join_table_append
+    lesson = make_model 'Lesson'
+    student = make_model 'Student'
+
+    lesson_student = make_model 'LessonStudent'
+    lesson_student.table_name = 'lessons_students'
+
+    lesson_student.belongs_to :lesson, :class => lesson
+    lesson_student.belongs_to :student, :class => student
+    lesson.has_many :lesson_students, :class => lesson_student
+    lesson.has_many :students, :through => :lesson_students, :class => student
+
+    sicp = lesson.new(:name => "SICP")
+    ben = student.new(:name => "Ben Bitdiddle")
+    sicp.students << ben
+    assert sicp.save!
+  end
+
   def test_pk_is_not_required_for_join
     post  = Post.includes(:scategories).first
     post2 = Post.includes(:categories).first

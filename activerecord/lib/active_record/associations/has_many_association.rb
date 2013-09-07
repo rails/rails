@@ -125,7 +125,11 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          owner.attribute_present?(reflection.association_primary_key)
+          if reflection.klass.primary_key
+            owner.attribute_present?(reflection.association_primary_key)
+          else
+            false
+          end
         end
     end
   end
