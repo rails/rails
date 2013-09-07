@@ -914,9 +914,9 @@ def create
 end
 
 private
-def person_params
-  params.require(:person).permit(:name, addresses_attributes: [:id, :kind, :street])
-end
+  def person_params
+    params.require(:person).permit(:name, addresses_attributes: [:id, :kind, :street])
+  end
 ```
 
 ### Removing Objects

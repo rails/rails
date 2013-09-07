@@ -386,7 +386,7 @@ Finally, to see where you are in the code again you can type `list=`
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
-   10        format.json { render :json => @posts }
+   10        format.json { render json: @posts }
 ```
 
 ### The Context

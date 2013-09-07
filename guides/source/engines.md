@@ -399,9 +399,9 @@ def create
 end
 
 private
-def comment_params
-  params.require(:comment).permit(:text)
-end
+  def comment_params
+    params.require(:comment).permit(:text)
+  end
 ```
 
 This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
@@ -850,7 +850,6 @@ module Blorgh::Concerns::Models::Post
     before_save :set_author
 
     private
-
       def set_author
         self.author = User.find_or_create_by(name: author_name)
       end
