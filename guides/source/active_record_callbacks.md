@@ -35,11 +35,11 @@ class User < ActiveRecord::Base
   before_validation :ensure_login_has_a_value
 
   protected
-  def ensure_login_has_a_value
-    if login.nil?
-      self.login = email unless email.blank?
+    def ensure_login_has_a_value
+      if login.nil?
+        self.login = email unless email.blank?
+      end
     end
-  end
 end
 ```
 
@@ -65,13 +65,13 @@ class User < ActiveRecord::Base
   after_validation :set_location, on: [ :create, :update ]
 
   protected
-  def normalize_name
-    self.name = self.name.downcase.titleize
-  end
+    def normalize_name
+      self.name = self.name.downcase.titleize
+    end
 
-  def set_location
-    self.location = LocationService.query(self)
-  end
+    def set_location
+      self.location = LocationService.query(self)
+    end
 end
 ```
 

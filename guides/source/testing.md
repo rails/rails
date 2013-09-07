@@ -757,24 +757,24 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 
   private
 
-  module CustomDsl
-    def browses_site
-      get "/products/all"
-      assert_response :success
-      assert assigns(:products)
+    module CustomDsl
+      def browses_site
+        get "/products/all"
+        assert_response :success
+        assert assigns(:products)
+      end
     end
-  end
 
-  def login(user)
-    open_session do |sess|
-      sess.extend(CustomDsl)
-      u = users(user)
-      sess.https!
-      sess.post "/login", username: u.username, password: u.password
-      assert_equal '/welcome', path
-      sess.https!(false)
+    def login(user)
+      open_session do |sess|
+        sess.extend(CustomDsl)
+        u = users(user)
+        sess.https!
+        sess.post "/login", username: u.username, password: u.password
+        assert_equal '/welcome', path
+        sess.https!(false)
+      end
     end
-  end
 end
 ```
 
@@ -887,10 +887,9 @@ class PostsControllerTest < ActionController::TestCase
 
   private
 
-  def initialize_post
-    @post = posts(:one)
-  end
-
+    def initialize_post
+      @post = posts(:one)
+    end
 end
 ```
 

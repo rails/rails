@@ -569,25 +569,25 @@ class UserMailer < ActionMailer::Base
 
   private
 
-  def set_delivery_options
-    # You have access to the mail instance,
-    # @business and @user instance variables here
-    if @business && @business.has_smtp_settings?
-      mail.delivery_method.settings.merge!(@business.smtp_settings)
+    def set_delivery_options
+      # You have access to the mail instance,
+      # @business and @user instance variables here
+      if @business && @business.has_smtp_settings?
+        mail.delivery_method.settings.merge!(@business.smtp_settings)
+      end
     end
-  end
 
-  def prevent_delivery_to_guests
-    if @user && @user.guest?
-      mail.perform_deliveries = false
+    def prevent_delivery_to_guests
+      if @user && @user.guest?
+        mail.perform_deliveries = false
+      end
     end
-  end
 
-  def set_business_headers
-    if @business
-      headers["X-SMTPAPI-CATEGORY"] = @business.code
+    def set_business_headers
+      if @business
+        headers["X-SMTPAPI-CATEGORY"] = @business.code
+      end
     end
-  end
 end
 ```
 

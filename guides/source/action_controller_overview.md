@@ -808,11 +808,11 @@ class AdminsController < ApplicationController
 
   private
 
-  def authenticate
-    authenticate_or_request_with_http_digest do |username|
-      USERS[username]
+    def authenticate
+      authenticate_or_request_with_http_digest do |username|
+        USERS[username]
+      end
     end
-  end
 end
 ```
 
@@ -839,13 +839,13 @@ class ClientsController < ApplicationController
 
   private
 
-  def generate_pdf(client)
-    Prawn::Document.new do
-      text client.name, align: :center
-      text "Address: #{client.address}"
-      text "Email: #{client.email}"
-    end.render
-  end
+    def generate_pdf(client)
+      Prawn::Document.new do
+        text client.name, align: :center
+        text "Address: #{client.address}"
+        text "Email: #{client.email}"
+      end.render
+    end
 end
 ```
 
@@ -1048,9 +1048,9 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def record_not_found
-    render text: "404 Not Found", status: 404
-  end
+    def record_not_found
+      render text: "404 Not Found", status: 404
+    end
 end
 ```
 
@@ -1062,10 +1062,10 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def user_not_authorized
-    flash[:error] = "You don't have access to this section."
-    redirect_to :back
-  end
+    def user_not_authorized
+      flash[:error] = "You don't have access to this section."
+      redirect_to :back
+    end
 end
 
 class ClientsController < ApplicationController
@@ -1079,10 +1079,10 @@ class ClientsController < ApplicationController
 
   private
 
-  # If the user is not authorized, just throw the exception.
-  def check_authorization
-    raise User::NotAuthorized unless current_user.admin?
-  end
+    # If the user is not authorized, just throw the exception.
+    def check_authorization
+      raise User::NotAuthorized unless current_user.admin?
+    end
 end
 ```
 
