@@ -151,17 +151,11 @@ module Rails
                              desc: "Show Rails version number and quit"
 
       def initialize(*args)
-        if args[0].blank?
-          if args[1].blank?
-            # rails new
-            raise Error, "Application name should be provided in arguments. For details run: rails --help"
-          else
-            # rails new --skip-bundle my_new_application
-            raise Error, "Options should be given after the application name. For details run: rails --help"
-          end
-        end
-
         super
+
+        unless app_path
+          raise Error, "Application name should be provided in arguments. For details run: rails --help"
+        end
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."

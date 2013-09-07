@@ -176,10 +176,12 @@ task default: :test
                                                  "skip adding entry to Gemfile"
 
       def initialize(*args)
-        raise Error, "Options should be given after the plugin name. For details run: rails plugin new --help" if args[0].blank?
-
         @dummy_path = nil
         super
+
+        unless plugin_path
+          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
+        end
       end
 
       public_task :create_root
