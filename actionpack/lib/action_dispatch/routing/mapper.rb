@@ -432,10 +432,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }
         #
-        #     class Blacklist
+        #     class Whitelist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Blacklist.new
+        #     match 'path', to: 'c#a', constraints: Whitelist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
