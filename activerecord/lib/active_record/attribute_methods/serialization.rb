@@ -20,7 +20,7 @@ module ActiveRecord
         # ==== Example
         #
         #   # Serialize a preferences attribute.
-        #   class User < ActiveRecord::Base
+        #   class User < ApplicationModel
         #     serialize :preferences
         #   end
         #

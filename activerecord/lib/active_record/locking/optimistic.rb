@@ -43,7 +43,7 @@ module ActiveRecord
     # This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
     # To override the name of the +lock_version+ column, set the <tt>locking_column</tt> class attribute:
     #
-    #   class Person < ActiveRecord::Base
+    #   class Person < ApplicationModel
     #     self.locking_column = :lock_person
     #   end
     #

@@ -8,7 +8,7 @@ module ActiveRecord
     #
     # For example, given
     #
-    #   class Blog < ActiveRecord::Base
+    #   class Blog < ApplicationModel
     #     has_many :posts
     #   end
     #
@@ -58,7 +58,7 @@ module ActiveRecord
       #
       # *First:* Specify a subset of fields to be selected from the result set.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -115,7 +115,7 @@ module ActiveRecord
       # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
       # error if the object cannot be found.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -145,7 +145,7 @@ module ActiveRecord
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -201,7 +201,7 @@ module ActiveRecord
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -307,7 +307,7 @@ module ActiveRecord
       # inserts each record, +push+ and +concat+ behave identically. Returns +self+
       # so method calls may be chained.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -333,7 +333,7 @@ module ActiveRecord
       # Replaces this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -366,7 +366,7 @@ module ActiveRecord
       # For +has_many+ associations, the default deletion strategy is +:nullify+.
       # This sets the foreign keys to +NULL+.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets # dependent: :nullify option by default
       #   end
       #
@@ -399,7 +399,7 @@ module ActiveRecord
       # +:delete_all+ strategy if the +:dependent+ option is set to +:destroy+.
       # Records are not instantiated and callbacks will not be fired.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets, dependent: :destroy
       #   end
       #
@@ -419,7 +419,7 @@ module ActiveRecord
       # If it is set to <tt>:delete_all</tt>, all the objects are deleted
       # *without* calling their +destroy+ method.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets, dependent: :delete_all
       #   end
       #
@@ -444,7 +444,7 @@ module ActiveRecord
       # invokes +before_remove+, +after_remove+ , +before_destroy+ and
       # +after_destroy+ callbacks.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -476,7 +476,7 @@ module ActiveRecord
       # keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>, the default
       # strategy is +delete_all+.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets # dependent: :nullify option by default
       #   end
       #
@@ -504,7 +504,7 @@ module ActiveRecord
       # If it is set to <tt>:destroy</tt> all the +records+ are removed by calling
       # their +destroy+ method. See +destroy+ for more information.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets, dependent: :destroy
       #   end
       #
@@ -532,7 +532,7 @@ module ActiveRecord
       # If it is set to <tt>:delete_all</tt>, all the +records+ are deleted
       # *without* calling their +destroy+ method.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets, dependent: :delete_all
       #   end
       #
@@ -560,7 +560,7 @@ module ActiveRecord
       # You can pass +Fixnum+ or +String+ values, it finds the records
       # responding to the +id+ and executes delete on them.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -588,7 +588,7 @@ module ActiveRecord
       # This method will _always_ remove record from the database ignoring
       # the +:dependent+ option. Returns an array with the removed records.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -658,7 +658,7 @@ module ActiveRecord
 
       # Specifies whether the records should be unique or not.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -677,7 +677,7 @@ module ActiveRecord
 
       # Count all records using SQL.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -699,7 +699,7 @@ module ActiveRecord
       # equivalent. If not and you are going to need the records anyway
       # +length+ will take one less query. Otherwise +size+ is more efficient.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -725,7 +725,7 @@ module ActiveRecord
       # equivalent. If not and you are going to need the records anyway this
       # method will take one less query. Otherwise +size+ is more efficient.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -751,7 +751,7 @@ module ActiveRecord
       # not already been loaded and you are going to fetch the records anyway it
       # is better to check <tt>collection.length.zero?</tt>.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -768,7 +768,7 @@ module ActiveRecord
 
       # Returns +true+ if the collection is not empty.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -802,7 +802,7 @@ module ActiveRecord
       # Returns true if the collection has more than one record.
       # Equivalent to <tt>collection.size > 1</tt>.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -839,7 +839,7 @@ module ActiveRecord
 
       # Returns +true+ if the given +record+ is present in the collection.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -878,7 +878,7 @@ module ActiveRecord
       # to the corresponding element in the +other+ array, otherwise returns
       # +false+.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -904,7 +904,7 @@ module ActiveRecord
       # Returns a new array of objects from the collection. If the collection
       # hasn't been loaded, it fetches the records from the database.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -943,7 +943,7 @@ module ActiveRecord
       # to the association's primary key. Returns +self+, so several appends may be
       # chained together.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
@@ -980,7 +980,7 @@ module ActiveRecord
       # Reloads the collection from the database. Returns +self+.
       # Equivalent to <tt>collection(true)</tt>.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_many :pets
       #   end
       #
