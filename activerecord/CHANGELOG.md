@@ -2,8 +2,8 @@
 
     *Paul Nikitochkin*
 
-*   Fix PredicateBuilder so polymorhic association keys in `where` clause can
-    also accept not only `ActiveRecord::Base` direct descendances (decorated
+*   Fix PredicateBuilder so polymorphic association keys in `where` clause can
+    accept objects other than direct descendants of `ActiveRecord::Base` (decorated
     models, for example).
 
     *Mikhail Dieterle*
