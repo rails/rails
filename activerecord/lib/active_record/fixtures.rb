@@ -479,7 +479,7 @@ module ActiveRecord
 
           fixture_sets = files_to_read.map do |fs_name|
             klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
+            conn = klass.respond_to?(:connection) ? klass.connection : connection
             fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
               conn,
               fs_name,
