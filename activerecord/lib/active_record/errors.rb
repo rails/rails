@@ -13,11 +13,11 @@ module ActiveRecord
 
   # Raised when an object assigned to an association has an incorrect type.
   #
-  #   class Ticket < ActiveRecord::Base
+  #   class Ticket < ApplicationModel
   #     has_many :patches
   #   end
   #
-  #   class Patch < ActiveRecord::Base
+  #   class Patch < ApplicationModel
   #     belongs_to :ticket
   #   end
   #
@@ -201,7 +201,7 @@ module ActiveRecord
 
   # Raised when a relation cannot be mutated because it's already loaded.
   #
-  #   class Task < ActiveRecord::Base
+  #   class Task < ApplicationModel
   #   end
   #
   #   relation = Task.all

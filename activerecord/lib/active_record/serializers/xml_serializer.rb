@@ -160,7 +160,7 @@ module ActiveRecord #:nodoc:
     # subclasses to have complete control about what's generated. The general
     # form of doing this is:
     #
-    #   class IHaveMyOwnXML < ActiveRecord::Base
+    #   class IHaveMyOwnXML < ApplicationModel
     #     def to_xml(options = {})
     #       require 'builder'
     #       options[:indent] ||= 2

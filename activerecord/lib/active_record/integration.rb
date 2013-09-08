@@ -27,7 +27,7 @@ module ActiveRecord
     # You can override +to_param+ in your model to make +user_path+ construct
     # a path using the user's name instead of the user's id:
     #
-    #   class User < ActiveRecord::Base
+    #   class User < ApplicationModel
     #     def to_param  # overridden
     #       name
     #     end

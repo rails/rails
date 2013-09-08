@@ -399,11 +399,11 @@ module ActiveRecord
     #
     # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
     #
-    #   class Brake < ActiveRecord::Base
+    #   class Brake < ApplicationModel
     #     belongs_to :car, touch: true
     #   end
     #
-    #   class Car < ActiveRecord::Base
+    #   class Car < ApplicationModel
     #     belongs_to :corporation, touch: true
     #   end
     #
