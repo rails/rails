@@ -13,7 +13,7 @@ module ActiveRecord
       module ClassMethods
         # Returns a scope for the model without the +default_scope+.
         #
-        #   class Post < ActiveRecord::Base
+        #   class Post < ApplicationModel
         #     def self.default_scope
         #       where published: true
         #     end
@@ -41,7 +41,7 @@ module ActiveRecord
         # Use this macro in your model to set a default scope for all operations on
         # the model.
         #
-        #   class Article < ActiveRecord::Base
+        #   class Article < ApplicationModel
         #     default_scope { where(published: true) }
         #   end
         #
@@ -60,7 +60,7 @@ module ActiveRecord
         # If you use multiple +default_scope+ declarations in your model then
         # they will be merged together:
         #
-        #   class Article < ActiveRecord::Base
+        #   class Article < ApplicationModel
         #     default_scope { where(published: true) }
         #     default_scope { where(rating: 'G') }
         #   end
@@ -74,7 +74,7 @@ module ActiveRecord
         # If you need to do more complex things with a default scope, you can
         # alternatively define it as a class method:
         #
-        #   class Article < ActiveRecord::Base
+        #   class Article < ApplicationModel
         #     def self.default_scope
         #       # Should return a scope, you can call 'super' here etc.
         #     end

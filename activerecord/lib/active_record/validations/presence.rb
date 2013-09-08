@@ -21,7 +21,7 @@ module ActiveRecord
       # associated object is not marked for destruction. Happens by default
       # on save.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationModel
       #     has_one :face
       #     validates_presence_of :face
       #   end
