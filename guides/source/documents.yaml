@@ -150,6 +150,13 @@
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
 -
+  name: Maintenance Policy
+  documents:
+    -
+      name: Maintenance Policy
+      url: maintenance_policy.html
+      description: What versions of Ruby on Rails are currently supported, and when to expect new versions.
+-
   name: Release Notes
   documents:
     -
