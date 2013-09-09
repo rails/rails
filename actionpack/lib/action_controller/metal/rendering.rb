@@ -12,8 +12,6 @@ module ActionController
     def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if self.response_body
       super
-      self.content_type ||= rendered_format.to_s
-      self.response_body
     end
 
     # Overwrite render_to_string because body can now be set to a rack body.
@@ -37,6 +35,11 @@ module ActionController
     end
 
     private
+
+    def _process_format(format)
+      super
+      self.content_type ||= format.to_s
+    end
 
     # Normalize arguments by catching blocks and setting them on :update.
     def _normalize_args(action=nil, options={}, &blk) #:nodoc:

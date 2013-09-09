@@ -32,6 +32,8 @@ module AbstractController
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
+      _process_format(rendered_format)
+      self.response_body
     end
 
     # Raw rendering of a template to a string.
@@ -96,6 +98,11 @@ module AbstractController
     # :api: plugin
     def _process_options(options)
       options
+    end
+
+    # Process the rendered format.
+    # :api: private
+    def _process_format(format)
     end
 
     # Normalize args and options.

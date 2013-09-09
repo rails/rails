@@ -364,9 +364,7 @@ module ActionController #:nodoc:
       format = collector.negotiate_format(request)
 
       if format
-        self.content_type ||= format.to_s
-        lookup_context.formats = [format.to_sym]
-        lookup_context.rendered_format = lookup_context.formats.first
+        _process_format(format)
         collector
       else
         raise ActionController::UnknownFormat
