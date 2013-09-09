@@ -161,7 +161,7 @@ module ActiveRecord
 
       # Starts a transaction in the association class's database connection.
       #
-      #   class Author < ApplicationModel
+      #   class Author < ApplicationRecord
       #     has_many :books
       #   end
       #

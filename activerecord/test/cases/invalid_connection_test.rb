@@ -3,7 +3,7 @@ require "cases/helper"
 class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  class Bird < ApplicationModel
+  class Bird < ApplicationRecord
   end
 
   def setup

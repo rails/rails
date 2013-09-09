@@ -12,7 +12,7 @@ module ActiveRecord
       # Validates whether the associated object or objects are all valid.
       # Works with any kind of association.
       #
-      #   class Book < ApplicationModel
+      #   class Book < ApplicationRecord
       #     has_many :pages
       #     belongs_to :library
       #

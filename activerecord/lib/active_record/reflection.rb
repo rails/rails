@@ -253,7 +253,7 @@ module ActiveRecord
     class AssociationReflection < MacroReflection #:nodoc:
       # Returns the target association's class.
       #
-      #   class Author < ApplicationModel
+      #   class Author < ApplicationRecord
       #     has_many :books
       #   end
       #
@@ -643,12 +643,12 @@ module ActiveRecord
       # Returns the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
-      #   class Post < ApplicationModel
+      #   class Post < ApplicationRecord
       #     has_many :taggings
       #     has_many :tags, through: :taggings
       #   end
       #
-      #   class Tagging < ApplicationModel
+      #   class Tagging < ApplicationRecord
       #     belongs_to :post
       #     belongs_to :tag
       #   end
@@ -664,7 +664,7 @@ module ActiveRecord
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
       # of a HasManyThrough or HasOneThrough association.
       #
-      #   class Post < ApplicationModel
+      #   class Post < ApplicationRecord
       #     has_many :taggings
       #     has_many :tags, through: :taggings
       #   end
@@ -684,7 +684,7 @@ module ActiveRecord
       # reflection. The base case for the recursion is a normal association, which just returns
       # [self] as its #chain.
       #
-      #   class Post < ApplicationModel
+      #   class Post < ApplicationRecord
       #     has_many :taggings
       #     has_many :tags, through: :taggings
       #   end
@@ -770,7 +770,7 @@ module ActiveRecord
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
       #
-      #   class Post < ApplicationModel
+      #   class Post < ApplicationRecord
       #     has_many :taggings
       #     has_many :tags, through: :taggings
       #   end
@@ -798,7 +798,7 @@ module ActiveRecord
             "Ambiguous source reflection for through association.  Please " \
             "specify a :source directive on your declaration like:\n" \
             "\n" \
-            "  class #{active_record.name} < ApplicationModel\n" \
+            "  class #{active_record.name} < ApplicationRecord\n" \
             "    #{macro} :#{name}, #{example_options}\n" \
             "  end"
         end

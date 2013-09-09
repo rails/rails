@@ -102,14 +102,14 @@ module ActiveRecord
       # across the system. Useful for making sure that only one user
       # can be named "davidhh".
       #
-      #   class Person < ApplicationModel
+      #   class Person < ApplicationRecord
       #     validates_uniqueness_of :user_name
       #   end
       #
       # It can also validate whether the value of the specified attributes are
       # unique based on a <tt>:scope</tt> parameter:
       #
-      #   class Person < ApplicationModel
+      #   class Person < ApplicationRecord
       #     validates_uniqueness_of :user_name, scope: :account_id
       #   end
       #
@@ -117,7 +117,7 @@ module ActiveRecord
       # teacher can only be on the schedule once per semester for a particular
       # class.
       #
-      #   class TeacherSchedule < ApplicationModel
+      #   class TeacherSchedule < ApplicationRecord
       #     validates_uniqueness_of :teacher_id, scope: [:semester_id, :class_id]
       #   end
       #
@@ -126,7 +126,7 @@ module ActiveRecord
       # are not being taken into consideration when validating uniqueness
       # of the title attribute:
       #
-      #   class Article < ApplicationModel
+      #   class Article < ApplicationRecord
       #     validates_uniqueness_of :title, conditions: -> { where.not(status: 'archived') }
       #   end
       #

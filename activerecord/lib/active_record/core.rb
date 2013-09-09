@@ -224,7 +224,7 @@ module ActiveRecord
 
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
       #
-      #   class Post < ApplicationModel
+      #   class Post < ApplicationRecord
       #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
@@ -293,7 +293,7 @@ module ActiveRecord
     # the attributes necessary for initializing an empty model object. For
     # example:
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #   end
     #
     #   post = Post.allocate
@@ -363,7 +363,7 @@ module ActiveRecord
     #
     # Example:
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #   end
     #   coder = {}
     #   Post.new.encode_with(coder)

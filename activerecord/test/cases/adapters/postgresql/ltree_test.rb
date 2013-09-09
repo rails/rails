@@ -4,7 +4,7 @@ require 'support/schema_dumping_helper'
 
 class PostgresqlLtreeTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
-  class Ltree < ApplicationModel
+  class Ltree < ApplicationRecord
     self.table_name = 'ltrees'
   end
 

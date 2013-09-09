@@ -1,13 +1,13 @@
 require "cases/helper"
 require 'support/ddl_helper'
 
-class PostgresqlTime < ApplicationModel
+class PostgresqlTime < ApplicationRecord
 end
 
-class PostgresqlOid < ApplicationModel
+class PostgresqlOid < ApplicationRecord
 end
 
-class PostgresqlLtree < ApplicationModel
+class PostgresqlLtree < ApplicationRecord
 end
 
 class PostgresqlDataTypeTest < ActiveRecord::TestCase

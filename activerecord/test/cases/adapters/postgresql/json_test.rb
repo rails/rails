@@ -5,7 +5,7 @@ require 'support/schema_dumping_helper'
 module PostgresqlJSONSharedTestCases
   include SchemaDumpingHelper
 
-  class JsonDataType < ApplicationModel
+  class JsonDataType < ApplicationRecord
     self.table_name = 'json_data_type'
 
     store_accessor :settings, :resolution

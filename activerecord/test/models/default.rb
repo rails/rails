@@ -1,2 +1,2 @@
-class Default < ApplicationModel
+class Default < ApplicationRecord
 end

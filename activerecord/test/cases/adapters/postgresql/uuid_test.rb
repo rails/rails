@@ -16,7 +16,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
-  class UUIDType < ApplicationModel
+  class UUIDType < ApplicationRecord
     self.table_name = "uuid_data_type"
   end
 

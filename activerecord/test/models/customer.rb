@@ -1,4 +1,4 @@
-class Customer < ApplicationModel
+class Customer < ApplicationRecord
   cattr_accessor :gps_conversion_was_run
 
   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ], :allow_nil => true

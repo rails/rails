@@ -6,7 +6,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   include ConnectionHelper
   include DdlHelper
 
-  class Klass < ApplicationModel
+  class Klass < ApplicationRecord
   end
 
   def setup

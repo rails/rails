@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class SchemaThing < ApplicationModel
+class SchemaThing < ApplicationRecord
 end
 
 class SchemaAuthorizationTest < ActiveRecord::TestCase

@@ -1,4 +1,4 @@
-class Toy < ApplicationModel
+class Toy < ApplicationRecord
   self.primary_key = :toy_id
   belongs_to :pet
 

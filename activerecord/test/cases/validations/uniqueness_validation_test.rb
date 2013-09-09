@@ -6,7 +6,7 @@ require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
 
-class Wizard < ApplicationModel
+class Wizard < ApplicationRecord
   self.abstract_class = true
 
   validates_uniqueness_of :name

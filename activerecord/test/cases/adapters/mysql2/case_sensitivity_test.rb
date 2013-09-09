@@ -2,7 +2,7 @@ require "cases/helper"
 require 'models/person'
 
 class Mysql2CaseSensitivityTest < ActiveRecord::TestCase
-  class CollationTest < ApplicationModel
+  class CollationTest < ApplicationRecord
   end
 
   repair_validations(CollationTest)

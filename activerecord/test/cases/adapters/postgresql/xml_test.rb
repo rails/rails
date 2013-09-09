@@ -4,7 +4,7 @@ require 'support/schema_dumping_helper'
 
 class PostgresqlXMLTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
-  class XmlDataType < ApplicationModel
+  class XmlDataType < ApplicationRecord
     self.table_name = 'xml_data_type'
   end
 

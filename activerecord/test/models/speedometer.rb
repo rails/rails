@@ -1,4 +1,4 @@
-class Speedometer < ApplicationModel
+class Speedometer < ApplicationRecord
   self.primary_key = :speedometer_id
   belongs_to :dashboard
 

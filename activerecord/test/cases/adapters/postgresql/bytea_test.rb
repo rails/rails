@@ -2,7 +2,7 @@
 require "cases/helper"
 
 class PostgresqlByteaTest < ActiveRecord::TestCase
-  class ByteaDataType < ApplicationModel
+  class ByteaDataType < ApplicationRecord
     self.table_name = 'bytea_data_type'
   end
 

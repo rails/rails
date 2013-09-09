@@ -1,9 +1,9 @@
 module Shop
-  class Collection < ApplicationModel
+  class Collection < ApplicationRecord
     has_many :products, :dependent => :nullify
   end
 
-  class Product < ApplicationModel
+  class Product < ApplicationRecord
     has_many :variants, :dependent => :delete_all
     belongs_to :type
 
@@ -12,6 +12,6 @@ module Shop
     end
   end
 
-  class Variant < ApplicationModel
+  class Variant < ApplicationRecord
   end
 end

@@ -1,3 +1,3 @@
-class MixedCaseMonkey < ApplicationModel
+class MixedCaseMonkey < ApplicationRecord
   belongs_to :man
 end

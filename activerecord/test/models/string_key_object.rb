@@ -1,3 +1,3 @@
-class StringKeyObject < ApplicationModel
+class StringKeyObject < ApplicationRecord
   self.primary_key = :id
 end

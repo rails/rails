@@ -4,7 +4,7 @@ require "cases/view_test"
 class UpdateableViewTest < ActiveRecord::TestCase
   fixtures :books
 
-  class PrintedBook < ApplicationModel
+  class PrintedBook < ApplicationRecord
     self.primary_key = "id"
   end
 

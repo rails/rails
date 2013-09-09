@@ -1,4 +1,4 @@
-class Author < ApplicationModel
+class Author < ApplicationRecord
   has_many :posts
   has_many :serialized_posts
   has_one :post
@@ -186,7 +186,7 @@ class Author < ApplicationModel
     end
 end
 
-class AuthorAddress < ApplicationModel
+class AuthorAddress < ApplicationRecord
   has_one :author
 
   def self.destroyed_author_address_ids
@@ -198,7 +198,7 @@ class AuthorAddress < ApplicationModel
   end
 end
 
-class AuthorFavorite < ApplicationModel
+class AuthorFavorite < ApplicationRecord
   belongs_to :author
   belongs_to :favorite_author, :class_name => "Author"
 end

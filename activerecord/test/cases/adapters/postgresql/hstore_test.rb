@@ -5,7 +5,7 @@ require 'support/schema_dumping_helper'
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlHstoreTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
-    class Hstore < ApplicationModel
+    class Hstore < ApplicationRecord
       self.table_name = 'hstores'
 
       store_accessor :settings, :language, :timezone

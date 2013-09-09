@@ -1,4 +1,4 @@
-class Ship < ApplicationModel
+class Ship < ApplicationRecord
   self.record_timestamps = false
 
   belongs_to :pirate

@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class Mixin < ApplicationModel
+class Mixin < ApplicationRecord
 end
 
 class TouchTest < ActiveRecord::TestCase

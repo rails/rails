@@ -1,4 +1,4 @@
-class Treaty < ApplicationModel
+class Treaty < ApplicationRecord
 
   self.primary_key = :treaty_id
 

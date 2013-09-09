@@ -1,21 +1,21 @@
 require "cases/helper"
 
-class Group < ApplicationModel
+class Group < ApplicationRecord
   Group.table_name = 'group'
   belongs_to :select
   has_one :values
 end
 
-class Select < ApplicationModel
+class Select < ApplicationRecord
   Select.table_name = 'select'
   has_many :groups
 end
 
-class Values < ApplicationModel
+class Values < ApplicationRecord
   Values.table_name = 'values'
 end
 
-class Distinct < ApplicationModel
+class Distinct < ApplicationRecord
   Distinct.table_name = 'distinct'
   has_and_belongs_to_many :selects
   has_many :values, :through => :groups

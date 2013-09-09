@@ -4,7 +4,7 @@ unless ActiveRecord::Base.connection.supports_transaction_isolation?
   class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
-    class Tag < ApplicationModel
+    class Tag < ApplicationRecord
     end
 
     test "setting the isolation level raises an error" do
