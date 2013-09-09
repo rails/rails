@@ -1,4 +1,7 @@
+require 'active_support/deprecation'
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/html-scanner"
+
+ActiveSupport::Deprecation.warn("html-scanner has been deprecated in favor of using Loofah in SanitizeHelper and ActionView::Assertions.")
 
 module HTML
   extend ActiveSupport::Autoload
