@@ -1,3 +1,7 @@
+*   Allow Relation#from to accept other relations with bind values.
+
+    *Ryan Wallace*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*
