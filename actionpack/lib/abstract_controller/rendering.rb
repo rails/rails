@@ -10,14 +10,6 @@ module AbstractController
     end
   end
 
-  class UnsupportedOperationError < Error
-    DEFAULT_MESSAGE = "Unsupported render operation. BasicRendering supports only :text and :nothing options. For more, you need to include ActionView."
-
-    def initialize
-      super DEFAULT_MESSAGE
-    end
-  end
-
   module Rendering
     extend ActiveSupport::Concern
 
@@ -55,7 +47,7 @@ module AbstractController
     # Performs the actual template rendering.
     # :api: public
     def render_to_body(options = {})
-      raise UnsupportedOperationError
+      raise NotImplementedError, "no render operation defined"
     end
 
     # Return Content-Type of rendered content
