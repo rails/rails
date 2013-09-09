@@ -1,5 +1,5 @@
 # This class models a vertex in a directed graph.
-class Vertex < ApplicationModel
+class Vertex < ApplicationRecord
   has_many :sink_edges, :class_name => 'Edge', :foreign_key => 'source_id'
   has_many :sinks, :through => :sink_edges
 

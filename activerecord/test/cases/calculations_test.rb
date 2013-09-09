@@ -13,7 +13,7 @@ require 'models/ship_part'
 
 Company.has_many :accounts
 
-class NumericData < ApplicationModel
+class NumericData < ApplicationRecord
   self.table_name = 'numeric_data'
 end
 

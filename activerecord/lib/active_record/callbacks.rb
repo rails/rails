@@ -32,7 +32,7 @@ module ActiveRecord
   # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
   #
   # Examples:
-  #   class CreditCard < ApplicationModel
+  #   class CreditCard < ApplicationRecord
   #     # Strip everything but digits, so the user can specify "555 234 34" or
   #     # "5552-3434" and both will mean "55523434"
   #     before_validation(on: :create) do
@@ -40,7 +40,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  #   class Subscription < ApplicationModel
+  #   class Subscription < ApplicationRecord
   #     before_create :record_signup
   #
   #     private
@@ -49,7 +49,7 @@ module ActiveRecord
   #       end
   #   end
   #
-  #   class Firm < ApplicationModel
+  #   class Firm < ApplicationRecord
   #     # Destroys the associated clients and people when the firm is destroyed
   #     before_destroy { |record| Person.destroy_all "firm_id = #{record.id}"   }
   #     before_destroy { |record| Client.destroy_all "client_of = #{record.id}" }
@@ -61,7 +61,7 @@ module ActiveRecord
   # use of the callback macros. Their main advantage is that the macros add behavior into a callback
   # queue that is kept intact down through an inheritance hierarchy.
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     before_destroy :destroy_author
   #   end
   #
@@ -73,7 +73,7 @@ module ActiveRecord
   # run, both +destroy_author+ and +destroy_readers+ are called. Contrast this to the following situation
   # where the +before_destroy+ method is overridden:
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     def before_destroy() destroy_author end
   #   end
   #
@@ -99,7 +99,7 @@ module ActiveRecord
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     before_destroy :delete_parents
   #
   #     private
@@ -110,7 +110,7 @@ module ActiveRecord
   #
   # The callback objects have methods named after the callback called with the record as the only parameter, such as:
   #
-  #   class BankAccount < ApplicationModel
+  #   class BankAccount < ApplicationRecord
   #     before_save      EncryptionWrapper.new
   #     after_save       EncryptionWrapper.new
   #     after_initialize EncryptionWrapper.new
@@ -141,7 +141,7 @@ module ActiveRecord
   # a method by the name of the callback messaged. You can make these callbacks more flexible by passing in other
   # initialization data such as the name of the attribute to work with:
   #
-  #   class BankAccount < ApplicationModel
+  #   class BankAccount < ApplicationRecord
   #     before_save      EncryptionWrapper.new("credit_card_number")
   #     after_save       EncryptionWrapper.new("credit_card_number")
   #     after_initialize EncryptionWrapper.new("credit_card_number")
@@ -175,14 +175,14 @@ module ActiveRecord
   # The callback macros usually accept a symbol for the method they're supposed to run, but you can also
   # pass a "method string", which will then be evaluated within the binding of the callback. Example:
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     before_destroy 'self.class.delete_all "parent_id = #{id}"'
   #   end
   #
   # Notice that single quotes (') are used so the <tt>#{id}</tt> part isn't evaluated until the callback
   # is triggered. Also note that these inline callbacks can be stacked just like the regular ones:
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     before_destroy 'self.class.delete_all "parent_id = #{id}"',
   #                    'puts "Evaluated after parents are destroyed"'
   #   end
@@ -207,7 +207,7 @@ module ActiveRecord
   #
   # Let's look at the code below:
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     has_many :children, dependent: destroy
   #
   #     before_destroy :log_children
@@ -221,7 +221,7 @@ module ActiveRecord
   # In this case, the problem is that when the +before_destroy+ callback is executed, the children are not available
   # because the +destroy+ callback gets executed first. You can use the +prepend+ option on the +before_destroy+ callback to avoid this.
   #
-  #   class Topic < ApplicationModel
+  #   class Topic < ApplicationRecord
   #     has_many :children, dependent: destroy
   #
   #     before_destroy :log_children, prepend: true

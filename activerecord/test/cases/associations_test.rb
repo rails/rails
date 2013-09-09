@@ -258,9 +258,9 @@ class AssociationProxyTest < ActiveRecord::TestCase
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
-  class DifferentPerson < ApplicationModel; end
+  class DifferentPerson < ApplicationRecord; end
 
-  class PeopleList < ApplicationModel
+  class PeopleList < ApplicationRecord
     has_and_belongs_to_many :has_and_belongs_to_many, :before_add => :enlist
     has_many :has_many, :before_add => :enlist
     belongs_to :belongs_to

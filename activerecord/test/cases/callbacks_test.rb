@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class CallbackDeveloper < ApplicationModel
+class CallbackDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   class << self
@@ -47,7 +47,7 @@ class CallbackDeveloperWithFalseValidation < CallbackDeveloper
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 
-class ParentDeveloper < ApplicationModel
+class ParentDeveloper < ApplicationRecord
   self.table_name = 'developers'
   attr_accessor :after_save_called
   before_validation {|record| record.after_save_called = true}
@@ -57,7 +57,7 @@ class ChildDeveloper < ParentDeveloper
 
 end
 
-class RecursiveCallbackDeveloper < ApplicationModel
+class RecursiveCallbackDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   before_save :on_before_save
@@ -78,7 +78,7 @@ class RecursiveCallbackDeveloper < ApplicationModel
   end
 end
 
-class ImmutableDeveloper < ApplicationModel
+class ImmutableDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
@@ -97,7 +97,7 @@ class ImmutableDeveloper < ApplicationModel
     end
 end
 
-class ImmutableMethodDeveloper < ApplicationModel
+class ImmutableMethodDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
@@ -117,7 +117,7 @@ class ImmutableMethodDeveloper < ApplicationModel
   end
 end
 
-class OnCallbacksDeveloper < ApplicationModel
+class OnCallbacksDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   before_validation { history << :before_validation }
@@ -137,7 +137,7 @@ class OnCallbacksDeveloper < ApplicationModel
   end
 end
 
-class ContextualCallbacksDeveloper < ApplicationModel
+class ContextualCallbacksDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   before_validation { history << :before_validation }
@@ -163,7 +163,7 @@ class ContextualCallbacksDeveloper < ApplicationModel
   end
 end
 
-class CallbackCancellationDeveloper < ApplicationModel
+class CallbackCancellationDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called

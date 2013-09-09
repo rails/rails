@@ -1,3 +1,3 @@
-class Admin::Account < ApplicationModel
+class Admin::Account < ApplicationRecord
   has_many :users
 end

@@ -76,7 +76,7 @@ module ActiveRecord::Associations::Builder
     end
 
     # Defines the setter and getter methods for the association
-    # class Post < ApplicationModel
+    # class Post < ApplicationRecord
     #   has_many :comments
     # end
     #

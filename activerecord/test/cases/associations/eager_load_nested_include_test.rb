@@ -22,38 +22,38 @@ module Remembered
   end
 end
 
-class ShapeExpression < ApplicationModel
+class ShapeExpression < ApplicationRecord
   belongs_to :shape, :polymorphic => true
   belongs_to :paint, :polymorphic => true
 end
 
-class Circle < ApplicationModel
+class Circle < ApplicationRecord
   has_many :shape_expressions, :as => :shape
   include Remembered
 end
-class Square < ApplicationModel
+class Square < ApplicationRecord
   has_many :shape_expressions, :as => :shape
   include Remembered
 end
-class Triangle < ApplicationModel
+class Triangle < ApplicationRecord
   has_many :shape_expressions, :as => :shape
   include Remembered
 end
-class PaintColor  < ApplicationModel
+class PaintColor  < ApplicationRecord
   has_many   :shape_expressions, :as => :paint
   belongs_to :non_poly, :foreign_key => "non_poly_one_id", :class_name => "NonPolyOne"
   include Remembered
 end
-class PaintTexture < ApplicationModel
+class PaintTexture < ApplicationRecord
   has_many   :shape_expressions, :as => :paint
   belongs_to :non_poly, :foreign_key => "non_poly_two_id", :class_name => "NonPolyTwo"
   include Remembered
 end
-class NonPolyOne < ApplicationModel
+class NonPolyOne < ApplicationRecord
   has_many :paint_colors
   include Remembered
 end
-class NonPolyTwo < ApplicationModel
+class NonPolyTwo < ApplicationRecord
   has_many :paint_textures
   include Remembered
 end

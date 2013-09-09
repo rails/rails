@@ -1,2 +1,2 @@
-class Minimalistic < ApplicationModel
+class Minimalistic < ApplicationRecord
 end

@@ -1,3 +1,3 @@
-class Possession < ApplicationModel
+class Possession < ApplicationRecord
   self.table_name = 'having'
 end

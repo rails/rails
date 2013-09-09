@@ -13,7 +13,7 @@ class ViewTest < ActiveRecord::TestCase
     'moment timestamp without time zone'
   ]
 
-  class ThingView < ApplicationModel
+  class ThingView < ApplicationRecord
     self.table_name = 'test_schema.view_things'
   end
 

@@ -1,4 +1,4 @@
-class AutoId < ApplicationModel
+class AutoId < ApplicationRecord
   def self.table_name () "auto_id_tests" end
   def self.primary_key () "auto_id" end
 end

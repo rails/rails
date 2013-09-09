@@ -1521,7 +1521,7 @@ class RelationTest < ActiveRecord::TestCase
     assert !Post.all.respond_to?(:by_lifo)
   end
 
-  class OMGTopic < ApplicationModel
+  class OMGTopic < ApplicationRecord
     self.table_name = 'topics'
 
     def self.__omg__

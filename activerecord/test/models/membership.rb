@@ -1,4 +1,4 @@
-class Membership < ApplicationModel
+class Membership < ApplicationRecord
   belongs_to :member
   belongs_to :club
 end

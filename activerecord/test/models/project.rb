@@ -1,4 +1,4 @@
-class Project < ApplicationModel
+class Project < ApplicationRecord
   has_and_belongs_to_many :developers, -> { distinct.order 'developers.name desc, developers.id desc' }
   has_and_belongs_to_many :readonly_developers, -> { readonly }, :class_name => "Developer"
   has_and_belongs_to_many :selected_developers, -> { distinct.select "developers.*" }, :class_name => "Developer"

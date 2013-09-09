@@ -5,7 +5,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :topics
 
-  class ReplyWithCallbacks < ApplicationModel
+  class ReplyWithCallbacks < ApplicationRecord
     self.table_name = :topics
 
     belongs_to :topic, foreign_key: "parent_id"
@@ -23,7 +23,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
   end
 
-  class TopicWithCallbacks < ApplicationModel
+  class TopicWithCallbacks < ApplicationRecord
     self.table_name = :topics
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
@@ -284,7 +284,7 @@ end
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  class TopicWithCallbacksOnMultipleActions < ApplicationModel
+  class TopicWithCallbacksOnMultipleActions < ApplicationRecord
     self.table_name = :topics
 
     after_commit(on: [:create, :destroy]) { |record| record.history << :create_and_destroy }

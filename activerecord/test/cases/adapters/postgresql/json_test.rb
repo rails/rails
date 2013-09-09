@@ -5,7 +5,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlJSONTest < ActiveRecord::TestCase
-  class JsonDataType < ApplicationModel
+  class JsonDataType < ApplicationRecord
     self.table_name = 'json_data_type'
   end
 

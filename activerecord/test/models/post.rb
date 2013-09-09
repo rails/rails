@@ -1,5 +1,5 @@
-class Post < ApplicationModel
-  class CategoryPost < ApplicationModel
+class Post < ApplicationRecord
+  class CategoryPost < ApplicationRecord
     self.table_name = "categories_posts"
     belongs_to :category
     belongs_to :post
@@ -172,7 +172,7 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
-class FirstPost < ApplicationModel
+class FirstPost < ApplicationRecord
   self.table_name = 'posts'
   default_scope { where(:id => 1) }
 
@@ -180,7 +180,7 @@ class FirstPost < ApplicationModel
   has_one  :comment,  :foreign_key => :post_id
 end
 
-class PostWithDefaultInclude < ApplicationModel
+class PostWithDefaultInclude < ApplicationRecord
   self.table_name = 'posts'
   default_scope { includes(:comments) }
   has_many :comments, :foreign_key => :post_id
@@ -191,12 +191,12 @@ class PostWithSpecialCategorization < Post
   default_scope { where(:type => 'PostWithSpecialCategorization').joins(:categorizations).where(:categorizations => { :special => true }) }
 end
 
-class PostWithDefaultScope < ApplicationModel
+class PostWithDefaultScope < ApplicationRecord
   self.table_name = 'posts'
   default_scope { order(:title) }
 end
 
-class SpecialPostWithDefaultScope < ApplicationModel
+class SpecialPostWithDefaultScope < ApplicationRecord
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
 end

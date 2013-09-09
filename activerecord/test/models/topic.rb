@@ -1,4 +1,4 @@
-class Topic < ApplicationModel
+class Topic < ApplicationRecord
   scope :base, -> { all }
   scope :written_before, lambda { |time|
     if time
@@ -115,7 +115,7 @@ class BlankTopic < Topic
 end
 
 module Web
-  class Topic < ApplicationModel
+  class Topic < ApplicationRecord
     has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'
   end
 end

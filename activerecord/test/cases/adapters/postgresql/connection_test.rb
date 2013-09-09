@@ -2,7 +2,7 @@ require "cases/helper"
 
 module ActiveRecord
   class PostgresqlConnectionTest < ActiveRecord::TestCase
-    class NonExistentTable < ApplicationModel
+    class NonExistentTable < ApplicationRecord
     end
 
     def setup

@@ -1,4 +1,4 @@
-class Movie < ApplicationModel
+class Movie < ApplicationRecord
   def self.primary_key
     "movieid"
   end

@@ -138,7 +138,7 @@ module ActiveRecord
         #
         #  Example:
         #
-        #  class Physician < ApplicationModel
+        #  class Physician < ApplicationRecord
         #    has_many :appointments
         #  end
         #

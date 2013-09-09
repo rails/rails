@@ -89,7 +89,7 @@ module ActiveRecord
       # Raises a <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
       # \Active \Record method is defined in the model, otherwise +false+.
       #
-      #   class Person < ApplicationModel
+      #   class Person < ApplicationRecord
       #     def save
       #       'already defined by Active Record'
       #     end
@@ -135,7 +135,7 @@ module ActiveRecord
       # Returns +true+ if +attribute+ is an attribute method and table exists,
       # +false+ otherwise.
       #
-      #   class Person < ApplicationModel
+      #   class Person < ApplicationRecord
       #   end
       #
       #   Person.attribute_method?('name')   # => true
@@ -148,7 +148,7 @@ module ActiveRecord
       # Returns an array of column names as strings if it's not an abstract class and
       # table exists. Otherwise it returns an empty array.
       #
-      #   class Person < ApplicationModel
+      #   class Person < ApplicationRecord
       #   end
       #
       #   Person.attribute_names
@@ -181,7 +181,7 @@ module ActiveRecord
     # which will all return +true+. It also define the attribute methods if they have
     # not been generated.
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #   end
     #
     #   person = Person.new
@@ -213,7 +213,7 @@ module ActiveRecord
 
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #   end
     #
     #   person = Person.new
@@ -226,7 +226,7 @@ module ActiveRecord
 
     # Returns an array of names for the attributes available on this object.
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #   end
     #
     #   person = Person.new
@@ -238,7 +238,7 @@ module ActiveRecord
 
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #   end
     #
     #   person = Person.create(name: 'Francesco', age: 22)
@@ -280,7 +280,7 @@ module ActiveRecord
     # to objects that respond to <tt>empty?</tt>, most notably Strings). Otherwise, +false+.
     # Note that it always returns +true+ with boolean attributes.
     #
-    #   class Task < ApplicationModel
+    #   class Task < ApplicationRecord
     #   end
     #
     #   person = Task.new(title: '', is_done: false)
@@ -298,7 +298,7 @@ module ActiveRecord
     # Returns the column object for the named attribute. Returns +nil+ if the
     # named attribute not exists.
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #   end
     #
     #   person = Person.new
@@ -318,7 +318,7 @@ module ActiveRecord
     #
     # Alias for the <tt>read_attribute</tt> method.
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #     belongs_to :organization
     #   end
     #
@@ -336,7 +336,7 @@ module ActiveRecord
     # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
     # (Alias for the protected <tt>write_attribute</tt> method).
     #
-    #   class Person < ApplicationModel
+    #   class Person < ApplicationRecord
     #   end
     #
     #   person = Person.new

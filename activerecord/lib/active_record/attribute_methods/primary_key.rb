@@ -99,13 +99,13 @@ module ActiveRecord
 
         # Sets the name of the primary key column.
         #
-        #   class Project < ApplicationModel
+        #   class Project < ApplicationRecord
         #     self.primary_key = 'sysid'
         #   end
         #
         # You can also define the +primary_key+ method yourself:
         #
-        #   class Project < ApplicationModel
+        #   class Project < ApplicationRecord
         #     def self.primary_key
         #       'foo_' + super
         #     end

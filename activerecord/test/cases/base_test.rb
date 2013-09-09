@@ -29,37 +29,37 @@ require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
 
-class FirstAbstractClass < ApplicationModel
+class FirstAbstractClass < ApplicationRecord
   self.abstract_class = true
 end
 class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ApplicationModel; end
-class Categorization < ApplicationModel; end
-class Smarts < ApplicationModel; end
-class CreditCard < ApplicationModel
-  class PinNumber < ApplicationModel
-    class CvvCode < ApplicationModel; end
+class Category < ApplicationRecord; end
+class Categorization < ApplicationRecord; end
+class Smarts < ApplicationRecord; end
+class CreditCard < ApplicationRecord
+  class PinNumber < ApplicationRecord
+    class CvvCode < ApplicationRecord; end
     class SubCvvCode < CvvCode; end
   end
   class SubPinNumber < PinNumber; end
   class Brand < Category; end
 end
-class MasterCreditCard < ApplicationModel; end
-class Post < ApplicationModel; end
-class Computer < ApplicationModel; end
-class NonExistentTable < ApplicationModel; end
-class TestOracleDefault < ApplicationModel; end
+class MasterCreditCard < ApplicationRecord; end
+class Post < ApplicationRecord; end
+class Computer < ApplicationRecord; end
+class NonExistentTable < ApplicationRecord; end
+class TestOracleDefault < ApplicationRecord; end
 
 class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
-class Weird < ApplicationModel; end
+class Weird < ApplicationRecord; end
 
-class Boolean < ApplicationModel
+class Boolean < ApplicationRecord
   def has_fun
     super
   end
@@ -68,7 +68,7 @@ end
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
 
-  class LintModel < ApplicationModel; end
+  class LintModel < ApplicationRecord; end
 
   def setup
     @model = LintModel.new
@@ -819,7 +819,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal 'a text field', default.char3
     end
 
-    class Geometric < ApplicationModel; end
+    class Geometric < ApplicationRecord; end
     def test_geometric_content
 
       # accepted format notes:
@@ -907,7 +907,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  class NumericData < ApplicationModel
+  class NumericData < ApplicationRecord
     self.table_name = 'numeric_data'
   end
 
