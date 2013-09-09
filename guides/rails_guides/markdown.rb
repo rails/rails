@@ -35,7 +35,7 @@ module RailsGuides
           if @node_ids[dom_id].size > 1
             duplicate_nodes = @node_ids.delete(dom_id)
             new_node_id = "#{duplicate_nodes[-2][:id]}-#{duplicate_nodes.last[:id]}"
-            duplicate_nodes.last[:id] = new_node_id
+            duplicate_nodes.last.set_attribute("id", new_node_id)
             @node_ids[new_node_id] = duplicate_nodes
           end
 
@@ -97,7 +97,7 @@ module RailsGuides
                   hierarchy = hierarchy[0, 3] + [node]
                 end
 
-                node[:id] = dom_id(hierarchy)
+                node.set_attribute('id', dom_id(hierarchy))
                 node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
             end
@@ -117,7 +117,7 @@ module RailsGuides
           end
 
           @index = Nokogiri::HTML(engine.render(raw_index)).tap do |doc|
-            doc.at('ol')[:class] = 'chapters'
+            doc.at('ol').set_attribute('class', 'chapters')
           end.to_html
 
           @index = <<-INDEX.html_safe
