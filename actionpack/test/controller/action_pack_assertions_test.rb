@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_view/vendor/html-scanner'
 require 'controller/fake_controllers'
 
 class ActionPackAssertionsController < ActionController::Base
