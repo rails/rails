@@ -1,8 +1,3 @@
-*   Introduce `BasicRendering` which is the most basic rendering implementation. It
-    allows to `render :text` and `render :nothing` without depending on Action View.
-
-    *Łukasz Strzałkowski*
-
 *   Separate Action View completely from Action Pack.
 
     *Łukasz Strzałkowski*
