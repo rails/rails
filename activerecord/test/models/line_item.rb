@@ -1,3 +1,3 @@
-class LineItem < ActiveRecord::Base
+class LineItem < ApplicationRecord
   belongs_to :invoice, :touch => true
 end

@@ -30,23 +30,23 @@ class SchemaTest < ActiveRecord::TestCase
   UNMATCHED_SEQUENCE_NAME = 'unmatched_primary_key_default_value_seq'
   UNMATCHED_PK_TABLE_NAME = 'table_with_unmatched_sequence_for_pk'
 
-  class Thing1 < ActiveRecord::Base
+  class Thing1 < ApplicationRecord
     self.table_name = "test_schema.things"
   end
 
-  class Thing2 < ActiveRecord::Base
+  class Thing2 < ApplicationRecord
     self.table_name = "test_schema2.things"
   end
 
-  class Thing3 < ActiveRecord::Base
+  class Thing3 < ApplicationRecord
     self.table_name = 'test_schema."things.table"'
   end
 
-  class Thing4 < ActiveRecord::Base
+  class Thing4 < ApplicationRecord
     self.table_name = 'test_schema."Things"'
   end
 
-  class Thing5 < ActiveRecord::Base
+  class Thing5 < ApplicationRecord
     self.table_name = 'things'
   end
 

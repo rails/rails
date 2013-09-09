@@ -183,7 +183,7 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
-    class Klass < ActiveRecord::Base
+    class Klass < ApplicationRecord
     end
 
     def setup

@@ -77,7 +77,7 @@ module ActiveRecord
       # to utilize the implied STI table name of the parent class, this will need to be true.
       # For example, given the following:
       #
-      #   class SuperClass < ActiveRecord::Base
+      #   class SuperClass < ApplicationRecord
       #     self.abstract_class = true
       #   end
       #   class Child < SuperClass
@@ -189,7 +189,7 @@ module ActiveRecord
 
     # Sets the attribute used for single table inheritance to this class name if this is not the
     # ActiveRecord::Base descendant.
-    # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
+    # Considering the hierarchy Reply < Message < ApplicationRecord, this makes it possible to
     # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
     # No such attribute would be set for objects of the Message class in that example.
     def ensure_proper_type

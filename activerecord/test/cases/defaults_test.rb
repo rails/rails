@@ -40,7 +40,7 @@ class DefaultTest < ActiveRecord::TestCase
 end
 
 class DefaultStringsTest < ActiveRecord::TestCase
-  class DefaultString < ActiveRecord::Base; end
+  class DefaultString < ApplicationRecord; end
 
   setup do
     @connection = ActiveRecord::Base.connection

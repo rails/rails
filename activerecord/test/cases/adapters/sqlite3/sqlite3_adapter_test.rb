@@ -7,7 +7,7 @@ module ActiveRecord
     class SQLite3AdapterTest < ActiveRecord::TestCase
       self.use_transactional_fixtures = false
 
-      class DualEncoding < ActiveRecord::Base
+      class DualEncoding < ApplicationRecord
       end
 
       def setup

@@ -1,2 +1,2 @@
-class Minimalistic < ActiveRecord::Base
+class Minimalistic < ApplicationRecord
 end

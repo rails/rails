@@ -1,4 +1,4 @@
-class Movie < ActiveRecord::Base
+class Movie < ApplicationRecord
   def self.primary_key
     "movieid"
   end

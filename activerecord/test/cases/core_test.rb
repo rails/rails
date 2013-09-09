@@ -2,7 +2,7 @@ require 'cases/helper'
 require 'models/person'
 require 'models/topic'
 
-class NonExistentTable < ActiveRecord::Base; end
+class NonExistentTable < ApplicationRecord; end
 
 class CoreTest < ActiveRecord::TestCase
   fixtures :topics

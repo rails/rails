@@ -6,7 +6,7 @@ require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
 
-class Wizard < ActiveRecord::Base
+class Wizard < ApplicationRecord
   self.abstract_class = true
 
   validates_uniqueness_of :name
@@ -30,7 +30,7 @@ class ReplyWithTitleObject < Reply
   def title; ReplyTitle.new; end
 end
 
-class Employee < ActiveRecord::Base
+class Employee < ApplicationRecord
   self.table_name = 'postgresql_arrays'
   validates_uniqueness_of :nicknames
 end

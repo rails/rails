@@ -1,3 +1,3 @@
-class Admin::ClassNameThatDoesNotFollowCONVENTIONS < ActiveRecord::Base
+class Admin::ClassNameThatDoesNotFollowCONVENTIONS < ApplicationRecord
   self.table_name = :randomly_named_table
 end

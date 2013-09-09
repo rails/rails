@@ -2,7 +2,7 @@ require "cases/helper"
 require 'models/person'
 
 class MysqlCaseSensitivityTest < ActiveRecord::TestCase
-  class CollationTest < ActiveRecord::Base
+  class CollationTest < ApplicationRecord
     validates_uniqueness_of :string_cs_column, :case_sensitive => false
     validates_uniqueness_of :string_ci_column, :case_sensitive => false
   end

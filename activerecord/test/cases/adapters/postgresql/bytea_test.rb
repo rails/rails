@@ -5,7 +5,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlByteaTest < ActiveRecord::TestCase
-  class ByteaDataType < ActiveRecord::Base
+  class ByteaDataType < ApplicationRecord
     self.table_name = 'bytea_data_type'
   end
 

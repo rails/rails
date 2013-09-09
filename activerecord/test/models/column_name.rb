@@ -1,3 +1,3 @@
-class ColumnName < ActiveRecord::Base
+class ColumnName < ApplicationRecord
   self.table_name = "colnametests"
 end

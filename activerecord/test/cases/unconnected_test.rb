@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class TestRecord < ActiveRecord::Base
+class TestRecord < ApplicationRecord
 end
 
 class TestUnconnectedAdapter < ActiveRecord::TestCase

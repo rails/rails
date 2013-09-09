@@ -1,4 +1,4 @@
-class Vegetable < ActiveRecord::Base
+class Vegetable < ApplicationRecord
 
   validates_presence_of :name
 

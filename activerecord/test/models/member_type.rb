@@ -1,3 +1,3 @@
-class MemberType < ActiveRecord::Base
+class MemberType < ApplicationRecord
   has_many :members
 end
