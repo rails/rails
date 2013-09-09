@@ -481,7 +481,7 @@ A good password is a long alphanumeric combination of mixed cases. As this is qu
 
 INFO: _A common pitfall in Ruby's regular expressions is to match the string's beginning and end by ^ and $, instead of \A and \z._
 
-Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books make this wrong. So how is this a security threat? Say you wanted to loosely validate a URL field and you used a simple regular expression like this:
+Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books get this wrong. So how is this a security threat? Say you wanted to loosely validate a URL field and you used a simple regular expression like this:
 
 ```ruby
   /^https?:\/\/[^\n]+$/i
