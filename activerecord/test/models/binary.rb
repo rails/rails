@@ -1,2 +1,2 @@
-class Binary < ApplicationModel
+class Binary < ApplicationRecord
 end

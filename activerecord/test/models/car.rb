@@ -1,4 +1,4 @@
-class Car < ApplicationModel
+class Car < ApplicationRecord
   has_many :bulbs
   has_many :funky_bulbs, class_name: 'FunkyBulb', dependent: :destroy
   has_many :foo_bulbs, -> { where(:name => 'foo') }, :class_name => "Bulb"

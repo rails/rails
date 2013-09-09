@@ -1,2 +1,2 @@
-class Boolean < ApplicationModel
+class Boolean < ApplicationRecord
 end

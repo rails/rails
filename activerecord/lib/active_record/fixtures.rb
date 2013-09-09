@@ -815,7 +815,7 @@ module ActiveRecord
       self.use_transactional_fixtures = true
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
-      self.config = ActiveRecord::Base.application_model
+      self.config = ActiveRecord::Base.application_record
 
       self.fixture_class_names = Hash.new do |h, fixture_set_name|
         h[fixture_set_name] = ActiveRecord::FixtureSet.default_fixture_model_name(fixture_set_name, self.config)
@@ -928,7 +928,7 @@ module ActiveRecord
       @fixture_connections = []
       @@already_loaded_fixtures ||= {}
 
-      config = ActiveRecord::Base.application_model
+      config = ActiveRecord::Base.application_record
       # Load fixtures once and begin transaction.
       if run_in_transaction?
         if @@already_loaded_fixtures[self.class]

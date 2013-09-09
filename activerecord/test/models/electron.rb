@@ -1,3 +1,3 @@
-class Electron < ApplicationModel
+class Electron < ApplicationRecord
   belongs_to :molecule
 end

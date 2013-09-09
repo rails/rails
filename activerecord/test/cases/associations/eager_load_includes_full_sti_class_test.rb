@@ -3,7 +3,7 @@ require 'models/post'
 require 'models/tagging'
 
 module Namespaced
-  class Post < ApplicationModel
+  class Post < ApplicationRecord
     self.table_name = 'posts'
     has_one :tagging, :as => :taggable, :class_name => 'Tagging'
   end

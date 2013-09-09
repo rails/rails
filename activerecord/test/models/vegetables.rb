@@ -1,4 +1,4 @@
-class Vegetable < ApplicationModel
+class Vegetable < ApplicationRecord
 
   validates_presence_of :name
 

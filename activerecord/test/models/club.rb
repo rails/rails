@@ -1,4 +1,4 @@
-class Club < ApplicationModel
+class Club < ApplicationRecord
   has_one :membership
   has_many :memberships, :inverse_of => false
   has_many :members, :through => :memberships

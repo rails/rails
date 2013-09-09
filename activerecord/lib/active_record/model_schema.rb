@@ -46,7 +46,7 @@ module ActiveRecord
     module ClassMethods
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy
-      # looks like: Reply < Message < ApplicationModel, then Message is used
+      # looks like: Reply < Message < ApplicationRecord, then Message is used
       # to guess the table name even when called on Reply. The rules used to do the guess
       # are handled by the Inflector class in Active Support, which knows almost all common
       # English inflections. You can add new inflections in config/initializers/inflections.rb.
@@ -56,14 +56,14 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   class Invoice < ApplicationModel
+      #   class Invoice < ApplicationRecord
       #   end
       #
       #   file                  class               table_name
       #   invoice.rb            Invoice             invoices
       #
-      #   class Invoice < ApplicationModel
-      #     class Lineitem < ApplicationModel
+      #   class Invoice < ApplicationRecord
+      #     class Lineitem < ApplicationRecord
       #     end
       #   end
       #
@@ -71,7 +71,7 @@ module ActiveRecord
       #   invoice.rb            Invoice::Lineitem   invoice_lineitems
       #
       #   module Invoice
-      #     class Lineitem < ApplicationModel
+      #     class Lineitem < ApplicationRecord
       #     end
       #   end
       #
@@ -85,7 +85,7 @@ module ActiveRecord
       #
       # You can also set your own table name explicitly:
       #
-      #   class Mouse < ApplicationModel
+      #   class Mouse < ApplicationRecord
       #     self.table_name = "mice"
       #   end
       #
@@ -93,7 +93,7 @@ module ActiveRecord
       # own computation. (Possibly using <tt>super</tt> to manipulate the default
       # table name.) Example:
       #
-      #   class Post < ApplicationModel
+      #   class Post < ApplicationRecord
       #     def self.table_name
       #       "special_" + super
       #     end
@@ -106,7 +106,7 @@ module ActiveRecord
 
       # Sets the table name explicitly. Example:
       #
-      #   class Project < ApplicationModel
+      #   class Project < ApplicationRecord
       #     self.table_name = "project"
       #   end
       #
@@ -190,7 +190,7 @@ module ActiveRecord
       # If a sequence name is not explicitly set when using PostgreSQL, it
       # will discover the sequence corresponding to your primary key for you.
       #
-      #   class Project < ApplicationModel
+      #   class Project < ApplicationRecord
       #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
       def sequence_name=(value)

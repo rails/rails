@@ -17,7 +17,7 @@ module ActiveRecord
   #
   # Examples:
   #
-  #   class User < ApplicationModel
+  #   class User < ApplicationRecord
   #     store :settings, accessors: [ :color, :homepage ], coder: JSON
   #   end
   #
@@ -45,7 +45,7 @@ module ActiveRecord
   # the default accessors (using the same name as the attribute) and calling <tt>super</tt>
   # to actually change things.
   #
-  #   class Song < ApplicationModel
+  #   class Song < ApplicationRecord
   #     # Uses a stored integer to hold the volume adjustment of the song
   #     store :settings, accessors: [:volume_adjustment]
   #

@@ -1,4 +1,4 @@
-class Member < ApplicationModel
+class Member < ApplicationRecord
   has_one :current_membership
   has_one :selected_membership
   has_one :membership
@@ -29,7 +29,7 @@ class Member < ApplicationModel
   has_one :club_through_many, :through => :current_memberships, :source => :club
 end
 
-class SelfMember < ApplicationModel
+class SelfMember < ApplicationRecord
   self.table_name = "members"
   has_and_belongs_to_many :friends, :class_name => "SelfMember", :join_table => "member_friends"
 end

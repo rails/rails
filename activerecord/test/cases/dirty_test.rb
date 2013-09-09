@@ -22,7 +22,7 @@ private
   end
 end
 
-class NumericData < ApplicationModel
+class NumericData < ApplicationRecord
   self.table_name = 'numeric_data'
 end
 
@@ -557,7 +557,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   if ActiveRecord::Base.connection.supports_migrations?
-    class Testings < ApplicationModel; end
+    class Testings < ApplicationRecord; end
     def test_field_named_field
       ActiveRecord::Base.connection.create_table :testings do |t|
         t.string :field

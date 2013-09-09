@@ -11,11 +11,11 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
-class BigNumber < ApplicationModel; end
+class BigNumber < ApplicationRecord; end
 
-class Reminder < ApplicationModel; end
+class Reminder < ApplicationRecord; end
 
-class Thing < ApplicationModel; end
+class Thing < ApplicationRecord; end
 
 class MigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

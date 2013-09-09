@@ -1,4 +1,4 @@
-class Rating < ApplicationModel
+class Rating < ApplicationRecord
   belongs_to :comment
   has_many :taggings, :as => :taggable
 end

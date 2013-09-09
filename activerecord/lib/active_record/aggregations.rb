@@ -15,7 +15,7 @@ module ActiveRecord
     # existing object) and how it can be turned back into attributes (when the entity is saved to
     # the database).
     #
-    #   class Customer < ApplicationModel
+    #   class Customer < ApplicationRecord
     #     composed_of :balance, class_name: "Money", mapping: %w(balance amount)
     #     composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
     #   end
@@ -136,7 +136,7 @@ module ActiveRecord
     # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet
     # these requirements:
     #
-    #   class NetworkResource < ApplicationModel
+    #   class NetworkResource < ApplicationRecord
     #     composed_of :cidr,
     #                 class_name: 'NetAddr::CIDR',
     #                 mapping: [ %w(network_address network), %w(cidr_range bits) ],

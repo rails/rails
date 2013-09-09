@@ -1,4 +1,4 @@
-class Person < ApplicationModel
+class Person < ApplicationRecord
   has_many :readers
   has_many :secure_readers
   has_one  :reader
@@ -38,21 +38,21 @@ class Person < ApplicationModel
   scope :females, -> { where(:gender => 'F') }
 end
 
-class PersonWithDependentDestroyJobs < ApplicationModel
+class PersonWithDependentDestroyJobs < ApplicationRecord
   self.table_name = 'people'
 
   has_many :references, :foreign_key => :person_id
   has_many :jobs, :source => :job, :through => :references, :dependent => :destroy
 end
 
-class PersonWithDependentDeleteAllJobs < ApplicationModel
+class PersonWithDependentDeleteAllJobs < ApplicationRecord
   self.table_name = 'people'
 
   has_many :references, :foreign_key => :person_id
   has_many :jobs, :source => :job, :through => :references, :dependent => :delete_all
 end
 
-class PersonWithDependentNullifyJobs < ApplicationModel
+class PersonWithDependentNullifyJobs < ApplicationRecord
   self.table_name = 'people'
 
   has_many :references, :foreign_key => :person_id
@@ -60,7 +60,7 @@ class PersonWithDependentNullifyJobs < ApplicationModel
 end
 
 
-class LoosePerson < ApplicationModel
+class LoosePerson < ApplicationRecord
   self.table_name = 'people'
   self.abstract_class = true
 
@@ -73,7 +73,7 @@ end
 
 class LooseDescendant < LoosePerson; end
 
-class TightPerson < ApplicationModel
+class TightPerson < ApplicationRecord
   self.table_name = 'people'
 
   has_one    :best_friend,    :class_name => 'TightPerson', :foreign_key => :best_friend_id
@@ -85,13 +85,13 @@ end
 
 class TightDescendant < TightPerson; end
 
-class RichPerson < ApplicationModel
+class RichPerson < ApplicationRecord
   self.table_name = 'people'
 
   has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
 end
 
-class NestedPerson < ApplicationModel
+class NestedPerson < ApplicationRecord
   self.table_name = 'people'
 
   has_one :best_friend, :class_name => 'NestedPerson', :foreign_key => :best_friend_id
@@ -121,7 +121,7 @@ class Insure
   end
 end
 
-class SerializedPerson < ApplicationModel
+class SerializedPerson < ApplicationRecord
   self.table_name = 'people'
 
   serialize :insures, Insure

@@ -60,7 +60,7 @@ module ActiveRecord #:nodoc:
   # be used for statements that don't involve tainted data. The hash form works much like the array form, except
   # only equality and range is possible. Examples:
   #
-  #   class User < ApplicationModel
+  #   class User < ApplicationRecord
   #     def self.authenticate_unsafely(user_name, password)
   #       where("user_name = '#{user_name}' AND password = '#{password}'").first
   #     end
@@ -119,7 +119,7 @@ module ActiveRecord #:nodoc:
   # <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually
   # change things.
   #
-  #   class Song < ApplicationModel
+  #   class Song < ApplicationRecord
   #     # Uses an integer of seconds to hold the length of the song
   #
   #     def length=(minutes)
@@ -187,7 +187,7 @@ module ActiveRecord #:nodoc:
   # This makes it possible to store arrays, hashes, and other non-mappable objects without doing
   # any additional work.
   #
-  #   class User < ApplicationModel
+  #   class User < ApplicationRecord
   #     serialize :preferences
   #   end
   #
@@ -197,7 +197,7 @@ module ActiveRecord #:nodoc:
   # You can also specify a class option as the second parameter that'll raise an exception
   # if a serialized object is retrieved as a descendant of a class not in the hierarchy.
   #
-  #   class User < ApplicationModel
+  #   class User < ApplicationRecord
   #     serialize :preferences, Hash
   #   end
   #
@@ -207,7 +207,7 @@ module ActiveRecord #:nodoc:
   # When you specify a class option, the default value for that attribute will be a new
   # instance of that class.
   #
-  #   class User < ApplicationModel
+  #   class User < ApplicationRecord
   #     serialize :preferences, OpenStruct
   #   end
   #
@@ -221,7 +221,7 @@ module ActiveRecord #:nodoc:
   # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>).
   # This means that an inheritance looking like this:
   #
-  #   class Company < ApplicationModel; end
+  #   class Company < ApplicationRecord; end
   #   class Firm < Company; end
   #   class Client < Company; end
   #   class PriorityClient < Client; end

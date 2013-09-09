@@ -1,4 +1,4 @@
-class Bird < ApplicationModel
+class Bird < ApplicationRecord
   belongs_to :pirate
   validates_presence_of :name
 

@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/with_options'
 
 module MyApplication
   module Business
-    class Company < ApplicationModel
+    class Company < ApplicationRecord
     end
 
     class Firm < Company
@@ -17,15 +17,15 @@ module MyApplication
       belongs_to :firm, :foreign_key => "client_of"
       belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
 
-      class Contact < ApplicationModel; end
+      class Contact < ApplicationRecord; end
     end
 
-    class Developer < ApplicationModel
+    class Developer < ApplicationRecord
       has_and_belongs_to_many :projects
       validates_length_of :name, :within => (3..20)
     end
 
-    class Project < ApplicationModel
+    class Project < ApplicationRecord
       has_and_belongs_to_many :developers
     end
 
@@ -34,7 +34,7 @@ module MyApplication
         'prefixed_'
       end
 
-      class Company < ApplicationModel
+      class Company < ApplicationRecord
       end
 
       class Firm < Company
@@ -42,24 +42,24 @@ module MyApplication
       end
 
       module Nested
-        class Company < ApplicationModel
+        class Company < ApplicationRecord
         end
       end
     end
   end
 
   module Billing
-    class Firm < ApplicationModel
+    class Firm < ApplicationRecord
       self.table_name = 'companies'
     end
 
     module Nested
-      class Firm < ApplicationModel
+      class Firm < ApplicationRecord
         self.table_name = 'companies'
       end
     end
 
-    class Account < ApplicationModel
+    class Account < ApplicationRecord
       with_options(:foreign_key => :firm_id) do |i|
         i.belongs_to :firm, :class_name => 'MyApplication::Business::Firm'
         i.belongs_to :qualified_billing_firm, :class_name => 'MyApplication::Billing::Firm'

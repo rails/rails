@@ -1,4 +1,4 @@
-class Categorization < ApplicationModel
+class Categorization < ApplicationRecord
   belongs_to :post
   belongs_to :category
   belongs_to :named_category, :class_name => 'Category', :foreign_key => :named_category_name, :primary_key => :name
@@ -10,7 +10,7 @@ class Categorization < ApplicationModel
   has_many   :authors_using_custom_pk, :class_name => 'Author', :foreign_key => :id,        :primary_key => :category_id
 end
 
-class SpecialCategorization < ApplicationModel
+class SpecialCategorization < ApplicationRecord
   self.table_name = 'categorizations'
   default_scope { where(:special => true) }
 

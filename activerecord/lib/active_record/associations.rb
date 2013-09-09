@@ -179,7 +179,7 @@ module ActiveRecord
     # options hash. It works much the same way as Ruby's own <tt>attr*</tt>
     # methods.
     #
-    #   class Project < ApplicationModel
+    #   class Project < ApplicationRecord
     #     belongs_to              :portfolio
     #     has_one                 :project_manager
     #     has_many                :milestones
@@ -251,7 +251,7 @@ module ActiveRecord
     # which allows you to easily override with your own methods and call the original
     # generated method with +super+. For example:
     #
-    #   class Car < ApplicationModel
+    #   class Car < ApplicationRecord
     #     belongs_to :owner
     #     belongs_to :old_owner
     #     def owner=(new_owner)
@@ -276,10 +276,10 @@ module ActiveRecord
     #
     # Use +has_one+ in the base, and +belongs_to+ in the associated model.
     #
-    #   class Employee < ApplicationModel
+    #   class Employee < ApplicationRecord
     #     has_one :office
     #   end
-    #   class Office < ApplicationModel
+    #   class Office < ApplicationRecord
     #     belongs_to :employee    # foreign key - employee_id
     #   end
     #
@@ -287,10 +287,10 @@ module ActiveRecord
     #
     # Use +has_many+ in the base, and +belongs_to+ in the associated model.
     #
-    #   class Manager < ApplicationModel
+    #   class Manager < ApplicationRecord
     #     has_many :employees
     #   end
-    #   class Employee < ApplicationModel
+    #   class Employee < ApplicationRecord
     #     belongs_to :manager     # foreign key - manager_id
     #   end
     #
@@ -301,15 +301,15 @@ module ActiveRecord
     # The first way uses a +has_many+ association with the <tt>:through</tt> option and a join model, so
     # there are two stages of associations.
     #
-    #   class Assignment < ApplicationModel
+    #   class Assignment < ApplicationRecord
     #     belongs_to :programmer  # foreign key - programmer_id
     #     belongs_to :project     # foreign key - project_id
     #   end
-    #   class Programmer < ApplicationModel
+    #   class Programmer < ApplicationRecord
     #     has_many :assignments
     #     has_many :projects, through: :assignments
     #   end
-    #   class Project < ApplicationModel
+    #   class Project < ApplicationRecord
     #     has_many :assignments
     #     has_many :programmers, through: :assignments
     #   end
@@ -317,10 +317,10 @@ module ActiveRecord
     # For the second way, use +has_and_belongs_to_many+ in both models. This requires a join table
     # that has no corresponding model or primary key.
     #
-    #   class Programmer < ApplicationModel
+    #   class Programmer < ApplicationRecord
     #     has_and_belongs_to_many :projects       # foreign keys in the join table
     #   end
-    #   class Project < ApplicationModel
+    #   class Project < ApplicationRecord
     #     has_and_belongs_to_many :programmers    # foreign keys in the join table
     #   end
     #
@@ -334,12 +334,12 @@ module ActiveRecord
     # Both express a 1-1 relationship. The difference is mostly where to place the foreign
     # key, which goes on the table for the class declaring the +belongs_to+ relationship.
     #
-    #   class User < ApplicationModel
+    #   class User < ApplicationRecord
     #     # I reference an account.
     #     belongs_to :account
     #   end
     #
-    #   class Account < ApplicationModel
+    #   class Account < ApplicationRecord
     #     # One user references me.
     #     has_one :user
     #   end
@@ -405,7 +405,7 @@ module ActiveRecord
     # \Associations are built from <tt>Relation</tt>s, and you can use the <tt>Relation</tt> syntax
     # to customize them. For example, to add a condition:
     #
-    #   class Blog < ApplicationModel
+    #   class Blog < ApplicationRecord
     #     has_many :published_posts, -> { where published: true }, class_name: 'Post'
     #   end
     #
@@ -417,7 +417,7 @@ module ActiveRecord
     # is passed as a parameter to the block. For example, the following association would find all
     # events that occur on the user's birthday:
     #
-    #   class User < ApplicationModel
+    #   class User < ApplicationRecord
     #     has_many :birthday_events, ->(user) { where starts_on: user.birthday }, class_name: 'Event'
     #   end
     #
@@ -454,7 +454,7 @@ module ActiveRecord
     # modules. This is especially beneficial for adding new finders, creators, and other
     # factory-type methods that are only used as part of this association.
     #
-    #   class Account < ApplicationModel
+    #   class Account < ApplicationRecord
     #     has_many :people do
     #       def find_or_create_by_name(name)
     #         first_name, last_name = name.split(" ", 2)
@@ -477,11 +477,11 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   class Account < ApplicationModel
+    #   class Account < ApplicationRecord
     #     has_many :people, -> { extending FindOrCreateByNameExtension }
     #   end
     #
-    #   class Company < ApplicationModel
+    #   class Company < ApplicationRecord
     #     has_many :people, -> { extending FindOrCreateByNameExtension }
     #   end
     #
@@ -507,12 +507,12 @@ module ActiveRecord
     # +has_and_belongs_to_many+ association. The advantage is that you're able to add validations,
     # callbacks, and extra attributes on the join model. Consider the following schema:
     #
-    #   class Author < ApplicationModel
+    #   class Author < ApplicationRecord
     #     has_many :authorships
     #     has_many :books, through: :authorships
     #   end
     #
-    #   class Authorship < ApplicationModel
+    #   class Authorship < ApplicationRecord
     #     belongs_to :author
     #     belongs_to :book
     #   end
@@ -523,17 +523,17 @@ module ActiveRecord
     #
     # You can also go through a +has_many+ association on the join model:
     #
-    #   class Firm < ApplicationModel
+    #   class Firm < ApplicationRecord
     #     has_many   :clients
     #     has_many   :invoices, through: :clients
     #   end
     #
-    #   class Client < ApplicationModel
+    #   class Client < ApplicationRecord
     #     belongs_to :firm
     #     has_many   :invoices
     #   end
     #
-    #   class Invoice < ApplicationModel
+    #   class Invoice < ApplicationRecord
     #     belongs_to :client
     #   end
     #
@@ -543,17 +543,17 @@ module ActiveRecord
     #
     # Similarly you can go through a +has_one+ association on the join model:
     #
-    #   class Group < ApplicationModel
+    #   class Group < ApplicationRecord
     #     has_many   :users
     #     has_many   :avatars, through: :users
     #   end
     #
-    #   class User < ApplicationModel
+    #   class User < ApplicationRecord
     #     belongs_to :group
     #     has_one    :avatar
     #   end
     #
-    #   class Avatar < ApplicationModel
+    #   class Avatar < ApplicationRecord
     #     belongs_to :user
     #   end
     #
@@ -581,7 +581,7 @@ module ActiveRecord
     # The last line ought to save the through record (a <tt>Taggable</tt>). This will only work if the
     # <tt>:inverse_of</tt> is set:
     #
-    #   class Taggable < ApplicationModel
+    #   class Taggable < ApplicationRecord
     #     belongs_to :post
     #     belongs_to :tag, inverse_of: :taggings
     #   end
@@ -602,7 +602,7 @@ module ActiveRecord
     # You can turn off the automatic detection of inverse associations by setting
     # the <tt>:inverse_of</tt> option to <tt>false</tt> like so:
     #
-    #   class Taggable < ApplicationModel
+    #   class Taggable < ApplicationRecord
     #     belongs_to :tag, inverse_of: false
     #   end
     #
@@ -611,17 +611,17 @@ module ActiveRecord
     # You can actually specify *any* association with the <tt>:through</tt> option, including an
     # association which has a <tt>:through</tt> option itself. For example:
     #
-    #   class Author < ApplicationModel
+    #   class Author < ApplicationRecord
     #     has_many :posts
     #     has_many :comments, through: :posts
     #     has_many :commenters, through: :comments
     #   end
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #     has_many :comments
     #   end
     #
-    #   class Comment < ApplicationModel
+    #   class Comment < ApplicationRecord
     #     belongs_to :commenter
     #   end
     #
@@ -630,17 +630,17 @@ module ActiveRecord
     #
     # An equivalent way of setting up this association this would be:
     #
-    #   class Author < ApplicationModel
+    #   class Author < ApplicationRecord
     #     has_many :posts
     #     has_many :commenters, through: :posts
     #   end
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #     has_many :comments
     #     has_many :commenters, through: :comments
     #   end
     #
-    #   class Comment < ApplicationModel
+    #   class Comment < ApplicationRecord
     #     belongs_to :commenter
     #   end
     #
@@ -655,11 +655,11 @@ module ActiveRecord
     # can be associated with. Rather, they specify an interface that a +has_many+ association
     # must adhere to.
     #
-    #   class Asset < ApplicationModel
+    #   class Asset < ApplicationRecord
     #     belongs_to :attachable, polymorphic: true
     #   end
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #     has_many :assets, as: :attachable         # The :as option specifies the polymorphic interface to use.
     #   end
     #
@@ -676,7 +676,7 @@ module ActiveRecord
     # and member posts that use the posts table for STI. In this case, there must be a +type+
     # column in the posts table.
     #
-    #   class Asset < ApplicationModel
+    #   class Asset < ApplicationRecord
     #     belongs_to :attachable, polymorphic: true
     #
     #     def attachable_type=(sType)
@@ -684,7 +684,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #     # because we store "Post" in attachable_type now dependent: :destroy will work
     #     has_many :assets, as: :attachable, dependent: :destroy
     #   end
@@ -715,7 +715,7 @@ module ActiveRecord
     # posts that each need to display their author triggers 101 database queries. Through the
     # use of eager loading, the 101 queries can be reduced to 2.
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #     belongs_to :author
     #     has_many   :comments
     #   end
@@ -778,7 +778,7 @@ module ActiveRecord
     # If you do want eager load only some members of an association it is usually more natural
     # to include an association which has conditions defined on it:
     #
-    #   class Post < ApplicationModel
+    #   class Post < ApplicationRecord
     #     has_many :approved_comments, -> { where approved: true }, class_name: 'Comment'
     #   end
     #
@@ -790,7 +790,7 @@ module ActiveRecord
     # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored,
     # returning all the associated objects:
     #
-    #   class Picture < ApplicationModel
+    #   class Picture < ApplicationRecord
     #     has_many :most_recent_comments, -> { order('id DESC').limit(10) }, class_name: 'Comment'
     #   end
     #
@@ -798,7 +798,7 @@ module ActiveRecord
     #
     # Eager loading is supported with polymorphic associations.
     #
-    #   class Address < ApplicationModel
+    #   class Address < ApplicationRecord
     #     belongs_to :addressable, polymorphic: true
     #   end
     #
@@ -872,11 +872,11 @@ module ActiveRecord
     #
     #   module MyApplication
     #     module Business
-    #       class Firm < ApplicationModel
+    #       class Firm < ApplicationRecord
     #         has_many :clients
     #       end
     #
-    #       class Client < ApplicationModel; end
+    #       class Client < ApplicationRecord; end
     #     end
     #   end
     #
@@ -887,11 +887,11 @@ module ActiveRecord
     #
     #   module MyApplication
     #     module Business
-    #       class Firm < ApplicationModel; end
+    #       class Firm < ApplicationRecord; end
     #     end
     #
     #     module Billing
-    #       class Account < ApplicationModel
+    #       class Account < ApplicationRecord
     #         belongs_to :firm, class_name: "MyApplication::Business::Firm"
     #       end
     #     end
@@ -902,16 +902,16 @@ module ActiveRecord
     # When you specify an association there is usually an association on the associated model
     # that specifies the same relationship in reverse. For example, with the following models:
     #
-    #    class Dungeon < ApplicationModel
+    #    class Dungeon < ApplicationRecord
     #      has_many :traps
     #      has_one :evil_wizard
     #    end
     #
-    #    class Trap < ApplicationModel
+    #    class Trap < ApplicationRecord
     #      belongs_to :dungeon
     #    end
     #
-    #    class EvilWizard < ApplicationModel
+    #    class EvilWizard < ApplicationRecord
     #      belongs_to :dungeon
     #    end
     #
@@ -933,16 +933,16 @@ module ActiveRecord
     # Active Record about inverse relationships and it will optimise object loading. For
     # example, if we changed our model definitions to:
     #
-    #    class Dungeon < ApplicationModel
+    #    class Dungeon < ApplicationRecord
     #      has_many :traps, inverse_of: :dungeon
     #      has_one :evil_wizard, inverse_of: :dungeon
     #    end
     #
-    #    class Trap < ApplicationModel
+    #    class Trap < ApplicationRecord
     #      belongs_to :dungeon, inverse_of: :traps
     #    end
     #
-    #    class EvilWizard < ApplicationModel
+    #    class EvilWizard < ApplicationRecord
     #      belongs_to :dungeon, inverse_of: :evil_wizard
     #    end
     #

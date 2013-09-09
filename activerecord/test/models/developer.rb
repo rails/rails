@@ -6,7 +6,7 @@ module DeveloperProjectsAssociationExtension2
   end
 end
 
-class Developer < ApplicationModel
+class Developer < ApplicationRecord
   has_and_belongs_to_many :projects do
     def find_most_recent
       order("id DESC").first
@@ -63,18 +63,18 @@ class Developer < ApplicationModel
 
 end
 
-class AuditLog < ApplicationModel
+class AuditLog < ApplicationRecord
   belongs_to :developer, :validate => true
   belongs_to :unvalidated_developer, :class_name => 'Developer'
 end
 
 DeveloperSalary = Struct.new(:amount)
-class DeveloperWithAggregate < ApplicationModel
+class DeveloperWithAggregate < ApplicationRecord
   self.table_name = 'developers'
   composed_of :salary, :class_name => 'DeveloperSalary', :mapping => [%w(salary amount)]
 end
 
-class DeveloperWithBeforeDestroyRaise < ApplicationModel
+class DeveloperWithBeforeDestroyRaise < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, :join_table => 'developers_projects', :foreign_key => 'developer_id'
   before_destroy :raise_if_projects_empty!
@@ -84,18 +84,18 @@ class DeveloperWithBeforeDestroyRaise < ApplicationModel
   end
 end
 
-class DeveloperWithSelect < ApplicationModel
+class DeveloperWithSelect < ApplicationRecord
   self.table_name = 'developers'
   default_scope { select('name') }
 end
 
-class DeveloperWithIncludes < ApplicationModel
+class DeveloperWithIncludes < ApplicationRecord
   self.table_name = 'developers'
   has_many :audit_logs, :foreign_key => :developer_id
   default_scope { includes(:audit_logs) }
 end
 
-class DeveloperFilteredOnJoins < ApplicationModel
+class DeveloperFilteredOnJoins < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
@@ -104,34 +104,34 @@ class DeveloperFilteredOnJoins < ApplicationModel
   end
 end
 
-class DeveloperOrderedBySalary < ApplicationModel
+class DeveloperOrderedBySalary < ApplicationRecord
   self.table_name = 'developers'
   default_scope { order('salary DESC') }
 
   scope :by_name, -> { order('name DESC') }
 end
 
-class DeveloperCalledDavid < ApplicationModel
+class DeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
   default_scope { where("name = 'David'") }
 end
 
-class LazyLambdaDeveloperCalledDavid < ApplicationModel
+class LazyLambdaDeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
   default_scope lambda { where(:name => 'David') }
 end
 
-class LazyBlockDeveloperCalledDavid < ApplicationModel
+class LazyBlockDeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
   default_scope { where(:name => 'David') }
 end
 
-class CallableDeveloperCalledDavid < ApplicationModel
+class CallableDeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
   default_scope OpenStruct.new(:call => where(:name => 'David'))
 end
 
-class ClassMethodDeveloperCalledDavid < ApplicationModel
+class ClassMethodDeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
 
   def self.default_scope
@@ -139,7 +139,7 @@ class ClassMethodDeveloperCalledDavid < ApplicationModel
   end
 end
 
-class ClassMethodReferencingScopeDeveloperCalledDavid < ApplicationModel
+class ClassMethodReferencingScopeDeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
   scope :david, -> { where(:name => 'David') }
 
@@ -148,20 +148,20 @@ class ClassMethodReferencingScopeDeveloperCalledDavid < ApplicationModel
   end
 end
 
-class LazyBlockReferencingScopeDeveloperCalledDavid < ApplicationModel
+class LazyBlockReferencingScopeDeveloperCalledDavid < ApplicationRecord
   self.table_name = 'developers'
   scope :david, -> { where(:name => 'David') }
   default_scope { david }
 end
 
-class DeveloperCalledJamis < ApplicationModel
+class DeveloperCalledJamis < ApplicationRecord
   self.table_name = 'developers'
 
   default_scope { where(:name => 'Jamis') }
   scope :poor, -> { where('salary < 150000') }
 end
 
-class PoorDeveloperCalledJamis < ApplicationModel
+class PoorDeveloperCalledJamis < ApplicationRecord
   self.table_name = 'developers'
 
   default_scope -> { where(:name => 'Jamis', :salary => 50000) }
@@ -173,7 +173,7 @@ class InheritedPoorDeveloperCalledJamis < DeveloperCalledJamis
   default_scope -> { where(:salary => 50000) }
 end
 
-class MultiplePoorDeveloperCalledJamis < ApplicationModel
+class MultiplePoorDeveloperCalledJamis < ApplicationRecord
   self.table_name = 'developers'
 
   default_scope -> { where(:name => 'Jamis') }
@@ -192,14 +192,14 @@ class ModuleIncludedPoorDeveloperCalledJamis < DeveloperCalledJamis
   include SalaryDefaultScope
 end
 
-class EagerDeveloperWithDefaultScope < ApplicationModel
+class EagerDeveloperWithDefaultScope < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope { includes(:projects) }
 end
 
-class EagerDeveloperWithClassMethodDefaultScope < ApplicationModel
+class EagerDeveloperWithClassMethodDefaultScope < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
@@ -208,28 +208,28 @@ class EagerDeveloperWithClassMethodDefaultScope < ApplicationModel
   end
 end
 
-class EagerDeveloperWithLambdaDefaultScope < ApplicationModel
+class EagerDeveloperWithLambdaDefaultScope < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope lambda { includes(:projects) }
 end
 
-class EagerDeveloperWithBlockDefaultScope < ApplicationModel
+class EagerDeveloperWithBlockDefaultScope < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope { includes(:projects) }
 end
 
-class EagerDeveloperWithCallableDefaultScope < ApplicationModel
+class EagerDeveloperWithCallableDefaultScope < ApplicationRecord
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope OpenStruct.new(:call => includes(:projects))
 end
 
-class ThreadsafeDeveloper < ApplicationModel
+class ThreadsafeDeveloper < ApplicationRecord
   self.table_name = 'developers'
 
   def self.default_scope
@@ -238,7 +238,7 @@ class ThreadsafeDeveloper < ApplicationModel
   end
 end
 
-class CachedDeveloper < ApplicationModel
+class CachedDeveloper < ApplicationRecord
   self.table_name = "developers"
   self.cache_timestamp_format = :number
 end

@@ -5,7 +5,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlUUIDTest < ActiveRecord::TestCase
-  class UUID < ApplicationModel
+  class UUID < ApplicationRecord
     self.table_name = 'pg_uuids'
   end
 
@@ -65,7 +65,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
 end
 
 class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
-  class UUID < ApplicationModel
+  class UUID < ApplicationRecord
     self.table_name = 'pg_uuids'
   end
 

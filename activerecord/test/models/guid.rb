@@ -1,2 +1,2 @@
-class Guid < ApplicationModel
+class Guid < ApplicationRecord
 end

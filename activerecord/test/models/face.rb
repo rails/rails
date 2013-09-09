@@ -1,4 +1,4 @@
-class Face < ApplicationModel
+class Face < ApplicationRecord
   belongs_to :man, :inverse_of => :face
   belongs_to :polymorphic_man, :polymorphic => true, :inverse_of => :polymorphic_face
   # These is a "broken" inverse_of for the purposes of testing
