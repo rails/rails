@@ -1,3 +1,9 @@
+## unreleased ##
+
+*   Added the Rails maintenance policy to the guides.
+
+    *Matias Korhonen*
+
 ## Rails 4.0.0 (June 25, 2013) ##
 
 *   Change Service pages(404, etc). *Stanislav Sobolev*
