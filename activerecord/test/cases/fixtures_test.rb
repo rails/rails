@@ -84,6 +84,12 @@ class FixturesTest < ActiveRecord::TestCase
     assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
+  def test_create_symbol_fixtures_is_deprecated
+    assert_deprecated do
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => 'Course') { Course.connection }
+    end
+  end
+
   def test_attributes
     topics = create_fixtures("topics").first
     assert_equal("The First Topic", topics["first"]["title"])
