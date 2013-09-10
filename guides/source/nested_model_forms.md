@@ -23,14 +23,14 @@ If the associated object is an array a form builder will be yielded for each obj
 
 Consider a Person model with an associated Address. When asked to yield a nested FormBuilder for the `:address` attribute, the `fields_for` form helper will look for a method on the Person instance named `address_attributes=`.
 
-### ActiveRecord::Base model
+### ApplicationRecord model
 
-For an ActiveRecord::Base model and association this writer method is commonly defined with the `accepts_nested_attributes_for` class method:
+For an ApplicationRecord model and association this writer method is commonly defined with the `accepts_nested_attributes_for` class method:
 
 #### has_one
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_one :address
   accepts_nested_attributes_for :address
 end
@@ -39,7 +39,7 @@ end
 #### belongs_to
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   belongs_to :firm
   accepts_nested_attributes_for :firm
 end
@@ -48,7 +48,7 @@ end
 #### has_many / has_and_belongs_to_many
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_many :projects
   accepts_nested_attributes_for :projects
 end
@@ -56,7 +56,7 @@ end
 
 ### Custom model
 
-As you might have inflected from this explanation, you _don't_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behavior:
+As you might have inflected from this explanation, you _don't_ necessarily need an ApplicationRecord model to use this functionality. The following examples are sufficient to enable the nested model form behavior:
 
 #### Single associated object
 
@@ -114,7 +114,7 @@ class PeopleController < ApplicationController
 end
 ```
 
-NOTE: Obviously the instantiation of the associated object(s) can become tedious and not DRY, so you might want to move that into the model itself. ActiveRecord::Base provides an `after_initialize` callback which is a good way to refactor this.
+NOTE: Obviously the instantiation of the associated object(s) can become tedious and not DRY, so you might want to move that into the model itself. ApplicationRecord provides an `after_initialize` callback which is a good way to refactor this.
 
 ### Form code
 

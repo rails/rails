@@ -326,7 +326,7 @@ Turning the model into this:
 
 ```ruby
 module Blorgh
-  class Post < ActiveRecord::Base
+  class Post < ApplicationRecord
     has_many :comments
   end
 end
@@ -775,7 +775,7 @@ end
 ```ruby
 # Blorgh/app/models/post.rb
 
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   has_many :comments
 end
 ```
@@ -796,7 +796,7 @@ end
 ```ruby
 # Blorgh/app/models/post.rb
 
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   has_many :comments
   def summary
     "#{title}"
@@ -813,7 +813,7 @@ Using `Class#class_eval` is great for simple adjustments, but for more complex c
 ```ruby
 # MyApp/app/models/blorgh/post.rb
 
-class Blorgh::Post < ActiveRecord::Base
+class Blorgh::Post < ApplicationRecord
   include Blorgh::Concerns::Models::Post
 
   def time_since_created
@@ -829,7 +829,7 @@ end
 ```ruby
 # Blorgh/app/models/post.rb
 
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   include Blorgh::Concerns::Models::Post
 end
 ```

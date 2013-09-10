@@ -130,10 +130,10 @@ Creating Active Record Models
 -----------------------------
 
 It is very easy to create Active Record models. All you have to do is to
-subclass the `ActiveRecord::Base` class and you're good to go:
+subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
 end
 ```
 
@@ -170,7 +170,7 @@ You can use the `ActiveRecord::Base.table_name=` method to specify the table
 name that should be used:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   self.table_name = "PRODUCT"
 end
 ```
@@ -191,7 +191,7 @@ It's also possible to override the column that should be used as the table's
 primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   self.primary_key = "product_id"
 end
 ```
@@ -318,7 +318,7 @@ they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :name, presence: true
 end
 

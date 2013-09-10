@@ -155,7 +155,7 @@ NOTE: _Sessions that never expire extend the time-frame for attacks such as cros
 One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _expire sessions in a database table_. Call `Session.sweep("20 minutes")` to expire sessions that were used longer than 20 minutes ago.
 
 ```ruby
-class Session < ActiveRecord::Base
+class Session < ApplicationRecord
   def self.sweep(time = 1.hour)
     if time.is_a?(String)
       time = time.split.inject { |count, unit| count.to_i.send(unit) }
