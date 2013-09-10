@@ -39,7 +39,7 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({:controller => 'items', :action => 'show', :id => '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras={}, message=nil)
-        request = recognized_request_for(path)
+        request = recognized_request_for(path, extras)
 
         expected_options = expected_options.clone
         extras.each_key { |key| expected_options.delete key } unless extras.nil?
@@ -179,7 +179,7 @@ module ActionDispatch
 
       private
         # Recognizes the route for a given path.
-        def recognized_request_for(path)
+        def recognized_request_for(path, extras = {})
           if path.is_a?(Hash)
             method = path[:method]
             path   = path[:path]
@@ -207,7 +207,7 @@ module ActionDispatch
 
           request.request_method = method if method
 
-          params = @routes.recognize_path(path, { :method => method })
+          params = @routes.recognize_path(path, { :method => method, :extras => extras })
           request.path_parameters = params.with_indifferent_access
 
           request
