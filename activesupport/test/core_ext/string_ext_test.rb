@@ -11,13 +11,6 @@ require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
 
-module Ace
-  module Base
-    class Case
-    end
-  end
-end
-
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
