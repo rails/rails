@@ -16,8 +16,7 @@ module Rails
           :include => %w(
             README.rdoc
             lib/active_record/**/*.rb
-          ),
-          :exclude => 'lib/active_record/vendor/*'
+          )
         },
 
         'activemodel' => {
@@ -33,23 +32,22 @@ module Rails
             lib/abstract_controller/**/*.rb
             lib/action_controller/**/*.rb
             lib/action_dispatch/**/*.rb
-          ),
-          :exclude => 'lib/action_controller/vendor/*'
+          )
         },
 
         'actionview' => {
           :include => %w(
             README.rdoc
             lib/action_view/**/*.rb
-          )
+          ),
+          :exclude => 'lib/action_view/vendor/*'
         },
 
         'actionmailer' => {
           :include => %w(
             README.rdoc
             lib/action_mailer/**/*.rb
-          ),
-          :exclude => 'lib/action_mailer/vendor/*'
+          )
         },
 
         'railties' => {
