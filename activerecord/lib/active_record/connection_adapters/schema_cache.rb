@@ -9,7 +9,7 @@ module ActiveRecord
         @tables     = {}
 
         @columns = Hash.new do |h, table_name|
-          h[table_name] = conn.columns(table_name, "#{table_name} Columns")
+          h[table_name] = connection.columns(table_name, "#{table_name} Columns")
         end
 
         @columns_hash = Hash.new do |h, table_name|
@@ -19,7 +19,7 @@ module ActiveRecord
         end
 
         @primary_keys = Hash.new do |h, table_name|
-          h[table_name] = table_exists?(table_name) ? conn.primary_key(table_name) : nil
+          h[table_name] = table_exists?(table_name) ? connection.primary_key(table_name) : nil
         end
       end
 
