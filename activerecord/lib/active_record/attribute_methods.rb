@@ -115,7 +115,7 @@ module ActiveRecord
           raise DangerousAttributeError, "#{method_name} is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name."
         end
 
-        if superclass == Base
+        if superclass == Base || superclass == ApplicationRecord
           super
         else
           # If ThisClass < ... < SomeSuperClass < ... < Base and SomeSuperClass
