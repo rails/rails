@@ -61,7 +61,7 @@ generated would look like this:
 
   Thank you for signing up!
 
-In previous version of Rails you would call <tt>create_method_name</tt> and
+In previous versions of Rails you would call <tt>create_method_name</tt> and
 <tt>deliver_method_name</tt>.  Rails 3.0 has a much simpler interface - you
 simply call the method and optionally call +deliver+ on the return value.
 
