@@ -86,7 +86,7 @@ by underscores. Examples:
 | ------------- | -------------- |
 | `Post`        | `posts`        |
 | `LineItem`    | `line_items`   |
-| `Deer`        | `deer`         |
+| `Deer`        | `deers`        |
 | `Mouse`       | `mice`         |
 | `Person`      | `people`       |
 
