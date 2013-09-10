@@ -47,7 +47,6 @@ module AbstractController
     # Performs the actual template rendering.
     # :api: public
     def render_to_body(options = {})
-      raise NotImplementedError, "no render operation defined"
     end
 
     # Return Content-Type of rendered content
@@ -77,7 +76,11 @@ module AbstractController
     # render "foo/bar" to render :file => "foo/bar".
     # :api: plugin
     def _normalize_args(action=nil, options={})
-      options
+      if action.is_a? Hash
+        action
+      else
+        options
+      end
     end
 
     # Normalize options.
