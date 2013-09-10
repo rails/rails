@@ -130,7 +130,6 @@ class Post < ActiveRecord::Base
   has_many :secure_readers
   has_many :readers_with_person, -> { includes(:person) }, :class_name => "Reader"
   has_many :people, :through => :readers
-  has_many :secure_people, :through => :secure_readers
   has_many :single_people, :through => :readers
   has_many :people_with_callbacks, :source=>:person, :through => :readers,
               :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },
