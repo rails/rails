@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   Fix the assert_recognizes test method so that it works when there are
+    constraints on the querystring.
+
+    Issue/Pull Request #9368
+    Backport #5219
+
+    *Brian Hahn*
+
 *   Fix to render partial by context(#11605).
 
     *Kassio Borges*
