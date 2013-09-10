@@ -268,7 +268,7 @@ module ActiveRecord
         connection.create_table :testings do |t|
           t.column :title, :string
         end
-        person_klass = Class.new(ActiveRecord::Base)
+        person_klass = Class.new(ApplicationRecord)
         person_klass.table_name = 'testings'
 
         person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99

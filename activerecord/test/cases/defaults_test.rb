@@ -130,7 +130,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     end
 
     def with_text_blob_not_null_table
-      klass = Class.new(ActiveRecord::Base)
+      klass = Class.new(ApplicationRecord)
       klass.table_name = 'test_mysql_text_not_null_defaults'
       klass.connection.create_table klass.table_name do |t|
         t.column :non_null_text, :text, :null => false
@@ -147,7 +147,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     # MySQL uses an implicit default 0 rather than NULL unless in strict mode.
     # We use an implicit NULL so schema.rb is compatible with other databases.
     def test_mysql_integer_not_null_defaults
-      klass = Class.new(ActiveRecord::Base)
+      klass = Class.new(ApplicationRecord)
       klass.table_name = 'test_integer_not_null_default_zero'
       klass.connection.create_table klass.table_name do |t|
         t.column :zero, :integer, :null => false, :default => 0

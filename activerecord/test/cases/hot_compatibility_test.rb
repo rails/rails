@@ -4,7 +4,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   setup do
-    @klass = Class.new(ActiveRecord::Base) do
+    @klass = Class.new(ApplicationRecord) do
       connection.create_table :hot_compatibilities do |t|
         t.string :foo
         t.string :bar

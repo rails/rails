@@ -46,7 +46,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_method_missing_priority_when_delegating
-    klazz = Class.new(ActiveRecord::Base) do
+    klazz = Class.new(ApplicationRecord) do
       self.table_name = "topics"
       scope :since, Proc.new { where('written_on >= ?', Time.now - 1.day) }
       scope :to,    Proc.new { where('written_on <= ?', Time.now) }
@@ -270,7 +270,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   # has been done by evaluating a string with a plain def statement. For scope
   # names which contain spaces this approach doesn't work.
   def test_spaces_in_scope_names
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       self.table_name = "topics"
       scope :"title containing space", -> { where("title LIKE '% %'") }
       scope :approved, -> { where(:approved => true) }
@@ -436,7 +436,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_eager_default_scope_relations_are_remove
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     klass.table_name = 'posts'
 
     assert_raises(ArgumentError) do

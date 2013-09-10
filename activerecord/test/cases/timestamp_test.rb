@@ -126,7 +126,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Pet'; end
       belongs_to :owner, :touch => :happy_at
     end
@@ -142,7 +142,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_with_a_belongs_to_that_uses_a_counter_cache_should_update_the_parent
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Pet'; end
       belongs_to :owner, :counter_cache => :use_count, :touch => true
     end
@@ -159,7 +159,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_touches_parent_record_and_grandparent_record
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Toy'; end
       belongs_to :pet, :touch => true
     end
@@ -177,11 +177,11 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_touches_polymorphic_record
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Toy'; end
     end
 
-    wheel_klass = Class.new(ActiveRecord::Base) do
+    wheel_klass = Class.new(ApplicationRecord) do
       def self.name; 'Wheel'; end
       belongs_to :wheelable, :polymorphic => true, :touch => true
     end
@@ -199,7 +199,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_changing_parent_of_a_record_touches_both_new_and_old_parent_record
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Toy'; end
       belongs_to :pet, touch: true
     end
@@ -225,11 +225,11 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_changing_parent_of_a_record_touches_both_new_and_old_polymorphic_parent_record
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Toy'; end
     end
 
-    wheel_klass = Class.new(ActiveRecord::Base) do
+    wheel_klass = Class.new(ApplicationRecord) do
       def self.name; 'Wheel'; end
       belongs_to :wheelable, :polymorphic => true, :touch => true
     end
@@ -257,7 +257,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_clearing_association_touches_the_old_record
-    klass = Class.new(ActiveRecord::Base) do
+    klass = Class.new(ApplicationRecord) do
       def self.name; 'Toy'; end
       belongs_to :pet, touch: true
     end

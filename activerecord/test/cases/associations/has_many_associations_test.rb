@@ -46,11 +46,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_anonymous_has_many
-    developer = Class.new(ActiveRecord::Base) {
+    developer = Class.new(ApplicationRecord) {
       self.table_name = 'developers'
       dev = self
 
-      developer_project = Class.new(ActiveRecord::Base) {
+      developer_project = Class.new(ApplicationRecord) {
         self.table_name = 'developers_projects'
         belongs_to :developer, :class => dev
       }

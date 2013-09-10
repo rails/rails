@@ -59,7 +59,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_time_attributes_changes_with_time_zone
     in_time_zone 'Paris' do
-      target = Class.new(ActiveRecord::Base)
+      target = Class.new(ApplicationRecord)
       target.table_name = 'pirates'
 
       # New record - no changes.
@@ -86,7 +86,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_setting_time_attributes_with_time_zone_field_to_itself_should_not_be_marked_as_a_change
     in_time_zone 'Paris' do
-      target = Class.new(ActiveRecord::Base)
+      target = Class.new(ApplicationRecord)
       target.table_name = 'pirates'
 
       pirate = target.create
@@ -97,7 +97,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_time_attributes_changes_without_time_zone_by_skip
     in_time_zone 'Paris' do
-      target = Class.new(ActiveRecord::Base)
+      target = Class.new(ApplicationRecord)
       target.table_name = 'pirates'
 
       target.skip_time_zone_conversion_for_attributes = [:created_on]
@@ -125,7 +125,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_time_attributes_changes_without_time_zone
-    target = Class.new(ActiveRecord::Base)
+    target = Class.new(ApplicationRecord)
     target.table_name = 'pirates'
 
     target.time_zone_aware_attributes = false
@@ -207,7 +207,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_nullable_datetime_not_marked_as_changed_if_new_value_is_blank
     in_time_zone 'Edinburgh' do
-      target = Class.new(ActiveRecord::Base)
+      target = Class.new(ApplicationRecord)
       target.table_name = 'topics'
 
       topic = target.create
@@ -572,7 +572,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
     in_time_zone 'Paris' do
-      target = Class.new(ActiveRecord::Base)
+      target = Class.new(ApplicationRecord)
       target.table_name = 'topics'
 
       written_on = Time.utc(2012, 12, 1, 12, 0, 0).in_time_zone('Paris')
