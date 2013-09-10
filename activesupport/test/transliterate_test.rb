@@ -3,7 +3,6 @@ require 'abstract_unit'
 require 'active_support/inflector/transliterate'
 
 class TransliterateTest < ActiveSupport::TestCase
-
   def test_transliterate_should_not_change_ascii_chars
     (0..127).each do |byte|
       char = [byte].pack("U")
@@ -24,12 +23,13 @@ class TransliterateTest < ActiveSupport::TestCase
   def test_transliterate_should_work_with_custom_i18n_rules_and_uncomposed_utf8
     char = [117, 776].pack("U*") # "ü" as ASCII "u" plus COMBINING DIAERESIS
     I18n.backend.store_translations(:de, :i18n => {:transliterate => {:rule => {"ü" => "ue"}}})
-    I18n.locale = :de
+    default_locale, I18n.locale = I18n.locale, :de
     assert_equal "ue", ActiveSupport::Inflector.transliterate(char)
+  ensure
+    I18n.locale = default_locale
   end
 
   def test_transliterate_should_allow_a_custom_replacement_char
     assert_equal "a*b", ActiveSupport::Inflector.transliterate("a索b", "*")
   end
-
 end
