@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/struct'
 
 class StructExt < ActiveSupport::TestCase
   def test_to_h
