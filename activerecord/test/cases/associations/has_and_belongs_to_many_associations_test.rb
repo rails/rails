@@ -605,6 +605,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_join_table_alias
+    # FIXME: `references` has no impact on the aliases generated for the join
+    # query.  The fact that we pass `:developers_projects_join` to `references`
+    # and that the SQL string contains `developers_projects_join` is merely a
+    # coincidence.
     assert_equal(
       3,
       Developer.references(:developers_projects_join).merge(
@@ -615,6 +619,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_join_with_group
+    # FIXME: `references` has no impact on the aliases generated for the join
+    # query.  The fact that we pass `:developers_projects_join` to `references`
+    # and that the SQL string contains `developers_projects_join` is merely a
+    # coincidence.
     group = Developer.columns.inject([]) do |g, c|
       g << "developers.#{c.name}"
       g << "developers_projects_2.#{c.name}"
