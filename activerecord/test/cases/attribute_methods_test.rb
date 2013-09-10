@@ -19,7 +19,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def setup
     @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
-    @target = Class.new(ActiveRecord::Base)
+    @target = Class.new(ApplicationRecord)
     @target.table_name = 'topics'
   end
 
@@ -523,7 +523,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_raises_dangerous_attribute_error_when_defining_activerecord_method_in_model
     %w(save create_or_update).each do |method|
-      klass = Class.new ActiveRecord::Base
+      klass = Class.new ApplicationRecord
       klass.class_eval "def #{method}() 'defined #{method}' end"
       assert_raise ActiveRecord::DangerousAttributeError do
         klass.instance_method_already_implemented?(method)

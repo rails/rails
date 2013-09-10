@@ -1056,7 +1056,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoted_table_name_after_set_table_name
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
@@ -1068,14 +1068,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_set_table_name_with_inheritance
-    k = Class.new( ActiveRecord::Base )
+    k = Class.new(ApplicationRecord)
     def k.name; "Foo"; end
     def k.table_name; super + "ks"; end
     assert_equal "foosks", k.table_name
   end
 
   def test_sequence_name_with_abstract_class
-    ak = Class.new(ActiveRecord::Base)
+    ak = Class.new(ApplicationRecord)
     ak.abstract_class = true
     k = Class.new(ak)
     k.table_name = "projects"
@@ -1303,7 +1303,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_current_scope_is_reset
-    Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
+    Object.const_set :UnloadablePost, Class.new(ApplicationRecord)
     UnloadablePost.send(:current_scope=, UnloadablePost.all)
 
     UnloadablePost.unloadable
@@ -1457,12 +1457,12 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "scoped can take a values hash" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
   end
 
   test "connection_handler can be overridden" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     thread_connection_handler = nil
@@ -1478,7 +1478,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "new threads get default the default connection handler" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     orig_handler = klass.connection_handler
     handler = nil
 
@@ -1493,7 +1493,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "changing a connection handler in a main thread does not poison the other threads" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     after_handler = nil

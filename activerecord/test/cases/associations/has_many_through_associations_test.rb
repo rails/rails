@@ -60,7 +60,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def make_model(name)
-    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+    Class.new(ApplicationRecord) { define_singleton_method(:name) { name } }
   end
 
   def test_ordered_habtm

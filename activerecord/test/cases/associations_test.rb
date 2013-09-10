@@ -90,7 +90,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_bad_collection_keys
     assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
+      Class.new(ApplicationRecord).has_many(:wheels, :name => 'wheels')
     end
   end
 
