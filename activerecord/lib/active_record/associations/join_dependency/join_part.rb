@@ -62,7 +62,20 @@ module ActiveRecord
         end
 
         def extract_record(row)
-          Hash[column_names_with_alias.map{|cn, an| [cn, row[an]]}]
+          # This code is performance critical as it is called per row.
+          # see: https://github.com/rails/rails/pull/12185
+          hash = {}
+
+          index = 0
+          length = column_names_with_alias.length
+
+          while index < length
+            column_name, alias_name = column_names_with_alias[index]
+            hash[column_name] = row[alias_name]
+            index += 1
+          end
+
+          hash
         end
 
         def record_id(row)

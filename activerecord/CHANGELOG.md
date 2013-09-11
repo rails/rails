@@ -1,5 +1,14 @@
 ## unreleased ##
 
+*   Setting a has_one association on a new record no longer causes an empty
+    transaction.
+
+    *Dylan Thacker-Smith*
+
+*   Fix `AR::Relation#merge` sometimes failing to preserve `readonly(false)` flag.
+
+    *thedarkone*
+
 *   PostgreSQL adapter recognizes negative money values formatted with
     parentheses (eg. `($1.25) # => -1.25`)).
     Fixes #11899.

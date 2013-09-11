@@ -62,7 +62,11 @@ module ActiveRecord
       def merge
         normal_values.each do |name|
           value = values[name]
-          relation.send("#{name}!", *value) unless value.blank?
+          # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
+          # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
+          # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
+          # don't fall through the cracks.
+          relation.send("#{name}!", *value) unless value.nil? || (value.blank? && false != value)
         end
 
         merge_multi_values
