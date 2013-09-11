@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix `AR::Relation#merge` sometimes failing to preserve `readonly(false)` flag.
+
+    *thedarkone*
+
 *   PostgreSQL adapter recognizes negative money values formatted with
     parentheses (eg. `($1.25) # => -1.25`)).
     Fixes #11899.
