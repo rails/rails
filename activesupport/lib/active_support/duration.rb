@@ -70,12 +70,10 @@ module ActiveSupport
     alias :until :ago
 
     def inspect #:nodoc:
-      val_for = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
-      [:years, :months, :days, :minutes, :seconds].
-        select {|unit| val_for[unit].nonzero?}.
-        tap {|units| units << :seconds if units.empty?}.
-        map {|unit| [unit, val_for[unit]]}.
-        map {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
+      parts.
+        reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
+        sort_by {|unit,  _ | [:years, :months, :days, :minutes, :seconds].index(unit)}.
+        map     {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
         to_sentence(:locale => :en)
     end
 

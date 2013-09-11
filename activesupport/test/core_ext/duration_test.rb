@@ -27,6 +27,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_equals
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
+    assert 1.day.to_i == 1.day
     assert !(1.day == 'foo')
   end
 
@@ -37,6 +38,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '6 months and -2 days',            (6.months - 2.days).inspect
     assert_equal '10 seconds',                      10.seconds.inspect
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
+    assert_equal '10 years, 2 months, and 1 day',   (10.years + 1.month  + 1.day + 1.month).inspect
+    assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
     assert_equal '7 days',                          1.week.inspect
     assert_equal '14 days',                         1.fortnight.inspect
   end
