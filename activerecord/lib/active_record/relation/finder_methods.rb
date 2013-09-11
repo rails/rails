@@ -114,7 +114,7 @@ module ActiveRecord
     def first(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          limit(*args).to_a
+          find_first_with_limit(*args)
         else
           apply_finder_options(args.first).first
         end
@@ -134,8 +134,8 @@ module ActiveRecord
     def last(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          if order_values.empty?
-            order("#{primary_key} DESC").limit(*args).reverse
+          if order_values.empty? && primary_key
+            order("#{quoted_table_name}.#{quoted_primary_key} DESC").limit(*args).reverse
           else
             to_a.last(*args)
           end
@@ -378,7 +378,15 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @first ||= limit(1).to_a[0]
+        @first ||= find_first_with_limit(1)[0]
+      end
+    end
+
+    def find_first_with_limit(limit)
+      if order_values.empty? && primary_key
+        order("#{quoted_table_name}.#{quoted_primary_key}").limit(limit).to_a
+      else
+        limit(limit).to_a
       end
     end
 
