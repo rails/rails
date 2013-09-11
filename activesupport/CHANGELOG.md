@@ -1,3 +1,7 @@
+*   Fix ActiveSupport::Cache::FileStore#cleanup to no longer rely on missing each_key method.
+
+    *Murray Steele*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 
