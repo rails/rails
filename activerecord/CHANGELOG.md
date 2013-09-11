@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Setting a has_one association on a new record no longer causes an empty
+    transaction.
+
+    *Dylan Thacker-Smith*
+
 *   Fix `AR::Relation#merge` sometimes failing to preserve `readonly(false)` flag.
 
     *thedarkone*
