@@ -193,6 +193,14 @@ module ActiveRecord
       assert_equal ['foo = bar'], relation.where_values
     end
 
+    def test_merging_readonly_false
+      relation = Relation.new FakeKlass, :b
+      readonly_false_relation = relation.readonly(false)
+      # test merging in both directions
+      assert_equal false, relation.merge(readonly_false_relation).readonly_value
+      assert_equal false, readonly_false_relation.merge(relation).readonly_value
+    end
+
     def test_relation_merging_with_merged_joins_as_symbols
       special_comments_with_ratings = SpecialComment.joins(:ratings)
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
