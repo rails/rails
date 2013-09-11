@@ -2,10 +2,11 @@
 
 Active Record connects classes to relational database tables to establish an
 almost zero-configuration persistence layer for applications. The library
-provides a base class that, when subclassed, sets up a mapping between the new
-class and an existing table in the database. In the context of an application,
-these classes are commonly referred to as *models*. Models can also be
-connected to other models; this is done by defining *associations*.
+provides a base class, and subclassing an application specific version of
+this base class sets up a mapping between the new class and an existing
+table in the database. In the context of an application, these classes are
+commonly referred to as *models*. Models can also be connected to other
+models; this is done by defining *associations*.
 
 Active Record relies heavily on naming in that it uses class and association
 names to establish mappings between respective database tables and foreign key
@@ -17,7 +18,7 @@ A short rundown of some of the major features:
 
 * Automated mapping between classes and tables, attributes and columns.
 
-   class Product < ActiveRecord::Base
+   class Product < ApplicationRecord
    end
 
    The Product class is automatically mapped to the table named "products",
@@ -37,7 +38,7 @@ A short rundown of some of the major features:
 
 * Associations between objects defined by simple class methods.
 
-   class Firm < ActiveRecord::Base
+   class Firm < ApplicationRecord
      has_many   :clients
      has_one    :account
      belongs_to :conglomerate
@@ -48,7 +49,7 @@ A short rundown of some of the major features:
 
 * Aggregations of value objects.
 
-   class Account < ActiveRecord::Base
+   class Account < ApplicationRecord
      composed_of :balance, class_name: 'Money',
                  mapping: %w(balance amount)
      composed_of :address,
@@ -60,7 +61,7 @@ A short rundown of some of the major features:
 
 * Validation rules that can differ for new or existing objects.
 
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       validates :subdomain, :name, :email_address, :password, presence: true
       validates :subdomain, uniqueness: true
       validates :terms_of_service, acceptance: true, on: :create
@@ -72,7 +73,7 @@ A short rundown of some of the major features:
 
 * Callbacks available for the entire life cycle (instantiation, saving, destroying, validating, etc.).
 
-   class Person < ActiveRecord::Base
+   class Person < ApplicationRecord
      before_destroy :invalidate_payment_plan
      # the `invalidate_payment_plan` method gets called just before Person#destroy
    end
@@ -82,7 +83,7 @@ A short rundown of some of the major features:
 
 * Inheritance hierarchies.
 
-   class Company < ActiveRecord::Base; end
+   class Company < ApplicationRecord; end
    class Firm < Company; end
    class Client < Company; end
    class PriorityClient < Client; end
