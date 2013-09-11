@@ -68,8 +68,9 @@ module ActiveRecord
 
           index = 0
           length = column_names_with_alias.length
+
           while index < length
-            column_name,alias_name = column_names_with_alias[index]
+            column_name, alias_name = column_names_with_alias[index]
             hash[column_name] = row[alias_name]
             index += 1
           end
