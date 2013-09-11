@@ -13,8 +13,8 @@ module ActiveSupport
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
-      def decode(json, proc = nil, options = {})
-        data = ::JSON.load(json, proc, options)
+      def decode(json, options = {})
+        data = ::JSON.parse(json, options.merge(create_additions: false))
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else

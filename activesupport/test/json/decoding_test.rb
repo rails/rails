@@ -4,6 +4,12 @@ require 'active_support/json'
 require 'active_support/time'
 
 class TestJSONDecoding < ActiveSupport::TestCase
+  class Foo
+    def self.json_create(object)
+      "Foo"
+    end
+  end
+
   TESTS = {
     %q({"returnTo":{"\/categories":"\/"}})        => {"returnTo" => {"/categories" => "/"}},
     %q({"return\\"To\\":":{"\/categories":"\/"}}) => {"return\"To\":" => {"/categories" => "/"}},
@@ -52,7 +58,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     # tests escaping of "\n" char with Yaml backend
     %q({"a":"\n"})  => {"a"=>"\n"},
     %q({"a":"\u000a"}) => {"a"=>"\n"},
-    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
+    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"},
+    %q({"json_class":"TestJSONDecoding::Foo"}) => {"json_class"=>"TestJSONDecoding::Foo"}
   }
 
   TESTS.each_with_index do |(json, expected), index|
@@ -77,6 +84,12 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   def test_failed_json_decoding
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({: 1})) }
+  end
+
+  def test_cannot_force_json_unmarshalling
+    encodeded = %q({"json_class":"TestJSONDecoding::Foo"})
+    decodeded = {"json_class"=>"TestJSONDecoding::Foo"}
+    assert_equal decodeded, ActiveSupport::JSON.decode(encodeded, create_additions: true)
   end
 end
 
