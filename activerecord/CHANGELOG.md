@@ -1,3 +1,7 @@
+*   Fix `AR::Relation#merge` sometimes failing to preserve `readonly(false)` flag.
+
+    *thedarkone*
+
 *   Re-use `order` argument pre-processing for `reorder`.
 
     *Paul Nikitochkin*
