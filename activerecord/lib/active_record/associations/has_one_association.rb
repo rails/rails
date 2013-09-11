@@ -27,6 +27,8 @@ module ActiveRecord
 
         return self.target if !(target || record)
         if (target != record) || record.changed?
+          save &&= owner.persisted?
+
           transaction_if(save) do
             remove_target!(options[:dependent]) if target && !target.destroyed?
 
@@ -34,7 +36,7 @@ module ActiveRecord
               set_owner_attributes(record)
               set_inverse_instance(record)
 
-              if owner.persisted? && save && !record.save
+              if save && !record.save
                 nullify_owner_attributes(record)
                 set_owner_attributes(target) if target
                 raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
