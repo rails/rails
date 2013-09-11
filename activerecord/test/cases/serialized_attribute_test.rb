@@ -251,7 +251,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.create(content: myobj)
 
     Topic.all.each do |topic|
-      type = topic.instance_variable_get("@columns_hash")["content"]
+      type = Topic.column_types["content"]
       assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
     end
   end

@@ -172,7 +172,8 @@ module ActiveRecord
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
       @attributes   = self.class.initialize_attributes(defaults)
-      @columns_hash = self.class.column_types.dup
+      @column_types_override = nil
+      @column_types = self.class.column_types
 
       init_internals
       init_changed_attributes
@@ -197,7 +198,8 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes   = self.class.initialize_attributes(coder['attributes'])
-      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
+      @column_types_override = coder['column_types']
+      @column_types = self.class.column_types
 
       init_internals
 
