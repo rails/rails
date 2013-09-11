@@ -140,7 +140,21 @@ module ActiveRecord
 
           case method
           when :destroy
-            count = scope.destroy_all.length
+            if scope.klass.primary_key
+              count = scope.destroy_all.length
+            else
+              scope.to_a.each do |record|
+                record.run_callbacks :destroy
+              end
+
+              arel = scope.arel
+
+              stmt = Arel::DeleteManager.new arel.engine
+              stmt.from scope.klass.arel_table
+              stmt.wheres = arel.constraints
+
+              count = scope.klass.connection.delete(stmt, 'SQL', scope.bind_values)
+            end
           when :nullify
             count = scope.update_all(source_reflection.foreign_key => nil)
           else

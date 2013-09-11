@@ -65,6 +65,52 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_no_pk_join_table_append
+    lesson, _, student = make_no_pk_hm_t
+
+    sicp = lesson.new(:name => "SICP")
+    ben = student.new(:name => "Ben Bitdiddle")
+    sicp.students << ben
+    assert sicp.save!
+  end
+
+  def test_no_pk_join_table_delete
+    lesson, lesson_student, student = make_no_pk_hm_t
+
+    sicp = lesson.new(:name => "SICP")
+    ben = student.new(:name => "Ben Bitdiddle")
+    louis = student.new(:name => "Louis Reasoner")
+    sicp.students << ben
+    sicp.students << louis
+    assert sicp.save!
+
+    sicp.students.reload
+    assert_operator lesson_student.count, :>=, 2
+    assert_no_difference('student.count') do
+      assert_difference('lesson_student.count', -2) do
+        sicp.students.destroy(*student.all.to_a)
+      end
+    end
+  end
+
+  def test_no_pk_join_model_callbacks
+    lesson, lesson_student, student = make_no_pk_hm_t
+
+    after_destroy_called = false
+    lesson_student.after_destroy do
+      after_destroy_called = true
+    end
+
+    sicp = lesson.new(:name => "SICP")
+    ben = student.new(:name => "Ben Bitdiddle")
+    sicp.students << ben
+    assert sicp.save!
+
+    sicp.students.reload
+    sicp.students.destroy(*student.all.to_a)
+    assert after_destroy_called, "after destroy should be called"
+  end
+
+  def make_no_pk_hm_t
     lesson = make_model 'Lesson'
     student = make_model 'Student'
 
@@ -75,11 +121,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     lesson_student.belongs_to :student, :class => student
     lesson.has_many :lesson_students, :class => lesson_student
     lesson.has_many :students, :through => :lesson_students, :class => student
-
-    sicp = lesson.new(:name => "SICP")
-    ben = student.new(:name => "Ben Bitdiddle")
-    sicp.students << ben
-    assert sicp.save!
+    [lesson, lesson_student, student]
   end
 
   def test_pk_is_not_required_for_join
