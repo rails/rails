@@ -1,3 +1,9 @@
+*   Do not break params filtering on `nil` values.
+
+    Fixes #12149.
+
+    *Vasiliy Ermolovich*
+
 *   Separate Action View completely from Action Pack.
 
     *Łukasz Strzałkowski*
