@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Flag cookies as secure with ignore case in `ActionDispatch::SSL`.
+
+    *Yamagishi Kazutoshi*
+
 *   Don't include STS header in non-HTTPS responses.
 
     *Geoff Buesing*
