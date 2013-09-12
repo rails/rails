@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Make `find_in_batches` and `find_each` work without a logger.
+
+    *Dmitry Polushkin*
+
 *   Fix inserts with prepared statements disabled.
 
     Fixes #12023.
