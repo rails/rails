@@ -385,7 +385,7 @@ module ActiveRecord
       @attributes.update(fresh_object.instance_variable_get('@attributes'))
 
       @column_types           = self.class.column_types
-      @column_types_override  = fresh_object.instance_variable_get('@columns_types_override')
+      @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
       @attributes_cache       = {}
       self
     end
