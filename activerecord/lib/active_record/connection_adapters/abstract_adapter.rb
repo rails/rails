@@ -209,10 +209,11 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        old, @visitor = @visitor, unprepared_visitor
+        old_prepared_statements, @prepared_statements = @prepared_statements, false
+        old_visitor, @visitor = @visitor, unprepared_visitor
         yield
       ensure
-        @visitor = old
+        @visitor, @prepared_statements = old_visitor, old_prepared_statements
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
