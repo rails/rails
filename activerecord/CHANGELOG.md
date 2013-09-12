@@ -1,3 +1,7 @@
+*   Allow Relation#from to accept other relations with bind values.
+
+    *Ryan Wallace*
+
 *   Fix inserts with prepared statements disabled.
 
     Fixes #12023.
