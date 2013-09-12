@@ -224,7 +224,7 @@ module ActiveRecord
         writer_method(name, class_name, mapping, allow_nil, converter)
 
         reflection = ActiveRecord::Reflection.create(:composed_of, part_id, nil, options, self)
-        Reflection.add_reflection self, part_id, reflection
+        Reflection.add_aggregate_reflection self, part_id, reflection
       end
 
       private

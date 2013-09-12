@@ -24,11 +24,11 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
-      if reflection.class == AggregateReflection
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
-      else
-        ar.reflections = ar.reflections.merge(name => reflection)
-      end
+      ar.reflections = ar.reflections.merge(name => reflection)
+    end
+
+    def self.add_aggregate_reflection(ar, name, reflection)
+      ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
     end
 
     # \Reflection enables to interrogate Active Record classes and objects
