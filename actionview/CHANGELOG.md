@@ -1,3 +1,7 @@
+*   Refactor `excerpt` to use `Array#join` instead of `String#+`.
+
+    *Paul Nikitochkin*
+
 *   Only cache template digests if `config.cache_template_loading` id true.
 
     *Josh Lauer*, *Justin Ridgewell*
