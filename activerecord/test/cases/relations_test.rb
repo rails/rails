@@ -139,6 +139,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal relation.to_a, Topic.select('a.*').from(relation, :a).to_a
   end
 
+  def test_finding_with_subquery_with_binds
+    relation = Post.first.comments
+    assert_equal relation.to_a, Comment.select('*').from(relation).to_a
+    assert_equal relation.to_a, Comment.select('subquery.*').from(relation).to_a
+    assert_equal relation.to_a, Comment.select('a.*').from(relation, :a).to_a
+  end
+
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)
     assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)

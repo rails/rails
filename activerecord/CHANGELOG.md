@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Allow Relation#from to accept other relations with bind values.
+
+    *Ryan Wallace*
+
+
 *   Make `find_in_batches` and `find_each` work without a logger.
 
     *Dmitry Polushkin*
