@@ -443,7 +443,7 @@ module ActiveRecord
       end
 
       def without_prepared_statement?(binds)
-        @prepared_statements || binds.empty?
+        !@prepared_statements || binds.empty?
       end
     end
   end
