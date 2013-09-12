@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix `excerpt` when `:separator` is `nil`.
+
+    *Paul Nikitochkin*
+
 *   Make Live Streaming work with basic authentication or builder.
 
     Fixes #10984.
