@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Always use `Rack::Sendfile` to make possible to it be automatically
+    configured by the webserver.
+
+    Fixes #11440.
+
+    *Martin Schürrer*
+
 *   Flag cookies as secure with ignore case in `ActionDispatch::SSL`.
 
     *Yamagishi Kazutoshi*
