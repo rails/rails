@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix ActiveSupport::Cache::FileStore#cleanup to no longer rely on missing each_key method.
+
+    *Murray Steele*
+
 *   Add respond_to_missing? for TaggedLogging which is best practice when overriding method_missing. This permits
     wrapping TaggedLogging by another log abstraction such as em-logger.
 
