@@ -319,6 +319,10 @@ module ActionDispatch
         #
         # For options, see +match+, as +root+ uses it internally.
         #
+        # You can also pass a string which will expand
+        #
+        #   root 'pages#main'
+        #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
