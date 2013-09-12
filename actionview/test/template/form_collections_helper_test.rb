@@ -17,14 +17,14 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   # COLLECTION RADIO BUTTONS
-  test 'collection radio accepts a collection and generates inputs from value method' do
+  test 'collection radio accepts a collection and generate inputs from value method' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s
 
     assert_select 'input[type=radio][value=true]#user_active_true'
     assert_select 'input[type=radio][value=false]#user_active_false'
   end
 
-  test 'collection radio accepts a collection and generates inputs from label method' do
+  test 'collection radio accepts a collection and generate inputs from label method' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s
 
     assert_select 'label[for=user_active_true]', 'true'
