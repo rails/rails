@@ -420,11 +420,9 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implementation of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+ and +OrderedHash+ needs special handling in order to provide a proper JSON representation.
+Active Support provides a better implementation of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+, +OrderedHash+ and +Process::Status+ needs special handling in order to provide a proper JSON representation.
 
-Active Support also provides an implementation of `as_json` for the <tt>Process::Status</tt> class.
-
-NOTE: Defined in `active_support/core_ext/object/to_json.rb`.
+NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
 ### Instance Variables
 

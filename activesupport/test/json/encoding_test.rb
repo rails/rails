@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'securerandom'
 require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
@@ -94,6 +95,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
         ActiveSupport.use_standard_json_time_format = prev
       end
     end
+  end
+
+  def test_process_status
+    # There doesn't seem to be a good way to get a handle on a Process::Status object without actually
+    # creating a child process, hence this to populate $?
+    system("not_a_real_program_#{SecureRandom.hex}")
+    assert_equal %({"exitstatus":#{$?.exitstatus},"pid":#{$?.pid}}), ActiveSupport::JSON.encode($?)
   end
 
   def test_hash_encoding
