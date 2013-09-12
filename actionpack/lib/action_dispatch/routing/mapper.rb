@@ -429,10 +429,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }
         #
-        #     class Blacklist
+        #     class Whitelist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Blacklist.new
+        #     match 'path', to: 'c#a', constraints: Whitelist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -1063,18 +1063,18 @@ module ActionDispatch
         # a singular resource to map /profile (rather than /profile/:id) to
         # the show action:
         #
-        #   resource :geocoder
+        #   resource :profile
         #
         # creates six different routes in your application, all mapping to
-        # the +GeoCoders+ controller (note that the controller is named after
+        # the +Profiles+ controller (note that the controller is named after
         # the plural):
         #
-        #   GET       /geocoder/new
-        #   POST      /geocoder
-        #   GET       /geocoder
-        #   GET       /geocoder/edit
-        #   PATCH/PUT /geocoder
-        #   DELETE    /geocoder
+        #   GET       /profile/new
+        #   POST      /profile
+        #   GET       /profile
+        #   GET       /profile/edit
+        #   PATCH/PUT /profile
+        #   DELETE    /profile
         #
         # === Options
         # Takes same options as +resources+.

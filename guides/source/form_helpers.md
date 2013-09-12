@@ -67,7 +67,7 @@ To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and 
 This will generate the following HTML:
 
 ```html
-<form accept-charset="UTF-8" action="/search" method="get">
+<form accept-charset="UTF-8" action="/search" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
   <input name="commit" type="submit" value="Search" />

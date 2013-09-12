@@ -219,7 +219,7 @@ When working with documentation, please take into account the [API Documentation
 
 NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. Docrails is only used for isolated documentation improvements.
 
-NOTE: To help our CI servers you can add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
+NOTE: To help our CI servers you should add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
 
 WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 

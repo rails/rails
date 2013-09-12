@@ -305,7 +305,7 @@ braces. You can use the following modifiers:
 For instance, running
 
 ```bash
-$ rails generate migration AddDetailsToProducts price:decimal{5,2} supplier:references{polymorphic}
+$ rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
 ```
 
 will produce a migration that looks like this
