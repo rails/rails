@@ -33,7 +33,8 @@ module ActiveSupport
       # Premptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        each_key(options) do |key|
+        search_dir(cache_path) do |fname|
+          key = file_path_key(fname)
           entry = read_entry(key, options)
           delete_entry(key, options) if entry && entry.expired?
         end
