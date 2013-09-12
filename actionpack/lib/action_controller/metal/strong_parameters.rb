@@ -416,7 +416,7 @@ module ActionController
 
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
-          return unless value
+          next unless value
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.

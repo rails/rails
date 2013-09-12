@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Do not break params filtering on `nil` values.
+
+    Fixes #12149.
+
+    *Vasiliy Ermolovich*
+
 *   Fix `excerpt` when `:separator` is `nil`.
 
     *Paul Nikitochkin*

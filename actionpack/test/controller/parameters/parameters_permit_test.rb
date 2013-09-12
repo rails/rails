@@ -107,6 +107,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal [], permitted[:id]
   end
 
+  test 'do not break params filtering on nil values' do
+    params = ActionController::Parameters.new(a: 1, b: [1, 2, 3], c: nil)
+
+    permitted = params.permit(:a, c: [], b: [])
+    assert_equal 1, permitted[:a]
+    assert_equal [1, 2, 3], permitted[:b]
+    assert_equal nil, permitted[:c]
+  end
+
   test 'key to empty array: arrays of permitted scalars pass' do
     [['foo'], [1], ['foo', 'bar'], [1, 2, 3]].each do |array|
       params = ActionController::Parameters.new(id: array)
