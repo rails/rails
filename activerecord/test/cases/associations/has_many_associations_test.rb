@@ -1414,15 +1414,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_first_or_last_with_integer_on_association_should_load_association
+  def test_calling_first_or_last_with_integer_on_association_should_not_load_association
     firm = companies(:first_firm)
+    firm.clients.create(:name => 'Foo')
+    assert !firm.clients.loaded?
 
-    assert_queries 1 do
+    assert_queries 2 do
       firm.clients.first(2)
       firm.clients.last(2)
     end
 
-    assert firm.clients.loaded?
+    assert !firm.clients.loaded?
   end
 
   def test_calling_many_should_count_instead_of_loading_association
