@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Make possible to run SQLite rake tasks without the `Rails` constant defined.
+
+    *Damien Mathieu*
+
 *   Allow Relation#from to accept other relations with bind values.
 
     *Ryan Wallace*

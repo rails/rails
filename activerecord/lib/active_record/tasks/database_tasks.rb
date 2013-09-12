@@ -23,6 +23,7 @@ module ActiveRecord
     #   * +fixtures_path+: a path to fixtures directory.
     #   * +migrations_paths+: a list of paths to directories with migrations.
     #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
+    #   * +root+: a path to the root of the application.
     #
     # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
@@ -37,7 +38,7 @@ module ActiveRecord
 
       attr_writer :current_config
       attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir,
-                    :fixtures_path, :env
+                    :fixtures_path, :env, :root
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
