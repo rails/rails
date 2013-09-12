@@ -20,7 +20,7 @@ class FragmentCachingMetalTest < ActionController::TestCase
     @controller = FragmentCachingMetalTestController.new
     @controller.perform_caching = true
     @controller.cache_store = @store
-    @params = { controller: 'posts', action: 'index'}
+    @params = { controller: 'posts', action: 'index' }
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
     @controller.params = @params
@@ -40,7 +40,7 @@ class CachingController < ActionController::Base
 end
 
 class FragmentCachingTestController < CachingController
-  def some_action; end;
+  def some_action; end
 end
 
 class FragmentCachingTest < ActionController::TestCase
