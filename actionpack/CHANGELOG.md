@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Make Live Streaming work with basic authentication or builder.
+
+    Fixes #10984.
+
+    *Aaron Patterson*
+
 *   Always use `Rack::Sendfile` to make possible to it be automatically
     configured by the webserver.
 
