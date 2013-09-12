@@ -1,3 +1,10 @@
+*   Fix `form_for` when both `namespace` and `as` options are present
+
+    `as` option no longer overwrites `namespace` option when generating
+    html id attribute of the form element
+
+    *Adam Niedzielski*
+
 *   Fix `excerpt` when `:separator` is `nil`.
 
     *Paul Nikitochkin*
