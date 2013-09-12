@@ -1,4 +1,4 @@
-*   Refactor `excerpt` to use `Array#join` instead of `String#+`.
+*   Fix `excerpt` when `:separator` is `nil`.
 
     *Paul Nikitochkin*
 
