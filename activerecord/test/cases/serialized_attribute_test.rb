@@ -243,10 +243,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     myobj = MyObject.new('value1', 'value2')
     Topic.create(content: myobj)
     Topic.create(content: myobj)
-
-    Topic.all.each do |topic|
-      type = Topic.column_types["content"]
-      assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
-    end
+    type = Topic.column_types["content"]
+    assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
   end
 end
