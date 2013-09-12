@@ -314,6 +314,9 @@ class TextHelperTest < ActionView::TestCase
 
     options = { :separator => "\n", :radius => 1 }
     assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+
+    assert_equal excerpt('This is a beautiful morning', 'a'),
+                 excerpt('This is a beautiful morning', 'a', separator: nil)
   end
 
   def test_word_wrap
