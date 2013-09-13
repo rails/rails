@@ -45,6 +45,7 @@ class PermitScrubber < Loofah::Scrubber
   attr_reader :tags, :attributes
 
   def initialize
+    @direction = :bottom_up
     @tags, @attributes = nil, nil
   end
 
