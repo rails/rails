@@ -51,6 +51,10 @@ EOT
       generate_or_destroy(:generate)
     end
 
+    def destroy
+      generate_or_destroy(:destroy)
+    end
+
     def console
       require_command!("console")
       options = Rails::Console.parse_arguments(argv)
