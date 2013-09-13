@@ -2000,7 +2000,7 @@ Produce a string representation of a number in human-readable words:
 1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/formatting.rb`.
+NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
 
 Extensions to `Integer`
 -----------------------
@@ -2445,7 +2445,7 @@ dup[1][2] = 4
 array[1][2] == nil   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/array/deep_dup.rb`.
+NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### Grouping
 
@@ -2671,7 +2671,7 @@ hash[:b][:e] == nil      # => true
 hash[:b][:d] == [3, 4]   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/deep_dup.rb`.
+NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### Diffing
 
@@ -3873,4 +3873,4 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/load_error.rb`.
+NOTE: Defined in `actionpack/lib/abstract_controller/helpers.rb`.
