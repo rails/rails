@@ -37,7 +37,7 @@ module ActionController #:nodoc:
           end
           helper_method type
 
-          _flash_types << type
+          self._flash_types += [type]
         end
       end
     end
