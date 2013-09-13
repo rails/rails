@@ -2673,44 +2673,6 @@ hash[:b][:d] == [3, 4]   # => true
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
-### Diffing
-
-The method `diff` returns a hash that represents a diff of the receiver and the argument with the following logic:
-
-* Pairs `key`, `value` that exist in both hashes do not belong to the diff hash.
-
-* If both hashes have `key`, but with different values, the pair in the receiver wins.
-
-* The rest is just merged.
-
-```ruby
-{a: 1}.diff(a: 1)
-# => {}, first rule
-
-{a: 1}.diff(a: 2)
-# => {:a=>1}, second rule
-
-{a: 1}.diff(b: 2)
-# => {:a=>1, :b=>2}, third rule
-
-{a: 1, b: 2, c: 3}.diff(b: 1, c: 3, d: 4)
-# => {:a=>1, :b=>2, :d=>4}, all rules
-
-{}.diff({})        # => {}
-{a: 1}.diff({})    # => {:a=>1}
-{}.diff(a: 1)      # => {:a=>1}
-```
-
-An important property of this diff hash is that you can retrieve the original hash by applying `diff` twice:
-
-```ruby
-hash.diff(hash2).diff(hash2) == hash
-```
-
-Diffing hashes may be useful for error messages related to expected option hashes for example.
-
-NOTE: Defined in `active_support/core_ext/hash/diff.rb`.
-
 ### Working with Keys
 
 #### `except` and `except!`
