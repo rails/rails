@@ -49,6 +49,12 @@ module ActiveSupport
       end
     end
 
+    alias :eql? :==
+
+    def equal?(other)
+      __id__ == other.__id__
+    end
+
     def self.===(other) #:nodoc:
       other.is_a?(Duration)
     rescue ::NoMethodError
