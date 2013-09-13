@@ -113,10 +113,10 @@ end
 
 # === TargetScrubber
 #
-# Where PermitScrubber picks out tags and attributes to permit in sanitization
-# TargetScrubber picks tags and attributes to target for removal
+# Where PermitScrubber picks out tags and attributes to permit in
+# sanitization, TargetScrubber targets them for removal
 #
-# It uses PermitScrubber open architecture to redefine:
+# The open architecture of PermitScrubber is used to redefine:
 # - +allowed_node?+
 #   # allowed if node is not in tags
 # - +scrub_attribute?+
