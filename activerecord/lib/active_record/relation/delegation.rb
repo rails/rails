@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -83,7 +84,7 @@ module ActiveRecord
         if @klass.respond_to?(method)
           self.class.delegate_to_scoped_klass(method)
           scoping { @klass.send(method, *args, &block) }
-        elsif Array.method_defined?(method)
+        elsif array_delegable?(method)
           self.class.delegate method, :to => :to_a
           to_a.send(method, *args, &block)
         elsif arel.respond_to?(method)
@@ -108,17 +109,27 @@ module ActiveRecord
     end
 
     def respond_to?(method, include_private = false)
-      super || Array.method_defined?(method) ||
+      super || array_delegable?(method) ||
         @klass.respond_to?(method, include_private) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
 
+    def array_delegable?(method)
+      defined = Array.method_defined?(method)
+      if defined && method.to_s.ends_with?('!')
+        ActiveSupport::Deprecation.warn(
+          "Association will no longer delegate #{method} to #to_a as of Rails 4.2. You instead must first call #to_a on the association to expose the array to be acted on."
+        )
+      end
+      defined
+    end
+
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
         scoping { @klass.send(method, *args, &block) }
-      elsif Array.method_defined?(method)
+      elsif array_delegable?(method)
         to_a.send(method, *args, &block)
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
