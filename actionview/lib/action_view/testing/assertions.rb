@@ -1,3 +1,5 @@
+require 'loofah'
+
 module ActionView
   module Assertions
     autoload :DomAssertions, 'action_view/testing/assertions/dom'

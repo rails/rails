@@ -1,6 +1,8 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/object/blank'
 require 'active_support/deprecation'
+
+require 'loofah'
 require 'action_view/helpers/sanitize_helper/scrubbers'
 
 module ActionView
