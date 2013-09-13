@@ -67,7 +67,7 @@ class Numeric
     if other.to_a(ActiveSupport::Duration) 
       other == self 
     else
-      numeric_equal(self) 
+      numeric_equal(other) 
     end 
   end 
 
