@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/object/blank'
 require 'active_support/deprecation'
 require 'action_view/helpers/sanitize_helper/scrubbers'
 
@@ -25,7 +26,7 @@ module ActionView
   class FullSanitizer < Sanitizer
     def sanitize(html, options = {})
       return unless html
-      return html if html.empty?
+      return html if html.blank?
 
       Loofah.fragment(html).tap do |fragment|
         remove_xpaths(fragment, XPATHS_TO_REMOVE)
@@ -51,6 +52,7 @@ module ActionView
 
     def sanitize(html, options = {})
       return unless html
+      return html if html.blank?
 
       loofah_fragment = Loofah.fragment(html)
 
