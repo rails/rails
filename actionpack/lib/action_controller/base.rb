@@ -3,7 +3,7 @@ require "action_controller/metal/params_wrapper"
 
 module ActionController
   # The <tt>metal</tt> anonymous class was introduced to solve issue with including modules in <tt>ActionController::Base</tt>.
-  # Modules needes to be included in particluar order. First we need to have <tt>AbstractController::Rendering</tt> included,
+  # Modules needs to be included in particluar order. First we need to have <tt>AbstractController::Rendering</tt> included,
   # next we should include actuall implementation which would be for example <tt>ActionView::Rendering</tt> and after that
   # <tt>ActionController::Rendering</tt>. This order must be preserved and as we want to have middle module included dynamicaly
   # <tt>metal</tt> class was introduced. It has <tt>AbstractController::Rendering</tt> included and is parent class of
