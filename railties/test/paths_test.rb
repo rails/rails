@@ -180,7 +180,7 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size
   end
 
-  test "paths added to a eager_load path should be added to the eager_load collection" do
+  test "paths added to an eager_load path should be added to the eager_load collection" do
     @root["app"] = "/app"
     @root["app"].eager_load!
     @root["app"] << "/app2"

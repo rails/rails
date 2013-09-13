@@ -28,7 +28,7 @@ module ActionDispatch
         def call(env)
           params = env[PARAMETERS_KEY]
 
-          # If any of the path parameters has a invalid encoding then
+          # If any of the path parameters has an invalid encoding then
           # raise since it's likely to trigger errors further on.
           params.each do |key, value|
             next unless value.respond_to?(:valid_encoding?)

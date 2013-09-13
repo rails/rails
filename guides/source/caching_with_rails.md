@@ -327,7 +327,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of a options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController
