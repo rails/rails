@@ -98,7 +98,7 @@ class SanitizersTest < ActionController::TestCase
     assert_equal("This is a test.", sanitizer.sanitize("<p>This <u>is<u> a <a href='test.html'><strong>test</strong></a>.</p>"))
 
     assert_equal("", sanitizer.sanitize("<<<bad html>"))
-    
+
     assert_equal("This is a test.", sanitizer.sanitize("This is a test."))
 
     assert_equal "This has a  here.", sanitizer.sanitize("This has a <!-- comment --> here.")
@@ -219,7 +219,7 @@ class SanitizersTest < ActionController::TestCase
   def test_should_raise_argument_error_if_tags_is_not_enumerable
     sanitizer = ActionView::WhiteListSanitizer.new
     e = assert_raise(ArgumentError) do
-      sanitizer.sanitize('', :tags => 'foo')
+      sanitizer.sanitize('<a>some html</a>', :tags => 'foo')
     end
 
     assert_equal "You should pass :tags as an Enumerable", e.message
@@ -228,7 +228,7 @@ class SanitizersTest < ActionController::TestCase
   def test_should_raise_argument_error_if_attributes_is_not_enumerable
     sanitizer = ActionView::WhiteListSanitizer.new
     e = assert_raise(ArgumentError) do
-      sanitizer.sanitize('', :attributes => 'foo')
+      sanitizer.sanitize('<a>some html</a>', :attributes => 'foo')
     end
 
     assert_equal "You should pass :attributes as an Enumerable", e.message
@@ -242,7 +242,7 @@ class SanitizersTest < ActionController::TestCase
     end
 
     assert_raise Loofah::ScrubberNotFound do
-      sanitizer.sanitize('', :scrubber => scrubber)
+      sanitizer.sanitize('<a>some html</a>', :scrubber => scrubber)
     end
   end
 
