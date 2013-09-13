@@ -1,3 +1,10 @@
+*   Ensure Numeric and Duration are comparable 
+ 
+        1.seconds == 1 #=> true
+        1 == 1.seconds #=> true
+
+    *wenchaojiang*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 

@@ -28,6 +28,7 @@ class DurationTest < ActiveSupport::TestCase
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
     assert !(1.day == 'foo')
+    assert 1 == 1.second
   end
 
   def test_inspect

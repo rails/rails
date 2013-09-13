@@ -61,6 +61,16 @@ class Numeric
   end
   alias :fortnight :fortnights
 
+  # override :== to make Duration and Numeric comparable
+  alias :numeric_equal :==
+  def ==(other)
+    if other.to_a(ActiveSupport::Duration) 
+      other == self 
+    else
+      numeric_equal(self) 
+    end 
+  end 
+
   # Reads best without arguments:  10.minutes.ago
   def ago(time = ::Time.current)
     time - self
