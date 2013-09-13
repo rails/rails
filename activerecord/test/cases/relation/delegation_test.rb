@@ -78,7 +78,7 @@ module ActiveRecord
     end
 
     [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-      :shuffle!, :slice!, :sort!, :sort_by!].each do |method|
+      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if].each do |method|
       test "##{method} delegation is deprecated" do
         assert_deprecated do
           assert_responds(target, method)
