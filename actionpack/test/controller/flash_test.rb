@@ -288,6 +288,22 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_added_flash_types_exists_after_error
+
+    TestController.add_flash_types :bar
+    controller = TestController.new
+    req = mock
+    req.stubs(:flash).returns({:bar => 'foo'})
+
+    controller.stubs(:request).returns(req)
+    assert_equal 'foo', controller.bar 
+
+    controller = TestController.new
+    controller.stubs(:request).returns(req)
+
+    assert_equal 'foo', controller.bar
+  end
+
   private
 
     # Overwrite get to send SessionSecret in env hash
