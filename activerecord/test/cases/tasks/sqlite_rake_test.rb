@@ -58,49 +58,49 @@ module ActiveRecord
 
   class SqliteDBDropTest < ActiveRecord::TestCase
     def setup
-      @database      = "db_create.sqlite3"
-      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
-      @configuration = {
-        'adapter'  => 'sqlite3',
-        'database' => @database
-      }
-
-      Pathname.stubs(:new).returns(@path)
-      File.stubs(:join).returns('/former/relative/path')
-      FileUtils.stubs(:rm).returns(true)
+      config = { 'adapter'  => 'sqlite3' }
+      @absolute_params = [config.merge('database' => '/path/db_create.sqlite3'), '/rails/root']
+      @relative_params = [config.merge('database' => 'db_create.sqlite3'), '/rails/root']
     end
 
-    def test_creates_path_from_database
-      Pathname.expects(:new).with(@database).returns(@path)
+    def test_calls_proper_drop_method
+      tasks = stub :tasks
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.expects(:new).with(*@relative_params).returns(tasks)
+      tasks.expects(:drop)
 
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
-    end
-
-    def test_removes_file_with_absolute_path
-      File.stubs(:exist?).returns(true)
-      @path.stubs(:absolute?).returns(true)
-
-      FileUtils.expects(:rm).with('/absolute/path')
-
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
+      ActiveRecord::Tasks::DatabaseTasks.drop *@relative_params
     end
 
     def test_generates_absolute_path_with_given_root
-      @path.stubs(:absolute?).returns(false)
-
-      File.expects(:join).with('/rails/root', @path).
-        returns('/former/relative/path')
-
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
+      Pathname.any_instance.stubs(:delete)
+      tasks = ActiveRecord::Tasks::SQLiteDatabaseTasks.new(*@relative_params)
+      tasks.drop
+      assert_equal tasks.send(:dbfile_path).to_s, '/rails/root/db_create.sqlite3'
     end
 
-    def test_removes_file_with_relative_path
-      File.stubs(:exist?).returns(true)
-      @path.stubs(:absolute?).returns(false)
+    def test_removes_file_by_relative_path
+      dbfile_path = stub :dbfile_path
+      tasks = ActiveRecord::Tasks::SQLiteDatabaseTasks.new(*@relative_params)
+      tasks.stubs(:dbfile_path).returns(dbfile_path)
+      dbfile_path.expects(:exist?).returns(true)
+      dbfile_path.expects(:delete)
+      tasks.drop
+    end
 
-      FileUtils.expects(:rm).with('/former/relative/path')
+    def test_leaves_absolute_path_unchanged
+      Pathname.any_instance.stubs(:delete)
+      tasks = ActiveRecord::Tasks::SQLiteDatabaseTasks.new(*@absolute_params)
+      tasks.drop
+      assert_equal tasks.send(:dbfile_path).to_s, '/path/db_create.sqlite3'
+    end
 
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
+    def test_removes_file_by_absolute_path
+      dbfile_path = stub :dbfile_path
+      tasks = ActiveRecord::Tasks::SQLiteDatabaseTasks.new(*@absolute_params)
+      tasks.stubs(:dbfile_path).returns(dbfile_path)
+      dbfile_path.expects(:exist?).returns(true)
+      dbfile_path.expects(:delete)
+      tasks.drop
     end
   end
 
@@ -147,45 +147,47 @@ module ActiveRecord
 
   class SqliteStructureDumpTest < ActiveRecord::TestCase
     def setup
-      @database      = "db_create.sqlite3"
-      @configuration = {
-        'adapter'  => 'sqlite3',
-        'database' => @database
-      }
+      @filename = "awesome-file.sql"
+      @config = { 'adapter'  => 'sqlite3' }
     end
 
-    def test_structure_dump
-      dbfile   = @database
-      filename = "awesome-file.sql"
+    def test_dumps_structure_by_db_relative_path
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 "/rails/root/db_create.sqlite3" .schema > "#@filename"))
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, '/rails/root'
-      assert File.exists?(dbfile)
-      assert File.exists?(filename)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
+      relative_params = [config.merge('database' => 'db_create.sqlite3'), @filename, '/rails/root']
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump *relative_params
+    end
+
+    def test_dumps_structure_by_db_absolute_path
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 "/path/db_create.sqlite3" .schema > "#@filename"))
+
+      absolute_params = [config.merge('database' => '/path/db_create.sqlite3'), @filename, '/rails/root']
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump *absolute_params
     end
   end
 
   class SqliteStructureLoadTest < ActiveRecord::TestCase
     def setup
-      @database      = "db_create.sqlite3"
-      @configuration = {
-        'adapter'  => 'sqlite3',
-        'database' => @database
-      }
+      @filename = "awesome-file.sql"
+      @config = { 'adapter'  => 'sqlite3' }
     end
 
-    def test_structure_load
-      dbfile   = @database
-      filename = "awesome-file.sql"
+    def test_dumps_structure_by_db_relative_path
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 "/rails/root/db_create.sqlite3" < "#@filename"))
 
-      open(filename, 'w') { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, '/rails/root'
-      assert File.exists?(dbfile)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
+      relative_params = [config.merge('database' => 'db_create.sqlite3'), @filename, '/rails/root']
+      ActiveRecord::Tasks::DatabaseTasks.structure_load *relative_params
+    end
+
+    def test_dumps_structure_by_db_absolute_path
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.any_instance.expects(:`).
+        with(%Q(sqlite3 "/path/db_create.sqlite3" < "#@filename"))
+
+      absolute_params = [config.merge('database' => '/path/db_create.sqlite3'), @filename, '/rails/root']
+      ActiveRecord::Tasks::DatabaseTasks.structure_load *absolute_params
     end
   end
 end

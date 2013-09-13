@@ -1,3 +1,9 @@
+*   SQLite `db:structure_dump` and `db:structure_load` tasks now support being run
+    not from the `Rails.root` path when a relative SQLite DB path is specified.
+    This is particularly useful when developing engines.
+
+    *Yury "Exoth" Trofimenko*
+
 *   Deprecate the delegation of Array bang methods for associations.
     To use them, instead first call `#to_a` on the association to access the
     array to be acted on.
