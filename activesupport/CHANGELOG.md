@@ -1,3 +1,7 @@
+*   Added Duration#eql? and Duration#equal? for consistency. See GH#12211
+
+    *Andrew Gurinovich*
+
 *   Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day` methods.
 
     Also added `midday`, `noon`, `at_midday`, `at_noon` and `at_middle_of_day` as aliases.

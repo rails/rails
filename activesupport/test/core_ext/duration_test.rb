@@ -31,6 +31,19 @@ class DurationTest < ActiveSupport::TestCase
     assert !(1.day == 'foo')
   end
 
+  def test_eql_and_equal
+    # an assumption, that duration1 and duration2 are different objects
+    duration1 = 1.second
+    duration2 = 1.second
+    
+    assert duration1.eql?(duration2)
+    assert_not duration1.__id__ == duration2.__id__
+    assert_not duration1.equal?(duration2)
+
+    assert 1.second.eql? 1
+    assert_not 1.second.equal? 1
+  end
+
   def test_inspect
     assert_equal '0 seconds',                       0.seconds.inspect
     assert_equal '1 month',                         1.month.inspect
