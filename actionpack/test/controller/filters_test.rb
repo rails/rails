@@ -82,7 +82,7 @@ class FilterTest < ActionController::TestCase
     after_filter :unreached_after_filter
 
     def show
-      @ran_action = true
+      ran_action = true
       render :inline => "ran action"
     end
 
@@ -112,7 +112,7 @@ class FilterTest < ActionController::TestCase
     after_filter :unreached_after_filter
 
     def show
-      @ran_action = true
+      ran_action = true
       render :inline => "ran show action"
     end
 
