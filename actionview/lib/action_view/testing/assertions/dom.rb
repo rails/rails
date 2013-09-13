@@ -22,12 +22,14 @@ module ActionView
       end
 
       protected
+
         def compare_doms(expected, actual)
           return false unless expected.children.size == actual.children.size
 
           expected.children.each_with_index do |child, i|
             return false unless equal_children?(child, actual.children[i])
           end
+
           true
         end
 
@@ -44,12 +46,14 @@ module ActionView
 
         def equal_attribute_nodes?(nodes, other_nodes)
           return false unless nodes.size == other_nodes.size
+
           nodes = nodes.sort_by(&:name)
           other_nodes = other_nodes.sort_by(&:name)
 
           nodes.each_with_index do |attr, i|
             return false unless equal_attribute?(attr, other_nodes[i])
           end
+
           true
         end
 
