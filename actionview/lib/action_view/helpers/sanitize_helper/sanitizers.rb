@@ -5,12 +5,13 @@ require 'action_view/helpers/sanitize_helper/scrubbers'
 module ActionView
   XPATHS_TO_REMOVE = %w{.//script .//form comment()}
 
-  class Sanitizer
-    # :nodoc:
+  class Sanitizer # :nodoc:
     def sanitize(html, options = {})
       raise NotImplementedError, "subclasses must implement"
     end
 
+    # call +remove_xpaths+ with string and get a string back
+    # call it with a node or nodeset and get back a node/nodeset
     def remove_xpaths(html, xpaths)
       if html.respond_to?(:xpath)
         html.xpath(*xpaths).remove
@@ -23,7 +24,7 @@ module ActionView
 
   class FullSanitizer < Sanitizer
     def sanitize(html, options = {})
-      return nil unless html
+      return unless html
       return html if html.empty?
 
       Loofah.fragment(html).tap do |fragment|
@@ -44,15 +45,15 @@ module ActionView
   end
 
   class WhiteListSanitizer < Sanitizer
-
     def initialize
       @permit_scrubber = PermitScrubber.new
     end
 
     def sanitize(html, options = {})
-      return nil unless html
+      return unless html
 
       loofah_fragment = Loofah.fragment(html)
+
       if scrubber = options[:scrubber]
         # No duck typing, Loofah ensures subclass of Loofah::Scrubber
         loofah_fragment.scrub!(scrubber)
@@ -64,11 +65,12 @@ module ActionView
         remove_xpaths(loofah_fragment, XPATHS_TO_REMOVE)
         loofah_fragment.scrub!(:strip)
       end
+
       loofah_fragment.to_s
     end
 
     def sanitize_css(style_string)
-      Loofah::HTML5::Scrub.scrub_css style_string
+      Loofah::HTML5::Scrub.scrub_css(style_string)
     end
 
     def protocol_separator
