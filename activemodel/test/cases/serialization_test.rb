@@ -16,8 +16,8 @@ class SerializationTest < ActiveModel::TestCase
       instance_values.except("address", "friends")
     end
 
-    def foo
-      'i_am_foo'
+    def foo(bar = '')
+      'i_am_foo' + bar
     end
   end
 
@@ -60,6 +60,11 @@ class SerializationTest < ActiveModel::TestCase
   def test_method_serializable_hash_should_work_with_methods_option
     expected = {"name"=>"David", "gender"=>"male", "foo"=>"i_am_foo", "email"=>"david@example.com"}
     assert_equal expected, @user.serializable_hash(methods: [:foo])
+  end
+
+  def test_method_serializable_hash_should_work_with_methods_option
+    expected = {"name"=>"David", "gender"=>"male", "foo"=>"i_am_foobar", "email"=>"david@example.com"}
+    assert_equal expected, @user.serializable_hash(methods: [[:foo, 'bar']])
   end
 
   def test_method_serializable_hash_should_work_with_only_and_methods
