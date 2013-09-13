@@ -293,7 +293,7 @@ module ApplicationTests
 
     test "precompile should handle utf8 filenames" do
       filename = "レイルズ.png"
-      app_file "app/assets/images/#{filename}", "not a image really"
+      app_file "app/assets/images/#{filename}", "not an image really"
       add_to_config "config.assets.precompile = [ /\.png$/, /application.(css|js)$/ ]"
 
       precompile!
@@ -305,7 +305,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       get "/assets/#{URI.parser.escape(asset_path)}"
-      assert_match "not a image really", last_response.body
+      assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end
 

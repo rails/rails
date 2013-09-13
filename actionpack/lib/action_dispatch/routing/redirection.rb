@@ -17,7 +17,7 @@ module ActionDispatch
       def call(env)
         req = Request.new(env)
 
-        # If any of the path parameters has a invalid encoding then
+        # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
         req.symbolized_path_parameters.each do |key, value|
           unless value.valid_encoding?

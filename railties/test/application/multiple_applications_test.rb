@@ -110,7 +110,7 @@ module ApplicationTests
 
       assert_equal 0, $run_count, "Without loading the initializers, the count should be 0"
 
-      # Set config.eager_load to false so that a eager_load warning doesn't pop up
+      # Set config.eager_load to false so that an eager_load warning doesn't pop up
       AppTemplate::Application.new { config.eager_load = false }.initialize!
 
       assert_equal 3, $run_count, "There should have been three initializers that incremented the count"

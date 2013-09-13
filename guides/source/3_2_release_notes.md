@@ -227,7 +227,7 @@ Action Pack
 
 #### Deprecations
 
-* Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
+* Deprecated implied layout lookup in controllers whose parent had an explicit layout set:
 
     ```ruby
     class ApplicationController
@@ -254,7 +254,7 @@ Action Pack
 
 * Added `ActionDispatch::RequestId` middleware that'll make a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
 
-* The `ShowExceptions` middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the `PATH_INFO` rewritten to the status code.
+* The `ShowExceptions` middleware now accepts an exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the `PATH_INFO` rewritten to the status code.
 
 * Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`.
 
