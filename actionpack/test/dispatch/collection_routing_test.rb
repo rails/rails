@@ -1,0 +1,48 @@
+require 'abstract_unit'
+
+class TestCollectionRouting < ActionDispatch::IntegrationTest
+  test 'collection option' do
+    draw do
+      resources :posts, collection: true
+    end
+
+    get '/posts/1..10,15'
+    assert_equal 'posts#show_many', @response.body
+    assert_equal '/posts/1..10,15', post_path(id: "1..10,15")
+
+    post '/posts/'
+    assert_equal 'posts#create', @response.body
+
+    patch '/posts/1'
+    assert_equal 'posts#update_many', @response.body
+
+    put '/posts/1'
+    assert_equal 'posts#replace', @response.body
+
+    delete '/posts/1'
+    assert_equal 'posts#destroy_many', @response.body
+  end
+
+  private
+
+    def draw(&block)
+      self.class.stub_controllers do |routes|
+        @app = routes
+        @app.default_url_options = { host: 'www.example.com' }
+        @app.draw(&block)
+      end
+    end
+
+    def url_for(options = {})
+      @app.url_helpers.url_for(options)
+    end
+
+    def method_missing(method, *args, &block)
+      if method.to_s =~ /_(path|url)$/
+        @app.url_helpers.send(method, *args, &block)
+      else
+        super
+      end
+    end
+
+end
