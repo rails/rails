@@ -408,6 +408,7 @@ module ActionController
         IO,
         ActionDispatch::Http::UploadedFile,
         Rack::Test::UploadedFile,
+        Range
       ]
 
       def permitted_scalar?(value)
@@ -438,6 +439,37 @@ module ActionController
         end
       end
 
+      def array_of_permitted_scalars_and_within_range_filter(params, key)
+        if has_key?(key)
+          permitted_range = self[key]
+          ranges = parse_ranges params[key]
+          return if ranges.nil?
+          ranges.all? do |element|
+            if element.is_a?(Range)
+              permitted_range === element
+            end
+          end
+        end
+      end
+
+      # Parses strings as ranges
+      def parse_ranges(value)
+        new_param = value.to_s.split(',').map do |r|
+          if matches = /^(\d)\.\.(\d)$/.match(r)
+            r = matches[1].to_i..matches[2].to_i
+          elsif /^\d$/ =~ r
+            r = r.to_i
+          else
+            nil
+          end
+        end.compact
+        if new_param && !new_param.empty?
+          new_param
+        else
+          nil
+        end
+      end
+
       EMPTY_ARRAY = []
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
@@ -449,6 +481,8 @@ module ActionController
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
+          elsif filter[key].is_a?(Range)
+            array_of_permitted_scalars_and_within_range_filter(params, key)
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
