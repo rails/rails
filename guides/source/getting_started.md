@@ -298,6 +298,8 @@ tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
 controller generator (`rails generate controller welcome index`).
 
+Finally, delete the `public/index.html` file to remove the "Welcome Aboard" page.
+
 If you navigate to <http://localhost:3000> in your browser, you'll see the
 `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`,
 indicating that this new route is indeed going to `WelcomeController`'s `index`
