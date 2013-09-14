@@ -67,6 +67,24 @@ class PermitScrubberTest < ActionView::TestCase
     assert_node_skipped 'some text'
   end
 
+  def test_tags_accessor_validation
+    e = assert_raise(ArgumentError) do
+      @scrubber.tags = 'tag'
+    end
+
+    assert_equal "You should pass :tags as an Enumerable", e.message
+    assert_nil @scrubber.tags, "Tags should be nil when validation fails"
+  end
+
+  def test_attributes_accessor_validation
+    e = assert_raise(ArgumentError) do
+      @scrubber.attributes = 'cooler'
+    end
+
+    assert_equal "You should pass :attributes as an Enumerable", e.message
+    assert_nil @scrubber.attributes, "Attributes should be nil when validation fails"
+  end
+
   protected
     def assert_scrubbed(html, expected = html)
       output = Loofah.scrub_fragment(html, @scrubber).to_s

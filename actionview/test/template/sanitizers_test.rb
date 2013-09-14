@@ -218,20 +218,17 @@ class SanitizersTest < ActionController::TestCase
 
   def test_should_raise_argument_error_if_tags_is_not_enumerable
     sanitizer = ActionView::WhiteListSanitizer.new
-    e = assert_raise(ArgumentError) do
+    assert_raise(ArgumentError) do
       sanitizer.sanitize('<a>some html</a>', :tags => 'foo')
     end
-
-    assert_equal "You should pass :tags as an Enumerable", e.message
   end
 
   def test_should_raise_argument_error_if_attributes_is_not_enumerable
     sanitizer = ActionView::WhiteListSanitizer.new
-    e = assert_raise(ArgumentError) do
+
+    assert_raise(ArgumentError) do
       sanitizer.sanitize('<a>some html</a>', :attributes => 'foo')
     end
-
-    assert_equal "You should pass :attributes as an Enumerable", e.message
   end
 
   def test_should_not_accept_non_loofah_inheriting_scrubber
