@@ -168,3 +168,34 @@ class PermitScrubberTest < ScrubberTest
     assert_equal Loofah::Scrubber::STOP, scrubbing
   end
 end
+
+class TargetScrubberTest < ScrubberTest
+  def setup
+    @scrubber = TargetScrubber.new
+  end
+
+  def test_targeting_tags_removes_only_them
+    @scrubber.tags = %w(a h1)
+    html = '<script></script><a></a><h1></h1>'
+    assert_scrubbed html, '<script></script>'
+  end
+
+  def test_targeting_tags_removes_only_them_nested
+    @scrubber.tags = %w(a)
+    html = '<tag><a><tag><a></a></tag></a></tag>'
+    assert_scrubbed html, '<tag><tag></tag></tag>'
+  end
+
+  def test_targeting_attributes_removes_only_them
+    @scrubber.attributes = %w(class id)
+    html = '<a class="a" id="b" onclick="c"></a>'
+    assert_scrubbed html, '<a onclick="c"></a>'
+  end
+
+  def test_targeting_tags_and_attributes_removes_only_them
+    @scrubber.tags = %w(tag)
+    @scrubber.attributes = %w(remove)
+    html = '<tag remove="" other=""></tag><a remove="" other=""></a>'
+    assert_scrubbed html, '<a other=""></a>'
+  end
+end
