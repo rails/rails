@@ -138,10 +138,11 @@ module ActiveRecord
       end
     end
 
-    private
-
     def method_deprecated?(method)
-      method.to_s.ends_with?('!') || method.to_s == 'delete_if'
+      deprecated_methods = [:delete_if, :keep_if, :pop,
+                            :shift, :delete_at, :compact]
+
+      method.to_s.ends_with?('!') || deprecated_methods.include?(method)
     end
   end
 end

@@ -18,7 +18,8 @@ module ActiveRecord
           else
             target.send(method, 1)
           end
-        else
+        when 1
+          target.send(method, 1) else
           raise NotImplementedError
         end
       end
@@ -44,7 +45,8 @@ module ActiveRecord
     end
 
     [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-      :shuffle!, :slice!, :sort!, :sort_by!].each do |method|
+      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
+      :keep_if, :pop, :shift, :delete_at, :compact].each do |method|
       test "##{method} delegation is deprecated" do
         assert_deprecated do
           assert_responds(target, method)
@@ -78,7 +80,8 @@ module ActiveRecord
     end
 
     [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if].each do |method|
+      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
+      :keep_if, :pop, :shift, :delete_at, :compact].each do |method|
       test "##{method} delegation is deprecated" do
         assert_deprecated do
           assert_responds(target, method)
