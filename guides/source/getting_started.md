@@ -766,7 +766,10 @@ There isn't much to this file - but note that the `Post` class inherits from
 `ApplicationRecord`. Active Record supplies a great deal of functionality to
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
-and the ability to relate multiple models to one another.
+and the ability to relate multiple models to one another. All you need to do
+to get all of this functionality is to subclass `ApplicationRecord` (which is
+itself a subclass of `ActiveRecord::Base` where all of the functionality is
+defined).
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/post.rb` file and edit it:

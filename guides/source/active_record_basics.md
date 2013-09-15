@@ -159,6 +159,15 @@ p.name = "Some Book"
 puts p.name # "Some Book"
 ```
 
+Once you subclass `ApplicationRecord`, you get all of the functionality that is
+defined in the `ActiveRecord::Base` class since `ApplicationRecord` is itself a
+subclass of `ActiveRecord::Base`. The `ApplicationRecord` class allows you to
+configure Active Record without stepping over other applications that you would
+possibly be using, since every application you create has its own
+`ApplicationRecord`. Configurations set in `ActiveRecord::Base` are global to all
+applications using Active Record, but configurations set on `ApplicationRecord`
+are local to that application.
+
 Overriding the Naming Conventions
 ---------------------------------
 
