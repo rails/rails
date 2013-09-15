@@ -6,7 +6,7 @@ module ActiveRecord
     class SafeArrayDelegator < SimpleDelegator
       INPLACE_MODIFICATION_METHODS = [
         :delete_if, :keep_if, :pop, :shift, :delete_at, :compact
-      ] + Array.instance_methods(false).select{|method| method.to_s.ends_with?('!')} 
+      ] + Array.instance_methods(false).select{ |method| method.to_s.ends_with?('!') } 
       
       INPLACE_MODIFICATION_METHODS.each do |method|
         define_method method do |*args|
