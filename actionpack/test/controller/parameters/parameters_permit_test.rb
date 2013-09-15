@@ -41,6 +41,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     values += [Date.today, Time.now, DateTime.now]
     values += [STDOUT, StringIO.new, ActionDispatch::Http::UploadedFile.new(tempfile: __FILE__),
       Rack::Test::UploadedFile.new(__FILE__)]
+    values += [1..10]
 
     values.each do |value|
       params = ActionController::Parameters.new(id: value)
@@ -259,5 +260,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test "permitting parameters as an array" do
     assert_equal "32", @params[:person].permit([ :age ])[:age]
+  end
+
+  test "range parameters" do
+    params = ActionController::Parameters.new ids: '1..10,5,18'
+    permitted = params.permit ids: 1..10
+    assert_filtered_out permitted, :ids
   end
 end

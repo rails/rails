@@ -4,6 +4,7 @@ require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
 require 'set'
+require 'active_support/core_ext/range/include_range'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -439,25 +440,21 @@ module ActionController
         end
       end
 
-      def array_of_permitted_scalars_and_within_range_filter(params, key)
+      def array_of_permitted_scalars_and_within_range_filter(params, key, permitted_range)
         if has_key?(key)
-          permitted_range = self[key]
-          ranges = parse_ranges params[key]
+          ranges = parse_ranges self[key]
           return if ranges.nil?
-          ranges.all? do |element|
-            if element.is_a?(Range)
-              permitted_range === element
-            end
-          end
+          result = ranges.all? { |element| permitted_range === element }
+          params[key] = ranges if result
         end
       end
 
       # Parses strings as ranges
       def parse_ranges(value)
         new_param = value.to_s.split(',').map do |r|
-          if matches = /^(\d)\.\.(\d)$/.match(r)
+          if matches = /\A(\d+)\.\.(\d+)\z/.match(r)
             r = matches[1].to_i..matches[2].to_i
-          elsif /^\d$/ =~ r
+          elsif /^\d+$/ =~ r
             r = r.to_i
           else
             nil
@@ -482,7 +479,7 @@ module ActionController
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
           elsif filter[key].is_a?(Range)
-            array_of_permitted_scalars_and_within_range_filter(params, key)
+            array_of_permitted_scalars_and_within_range_filter(params, key, filter[key])
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
