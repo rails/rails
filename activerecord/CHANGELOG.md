@@ -1,9 +1,3 @@
-*   Deprecate the delegation of Array bang methods for associations.
-    To use them, instead first call `#to_a` on the association to access the
-    array to be acted on.
-
-    *Ben Woosley*
-
 *   `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed
     query to fetch results rather than loading the entire collection.
 
