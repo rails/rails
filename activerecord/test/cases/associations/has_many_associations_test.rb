@@ -1716,4 +1716,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size
   end
+
+  test "inplace edit" do
+    car = Car.create(:name => 'honda')
+    car.bulbs.create!
+    car.bulbs.create!
+
+    assert_equal 2, car.reload.bulbs.size
+    car.bulbs.delete_if{true}
+    assert_equal true, car.bulbs.empty?
+    assert_equal 0, car.bulbs.size
+
+    assert_equal 2, car.reload.bulbs.size
+    car.bulbs.keep_if{false}
+    assert_equal true, car.bulbs.empty?
+    assert_equal 0, car.bulbs.size
+
+    assert_equal 2, car.reload.bulbs.size
+    car.bulbs.pop
+    assert_equal true, car.bulbs.any?
+    assert_equal 1, car.bulbs.size
+  end
 end

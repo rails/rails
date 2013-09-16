@@ -43,6 +43,7 @@ module ActiveRecord
       def load_target
         @association.load_target
       end
+      alias_method :array_for_delegation, :load_target 
 
       # Returns +true+ if the association has been loaded, otherwise +false+.
       #

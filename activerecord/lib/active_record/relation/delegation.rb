@@ -1,8 +1,33 @@
 require 'active_support/concern'
-require 'active_support/deprecation'
+require 'delegate'
 
 module ActiveRecord
   module Delegation # :nodoc:
+    class SafeArrayDelegator < SimpleDelegator
+      INPLACE_MODIFICATION_METHODS = [
+        :delete_if, :keep_if, :pop, :shift, :delete_at, :compact
+      ] + Array.instance_methods(false).select{ |method| method.to_s.ends_with?('!') } 
+      
+      def initialize(relation)
+        super(nil)
+        @relation = relation
+      end
+      
+      def __getobj__
+        super || __setobj__(@relation.to_a)
+      end
+
+      def respond_to?(method)
+        if INPLACE_MODIFICATION_METHODS.include?(method)
+          # return false as of Rails 4.2
+          ActiveSupport::Deprecation.warn(
+            "Association #{@relation.class} will no longer delegate #{method} to #to_a as of Rails 4.2. You instead must first call #to_a on the association to expose the array to be acted on."
+          )
+        end
+        Array.method_defined?(method)
+      end
+    end
+    
     module DelegateCache
       def relation_delegate_class(klass) # :nodoc:
         @relation_delegate_cache[klass]
@@ -36,7 +61,7 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
+    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :array_for_delegation
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
 
@@ -84,9 +109,9 @@ module ActiveRecord
         if @klass.respond_to?(method)
           self.class.delegate_to_scoped_klass(method)
           scoping { @klass.send(method, *args, &block) }
-        elsif array_delegable?(method)
-          self.class.delegate method, :to => :to_a
-          to_a.send(method, *args, &block)
+        elsif array_for_delegation.respond_to?(method)
+          self.class.delegate method, :to => :array_for_delegation
+          array_for_delegation.send(method, *args, &block)
         elsif arel.respond_to?(method)
           self.class.delegate method, :to => :arel
           arel.send(method, *args, &block)
@@ -109,28 +134,22 @@ module ActiveRecord
     end
 
     def respond_to?(method, include_private = false)
-      super || array_delegable?(method) ||
+      super || array_for_delegation.respond_to?(method) ||
         @klass.respond_to?(method, include_private) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
-
-    def array_delegable?(method)
-      defined = Array.method_defined?(method)
-      if defined && method.to_s.ends_with?('!')
-        ActiveSupport::Deprecation.warn(
-          "Association will no longer delegate #{method} to #to_a as of Rails 4.2. You instead must first call #to_a on the association to expose the array to be acted on."
-        )
-      end
-      defined
+    
+    def array_for_delegation
+      SafeArrayDelegator.new(self)
     end
 
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
         scoping { @klass.send(method, *args, &block) }
-      elsif array_delegable?(method)
-        to_a.send(method, *args, &block)
+      elsif array_for_delegation.respond_to?(method)
+        array_for_delegation.send(method, *args, &block)
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
       else
