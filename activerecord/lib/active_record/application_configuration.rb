@@ -3,16 +3,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def configs_from(mod)
-        app_record = self
-
-        mod.singleton_class.instance_eval do
-          define_method(:application_record) { app_record }
-        end
-
-        define_singleton_method(:configs_from_application) { application }
-      end
-
       def application_record(klass = nil)
         return ActiveRecord::Base unless klass
 
