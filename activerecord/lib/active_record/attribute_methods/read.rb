@@ -110,7 +110,8 @@ module ActiveRecord
         name = attr_name.to_s
         @attributes_cache[name] || @attributes_cache.fetch(name) {
           column = @column_types_override[name] if @column_types_override
-          column ||= @column_types[name]
+          column ||= @column_types[name] if @column_types
+          column ||= self.class.columns_hash[name]
 
           return @attributes.fetch(name) {
             if name == 'id' && self.class.primary_key != name
