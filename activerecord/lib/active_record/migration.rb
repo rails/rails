@@ -721,17 +721,17 @@ module ActiveRecord
 
     # Determines the version number of the next migration.
     def next_migration_number(number)
-      if ActiveRecord::Base.timestamped_migrations
+      if ActiveRecord::Base.application_record.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
         SchemaMigration.normalize_migration_number(number)
       end
     end
 
-    def table_name_options(config = ActiveRecord::Base)
+    def table_name_options
       {
-        table_name_prefix: config.table_name_prefix,
-        table_name_suffix: config.table_name_suffix
+        table_name_prefix: ActiveRecord::Base.application_record.table_name_prefix,
+        table_name_suffix: ActiveRecord::Base.application_record.table_name_suffix
       }
     end
 

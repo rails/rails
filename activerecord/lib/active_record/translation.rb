@@ -6,7 +6,7 @@ module ActiveRecord
     def lookup_ancestors #:nodoc:
       klass = self
       classes = [klass]
-      return classes if klass == ActiveRecord::Base
+      return classes if klass == ActiveRecord::Base || klass == ApplicationRecord
 
       while klass != klass.base_class
         classes << klass = klass.superclass
