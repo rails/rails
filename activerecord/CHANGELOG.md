@@ -1,3 +1,11 @@
+*   Fix: joins association, with defined in the scope block constraints by using several
+    where constraints and at least of them is not `Arel::Nodes::Equality`,
+    generates invalid SQL expression.
+
+    Fixes: #11963
+
+    *Paul Nikitochkin*
+
 *   Deprecate the delegation of Array bang methods for associations.
     To use them, instead first call `#to_a` on the association to access the
     array to be acted on.
