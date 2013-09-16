@@ -216,7 +216,7 @@ module ActiveRecord
         if @connection
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+          @connection.query_options[:database_timezone] = ActiveRecord::Base.application_record.default_timezone
         end
 
         super

@@ -201,7 +201,7 @@ HEADER
       end
 
       def remove_prefix_and_suffix(table)
-        table.gsub(/^(#{ActiveRecord::Base.table_name_prefix})(.+)(#{ActiveRecord::Base.table_name_suffix})$/,  "\\2")
+        table.gsub(/^(#{ActiveRecord::Base.application_record.table_name_prefix})(.+)(#{ActiveRecord::Base.application_record.table_name_suffix})$/,  "\\2")
       end
   end
 end

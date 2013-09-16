@@ -850,7 +850,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           # (SET TIME ZONE does not use an equals sign like other SET variables)
-          if ActiveRecord::Base.default_timezone == :utc
+          if ActiveRecord::Base.application_record.default_timezone == :utc
             execute("SET time zone 'UTC'", 'SCHEMA')
           elsif @local_tz
             execute("SET time zone '#{@local_tz}'", 'SCHEMA')
