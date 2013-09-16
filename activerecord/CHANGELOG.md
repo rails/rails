@@ -1,3 +1,10 @@
+*   Deprecate the delegation of Array `#delete_if`, `#keep_if`, `#pop`,
+    `#shift`, `#delete_at` and `#compact` methods for associations.
+    To use them, instead first call `#to_a` on the association to access the
+    array to be acted on.
+
+    *Lauro Caetano*
+
 *   Deprecate the delegation of Array bang methods for associations.
     To use them, instead first call `#to_a` on the association to access the
     array to be acted on.

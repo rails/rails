@@ -118,7 +118,7 @@ module ActiveRecord
 
     def array_delegable?(method)
       defined = Array.method_defined?(method)
-      if defined && method.to_s.ends_with?('!')
+      if defined && method_deprecated?(method)
         ActiveSupport::Deprecation.warn(
           "Association will no longer delegate #{method} to #to_a as of Rails 4.2. You instead must first call #to_a on the association to expose the array to be acted on."
         )
@@ -136,6 +136,13 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def method_deprecated?(method)
+      deprecated_methods = [:delete_if, :keep_if, :pop,
+                            :shift, :delete_at, :compact]
+
+      method.to_s.ends_with?('!') || deprecated_methods.include?(method)
     end
   end
 end
