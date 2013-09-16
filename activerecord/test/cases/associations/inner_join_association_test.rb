@@ -41,6 +41,11 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_no_match(/WHERE/i, sql)
   end
 
+  def test_join_association_conditions_support_string_and_arel_expressions
+    assert_equal 0, Author.joins(:welcome_posts_with_comment).count
+    assert_equal 1, Author.joins(:welcome_posts_with_comments).count
+  end
+
   def test_join_conditions_allow_nil_associations
     authors = Author.includes(:essays).where(:essays => {:id => nil})
     assert_equal 2, authors.count

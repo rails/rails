@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   Fix: joins association, with defined in the scope block constraints by using several
+    where constraints and at least of them is not `Arel::Nodes::Equality`,
+    generates invalid SQL expression.
+
+    Fixes: #11963
+
+    *Paul Nikitochkin*
+
 *   Make possible to run SQLite rake tasks without the `Rails` constant defined.
 
     *Damien Mathieu*

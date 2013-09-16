@@ -875,14 +875,13 @@ module ActiveRecord
     end
 
     def collapse_wheres(arel, wheres)
-      equalities = wheres.grep(Arel::Nodes::Equality)
-
-      arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
-
-      (wheres - equalities).each do |where|
+      predicates = wheres.map do |where|
+        next where if ::Arel::Nodes::Equality === where
         where = Arel.sql(where) if String === where
-        arel.where(Arel::Nodes::Grouping.new(where))
+        Arel::Nodes::Grouping.new(where)
       end
+
+      arel.where(Arel::Nodes::And.new(predicates)) if predicates.present?
     end
 
     def build_where(opts, other = [])
