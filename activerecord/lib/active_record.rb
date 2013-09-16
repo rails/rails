@@ -145,10 +145,6 @@ module ActiveRecord
     autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
     autoload :PostgreSQLDatabaseTasks,
       'active_record/tasks/postgresql_database_tasks'
-
-    autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
-    autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
-    autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
   autoload :TestFixtures, 'active_record/fixtures'
