@@ -703,9 +703,9 @@ The `rake db:reset` task will drop the database and set it up again. This is
 functionally equivalent to `rake db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
-contents of the current schema.rb file. If a migration can't be rolled back,
-'rake db:reset' may not help you. To find out more about dumping the schema see
-'[schema dumping and you](#schema-dumping-and-you).'
+contents of the current `schema.rb` file. If a migration can't be rolled back,
+`rake db:reset` may not help you. To find out more about dumping the schema see
+[Schema Dumping and You](#schema-dumping-and-you) section.
 
 ### Running Specific Migrations
 
