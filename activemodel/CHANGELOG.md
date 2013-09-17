@@ -1,3 +1,8 @@
+*   Add support to numericality validator for `within: 1..10` for a more succinct syntax then
+    `greater_than_or_equal_to: 1, less_than_or_equal_to: 10`
+
+    *Matthew Savage*
+
 *   Fix has_secure_password. `password_confirmation` validations are triggered
     even if no `password_confirmation` is set.
 
