@@ -133,7 +133,7 @@ module ActionController #:nodoc:
       @resource = resources.last
       @resources = resources
       @options = options
-      @action = options.delete(:action)
+      @action = options[:action]
       @default_response = options.delete(:default_response)
     end
 
