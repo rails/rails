@@ -34,7 +34,7 @@ module ActiveRecord
     # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
     # (by setting the +:start+ option on that worker).
     #
-    #   # Let's process for a batch of 2000 records, skiping the first 2000 rows
+    #   # Let's process for a batch of 2000 records, skipping the first 2000 rows
     #   Person.find_each(start: 2000, batch_size: 2000) do |person|
     #     person.party_all_night!
     #   end
