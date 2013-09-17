@@ -180,6 +180,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.encrypted_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-128-cbc"
     @request.host = "www.nextangle.com"
   end
 
@@ -522,6 +523,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
     @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
     @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
+    @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-128-cbc"
 
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate('bar')
 
@@ -533,7 +535,8 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
     sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
-    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+    cipher = @request.env["action_dispatch.encrypted_cookie_cipher"]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: cipher)
     assert_equal 'bar', encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
