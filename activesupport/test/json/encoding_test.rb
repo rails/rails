@@ -328,6 +328,20 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal false, false.as_json
   end
 
+  def test_only_option_with_new_names
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.as_json :only => {address: :location, city: :province}
+    expected = [
+      { 'location' => { 'province' => 'London' }},
+      { 'location' => { 'province' => 'Paris' }}
+    ]
+
+    assert_equal(expected, json)
+  end
+
   protected
 
     def object_keys(json_object)

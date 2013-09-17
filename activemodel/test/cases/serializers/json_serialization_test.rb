@@ -207,4 +207,22 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_no_match %r{"awesome":}, json
     assert_no_match %r{"preferences":}, json
   end
+
+  test "only option with hashes should return json with new name" do
+    json = @contact.to_json(only: {name: :new_name, age: :oldness})
+
+    assert_match %r{"new_name":"Konata Izumi"}, json
+    assert_match %r{"oldness":16}, json
+    assert_no_match %r{"name"}, json
+    assert_no_match %r{"age"}, json
+
+  end
+
+  test "methods options with hashes should return json with new method names" do
+    def @contact.last_name_and_age; @name.split(" ").last + " " + @age.to_s; end
+    json = @contact.to_json(methods: {last_name_and_age: :classification})
+
+    assert_match %r{"classification":"Izumi 16"}, json
+    assert_no_match %r{"last_name_and_age"}, json
+  end
 end
