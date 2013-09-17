@@ -2920,14 +2920,22 @@ module ActiveRecord #:nodoc:
         attributes.each do |k, v|
           if k.to_s.include?("(")
             multiparameter_attributes << [ k, v ]
-          elsif RUBY_VERSION == "1.9.3"
-            respond_to?(:"#{k}=") ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
           else
-            (respond_to?(:"#{k}=", true) && !method(:"#{k}=").private?) ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
+            _assign_attribute(k, v)
           end
         end
 
         assign_multiparameter_attributes(multiparameter_attributes) unless  multiparameter_attributes.empty?        
+      end
+
+      def _assign_attribute(k, v)
+        public_send("#{k}=", v)
+      rescue NoMethodError => e
+        if respond_to?("#{k}=")
+          raise e
+        else
+          raise UnknownAttributeError, "unknown attribute: #{k}"
+        end
       end
     
       def create_or_update
