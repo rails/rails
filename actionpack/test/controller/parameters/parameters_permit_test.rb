@@ -266,10 +266,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
 
+  # Tests for parsing ranges
+
   test "proper parameters are not filtered" do
     params = ActionController::Parameters.new ids: '4..6,7,34'
     permitted = params.permit ids: 3..50
     assert_not_filtered_out permitted, :ids
+    assert permitted[:ids], [4..6, 7, 34]
   end
 
   test "filter out of range parameters" do
@@ -279,8 +282,32 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "filter invalid parameters" do
-    params = ActionController::Parameters.new ids: '1..10 ,5, 18'
+    params = ActionController::Parameters.new ids: '1...10 ,5, 18'
     permitted = params.permit ids: 1..100
     assert_not_filtered_out permitted, :ids
+    assert permitted[:ids], [1...10, 5, 18]
+  end
+
+  test "don't filter exact range" do
+    params = ActionController::Parameters.new ids: '1..10'
+    permitted = params.permit ids: 1..10
+    assert_not_filtered_out permitted, :ids
+    assert permitted[:ids], [1..10]
+  end
+
+  test "reverse range and non numerical parameters are ignored" do
+    valid_params = ActionController::Parameters.new ids: '10..1 ,5, a, b, 6.+.5, 6..+9'
+    permitted = valid_params.permit ids: 1..100
+    invalid_params = ActionController::Parameters.new ids: '10..1 , a, b'
+    not_permitted = invalid_params.permit ids: 1..100
+    assert_not_filtered_out permitted, :ids
+    assert permitted[:ids], [1..10, 5]
+    assert_filtered_out not_permitted, :ids
+  end
+
+  test "blank parameter to range" do
+    params = ActionController::Parameters.new ids: ''
+    permitted = params.permit ids: 0..0
+    assert_filtered_out permitted, :ids
   end
 end
