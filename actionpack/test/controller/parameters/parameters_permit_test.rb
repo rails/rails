@@ -301,7 +301,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     invalid_params = ActionController::Parameters.new ids: '10..1 , a, b'
     not_permitted = invalid_params.permit ids: 1..100
     assert_not_filtered_out permitted, :ids
-    assert permitted[:ids], [1..10, 5], "Range parameters '10..1 ,5, a, b, 6.+.5, 6..+9' were not parsed correctly"
+    assert_equal permitted[:ids], [5], "Range parameters '10..1 ,5, a, b, 6.+.5, 6..+9' were not parsed correctly"
     assert_filtered_out not_permitted, :ids
   end
 
