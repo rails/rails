@@ -31,8 +31,6 @@ Rake::TestTask.new { |t|
   t.libs << activesupport_path if File.directory?(activesupport_path)
   t.libs << "test"
   t.pattern = 'test/**/*_test.rb'
-  t.verbose = true
-  t.warning = true
 }
 
 
