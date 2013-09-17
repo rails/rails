@@ -8,19 +8,23 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/posts/1..10,15'
     assert_equal 'posts#show_many', @response.body
-    assert_equal '/posts/1..10,15', post_path(id: "1..10,15")
+    assert_equal '/posts?ids=1..10%2C15', posts_path(ids: "1..10,15")
 
     post '/posts/'
     assert_equal 'posts#create', @response.body
 
-    patch '/posts/1'
+    patch '/posts/1..10'
     assert_equal 'posts#update_many', @response.body
 
-    put '/posts/1'
+    put '/posts/1..10'
     assert_equal 'posts#replace', @response.body
 
-    delete '/posts/1'
+    delete '/posts/1..10'
     assert_equal 'posts#destroy_many', @response.body
+
+    get '/posts/1..10,15/edit_many'
+    assert_equal 'posts#edit_many', @response.body
+    assert_equal '/posts/1..10,15/edit_many', edit_posts_path(ids: "1..10,15")
   end
 
   private

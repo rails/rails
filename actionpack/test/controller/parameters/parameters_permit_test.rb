@@ -262,9 +262,21 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
 
-  test "range parameters" do
+  test "proper parameters are not filtered" do
+    params = ActionController::Parameters.new ids: '4..6,7,34'
+    permitted = params.permit ids: 3..50
+    assert_not_filtered_out permitted, :ids
+  end
+
+  test "filter out of range parameters" do
     params = ActionController::Parameters.new ids: '1..10,5,18'
     permitted = params.permit ids: 1..10
+    assert_filtered_out permitted, :ids
+  end
+
+  test "filter invalid parameters" do
+    params = ActionController::Parameters.new ids: '1..0 ,5, 18'
+    permitted = params.permit ids: 1..100
     assert_filtered_out permitted, :ids
   end
 end

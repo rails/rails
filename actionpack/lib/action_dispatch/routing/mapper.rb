@@ -1290,20 +1290,6 @@ module ActionDispatch
               end
             end
 
-            # get    '/posts/',        to: 'posts#index',        as: 'posts',        ids: /(?:[^\.\/\?]|\.\.)+/
-            # get    '/posts/:ids',        to: 'posts#show_many',        as: nil,        ids: /(?:[^\.\/\?]|\.\.)+/
-            # post   '/posts',             to: 'posts#create',       as:  nil
-            # get    '/posts/new',         to: 'posts#new',          as: 'new_post'
-            # get    '/posts/:ids/edit',   to: 'posts#edit_many',    as: 'edit_posts', ids: /(?:[^\.\/\?]|\.\.)+/
-            # get    '/posts/:id/edit',    to: 'posts#edit',         as: 'edit_post',  id:  /[^,\.\/\?]+/
-            # get    '/posts/:id',         to: 'posts#show',         as: 'post',       id:  /[^,\.\/\?]+/
-            # put    '/posts/:ids',        to: 'posts#replace_many', as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
-            # patch  '/posts/:ids',        to: 'posts#update_many',  as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
-            # put    '/posts/:id',         to: 'posts#replace',      as:  nil,         id:  /[^,\.\/\?]+/
-            # patch  '/posts/:id',         to: 'posts#update',       as:  nil,         id:  /[^,\.\/\?]+/
-            # delete '/posts/:ids',        to: 'posts#destroy_many', as:  nil,         ids: /(?:[^\.\/\?]|\.\.)+/
-            # delete '/posts/:id',         to: 'posts#destroy',      as:  nil          id:  /[^,\.\/\?]+/
-
             new do
               get :new
             end if parent_resource.actions.include?(:new)
