@@ -7,6 +7,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert !params.has_key?(key), "key #{key.inspect} has not been filtered out"
   end
 
+  def assert_not_filtered_out(params, key)
+    assert params.has_key?(key), "key #{key.inspect} has been filtered out"
+  end
+
   setup do
     @params = ActionController::Parameters.new(
       person: {
@@ -275,8 +279,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "filter invalid parameters" do
-    params = ActionController::Parameters.new ids: '1..0 ,5, 18'
+    params = ActionController::Parameters.new ids: '1..10 ,5, 18'
     permitted = params.permit ids: 1..100
-    assert_filtered_out permitted, :ids
+    assert_not_filtered_out permitted, :ids
   end
 end

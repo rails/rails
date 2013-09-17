@@ -453,6 +453,7 @@ module ActionController
       # Parses strings as ranges
       def parse_ranges(value)
         new_param = value.to_s.split(',').map do |r|
+          r.chomp!
           if matches = /\A(\d+)\.\.(\d+)\z/.match(r)
             r = matches[1].to_i..matches[2].to_i
           elsif /^\d+$/ =~ r
