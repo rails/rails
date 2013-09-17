@@ -1,3 +1,8 @@
+*   Fix bug allowing destruction of nested objects when validates length fails afterwards.
+    Fixes #3961
+    
+    * Tom Caspy*
+
 *   Fix has_secure_password. `password_confirmation` validations are triggered
     even if no `password_confirmation` is set.
 

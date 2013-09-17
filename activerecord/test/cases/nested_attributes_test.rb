@@ -1053,4 +1053,15 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     ShipPart.create!(:ship => @ship, :name => "Stern")
     assert_no_queries { @ship.valid? }
   end
+
+  test "destroy nested object with length validation" do
+    Pirate.validates :birds, :length => { :minimum => 1 }
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.birds_attributes = [{ :name => 'Black Pearl' }]
+    pirate.save!
+    result = pirate.update_attributes(birds_attributes: [{_destroy: 1, id: pirate.birds.first.id}])
+    #assert_equal 1, pirate.birds.length
+    assert_equal false, result
+  end
 end
