@@ -1,13 +1,10 @@
 require 'abstract_unit'
-require 'tzinfo'
 
 class Map < Hash
   def category
     "<mus>"
   end
 end
-
-TZInfo::Timezone.cattr_reader :loaded_zones
 
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
@@ -22,7 +19,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def setup
     @fake_timezones = %w(A B C D E).map do |id|
-      tz = TZInfo::Timezone.loaded_zones[id] = stub(:name => id, :to_s => id)
+      tz = stub(:name => id, :to_s => id)
       ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)
       tz
     end
