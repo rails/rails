@@ -30,16 +30,12 @@ Rake::TestTask.new(:test_action_pack) do |t|
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
   t.test_files = Dir.glob( "test/[cftv]*/**/*_test.rb" ).sort
-
-  t.verbose = true
-  #t.warning = true
 end
 
 desc 'ActiveRecord Integration Tests'
 Rake::TestTask.new(:test_active_record_integration) do |t|
   t.libs << "test"
   t.test_files = Dir.glob("test/activerecord/*_test.rb")
-  t.verbose = true
 end
 
 
