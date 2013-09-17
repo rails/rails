@@ -1,3 +1,8 @@
+*   `find_in_batches` now accepts an `:end_at` parameter that complements the `:start`
+     parameter to specify where to stop batch processing.
+
+    *Vipul A M*
+
 *   Fix rounding problem for PostgreSQL timestamp column.
 
     If timestamp column have the precision, it need to format according to
