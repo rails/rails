@@ -566,6 +566,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal topic, Topic.find(topic.id)
   end
 
+  def test_blank_ids
+    one = Subscriber.new(:id => '')
+    two = Subscriber.new(:id => '')
+    assert_equal one, two
+  end
+
   def test_comparison_with_different_objects
     topic = Topic.create
     category = Category.create(:name => "comparison")
