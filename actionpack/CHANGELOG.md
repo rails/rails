@@ -1,3 +1,9 @@
+*   Fix an issue where router can't recognize downcased url encoding path.
+
+    Fixes #12269
+
+    *kennyj*
+
 *   Fix custom flash type definition. Misusage of the `_flash_types` class variable
     caused an error when reloading controllers with custom flash types.
 

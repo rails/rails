@@ -1904,6 +1904,10 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界'), :method => :get))
   end
 
+  def test_downcased_unicode_path
+    assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界').downcase, :method => :get))
+  end
+
   private
     def sort_extras!(extras)
       if extras.length == 2
