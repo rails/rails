@@ -580,7 +580,6 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_comparison_with_different_objects_in_array
     topic = Topic.create
-    category = Category.create(:name => "comparison")
     assert_raises(ArgumentError) do
       [1, topic].sort
     end
