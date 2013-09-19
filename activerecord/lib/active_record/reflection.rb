@@ -630,7 +630,7 @@ module ActiveRecord
 Ambiguous source reflection for through association.  Please specify a :source
 directive on your declaration like:
 
-  class #{active_record.name} < ApplicationRecord
+  class #{active_record.name} < ActiveRecord::Base.application_record
     #{macro} :#{name}, #{example_options}
   end
 

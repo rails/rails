@@ -105,7 +105,7 @@ module ActiveRecord
           raise DangerousAttributeError, "#{method_name} is defined by Active Record"
         end
 
-        if superclass == Base || superclass == ApplicationRecord
+        if superclass == ActiveRecord::Base.application_record || superclass == Base
           super
         else
           # If B < A and A defines its own attribute method, then we don't want to overwrite that.

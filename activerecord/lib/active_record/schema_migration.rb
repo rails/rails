@@ -3,7 +3,7 @@ require 'active_record/scoping/named'
 require 'active_record/base'
 
 module ActiveRecord
-  class SchemaMigration < ApplicationRecord
+  class SchemaMigration < ActiveRecord::Base.application_record
     class << self
 
       def table_name
