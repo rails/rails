@@ -798,7 +798,7 @@ module ActiveRecord
             "Ambiguous source reflection for through association.  Please " \
             "specify a :source directive on your declaration like:\n" \
             "\n" \
-            "  class #{active_record.name} < ApplicationRecord\n" \
+            "  class #{active_record.name} < ActiveRecord::Base.application_record\n" \
             "    #{macro} :#{name}, #{example_options}\n" \
             "  end"
         end
