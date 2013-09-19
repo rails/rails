@@ -1,3 +1,13 @@
+*   Fix regex used to detect URI schemes in `redirect_to` to be consistent with
+    RFC 3986.
+
+    *Derek Prior*
+
+*   Fix incorrect `assert_redirected_to` failure message for protocol-relative
+    URLs.
+
+    *Derek Prior*
+
 *   Fix an issue where router can't recognize downcased url encoding path.
 
     Fixes #12269
