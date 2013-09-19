@@ -1,3 +1,10 @@
+*   `ActiveRecord::ConnectionAdapters.string_to_time` respects
+    string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
+ 
+    Fixes: #12278
+
+    *kennyj*
+
 *   Calling `update_attributes` will now throw an `ArgumentError` whenever it
     gets a `nil` argument. More specifically, it will throw an error if the
     argument that it gets passed does not respond to to `stringify_keys`.
