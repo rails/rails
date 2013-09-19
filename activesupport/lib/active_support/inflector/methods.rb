@@ -120,7 +120,7 @@ module ActiveSupport
     #   'true'.humanize # => "Yes"
     #   'false'.humanize # => "No"
     def humanize_boolean(boolean)
-      boolean ? 'Yes' : 'No'
+      boolean ? I18n.t("boolean.yes") : I18n.t("boolean.no")
     end
 
     # Capitalizes all the words and replaces some characters in the string to
