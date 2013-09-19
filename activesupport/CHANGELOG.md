@@ -1,3 +1,9 @@
+*   Add `TrueClass#humanize` and `FalseClass#humanize` methods to Inflector.
+
+    Returns "Yes" or "No" for booleans
+
+    *Michael Heijmans*
+
 *   Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day` methods.
 
     Also added `midday`, `noon`, `at_midday`, `at_noon` and `at_middle_of_day` as aliases.

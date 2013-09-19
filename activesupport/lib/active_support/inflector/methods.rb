@@ -114,6 +114,15 @@ module ActiveSupport
       }.gsub(/^\w/) { $&.upcase }
     end
 
+    # Returns Yes for true and No for false.
+    # Like the String equivalent, this is meant for creating pretty output.
+    #
+    #   'true'.humanize # => "Yes"
+    #   'false'.humanize # => "No"
+    def humanize_boolean(boolean)
+      boolean ? 'Yes' : 'No'
+    end
+
     # Capitalizes all the words and replaces some characters in the string to
     # create a nicer looking title. +titleize+ is meant for creating pretty
     # output. It is not used in the Rails internals.
