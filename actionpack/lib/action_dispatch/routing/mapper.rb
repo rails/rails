@@ -989,7 +989,7 @@ module ActionDispatch
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many, :edit_many, :show_many]
+            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many, :show_many]
           end
 
           def actions
@@ -1276,6 +1276,8 @@ module ActionDispatch
 
             concerns(options[:concerns]) if options[:concerns]
 
+            set_member_mappings_for_resource
+
             collection do
               actions = parent_resource.actions
               (options[:constraints] ||= {}).merge! ids: /(?:[^\.\/\?]|\.\.)+/ if parent_resource.collection_routing?
@@ -1286,15 +1288,13 @@ module ActionDispatch
                 put    :replace, options if actions.include?(:replace)
                 patch  :update_many, options if actions.include?(:update_many)
                 delete :destroy_many, options if actions.include?(:destroy_many)
-                get    :edit_many, options.merge(as: 'edit') if actions.include?(:edit_many)
+                get    :edit, options.merge(as: 'edit', action: :edit_many) if actions.include?(:edit)
               end
             end
 
             new do
               get :new
             end if parent_resource.actions.include?(:new)
-
-            set_member_mappings_for_resource
           end
 
           self
