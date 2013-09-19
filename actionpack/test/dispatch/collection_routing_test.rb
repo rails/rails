@@ -10,7 +10,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     assert_equal 'posts#show_many', @response.body
     assert_equal '/posts/1..10,15', posts_path(ids: "1..10,15")
 
-    post '/posts/'
+    post '/posts'
     assert_equal 'posts#create', @response.body
 
     patch '/posts/1..10'
