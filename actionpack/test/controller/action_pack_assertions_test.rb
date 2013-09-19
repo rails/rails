@@ -291,8 +291,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_flash_exist
     process :flash_me
-    assert flash.any?
-    assert flash['hello'].present?
+    assert flash
+    assert flash['hello']
   end
 
   def test_flash_does_not_exist
