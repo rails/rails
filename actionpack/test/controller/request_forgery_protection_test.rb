@@ -78,6 +78,11 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
     cookies.encrypted[:foo] = 'bar'
     render :nothing => true
   end
+
+  def try_to_reset_session
+    reset_session
+    render :nothing => true
+  end
 end
 
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
@@ -318,6 +323,11 @@ class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController:
 
   test 'should allow to set encrypted cookies' do
     post :encrypted
+    assert_response :ok
+  end
+
+  test 'should allow reset_session' do
+    post :try_to_reset_session
     assert_response :ok
   end
 end
