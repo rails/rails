@@ -73,7 +73,11 @@ module ActiveSupport
 
     def self.new_from_hash_copying_default(hash)
       new(hash).tap do |new_hash|
-        new_hash.default = hash.default
+        if hash.default_proc
+          new_hash.default_proc = hash.default_proc
+        else
+          new_hash.default = hash.default
+        end
       end
     end
 
@@ -178,7 +182,11 @@ module ActiveSupport
     # Returns an exact copy of the hash.
     def dup
       self.class.new(self).tap do |new_hash|
-        new_hash.default = default
+        if default_proc
+          new_hash.default_proc = default_proc
+        else
+          new_hash.default = default
+        end
       end
     end
 
@@ -237,7 +245,8 @@ module ActiveSupport
       each do |key, value|
         _new_hash[convert_key(key)] = convert_value(value, for: :to_hash)
       end
-      Hash.new(default).merge!(_new_hash)
+      hash_base = default_proc ? Hash.new(&default_proc) : Hash.new(default)
+      hash_base.merge!(_new_hash)
     end
 
     protected
