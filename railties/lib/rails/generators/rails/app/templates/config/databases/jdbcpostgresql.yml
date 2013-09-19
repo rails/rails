@@ -2,13 +2,16 @@
 #
 # Configure Using Gemfile
 # gem 'activerecord-jdbcpostgresql-adapter'
-
-development:
+#
+default: &default
   adapter: postgresql
   encoding: unicode
-  database: <%= app_name %>_development
   username: <%= app_name %>
   password:
+
+development:
+  <<: *default
+  database: <%= app_name %>_development
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -29,15 +32,9 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  adapter: postgresql
-  encoding: unicode
+  <<: *default
   database: <%= app_name %>_test
-  username: <%= app_name %>
-  password:
 
 production:
-  adapter: postgresql
-  encoding: unicode
+  <<: *default
   database: <%= app_name %>_production
-  username: <%= app_name %>
-  password:
