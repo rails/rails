@@ -102,14 +102,14 @@ module ActiveRecord
           @preloaders = []
         else
           @preloaders = associations.flat_map { |association|
-            preload(association, records)
+            preloaders_on association, records
           }
         end
       end
 
       private
 
-      def preload(association, records)
+      def preloaders_on(association, records)
         case association
         when Hash
           preloaders_for_hash(association, records)
@@ -128,7 +128,9 @@ module ActiveRecord
         loaders = preloaders_for_one parent, records
 
         recs = loaders.flat_map(&:target_records).uniq
-        loaders.concat Array.wrap(child).flat_map { |assoc| preload assoc, recs }
+        loaders.concat Array.wrap(child).flat_map { |assoc|
+          preloaders_on assoc, recs
+        }
       end
 
       # Not all records have the same class, so group then preload group on the reflection
