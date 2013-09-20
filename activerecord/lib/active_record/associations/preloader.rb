@@ -116,10 +116,11 @@ module ActiveRecord
       end
 
       def preload_hash(association, records)
-        association.flat_map { |parent, child|
-          preload_one parent, records
-          run_preload Array.wrap(child), records.map { |record| record.send(parent) }.flatten.compact.uniq
-        }
+        parent, child = association.to_a.first # hash should only be of length 1
+
+        preload_one parent, records
+        run_preload Array.wrap(child),
+          records.map { |record| record.send(parent) }.flatten.compact.uniq
       end
 
       # Not all records have the same class, so group then preload group on the reflection
