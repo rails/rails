@@ -105,22 +105,36 @@ module ActiveRecord
       def preload(association, records)
         case association
         when Hash
-          preload_hash(association, records)
+          preload_hash(association, records).each(&:run)
         when Symbol
-          preload_one(association, records)
+          preloaders_for_one(association, records).each(&:run)
         when String
-          preload_one(association.to_sym, records)
+          preloaders_for_one(association.to_sym, records).each(&:run)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
         end
       end
 
-      def preload_hash(association, records)
+      def preloaders_for_hash(association, records)
         parent, child = association.to_a.first # hash should only be of length 1
 
-        preload_one parent, records
-        run_preload Array.wrap(child),
-          records.map { |record| record.send(parent) }.flatten.compact.uniq
+        loaders = preloaders_for_one parent, records
+
+        recs = loaders.flat_map(&:target_records).uniq
+        lls = Array.wrap(child).flat_map { |assoc|
+          case assoc
+          when Hash then preloaders_for_hash(assoc, recs)
+          when Symbol then preloaders_for_one(assoc, recs)
+          when String then preloaders_for_one(assoc.to_sym, recs)
+          else
+            raise
+          end
+        }
+        loaders + lls
+      end
+
+      def preload_hash(association, records)
+        preloaders_for_hash(association, records).each(&:run)
       end
 
       # Not all records have the same class, so group then preload group on the reflection
@@ -131,9 +145,15 @@ module ActiveRecord
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
       def preload_one(association, records)
-        grouped_records(association, records).each do |reflection, klasses|
-          klasses.each do |klass, rs|
-            preloader_for(reflection).new(klass, rs, reflection, preload_scope).run
+        preloaders_for_one(association, records).each { |loader|
+          loader.run
+        }
+      end
+
+      def preloaders_for_one(association, records)
+        grouped_records(association, records).flat_map do |reflection, klasses|
+          klasses.map do |rhs_klass, rs|
+            preloader_for(reflection).new(rhs_klass, rs, reflection, preload_scope)
           end
         end
       end

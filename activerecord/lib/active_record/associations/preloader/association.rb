@@ -72,6 +72,12 @@ module ActiveRecord
         end
 
         def target_records
+          associated_records_by_owner.values.flatten
+        end
+
+        private
+
+        def lhs_records
           return @target_records if @target_records
 
           owners_map = owners_by_key
@@ -85,8 +91,6 @@ module ActiveRecord
           }
         end
 
-        private
-
         def associated_records_by_owner
           owners_map = owners_by_key
           owner_keys = owners_map.keys.compact
@@ -98,7 +102,7 @@ module ActiveRecord
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             caster = type_caster
-            target_records.each do |record|
+            lhs_records.each do |record|
               owner_key = caster.call record[association_key_name]
 
               owners_map[owner_key].each do |owner|

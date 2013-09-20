@@ -7,6 +7,7 @@ module ActiveRecord
         def initialize(klass, records, reflection, preload_options)
           super
           @join_table = Arel::Table.new(reflection.join_table).alias('t0')
+          @records_by_owner = nil
         end
 
         # Unlike the other associations, we want to get a raw array of rows so that we can
@@ -34,8 +35,10 @@ module ActiveRecord
         # actual records, ensuring that we don't create more than one instances of the same
         # record
         def associated_records_by_owner
+          return @records_by_owner if @records_by_owner
+
           records = {}
-          super.each_value do |rows|
+          @records_by_owner = super.each_value do |rows|
             rows.map! { |row| records[row[klass.primary_key]] ||= klass.instantiate(row) }
           end
         end
