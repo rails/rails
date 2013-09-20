@@ -13,6 +13,12 @@
 
     *Josh Lauer*, *Justin Ridgewell*
 
+*   Fixed a bug where the lookup details were not being taken into account
+    when caching the digest of a template - changes to the details now
+    cause a different cache key to be used.
+
+    *Daniel Schierbeck*
+
 *   Added an `extname` hash option for `javascript_include_tag` method.
 
     Before:
