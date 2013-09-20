@@ -40,9 +40,9 @@ module ActiveRecord
           end
         end
 
-        def type_caster(results, name)
+        def set_type_caster(results, name)
           caster = results.column_types.fetch(name, results.identity_type)
-          lambda { |value| caster.type_cast value }
+          @type_caster = lambda { |value| caster.type_cast value }
         end
 
         def build_scope

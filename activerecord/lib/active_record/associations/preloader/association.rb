@@ -3,6 +3,9 @@ module ActiveRecord
     class Preloader
       class Association #:nodoc:
         attr_reader :owners, :reflection, :preload_scope, :model, :klass
+        attr_reader :type_caster
+
+        IDENTITY_CASTER = lambda { |value| value } # :nodoc:
 
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
@@ -12,6 +15,8 @@ module ActiveRecord
           @model         = owners.first && owners.first.class
           @scope         = nil
           @owners_by_key = nil
+          @type_caster   = IDENTITY_CASTER
+          @target_records = nil
         end
 
         def run
@@ -66,6 +71,20 @@ module ActiveRecord
           reflection.options
         end
 
+        def target_records
+          return @target_records if @target_records
+
+          owners_map = owners_by_key
+          owner_keys = owners_map.keys.compact
+
+          sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
+          @target_records = sliced.flat_map { |slice|
+            records = records_for(slice)
+            set_type_caster records, association_key_name
+            records
+          }
+        end
+
         private
 
         def associated_records_by_owner
@@ -78,26 +97,20 @@ module ActiveRecord
           if klass && owner_keys.any?
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
-            sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-            sliced.each { |slice|
-              records = records_for(slice)
-              caster = type_caster(records, association_key_name)
-              records.each do |record|
-                owner_key = caster.call record[association_key_name]
+            caster = type_caster
+            target_records.each do |record|
+              owner_key = caster.call record[association_key_name]
 
-                owners_map[owner_key].each do |owner|
-                  records_by_owner[owner] << record
-                end
+              owners_map[owner_key].each do |owner|
+                records_by_owner[owner] << record
               end
-            }
+            end
           end
 
           records_by_owner
         end
 
-        IDENTITY = lambda { |value| value }
-        def type_caster(results, name)
-          IDENTITY
+        def set_type_caster(results, name)
         end
 
         def reflection_scope
