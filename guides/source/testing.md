@@ -438,10 +438,12 @@ Now that we have used Rails scaffold generator for our `Post` resource, it has a
 Let me take you through one such test, `test_should_get_index` from the file `posts_controller_test.rb`.
 
 ```ruby
-test "should get index" do
-  get :index
-  assert_response :success
-  assert_not_nil assigns(:posts)
+class PostsControllerTest < ActionController::TestCase
+  test "should get index" do
+    get :index
+    assert_response :success
+    assert_not_nil assigns(:posts)
+  end
 end
 ```
 
