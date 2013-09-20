@@ -4,7 +4,7 @@ before_install:
 rvm:
   - 1.9.3
   - 2.0.0
-  - jruby-19mode
+  - jruby-head
   - rbx-19mode
 env:
   - "GEM=railties"
