@@ -1,3 +1,7 @@
+*   Add default_proc copying for `HashWithIndifferentAccess.new_from_hash_copying_default`, `HashWithIndifferentAccess#dup`, `HashWithIndifferentAccess#to_hash`
+
+    *Ivan Yurchenko*
+
 *   Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day` methods.
 
     Also added `midday`, `noon`, `at_midday`, `at_noon` and `at_middle_of_day` as aliases.
