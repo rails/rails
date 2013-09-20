@@ -98,18 +98,20 @@ module ActiveRecord
 
       def run_preload(associations, records)
         unless records.empty?
-          associations.each { |association| preload(association, records) }
+          associations.flat_map { |association|
+            preload(association, records)
+          }.each(&:run)
         end
       end
 
       def preload(association, records)
         case association
         when Hash
-          preload_hash(association, records).each(&:run)
+          preloaders_for_hash(association, records)
         when Symbol
-          preloaders_for_one(association, records).each(&:run)
+          preloaders_for_one(association, records)
         when String
-          preloaders_for_one(association.to_sym, records).each(&:run)
+          preloaders_for_one(association.to_sym, records)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
         end
@@ -121,15 +123,7 @@ module ActiveRecord
         loaders = preloaders_for_one parent, records
 
         recs = loaders.flat_map(&:target_records).uniq
-        lls = Array.wrap(child).flat_map { |assoc|
-          case assoc
-          when Hash then preloaders_for_hash(assoc, recs)
-          when Symbol then preloaders_for_one(assoc, recs)
-          when String then preloaders_for_one(assoc.to_sym, recs)
-          else
-            raise
-          end
-        }
+        lls = Array.wrap(child).flat_map { |assoc| preload assoc, recs }
         loaders + lls
       end
 
@@ -144,12 +138,6 @@ module ActiveRecord
       # Additionally, polymorphic belongs_to associations can have multiple associated
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
-      def preload_one(association, records)
-        preloaders_for_one(association, records).each { |loader|
-          loader.run
-        }
-      end
-
       def preloaders_for_one(association, records)
         grouped_records(association, records).flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
