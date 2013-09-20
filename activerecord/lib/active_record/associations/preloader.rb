@@ -86,23 +86,28 @@ module ActiveRecord
         @records       = Array.wrap(records).compact.uniq
         @associations  = Array.wrap(associations)
         @preload_scope = preload_scope || NULL_RELATION
+        @preloaders    = nil
       end
 
       NULL_RELATION = Struct.new(:values).new({})
 
       def run
-        run_preload associations, records
+        preloaders.each(&:run)
+      end
+
+      def preloaders
+        return @preloaders if @preloaders
+
+        if records.empty?
+          @preloaders = []
+        else
+          @preloaders = associations.flat_map { |association|
+            preload(association, records)
+          }
+        end
       end
 
       private
-
-      def run_preload(associations, records)
-        unless records.empty?
-          associations.flat_map { |association|
-            preload(association, records)
-          }.each(&:run)
-        end
-      end
 
       def preload(association, records)
         case association
@@ -123,12 +128,7 @@ module ActiveRecord
         loaders = preloaders_for_one parent, records
 
         recs = loaders.flat_map(&:target_records).uniq
-        lls = Array.wrap(child).flat_map { |assoc| preload assoc, recs }
-        loaders + lls
-      end
-
-      def preload_hash(association, records)
-        preloaders_for_hash(association, records).each(&:run)
+        loaders.concat Array.wrap(child).flat_map { |assoc| preload assoc, recs }
       end
 
       # Not all records have the same class, so group then preload group on the reflection
