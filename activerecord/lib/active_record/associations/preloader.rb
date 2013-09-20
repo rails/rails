@@ -112,10 +112,10 @@ module ActiveRecord
       end
 
       def preload_hash(association)
-        association.each do |parent, child|
-          Preloader.new(records, parent, preload_scope).run
+        association.flat_map { |parent, child|
+          preload_one parent
           Preloader.new(records.map { |record| record.send(parent) }.flatten, child).run
-        end
+        }
       end
 
       # Not all records have the same class, so group then preload group on the reflection
