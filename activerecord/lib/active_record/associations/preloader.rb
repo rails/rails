@@ -159,7 +159,7 @@ module ActiveRecord
 
       def association_klass(reflection, record)
         if reflection.macro == :belongs_to && reflection.options[:polymorphic]
-          klass = record.send(reflection.foreign_type)
+          klass = record.read_attribute(reflection.foreign_type.to_s)
           klass && klass.constantize
         else
           reflection.klass
