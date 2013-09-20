@@ -304,6 +304,13 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("Col rpted bugs", ActiveSupport::Inflector.humanize("COL_rpted_bugs"))
   end
 
+  def test_humanize_boolean
+    assert_equal("Yes", ActiveSupport::Inflector.humanize_boolean(true))
+    assert_equal("No", ActiveSupport::Inflector.humanize_boolean(false))
+    assert_not_equal("Yes", ActiveSupport::Inflector.humanize_boolean(false))
+    assert_not_equal("No", ActiveSupport::Inflector.humanize_boolean(true))
+  end
+
   def test_constantize
     run_constantize_tests_on do |string|
       ActiveSupport::Inflector.constantize(string)
