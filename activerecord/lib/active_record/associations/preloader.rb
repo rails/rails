@@ -91,30 +91,34 @@ module ActiveRecord
       NULL_RELATION = Struct.new(:values).new({})
 
       def run
-        unless records.empty?
-          associations.each { |association| preload(association) }
-        end
+        run_preload associations, records
       end
 
       private
 
-      def preload(association)
+      def run_preload(associations, records)
+        unless records.empty?
+          associations.each { |association| preload(association, records) }
+        end
+      end
+
+      def preload(association, records)
         case association
         when Hash
-          preload_hash(association)
+          preload_hash(association, records)
         when Symbol
-          preload_one(association)
+          preload_one(association, records)
         when String
-          preload_one(association.to_sym)
+          preload_one(association.to_sym, records)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
         end
       end
 
-      def preload_hash(association)
+      def preload_hash(association, records)
         association.flat_map { |parent, child|
-          preload_one parent
-          Preloader.new(records.map { |record| record.send(parent) }.flatten, child).run
+          preload_one parent, records
+          run_preload Array.wrap(child), records.map { |record| record.send(parent) }.flatten.compact.uniq
         }
       end
 
@@ -125,25 +129,25 @@ module ActiveRecord
       # Additionally, polymorphic belongs_to associations can have multiple associated
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
-      def preload_one(association)
-        grouped_records(association).each do |reflection, klasses|
-          klasses.each do |klass, records|
-            preloader_for(reflection).new(klass, records, reflection, preload_scope).run
+      def preload_one(association, records)
+        grouped_records(association, records).each do |reflection, klasses|
+          klasses.each do |klass, rs|
+            preloader_for(reflection).new(klass, rs, reflection, preload_scope).run
           end
         end
       end
 
-      def grouped_records(association)
-        reflection_records = records_by_reflection(association)
+      def grouped_records(association, records)
+        reflection_records = records_by_reflection(association, records)
 
-        reflection_records.each_with_object({}) do |(reflection, records),h|
-          h[reflection] = records.group_by { |record|
+        reflection_records.each_with_object({}) do |(reflection, r_records),h|
+          h[reflection] = r_records.group_by { |record|
             association_klass(reflection, record)
           }
         end
       end
 
-      def records_by_reflection(association)
+      def records_by_reflection(association, records)
         records.group_by do |record|
           reflection = record.class.reflect_on_association(association)
 
