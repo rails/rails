@@ -12,7 +12,24 @@ module ActiveRecord
         end
 
         def associated_records_by_owner
-          through_records = through_records_by_owner
+          left_loader = Preloader.new(owners,
+                                      through_reflection.name,
+                                      through_scope)
+          left_loader.run
+
+          should_reset = (through_scope != through_reflection.klass.unscoped) ||
+             (reflection.options[:source_type] && through_reflection.collection?)
+
+          through_records = owners.map do |owner, h|
+            association = owner.association through_reflection.name
+
+            x = [owner, Array(association.reader), association]
+
+            # Dont cache the association - we would only be caching a subset
+            association.reset if should_reset
+
+            x
+          end
 
           middle_records = through_records.map { |rec| rec[1] }.flatten
 
@@ -29,24 +46,6 @@ module ActiveRecord
         end
 
         private
-
-        def through_records_by_owner
-          Preloader.new(owners, through_reflection.name, through_scope).run
-
-          should_reset = (through_scope != through_reflection.klass.unscoped) ||
-             (reflection.options[:source_type] && through_reflection.collection?)
-
-          owners.map do |owner, h|
-            association = owner.association through_reflection.name
-
-            x = [owner, Array(association.reader), association]
-
-            # Dont cache the association - we would only be caching a subset
-            association.reset if should_reset
-
-            x
-          end
-        end
 
         def through_scope
           scope = through_reflection.klass.unscoped
