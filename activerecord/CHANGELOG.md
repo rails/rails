@@ -1,3 +1,14 @@
+*   Since `CollectionProxy` descendants from `Relation` and `bind_values`
+    defined right on `Relation` that when the `@owner` is saved it resets just
+    association scope but CollectionProxy is still the same and has wrong
+    `bind_values`. It worked properly on ~> 3.0 because `CollectionProxy` wasn't
+    Relation and `bind_values` was invoked right on `scoped`. When the behavior
+    had changed it worked properly for a while because `CollectionProxy` was
+    recreated each time in association reader. But it got broken since it cached
+    in instance variable `@proxy` (it's correct behavior).
+
+    *Dmitry Vorotilin*
+
 *   Migration dump UUID default functions to schema.rb.
 
     Fixes #10751.

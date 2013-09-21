@@ -98,6 +98,9 @@ module ActiveRecord
 
       def reset_scope
         @association_scope = nil
+        if defined?(@proxy) && @proxy
+          @proxy.merge!(scope(nullify: false))
+        end
       end
 
       # Set the inverse association, if possible
