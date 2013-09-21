@@ -965,7 +965,7 @@ module ActionDispatch
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :collection]
-        CANONICAL_ACTIONS = %w(index create new show update destroy replace update_many destroy_many show_many)
+        CANONICAL_ACTIONS = %w(index create new show update destroy replace update_many destroy_many)
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
         RESOURCE_SCOPES = [:resource, :resources]
 
@@ -989,7 +989,7 @@ module ActionDispatch
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many, :show_many]
+            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many]
           end
 
           def actions
@@ -1284,7 +1284,6 @@ module ActionDispatch
               get    :index, options if actions.include?(:index)
               post   :create, options if actions.include?(:create)
               if parent_resource.collection_routing?
-                get    :show_many, options if actions.include?(:show_many)
                 put    :replace, options if actions.include?(:replace)
                 patch  :update_many, options if actions.include?(:update_many)
                 delete :destroy_many, options if actions.include?(:destroy_many)
@@ -1463,7 +1462,9 @@ module ActionDispatch
 
           if options[:collection] == true 
             case action
-            when :index, :create
+            when :index
+              path = path.sub(/(\/:ids)/, '(/:ids)')
+            when :create
               path = path.sub(/(\/:ids)/, '')
             end
           end
