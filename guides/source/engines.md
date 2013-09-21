@@ -950,7 +950,7 @@ INFO. Remember that in order to use languages like Sass or CoffeeScript, you sho
 
 There are some situations where your engine's assets are not required by the host application. For example, say that you've created
 an admin functionality that only exists for your engine. In this case, the host application doesn't need to require `admin.css`
-or `admin.js`. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include `"blorg/admin.css"` in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
+or `admin.js`. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include `"blorgh/admin.css"` in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
 This tells sprockets to add your engine assets when `rake assets:precompile` is ran.
 
 You can define assets for precompilation in `engine.rb`
