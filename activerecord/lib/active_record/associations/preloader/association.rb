@@ -133,6 +133,14 @@ module ActiveRecord
           scope.select!   preload_values[:select] || values[:select] || table[Arel.star]
           scope.includes! preload_values[:includes] || values[:includes]
 
+          if preload_values.key? :order
+            scope.order! preload_values[:order]
+          else
+            if values.key? :order
+              scope.order! values[:order]
+            end
+          end
+
           if options[:as]
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end
