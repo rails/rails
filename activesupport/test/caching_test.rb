@@ -221,6 +221,22 @@ module CacheStoreBehavior
     assert_nil @cache.fetch('foo') { 'baz' }
   end
 
+  def test_write_nil_with_unless_nil
+    @cache.write('foo', nil, :unless_nil => true)
+    assert !@cache.exist?('foo')
+
+    @cache.write('foo', nil, :unless_nil => false)
+    assert @cache.exist?('foo')
+  end
+
+  def test_fetch_nil_with_unless_nil
+    @cache.fetch('foo', :unless_nil => true) { nil }
+    assert !@cache.exist?('foo')
+
+    @cache.fetch('foo', :unless_nil => false) { nil }
+    assert @cache.exist?('foo')
+  end
+
   def test_should_read_and_write_hash
     assert @cache.write('foo', {:a => "b"})
     assert_equal({:a => "b"}, @cache.read('foo'))

@@ -1,3 +1,16 @@
+*   Add :unless_nil option to 'Cache#write' method, to avoid creating cache
+    entries for nil values.
+
+    Example:
+
+        # From inside a fetch block, skip caching of a nil value, so subsequent
+        # calls can invoke the block again, until it returns a value.
+        foo = Rails.cache.fetch('foo', :unless_nil => true) do
+          BarService.find_by_name('foo')
+        end
+
+    *Erik Eide*
+
 *   Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day` methods.
 
     Also added `midday`, `noon`, `at_midday`, `at_noon` and `at_middle_of_day` as aliases.
