@@ -14,7 +14,10 @@ module ActiveRecord
         def associated_records_by_owner
           through_records = through_records_by_owner
 
-          Preloader.new(through_records.values.flatten, source_reflection.name, reflection_scope).run
+          preloader = Preloader.new(through_records.values.flatten,
+                                    source_reflection.name,
+                                    reflection_scope)
+          preloader.run
 
           through_records.each do |owner, records|
             records.map! { |r| r.send(source_reflection.name) }.flatten!
