@@ -1,3 +1,9 @@
+*   Strong parameters should permit nested number as key.
+
+    Fixes #12293
+
+    *kennyj*
+
 *   Fix regex used to detect URI schemes in `redirect_to` to be consistent with
     RFC 3986.
 
