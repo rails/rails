@@ -115,9 +115,6 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     assert_equal '/posts/1/comments/15/edit', edit_post_comment_path(post_id: '1', id: '15')
   end
 
-  test 'single resource nested inside a collection resource' do
-  end
-
   test 'namespaced collection resource' do
     draw do
       namespace :admin do
@@ -172,6 +169,57 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     get '/admin/posts/3..5/edit'
     assert_equal 'posts#edit_many', @response.body
     assert_equal '/admin/posts/3..5/edit', edit_posts_path(ids: '3..5')
+  end
+
+  test 'shallow collection routes' do
+    draw do
+      shallow do
+        resources :posts do
+          resources :comments, collection: true
+        end
+      end
+    end
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments', post_comments_path(post_id: '1')
+
+    get '/posts/1/comments/4'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments/4..5,7', post_comments_path(post_id: '1', ids: '4..5,7')
+
+    post '/posts/1/comments'
+    assert_equal 'comments#create', @response.body
+
+    patch '/posts/1/comments/4'
+    assert_equal 'comments#update_many', @response.body
+
+    put '/posts/1/comments/4'
+    assert_equal 'comments#replace', @response.body
+
+    delete '/posts/1/comments/4'
+    assert_equal 'comments#destroy_many', @response.body
+
+    get '/posts/1/comments/15/edit'
+    assert_equal 'comments#edit_many', @response.body
+    assert_equal '/posts/1/comments/15/edit', edit_post_comments_path(post_id: '1', ids: '15')
+
+
+    get '/comments/4'
+    assert_equal 'comments#show', @response.body
+
+    patch '/comments/4'
+    assert_equal 'comments#update', @response.body
+
+    put '/comments/4'
+    assert_equal 'comments#update', @response.body
+
+    delete '/comments/4'
+    assert_equal 'comments#destroy', @response.body
+
+    get '/comments/15/edit'
+    assert_equal 'comments#edit', @response.body
+    assert_equal '/comments/15/edit', edit_comment_path(id: '15')
   end
 
   private
