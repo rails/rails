@@ -20,7 +20,7 @@ module ActionDispatch
     #
     #   <%= link_to('Click here', controller: 'users',
     #           action: 'new', message: 'Welcome!') %>
-    #   # => "/users/new?message=Welcome%21"
+    #   # => <a href="/users/new?message=Welcome%21">Click here</a>
     #
     # link_to, and all other functions that require URL generation functionality,
     # actually use ActionController::UrlFor under the hood. And in particular,
