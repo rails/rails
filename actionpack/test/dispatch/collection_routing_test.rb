@@ -12,7 +12,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/posts/1..10,15'
     assert_equal 'posts#index', @response.body
-    assert_equal '/posts/1..10,15', posts_path(ids: "1..10,15")
+    assert_equal '/posts/1..10,15', posts_path(ids: '1..10,15')
 
     post '/posts'
     assert_equal 'posts#create', @response.body
@@ -28,7 +28,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/posts/1..10,15/edit'
     assert_equal 'posts#edit_many', @response.body
-    assert_equal '/posts/1..10,15/edit', edit_posts_path(ids: "1..10,15")
+    assert_equal '/posts/1..10,15/edit', edit_posts_path(ids: '1..10,15')
 
 
     get '/blogs'
@@ -37,7 +37,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/blogs/1..10,15'
     assert_equal 'blogs#index', @response.body
-    assert_equal '/blogs/1..10,15', blogs_path(ids: "1..10,15")
+    assert_equal '/blogs/1..10,15', blogs_path(ids: '1..10,15')
 
     post '/blogs'
     assert_equal 'blogs#create', @response.body
@@ -53,7 +53,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/blogs/1..10,15/edit'
     assert_equal 'blogs#edit_many', @response.body
-    assert_equal '/blogs/1..10,15/edit', edit_blogs_path(ids: "1..10,15")
+    assert_equal '/blogs/1..10,15/edit', edit_blogs_path(ids: '1..10,15')
   end
 
   test 'nested collection resources' do
@@ -65,7 +65,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/posts/1/comments/4..6'
     assert_equal 'comments#index', @response.body
-    assert_equal '/posts/1/comments/1..10,15', post_comments_path(post_id: '1', ids: "1..10,15")
+    assert_equal '/posts/1/comments/1..10,15', post_comments_path(post_id: '1', ids: '1..10,15')
 
     post '/posts/1/comments'
     assert_equal 'comments#create', @response.body
@@ -81,10 +81,38 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
     get '/posts/1/comments/1..10,15/edit'
     assert_equal 'comments#edit_many', @response.body
-    assert_equal '/posts/1/comments/1..10,15/edit', edit_post_comments_path(post_id: '1', ids: "1..10,15")
+    assert_equal '/posts/1/comments/1..10,15/edit', edit_post_comments_path(post_id: '1', ids: '1..10,15')
   end
 
-  test 'nested collection resource' do
+  test 'regular resource nested inside collection resource' do
+    draw do
+      resources :posts, collection: true do
+        resources :comments
+      end
+    end
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments', post_comments_path(post_id: '1')
+
+    get '/posts/1/comments/4'
+    assert_equal 'comments#show', @response.body
+
+    post '/posts/1/comments'
+    assert_equal 'comments#create', @response.body
+
+    patch '/posts/1/comments/4'
+    assert_equal 'comments#update', @response.body
+
+    put '/posts/1/comments/4'
+    assert_equal 'comments#update', @response.body
+
+    delete '/posts/1/comments/4'
+    assert_equal 'comments#destroy', @response.body
+
+    get '/posts/1/comments/15/edit'
+    assert_equal 'comments#edit', @response.body
+    assert_equal '/posts/1/comments/15/edit', edit_post_comment_path(post_id: '1', id: '15')
   end
 
   test 'single resource nested inside a collection resource' do
