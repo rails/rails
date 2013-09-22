@@ -4,12 +4,12 @@ module ActionMailer
   class LogSubscriber < ActiveSupport::LogSubscriber
     def deliver(event)
       recipients = Array.wrap(event.payload[:to]).join(', ')
-      info("\nSent mail to #{recipients} (%1.fms)" % event.duration)
+      info("\nSent mail to #{recipients} (#{format_duration(event.duration)})")
       debug(event.payload[:mail])
     end
 
     def receive(event)
-      info("\nReceived mail (%.1fms)" % event.duration)
+      info("\nReceived mail (#{format_duration(event.duration)})")
       debug(event.payload[:mail])
     end
 
