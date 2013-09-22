@@ -307,7 +307,11 @@ create      test/models/blorgh/comment_test.rb
 create      test/fixtures/blorgh/comments.yml
 ```
 
-This generator call will generate just the necessary model files it needs, namespacing the files under a `blorgh` directory and creating a model class called `Blorgh::Comment`.
+This generator call will generate just the necessary model files it needs, namespacing the files under a `blorgh` directory and creating a model class called `Blorgh::Comment`. Now run the migration to create our blorgh_comments table:
+
+```bash
+$ rake db:migrate
+```
 
 To show the comments on a post, edit `app/views/blorgh/posts/show.html.erb` and add this line before the "Edit" link:
 
