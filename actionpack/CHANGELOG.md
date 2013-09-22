@@ -1,3 +1,8 @@
+*   Provide a means of configuring cipher for
+    `ActionDispatch::Cookies::EncryptedCookieJar`.
+
+    *Hiro Asari*
+
 *   Fix regex used to detect URI schemes in `redirect_to` to be consistent with
     RFC 3986.
 

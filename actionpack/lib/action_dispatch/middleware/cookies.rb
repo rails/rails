@@ -87,6 +87,7 @@ module ActionDispatch
     SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
+    ENCRYPTED_COOKIE_CIPHER = "action_dispatch.encrypted_cookie_cipher".freeze
     SECRET_TOKEN = "action_dispatch.secret_token".freeze
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
 
@@ -208,6 +209,7 @@ module ActionDispatch
         { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
           encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
           encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
+          encrypted_cookie_cipher: env[ENCRYPTED_COOKIE_CIPHER],
           secret_token: env[SECRET_TOKEN],
           secret_key_base: env[SECRET_KEY_BASE],
           upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?
@@ -435,7 +437,8 @@ module ActionDispatch
         @options = options
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
-        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+        cipher = @options[:encrypted_cookie_cipher]
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, :cipher => cipher)
       end
 
       def [](name)
