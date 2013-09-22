@@ -77,6 +77,16 @@ module ActiveSupport
       encrypted_data << cipher.final
 
       [encrypted_data, iv].map {|v| ::Base64.strict_encode64(v)}.join("--")
+    rescue OpenSSLCipherError => ce
+      # older versions of JRuby has a typo in error message
+      if defined?(JRUBY_VERSION) &&
+        (ce.message =~ /\Akey length too? short\z|possibly you need to install/)
+        raise OpenSSLCipherError.new(
+          "Unlimited strength crypto unavailable on this JVM. See http://wiki.jruby.org/UnlimitedStrengthCrypto"
+        )
+      else
+        raise ce
+      end
     end
 
     def _decrypt(encrypted_message)
