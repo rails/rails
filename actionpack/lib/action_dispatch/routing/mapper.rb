@@ -964,10 +964,11 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :collection]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :collection, :collection_param]
         CANONICAL_ACTIONS = %w(index create new show update destroy replace update_many destroy_many)
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
         RESOURCE_SCOPES = [:resource, :resources]
+        COLLECTION_PARAM_REGEXP = /(?:[^\.\/\?]|\.\.)+/
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
@@ -980,7 +981,7 @@ module ActionDispatch
             @as                 = options[:as]
             @param              = (options[:param] || :id).to_sym
             @options            = options
-            @collection_param   = (options[:collection_param] || :ids).to_sym
+            @collection_param   = (@options[:collection_param] || :ids).to_sym
             @collection_routing = @options[:collection] || false
           end
 
@@ -1278,7 +1279,7 @@ module ActionDispatch
 
             collection do
               actions = parent_resource.actions
-              (options[:constraints] ||= {}).merge! ids: /(?:[^\.\/\?]|\.\.)+/ if parent_resource.collection_routing?
+              (options[:constraints] ||= {}).merge! parent_resource.collection_param => COLLECTION_PARAM_REGEXP if parent_resource.collection_routing?
               get    :index, options if actions.include?(:index)
               post   :create, options if actions.include?(:create)
               if parent_resource.collection_routing?
@@ -1463,9 +1464,9 @@ module ActionDispatch
           if options[:collection] == true 
             case action
             when :index
-              path = path.sub(/(\/:ids)/, '(/:ids)')
+              path = path.sub(/(\/:#{parent_resource.collection_param})/, "(/:#{parent_resource.collection_param})")
             when :create
-              path = path.sub(/(\/:ids)/, '')
+              path = path.sub(/(\/:#{parent_resource.collection_param})/, '')
             end
           end
 
@@ -1521,6 +1522,7 @@ module ActionDispatch
             end
 
             if resource_scope?
+              options.merge! parent_resource.nested_param => COLLECTION_PARAM_REGEXP if parent_resource.collection_routing?
               nested { send(method, resources.pop, options, &block) }
               return true
             end

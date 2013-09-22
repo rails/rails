@@ -56,6 +56,34 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     assert_equal '/blogs/1..10,15/edit', edit_blogs_path(ids: "1..10,15")
   end
 
+  test 'nested collection resources' do
+    draw do
+      resources :posts, collection: true do
+        resources :comments, collection: true
+      end
+    end
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1..10/comments/1..10,15', post_comments_path(post_id: '1', ids: "1..10,15")
+
+    # post '/blogs'
+    # assert_equal 'blogs#create', @response.body
+
+    # patch '/blogs/1..10'
+    # assert_equal 'blogs#update_many', @response.body
+
+    # put '/blogs/1..10'
+    # assert_equal 'blogs#replace', @response.body
+
+    # delete '/blogs/1..10'
+    # assert_equal 'blogs#destroy_many', @response.body
+
+    # get '/blogs/1..10,15/edit'
+    # assert_equal 'blogs#edit_many', @response.body
+    # assert_equal '/blogs/1..10,15/edit', edit_blogs_path(ids: "1..10,15")
+  end
+
   private
 
     def draw(&block)
