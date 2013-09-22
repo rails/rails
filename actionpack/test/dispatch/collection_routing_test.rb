@@ -66,6 +66,22 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     get '/posts/1/comments/4..6'
     assert_equal 'comments#index', @response.body
     assert_equal '/posts/1/comments/1..10,15', post_comments_path(post_id: '1', ids: "1..10,15")
+
+    post '/posts/1/comments'
+    assert_equal 'comments#create', @response.body
+
+    patch '/posts/1/comments/4..6'
+    assert_equal 'comments#update_many', @response.body
+
+    put '/posts/1/comments/4..6'
+    assert_equal 'comments#replace', @response.body
+
+    delete '/posts/1/comments/4..6'
+    assert_equal 'comments#destroy_many', @response.body
+
+    get '/posts/1/comments/1..10,15/edit'
+    assert_equal 'comments#edit_many', @response.body
+    assert_equal '/posts/1/comments/1..10,15/edit', edit_post_comments_path(post_id: '1', ids: "1..10,15")
   end
 
   test 'nested collection resource' do
@@ -75,6 +91,59 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
   end
 
   test 'namespaced collection resource' do
+    draw do
+      namespace :admin do
+        resources :posts, collection: true
+      end
+    end
+
+    get '/admin/posts/3..5'
+    assert_equal 'admin/posts#index', @response.body
+    assert_equal '/admin/posts/3..5', admin_posts_path(ids: '3..5')
+
+    post '/admin/posts'
+    assert_equal 'admin/posts#create', @response.body
+
+    patch '/admin/posts/3..5'
+    assert_equal 'admin/posts#update_many', @response.body
+
+    put '/admin/posts/3..5'
+    assert_equal 'admin/posts#replace', @response.body
+
+    delete '/admin/posts/3..5'
+    assert_equal 'admin/posts#destroy_many', @response.body
+
+    get '/admin/posts/3..5/edit'
+    assert_equal 'admin/posts#edit_many', @response.body
+    assert_equal '/admin/posts/3..5/edit', edit_admin_posts_path(ids: '3..5')
+  end
+
+  test 'scoped collection resource' do
+    draw do
+      scope '/admin' do
+        resources :posts, collection: true
+      end
+    end
+
+    get '/admin/posts/3..5'
+    assert_equal 'posts#index', @response.body
+    assert_equal '/admin/posts/3..5', posts_path(ids: '3..5')
+
+    post '/admin/posts'
+    assert_equal 'posts#create', @response.body
+
+    patch '/admin/posts/3..5'
+    assert_equal 'posts#update_many', @response.body
+
+    put '/admin/posts/3..5'
+    assert_equal 'posts#replace', @response.body
+
+    delete '/admin/posts/3..5'
+    assert_equal 'posts#destroy_many', @response.body
+
+    get '/admin/posts/3..5/edit'
+    assert_equal 'posts#edit_many', @response.body
+    assert_equal '/admin/posts/3..5/edit', edit_posts_path(ids: '3..5')
   end
 
   private
