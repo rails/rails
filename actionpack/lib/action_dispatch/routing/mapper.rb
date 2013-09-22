@@ -990,7 +990,7 @@ module ActionDispatch
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many]
+            [:index, :create, :new, :show, :update, :destroy, :edit, :replace, :update_many, :destroy_many, :edit_many]
           end
 
           def actions
@@ -1286,7 +1286,7 @@ module ActionDispatch
                 put    :replace, options if actions.include?(:replace)
                 patch  :update_many, options if actions.include?(:update_many)
                 delete :destroy_many, options if actions.include?(:destroy_many)
-                get    :edit, options.merge(as: 'edit', action: :edit_many) if actions.include?(:edit)
+                get    :edit_many, options.merge(as: 'edit') if actions.include?(:edit_many)
               end
             end
 

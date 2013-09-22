@@ -287,7 +287,7 @@ module ActionDispatch
       alias :routes :set
 
       def self.default_resources_path_names
-        { :new => 'new', :edit => 'edit' }
+        { :new => 'new', :edit => 'edit', :edit_many => 'edit' }
       end
 
       def initialize(request_class = ActionDispatch::Request)
