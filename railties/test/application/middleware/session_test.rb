@@ -21,6 +21,32 @@ module ApplicationTests
       @app ||= Rails.application
     end
 
+    test "Use env SECRET_KEY_BASE for session key base if it is set" do
+      build_app(do_not_set_secret_key_base: true)
+      boot_rails
+      FileUtils.rm_rf "#{app_path}/config/environments"
+      ENV['SECRET_KEY_BASE'] = 'b3c631c314c0bbca50c1b2843150fe33'
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get  ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+
+          def main
+            render nothing: true
+          end
+        end
+      RUBY
+      require "#{app_path}/config/environment"
+
+      get '/foo/main'
+      assert_equal ENV['SECRET_KEY_BASE'], last_request.env["action_dispatch.secret_key_base"]
+    end
+
+
     test "config.force_ssl sets cookie to secure only" do
       add_to_config "config.force_ssl = true"
       require "#{app_path}/config/environment"

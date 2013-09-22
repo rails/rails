@@ -46,7 +46,7 @@ module Rails
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @eager_load                    = nil
         @secret_token                  = nil
-        @secret_key_base               = nil
+        @secret_key_base               = ENV["SECRET_KEY_BASE"]
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = true
