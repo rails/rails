@@ -223,6 +223,24 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="multiple.ogg" /><source src="multiple.avi" /></video>)
   }
 
+ AssetPathToTag = {
+    %(asset_path("xml"))          => %(/assets/xml),
+    %(asset_path("xml.wav"))      => %(/assets/xml.wav),
+    %(asset_path("dir/xml.wav"))  => %(/assets/dir/xml.wav),
+    %(asset_path("/dir/xml.wav")) => %(/dir/xml.wav),
+    %(asset_path("http://www.outside.com/foo.wav")) => %(http://www.outside.com/foo.wav),
+    %(asset_path("HTTP://www.outside.com/foo.wav")) => %(HTTP://www.outside.com/foo.wav)
+  }
+
+  PathToAssetToTag = {
+    %(path_to_asset("xml"))          => %(/assets/xml),
+    %(path_to_asset("xml.wav"))      => %(/assets/xml.wav),
+    %(path_to_asset("dir/xml.wav"))  => %(/assets/dir/xml.wav),
+    %(path_to_asset("/dir/xml.wav")) => %(/dir/xml.wav),
+    %(path_to_asset("http://www.outside.com/foo.wav")) => %(http://www.outside.com/foo.wav),
+    %(path_to_asset("HTTP://www.outside.com/foo.wav")) => %(HTTP://www.outside.com/foo.wav)
+  }
+
  AudioPathToTag = {
     %(audio_path("xml"))          => %(/audios/xml),
     %(audio_path("xml.wav"))      => %(/audios/xml.wav),
@@ -513,6 +531,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_audio_tag
     AudioLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_asset_path
+    AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_path_to_asset_alias_for_asset_path
+    PathToAssetToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_timebased_asset_id
