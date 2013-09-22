@@ -63,25 +63,18 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
       end
     end
 
-    get '/posts/1/comments'
+    get '/posts/1/comments/4..6'
     assert_equal 'comments#index', @response.body
-    assert_equal '/posts/1..10/comments/1..10,15', post_comments_path(post_id: '1', ids: "1..10,15")
+    assert_equal '/posts/1/comments/1..10,15', post_comments_path(post_id: '1', ids: "1..10,15")
+  end
 
-    # post '/blogs'
-    # assert_equal 'blogs#create', @response.body
+  test 'nested collection resource' do
+  end
 
-    # patch '/blogs/1..10'
-    # assert_equal 'blogs#update_many', @response.body
+  test 'single resource nested inside a collection resource' do
+  end
 
-    # put '/blogs/1..10'
-    # assert_equal 'blogs#replace', @response.body
-
-    # delete '/blogs/1..10'
-    # assert_equal 'blogs#destroy_many', @response.body
-
-    # get '/blogs/1..10,15/edit'
-    # assert_equal 'blogs#edit_many', @response.body
-    # assert_equal '/blogs/1..10,15/edit', edit_blogs_path(ids: "1..10,15")
+  test 'namespaced collection resource' do
   end
 
   private

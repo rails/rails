@@ -1522,7 +1522,6 @@ module ActionDispatch
             end
 
             if resource_scope?
-              options.merge! parent_resource.nested_param => COLLECTION_PARAM_REGEXP if parent_resource.collection_routing?
               nested { send(method, resources.pop, options, &block) }
               return true
             end
