@@ -6,6 +6,10 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
       resources :posts, collection: true
     end
 
+    get '/posts'
+    assert_equal 'posts#index', @response.body
+    assert_equal '/posts', posts_path
+
     get '/posts/1..10,15'
     assert_equal 'posts#index', @response.body
     assert_equal '/posts/1..10,15', posts_path(ids: "1..10,15")
