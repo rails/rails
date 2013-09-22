@@ -554,14 +554,14 @@ module ActiveRecord
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.map{ |arg| arg.to_i }.uniq
+          ids           = args.flatten.compact.map{ |arg| arg.to_s }.uniq
 
           if ids.size == 1
             id = ids.first
-            record = load_target.detect { |r| id == r.id }
+            record = load_target.detect { |r| id == r.id.to_s }
             expects_array ? [ record ] : record
           else
-            load_target.select { |r| ids.include?(r.id) }
+            load_target.select { |r| ids.include?(r.id.to_s) }
           end
         end
 

@@ -1,3 +1,10 @@
+*   Fixed a bug in `ActiveRecord::Associations::CollectionAssociation#find_by_scan`
+    when using `has_many` association with `:inverse_of` option and UUID primary key.
+
+    Fixes #10450.
+
+    *kennyj*
+
 *   ActiveRecord::Base#<=> has been removed.  Primary keys may not be in order,
     or even be numbers, so sorting by id doesn't make sense.  Please use `sort_by`
     and specify the attribute you wish to sort with.  For example, change:
