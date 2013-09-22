@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Handle `:namespace` form option in collection labels
+
+    *Vasiliy Ermolovich*
+
 *   Fix an issue where router can't recognize downcased url encoding path.
 
     Fixes #12269
