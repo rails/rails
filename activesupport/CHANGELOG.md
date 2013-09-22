@@ -1,3 +1,9 @@
+* For JRuby, trap OpenSSL::Cipher::CipherError that arises from having a
+  weak encyption policy, and rewrite error message to indicate how the
+  user can avoid this error in their applications
+
+  *Hiro Asari*
+
 *   Allow attaching event subscribers to ActiveSupport::Notifications namespaces
     before they're defined. Essentially, this means instead of this:
 
