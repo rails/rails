@@ -94,3 +94,43 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
     assert_nil col_desc["default"]
   end
 end
+
+class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
+  class UuidPost < ActiveRecord::Base
+    self.table_name = 'pg_uuid_posts'
+    has_many :uuid_comments, inverse_of: :uuid_post
+  end
+
+  class UuidComment < ActiveRecord::Base
+    self.table_name = 'pg_uuid_comments'
+    belongs_to :uuid_post
+  end
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.reconnect!
+
+    @connection.transaction do
+      @connection.create_table('pg_uuid_posts', id: :uuid) do |t|
+        t.string 'title'
+      end
+      @connection.create_table('pg_uuid_comments', id: :uuid) do |t|
+        t.uuid :uuid_post_id, default: 'uuid_generate_v4()'
+        t.string 'content'
+      end
+    end
+  end
+
+  def teardown
+    @connection.transaction do
+      @connection.execute 'drop table if exists pg_uuid_comments'
+      @connection.execute 'drop table if exists pg_uuid_posts'
+    end
+  end
+
+  def test_collection_association_with_uuid
+    post    = UuidPost.create!
+    comment = post.uuid_comments.create!
+    assert post.uuid_comments.find(comment.id)
+  end
+end

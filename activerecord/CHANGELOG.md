@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   Fixed a bug in `ActiveRecord::Associations::CollectionAssociation#find_by_scan`
+    when using `has_many` association with `:inverse_of` option and UUID primary key.
+
+    Fixes #10450.
+
+    *kennyj*
+
 *   Fix: joins association, with defined in the scope block constraints by using several
     where constraints and at least of them is not `Arel::Nodes::Equality`,
     generates invalid SQL expression.
