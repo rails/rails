@@ -30,6 +30,7 @@ module ActionView
           add_default_name_and_id_for_value(tag_value, name_and_id)
           options.delete("index")
           options.delete("namespace")
+          options.delete("multiple")
           options["for"] = name_and_id["id"] unless options.key?("for")
 
           if block_given?

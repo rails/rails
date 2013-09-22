@@ -1,3 +1,7 @@
+*   Handle `:namespace` form option in collection labels
+
+    *Vasiliy Ermolovich*
+
 *   Fix `form_for` when both `namespace` and `as` options are present
 
     `as` option no longer overwrites `namespace` option when generating
