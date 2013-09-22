@@ -222,6 +222,24 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     assert_equal '/comments/15/edit', edit_comment_path(id: '15')
   end
 
+  test 'custom collection parameter' do
+    draw do
+      resources :posts, collection: true, :collection_param: :ujjwal
+    end
+
+    get '/posts'
+    assert_equal 'posts#index', @response.body
+    assert_equal '/posts', posts_path
+
+    get '/posts/1..10,15'
+    assert_equal 'posts#index', @response.body
+    assert_equal '/posts/1..10,15', posts_path(ujjwal: '1..10,15')
+
+    get '/posts/1..10,15/edit'
+    assert_equal 'posts#edit_many', @response.body
+    assert_equal '/posts/1..10,15/edit', edit_posts_path(ujjwal: '1..10,15')
+  end
+
   private
 
     def draw(&block)
