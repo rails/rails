@@ -266,6 +266,17 @@ class AssertSelectTest < ActionController::TestCase
     end
   end
 
+  # testing invalid selectors
+  def test_assert_select_with_invalid_selector
+    render_html '<a href="http://example.com">hello</a>'
+    assert_nil assert_select("[href=http://example.com]")
+  end
+
+  def test_css_select_with_invalid_selector
+    render_html '<a href="http://example.com">hello</a>'
+    assert_nil css_select("[href=http://example.com]")
+  end
+
   def test_feed_item_encoded
     render_xml <<-EOF
 <rss version="2.0">
