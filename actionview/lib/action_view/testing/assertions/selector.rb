@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActionView
   module Assertions
     NO_STRIP = %w{pre script style textarea}
@@ -27,6 +29,7 @@ module ActionView
       # Returns an empty Nokogiri::XML::NodeSet if no match is found.
       #
       # The selector may be a CSS selector expression (String).
+      # css_select will return nil if called with an invalid css selector.
       #
       #   # Selects all div tags
       #   divs = css_select("div")
@@ -52,9 +55,11 @@ module ActionView
         root = args.size == 1 ? response_from_page : args.shift
         selector = args.first
 
-        root.css(selector).tap do |matches|
-          if matches.empty? && root.matches?(selector)
-            return Nokogiri::XML::NodeSet.new(root.document, [root])
+        catch_invalid_selector do
+          root.css(selector).tap do |matches|
+            if matches.empty? && root.matches?(selector)
+              return Nokogiri::XML::NodeSet.new(root.document, [root])
+            end
           end
         end
       end
@@ -91,6 +96,7 @@ module ActionView
       # The selector may be a CSS selector expression (String) or an expression
       # with substitution values (Array).
       # Substitution uses a custom pseudo class match. Pass in whatever attribute you want to match (enclosed in quotes) and a ? for the substitution.
+      # assert_select will return nil if called with an invalid css selector.
       #
       # assert_select "div:match('id', ?)", /\d+/
       #
@@ -154,8 +160,12 @@ module ActionView
 
         selector = HTMLSelector.new(@selected, response_from_page, args)
 
-        matches = selector.select
-        assert_size_match!(matches.size, selector.equality_tests, selector.source, selector.message)
+        matches = nil
+        catch_invalid_selector do
+          matches = selector.select
+
+          assert_size_match!(matches.size, selector.equality_tests, selector.source, selector.message)
+        end
 
         # Set @selected to allow nested assert_select.
         # Can be nested several levels deep.
@@ -278,6 +288,15 @@ module ActionView
       end
 
       protected
+
+        def catch_invalid_selector
+          begin
+            yield
+          rescue Nokogiri::CSS::SyntaxError => e
+            ActiveSupport::Deprecation.warn("You are using an invalid CSS selector and the assertion was not run. Please review it.\n#{e}")
+          end
+        end
+
         # +equals+ must contain :minimum, :maximum and :count keys
         def assert_size_match!(size, equals, css_selector, message = nil)
           min, max, count = equals[:minimum], equals[:maximum], equals[:count]
