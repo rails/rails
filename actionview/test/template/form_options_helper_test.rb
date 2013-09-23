@@ -556,6 +556,21 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_under_fields_for_with_block
+    @post = Post.new
+
+    output_buffer = fields_for :post, @post do |f|
+      concat(f.select(:category) do
+        concat content_tag(:option, "hello world")
+      end)
+    end
+
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option>hello world</option></select>",
+      output_buffer
+    )
+  end
+
   def test_select_with_multiple_to_add_hidden_input
     output_buffer =  select(:post, :category, "", {}, :multiple => true)
     assert_dom_equal(
