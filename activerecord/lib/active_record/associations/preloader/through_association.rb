@@ -27,15 +27,15 @@ module ActiveRecord
           through_records = owners.map do |owner, h|
             association = owner.association through_reflection.name
 
-            x = [owner, Array(association.reader)]
-
-            # Dont cache the association - we would only be caching a subset
-            association.reset if should_reset
-
-            x
+            [owner, Array(association.reader), association]
           end
 
-          middle_records = through_records.map { |(_,rec)| rec }.flatten
+          # Dont cache the association - we would only be caching a subset
+          if should_reset
+            through_records.each { |(_,_,assoc)| assoc.reset }
+          end
+
+          middle_records = through_records.map { |(_,rec,_)| rec }.flatten
 
           preloader = Preloader.new(middle_records,
                                     source_reflection.name,
