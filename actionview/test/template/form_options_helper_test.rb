@@ -798,6 +798,22 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_not_existing_method_with_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_locale\" name=\"post[locale]\"><option value=\"en\">en</option>\n<option value=\"ru\" selected=\"selected\">ru</option></select>",
+      select("post", "locale", %w( en ru ), :selected => 'ru')
+    )
+  end
+
+  def test_select_with_prompt_and_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option selected=\"selected\" value=\"two\">two</option></select>",
+      select("post", "category", %w( one two ), :selected => 'two', :prompt => true)
+    )
+  end
+  
   def test_select_with_disabled_array
     @post = Post.new
     @post.category = "<mus>"
