@@ -68,7 +68,7 @@ module ActiveModel
   # Reset the changes:
   #
   #   person.previous_changes # => {"name" => ["Uncle Bob", "Bill"]}
-  #   person.reload
+  #   person.reload!
   #   person.previous_changes # => {}
   #
   # Assigning the same value leaves the attribute unchanged:
