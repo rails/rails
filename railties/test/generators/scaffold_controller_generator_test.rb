@@ -175,4 +175,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_collection_routes
+    run_generator ["User", "--collection"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match(%r{#GET /posts/1..10,17}, content)
+      assert_instance_method :index, content do |m|
+        assert_match(%r{@users = params.permit(1..1000) ? User.find(params[:ids] : User.all)}, m)
+      end
+    end
+  end
 end

@@ -6,9 +6,9 @@ require_dependency "<%= namespaced_file_path %>/application_controller"
 class <%= controller_class_name %>Controller < ApplicationController
   before_action :set_<%= singular_table_name %>, only: [:show, :edit, :update, :destroy]
 
-  # GET <%= route_url %>
+  # GET <%= route_url %>/1..10,17
   def index
-    @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
+    # @<%= plural_table_name %> = params.permit(1..1000) ? <%= orm_class.find(params[:ids]) : <%= orm_class.all(class_name) %>
   end
 
   # GET <%= route_url %>/1

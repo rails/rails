@@ -10,6 +10,7 @@ module Rails
       def self.included(base) #:nodoc:
         base.class_option :force_plural, type: :boolean, desc: "Forces the use of a plural ModelName"
         base.class_option :model_name, type: :string, desc: "ModelName to be used"
+        base.class_option :collection, type: :boolean, desc: "Generate collection resource routes"
       end
 
       # Set controller variables on initialization.
@@ -64,6 +65,10 @@ module Rails
 
         def controller_i18n_scope
           @controller_i18n_scope ||= controller_file_path.tr('/', '.')
+        end
+
+        def collection_routing?
+          options[:collection].present?
         end
 
         # Loads the ORM::Generators::ActiveModel class. This class is responsible

@@ -1,6 +1,9 @@
+require 'rails/generators/resource_helpers'
+
 module Rails
   module Generators
     class ResourceRouteGenerator < NamedBase # :nodoc:
+      include ResourceHelpers
 
       # Properly nests namespaces passed into a generator
       #
@@ -22,7 +25,8 @@ module Rails
         end
 
         # inserts the primary resource
-        write("resources :#{file_name.pluralize}", route_length + 1)
+        collection_option = collection_routing? ? ", collection: true" : ""
+        write("resources :#{file_name.pluralize}#{collection_option}", route_length + 1)
 
         # ends blocks
         regular_class_path.each_index do |index|
