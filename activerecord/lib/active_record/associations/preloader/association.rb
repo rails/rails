@@ -17,6 +17,7 @@ module ActiveRecord
           @owners_by_key = nil
           @type_caster   = IDENTITY_CASTER
           @associated_records_by_owner = nil
+          @loaded = false
         end
 
         def run
@@ -71,20 +72,36 @@ module ActiveRecord
           reflection.options
         end
 
-        def target_records
+        def preloaded_records1
           associated_records_by_owner.values.flatten
+        end
+
+        def preloaded_records
+          if owners.first.association(reflection.name).loaded?
+            []
+          else
+            associated_records_by_owner.values.flatten
+          end
+        end
+
+        def loaded?
+          @loaded
         end
 
         private
 
         def associated_records_by_owner
+          @loaded = true
+
           return @associated_records_by_owner if @associated_records_by_owner
 
           owners_map = owners_by_key
           owner_keys = owners_map.keys.compact
 
           # Each record may have multiple owners, and vice-versa
-          records_by_owner = Hash[owners.map { |owner| [owner, []] }]
+          records_by_owner = Hash.new do |h,owner|
+            h[owner] = []
+          end
 
           if klass && owner_keys.any?
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
@@ -103,6 +120,9 @@ module ActiveRecord
                 records_by_owner[owner] << record
               end
             end
+          end
+          owners.each_with_object(records_by_owner) do |owner,h|
+            h[owner] ||= []
           end
 
           @associated_records_by_owner = records_by_owner

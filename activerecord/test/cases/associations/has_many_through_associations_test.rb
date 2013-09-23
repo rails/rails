@@ -41,6 +41,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
 
+  def test_ordered_habtm
+    person_prime = Class.new(ActiveRecord::Base) do
+      def self.name; 'Person'; end
+
+      has_many :readers
+      has_many :posts, -> { order('posts.id DESC') }, :through => :readers
+    end
+    posts = person_prime.includes(:posts).first.posts
+
+    assert_operator posts.length, :>, 1
+    posts.each_cons(2) do |left,right|
+      assert_operator left.id, :>, right.id
+    end
+  end
+
   def test_singleton_has_many_through
     book         = make_model "Book"
     subscription = make_model "Subscription"

@@ -35,10 +35,10 @@ module ActiveRecord
         # actual records, ensuring that we don't create more than one instances of the same
         # record
         def associated_records_by_owner
-          return @records_by_owner if @records_by_owner
+          return @associated_records_by_owner if @associated_records_by_owner
 
           records = {}
-          @records_by_owner = super.each_value do |rows|
+          @associated_records_by_owner = super.each_value do |rows|
             rows.map! { |row| records[row[klass.primary_key]] ||= klass.instantiate(row) }
           end
         end

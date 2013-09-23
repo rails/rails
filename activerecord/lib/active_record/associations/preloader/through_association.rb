@@ -12,6 +12,10 @@ module ActiveRecord
         end
 
         def associated_records_by_owner
+          @loaded = true
+
+          return @associated_records_by_owner if @associated_records_by_owner
+
           left_loader = Preloader.new(owners,
                                       through_reflection.name,
                                       through_scope)
@@ -36,12 +40,31 @@ module ActiveRecord
           preloader = Preloader.new(middle_records,
                                     source_reflection.name,
                                     reflection_scope)
+
           preloader.run
 
-          through_records.each_with_object({}) { |(lhs,middles,assoc),h|
-            h[lhs] = middles.flat_map { |r|
+          middle_to_pl = preloader.preloaders.each_with_object({}) do |pl,h|
+            pl.owners.each { |middle|
+              h[middle] = pl
+            }
+          end
+
+          @associated_records_by_owner = through_records.each_with_object({}) { |(lhs,middles,assoc),h|
+            x = middle_to_pl[middles.first]
+
+            rhs_records = middles.flat_map { |r|
               r.send(source_reflection.name)
             }.compact
+
+            if x && x.loaded?
+              rs = rhs_records.sort_by { |rhs|
+                x.preloaded_records1.index(rhs)
+              }
+            else
+              rs = rhs_records
+            end
+
+            h[lhs] = rs
           }
         end
 

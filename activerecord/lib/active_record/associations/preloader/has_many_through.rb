@@ -5,13 +5,15 @@ module ActiveRecord
         include ThroughAssociation
 
         def associated_records_by_owner
+          return @associated_records_by_owner if @associated_records_by_owner
+
           records_by_owner = super
 
           if reflection_scope.distinct_value
             records_by_owner.each_value { |records| records.uniq! }
           end
 
-          records_by_owner
+          @associated_records_by_owner = records_by_owner
         end
       end
     end

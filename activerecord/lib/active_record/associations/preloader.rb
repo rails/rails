@@ -127,7 +127,7 @@ module ActiveRecord
 
         loaders = preloaders_for_one parent, records
 
-        recs = loaders.flat_map(&:target_records).uniq
+        recs = loaders.flat_map(&:preloaded_records).uniq
         loaders.concat Array.wrap(child).flat_map { |assoc|
           preloaders_on assoc, recs
         }
