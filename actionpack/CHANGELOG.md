@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix some edge cases for AV `select` helper with `:selected` option
+
+    *Bogdan Gusiev*
+
 *   Handle `:namespace` form option in collection labels
 
     *Vasiliy Ermolovich*
