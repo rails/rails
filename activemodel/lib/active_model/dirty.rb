@@ -15,6 +15,8 @@ module ActiveModel
   # * Call <tt>attr_name_will_change!</tt> before each change to the tracked
   #   attribute.
   # * Call <tt>changes_applied</tt> after the changes are persisted.
+  # * Call <tt>reset_changes</tt> when you want to reset the changes
+  #   information.
   #
   # A minimal implementation could be:
   #
@@ -35,6 +37,10 @@ module ActiveModel
   #     def save
   #       # do persistence work
   #       changes_applied
+  #     end
+  #
+  #     def reload!
+  #       reset_changes
   #     end
   #   end
   #
@@ -58,6 +64,12 @@ module ActiveModel
   #   person.save
   #   person.changed?       # => false
   #   person.name_changed?  # => false
+  #
+  # Reset the changes:
+  #
+  #   person.previous_changes # => {"name" => ["Uncle Bob", "Bill"]}
+  #   person.reload
+  #   person.previous_changes # => {}
   #
   # Assigning the same value leaves the attribute unchanged:
   #
