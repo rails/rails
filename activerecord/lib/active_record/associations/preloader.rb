@@ -102,34 +102,34 @@ module ActiveRecord
           @preloaders = []
         else
           @preloaders = associations.flat_map { |association|
-            preloaders_on association, records
+            preloaders_on association, records, preload_scope
           }
         end
       end
 
       private
 
-      def preloaders_on(association, records)
+      def preloaders_on(association, records, scope)
         case association
         when Hash
-          preloaders_for_hash(association, records)
+          preloaders_for_hash(association, records, scope)
         when Symbol
-          preloaders_for_one(association, records)
+          preloaders_for_one(association, records, scope)
         when String
-          preloaders_for_one(association.to_sym, records)
+          preloaders_for_one(association.to_sym, records, scope)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
         end
       end
 
-      def preloaders_for_hash(association, records)
+      def preloaders_for_hash(association, records, scope)
         parent, child = association.to_a.first # hash should only be of length 1
 
-        loaders = preloaders_for_one parent, records
+        loaders = preloaders_for_one parent, records, scope
 
         recs = loaders.flat_map(&:preloaded_records).uniq
         loaders.concat Array.wrap(child).flat_map { |assoc|
-          preloaders_on assoc, recs
+          preloaders_on assoc, recs, scope
         }
       end
 
@@ -140,10 +140,10 @@ module ActiveRecord
       # Additionally, polymorphic belongs_to associations can have multiple associated
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
-      def preloaders_for_one(association, records)
+      def preloaders_for_one(association, records, scope)
         grouped_records(association, records).flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, preload_scope)
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope)
           end
         end
       end
