@@ -301,6 +301,7 @@ braces. You can use the following modifiers:
 * `precision`    Defines the precision for the `decimal` fields
 * `scale`        Defines the scale for the `decimal` fields
 * `polymorphic`  Adds a `type` column for `belongs_to` associations
+* `null`         Allows or disallows `NULL` values in the column.
 
 For instance, running
 
