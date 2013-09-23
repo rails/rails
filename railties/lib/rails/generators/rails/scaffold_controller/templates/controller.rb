@@ -54,6 +54,25 @@ class <%= controller_class_name %>Controller < ApplicationController
     redirect_to <%= index_helper %>_url, notice: <%= "'#{human_name} was successfully destroyed.'" %>
   end
 
+  # Collection routes
+  # PATCH <%= route_url %>/1..10
+  def update_many
+    <%= singular_table_name %>_ids.each do |e|
+      if e.is_a?(Range)
+        e.each do |id|
+          if !@<%= orm_instance.update("id") %>
+            render action: 'edit'
+          end
+        end
+      else
+        if !@<%= orm_instance.update("e") %>
+          render action: 'edit'
+        end
+      end
+    end
+    redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name}s were successfully updated.'" %>
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_<%= singular_table_name %>

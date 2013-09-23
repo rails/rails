@@ -187,6 +187,23 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :user_ids, content do |m|
         assert_match(/params\.permit\(ids: 1\.\.1000\)/, m)
       end
+
+      assert_instance_method :update_many, content do |m|
+        assert_match(/user_ids\.each do |e|/, m)
+        assert_match(/if e\.is_a\?\(Range\)/, m)
+        assert_match(/e\.each do |id|/, m)
+        assert_match(/if !@user\.update\(id\)/, m)
+        assert_match(/render action: 'edit'/, m)
+        assert_match(/end/, m)
+        assert_match(/end/, m)
+        assert_match(/else/, m)
+        assert_match(/if !@user\.update\(e\)/, m)
+        assert_match(/render action: 'edit'/, m)
+        assert_match(/end/, m)
+        assert_match(/end/, m)
+        assert_match(/end/, m)
+        assert_match(/redirect_to @user, notice: 'Users were successfully updated.'/, m)
+      end
     end
   end
 end
