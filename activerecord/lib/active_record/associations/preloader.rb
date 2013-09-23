@@ -46,8 +46,6 @@ module ActiveRecord
         autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
       end
 
-      attr_reader :records, :associations, :preload_scope, :model
-
       # Eager loads the named associations for the given Active Record record(s).
       #
       # In this description, 'association name' shall refer to the name passed
@@ -82,28 +80,20 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-      def initialize(records, associations, preload_scope = nil)
-        @records       = Array.wrap(records).compact.uniq
-        @associations  = Array.wrap(associations)
-        @preload_scope = preload_scope || NULL_RELATION
-        @preloaders    = nil
-      end
 
       NULL_RELATION = Struct.new(:values).new({})
 
-      def run
-        preloaders.each(&:run)
-      end
-
-      def preloaders
-        return @preloaders if @preloaders
+      def preload(records, associations, preload_scope = nil)
+        records       = Array.wrap(records).compact.uniq
+        associations  = Array.wrap(associations)
+        preload_scope = preload_scope || NULL_RELATION
 
         if records.empty?
-          @preloaders = []
+          []
         else
-          @preloaders = associations.flat_map { |association|
+          associations.flat_map { |association|
             preloaders_on association, records, preload_scope
-          }
+          }.each(&:run)
         end
       end
 
