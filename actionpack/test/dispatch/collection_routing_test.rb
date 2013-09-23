@@ -245,6 +245,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
         resources :posts, collection: true, only: [:edit_many, :replace]
     end
 
+    # Routes found
     get '/posts/1..10/edit'
     assert_equal 'posts#edit_many', @response.body
     assert_equal '/posts/1..10/edit', edit_posts_path(ids: '1..10')
@@ -252,14 +253,39 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     put '/posts/1..10'
     assert_equal 'posts#replace', @response.body
 
+    # Routes not found
     post '/posts'
-    assert_response :not_found, @response.body
+    assert_response :not_found
 
     patch '/posts/1..10'
-    assert_response :not_found, @response.body
+    assert_response :not_found
 
     delete '/posts/1..10'
-    assert_response :not_found, @response.body
+    assert_response :not_found
+  end
+
+  test 'except on collection methods' do
+    draw do
+        resources :posts, collection: true, except: [:edit_many, :replace]
+    end
+
+    # Routes not found
+    get '/posts/1..10/edit'
+    assert_response :not_found
+    assert_raise(NoMethodError) { edit_posts_path(ids: '1..10') }
+
+    put '/posts/1..10'
+    assert_response :not_found
+
+    # Routes found
+    post '/posts'
+    assert_equal 'posts#create', @response.body
+
+    patch '/posts/1..10'
+    assert_equal 'posts#update_many', @response.body
+
+    delete '/posts/1..10'
+    assert_equal 'posts#destroy_many', @response.body
   end
 
   private
