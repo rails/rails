@@ -27,7 +27,7 @@ module ActiveRecord
           through_records = owners.map do |owner, h|
             association = owner.association through_reflection.name
 
-            x = [owner, Array(association.reader), association]
+            x = [owner, Array(association.reader)]
 
             # Dont cache the association - we would only be caching a subset
             association.reset if should_reset
@@ -35,7 +35,7 @@ module ActiveRecord
             x
           end
 
-          middle_records = through_records.map { |rec| rec[1] }.flatten
+          middle_records = through_records.map { |(_,rec)| rec }.flatten
 
           preloader = Preloader.new(middle_records,
                                     source_reflection.name,
@@ -49,17 +49,21 @@ module ActiveRecord
             }
           end
 
-          @associated_records_by_owner = through_records.each_with_object({}) { |(lhs,middles,assoc),h|
-            x = middle_to_pl[middles.first]
+          @associated_records_by_owner = through_records.each_with_object({}) { |(lhs,middles),h|
+            preloader = middle_to_pl[middles.first]
 
             rhs_records = middles.flat_map { |r|
               r.send(source_reflection.name)
             }.compact
 
-            if x && x.loaded?
-              rs = rhs_records.sort_by { |rhs|
-                x.preloaded_records1.index(rhs)
+            if preloader && preloader.loaded?
+              loaded_records = preloader.preloaded_records
+              i = 0
+              record_index = loaded_records.each_with_object({}) { |r,indexes|
+                indexes[r] = i
+                i += 1
               }
+              rs = rhs_records.sort_by { |rhs| record_index[rhs] }
             else
               rs = rhs_records
             end

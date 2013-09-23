@@ -72,16 +72,8 @@ module ActiveRecord
           reflection.options
         end
 
-        def preloaded_records1
-          associated_records_by_owner.values.flatten
-        end
-
         def preloaded_records
-          if owners.first.association(reflection.name).loaded?
-            []
-          else
-            associated_records_by_owner.values.flatten
-          end
+          associated_records_by_owner.values.flatten
         end
 
         def loaded?
