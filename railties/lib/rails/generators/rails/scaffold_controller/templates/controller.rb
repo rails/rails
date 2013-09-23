@@ -8,7 +8,11 @@ class <%= controller_class_name %>Controller < ApplicationController
 
   # GET <%= route_url %>/1..10,17
   def index
-    # @<%= plural_table_name %> = params.permit(1..1000) ? <%= orm_class.find(params[:ids]) : <%= orm_class.all(class_name) %>
+    @<%= plural_table_name %> = <%= singular_table_name %>_ids ? <%= class_name %>.find(<%= singular_table_name %>_ids) : <%= orm_class.all(class_name) %>
+  end
+
+  def <%= singular_table_name %>_ids
+    params.permit(ids: 1..1000)
   end
 
   # GET <%= route_url %>/1

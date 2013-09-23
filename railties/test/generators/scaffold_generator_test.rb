@@ -27,7 +27,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ProductLinesController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@product_lines = ProductLine\.all/, m)
+        assert_match(/@product_lines = product_line_ids \? ProductLine\.find\(product_line_ids\) : ProductLine\.all/, m)
       end
 
       assert_instance_method :show, content
@@ -142,7 +142,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class Admin::RolesController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@admin_roles = Admin::Role\.all/, m)
+        assert_match(/@admin_roles = admin_role_ids \? Admin::Role.find\(admin_role_ids\) : Admin::Role\.all/, m)
       end
 
       assert_instance_method :show, content
