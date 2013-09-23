@@ -224,7 +224,7 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
 
   test 'custom collection parameter' do
     draw do
-      resources :posts, collection: true, :collection_param: :ujjwal
+      resources :posts, collection: true, collection_param: :ujjwal
     end
 
     get '/posts'
@@ -238,6 +238,28 @@ class TestCollectionRouting < ActionDispatch::IntegrationTest
     get '/posts/1..10,15/edit'
     assert_equal 'posts#edit_many', @response.body
     assert_equal '/posts/1..10,15/edit', edit_posts_path(ujjwal: '1..10,15')
+  end
+
+  test 'only on collection methods' do
+    draw do
+        resources :posts, collection: true, only: [:edit_many, :replace]
+    end
+
+    get '/posts/1..10/edit'
+    assert_equal 'posts#edit_many', @response.body
+    assert_equal '/posts/1..10/edit', edit_posts_path(ids: '1..10')
+
+    put '/posts/1..10'
+    assert_equal 'posts#replace', @response.body
+
+    post '/posts'
+    assert_response :not_found, @response.body
+
+    patch '/posts/1..10'
+    assert_response :not_found, @response.body
+
+    delete '/posts/1..10'
+    assert_response :not_found, @response.body
   end
 
   private
