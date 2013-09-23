@@ -1,3 +1,7 @@
+*   Fix some edge cases for AV `select` helper with `:selected` option
+
+    *Bogdan Gusiev*
+
 *   Ability to pass block to `select` helper
 
         <%= select(report, "campaign_ids") do %>
