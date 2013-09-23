@@ -32,7 +32,8 @@ module Rails
 
         opt_parser.parse! args
 
-        options[:server] = args.shift
+        options[:log_stdout] = options[:daemonize].blank? && options[:environment] == "development"
+        options[:server]     = args.shift
         options
       end
     end
@@ -74,7 +75,7 @@ module Rails
         FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
       end
 
-      unless options[:daemonize]
+      if options[:log_stdout]
         wrapped_app # touch the app so the logger is set up
 
         console = ActiveSupport::Logger.new($stdout)
