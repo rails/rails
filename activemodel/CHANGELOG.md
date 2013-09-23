@@ -1,3 +1,7 @@
+*   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
+
+    *T.J. Schuck*
+
 *   Updated the `ActiveModel::Dirty#changed_attributes` method to be indifferent between using
     symbols and strings as keys.
 
