@@ -191,6 +191,10 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :update_many, content do |m|
         assert_match(/user_ids\.each do \|e\|\s+if e\.is_a\?\(Range\)\s+e\.each do \|id\|\s+if \!@user\.update\(id\)\s+render action: 'edit'\s+end\s+end\s+else\s+if !@user\.update\(e\)\s+render action: 'edit'\s+end\s+end\s+end\s+redirect_to @user, notice: 'Users were successfully updated.'/, m)
       end
+
+      assert_instance_method :replace, content do |m|
+        assert_match(/User\.destroy_all\s+create/, m)
+      end
     end
   end
 end

@@ -73,6 +73,11 @@ module Rails
       def destroy
         "#{name}.destroy"
       end
+
+      # Destroy all
+      def self.destroy_all(klass)
+        "#{klass}.destroy_all"
+      end
     end
   end
 end

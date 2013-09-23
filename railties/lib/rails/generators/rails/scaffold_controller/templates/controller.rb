@@ -8,7 +8,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
   # GET <%= route_url %>/1..10,17
   def index
-    @<%= plural_table_name %> = <%= singular_table_name %>_ids ? <%= class_name %>.find(<%= singular_table_name %>_ids) : <%= orm_class.all(class_name) %>
+    @<%= plural_table_name %> = <%= singular_table_name %>_ids ? <%= orm_class.find(class_name, "#{singular_table_name}_ids") %> : <%= orm_class.all(class_name) %>
   end
 
   def <%= singular_table_name %>_ids
@@ -71,6 +71,12 @@ class <%= controller_class_name %>Controller < ApplicationController
       end
     end
     redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name}s were successfully updated.'" %>
+  end
+
+  # PUT <%= route_url %>/1..10
+  def replace
+    <%= orm_class.destroy_all(class_name) %>
+    create
   end
 
   private
