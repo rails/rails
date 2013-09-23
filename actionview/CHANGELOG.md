@@ -1,3 +1,11 @@
+*   Ability to pass block to `select` helper
+
+        = select(report, "campaign_ids") do
+          - available_campaigns.each do |c|
+            %option{:data => {:tags => c.tags.to_json}, :value => c.id}= c.name
+
+    *Bogdan Gusiev*
+
 *   Handle `:namespace` form option in collection labels
 
     *Vasiliy Ermolovich*

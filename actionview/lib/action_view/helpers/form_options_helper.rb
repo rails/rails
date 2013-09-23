@@ -152,8 +152,8 @@ module ActionView
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.
       #
-      def select(object, method, choices, options = {}, html_options = {})
-        Tags::Select.new(object, method, self, choices, options, html_options).render
+      def select(object, method, choices = nil, options = {}, html_options = {}, &block)
+        Tags::Select.new(object, method, self, choices, options, html_options, &block).render
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -766,8 +766,8 @@ module ActionView
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
-      def select(method, choices, options = {}, html_options = {})
-        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options))
+      def select(method, choices = nil, options = {}, html_options = {}, &block)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:
