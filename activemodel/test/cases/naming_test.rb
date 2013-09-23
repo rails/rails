@@ -272,3 +272,16 @@ class NameWithAnonymousClassTest < ActiveModel::TestCase
     assert_equal "Anonymous", model_name
   end
 end
+
+class NamingWithUndefinedClassMethodNameTest < ActiveModel::TestCase
+  def setup
+    @model_name = Blog::Post.model_name
+  end
+
+  def test_method_with_undefined_method_name
+    assert_raises(NoMethodError) do
+      @model_name.undefined_method
+    end
+  end
+
+end

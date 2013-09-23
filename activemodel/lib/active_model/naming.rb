@@ -238,17 +238,17 @@ module ActiveModel
     #
     #   ActiveModel::Naming.plural(post)             # => "posts"
     #   ActiveModel::Naming.plural(Highrise::Person) # => "highrise_people"
-    def self.plural(record_or_class)
-      model_name_from_record_or_class(record_or_class).plural
-    end
+    #def self.plural(record_or_class)
+    #  model_name_from_record_or_class(record_or_class).plural
+    #end
 
     # Returns the singular class name of a record or class.
     #
     #   ActiveModel::Naming.singular(post)             # => "post"
     #   ActiveModel::Naming.singular(Highrise::Person) # => "highrise_person"
-    def self.singular(record_or_class)
-      model_name_from_record_or_class(record_or_class).singular
-    end
+    #def self.singular(record_or_class)
+    #  model_name_from_record_or_class(record_or_class).singular
+    #end
 
     # Identifies whether the class name of a record or class is uncountable.
     #
@@ -266,9 +266,9 @@ module ActiveModel
     #
     #   # For shared engine:
     #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> blog_post
-    def self.singular_route_key(record_or_class)
-      model_name_from_record_or_class(record_or_class).singular_route_key
-    end
+    #def self.singular_route_key(record_or_class)
+    #  model_name_from_record_or_class(record_or_class).singular_route_key
+    #end
 
     # Returns string to use while generating route names. It differs for
     # namespaced models regarding whether it's inside isolated engine.
@@ -281,9 +281,9 @@ module ActiveModel
     #
     # The route key also considers if the noun is uncountable and, in
     # such cases, automatically appends _index.
-    def self.route_key(record_or_class)
-      model_name_from_record_or_class(record_or_class).route_key
-    end
+    #def self.route_key(record_or_class)
+    #  model_name_from_record_or_class(record_or_class).route_key
+    #end
 
     # Returns string to use for params names. It differs for
     # namespaced models regarding whether it's inside isolated engine.
@@ -293,8 +293,17 @@ module ActiveModel
     #
     #   # For shared engine:
     #   ActiveModel::Naming.param_key(Blog::Post) #=> blog_post
-    def self.param_key(record_or_class)
-      model_name_from_record_or_class(record_or_class).param_key
+    #def self.param_key(record_or_class)
+    #  model_name_from_record_or_class(record_or_class).param_key
+    #end
+
+    # Define method_missing for all above (plural, singular, singular_route_key,
+    # route_key, param_key) methods, Commented methods can be removed later.
+
+    def self.method_missing(method_name, record_or_class)
+      # Raises noMethodError if any other method is being called
+      raise NoMethodError unless [:plural, :singular, :singular_route_key, :route_key, :param_key].include?(method_name)
+      model_name_from_record_or_class(record_or_class).send(method_name)
     end
 
     def self.model_name_from_record_or_class(record_or_class) #:nodoc:
