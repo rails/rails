@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Disable the ability to iterate over Range of AS::TimeWithZone
+    due to significant performance issues.
+
+    *Bogdan Gusiev*
+
 *   Fix `ActiveSupport::Cache::FileStore#cleanup` to no longer rely on missing `each_key` method.
 
     *Murray Steele*
