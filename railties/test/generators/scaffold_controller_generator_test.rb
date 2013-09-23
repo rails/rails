@@ -17,7 +17,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.all/, m)
+        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.all/, m)
       end
 
       assert_instance_method :show, content
@@ -133,7 +133,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.all/, m)
+        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.all/, m)
       end
     end
   end
@@ -152,7 +152,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.find\(:all\)/, m)
+        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.find\(:all\)/, m)
         assert_no_match(/@users = User\.all/, m)
       end
     end
@@ -180,9 +180,12 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["User", "--collection"]
 
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(%r{#GET /posts/1..10,17}, content)
       assert_instance_method :index, content do |m|
-        assert_match(%r{@users = params.permit(1..1000) ? User.find(params[:ids] : User.all)}, m)
+        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.all/, m)
+      end
+
+      assert_instance_method :user_ids, content do |m|
+        assert_match(/params\.permit\(ids: 1\.\.1000\)/, m)
       end
     end
   end
