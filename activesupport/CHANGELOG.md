@@ -1,3 +1,8 @@
+*   Disable the ability to iterate over Range of AS::TimeWithZone 
+    due to significant performance issues.
+
+    *Bogdan Gusiev*
+
 *   Allow attaching event subscribers to ActiveSupport::Notifications namespaces
     before they're defined. Essentially, this means instead of this:
 
