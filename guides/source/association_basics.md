@@ -261,7 +261,10 @@ With `through: :sections` specified, Rails will now understand:
 
 ### The `has_one :through` Association
 
-A `has_one :through` association sets up a one-to-one connection with another model. This association indicates that the declaring model can be matched with one instance of another model by proceeding _through_ a third model. For example, if each supplier has one account, and each account is associated with one account history, then the customer model could look like this:
+A `has_one :through` association sets up a one-to-one connection with another model. This association indicates
+that the declaring model can be matched with one instance of another model by proceeding _through_ a third model.
+For example, if each supplier has one account, and each account is associated with one account history, then the
+supplier model could look like this:
 
 ```ruby
 class Supplier < ActiveRecord::Base
