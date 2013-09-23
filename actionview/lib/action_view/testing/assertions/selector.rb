@@ -29,7 +29,7 @@ module ActionView
       # Returns an empty Nokogiri::XML::NodeSet if no match is found.
       #
       # The selector may be a CSS selector expression (String).
-      # css_select will return nil if called with an invalid css selector.
+      # css_select returns nil if called with an invalid css selector.
       #
       #   # Selects all div tags
       #   divs = css_select("div")
@@ -96,7 +96,7 @@ module ActionView
       # The selector may be a CSS selector expression (String) or an expression
       # with substitution values (Array).
       # Substitution uses a custom pseudo class match. Pass in whatever attribute you want to match (enclosed in quotes) and a ? for the substitution.
-      # assert_select will return nil if called with an invalid css selector.
+      # assert_select returns nil if called with an invalid css selector.
       #
       # assert_select "div:match('id', ?)", /\d+/
       #
@@ -293,7 +293,8 @@ module ActionView
           begin
             yield
           rescue Nokogiri::CSS::SyntaxError => e
-            ActiveSupport::Deprecation.warn("You are using an invalid CSS selector and the assertion was not run. Please review it.\n#{e}")
+            ActiveSupport::Deprecation.warn("The assertion was not run because of an invalid css selector.\n#{e}")
+            return
           end
         end
 
