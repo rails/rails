@@ -128,6 +128,15 @@ module ActionView
       # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
       #
+      # A block can be passed to +select+ to customize how the options tags will be rendered. This
+      # is useful when the options tag has complex attributes.
+      #
+      #   select(report, "campaign_ids") do
+      #     available_campaigns.each do |c|
+      #       content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json })
+      #     end
+      #   end
+      #
       # ==== Gotcha
       #
       # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
