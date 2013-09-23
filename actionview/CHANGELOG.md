@@ -1,8 +1,10 @@
 *   Ability to pass block to `select` helper
 
-        = select(report, "campaign_ids") do
-          - available_campaigns.each do |c|
-            %option{:data => {:tags => c.tags.to_json}, :value => c.id}= c.name
+        <%= select(report, "campaign_ids") do %>
+          <% available_campaigns.each do |c| -%>
+            <%= content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json }) %>
+          <% end -%>
+        <% end -%>
 
     *Bogdan Gusiev*
 
