@@ -29,12 +29,25 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts
+           :categories_posts, :clubs, :memberships
 
   # Dummies to force column loads so query counts are clean.
   def setup
     Person.create :first_name => 'gummy'
     Reader.create :person_id => 0, :post_id => 0
+  end
+
+  def test_preload_sti_middle_relation
+    club = Club.create!(name: 'Aaron cool banana club')
+    member1 = Member.create!(name: 'Aaron')
+    member2 = Member.create!(name: 'Cat')
+
+    SuperMembership.create! club: club, member: member1
+    CurrentMembership.create! club: club, member: member2
+
+    club1 = Club.includes(:members).find_by_id club.id
+    left, right = club1.members.map(&:id)
+    assert_operator left, :>, right
   end
 
   def make_model(name)
