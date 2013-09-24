@@ -46,26 +46,26 @@ module ActiveRecord
             }
           end
 
-          @associated_records_by_owner = through_records.each_with_object({}) { |(lhs,middles),h|
-            preloader = middle_to_pl[middles.first]
+          @associated_records_by_owner = through_records.each_with_object({}) { |(lhs,center),records_by_owner|
+            pl_to_middle = center.group_by { |record| middle_to_pl[record] }
 
-            rhs_records = middles.flat_map { |r|
-              r.send(source_reflection.name)
-            }.compact
+            records_by_owner[lhs] = pl_to_middle.flat_map do |preloader, middles|
+              rhs_records = middles.flat_map { |r|
+                r.send(source_reflection.name)
+              }.compact
 
-            if preloader && preloader.loaded?
-              loaded_records = preloader.preloaded_records
-              i = 0
-              record_index = loaded_records.each_with_object({}) { |r,indexes|
-                indexes[r] = i
-                i += 1
-              }
-              rs = rhs_records.sort_by { |rhs| record_index[rhs] }
-            else
-              rs = rhs_records
+              if preloader && preloader.loaded?
+                loaded_records = preloader.preloaded_records
+                i = 0
+                record_index = loaded_records.each_with_object({}) { |r,indexes|
+                  indexes[r] = i
+                  i += 1
+                }
+                rhs_records.sort_by { |rhs| record_index[rhs] }
+              else
+                rhs_records
+              end
             end
-
-            h[lhs] = rs
           }
         end
 
