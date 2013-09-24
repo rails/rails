@@ -159,7 +159,7 @@ Customizing Your Workflow
 Rails own generators are flexible enough to let you customize scaffolding. They can be configured in `config/application.rb`, these are some defaults:
 
 ```ruby
-config.generators do |g|
+config.app_generators do |g|
   g.orm             :active_record
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: true
@@ -207,7 +207,7 @@ Looking at this output, it's easy to understand how generators work in Rails 3.0
 Our first customization on the workflow will be to stop generating stylesheets and test fixtures for scaffolds. We can achieve that by changing our configuration to the following:
 
 ```ruby
-config.generators do |g|
+config.app_generators do |g|
   g.orm             :active_record
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
@@ -254,7 +254,7 @@ end
 Which is what we expected. We can now tell scaffold to use our new helper generator by editing `config/application.rb` once again:
 
 ```ruby
-config.generators do |g|
+config.app_generators do |g|
   g.orm             :active_record
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
@@ -317,7 +317,7 @@ end
 and revert the last change in `config/application.rb`:
 
 ```ruby
-config.generators do |g|
+config.app_generators do |g|
   g.orm             :active_record
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
@@ -335,7 +335,7 @@ One last feature about generators which is quite useful for plugin generators is
 We can easily simulate this behavior by changing our `config/application.rb` once again:
 
 ```ruby
-config.generators do |g|
+config.app_generators do |g|
   g.orm             :active_record
   g.template_engine :erb
   g.test_framework  :shoulda, fixture: false
