@@ -17,7 +17,7 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, "#{tags_text}#{msg}")
+        super(severity, timestamp, progname, add_tags_to_msg(msg))
       end
 
       def tagged(*tags)
@@ -46,7 +46,18 @@ module ActiveSupport
       end
 
       private
-        def tags_text
+        def add_tags_to_msg(msg)
+          tags_text = generate_tags_text
+
+          if tags_text
+            # Replaces all line beginnings with the tags text.
+            msg.split("\n").map {|line| "#{tags_text}#{line}"}.join("\n")
+          else
+            msg
+          end
+        end
+
+        def generate_tags_text
           tags = current_tags
           if tags.any?
             tags.collect { |tag| "[#{tag}] " }.join

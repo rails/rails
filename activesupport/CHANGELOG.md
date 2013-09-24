@@ -1,3 +1,8 @@
+*   Tag every log line when using TaggedLogging instead of only tagging the
+    first one. This allows much easier grepping through log files.
+
+    *Daniel Schierbeck*
+
 *   Disable the ability to iterate over Range of AS::TimeWithZone 
     due to significant performance issues.
 
