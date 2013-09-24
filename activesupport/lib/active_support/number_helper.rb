@@ -460,7 +460,7 @@ module ActiveSupport
     # See <tt>number_to_human_size</tt> if you want to print a file
     # size.
     #
-    # You can also define you own unit-quantifier names if you want
+    # You can also define your own unit-quantifier names if you want
     # to use other decimal units (eg.: 1500 becomes "1.5
     # kilometers", 0.150 becomes "150 milliliters", etc). You may
     # define a wide range of unit quantifiers, even fractional ones
