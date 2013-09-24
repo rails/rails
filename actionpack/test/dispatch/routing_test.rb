@@ -1102,6 +1102,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'projects#index', @response.body
   end
 
+  def test_scoped_root_as_name
+    draw do
+      scope '(:locale)', :locale => /en|pl/ do
+        root :to => 'projects#index', :as => 'projects'
+      end
+    end
+
+    assert_equal '/en', projects_path(:locale => 'en')
+    assert_equal '/', projects_path
+    get '/en'
+    assert_equal 'projects#index', @response.body
+  end
+
   def test_scope_with_format_option
     draw do
       get "direct/index", as: :no_format_direct, format: false
