@@ -121,8 +121,6 @@ module ActionDispatch
           def visit_SYMBOL(node)
             if value = options[node.to_sym]
               Router::Utils.escape_path(value)
-            else
-              nil
             end
           end
       end
