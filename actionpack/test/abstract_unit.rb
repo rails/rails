@@ -20,6 +20,7 @@ require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
+require 'action_view/testing/assertions'
 require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
@@ -105,6 +106,7 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
+    include ActionView::Assertions
   end
 end
 

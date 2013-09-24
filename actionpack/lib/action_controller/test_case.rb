@@ -2,7 +2,6 @@ require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
-require 'action_view/testing/assertions'
 
 module ActionController
   module TemplateAssertions
@@ -674,7 +673,6 @@ module ActionController
       included do
         include ActionController::TemplateAssertions
         include ActionDispatch::Assertions
-        include ActionView::Assertions
         class_attribute :_controller_class
         setup :setup_controller_request_and_response
       end
