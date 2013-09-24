@@ -110,10 +110,11 @@ module ActionDispatch
           def visit_CAT(node, optional)
             left = visit(node.left, optional)
             right = visit(node.right, optional)
+
             if optional && !(right && left)
               ""
             else
-              left +  right
+              [left, right].join
             end
           end
 
