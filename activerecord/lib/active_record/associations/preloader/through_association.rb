@@ -52,17 +52,13 @@ module ActiveRecord
                 r.send(source_reflection.name)
               }.compact
 
-              if pl
-                loaded_records = pl.preloaded_records
-                i = 0
-                record_index = loaded_records.each_with_object({}) { |r,indexes|
-                  indexes[r] = i
-                  i += 1
-                }
-                rhs_records.sort_by { |rhs| record_index[rhs] }
-              else
-                rhs_records
-              end
+              loaded_records = pl.preloaded_records
+              i = 0
+              record_index = loaded_records.each_with_object({}) { |r,indexes|
+                indexes[r] = i
+                i += 1
+              }
+              rhs_records.sort_by { |rhs| record_index[rhs] }
             end
           }
         end
