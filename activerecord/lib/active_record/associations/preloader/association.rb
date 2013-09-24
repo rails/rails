@@ -17,7 +17,6 @@ module ActiveRecord
           @owners_by_key = nil
           @type_caster   = IDENTITY_CASTER
           @associated_records_by_owner = nil
-          @loaded = false
         end
 
         def run(preloader)
@@ -74,15 +73,9 @@ module ActiveRecord
           @associated_records_by_owner.values.flatten
         end
 
-        def loaded?
-          @loaded
-        end
-
         private
 
         def associated_records_by_owner(preloader)
-          @loaded = true
-
           return @associated_records_by_owner if @associated_records_by_owner
 
           owners_map = owners_by_key

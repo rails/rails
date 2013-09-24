@@ -12,8 +12,6 @@ module ActiveRecord
         end
 
         def associated_records_by_owner(preloader)
-          @loaded = true
-
           return @associated_records_by_owner if @associated_records_by_owner
 
           preloader.preload(owners,
@@ -54,7 +52,7 @@ module ActiveRecord
                 r.send(source_reflection.name)
               }.compact
 
-              if pl && pl.loaded?
+              if pl
                 loaded_records = pl.preloaded_records
                 i = 0
                 record_index = loaded_records.each_with_object({}) { |r,indexes|

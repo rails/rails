@@ -174,14 +174,18 @@ module ActiveRecord
       end
 
       class NullPreloader
-        attr_reader :owners
+        attr_reader :owners, :reflection
 
         def initialize(klass, owners, reflection, preload_scope)
           @owners = owners
+          @reflection = reflection
         end
 
         def run(preloader); end
-        def loaded?; false; end
+
+        def preloaded_records
+          owners.flat_map { |owner| owner.read_attribute reflection.name }
+        end
       end
 
       def preloader_for(reflection, owners)
