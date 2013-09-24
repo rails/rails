@@ -7,7 +7,6 @@ module ActiveRecord
         def initialize(klass, records, reflection, preload_options)
           super
           @join_table = Arel::Table.new(reflection.join_table).alias('t0')
-          @records_by_owner = nil
         end
 
         # Unlike the other associations, we want to get a raw array of rows so that we can
