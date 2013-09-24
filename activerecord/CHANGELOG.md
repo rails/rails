@@ -1,3 +1,13 @@
+*   Calling `update_attributes` will now throw an `ArgumentError` whenever it
+    gets a `nil` argument. More specifically, it will throw an error if the
+    argument that it gets passed does not respond to to `stringify_keys`.
+
+    Example:
+
+        @my_comment.update_attributes(nil)  # => raises ArgumentError
+
+    *John Wang*
+
 *   Deprecate `quoted_locking_column` method, which isn't used anywhere.
 
     *kennyj*
