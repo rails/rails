@@ -2,7 +2,6 @@ require 'stringio'
 require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
-require 'action_view/testing/assertions'
 require 'rack/test'
 
 module ActionDispatch
@@ -314,7 +313,7 @@ module ActionDispatch
     end
 
     module Runner
-      include ActionDispatch::Assertions, ActionView::Assertions
+      include ActionDispatch::Assertions
 
       def app
         @app ||= nil
