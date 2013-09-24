@@ -55,6 +55,8 @@ production:
   adapter: postgresql
   encoding: unicode
   database: <%= app_name %>_production
+  # For details on connection pooling, see rails configration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
   pool: 5
   username: <%= app_name %>
   password:
