@@ -919,6 +919,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Client.where(client_of: firm.id).size
   end
 
+  def test_has_many_assignment_on_new_record_and_autosave_reset_scope
+    author = Author.new(name: 'Dmitry')
+    author.posts = [Post.new(title: 'Title', body: 'Text')]
+
+    # Accessing collection proxy that merges association scope
+    # This call happens on validate presence for example
+    author.posts
+
+    author.save
+
+    author.posts.update_all(title: 'Changed')
+    assert_equal 'Changed', author.reload.posts.take.title
+  end
+
   def test_delete_all_association_with_primary_key_deletes_correct_records
     firm = Firm.first
     # break the vanilla firm_id foreign key
