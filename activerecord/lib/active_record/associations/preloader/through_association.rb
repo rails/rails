@@ -11,15 +11,14 @@ module ActiveRecord
           reflection.source_reflection
         end
 
-        def associated_records_by_owner
+        def associated_records_by_owner(preloader)
           @loaded = true
 
           return @associated_records_by_owner if @associated_records_by_owner
 
-          left_loader = Preloader.new
-          left_loader.preload(owners,
-                              through_reflection.name,
-                              through_scope)
+          preloader.preload(owners,
+                            through_reflection.name,
+                            through_scope)
 
           should_reset = (through_scope != through_reflection.klass.unscoped) ||
              (reflection.options[:source_type] && through_reflection.collection?)
@@ -37,10 +36,9 @@ module ActiveRecord
 
           middle_records = through_records.map { |(_,rec,_)| rec }.flatten
 
-          preloader = Preloader.new
           preloaders = preloader.preload(middle_records,
-                            source_reflection.name,
-                            reflection_scope)
+                                         source_reflection.name,
+                                         reflection_scope)
 
           middle_to_pl = preloaders.each_with_object({}) do |pl,h|
             pl.owners.each { |middle|

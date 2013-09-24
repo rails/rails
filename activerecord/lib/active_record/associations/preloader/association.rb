@@ -20,13 +20,13 @@ module ActiveRecord
           @loaded = false
         end
 
-        def run
+        def run(preloader)
           unless owners.first.association(reflection.name).loaded?
-            preload
+            preload(preloader)
           end
         end
 
-        def preload
+        def preload(preloader)
           raise NotImplementedError
         end
 
@@ -73,7 +73,7 @@ module ActiveRecord
         end
 
         def preloaded_records
-          associated_records_by_owner.values.flatten
+          @associated_records_by_owner.values.flatten
         end
 
         def loaded?
@@ -82,7 +82,7 @@ module ActiveRecord
 
         private
 
-        def associated_records_by_owner
+        def associated_records_by_owner(preloader)
           @loaded = true
 
           return @associated_records_by_owner if @associated_records_by_owner

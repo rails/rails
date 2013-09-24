@@ -34,7 +34,7 @@ module ActiveRecord
         # Once we have used the join table column (in super), we manually instantiate the
         # actual records, ensuring that we don't create more than one instances of the same
         # record
-        def associated_records_by_owner
+        def associated_records_by_owner(preloader)
           return @associated_records_by_owner if @associated_records_by_owner
 
           records = {}

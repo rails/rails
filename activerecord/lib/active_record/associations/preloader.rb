@@ -93,7 +93,7 @@ module ActiveRecord
         else
           associations.flat_map { |association|
             preloaders_on association, records, preload_scope
-          }.each(&:run)
+          }
         end
       end
 
@@ -133,7 +133,9 @@ module ActiveRecord
       def preloaders_for_one(association, records, scope)
         grouped_records(association, records).flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope)
+            loader = preloader_for(reflection).new(rhs_klass, rs, reflection, scope)
+            loader.run self
+            loader
           end
         end
       end
