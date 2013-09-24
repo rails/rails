@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/logger'
 require 'active_support/tagged_logging'
+require 'active_support/core_ext/string/strip'
 
 class TaggedLoggingTest < ActiveSupport::TestCase
   class MyLogger < ::ActiveSupport::Logger
@@ -98,5 +99,21 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     end
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
+  end
+
+  test "tags each line of the message" do
+    @logger.tagged("BCX") do
+      @logger.info <<-MESSAGE.strip_heredoc
+        An old silent pond...
+        A frog jumps into the pond,
+        splash! Silence again.
+      MESSAGE
+    end
+
+    assert_equal <<-LOG.strip_heredoc, @output.string
+      [BCX] An old silent pond...
+      [BCX] A frog jumps into the pond,
+      [BCX] splash! Silence again.
+    LOG
   end
 end
