@@ -133,7 +133,7 @@ module ActiveRecord
       def preloaders_for_one(association, records, scope)
         grouped_records(association, records).flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
-            loader = preloader_for(reflection).new(rhs_klass, rs, reflection, scope)
+            loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
             loader.run self
             loader
           end
@@ -173,7 +173,22 @@ module ActiveRecord
         end
       end
 
-      def preloader_for(reflection)
+      class NullPreloader
+        attr_reader :owners
+
+        def initialize(klass, owners, reflection, preload_scope)
+          @owners = owners
+        end
+
+        def run(preloader); end
+        def loaded?; false; end
+      end
+
+      def preloader_for(reflection, owners)
+        if owners.first.association(reflection.name).loaded?
+          return NullPreloader
+        end
+
         case reflection.macro
         when :has_many
           reflection.options[:through] ? HasManyThrough : HasMany

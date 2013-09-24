@@ -46,7 +46,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     CurrentMembership.create! club: club, member: member2
 
     club1 = Club.includes(:members).find_by_id club.id
-    left, right = club1.members.map(&:id)
     assert_equal [member1, member2].sort_by(&:id),
                  club1.members.sort_by(&:id)
   end

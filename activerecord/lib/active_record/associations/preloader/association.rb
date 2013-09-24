@@ -21,9 +21,7 @@ module ActiveRecord
         end
 
         def run(preloader)
-          unless owners.first.association(reflection.name).loaded?
-            preload(preloader)
-          end
+          preload(preloader)
         end
 
         def preload(preloader)
