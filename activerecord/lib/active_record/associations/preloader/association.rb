@@ -86,7 +86,7 @@ module ActiveRecord
             h[owner] = []
           end
 
-          if klass && owner_keys.any?
+          if owner_keys.any?
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
