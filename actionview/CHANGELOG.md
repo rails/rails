@@ -1,3 +1,8 @@
+*   Fix `collection_check_boxes` generated hidden input to use the name attribute provided
+    in the options hash.
+
+    *Angel N. Sciortino*
+
 *   Fix some edge cases for AV `select` helper with `:selected` option
 
     *Bogdan Gusiev*
