@@ -2,10 +2,6 @@ module ActiveRecord
   module Associations
     class Preloader
       module ThroughAssociation #:nodoc:
-        def initialize(klass, owners, reflection, preload_scope)
-          super
-        end
-
         def through_reflection
           reflection.through_reflection
         end
