@@ -29,8 +29,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
-        assert_match(/@user = User\.new\(user_params\)/, m)
-        assert_match(/@user\.save/, m)
+        assert_match(/users_params \? create_many : create_one/, m)
       end
 
       assert_instance_method :update, content do |m|
@@ -163,7 +162,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render action: 'new'/, content)
+      assert_match(/render action: 'edit'/, content)
     end
   end
 
@@ -185,15 +184,22 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :user_ids, content do |m|
-        assert_match(/params\.permit\(ids: 1\.\.1000\)/, m)
+        assert_match(/@user_ids ||= params\.permit\(ids: 1\.\.2\*\*32-1\)/, m)
       end
 
       assert_instance_method :update_many, content do |m|
-        assert_match(/user_ids\.each do \|e\|\s+if e\.is_a\?\(Range\)\s+e\.each do \|id\|\s+if \!@user\.update\(id\)\s+render action: 'edit'\s+end\s+end\s+else\s+if !@user\.update\(e\)\s+render action: 'edit'\s+end\s+end\s+end\s+redirect_to @user, notice: 'Users were successfully updated.'/, m)
+        assert_match(/User\.find\(user_ids\)\.each do \|user\|/, m)
+        assert_match(/ser\.update\(params\[:users\]\[:"\#{user.id}"\]/, m)
       end
 
       assert_instance_method :replace, content do |m|
-        assert_match(/User\.destroy_all\s+create/, m)
+        assert_match(/User\.destroy_all/, m)
+        assert_match(/create/, m)
+      end
+
+      assert_instance_method :destroy_many, content do |m|
+        assert_match(/user_ids\.each do \|id\|/, m)
+        assert_match(/User\.destroy\(id\)/, m)
       end
     end
   end

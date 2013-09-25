@@ -12,7 +12,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
   def <%= singular_table_name %>_ids
-    params.permit(ids: 1..1000)
+    @<% plural_table_name %>_ids ||= params.permit(ids: 1..2**32-1)
   end
 
   # GET <%= route_url %>/1
@@ -30,13 +30,17 @@ class <%= controller_class_name %>Controller < ApplicationController
 
   # POST <%= route_url %>
   def create
-    @<%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
+    <%= plural_table_name %>_params ? create_many : create_one
+  end
 
-    if @<%= orm_instance.save %>
-      redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully created.'" %>
-    else
-      render action: 'new'
-    end
+  def create_many
+    @<%= plural_table_name %> = <%= class_name %>.create(<%= plural_table_name %>_params)
+    redirect_to <%= plural_table_name %>_url(@<%= plural_table_name %>), notice: <%= "'#{human_name}s were successfully updated.'" %>
+  end
+
+  def create_one
+    @<%= singular_table_name %> = <%= class_name %>.create(<%= singular_table_name %>_params)
+    redirect_to <%= singular_table_name %>_url(@<%= singular_table_name %>), notice: <%= "'#{human_name} was successfully updated.'" %>
   end
 
   # PATCH/PUT <%= route_url %>/1
@@ -54,21 +58,12 @@ class <%= controller_class_name %>Controller < ApplicationController
     redirect_to <%= index_helper %>_url, notice: <%= "'#{human_name} was successfully destroyed.'" %>
   end
 
+  <% if collection_routing? -%>
   # Collection routes
   # PATCH <%= route_url %>/1..10
   def update_many
-    <%= singular_table_name %>_ids.each do |e|
-      if e.is_a?(Range)
-        e.each do |id|
-          if !@<%= orm_instance.update("id") %>
-            render action: 'edit'
-          end
-        end
-      else
-        if !@<%= orm_instance.update("e") %>
-          render action: 'edit'
-        end
-      end
+    <%= orm_class.find(class_name, "#{singular_table_name}_ids") %>.each do |<%= singular_table_name %>|
+      <%= singular_table_name %>.update(params[:<%= plural_table_name %>][:"#{<%= singular_table_name %>.id}"])
     end
     redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name}s were successfully updated.'" %>
   end
@@ -78,6 +73,13 @@ class <%= controller_class_name %>Controller < ApplicationController
     <%= orm_class.destroy_all(class_name) %>
     create
   end
+
+  def destroy_many
+    <%= singular_table_name %>_ids.each do |id|
+      <%= class_name %>.destroy(id)
+    end
+  end
+  <% end -%>
 
   private
     # Use callbacks to share common setup or constraints between actions.
@@ -93,5 +95,16 @@ class <%= controller_class_name %>Controller < ApplicationController
       params.require(:<%= singular_table_name %>).permit(<%= attributes_names.map { |name| ":#{name}" }.join(', ') %>)
       <%- end -%>
     end
+
+    <% if collection_routing? -%>
+    # Only allow a trusted collection parameter "white list" through.
+    def <%= "#{plural_table_name}_params" %>
+      <%- if attributes_names.empty? -%>
+      params[<%= ":#{plural_table_name}" %>]
+      <%- else -%>
+      params.require(<%= ":#{plural_table_name}" %>).permit(<%= attributes_names.map { |name| ":#{name}" }.join(', ') %>)
+      <%- end -%>
+    end
+    <% end -%>
 end
 <% end -%>

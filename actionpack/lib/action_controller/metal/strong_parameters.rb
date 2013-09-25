@@ -456,16 +456,17 @@ module ActionController
           r.strip!
           if matches = /\A(\d+)\.\.(\.?)(\d+)\z/.match(r) and matches[1].to_i <= matches[3].to_i
             if matches[2].empty?
-              matches[1].to_i..matches[3].to_i
+              range = matches[1].to_i..matches[3].to_i
             elsif matches[2] == '.'
-              matches[1].to_i...matches[3].to_i
+              range = matches[1].to_i...matches[3].to_i
             end
+            range.to_a
           elsif /^\d+$/ =~ r
             r.to_i
           else
             nil
           end
-        end.compact
+        end.compact.flatten.uniq
         if new_param && !new_param.empty?
           new_param
         else
