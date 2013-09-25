@@ -3,7 +3,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 
 class ERB
   module Util
-    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
+    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;', "`" => '&#96;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+));)/
     JSON_ESCAPE_REGEXP = /[&"><]/
@@ -21,7 +21,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"'><]/, HTML_ESCAPE).html_safe
+        s.gsub(/[&"'><`]/, HTML_ESCAPE).html_safe
       end
     end
 

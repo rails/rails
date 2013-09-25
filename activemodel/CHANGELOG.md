@@ -27,4 +27,8 @@
 
     *Nick Sutterer*
 
+*   Add backtick character to characters to be escaped by `ERB::Util::HTML_ESCAPE`
+
+    *T.J. Schuck*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for previous changes.
