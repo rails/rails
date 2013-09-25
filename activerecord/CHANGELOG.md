@@ -1,6 +1,10 @@
+*   Callbacks on has_many should access the in memory parent if a inverse_of is set.
+
+    *arthurnn*
+
 *   `ActiveRecord::ConnectionAdapters.string_to_time` respects
     string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
- 
+
     Fixes: #12278
 
     *kennyj*
