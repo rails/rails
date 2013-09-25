@@ -4,6 +4,7 @@ david:
   salary: 80000
   created_at: <%= 10.minutes.ago.to_s(:db) %>
   updated_at: <%= 5.minutes.ago.to_s(:db) %>
+  updated_on: <%= 5.minutes.ago.to_s(:db) %>
 
 jamis:
   id: 2
@@ -11,6 +12,7 @@ jamis:
   salary: 150000
   created_at: <%= 15.minutes.ago.to_s(:db) %>
   updated_at: <%= 12.minutes.ago.to_s(:db) %>
+  updated_on: <%= 12.minutes.ago.to_s(:db) %>
 
 <% (3..10).each do |digit| %>
 dev_<%= digit %>:
@@ -19,6 +21,7 @@ dev_<%= digit %>:
   salary: 100000
   created_at: <%= (digit+5).minutes.ago.to_s(:db) %>
   updated_at: <%= digit.minutes.ago.to_s(:db) %>
+  updated_on: <%= digit.minutes.ago.to_s(:db) %>
 <% end %>
 
 poor_jamis:
@@ -27,3 +30,4 @@ poor_jamis:
   salary: 9000
   created_at: <%= 20.minutes.ago.to_s(:db) %>
   updated_at: <%= 16.minutes.ago.to_s(:db) %>
+  updated_on: <%= 16.minutes.ago.to_s(:db) %>
