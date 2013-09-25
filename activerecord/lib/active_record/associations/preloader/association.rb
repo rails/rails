@@ -73,7 +73,7 @@ module ActiveRecord
           owner_keys = owners_map.keys.compact
 
           # Each record may have multiple owners, and vice-versa
-          records_by_owner = Hash.new do |h,owner|
+          records_by_owner = owners.each_with_object({}) do |owner,h|
             h[owner] = []
           end
 
@@ -90,9 +90,7 @@ module ActiveRecord
             end
           end
 
-          owners.each_with_object(records_by_owner) do |owner,h|
-            h[owner] ||= []
-          end
+          records_by_owner
         end
 
         def load_slices(slices)
