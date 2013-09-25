@@ -262,7 +262,7 @@ of code:
 ### Setting the Application Home Page
 
 Now that we have made the controller and view, we need to tell Rails when we
-want Hello Rails! to show up. In our case, we want it to show up when we
+want `Hello, Rails!` to show up. In our case, we want it to show up when we
 navigate to the root URL of our site, <http://localhost:3000>. At the moment,
 "Welcome Aboard" is occupying that spot.
 
