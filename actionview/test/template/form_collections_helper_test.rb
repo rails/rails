@@ -179,6 +179,13 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=hidden][name='user[category_ids][]'][value=]", :count => 1
   end
 
+  test 'collection check boxes generates a hidden field using the given :name in :html_options' do
+    collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
+    with_collection_check_boxes :user, :category_ids, collection, :id, :name, {}, {name: "user[other_category_ids][]"}
+
+    assert_select "input[type=hidden][name='user[other_category_ids][]'][value=]", :count => 1
+  end
+
   test 'collection check boxes accepts a collection and generate a serie of checkboxes with labels for label method' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
