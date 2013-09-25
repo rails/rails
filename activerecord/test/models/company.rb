@@ -126,8 +126,9 @@ class Client < Company
   has_many :accounts, :through => :firm
   belongs_to :account
 
+  attr_accessor :touch_firm_on_validate
   validate do
-    firm
+    firm if touch_firm_on_validate
   end
 
   class RaisedOnSave < RuntimeError; end

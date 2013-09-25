@@ -656,7 +656,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_inverse_on_before_validate
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients_of_firm << Client.new("name" => "Natural Company")
+      client = Client.new("name" => "Natural Company")
+      client.touch_firm_on_validate = true
+      firm.clients_of_firm << client
     end
   end
 
