@@ -3,6 +3,7 @@ module ActiveRecord
     class Preloader
       class Association #:nodoc:
         attr_reader :owners, :reflection, :preload_scope, :model, :klass
+        attr_reader :preloaded_records
 
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
@@ -12,7 +13,7 @@ module ActiveRecord
           @model         = owners.first && owners.first.class
           @scope         = nil
           @owners_by_key = nil
-          @associated_records_by_owner = nil
+          @preloaded_records = []
         end
 
         def run(preloader)
@@ -65,15 +66,9 @@ module ActiveRecord
           reflection.options
         end
 
-        def preloaded_records
-          @associated_records_by_owner.values.flatten
-        end
-
         private
 
         def associated_records_by_owner(preloader)
-          return @associated_records_by_owner if @associated_records_by_owner
-
           owners_map = owners_by_key
           owner_keys = owners_map.keys.compact
 
@@ -94,18 +89,19 @@ module ActiveRecord
               end
             end
           end
+
           owners.each_with_object(records_by_owner) do |owner,h|
             h[owner] ||= []
           end
-
-          @associated_records_by_owner = records_by_owner
         end
 
         def load_slices(slices)
-          slices.flat_map { |slice|
-            records_for(slice).to_a.map! { |record|
-              [record, record[association_key_name]]
-            }
+          @preloaded_records = slices.flat_map { |slice|
+            records_for(slice)
+          }
+
+          @preloaded_records.map { |record|
+            [record, record[association_key_name]]
           }
         end
 

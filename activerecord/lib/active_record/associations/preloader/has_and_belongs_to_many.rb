@@ -38,7 +38,7 @@ module ActiveRecord
           caster = nil
           name = association_key_name
 
-          slices.flat_map { |slice|
+          records_to_keys = slices.flat_map { |slice|
             records = records_for(slice)
             caster ||= records.column_types.fetch(name, records.identity_type)
             records.map! { |row|
@@ -46,6 +46,9 @@ module ActiveRecord
               [record, caster.type_cast(row[name])]
             }
           }
+          @preloaded_records = records_to_keys.map(&:first)
+
+          records_to_keys
         end
 
         def build_scope

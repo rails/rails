@@ -2,6 +2,10 @@ module ActiveRecord
   module Associations
     class Preloader
       module ThroughAssociation #:nodoc:
+        def initialize(klass, owners, reflection, preload_scope)
+          super
+          @associated_records_by_owner = nil
+        end
 
         def through_reflection
           reflection.through_reflection
@@ -11,9 +15,11 @@ module ActiveRecord
           reflection.source_reflection
         end
 
-        def associated_records_by_owner(preloader)
-          return @associated_records_by_owner if @associated_records_by_owner
+        def preloaded_records
+          @associated_records_by_owner.values.flatten
+        end
 
+        def associated_records_by_owner(preloader)
           preloader.preload(owners,
                             through_reflection.name,
                             through_scope)
