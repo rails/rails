@@ -80,14 +80,13 @@ module ActiveRecord
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
           if options[:inverse_of] && loaded?
-            args = args.flatten
-            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args.blank?
-
+            args_flatten = args.flatten
+            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
             result = find_by_scan(*args)
 
             result_size = Array(result).size
-            if !result || result_size != args.size
-              scope.raise_record_not_found_exception!(args, result_size, args.size)
+            if !result || result_size != args_flatten.size
+              scope.raise_record_not_found_exception!(args_flatten, result_size, args_flatten.size)
             else
               result
             end

@@ -337,6 +337,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
   end
 
+  def test_find_ids_and_inverse_of
+    force_signal37_to_load_all_clients_of_firm
+
+    firm = companies(:first_firm)
+    client = firm.clients_of_firm.find(3)
+    assert_kind_of Client, client
+
+    client_ary = firm.clients_of_firm.find([3])
+    assert_kind_of Array, client_ary
+    assert_equal client, client_ary.first
+  end
+
   def test_find_all
     firm = Firm.all.merge!(:order => "id").first
     assert_equal 2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
