@@ -1,4 +1,9 @@
 ## unreleased ##
+
+*   Callbacks on has_many should access the in memory parent if a inverse_of is set.
+
+    *arthurnn*
+
 *   Fix `FinderMethods#last` unscoped primary key.
 
     Fixes #11917.

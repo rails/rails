@@ -9,6 +9,7 @@ module ActiveRecord
 
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
+        set_inverse_instance(record)
 
         if raise
           record.save!(:validate => validate)
