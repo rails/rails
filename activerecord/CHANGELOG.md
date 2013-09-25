@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fixed `ActiveRecord::Associations::CollectionAssociation#find`
+    when using `has_many` association with `:inverse_of` and finding an array of one element,
+    it should return an array of one element too.
+
+    *arthurnn*
+
 *   Callbacks on has_many should access the in memory parent if a inverse_of is set.
 
     *arthurnn*
