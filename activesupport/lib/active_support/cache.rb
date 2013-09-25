@@ -234,7 +234,7 @@ module ActiveSupport
       # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.
       # Yes, this process is extending the time for a stale value by another few
       # seconds. Because of extended life of the previous cache, other processes
-      # will continue to use slightly stale data for a just a big longer. In the
+      # will continue to use slightly stale data for a just a bit longer. In the
       # meantime that first process will go ahead and will write into cache the
       # new value. After that all the processes will start getting new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
