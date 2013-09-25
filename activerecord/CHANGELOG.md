@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Callbacks on has_many should access the in memory parent if a inverse_of is set.
+
+    *arthurnn*
+
 *   Migration dump UUID default functions to schema.rb.
 
     Fixes #10751.
