@@ -33,18 +33,19 @@ module ActiveRecord
         # Once we have used the join table column (in super), we manually instantiate the
         # actual records, ensuring that we don't create more than one instances of the same
         # record
-        def associated_records_by_owner(preloader)
-          return @associated_records_by_owner if @associated_records_by_owner
+        def load_slices(slices)
+          identity_map = {}
+          caster = nil
+          name = association_key_name
 
-          records = {}
-          @associated_records_by_owner = super.each_value do |rows|
-            rows.map! { |row| records[row[klass.primary_key]] ||= klass.instantiate(row) }
-          end
-        end
-
-        def set_type_caster(results, name)
-          caster = results.column_types.fetch(name, results.identity_type)
-          @type_caster = lambda { |value| caster.type_cast value }
+          slices.flat_map { |slice|
+            records = records_for(slice)
+            caster ||= records.column_types.fetch(name, records.identity_type)
+            records.map! { |row|
+              record = identity_map[row[klass.primary_key]] ||= klass.instantiate(row)
+              [record, caster.type_cast(row[name])]
+            }
+          }
         end
 
         def build_scope

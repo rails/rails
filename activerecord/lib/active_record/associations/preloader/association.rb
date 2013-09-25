@@ -3,9 +3,6 @@ module ActiveRecord
     class Preloader
       class Association #:nodoc:
         attr_reader :owners, :reflection, :preload_scope, :model, :klass
-        attr_reader :type_caster
-
-        IDENTITY_CASTER = lambda { |value| value } # :nodoc:
 
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
@@ -15,7 +12,6 @@ module ActiveRecord
           @model         = owners.first && owners.first.class
           @scope         = nil
           @owners_by_key = nil
-          @type_caster   = IDENTITY_CASTER
           @associated_records_by_owner = nil
         end
 
@@ -90,15 +86,9 @@ module ActiveRecord
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-            records = sliced.flat_map { |slice|
-              records = records_for(slice)
-              set_type_caster records, association_key_name
-              records
-            }
-            caster = type_caster
-            records.each do |record|
-              owner_key = caster.call record[association_key_name]
 
+            records = load_slices sliced
+            records.each do |record, owner_key|
               owners_map[owner_key].each do |owner|
                 records_by_owner[owner] << record
               end
@@ -111,7 +101,12 @@ module ActiveRecord
           @associated_records_by_owner = records_by_owner
         end
 
-        def set_type_caster(results, name)
+        def load_slices(slices)
+          slices.flat_map { |slice|
+            records_for(slice).to_a.map! { |record|
+              [record, record[association_key_name]]
+            }
+          }
         end
 
         def reflection_scope
