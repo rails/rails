@@ -7,11 +7,13 @@ module ActionDispatch
         # Normalizes URI path.
         #
         # Strips off trailing slash and ensures there is a leading slash.
+        # Also converts downcase url encoded string to uppercase.
         #
         #   normalize_path("/foo")  # => "/foo"
         #   normalize_path("/foo/") # => "/foo"
         #   normalize_path("foo")   # => "/foo"
         #   normalize_path("")      # => "/"
+        #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
           path = "/#{path}"
           path.squeeze!('/')
@@ -36,7 +38,7 @@ module ActionDispatch
           UNSAFE_FRAGMENT = Regexp.new("[^#{safe_fragment}]", false).freeze
         end
 
-        Parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
+        Parser = URI::Parser.new
 
         def self.escape_path(path)
           Parser.escape(path.to_s, UriEscape::UNSAFE_SEGMENT)

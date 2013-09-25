@@ -61,4 +61,9 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
     assert_equal 'Guille', person.first_name
     assert_equal 'm', person.gender
   end
+
+  def test_blank_attributes_should_not_raise
+    person = Person.new
+    assert_nil person.assign_attributes(ProtectedParams.new({}))
+  end
 end

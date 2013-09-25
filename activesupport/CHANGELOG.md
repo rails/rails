@@ -1,3 +1,35 @@
+*   Disable the ability to iterate over Range of AS::TimeWithZone 
+    due to significant performance issues.
+
+    *Bogdan Gusiev*
+
+*   Allow attaching event subscribers to ActiveSupport::Notifications namespaces
+    before they're defined. Essentially, this means instead of this:
+
+        class JokeSubscriber < ActiveSupport::Subscriber
+          def sql(event)
+            puts "A rabbi and a priest walk into a bar..."
+          end
+
+          # This call needs to happen *after* defining the methods.
+          attach_to "active_record"
+        end
+
+    You can do this:
+
+      class JokeSubscriber < ActiveSupport::Subscriber
+        # This is much easier to read!
+        attach_to "active_record"
+
+        def sql(event)
+          puts "A rabbi and a priest walk into a bar..."
+        end
+      end
+
+    This should make it easier to read and understand these subscribers.
+
+    *Daniel Schierbeck*
+
 *   Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day` methods.
 
     Also added `midday`, `noon`, `at_midday`, `at_noon` and `at_middle_of_day` as aliases.

@@ -29,8 +29,7 @@ class DirtyTest < ActiveModel::TestCase
     end
 
     def save
-      @previously_changed = changes
-      @changed_attributes.clear
+      changes_applied
     end
   end
 

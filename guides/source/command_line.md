@@ -1,8 +1,6 @@
 The Rails Command Line
 ======================
 
-Rails comes with every command line tool you'll need to
-
 After reading this guide, you will know:
 
 * How to create a Rails application.

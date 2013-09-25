@@ -73,8 +73,6 @@ You can see an example of how that works at [Rails Upgrade is now an Official Pl
 
 Aside from Rails Upgrade tool, if you need more help, there are people on IRC and [rubyonrails-talk](http://groups.google.com/group/rubyonrails-talk) that are probably doing the same thing, possibly hitting the same issues. Be sure to blog your own experiences when upgrading so others can benefit from your knowledge!
 
-More information - [The Path to Rails 3: Approaching the upgrade](http://omgbloglol.com/post/353978923/the-path-to-rails-3-approaching-the-upgrade)
-
 Creating a Rails 3.0 application
 --------------------------------
 

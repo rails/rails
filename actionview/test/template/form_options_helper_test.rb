@@ -556,6 +556,21 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_under_fields_for_with_block
+    @post = Post.new
+
+    output_buffer = fields_for :post, @post do |f|
+      concat(f.select(:category) do
+        concat content_tag(:option, "hello world")
+      end)
+    end
+
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option>hello world</option></select>",
+      output_buffer
+    )
+  end
+
   def test_select_with_multiple_to_add_hidden_input
     output_buffer =  select(:post, :category, "", {}, :multiple => true)
     assert_dom_equal(
@@ -783,6 +798,22 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_not_existing_method_with_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_locale\" name=\"post[locale]\"><option value=\"en\">en</option>\n<option value=\"ru\" selected=\"selected\">ru</option></select>",
+      select("post", "locale", %w( en ru ), :selected => 'ru')
+    )
+  end
+
+  def test_select_with_prompt_and_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option selected=\"selected\" value=\"two\">two</option></select>",
+      select("post", "category", %w( one two ), :selected => 'two', :prompt => true)
+    )
+  end
+  
   def test_select_with_disabled_array
     @post = Post.new
     @post.category = "<mus>"

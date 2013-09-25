@@ -419,10 +419,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
-  def test_update_attribute_does_not_choke_on_nil
-    assert Topic.find(1).update(nil)
-  end
-
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
     assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
@@ -699,6 +695,17 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.update_attributes(id: 1234)
     assert_nothing_raised { topic.reload }
     assert_equal topic.title, Topic.find(1234).title
+  end
+
+  def test_update_attributes_parameters
+    topic = Topic.find(1)
+    assert_nothing_raised do
+      topic.update_attributes({})
+    end
+
+    assert_raises(ArgumentError) do
+      topic.update_attributes(nil)
+    end
   end
 
   def test_update!

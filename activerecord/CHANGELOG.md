@@ -1,3 +1,37 @@
+*   `ActiveRecord::ConnectionAdapters.string_to_time` respects
+    string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
+ 
+    Fixes: #12278
+
+    *kennyj*
+
+*   Calling `update_attributes` will now throw an `ArgumentError` whenever it
+    gets a `nil` argument. More specifically, it will throw an error if the
+    argument that it gets passed does not respond to to `stringify_keys`.
+
+    Example:
+
+        @my_comment.update_attributes(nil)  # => raises ArgumentError
+
+    *John Wang*
+
+*   Deprecate `quoted_locking_column` method, which isn't used anywhere.
+
+    *kennyj*
+
+*   Migration dump UUID default functions to schema.rb.
+
+    Fixes #10751.
+
+    *kennyj*
+
+*   Fixed a bug in `ActiveRecord::Associations::CollectionAssociation#find_by_scan`
+    when using `has_many` association with `:inverse_of` option and UUID primary key.
+
+    Fixes #10450.
+
+    *kennyj*
+
 *   ActiveRecord::Base#<=> has been removed.  Primary keys may not be in order,
     or even be numbers, so sorting by id doesn't make sense.  Please use `sort_by`
     and specify the attribute you wish to sort with.  For example, change:
@@ -7,6 +41,8 @@
     to:
 
       Post.all.to_a.sort_by(&:id)
+
+    *Aaron Patterson*
 
 *   Fix: joins association, with defined in the scope block constraints by using several
     where constraints and at least of them is not `Arel::Nodes::Equality`,

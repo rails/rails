@@ -61,6 +61,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     schema = StringIO.new
     ActiveRecord::SchemaDumper.dump(@connection, schema)
     assert_match(/\bcreate_table "pg_uuids", id: :uuid\b/, schema.string)
+    assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
   end
 end
 
@@ -91,5 +92,45 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
                                     LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                                     WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first
     assert_nil col_desc["default"]
+  end
+end
+
+class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
+  class UuidPost < ActiveRecord::Base
+    self.table_name = 'pg_uuid_posts'
+    has_many :uuid_comments, inverse_of: :uuid_post
+  end
+
+  class UuidComment < ActiveRecord::Base
+    self.table_name = 'pg_uuid_comments'
+    belongs_to :uuid_post
+  end
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.reconnect!
+
+    @connection.transaction do
+      @connection.create_table('pg_uuid_posts', id: :uuid) do |t|
+        t.string 'title'
+      end
+      @connection.create_table('pg_uuid_comments', id: :uuid) do |t|
+        t.uuid :uuid_post_id, default: 'uuid_generate_v4()'
+        t.string 'content'
+      end
+    end
+  end
+
+  def teardown
+    @connection.transaction do
+      @connection.execute 'drop table if exists pg_uuid_comments'
+      @connection.execute 'drop table if exists pg_uuid_posts'
+    end
+  end
+
+  def test_collection_association_with_uuid
+    post    = UuidPost.create!
+    comment = post.uuid_comments.create!
+    assert post.uuid_comments.find(comment.id)
   end
 end

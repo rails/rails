@@ -163,7 +163,7 @@ module ActiveRecord
     # ==== Example:
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
-    def initialize(attributes = nil)
+    def initialize(attributes = nil, options = {})
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
@@ -176,7 +176,9 @@ module ActiveRecord
       ensure_proper_type
       populate_with_current_scope_attributes
 
-      assign_attributes(attributes) if attributes
+      # +options+ argument is only needed to make protected_attributes gem easier to hook.
+      # Remove it when we drop support to this gem.
+      init_attributes(attributes, options) if attributes
 
       yield self if block_given?
       run_callbacks :initialize unless _initialize_callbacks.empty?
@@ -411,8 +413,6 @@ module ActiveRecord
       @aggregation_cache        = {}
       @association_cache        = {}
       @attributes_cache         = {}
-      @previously_changed       = {}
-      @changed_attributes       = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
@@ -429,8 +429,14 @@ module ActiveRecord
       # optimistic locking) won't get written unless they get marked as changed
       self.class.columns.each do |c|
         attr, orig_value = c.name, c.default
-        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
+    end
+
+    # This method is needed to make protected_attributes gem easier to hook.
+    # Remove it when we drop support to this gem.
+    def init_attributes(attributes, options)
+      assign_attributes(attributes)
     end
   end
 end

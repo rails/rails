@@ -128,6 +128,15 @@ module ActionView
       # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
       #
+      # A block can be passed to +select+ to customize how the options tags will be rendered. This
+      # is useful when the options tag has complex attributes.
+      #
+      #   select(report, "campaign_ids") do
+      #     available_campaigns.each do |c|
+      #       content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json })
+      #     end
+      #   end
+      #
       # ==== Gotcha
       #
       # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
@@ -152,8 +161,8 @@ module ActionView
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.
       #
-      def select(object, method, choices, options = {}, html_options = {})
-        Tags::Select.new(object, method, self, choices, options, html_options).render
+      def select(object, method, choices = nil, options = {}, html_options = {}, &block)
+        Tags::Select.new(object, method, self, choices, options, html_options, &block).render
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -766,8 +775,8 @@ module ActionView
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
-      def select(method, choices, options = {}, html_options = {})
-        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options))
+      def select(method, choices = nil, options = {}, html_options = {}, &block)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:

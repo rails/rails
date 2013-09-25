@@ -22,8 +22,8 @@ with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
 * The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer
-* The [RubyGems](http://rubygems.org/) packaging system
-    * To learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
+* The [RubyGems](http://rubygems.org) packaging system
+    * To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org)
 * A working installation of the [SQLite3 Database](http://www.sqlite.org)
 
 Rails is a web application framework running on the Ruby programming language.
@@ -262,7 +262,7 @@ of code:
 ### Setting the Application Home Page
 
 Now that we have made the controller and view, we need to tell Rails when we
-want Hello Rails! to show up. In our case, we want it to show up when we
+want `Hello, Rails!` to show up. In our case, we want it to show up when we
 navigate to the root URL of our site, <http://localhost:3000>. At the moment,
 "Welcome Aboard" is occupying that spot.
 

@@ -28,12 +28,6 @@ module ActiveSupport
 
         def initialize
           @ucd = Unicode::UnicodeDatabase.new
-
-          default = Codepoint.new
-          default.combining_class = 0
-          default.uppercase_mapping = 0
-          default.lowercase_mapping = 0
-          @ucd.codepoints = Hash.new(default)
         end
 
         def parse_codepoints(line)

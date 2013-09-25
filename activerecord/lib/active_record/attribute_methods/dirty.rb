@@ -19,8 +19,7 @@ module ActiveRecord
       # Attempts to +save+ the record and clears changed attributes if successful.
       def save(*)
         if status = super
-          @previously_changed = changes
-          @changed_attributes.clear
+          changes_applied
         end
         status
       end
@@ -28,16 +27,14 @@ module ActiveRecord
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
       def save!(*)
         super.tap do
-          @previously_changed = changes
-          @changed_attributes.clear
+          changes_applied
         end
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
-          @previously_changed.clear
-          @changed_attributes.clear
+          reset_changes
         end
       end
 
@@ -48,11 +45,11 @@ module ActiveRecord
 
         # The attribute already has an unsaved change.
         if attribute_changed?(attr)
-          old = @changed_attributes[attr]
-          @changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
+          old = changed_attributes[attr]
+          changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
         else
           old = clone_attribute_value(:read_attribute, attr)
-          @changed_attributes[attr] = old if _field_changed?(attr, old, value)
+          changed_attributes[attr] = old if _field_changed?(attr, old, value)
         end
 
         # Carry on.

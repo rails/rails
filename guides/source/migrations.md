@@ -301,6 +301,7 @@ braces. You can use the following modifiers:
 * `precision`    Defines the precision for the `decimal` fields
 * `scale`        Defines the scale for the `decimal` fields
 * `polymorphic`  Adds a `type` column for `belongs_to` associations
+* `null`         Allows or disallows `NULL` values in the column.
 
 For instance, running
 
@@ -313,7 +314,7 @@ will produce a migration that looks like this
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
-    add_column :products, :price, precision: 5, scale: 2
+    add_column :products, :price, :decimal, precision: 5, scale: 2
     add_reference :products, :supplier, polymorphic: true, index: true
   end
 end

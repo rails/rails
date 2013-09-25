@@ -1,3 +1,12 @@
+*   Include `web-console` into newly generated applications' Gemfile.
+
+    *Genadi Samokovarov*
+
+*   `rails server` will only extend the logger to output to STDOUT
+     in development environment.
+
+    *Richard Schneeman*
+
 *   Don't require passing path to app before options in `rails new`
     and `rails plugin new`
 

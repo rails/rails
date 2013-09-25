@@ -272,6 +272,10 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert p.treasures.empty?
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
+
+  def test_quoted_locking_column_is_deprecated
+    assert_deprecated { ActiveRecord::Base.quoted_locking_column }
+  end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase

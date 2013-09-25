@@ -10,7 +10,10 @@ module ActionView
 
     class << self
       def digest(name, format, finder, options = {})
-        cache_key = ([name, format] + Array.wrap(options[:dependencies])).join('.')
+        details_key = finder.details_key.hash
+        dependencies = Array.wrap(options[:dependencies])
+        cache_key = ([name, details_key, format] + dependencies).join('.')
+
         # this is a correctly done double-checked locking idiom
         # (ThreadSafe::Cache's lookups have volatile semantics)
         @@cache[cache_key] || @@digest_monitor.synchronize do

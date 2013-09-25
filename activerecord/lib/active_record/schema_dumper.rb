@@ -17,9 +17,19 @@ module ActiveRecord
     cattr_accessor :ignore_tables
     @@ignore_tables = []
 
-    def self.dump(connection=ActiveRecord::Base.connection, stream=STDOUT)
-      new(connection).dump(stream)
-      stream
+    class << self
+      def dump(connection=ActiveRecord::Base.connection, stream=STDOUT, config = ActiveRecord::Base)
+        new(connection, generate_options(config)).dump(stream)
+        stream
+      end
+
+      private
+        def generate_options(config)
+          {
+            table_name_prefix: config.table_name_prefix,
+            table_name_suffix: config.table_name_suffix
+          }
+        end
     end
 
     def dump(stream)
@@ -32,10 +42,11 @@ module ActiveRecord
 
     private
 
-      def initialize(connection)
+      def initialize(connection, options = {})
         @connection = connection
         @types = @connection.native_database_types
         @version = Migrator::current_version rescue nil
+        @options = options
       end
 
       def header(stream)
@@ -201,7 +212,7 @@ HEADER
       end
 
       def remove_prefix_and_suffix(table)
-        table.gsub(/^(#{ActiveRecord::Base.table_name_prefix})(.+)(#{ActiveRecord::Base.table_name_suffix})$/,  "\\2")
+        table.gsub(/^(#{@options[:table_name_prefix]})(.+)(#{@options[:table_name_suffix]})$/,  "\\2")
       end
   end
 end

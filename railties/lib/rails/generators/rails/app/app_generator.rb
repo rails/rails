@@ -335,7 +335,7 @@ module Rails
 
         def handle_rails_rc!
           unless argv.delete("--no-rc")
-            insert_railsrc(railsrc)
+            insert_railsrc_into_argv!(railsrc)
           end
         end
 
@@ -347,7 +347,7 @@ module Rails
           end
         end
 
-        def insert_railsrc(railsrc)
+        def insert_railsrc_into_argv!(railsrc)
           if File.exist?(railsrc)
             extra_args_string = File.read(railsrc)
             extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten

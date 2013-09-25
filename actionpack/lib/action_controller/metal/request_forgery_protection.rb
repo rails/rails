@@ -124,6 +124,9 @@ module ActionController #:nodoc:
             @loaded = true
           end
 
+          # no-op
+          def destroy; end
+
           def exists?
             true
           end
