@@ -518,6 +518,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_inverse_on_before_validate
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients_of_firm << Client.new("name" => "Natural Company")
+    end
+  end
+
   def test_new_aliased_to_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.new("name" => "Another Client") }
