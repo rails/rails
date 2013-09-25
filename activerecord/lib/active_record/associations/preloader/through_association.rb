@@ -19,21 +19,15 @@ module ActiveRecord
                             through_reflection.name,
                             through_scope)
 
-          should_reset = (through_scope != through_reflection.klass.unscoped) ||
-             (reflection.options[:source_type] && through_reflection.collection?)
-
           through_records = owners.map do |owner, h|
             association = owner.association through_reflection.name
 
-            [owner, Array(association.reader), association]
+            [owner, Array(association.reader)]
           end
 
-          # Dont cache the association - we would only be caching a subset
-          if should_reset
-            through_records.each { |(_,_,assoc)| assoc.reset }
-          end
+          reset_association owners, through_reflection.name
 
-          middle_records = through_records.map { |(_,rec,_)| rec }.flatten
+          middle_records = through_records.map { |(_,rec)| rec }.flatten
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -67,6 +61,19 @@ module ActiveRecord
         end
 
         private
+
+        def reset_association(owners, association_name)
+          should_reset = (through_scope != through_reflection.klass.unscoped) ||
+             (reflection.options[:source_type] && through_reflection.collection?)
+
+          # Dont cache the association - we would only be caching a subset
+          if should_reset
+            owners.each { |owner|
+              owner.association(association_name).reset
+            }
+          end
+        end
+
 
         def through_scope
           scope = through_reflection.klass.unscoped
