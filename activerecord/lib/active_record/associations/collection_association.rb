@@ -457,7 +457,7 @@ module ActiveRecord
         end
 
         def delete_or_destroy(records, method)
-          records = records.flatten
+          records = records.is_a?(Array) ? records.flatten : [records]
           records.each { |record| raise_on_type_mismatch!(record) }
           existing_records = records.reject { |r| r.new_record? }
 
