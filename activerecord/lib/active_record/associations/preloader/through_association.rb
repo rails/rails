@@ -4,7 +4,6 @@ module ActiveRecord
       module ThroughAssociation #:nodoc:
         def initialize(klass, owners, reflection, preload_scope)
           super
-          @associated_records_by_owner = nil
         end
 
         def through_reflection
@@ -13,10 +12,6 @@ module ActiveRecord
 
         def source_reflection
           reflection.source_reflection
-        end
-
-        def preloaded_records
-          @associated_records_by_owner.values.flatten
         end
 
         def associated_records_by_owner(preloader)
@@ -50,7 +45,7 @@ module ActiveRecord
             }
           end
 
-          @associated_records_by_owner = through_records.each_with_object({}) { |(lhs,center),records_by_owner|
+          through_records.each_with_object({}) { |(lhs,center),records_by_owner|
             pl_to_middle = center.group_by { |record| middle_to_pl[record] }
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
@@ -64,7 +59,9 @@ module ActiveRecord
                 indexes[r] = i
                 i += 1
               }
-              rhs_records.sort_by { |rhs| record_index[rhs] }
+              records = rhs_records.sort_by { |rhs| record_index[rhs] }
+              @preloaded_records.concat rhs_records
+              records
             end
           }
         end
