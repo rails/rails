@@ -48,10 +48,10 @@ overall database access code.
 Active Record gives us several mechanisms, the most important being the ability
 to:
 
-* Represent models and their data
-* Represent associations between these models
-* Represent inheritance hierarchies through related models
-* Validate models before they get persisted to the database
+* Represent models and their data.
+* Represent associations between these models.
+* Represent inheritance hierarchies through related models.
+* Validate models before they get persisted to the database.
 * Perform database operations in an object-oriented fashion.
 
 Convention over Configuration in Active Record
@@ -78,9 +78,9 @@ of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
 
-* Database Table - Plural with underscores separating words (e.g., `book_clubs`)
+* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
-`BookClub`)
+`BookClub`).
 
 | Model / Class | Table / Schema |
 | ------------- | -------------- |
@@ -101,7 +101,7 @@ depending on the purpose of these columns.
   fields that Active Record will look for when you create associations between
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key. When using [Rails
+  `id` as the table's primary key. When using [Active Record
   Migrations](migrations.html) to create your tables, this column will be
   automatically created.
 
@@ -116,7 +116,7 @@ to Active Record instances:
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html)
+  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
@@ -368,6 +368,6 @@ Rails keeps track of which files have been committed to the database and
 provides rollback features. To actually create the table, you'd run `rake db:migrate`
 and to roll it back, `rake db:rollback`.
 
-Note that the above code is database-agnostic: it will run in MySQL, postgresql,
-Oracle and others. You can learn more about migrations in the [Active Record
-Migrations guide](migrations.html)
+Note that the above code is database-agnostic: it will run in MySQL,
+PostgreSQL, Oracle and others. You can learn more about migrations in the
+[Active Record Migrations guide](migrations.html).
