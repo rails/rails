@@ -35,5 +35,9 @@ module ActionView
         end
       end
     end
+
+    rake_tasks do
+      load "action_view/tasks/dependencies.rake"
+    end
   end
 end
