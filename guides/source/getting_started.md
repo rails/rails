@@ -1338,7 +1338,7 @@ class Comment < ActiveRecord::Base
 end
 ```
 
-This is very similar to the `post.rb` model that you saw earlier. The difference
+This is very similar to the `Post` model that you saw earlier. The difference
 is the line `belongs_to :post`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
