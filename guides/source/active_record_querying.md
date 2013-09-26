@@ -1358,7 +1358,7 @@ COMMIT
 
 The new record might not be saved to the database; that depends on whether validations passed or not (just like `create`).
 
-Suppose we want to set the 'locked' attribute to true if we're
+Suppose we want to set the 'locked' attribute to false if we're
 creating a new record, but we don't want to include it in the query. So
 we want to find the client named "Andy", or if that client doesn't
 exist, create a client named "Andy" which is not locked.
