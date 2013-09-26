@@ -139,8 +139,7 @@
 
     *Piotr Sarnacki*
 
-*   Add a rescue for string when convert nested Hash
-    to HashWithIndifferentAccess
+*   Add a rescue when convert nested Hash to HashWithIndifferentAccess
 
     *Ivan Verevkin*
 
