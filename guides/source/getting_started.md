@@ -687,7 +687,7 @@ invoking the command: `rake db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
-Back in `posts_controller`, we need to change the `create` action
+Back in `PostsController`, we need to change the `create` action
 to use the new `Post` model to save the data in the database. Open `app/controllers/posts_controller.rb`
 and change the `create` action to look like this:
 
@@ -1013,7 +1013,7 @@ errors with `@post.errors.full_messages`.
 arguments. If the number is greater than one, the string will be automatically
 pluralized.
 
-The reason why we added `@post = Post.new` in `posts_controller` is that
+The reason why we added `@post = Post.new` in the `PostsController` is that
 otherwise `@post` would be `nil` in our view, and calling
 `@post.errors.any?` would throw an error.
 
@@ -1031,7 +1031,7 @@ attempt to do just that on the new post form [(http://localhost:3000/posts/new)]
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 posts.
 
-The first step we'll take is adding an `edit` action to `posts_controller`.
+The first step we'll take is adding an `edit` action to the `PostsController`.
 
 ```ruby
 def edit
