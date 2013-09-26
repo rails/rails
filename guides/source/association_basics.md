@@ -340,7 +340,7 @@ class CreateAssembliesAndParts < ActiveRecord::Migration
       t.timestamps
     end
 
-    create_table :assemblies_parts do |t|
+    create_table :assemblies_parts, id: false do |t|
       t.belongs_to :assembly
       t.belongs_to :part
     end
