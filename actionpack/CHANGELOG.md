@@ -139,4 +139,9 @@
 
     *Piotr Sarnacki*
 
+*   Add a rescue for string when convert nested Hash
+    to HashWithIndifferentAccess
+
+    *Ivan Verevkin*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.
