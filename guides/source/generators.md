@@ -171,7 +171,7 @@ Before we customize our workflow, let's first see what our scaffold looks like:
 ```bash
 $ rails generate scaffold User name:string
       invoke  active_record
-      create    db/migrate/20091120125558_create_users.rb
+      create    db/migrate/20130924151154_create_users.rb
       create    app/models/user.rb
       invoke    test_unit
       create      test/models/user_test.rb
@@ -193,6 +193,9 @@ $ rails generate scaffold User name:string
       create      app/helpers/users_helper.rb
       invoke      test_unit
       create        test/helpers/users_helper_test.rb
+      invoke    jbuilder
+      create      app/views/users/index.json.jbuilder
+      create      app/views/users/show.json.jbuilder
       invoke  assets
       invoke    coffee
       create      app/assets/javascripts/users.js.coffee
@@ -221,11 +224,18 @@ To demonstrate this, we are going to create a new helper generator that simply a
 
 ```bash
 $ rails generate generator rails/my_helper
+      create  lib/generators/rails/my_helper
+      create  lib/generators/rails/my_helper/my_helper_generator.rb
+      create  lib/generators/rails/my_helper/USAGE
+      create  lib/generators/rails/my_helper/templates
 ```
 
-After that, we can delete both the `templates` directory and the `source_root` class method from our new generators, because we are not going to need them. So our new generator looks like the following:
+After that, we can delete both the `templates` directory and the `source_root`
+class method call from our new generator, because we are not going to need them.
+Add the method below, so our generator looks like the following:
 
 ```ruby
+# lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
@@ -241,6 +251,7 @@ We can try out our new generator by creating a helper for users:
 
 ```bash
 $ rails generate my_helper products
+      create  app/helpers/products_helper.rb
 ```
 
 And it will generate the following helper file in `app/helpers`:
@@ -279,6 +290,7 @@ Since Rails 3.0, this is easy to do due to the hooks concept. Our new helper doe
 To do that, we can change the generator this way:
 
 ```ruby
+# lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
@@ -351,7 +363,7 @@ Now, if you create a Comment scaffold, you will see that the shoulda generators 
 ```bash
 $ rails generate scaffold Comment body:text
       invoke  active_record
-      create    db/migrate/20091120151323_create_comments.rb
+      create    db/migrate/20130924143118_create_comments.rb
       create    app/models/comment.rb
       invoke    shoulda
       create      test/models/comment_test.rb
@@ -373,6 +385,9 @@ $ rails generate scaffold Comment body:text
       create      app/helpers/comments_helper.rb
       invoke      shoulda
       create        test/helpers/comments_helper_test.rb
+      invoke    jbuilder
+      create      app/views/comments/index.json.jbuilder
+      create      app/views/comments/show.json.jbuilder
       invoke  assets
       invoke    coffee
       create      app/assets/javascripts/comments.js.coffee
