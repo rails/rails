@@ -846,7 +846,7 @@ Open `app/views/welcome/index.html.erb` and modify it as follows:
 
 ```html+erb
 <h1>Hello, Rails!</h1>
-<%= link_to "My Blog", controller: "posts" %>
+<%= link_to 'My Blog', controller: 'posts' %>
 ```
 
 The `link_to` method is one of Rails' built-in view helpers. It creates a
