@@ -66,13 +66,6 @@ module ActionView
       [] # File doesn't exist, so no dependencies
     end
 
-    def nested_dependencies
-      dependencies.collect do |dependency|
-        dependencies = PartialDigestor.new(dependency, format, finder).nested_dependencies
-        dependencies.any? ? { dependency => dependencies } : dependency
-      end
-    end
-
     private
 
       def logger
