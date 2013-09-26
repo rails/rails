@@ -17,7 +17,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.all/, m)
+        assert_match(/@users = User\.all/, m)
       end
 
       assert_instance_method :show, content
@@ -29,7 +29,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
-        assert_match(/users_params \? create_many : create_one/, m)
+        assert_match(/@user = User\.new\(user_params\)/, m)
+        assert_match(/@user\.save/, m)
       end
 
       assert_instance_method :update, content do |m|
@@ -132,7 +133,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.all/, m)
+        assert_match(/@users = User\.all/, m)
       end
     end
   end
@@ -151,7 +152,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.find\(:all\)/, m)
+        assert_match(/@users = User\.find\(:all\)/, m)
         assert_no_match(/@users = User\.all/, m)
       end
     end
@@ -162,7 +163,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render action: 'edit'/, content)
+      assert_match(/render action: 'new'/, content)
     end
   end
 
