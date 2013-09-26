@@ -53,6 +53,11 @@ module Rails
         end
       end
 
+      # DELETE destroy_many
+      def self.destroy(klass, params=nil)
+        "#{klass}.destroy(#{params})"
+      end
+
       # POST create
       def save
         "#{name}.save"

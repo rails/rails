@@ -75,9 +75,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
   def destroy_many
-    <%= singular_table_name %>_ids.each do |id|
-      <%= class_name %>.destroy(id)
-    end
+    @<%= plural_table_name %> = <%= orm_class.destroy(class_name, "#{plural_table_name}_ids") %>
   end
   <% end -%>
 

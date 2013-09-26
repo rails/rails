@@ -198,8 +198,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :destroy_many, content do |m|
-        assert_match(/user_ids\.each do \|id\|/, m)
-        assert_match(/User\.destroy\(id\)/, m)
+        assert_match(/@users = User\.destroy\(users_ids\)/, m)
       end
     end
   end
