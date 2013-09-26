@@ -662,6 +662,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_inverse_after_find_or_initialize
+    firm = companies(:first_firm)
+    client = firm.clients_of_firm.find_or_initialize_by_client_of(firm.id)
+    assert_no_queries do
+      assert_equal firm, client.firm
+    end
+
+    firm.name = "A new firm"
+    assert_equal firm.name, client.firm.name
+  end
+
   def test_new_aliased_to_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.new("name" => "Another Client") }
