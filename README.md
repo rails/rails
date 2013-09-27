@@ -71,7 +71,7 @@ independently outside Rails.
 ## Contributing
 
 We encourage you to contribute to Ruby on Rails! Please check out the
-[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org) and start contributing
+[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org) and start contributing.
 
 ## Code Status
 
