@@ -522,6 +522,7 @@ Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this
 In this example, the `posts_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
 `rake routes`:
+
 ```bash
 $ rake routes
    Prefix Verb   URI Pattern               Controller#Action
@@ -535,6 +536,7 @@ edit_post GET    /posts/:id/edit(.:format) posts#edit
           DELETE /posts/:id(.:format)      posts#destroy
      root        /                         welcome#index
 ```
+
 The `posts_path` helper tells Rails to point the form
 to the URI Pattern associated with the `posts` prefix; and
 the form will (by default) send a `POST` request
