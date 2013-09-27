@@ -806,7 +806,7 @@ The route for this as per output of `rake routes` is:
 posts GET    /posts(.:format)          posts#index
 ```
 
-And an action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
+Add the corresponding `index` action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
 
 ```ruby
 def index
