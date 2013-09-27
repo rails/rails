@@ -37,6 +37,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create :person_id => 0, :post_id => 0
   end
 
+  def test_preload_sti_rhs_class
+    developers = Developer.includes(:firms).all.to_a
+    assert_no_queries do
+      developers.each { |d| d.firms }
+    end
+  end
+
   def test_preload_sti_middle_relation
     club = Club.create!(name: 'Aaron cool banana club')
     member1 = Member.create!(name: 'Aaron')
