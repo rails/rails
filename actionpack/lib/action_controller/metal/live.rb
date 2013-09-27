@@ -160,7 +160,7 @@ module ActionController
 
     def response_body=(body)
       super
-      response.stream.close if response
+      response.close if response
     end
 
     def set_response!(request)
