@@ -22,21 +22,16 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     end
   end
 
-  def test_intervals
-    @seconds.values.each do |seconds|
-      assert_equal seconds.since(@now), @now + seconds
-      assert_equal seconds.until(@now), @now - seconds
-    end
+  def test_deprecated_since_and_ago
+    assert_equal @now + 1, assert_deprecated { 1.since(@now) }
+    assert_equal @now - 1, assert_deprecated { 1.ago(@now) }
   end
 
-  # Test intervals based from Time.now
-  def test_now
-    @seconds.values.each do |seconds|
-      now = Time.now
-      assert seconds.ago >= now - seconds
-      now = Time.now
-      assert seconds.from_now >= now + seconds
-    end
+  def test_deprecated_since_and_ago_without_argument
+    now = Time.now
+    assert assert_deprecated { 1.since } >= now + 1
+    now = Time.now
+    assert assert_deprecated { 1.ago } >= now - 1
   end
 
   def test_irregular_durations
@@ -78,10 +73,10 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_duration_after_conversion_is_no_longer_accurate
-    assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
-    assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
-    assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)
-    assert_equal 365.25.days.to_f.since(@dtnow), 1.year.to_f.since(@dtnow)
+    assert_equal 30.days.to_i.seconds.since(@now), 1.month.to_i.seconds.since(@now)
+    assert_equal 365.25.days.to_f.seconds.since(@now), 1.year.to_f.seconds.since(@now)
+    assert_equal 30.days.to_i.seconds.since(@dtnow), 1.month.to_i.seconds.since(@dtnow)
+    assert_equal 365.25.days.to_f.seconds.since(@dtnow), 1.year.to_f.seconds.since(@dtnow)
   end
 
   def test_add_one_year_to_leap_day
@@ -94,11 +89,11 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
-      assert_equal false, 5.since.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.local(2000,1,1,0,0,5), 5.since
+      assert_not_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.since }
+      assert_equal Time.local(2000,1,1,0,0,5), assert_deprecated { 5.since }
       # ago
-      assert_equal false, 5.ago.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.local(1999,12,31,23,59,55), 5.ago
+      assert_not_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.ago }
+      assert_equal Time.local(1999,12,31,23,59,55), assert_deprecated { 5.ago }
     end
   end
 
@@ -107,13 +102,13 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
-      assert_equal true, 5.since.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.utc(2000,1,1,0,0,5), 5.since.time
-      assert_equal 'Eastern Time (US & Canada)', 5.since.time_zone.name
+      assert_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.since }
+      assert_equal Time.utc(2000,1,1,0,0,5), assert_deprecated { 5.since.time }
+      assert_equal 'Eastern Time (US & Canada)',  assert_deprecated { 5.since.time_zone.name }
       # ago
-      assert_equal true, 5.ago.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.utc(1999,12,31,23,59,55), 5.ago.time
-      assert_equal 'Eastern Time (US & Canada)', 5.ago.time_zone.name
+      assert_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.ago }
+      assert_equal Time.utc(1999,12,31,23,59,55), assert_deprecated { 5.ago.time }
+      assert_equal 'Eastern Time (US & Canada)', assert_deprecated { 5.ago.time_zone.name }
     end
   ensure
     Time.zone = nil
