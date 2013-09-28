@@ -1040,8 +1040,8 @@ this, then you should set the schema format to `:sql`.
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`
 Rake task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
-utility is used. For MySQL, this file will contain the output of `SHOW CREATE
-TABLE` for the various tables.
+utility is used. For MySQL, this file will contain the output of
+`SHOW CREATE TABLE` for the various tables.
 
 Loading these schemas is simply a question of executing the SQL statements they
 contain. By definition, this will create a perfect copy of the database's
