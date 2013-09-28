@@ -101,7 +101,7 @@ module ActiveRecord
       #     # => "status = NULL , group_id = 1"
       def sanitize_sql_hash_for_assignment(attrs, table)
         attrs.map do |attr, value|
-          "#{connection.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value)}"
+          "#{connection.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value, connection, columns_hash[attr.to_s])}"
         end.join(', ')
       end
 
@@ -142,15 +142,16 @@ module ActiveRecord
         end
       end
 
-      def quote_bound_value(value, c = connection) #:nodoc:
-        if value.respond_to?(:map) && !value.acts_like?(:string)
+      def quote_bound_value(value, c = connection, column = nil) #:nodoc:
+        db_native_type = column && (column.respond_to?(:array) && column.array || [:json, :hstore].include?(column.type) )
+        if value.respond_to?(:map) && !value.acts_like?(:string) && !db_native_type
           if value.respond_to?(:empty?) && value.empty?
             c.quote(nil)
           else
             value.map { |v| c.quote(v) }.join(',')
           end
         else
-          c.quote(value)
+          c.quote(value, column)
         end
       end
 
