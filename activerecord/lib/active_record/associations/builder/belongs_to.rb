@@ -96,5 +96,9 @@ module ActiveRecord::Associations::Builder
     def valid_dependent_options
       [:destroy, :delete]
     end
+    
+    def make_association_dependency
+      model.after_destroy "#{macro}_dependent_for_#{name}"
+    end
   end
 end
