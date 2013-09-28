@@ -98,9 +98,13 @@ module ActiveRecord::Associations::Builder
         end
       CODE
 
-      model.before_destroy "#{macro}_dependent_for_#{name}"
+      make_association_dependency
     end
 
+    def make_association_dependency
+      model.before_destroy "#{macro}_dependent_for_#{name}"
+    end
+    
     def valid_dependent_options
       raise NotImplementedError
     end
