@@ -1,3 +1,10 @@
+*   Objects intiantiated using a null relationship will now retain the
+    attributes of the where clause.
+
+    Fixes:  #11676, #11675, #11376
+
+    *Paul Nikitochkin*, *Peter Brown*, *Nthalk*
+
 *   Fixed `ActiveRecord::Associations::CollectionAssociation#find`
     when using `has_many` association with `:inverse_of` and finding an array of one element,
     it should return an array of one element too.
