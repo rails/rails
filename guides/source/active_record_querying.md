@@ -1189,7 +1189,7 @@ class Post < ActiveRecord::Base
 end
 ```
 
-This may then be called using this:
+Call the scope as if it were a class method:
 
 ```ruby
 Post.created_before(Time.zone.now)
