@@ -121,4 +121,10 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     x = JsonDataType.first
     assert_equal "640×1136", x.resolution
   end
+
+  def test_update_all
+    JsonDataType.create! payload: { "one" => "two" }
+    JsonDataType.update_all payload: { "three" => "four" }
+    assert_equal({ "three" => "four" }, JsonDataType.first.payload)
+  end
 end

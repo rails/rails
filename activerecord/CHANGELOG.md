@@ -1,3 +1,10 @@
+*   Fixed `update_column`, `update_columns`, and `update_all` to correctly serialize
+    values for `array`, `hstore` and `json` column types in `PostgreSQL`.
+
+    Fixes #12261.
+
+    *Tadas Tamosauskas*
+
 *   Do not consider PostgreSQL array columns as number or text columns.
 
     The code uses these checks in several places to know what to do with a
