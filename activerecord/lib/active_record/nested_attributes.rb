@@ -335,7 +335,7 @@ module ActiveRecord
       # the helper methods defined below. Makes it seem like the nested
       # associations are just regular associations.
       def generate_association_writer(association_name, type)
-        generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
+        generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
           if method_defined?(:#{association_name}_attributes=)
             remove_method(:#{association_name}_attributes=)
           end

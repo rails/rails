@@ -86,11 +86,11 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_generated_methods_modules
     modules = Computer.ancestors
-    assert modules.include?(Computer::GeneratedFeatureMethods)
-    assert_equal(Computer::GeneratedFeatureMethods, Computer.generated_feature_methods)
-    assert(modules.index(Computer.generated_attribute_methods) > modules.index(Computer.generated_feature_methods),
-           "generated_attribute_methods must be higher in inheritance hierarchy than generated_feature_methods")
-    assert_not_equal Computer.generated_feature_methods, Post.generated_feature_methods
+    assert modules.include?(Computer::GeneratedAssociationMethods)
+    assert_equal(Computer::GeneratedAssociationMethods, Computer.generated_association_methods)
+    assert(modules.index(Computer.generated_attribute_methods) > modules.index(Computer.generated_association_methods),
+           "generated_attribute_methods must be higher in inheritance hierarchy than generated_association_methods")
+    assert_not_equal Computer.generated_association_methods, Post.generated_association_methods
     assert(modules.index(Computer.generated_attribute_methods) < modules.index(ActiveRecord::Base.ancestors[1]))
   end
 
