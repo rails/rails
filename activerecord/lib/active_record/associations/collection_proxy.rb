@@ -77,10 +77,12 @@ module ActiveRecord
       def method_missing(method, *args, &block)
         match = DynamicFinderMatch.match(method)
         if match && match.instantiator?
-          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
-            proxy_association.send :set_owner_attributes, r
-            proxy_association.send :add_to_target, r
-            yield(r) if block_given?
+          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |record|
+            proxy_association.send :set_owner_attributes, record
+            proxy_association.send :add_to_target, record
+            yield(record) if block_given?
+          end.tap do |record|
+            proxy_association.send :set_inverse_instance, record
           end
 
         elsif target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
