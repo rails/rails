@@ -1,3 +1,10 @@
+*   Fixed `update_column`, `update_columns`, and `update_all` to correctly serialize
+    values for array, hstore and json column types in postgres.
+
+    Fixes #12261
+
+    *Tadas Tamosauskas*
+
 *   Fixed `ActiveRecord::Associations::CollectionAssociation#find`
     when using `has_many` association with `:inverse_of` and finding an array of one element,
     it should return an array of one element too.

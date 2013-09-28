@@ -190,6 +190,12 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_cycle("a\nb" => "c\nd")
   end
 
+  def test_update_all
+    Hstore.create! tags: { "one" => "two" }
+    Hstore.update_all tags: { "three" => "four" }
+    assert_equal({ "three" => "four" }, Hstore.first.tags)
+  end
+
   private
   def assert_cycle hash
     # test creation
