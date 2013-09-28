@@ -519,7 +519,7 @@
 
     *Neeraj Singh*
 
-*   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
+*   Fixture setup no longer depends on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
     *Yves Senn*
