@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Strong parameters should permit nested number as key.
+
+    Fixes #12293
+
+    *kennyj*
+
 *   Fix `collection_check_boxes` generated hidden input to use the name attribute provided
     in the options hash.
 
