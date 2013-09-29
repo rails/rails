@@ -157,8 +157,8 @@ module ActiveRecord
 
         def exec_delete(sql, name = 'SQL', binds = [])
           log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
+            result = without_prepared_statement?(binds) ? exec_no_cache(sql, binds) :
+                                                          exec_cache(sql, binds)
             affected = result.cmd_tuples
             result.clear
             affected

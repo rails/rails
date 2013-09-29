@@ -572,6 +572,15 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal topic, Topic.find(topic.id)
   end
 
+  def test_destroy_without_prepared_statement
+    topic = Topic.create(title: 'foo')
+    Topic.connection.unprepared_statement do
+      Topic.find(topic.id).destroy
+    end
+
+    assert_equal nil, Topic.find_by_id(topic.id)
+  end
+
   def test_comparison_with_different_objects
     topic = Topic.create
     category = Category.create(:name => "comparison")
