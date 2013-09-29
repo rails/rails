@@ -1,9 +1,12 @@
 # encoding: utf-8
+
+require 'thread_safe'
+
 module ActionDispatch
   module Journey # :nodoc:
     module Visitors # :nodoc:
       class Visitor # :nodoc:
-        DISPATCH_CACHE = Hash.new { |h,k|
+        DISPATCH_CACHE = ThreadSafe::Cache.new { |h,k|
           h[k] = :"visit_#{k}"
         }
 

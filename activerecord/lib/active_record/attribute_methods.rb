@@ -1,5 +1,6 @@
 require 'active_support/core_ext/enumerable'
 require 'mutex_m'
+require 'thread_safe'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -29,23 +30,18 @@ module ActiveRecord
     }
 
     class AttributeMethodCache
-      include Mutex_m
-
       def initialize
-        super
         @module = Module.new
-        @method_cache = {}
+        @method_cache = ThreadSafe::Cache.new
       end
 
       def [](name)
-        synchronize do
-          @method_cache.fetch(name) {
-            safe_name = name.unpack('h*').first
-            temp_method = "__temp__#{safe_name}"
-            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
-            @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__
-            @method_cache[name] = @module.instance_method temp_method
-          }
+        @method_cache.compute_if_absent(name) do
+          safe_name = name.unpack('h*').first
+          temp_method = "__temp__#{safe_name}"
+          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+          @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__
+          @module.instance_method temp_method
         end
       end
 
