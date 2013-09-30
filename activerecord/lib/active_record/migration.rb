@@ -783,7 +783,7 @@ module ActiveRecord
         self.new(:up, migrations, target_version).migrate
       end
 
-      def down(migrations_paths, target_version = nil, &block)
+      def down(migrations_paths, target_version = nil)
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
