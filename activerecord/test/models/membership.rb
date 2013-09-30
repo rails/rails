@@ -6,6 +6,8 @@ end
 class CurrentMembership < Membership
   belongs_to :member
   belongs_to :club
+
+  validates_presence_of :member, :club
 end
 
 class SuperMembership < Membership

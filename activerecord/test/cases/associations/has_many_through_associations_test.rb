@@ -1085,4 +1085,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     readers(:michael_authorless).update(first_post_id: 1)
     assert_equal [posts(:thinking)], person.reload.first_posts
   end
+
+  def test_creating_new_object_passes_presence_validation
+    club = members(:groucho).clubs.create!
+
+    member = Member.new(clubs: [club])
+    assert member.valid?, "Creating a new member with a club should pass club and member uniqueness validations"
+  end
 end
