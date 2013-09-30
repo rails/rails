@@ -270,6 +270,13 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
     end
 
+    def test_structure_dump_accepts_numeric_configuration_options
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--port", "3306", "--result-file", filename, "--no-data", "test-db").returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration.merge("port" => 3306), filename)
+    end
+
     def test_warn_when_external_structure_dump_fails
       filename = "awesome-file.sql"
       Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(false)
@@ -295,6 +302,13 @@ module ActiveRecord
       Kernel.expects(:system).with('mysql', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+    end
+
+    def test_structure_load_accepts_numeric_configuration_options
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with('mysql', "--port", "3306", '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration.merge("port" => 3306), filename)
     end
   end
 
