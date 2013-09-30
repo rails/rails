@@ -45,6 +45,9 @@ module ActiveSupport
 
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)
+
+      @check_new_at = nil
+      @dir_cache = nil
     end
 
     # Check if any of the entries were updated. If so, the watched and/or
@@ -93,15 +96,25 @@ module ActiveSupport
     def watched
       @watched || begin
         all = @files.select { |f| File.exists?(f) }
-        all.concat(Dir[@glob]) if @glob
-        all
+
+        #Dir[@glob] can be very slow to generate its file list, since asset requests usually come in bursts i.e. several assets loaded as 
+        #after a page is loaded this can cause loading to be very slow. Updating this file list only once every 5 seconds improves speed 
+        #dramatically on Windows, where the problem is most obvious, and has no noticable effect on the flexibility to add/remove assets 
+        #while in development and have the cache update.
+
+        if @check_new_at.nil? || Time.now > @check_new_at
+          @check_new_at = Time.now + 5.seconds
+          @dir_cache = Dir[@glob] if @glob
+        end
+
+        all.concat @dir_cache if @dir_cache
       end
     end
 
     def updated_at(paths)
       @updated_at || max_mtime(paths) || Time.at(0)
     end
-
+    
     # This method returns the maximum mtime of the files in +paths+, or +nil+
     # if the array is empty.
     #
