@@ -18,11 +18,12 @@ module ActiveRecord
   # Examples:
   #
   #   class User < ActiveRecord::Base
-  #     store :settings, accessors: [ :color, :homepage ], coder: JSON
+  #     store :settings, accessors: [ :color, :homepage, :editor ], coder: JSON
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com')
+  #   u = User.new(color: 'black', homepage: '37signals.com', editor: true)
   #   u.color                          # Accessor stored attribute
+  #   u.editor?                        # Query method for convenience
   #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
   #
   #   # There is no difference between strings and symbols for accessing custom attributes
@@ -36,7 +37,7 @@ module ActiveRecord
   #
   # The stored attribute names can be retrieved using +stored_attributes+.
   #
-  #   User.stored_attributes[:settings] # [:color, :homepage]
+  #   User.stored_attributes[:settings] # [:color, :homepage, :editor]
   #
   # == Overwriting default accessors
   #
@@ -82,6 +83,17 @@ module ActiveRecord
 
             define_method(key) do
               read_store_attribute(store_attribute, key)
+            end
+
+            define_method("#{key}?") do
+              value = send(key)
+              if value.blank?
+                false
+              elsif value.is_a?(Numeric)
+                !value.zero?
+              else
+                !!value
+              end
             end
           end
         end

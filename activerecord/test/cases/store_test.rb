@@ -6,12 +6,34 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
 
   setup do
-    @john = Admin::User.create!(:name => 'John Doe', :color => 'black', :remember_login => true, :height => 'tall', :is_a_good_guy => true)
+    @john = Admin::User.create!(:name => 'John Doe',
+                                :color => 'black',
+                                :remember_login => true,
+                                :height => 'tall',
+                                :is_a_good_guy => true,
+                                :is_a_bad_guy => false,
+                                :empty_thing => "",
+                                :zero_thing => 0)
   end
 
   test "reading store attributes through accessors" do
     assert_equal 'black', @john.color
     assert_nil @john.homepage
+  end
+
+  test "query store attributes through query accessors" do
+    assert_equal true, @john.is_a_good_guy?
+    assert_equal false, @john.is_a_bad_guy?
+    assert_equal true, @john.color?
+    assert_equal false, @john.homepage?
+  end
+
+  test "quering attributes should return false in special cases" do
+    assert_equal false, @john.empty_thing?
+    assert_equal false, @john.zero_thing?
+
+    @john.zero_thing = 0.0
+    assert_equal false, @john.zero_thing?
   end
 
   test "writing store attributes through accessors" do
