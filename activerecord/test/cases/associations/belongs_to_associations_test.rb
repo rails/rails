@@ -16,6 +16,8 @@ require 'models/essay'
 require 'models/toy'
 require 'models/invoice'
 require 'models/line_item'
+require 'models/man'
+require 'models/face'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -829,5 +831,26 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert post.save
     assert_equal post.author_id, author2.id
+  end
+
+  def test_unscoped_belongs_to_association
+    man  = ManWithCoolScope.create cool: false
+    face = FaceWithUnscopedMan.create man_id: man.id
+
+    assert face.man
+  end
+
+  def test_unscope_clause_in_belongs_to_association
+    man  = ManWithCoolScope.create cool: false
+    face = FaceWithUnscopeWhereMan.create man_id: man.id
+
+    assert face.man
+  end
+
+  def test_except_clause_in_belongs_to_association
+    man  = ManWithCoolScope.create cool: false
+    face = FaceWithExceptWhereMan.create man_id: man.id
+
+    assert face.man
   end
 end
