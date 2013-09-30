@@ -198,9 +198,11 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
+      # Files required this way can be reloaded in development mode
       def require_dependency(file_name, message = "No such file to load -- %s")
+        file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
-          raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
+          raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"
         end
 
         Dependencies.depend_on(file_name, message)
