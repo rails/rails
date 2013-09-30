@@ -124,4 +124,10 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
     assert_equal @model.name_was, "Otto"
   end
+
+  test "changed_attributes" do
+    @model.name = "Otto"
+    assert_equal nil, @model.changed_attributes["name"]
+    assert_equal nil, @model.changed_attributes[:name]
+  end
 end
