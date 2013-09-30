@@ -395,13 +395,13 @@ module ActiveRecord
         @transaction.number
       end
 
-      def create_savepoint
+      def create_savepoint(name = nil)
       end
 
-      def rollback_to_savepoint
+      def rollback_to_savepoint(name = nil)
       end
 
-      def release_savepoint
+      def release_savepoint(name = nil)
       end
 
       def case_sensitive_modifier(node)

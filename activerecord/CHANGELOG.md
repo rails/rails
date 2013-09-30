@@ -1,3 +1,8 @@
+*   `create_savepoint`, `rollback_to_savepoint` and `release_savepoint` accept
+    a savepoint name.
+
+    *Yves Senn*
+
 *   Make `next_migration_number` accessible for third party generators.
 
     *Yves Senn*

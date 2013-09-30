@@ -219,16 +219,16 @@ module ActiveRecord
           execute "ROLLBACK"
         end
 
-        def create_savepoint
-          execute("SAVEPOINT #{current_savepoint_name}")
+        def create_savepoint(name = current_savepoint_name)
+          execute("SAVEPOINT #{name}")
         end
 
-        def rollback_to_savepoint
-          execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+        def rollback_to_savepoint(name = current_savepoint_name)
+          execute("ROLLBACK TO SAVEPOINT #{name}")
         end
 
-        def release_savepoint
-          execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+        def release_savepoint(name = current_savepoint_name)
+          execute("RELEASE SAVEPOINT #{name}")
         end
       end
     end

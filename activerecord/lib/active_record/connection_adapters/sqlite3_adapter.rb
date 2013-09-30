@@ -351,16 +351,16 @@ module ActiveRecord
         exec_query(sql, name).rows
       end
 
-      def create_savepoint
-        execute("SAVEPOINT #{current_savepoint_name}")
+      def create_savepoint(name = current_savepoint_name)
+        execute("SAVEPOINT #{name}")
       end
 
-      def rollback_to_savepoint
-        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      def rollback_to_savepoint(name = current_savepoint_name)
+        execute("ROLLBACK TO SAVEPOINT #{name}")
       end
 
-      def release_savepoint
-        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      def release_savepoint(name = current_savepoint_name)
+        execute("RELEASE SAVEPOINT #{name}")
       end
 
       def begin_db_transaction #:nodoc:
