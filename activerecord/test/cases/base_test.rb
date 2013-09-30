@@ -1348,6 +1348,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_marshal_between_processes
+    skip "can't marshal between processes when using an in-memory db" if in_memory_db?
     skip "fork isn't supported" unless Process.respond_to?(:fork)
 
     # Define a new model to ensure there are no caches
