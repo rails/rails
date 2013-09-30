@@ -11,11 +11,6 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new.tap do |middleware|
-          if rack_cache = load_rack_cache
-            require "action_dispatch/http/rack_cache"
-            middleware.use ::Rack::Cache, rack_cache
-          end
-
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end
@@ -67,28 +62,6 @@ module Rails
 
         def allow_concurrency?
           config.allow_concurrency.nil? ? config.cache_classes : config.allow_concurrency
-        end
-
-        def load_rack_cache
-          rack_cache = config.action_dispatch.rack_cache
-          return unless rack_cache
-
-          begin
-            require 'rack/cache'
-          rescue LoadError => error
-            error.message << ' Be sure to add rack-cache to your Gemfile'
-            raise
-          end
-
-          if rack_cache == true
-            {
-              metastore: "rails:/",
-              entitystore: "rails:/",
-              verbose: false
-            }
-          else
-            rack_cache
-          end
         end
 
         def show_exceptions_app

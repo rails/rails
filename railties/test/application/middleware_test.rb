@@ -50,20 +50,6 @@ module ApplicationTests
       ], middleware
     end
 
-    test "Rack::Cache is not included by default" do
-      boot!
-
-      assert !middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
-    end
-
-    test "Rack::Cache is present when action_dispatch.rack_cache is set" do
-      add_to_config "config.action_dispatch.rack_cache = true"
-
-      boot!
-
-      assert_equal "Rack::Cache", middleware.first
-    end
-
     test "ActiveRecord::Migration::CheckPending is present when active_record.migration_error is set to :page_load" do
       add_to_config "config.active_record.migration_error = :page_load"
 
