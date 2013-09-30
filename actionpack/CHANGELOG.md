@@ -1,3 +1,10 @@
+*   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
+    attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.
+
+    Fixes #10844
+
+    *Tamir Duberstein*
+
 *   Strong parameters should permit nested number as key.
 
     Fixes #12293
