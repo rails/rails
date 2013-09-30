@@ -33,6 +33,16 @@ module ApplicationTests
       end
     end
 
+    test "works with both headers individually" do
+      make_basic_app
+      assert_nothing_raised(ActionDispatch::RemoteIp::IpSpoofAttackError) do
+        assert_equal "1.1.1.1", remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1")
+      end
+      assert_nothing_raised(ActionDispatch::RemoteIp::IpSpoofAttackError) do
+        assert_equal "1.1.1.2", remote_ip("HTTP_CLIENT_IP" => "1.1.1.2")
+      end
+    end
+
     test "can disable IP spoofing check" do
       make_basic_app do |app|
         app.config.action_dispatch.ip_spoofing_check = false
