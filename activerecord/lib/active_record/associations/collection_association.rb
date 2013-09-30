@@ -350,7 +350,6 @@ module ActiveRecord
         end
 
         callback(:after_add, record)
-        set_inverse_instance(record)
 
         record
       end
