@@ -1,3 +1,7 @@
+*   Make `next_migration_number` accessible for third party generators.
+
+    *Yves Senn*
+
 *   Objects intiantiated using a null relationship will now retain the
     attributes of the where clause.
 
