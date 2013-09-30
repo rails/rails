@@ -124,10 +124,35 @@ module ActiveRecord
       alias_method :sanitize_conditions, :sanitize_sql
 
       def replace_bind_variables(statement, values) #:nodoc:
-        raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
         bound = values.dup
         c = connection
-        statement.gsub('?') { quote_bound_value(bound.shift, c) }
+
+        # Don't replace any ? which occurs inside a quoted string or identifier.
+        # Support backslashed characters inside quotes.
+        opening_quote = nil
+        currently_in_quotes = false
+        currently_backslashed = false
+        arity = 0
+        output_stmt = statement.each_char.map do |char|
+          output_chunk = char
+          if currently_in_quotes
+            if char == opening_quote && !currently_backslashed
+              currently_in_quotes = false
+              opening_quote = nil
+            end
+            currently_backslashed = char=='\\' && !currently_backslashed
+          elsif %W( ' " ` ).include?(char)
+            currently_in_quotes = true
+            opening_quote = char
+          elsif char == '?'
+            arity += 1
+            output_chunk = quote_bound_value(bound.shift, c)
+          end
+          output_chunk
+        end.join
+
+        raise_if_bind_arity_mismatch(statement, arity, values.size)
+        output_stmt
       end
 
       def replace_named_bind_variables(statement, bind_vars) #:nodoc:

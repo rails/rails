@@ -31,4 +31,19 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper"])
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper".mb_chars])
   end
+
+  def test_sanitize_sql_array_handles_bind_variables_with_quotes
+    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
+    quoted_strs = [ %q{ 'foo?'    },
+                    %q{ 'f''oo?'  },
+                    %q{ "foo???'" },
+                    %q{ 'fo\\'o?' },
+                    %q{ `foo\\`?` },
+                    %q{ 'fo'' \\\\\\'o?' },
+                    ActiveRecord::Base.connection.quote("foo?") ]
+    quoted_strs.each do |quoted_str|
+      assert_equal "foo=#{quoted_str}, name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["foo=#{quoted_str}, name=?", "Bambi\nand\nThumper"])
+      assert_equal "foo=#{quoted_str}, name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["foo=#{quoted_str}, name=?", "Bambi\nand\nThumper".mb_chars])
+    end
+  end
 end
