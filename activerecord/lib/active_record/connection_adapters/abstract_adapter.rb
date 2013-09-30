@@ -33,6 +33,7 @@ module ActiveRecord
       autoload :Quoting
       autoload :ConnectionPool
       autoload :QueryCache
+      autoload :Savepoints
     end
 
     autoload_at 'active_record/connection_adapters/abstract/transaction' do

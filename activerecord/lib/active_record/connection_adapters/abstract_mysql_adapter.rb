@@ -3,6 +3,8 @@ require 'arel/visitors/bind_visitor'
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+      include Savepoints
+
       class SchemaCreation < AbstractAdapter::SchemaCreation
 
         def visit_AddColumn(o)
@@ -194,11 +196,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true, since this connection adapter supports savepoints.
-      def supports_savepoints?
-        true
-      end
-
       def supports_bulk_alter? #:nodoc:
         true
       end
@@ -338,18 +335,6 @@ module ActiveRecord
         execute "ROLLBACK"
       rescue
         # Transactions aren't supported
-      end
-
-      def create_savepoint(name = current_savepoint_name)
-        execute("SAVEPOINT #{name}")
-      end
-
-      def rollback_to_savepoint(name = current_savepoint_name)
-        execute("ROLLBACK TO SAVEPOINT #{name}")
-      end
-
-      def release_savepoint(name = current_savepoint_name)
-        execute("RELEASE SAVEPOINT #{name}")
       end
 
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE

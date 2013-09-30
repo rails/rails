@@ -430,6 +430,7 @@ module ActiveRecord
       include ReferentialIntegrity
       include SchemaStatements
       include DatabaseStatements
+      include Savepoints
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
       def adapter_name
@@ -617,11 +618,6 @@ module ActiveRecord
       end
 
       def supports_ddl_transactions?
-        true
-      end
-
-      # Returns true, since this connection adapter supports savepoints.
-      def supports_savepoints?
         true
       end
 

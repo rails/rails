@@ -53,6 +53,8 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
+      include Savepoints
+
       class Version
         include Comparable
 
@@ -349,18 +351,6 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         exec_query(sql, name).rows
-      end
-
-      def create_savepoint(name = current_savepoint_name)
-        execute("SAVEPOINT #{name}")
-      end
-
-      def rollback_to_savepoint(name = current_savepoint_name)
-        execute("ROLLBACK TO SAVEPOINT #{name}")
-      end
-
-      def release_savepoint(name = current_savepoint_name)
-        execute("RELEASE SAVEPOINT #{name}")
       end
 
       def begin_db_transaction #:nodoc:
