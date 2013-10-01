@@ -49,7 +49,7 @@ module ActionDispatch
         forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR')
         remote_addrs  = ips_from('REMOTE_ADDR')
 
-        check_ip = client_ip && @middleware.check_ip
+        check_ip = client_ip && forwarded_ips.present? && @middleware.check_ip
         if check_ip && !forwarded_ips.include?(client_ip)
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?!" \
