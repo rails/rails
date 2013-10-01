@@ -37,6 +37,17 @@ module ActiveRecord::Associations::Builder
       reflection
     end
 
+    def self.create_builder(model, name, scope, options, &block)
+      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
+
+      if scope.is_a?(Hash)
+        options = scope
+        scope   = nil
+      end
+
+      new(name, scope, options, &block)
+    end
+
     def initialize(name, scope, options)
       @name    = name
       @scope   = scope

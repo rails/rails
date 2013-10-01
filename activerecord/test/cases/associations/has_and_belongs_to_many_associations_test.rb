@@ -613,7 +613,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       3,
       Developer.references(:developers_projects_join).merge(
         :includes => {:projects => :developers},
-        :where => 'developers_projects_join.joined_on IS NOT NULL'
+        :where => 'projects_developers_projects_join.joined_on IS NOT NULL'
       ).to_a.size
     )
   end
@@ -632,7 +632,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(
       3,
       Developer.references(:developers_projects_join).merge(
-        :includes => {:projects => :developers}, :where => 'developers_projects_join.joined_on IS NOT NULL',
+        :includes => {:projects => :developers}, :where => 'projects_developers_projects_join.joined_on IS NOT NULL',
         :group => group.join(",")
       ).to_a.size
     )
@@ -646,8 +646,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_grouped
-    assert_equal 5, categories(:general).posts_grouped_by_title.size
-    assert_equal 1, categories(:technology).posts_grouped_by_title.size
+    assert_equal 5, categories(:general).posts_grouped_by_title.to_a.size
+    assert_equal 1, categories(:technology).posts_grouped_by_title.to_a.size
   end
 
   def test_find_scoped_grouped_having
@@ -716,12 +716,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.size
     assert_equal developer, project.developers.first
     assert_equal project, developer.projects.first
-  end
-
-  def test_self_referential_habtm_without_foreign_key_set_should_raise_exception
-    assert_raise(ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded) {
-      SelfMember.new.friends
-    }
   end
 
   def test_dynamic_find_should_respect_association_include

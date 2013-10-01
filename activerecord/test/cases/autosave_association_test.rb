@@ -1440,10 +1440,6 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   test "should generate validation methods for HABTM associations with :validate => true" do
     assert_respond_to @pirate, :validate_associated_records_for_parrots
   end
-
-  test "should not generate validation methods for HABTM associations without :validate => true" do
-    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_parrots)
-  end
 end
 
 class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase

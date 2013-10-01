@@ -747,6 +747,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_default_scope_as_block
+    # warm up the habtm cache
+    EagerDeveloperWithBlockDefaultScope.where(:name => 'David').first.projects
     developer = EagerDeveloperWithBlockDefaultScope.where(:name => 'David').first
     projects = Project.order(:id).to_a
     assert_no_queries do
@@ -1136,6 +1138,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_deep_including_through_habtm
+    # warm up habtm cache
+    posts = Post.all.merge!(:includes => {:categories => :categorizations}, :order => "posts.id").to_a
+    posts[0].categories[0].categorizations.length
+
     posts = Post.all.merge!(:includes => {:categories => :categorizations}, :order => "posts.id").to_a
     assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
     assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }

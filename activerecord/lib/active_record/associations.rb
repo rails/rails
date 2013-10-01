@@ -1560,8 +1560,86 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
       def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
-        reflection = Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
-        Reflection.add_reflection self, name, reflection
+        if scope.is_a?(Hash)
+          options = scope
+          scope   = nil
+        end
+
+        has_and_belongs_to_many1(name, scope, options, &extension)
+      end
+
+      def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
+        # temporarily
+        habtm_builder = Builder::HasAndBelongsToMany.create_builder(self, name, scope, options, &extension)
+        habtm = habtm_builder.build self
+
+        join_class_name = "HABTM_#{name.to_s.camelize}"
+        this_class = self
+        rhs_name = name.to_s.singularize.to_sym
+
+        join_model = Class.new(ActiveRecord::Base) {
+          define_singleton_method(:name) { join_class_name }
+          define_singleton_method(:table_name) { habtm.join_table }
+          define_singleton_method(:compute_type) { |class_name|
+            this_class.compute_type class_name
+          }
+          belongs_to :left_side, :class => this_class
+
+          rhs_options = {}
+
+          if options.key? :class_name
+            rhs_options[:foreign_key] = options[:class_name].foreign_key
+            rhs_options[:class_name] = options[:class_name]
+          end
+
+          if options.key? :association_foreign_key
+            rhs_options[:foreign_key] = options[:association_foreign_key]
+          end
+
+          belongs_to rhs_name, rhs_options
+        }
+
+        middle_name = [self.name.downcase.pluralize, name].join('_').gsub(/::/, '_').to_sym
+
+        #middle_options = options.dup
+        middle_options = {}
+        middle_options[:class] = join_model
+        middle_options[:source] = :left_side
+        if options.key? :foreign_key
+          middle_options[:foreign_key] = options[:foreign_key]
+        end
+
+        hm_builder = Builder::HasMany.create_builder(self,
+                                                     middle_name,
+                                                     nil,
+                                                     middle_options)
+        middle_reflection = hm_builder.build self
+        hm_builder.define_callbacks self, middle_reflection
+
+        Reflection.add_reflection self, middle_name, middle_reflection
+
+        include Module.new {
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def destroy_associations
+            association(:#{middle_name}).delete_all(:delete_all)
+            association(:#{name}).reset
+            super
+          end
+          RUBY
+        }
+
+        hm_options = {}
+        hm_options[:through] = middle_name
+        hm_options[:source] = rhs_name
+
+        [:before_add, :after_add, :before_remove, :after_remove].each do |k|
+          if options.key? k
+            hm_options[k] = options[k]
+          end
+        end
+
+        #has_many name, scope, :through => middle_name, &extension
+        has_many name, scope, hm_options, &extension
       end
     end
   end

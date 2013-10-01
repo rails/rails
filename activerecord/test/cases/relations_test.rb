@@ -42,6 +42,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_two_scopes_with_includes_should_not_drop_any_include
+    # heat habtm cache
+    car = Car.incl_engines.incl_tyres.first
+    car.tyres.length
+    car.engines.length
+
     car = Car.incl_engines.incl_tyres.first
     assert_no_queries { car.tyres.length }
     assert_no_queries { car.engines.length }
