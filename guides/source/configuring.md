@@ -566,7 +566,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 
-* `after_initialize`: Run directly after the initialization of the application, but before the application initializers are run.
+* `after_initialize`: Run directly after the initialization of the application, after the application initializers in `config/initializers` are run.
 
 To define an event for these hooks, use the block syntax within a `Rails::Application`, `Rails::Railtie` or `Rails::Engine` subclass:
 
