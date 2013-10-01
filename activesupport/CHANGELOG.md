@@ -1,3 +1,8 @@
+*   `require_dependency` accepts objects that respond to `to_path`, in
+    particular `Pathname` instances.
+
+    *Benjamin Fleischer*
+
 *   Disable the ability to iterate over Range of AS::TimeWithZone 
     due to significant performance issues.
 
