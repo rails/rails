@@ -207,14 +207,15 @@ module ActiveRecord
       end
 
       if operation == "count"
-        column_name ||= select_for_count
+        column_name ||= (select_for_count || :all)
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
         end
 
         column_name = primary_key if column_name == :all && distinct
-        distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
+
+        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
 
       if group_values.any?
@@ -378,9 +379,8 @@ module ActiveRecord
     # TODO: refactor to allow non-string `select_values` (eg. Arel nodes).
     def select_for_count
       if select_values.present?
-        select_values.join(", ")
-      else
-        :all
+        select = select_values.join(", ")
+        select if select !~ /[,*]/
       end
     end
 

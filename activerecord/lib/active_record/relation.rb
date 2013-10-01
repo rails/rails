@@ -234,7 +234,7 @@ module ActiveRecord
     def empty?
       return @records.empty? if loaded?
 
-      c = count(:all)
+      c = count
       c.respond_to?(:zero?) ? c.zero? : c.empty?
     end
 
