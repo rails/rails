@@ -1570,7 +1570,7 @@ module ActiveRecord
 
       def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
         # temporarily
-        habtm_builder = Builder::HasAndBelongsToMany.create_builder(self, name, scope, options, &extension)
+        habtm_builder = Builder::HasAndBelongsToMany.create_builder(self, name, nil, options)
         habtm = habtm_builder.build self
 
         join_class_name = "HABTM_#{name.to_s.camelize}"
