@@ -35,6 +35,17 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_equal expected.path, e.path
   end
 
+  def test_require_dependency_accepts_an_object_which_implements_to_path
+    o = Object.new
+    def o.to_path; 'dependencies/service_one'; end
+    assert_nothing_raised {
+      require_dependency o
+    }
+    assert defined?(ServiceOne)
+  ensure
+    remove_constants(:ServiceOne)
+  end
+
   def test_tracking_loaded_files
     require_dependency 'dependencies/service_one'
     require_dependency 'dependencies/service_two'
