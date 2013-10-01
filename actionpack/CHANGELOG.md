@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
+    attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.
+
+    Fixes #12410
+    Backports #10844
+
+    *Tamir Duberstein*
+
 *   Fix the assert_recognizes test method so that it works when there are
     constraints on the querystring.
 
