@@ -29,6 +29,7 @@ class ApplicationRecordTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = prefix
     assert_equal prefix, ModelBaseInherited.table_name_prefix
     assert_equal prefix, ModelAppRecordInherited.table_name_prefix
+    ActiveRecord::Base.table_name_prefix = ""
   end
 
   def test_changing_prefix_on_ar_base_inherited_model
@@ -39,6 +40,7 @@ class ApplicationRecordTest < ActiveRecord::TestCase
 
     assert_equal new_prefix, ModelBaseInherited.table_name_prefix
     assert_equal prefix, ActiveRecord::Base.table_name_prefix
+    ActiveRecord::Base.table_name_prefix = ""
   end
 
   def test_changing_prefix_on_application_record_inherited_model
@@ -49,6 +51,8 @@ class ApplicationRecordTest < ActiveRecord::TestCase
 
     assert_equal new_prefix, Topic.table_name_prefix
     assert_equal prefix, ActiveRecord::Base.table_name_prefix
+    ActiveRecord::Base.table_name_prefix = ""
+    Topic.table_name_prefix = ""
   end
 
   def test_double_inheritence_rules
@@ -124,6 +128,7 @@ class MultipleApplicationRecordTest < ActiveRecord::TestCase
     assert_equal format, ApplicationRecord.cache_timestamp_format
     assert_equal new_format, FirstNamespace::SomeModel.cache_timestamp_format
     assert_equal format, SecondNamespace::SomeModel.cache_timestamp_format
+    ApplicationRecord.cache_timestamp_format = :nsec
   end
 
   def test_changing_module_application_record_does_not_propogate
