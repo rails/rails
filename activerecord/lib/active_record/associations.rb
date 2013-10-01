@@ -1568,10 +1568,39 @@ module ActiveRecord
         has_and_belongs_to_many1(name, scope, options, &extension)
       end
 
+      class JoinTableResolver
+        KnownTable = Struct.new :join_table
+
+        class KnownClass
+          def initialize(rhs_class, lhs_class_name)
+            @rhs_class      = rhs_class
+            @lhs_class_name = lhs_class_name
+            @join_table     = nil
+          end
+
+          def join_table
+            @join_table ||= [@rhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+          end
+
+          private
+          def klass; @lhs_class_name.constantize; end
+        end
+
+        def self.build(rhs_class, name, options)
+          if options[:join_table]
+            KnownTable.new options[:join_table]
+          else
+            class_name = options.fetch(:class_name) {
+              name.to_s.camelize.singularize
+            }
+            KnownClass.new rhs_class, class_name
+          end
+        end
+      end
+
       def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
         # temporarily
-        habtm_builder = Builder::HasAndBelongsToMany.create_builder(self, name, nil, options)
-        habtm = habtm_builder.build self
+        habtm = JoinTableResolver.build self, name, options
 
         join_class_name = "HABTM_#{name.to_s.camelize}"
         this_class = self
