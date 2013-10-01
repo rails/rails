@@ -12,7 +12,7 @@ module ActiveRecord::Associations::Builder
 
     def define_accessors(model)
       super
-      define_constructors(model.generated_feature_methods) if constructable?
+      define_constructors(model.generated_association_methods) if constructable?
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
