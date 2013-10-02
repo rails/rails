@@ -69,7 +69,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def define_callbacks(model, reflection)
-      add_before_destroy_callbacks(model, name) if options[:dependent]
+      add_before_destroy_callbacks(model, reflection) if reflection.options[:dependent]
       Association.extensions.each do |extension|
         extension.build model, reflection
       end
@@ -110,11 +110,12 @@ module ActiveRecord::Associations::Builder
 
     private
 
-    def add_before_destroy_callbacks(model, name)
-      unless valid_dependent_options.include? options[:dependent]
-        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
+    def add_before_destroy_callbacks(model, reflection)
+      unless valid_dependent_options.include? reflection.options[:dependent]
+        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{reflection.options[:dependent]}"
       end
 
+      name = reflection.name
       model.before_destroy lambda { |o| o.association(name).handle_dependency }
     end
   end
