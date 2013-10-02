@@ -345,7 +345,8 @@ module ActiveRecord
     #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
     #   # => #<Account id: 1, email: 'account@example.com'>
     #
-    # Attributes are updated, and caches busted, in particular the associations cache.
+    # Attributes are reloaded from the database, and caches busted, in
+    # particular the associations cache.
     #
     # If the record no longer exists in the database <tt>ActiveRecord::RecordNotFound</tt>
     # is raised. Otherwise, in addition to the in-place modification the method
