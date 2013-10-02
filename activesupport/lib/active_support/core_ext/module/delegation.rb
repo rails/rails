@@ -63,6 +63,15 @@ class Module
   #   Foo.new.min # => 4
   #   Foo.new.max # => 11
   #
+  # Sometimes it is useful to delegate a method under a different name.
+  #
+  #   class Foo < ActiveRecord::Base
+  #     belongs_to :greeter
+  #     delegate :hello, {goodbye: :bye}, to: :greeter
+  #   end
+  #
+  #   Foo.new.bye # => "goodbye"
+  #
   # It's also possible to delegate a method to the class by using +:class+:
   #
   #   class Foo
@@ -150,12 +159,7 @@ class Module
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
 
-    method_prefix = \
-      if prefix
-        "#{prefix == true ? to : prefix}_"
-      else
-        ''
-      end
+    method_prefix = prefix ? "#{prefix == true ? to : prefix}_" : ''
 
     file, line = caller.first.split(':', 2)
     line = line.to_i
@@ -163,10 +167,19 @@ class Module
     to = to.to_s
     to = 'self.class' if to == 'class'
 
-    methods.each do |method|
+    # Normalize the method delegation definititons into a single hash.
+    normalized_methods = methods.each_with_object({}) do |m, hash|
+      hash.merge! case m
+        when Hash then m
+        when Array then Hash[*m]
+        else {m => m}
+      end
+    end
+
+    normalized_methods.each do |method, delegated_method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
+      definition = (delegated_method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
 
       # The following generated methods call the target exactly once, storing
       # the returned value in a dummy variable.
@@ -177,27 +190,27 @@ class Module
       # be doing one call.
       if allow_nil
         module_eval(<<-EOS, file, line - 3)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            if !_.nil? || nil.respond_to?(:#{method})         #   if !_.nil? || nil.respond_to?(:name)
-              _.#{method}(#{definition})                      #     _.name(*args, &block)
-            end                                               #   end
-          end                                                 # end
+          def #{method_prefix}#{delegated_method}(#{definition})  # def customer_name(*args, &block)
+            _ = #{to}                                             #   _ = client
+            if !_.nil? || nil.respond_to?(:#{method})             #   if !_.nil? || nil.respond_to?(:name)
+              _.#{method}(#{definition})                          #     _.name(*args, &block)
+            end                                                   #   end
+          end                                                     # end
         EOS
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(#{definition})                                          # def customer_name(*args, &block)
-            _ = #{to}                                                                           #   _ = client
-            _.#{method}(#{definition})                                                          #   _.name(*args, &block)
-          rescue NoMethodError => e                                                             # rescue NoMethodError => e
-            if _.nil? && e.name == :#{method}                                                   #   if _.nil? && e.name == :name
-              #{exception}                                                                      #     # add helpful message to the exception
-            else                                                                                #   else
-              raise                                                                             #     raise
-            end                                                                                 #   end
-          end                                                                                   # end
+          def #{method_prefix}#{delegated_method}(#{definition}) # def customer_name(*args, &block)
+            _ = #{to}                                            #   _ = client
+            _.#{method}(#{definition})                           #   _.name(*args, &block)
+          rescue NoMethodError => e                              # rescue NoMethodError => e
+            if _.nil? && e.name == :#{method}                    #   if _.nil? && e.name == :name
+              #{exception}                                       #     # add helpful message to the exception
+            else                                                 #   else
+              raise                                              #     raise
+            end                                                  #   end
+          end                                                    # end
         EOS
       end
     end
