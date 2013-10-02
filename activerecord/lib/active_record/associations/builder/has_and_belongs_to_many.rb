@@ -10,7 +10,7 @@ module ActiveRecord::Associations::Builder
 
     def define_callbacks(model, reflection)
       super
-      name = self.name
+      name = reflection.name
       model.send(:include, Module.new {
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def destroy_associations
