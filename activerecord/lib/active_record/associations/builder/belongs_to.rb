@@ -8,10 +8,6 @@ module ActiveRecord::Associations::Builder
       super + [:foreign_type, :polymorphic, :touch]
     end
 
-    def constructable?
-      !options[:polymorphic]
-    end
-
     def valid_dependent_options
       [:destroy, :delete]
     end
@@ -22,7 +18,7 @@ module ActiveRecord::Associations::Builder
       add_touch_callbacks(model, reflection)         if options[:touch]
     end
 
-    def define_accessors(mixin)
+    def define_accessors(mixin, reflection)
       super
       add_counter_cache_methods mixin
     end
@@ -58,7 +54,7 @@ module ActiveRecord::Associations::Builder
 
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && association.constructable?
+          elsif attribute_changed?(foreign_key) && !new_record? && reflection.constructable?
             model           = reflection.klass
             foreign_key_was = attribute_was foreign_key
             foreign_key     = attribute foreign_key
