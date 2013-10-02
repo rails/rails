@@ -1574,18 +1574,9 @@ module ActiveRecord
 
         join_model = builder.through_model
 
-        middle_name = [self.name.downcase.pluralize, name].join('_').gsub(/::/, '_').to_sym
-
-        middle_options = builder.middle_options join_model
-
-        hm_builder = Builder::HasMany.create_builder(self,
-                                                     middle_name,
-                                                     nil,
-                                                     middle_options)
-        middle_reflection = hm_builder.build self
+        middle_reflection = builder.middle_reflection join_model
 
         Builder::HasMany.define_callbacks self, middle_reflection
-
         Reflection.add_reflection self, middle_reflection.name, middle_reflection
 
         include Module.new {
@@ -1599,7 +1590,7 @@ module ActiveRecord
         }
 
         hm_options = {}
-        hm_options[:through] = middle_name
+        hm_options[:through] = middle_reflection.name
         hm_options[:source] = join_model.right_association_name
 
         [:before_add, :after_add, :before_remove, :after_remove].each do |k|

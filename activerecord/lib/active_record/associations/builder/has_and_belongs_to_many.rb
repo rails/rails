@@ -80,6 +80,19 @@ module ActiveRecord::Associations::Builder
       join_model
     end
 
+    def middle_reflection(join_model)
+      middle_name = [lhs_model.name.downcase.pluralize,
+                     association_name].join('_').gsub(/::/, '_').to_sym
+      middle_options = middle_options join_model
+      hm_builder = HasMany.create_builder(lhs_model,
+                                          middle_name,
+                                          nil,
+                                          middle_options)
+      hm_builder.build lhs_model
+    end
+
+    private
+
     def middle_options(join_model)
       middle_options = {}
       middle_options[:class] = join_model
@@ -89,8 +102,6 @@ module ActiveRecord::Associations::Builder
       end
       middle_options
     end
-
-    private
 
     def belongs_to_options(options)
       rhs_options = {}
