@@ -14,8 +14,8 @@ module ActiveRecord::Associations::Builder
 
     def define_callbacks(model, reflection)
       super
-      add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
-      add_touch_callbacks(model, reflection)         if reflection.options[:touch]
+      self.class.add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
+      self.class.add_touch_callbacks(model, reflection)         if reflection.options[:touch]
     end
 
     def define_accessors(mixin, reflection)
@@ -70,7 +70,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def add_counter_cache_callbacks(model, reflection)
+    def self.add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
 
       model.after_create lambda { |record|
@@ -115,7 +115,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def add_touch_callbacks(model, reflection)
+    def self.add_touch_callbacks(model, reflection)
       foreign_key = reflection.foreign_key
       n           = reflection.name
       touch       = reflection.options[:touch]
