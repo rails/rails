@@ -1616,13 +1616,13 @@ module ActiveRecord
       def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
         habtm = JoinTableResolver.build self, name, options
 
-        rhs_name = name.to_s.singularize.to_sym
-
         join_model = Class.new(ActiveRecord::Base) {
           class << self;
             attr_accessor :class_resolver
             attr_accessor :name
             attr_accessor :table_name_resolver
+            attr_accessor :left_association_name
+            attr_accessor :right_association_name
           end
 
           def self.table_name
@@ -1632,21 +1632,31 @@ module ActiveRecord
           def self.compute_type(class_name)
             class_resolver.compute_type class_name
           end
+
+          def self.add_left_association(name, options)
+            self.left_association_name = name
+            belongs_to name, options
+          end
+
+          def self.add_right_association(name, options)
+            rhs_name = name.to_s.singularize.to_sym
+            self.right_association_name = rhs_name
+            belongs_to rhs_name, options
+          end
         }
 
         join_model.name                = "HABTM_#{name.to_s.camelize}"
         join_model.table_name_resolver = habtm
         join_model.class_resolver      = self
 
-        join_model.belongs_to :left_side, :class => self
-        join_model.belongs_to rhs_name, belongs_to_options(options)
+        join_model.add_left_association :left_side, class: self
+        join_model.add_right_association name, belongs_to_options(options)
 
         middle_name = [self.name.downcase.pluralize, name].join('_').gsub(/::/, '_').to_sym
 
-        #middle_options = options.dup
         middle_options = {}
         middle_options[:class] = join_model
-        middle_options[:source] = :left_side
+        middle_options[:source] = join_model.left_association_name
         if options.key? :foreign_key
           middle_options[:foreign_key] = options[:foreign_key]
         end
@@ -1672,7 +1682,7 @@ module ActiveRecord
 
         hm_options = {}
         hm_options[:through] = middle_name
-        hm_options[:source] = rhs_name
+        hm_options[:source] = join_model.right_association_name
 
         [:before_add, :after_add, :before_remove, :after_remove].each do |k|
           if options.key? k
@@ -1680,7 +1690,6 @@ module ActiveRecord
           end
         end
 
-        #has_many name, scope, :through => middle_name, &extension
         has_many name, scope, hm_options, &extension
       end
     end
