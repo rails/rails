@@ -357,24 +357,6 @@ class UrlWriterTests < ActionController::TestCase
     ActionController::Routing::Routes.load!
   end
 
-  def test_formatted_url_methods_are_deprecated
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :posts
-    end
-    # We need to create a new class in order to install the new named route.
-    kls = Class.new { include ActionController::UrlWriter }
-    controller = kls.new
-    params = {:id => 1, :format => :xml}
-    assert_deprecated do
-      assert_equal("/posts/1.xml", controller.send(:formatted_post_path, params))    
-    end
-    assert_deprecated do
-      assert_equal("/posts/1.xml", controller.send(:formatted_post_path, 1, :xml))    
-    end
-  ensure
-    ActionController::Routing::Routes.load!
-  end
-
   def test_multiple_includes_maintain_distinct_options
     first_class = Class.new { include ActionController::UrlWriter }
     second_class = Class.new { include ActionController::UrlWriter }
