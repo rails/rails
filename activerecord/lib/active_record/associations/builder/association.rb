@@ -21,14 +21,7 @@ module ActiveRecord::Associations::Builder
     attr_reader :name, :scope, :options
 
     def self.build(model, name, scope, options, &block)
-      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
-
-      if scope.is_a?(Hash)
-        options = scope
-        scope   = nil
-      end
-
-      builder = new(name, scope, options, &block)
+      builder = create_builder model, name, scope, options, &block
       reflection = builder.build(model)
       builder.define_accessors model, reflection
       define_callbacks model, reflection
