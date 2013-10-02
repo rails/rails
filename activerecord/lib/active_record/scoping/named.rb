@@ -41,7 +41,7 @@ module ActiveRecord
 
         # Are there default attributes associated with this scope?
         def scope_attributes? # :nodoc:
-          current_scope || default_scopes.any?
+          scope_attributes.any?
         end
 
         # Adds a class method for retrieving and querying objects. A \scope
