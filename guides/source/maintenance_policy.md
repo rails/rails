@@ -1,21 +1,19 @@
-Maintenance policy for Ruby on Rails
+Maintenance Policy for Ruby on Rails
 ====================================
-
-Since the most recent patch releases there has been some confusion about what
-versions of Ruby on Rails are currently supported, and when people
-can expect new versions. Our maintenance policy is as follows.
 
 Support of the Rails framework is divided into four groups: New features, bug
 fixes, security issues, and severe security issues. They are handled as
-follows, all versions in x.y.z format:
+follows, all versions in x.y.z format
+
+--------------------------------------------------------------------------------
 
 New Features
 ------------
 
-New Features are only added to the master branch and will not be made available
+New features are only added to the master branch and will not be made available
 in point releases.
 
-Bug fixes
+Bug Fixes
 ---------
 
 Only the latest release series will receive bug fixes. When enough bugs are
@@ -24,8 +22,8 @@ from.
 
 **Currently included series:** 4.0.z
 
-Security issues:
-----------------
+Security Issues
+---------------
 
 The current release series and the next most recent one will receive patches
 and new versions in case of a security issue.
@@ -39,8 +37,8 @@ of Rails.
 
 **Currently included series:** 4.0.z, 3.2.z
 
-Severe security issues:
------------------------
+Severe Security Issues
+----------------------
 
 For severe security issues we will provide new versions as above, and also the
 last major release series will receive patches and new versions. The
@@ -52,8 +50,7 @@ Unsupported Release Series
 --------------------------
 
 When a release series is no longer supported, it's your own responsibility to
-deal with bugs and security issues. We may provide back-ports of the fixes and
+deal with bugs and security issues. We may provide backports of the fixes and
 publish them to git, however there will be no new versions released. If you are
 not comfortable maintaining your own versions, you should upgrade to a
 supported version.
-
