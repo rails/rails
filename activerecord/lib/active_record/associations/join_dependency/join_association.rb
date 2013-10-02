@@ -83,17 +83,6 @@ module ActiveRecord
             when :belongs_to
               key         = reflection.association_primary_key
               foreign_key = reflection.foreign_key
-            when :has_and_belongs_to_many
-              # Join the join table first...
-              joins << join(
-                table,
-                table[reflection.foreign_key].
-                  eq(foreign_table[reflection.active_record_primary_key]))
-
-              foreign_table, table = table, tables.shift
-
-              key         = reflection.association_primary_key
-              foreign_key = reflection.association_foreign_key
             else
               key         = reflection.foreign_key
               foreign_key = reflection.active_record_primary_key

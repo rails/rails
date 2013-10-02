@@ -216,7 +216,7 @@ module ActiveRecord
         else
           association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
           case macro
-          when :has_many, :has_and_belongs_to_many
+          when :has_many
             other = record.association(join_part.reflection.name)
             other.loaded!
             other.target.push(association) if association

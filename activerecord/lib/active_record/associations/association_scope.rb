@@ -44,18 +44,6 @@ module ActiveRecord
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
-          if reflection.source_macro == :has_and_belongs_to_many
-            join_table = tables.shift
-
-            scope = scope.joins(join(
-              join_table,
-              table[reflection.association_primary_key].
-                eq(join_table[reflection.association_foreign_key])
-            ))
-
-            table, foreign_table = join_table, tables.first
-          end
-
           if reflection.source_macro == :belongs_to
             if reflection.options[:polymorphic]
               key = reflection.association_primary_key(self.klass)
