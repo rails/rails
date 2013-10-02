@@ -192,14 +192,7 @@ module ActionController
                 url_for(#{hash_access_method}(opts))                                        #   url_for(hash_for_users_url(opts))
                                                                                             #
               end                                                                           # end
-              #Add an alias to support the now deprecated formatted_* URL.                  # #Add an alias to support the now deprecated formatted_* URL.
-              def formatted_#{selector}(*args)                                              # def formatted_users_url(*args)
-                ActiveSupport::Deprecation.warn(                                            #   ActiveSupport::Deprecation.warn(
-                  "formatted_#{selector}() has been deprecated. " +                         #     "formatted_users_url() has been deprecated. " +
-                  "Please pass format to the standard " +                                   #     "Please pass format to the standard " +
-                  "#{selector} method instead.", caller)                                    #     "users_url method instead.", caller)
-                #{selector}(*args)                                                          #   users_url(*args)
-              end                                                                           # end
+
               protected :#{selector}                                                        # protected :users_url
             end_eval
             helpers << selector
