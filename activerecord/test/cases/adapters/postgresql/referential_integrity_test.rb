@@ -36,7 +36,7 @@ END_SQL
   def attempt_block
     if @connection.open_transactions > 0
       savepoint_id = get_unique_savepoint_id
-      @connection.execute("SAVEPOINT attempt_block_#{savepoint_id}")
+      @connection.create_savepoint("attempt_block_#{savepoint_id}")
     end
 
     begin
@@ -44,10 +44,10 @@ END_SQL
     ensure
       if @connection.open_transactions > 0
         begin
-          @connection.execute("RELEASE SAVEPOINT attempt_block_#{savepoint_id}")
+          @connection.release_savepoint("attempt_block_#{savepoint_id}")
         rescue ActiveRecord::StatementInvalid
-          @connection.execute("ROLLBACK TO SAVEPOINT attempt_block_#{savepoint_id}")
-          @connection.execute("RELEASE SAVEPOINT attempt_block_#{savepoint_id}")
+          @connection.rollback_to_savepoint("attempt_block_#{savepoint_id}")
+          @connection.release_savepoint("attempt_block_#{savepoint_id}")
         end
       end
     end
