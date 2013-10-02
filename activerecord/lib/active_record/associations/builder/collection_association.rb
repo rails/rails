@@ -25,7 +25,9 @@ module ActiveRecord::Associations::Builder
 
     def define_callbacks(model, reflection)
       super
-      CALLBACKS.each { |callback_name| define_callback(model, callback_name) }
+      CALLBACKS.each { |callback_name|
+        define_callback(model, callback_name, reflection.name, reflection.options)
+      }
     end
 
     def define_extensions(model)
@@ -35,7 +37,7 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def define_callback(model, callback_name)
+    def define_callback(model, callback_name, name, options)
       full_callback_name = "#{callback_name}_for_#{name}"
 
       # TODO : why do i need method_defined? I think its because of the inheritance chain
