@@ -1584,7 +1584,7 @@ module ActiveRecord
                                                      middle_options)
         middle_reflection = hm_builder.build self
 
-        hm_builder.define_callbacks self, middle_reflection
+        Builder::HasMany.define_callbacks self, middle_reflection
 
         Reflection.add_reflection self, middle_reflection.name, middle_reflection
 
