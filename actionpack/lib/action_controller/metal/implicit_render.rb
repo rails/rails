@@ -1,3 +1,5 @@
+require 'abstract_controller/errors'
+
 module ActionController
   module ImplicitRender
     def send_action(method, *args)

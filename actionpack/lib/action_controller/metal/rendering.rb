@@ -1,3 +1,5 @@
+require 'abstract_controller/errors'
+
 module ActionController
   module Rendering
     extend ActiveSupport::Concern
