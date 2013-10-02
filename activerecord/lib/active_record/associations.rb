@@ -1566,10 +1566,6 @@ module ActiveRecord
           scope   = nil
         end
 
-        has_and_belongs_to_many1(name, scope, options, &extension)
-      end
-
-      def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
         builder = Builder::HABTM.new name, self, options
 
         join_model = builder.through_model
