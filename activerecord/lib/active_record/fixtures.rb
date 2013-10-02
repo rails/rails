@@ -639,8 +639,6 @@ module ActiveRecord
               if association.options[:through]
                 add_join_records(rows, row, HasManyThroughProxy.new(association))
               end
-            when :has_and_belongs_to_many
-              add_join_records(rows, row, HABTMProxy.new(association))
             end
           end
         end
@@ -671,16 +669,6 @@ module ActiveRecord
 
       def lhs_key
         @association.through_reflection.foreign_key
-      end
-    end
-
-    class HABTMProxy < ReflectionProxy # :nodoc:
-      def rhs_key
-        @association.association_foreign_key
-      end
-
-      def lhs_key
-        @association.foreign_key
       end
     end
 
