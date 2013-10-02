@@ -1591,7 +1591,7 @@ module ActiveRecord
 
         hm_options = {}
         hm_options[:through] = middle_reflection.name
-        hm_options[:source] = join_model.right_association_name
+        hm_options[:source] = join_model.right_reflection.name
 
         [:before_add, :after_add, :before_remove, :after_remove].each do |k|
           if options.key? k

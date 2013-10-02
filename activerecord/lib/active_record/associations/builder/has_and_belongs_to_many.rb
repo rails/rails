@@ -46,8 +46,8 @@ module ActiveRecord::Associations::Builder
           attr_accessor :class_resolver
           attr_accessor :name
           attr_accessor :table_name_resolver
-          attr_accessor :left_association_name
-          attr_accessor :right_association_name
+          attr_accessor :left_reflection
+          attr_accessor :right_reflection
         end
 
         def self.table_name
@@ -59,14 +59,14 @@ module ActiveRecord::Associations::Builder
         end
 
         def self.add_left_association(name, options)
-          self.left_association_name = name
           belongs_to name, options
+          self.left_reflection = reflect_on_association(name)
         end
 
         def self.add_right_association(name, options)
           rhs_name = name.to_s.singularize.to_sym
-          self.right_association_name = rhs_name
           belongs_to rhs_name, options
+          self.right_reflection = reflect_on_association(rhs_name)
         end
 
       }
@@ -96,7 +96,7 @@ module ActiveRecord::Associations::Builder
     def middle_options(join_model)
       middle_options = {}
       middle_options[:class] = join_model
-      middle_options[:source] = join_model.left_association_name
+      middle_options[:source] = join_model.left_reflection.name
       if options.key? :foreign_key
         middle_options[:foreign_key] = options[:foreign_key]
       end
