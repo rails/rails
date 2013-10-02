@@ -8,7 +8,7 @@ module ActiveRecord::Associations::Builder
       super + [:foreign_type, :polymorphic, :touch]
     end
 
-    def valid_dependent_options
+    def self.valid_dependent_options
       [:destroy, :delete]
     end
 
