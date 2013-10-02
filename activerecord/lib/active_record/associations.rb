@@ -1598,35 +1598,48 @@ module ActiveRecord
         end
       end
 
+      def belongs_to_options(options)
+        rhs_options = {}
+
+        if options.key? :class_name
+          rhs_options[:foreign_key] = options[:class_name].foreign_key
+          rhs_options[:class_name] = options[:class_name]
+        end
+
+        if options.key? :association_foreign_key
+          rhs_options[:foreign_key] = options[:association_foreign_key]
+        end
+
+        rhs_options
+      end
+
       def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
-        # temporarily
         habtm = JoinTableResolver.build self, name, options
 
-        join_class_name = "HABTM_#{name.to_s.camelize}"
-        this_class = self
         rhs_name = name.to_s.singularize.to_sym
 
         join_model = Class.new(ActiveRecord::Base) {
-          define_singleton_method(:name) { join_class_name }
-          define_singleton_method(:table_name) { habtm.join_table }
-          define_singleton_method(:compute_type) { |class_name|
-            this_class.compute_type class_name
-          }
-          belongs_to :left_side, :class => this_class
-
-          rhs_options = {}
-
-          if options.key? :class_name
-            rhs_options[:foreign_key] = options[:class_name].foreign_key
-            rhs_options[:class_name] = options[:class_name]
+          class << self;
+            attr_accessor :class_resolver
+            attr_accessor :name
+            attr_accessor :table_name_resolver
           end
 
-          if options.key? :association_foreign_key
-            rhs_options[:foreign_key] = options[:association_foreign_key]
+          def self.table_name
+            table_name_resolver.join_table
           end
 
-          belongs_to rhs_name, rhs_options
+          def self.compute_type(class_name)
+            class_resolver.compute_type class_name
+          end
         }
+
+        join_model.name                = "HABTM_#{name.to_s.camelize}"
+        join_model.table_name_resolver = habtm
+        join_model.class_resolver      = self
+
+        join_model.belongs_to :left_side, :class => self
+        join_model.belongs_to rhs_name, belongs_to_options(options)
 
         middle_name = [self.name.downcase.pluralize, name].join('_').gsub(/::/, '_').to_sym
 
