@@ -12,8 +12,6 @@ module ActiveRecord
 
     def self.create(macro, name, scope, options, ar)
       case macro
-      when :has_and_belongs_to_many
-        klass = AssociationReflection
       when :has_many, :belongs_to, :has_one
         klass = options[:through] ? ThroughReflection : AssociationReflection
       when :composed_of
@@ -196,7 +194,7 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+        @collection = :has_many == macro
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
@@ -256,10 +254,6 @@ module ActiveRecord
 
       def check_validity!
         check_validity_of_inverse!
-
-        if has_and_belongs_to_many? && association_foreign_key == foreign_key
-          raise HasAndBelongsToManyAssociationForeignKeyNeeded.new(self)
-        end
       end
 
       def check_validity_of_inverse!
@@ -341,10 +335,6 @@ module ActiveRecord
         macro == :belongs_to
       end
 
-      def has_and_belongs_to_many?
-        macro == :has_and_belongs_to_many
-      end
-
       def association_class
         case macro
         when :belongs_to
@@ -353,8 +343,6 @@ module ActiveRecord
           else
             Associations::BelongsToAssociation
           end
-        when :has_and_belongs_to_many
-          Associations::HasAndBelongsToManyAssociation
         when :has_many
           if options[:through]
             Associations::HasManyThroughAssociation
@@ -604,7 +592,7 @@ module ActiveRecord
 
       # A through association is nested if there would be more than one join table
       def nested?
-        chain.length > 2 || through_reflection.has_and_belongs_to_many?
+        chain.length > 2
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to
