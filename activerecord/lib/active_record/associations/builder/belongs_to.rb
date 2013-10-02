@@ -8,21 +8,17 @@ module ActiveRecord::Associations::Builder
       super + [:foreign_type, :polymorphic, :touch]
     end
 
-    def constructable?
-      !options[:polymorphic]
-    end
-
-    def valid_dependent_options
+    def self.valid_dependent_options
       [:destroy, :delete]
     end
 
-    def define_callbacks(model, reflection)
+    def self.define_callbacks(model, reflection)
       super
-      add_counter_cache_callbacks(model, reflection) if options[:counter_cache]
-      add_touch_callbacks(model, reflection)         if options[:touch]
+      add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
+      add_touch_callbacks(model, reflection)         if reflection.options[:touch]
     end
 
-    def define_accessors(mixin)
+    def define_accessors(mixin, reflection)
       super
       add_counter_cache_methods mixin
     end
@@ -33,18 +29,18 @@ module ActiveRecord::Associations::Builder
       return if mixin.method_defined? :belongs_to_counter_cache_after_create
 
       mixin.class_eval do
-        def belongs_to_counter_cache_after_create(association, reflection)
-          if record = send(association.name)
+        def belongs_to_counter_cache_after_create(reflection)
+          if record = send(reflection.name)
             cache_column = reflection.counter_cache_column
             record.class.increment_counter(cache_column, record.id)
             @_after_create_counter_called = true
           end
         end
 
-        def belongs_to_counter_cache_before_destroy(association, reflection)
+        def belongs_to_counter_cache_before_destroy(reflection)
           foreign_key = reflection.foreign_key.to_sym
           unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
-            record = send association.name
+            record = send reflection.name
             if record && !self.destroyed?
               cache_column = reflection.counter_cache_column
               record.class.decrement_counter(cache_column, record.id)
@@ -52,13 +48,13 @@ module ActiveRecord::Associations::Builder
           end
         end
 
-        def belongs_to_counter_cache_after_update(association, reflection)
+        def belongs_to_counter_cache_after_update(reflection)
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && association.constructable?
+          elsif attribute_changed?(foreign_key) && !new_record? && reflection.constructable?
             model           = reflection.klass
             foreign_key_was = attribute_was foreign_key
             foreign_key     = attribute foreign_key
@@ -74,20 +70,19 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def add_counter_cache_callbacks(model, reflection)
+    def self.add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
-      association = self
 
       model.after_create lambda { |record|
-        record.belongs_to_counter_cache_after_create(association, reflection)
+        record.belongs_to_counter_cache_after_create(reflection)
       }
 
       model.before_destroy lambda { |record|
-        record.belongs_to_counter_cache_before_destroy(association, reflection)
+        record.belongs_to_counter_cache_before_destroy(reflection)
       }
 
       model.after_update lambda { |record|
-        record.belongs_to_counter_cache_after_update(association, reflection)
+        record.belongs_to_counter_cache_after_update(reflection)
       }
 
       klass = reflection.class_name.safe_constantize
@@ -120,10 +115,10 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def add_touch_callbacks(model, reflection)
+    def self.add_touch_callbacks(model, reflection)
       foreign_key = reflection.foreign_key
-      n           = name
-      touch       = options[:touch]
+      n           = reflection.name
+      touch       = reflection.options[:touch]
 
       callback = lambda { |record|
         BelongsTo.touch_record(record, foreign_key, n, touch)

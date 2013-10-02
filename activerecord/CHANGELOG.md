@@ -10,7 +10,7 @@
 *   Objects intiantiated using a null relationship will now retain the
     attributes of the where clause.
 
-    Fixes:  #11676, #11675, #11376
+    Fixes #11676, #11675, #11376.
 
     *Paul Nikitochkin*, *Peter Brown*, *Nthalk*
 
@@ -27,7 +27,7 @@
 *   `ActiveRecord::ConnectionAdapters.string_to_time` respects
     string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
 
-    Fixes: #12278
+    Fixes #12278.
 
     *kennyj*
 
@@ -74,7 +74,7 @@
     where constraints and at least of them is not `Arel::Nodes::Equality`,
     generates invalid SQL expression.
 
-    Fixes: #11963
+    Fixes #11963.
 
     *Paul Nikitochkin*
 
@@ -247,13 +247,13 @@
     to allow the connection adapter to properly determine how to quote the value. This was
     affecting certain databases that use specific column types.
 
-    Fixes: #6763
+    Fixes #6763.
 
     *Alfred Wong*
 
 *   rescue from all exceptions in `ConnectionManagement#call`
 
-    Fixes #11497
+    Fixes #11497.
 
     As `ActiveRecord::ConnectionAdapters::ConnectionManagement` middleware does
     not rescue from Exception (but only from StandardError), the Connection
@@ -275,7 +275,7 @@
 
 *   Remove extra decrement of transaction deep level.
 
-    Fixes: #4566
+    Fixes #4566.
 
     *Paul Nikitochkin*
 
@@ -295,7 +295,7 @@
 *   Remove extra select and update queries on save/touch/destroy ActiveRecord model
     with belongs to reflection with option `touch: true`.
 
-    Fixes: #11288
+    Fixes #11288.
 
     *Paul Nikitochkin*
 

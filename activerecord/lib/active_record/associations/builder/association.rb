@@ -31,8 +31,8 @@ module ActiveRecord::Associations::Builder
 
       builder = new(name, scope, options, &block)
       reflection = builder.build(model)
-      builder.define_accessors model
-      builder.define_callbacks model, reflection
+      builder.define_accessors model, reflection
+      define_callbacks model, reflection
       builder.define_extensions model
       reflection
     end
@@ -79,8 +79,8 @@ module ActiveRecord::Associations::Builder
     def define_extensions(model)
     end
 
-    def define_callbacks(model, reflection)
-      add_before_destroy_callbacks(model, name) if options[:dependent]
+    def self.define_callbacks(model, reflection)
+      add_before_destroy_callbacks(model, reflection) if reflection.options[:dependent]
       Association.extensions.each do |extension|
         extension.build model, reflection
       end
@@ -93,7 +93,7 @@ module ActiveRecord::Associations::Builder
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
 
-    def define_accessors(model)
+    def define_accessors(model, reflection)
       mixin = model.generated_feature_methods
       define_readers(mixin)
       define_writers(mixin)
@@ -115,17 +115,18 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def valid_dependent_options
+    def self.valid_dependent_options
       raise NotImplementedError
     end
 
     private
 
-    def add_before_destroy_callbacks(model, name)
-      unless valid_dependent_options.include? options[:dependent]
-        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
+    def self.add_before_destroy_callbacks(model, reflection)
+      unless valid_dependent_options.include? reflection.options[:dependent]
+        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{reflection.options[:dependent]}"
       end
 
+      name = reflection.name
       model.before_destroy lambda { |o| o.association(name).handle_dependency }
     end
   end

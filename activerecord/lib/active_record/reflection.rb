@@ -200,12 +200,17 @@ module ActiveRecord
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
+        @constructable = calculate_constructable(macro, options)
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
       # be passed to the class's constructor.
       def build_association(attributes, &block)
         klass.new(attributes, &block)
+      end
+
+      def constructable? # :nodoc:
+        @constructable
       end
 
       def table_name
@@ -379,6 +384,17 @@ module ActiveRecord
       end
 
       private
+      def calculate_constructable(macro, options)
+        case macro
+        when :belongs_to
+          !options[:polymorphic]
+        when :has_one
+          !options[:through]
+        else
+          true
+        end
+      end
+
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
         # nil.

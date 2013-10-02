@@ -117,9 +117,9 @@ module ActiveRecord::Associations::Builder
       super + [:join_table, :association_foreign_key]
     end
 
-    def define_callbacks(model, reflection)
+    def self.define_callbacks(model, reflection)
       super
-      name = self.name
+      name = reflection.name
       model.send(:include, Module.new {
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def destroy_associations

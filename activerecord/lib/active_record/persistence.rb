@@ -335,8 +335,18 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method modifies the receiver in-place. Attributes are updated, and
-    # caches busted, in particular the associations cache.
+    # This method finds record by its primary key (which could be assigned manually) and
+    # modifies the receiver in-place:
+    #
+    #   account = Account.new
+    #   # => #<Account id: nil, email: nil>
+    #   account.id = 1
+    #   account.reload
+    #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
+    #   # => #<Account id: 1, email: 'account@example.com'>
+    #
+    # Attributes are reloaded from the database, and caches busted, in
+    # particular the associations cache.
     #
     # If the record no longer exists in the database <tt>ActiveRecord::RecordNotFound</tt>
     # is raised. Otherwise, in addition to the in-place modification the method

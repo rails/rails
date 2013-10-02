@@ -11,7 +11,7 @@ task :test => ["test:template", "test:integration:action_pack", "test:integratio
 
 namespace :test do
   task :isolated do
-    Dir.glob("test/{active_record,template}/**/*_test.rb").all? do |file|
+    Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
       sh(Gem.ruby, '-w', '-Ilib:test', file)
     end or raise "Failures"
   end

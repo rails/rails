@@ -10,18 +10,14 @@ module ActiveRecord::Associations::Builder
       valid
     end
 
-    def constructable?
-      !options[:through]
-    end
-
-    def valid_dependent_options
+    def self.valid_dependent_options
       [:destroy, :delete, :nullify, :restrict_with_error, :restrict_with_exception]
     end
 
     private
 
-    def add_before_destroy_callbacks(model, name)
-      super unless options[:through]
+    def self.add_before_destroy_callbacks(model, reflection)
+      super unless reflection.options[:through]
     end
   end
 end
