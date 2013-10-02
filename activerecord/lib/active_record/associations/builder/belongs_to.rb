@@ -34,7 +34,7 @@ module ActiveRecord::Associations::Builder
 
       mixin.class_eval do
         def belongs_to_counter_cache_after_create(association, reflection)
-          if record = send(association.name)
+          if record = send(reflection.name)
             cache_column = reflection.counter_cache_column
             record.class.increment_counter(cache_column, record.id)
             @_after_create_counter_called = true
@@ -44,7 +44,7 @@ module ActiveRecord::Associations::Builder
         def belongs_to_counter_cache_before_destroy(association, reflection)
           foreign_key = reflection.foreign_key.to_sym
           unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
-            record = send association.name
+            record = send reflection.name
             if record && !self.destroyed?
               cache_column = reflection.counter_cache_column
               record.class.decrement_counter(cache_column, record.id)
