@@ -25,8 +25,10 @@ module ActiveRecord::Associations::Builder
 
     def define_callbacks(model, reflection)
       super
+      name    = reflection.name
+      options = reflection.options
       CALLBACKS.each { |callback_name|
-        define_callback(model, callback_name, reflection.name, reflection.options)
+        define_callback(model, callback_name, name, options)
       }
     end
 
