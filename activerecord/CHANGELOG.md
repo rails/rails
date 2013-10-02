@@ -1,3 +1,10 @@
+*   Fix transaction bug in PostgreSQLAdapter#disable_referential_integrity.
+    The existing rescue blocks didn't function within a PostgreSQL transaction
+    because PostgreSQL requires a SAVEPOINT and then ROLLBACK before resuming
+    statement execution.  Fixes bug mentioned in #10885.
+
+    *Toby Ovod-Everett*
+
 *   `create_savepoint`, `rollback_to_savepoint` and `release_savepoint` accept
     a savepoint name.
 
