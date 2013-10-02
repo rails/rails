@@ -32,7 +32,7 @@ module ActiveRecord::Associations::Builder
       builder = new(name, scope, options, &block)
       reflection = builder.build(model)
       builder.define_accessors model, reflection
-      builder.define_callbacks model, reflection
+      define_callbacks model, reflection
       builder.define_extensions model
       reflection
     end
@@ -68,8 +68,8 @@ module ActiveRecord::Associations::Builder
     def define_extensions(model)
     end
 
-    def define_callbacks(model, reflection)
-      self.class.add_before_destroy_callbacks(model, reflection) if reflection.options[:dependent]
+    def self.define_callbacks(model, reflection)
+      add_before_destroy_callbacks(model, reflection) if reflection.options[:dependent]
       Association.extensions.each do |extension|
         extension.build model, reflection
       end

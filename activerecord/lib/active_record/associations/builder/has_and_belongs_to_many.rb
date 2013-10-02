@@ -8,7 +8,7 @@ module ActiveRecord::Associations::Builder
       super + [:join_table, :association_foreign_key]
     end
 
-    def define_callbacks(model, reflection)
+    def self.define_callbacks(model, reflection)
       super
       name = reflection.name
       model.send(:include, Module.new {

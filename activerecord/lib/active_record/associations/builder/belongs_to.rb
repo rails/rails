@@ -12,10 +12,10 @@ module ActiveRecord::Associations::Builder
       [:destroy, :delete]
     end
 
-    def define_callbacks(model, reflection)
+    def self.define_callbacks(model, reflection)
       super
-      self.class.add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
-      self.class.add_touch_callbacks(model, reflection)         if reflection.options[:touch]
+      add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
+      add_touch_callbacks(model, reflection)         if reflection.options[:touch]
     end
 
     def define_accessors(mixin, reflection)
