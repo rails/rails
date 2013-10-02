@@ -7,7 +7,6 @@ module ActiveRecord
     # collections. See the class hierarchy in AssociationProxy.
     #
     #   CollectionAssociation:
-    #     HasAndBelongsToManyAssociation => has_and_belongs_to_many
     #     HasManyAssociation => has_many
     #       HasManyThroughAssociation + ThroughAssociation => has_many :through
     #

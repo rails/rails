@@ -8,7 +8,6 @@
 #      - HasOneAssociation
 #    - CollectionAssociation
 #      - HasManyAssociation
-#      - HasAndBelongsToManyAssociation
 
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:

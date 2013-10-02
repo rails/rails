@@ -13,7 +13,6 @@ module ActiveRecord
     #       BelongsToAssociation
     #         BelongsToPolymorphicAssociation
     #     CollectionAssociation
-    #       HasAndBelongsToManyAssociation
     #       HasManyAssociation
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:

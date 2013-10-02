@@ -73,12 +73,6 @@ module ActiveRecord
     end
   end
 
-  class HasAndBelongsToManyAssociationForeignKeyNeeded < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Cannot create self referential has_and_belongs_to_many association on '#{reflection.class_name rescue nil}##{reflection.name rescue nil}'. :association_foreign_key cannot be the same as the :foreign_key.")
-    end
-  end
-
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
@@ -114,7 +108,6 @@ module ActiveRecord
 
     autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
     autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
-    autoload :HasAndBelongsToManyAssociation,  'active_record/associations/has_and_belongs_to_many_association'
     autoload :HasManyAssociation,              'active_record/associations/has_many_association'
     autoload :HasManyThroughAssociation,       'active_record/associations/has_many_through_association'
     autoload :HasOneAssociation,               'active_record/associations/has_one_association'
