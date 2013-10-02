@@ -16,7 +16,7 @@ module ActiveRecord::Associations::Builder
 
     private
 
-    def add_before_destroy_callbacks(model, reflection)
+    def self.add_before_destroy_callbacks(model, reflection)
       super unless reflection.options[:through]
     end
   end
