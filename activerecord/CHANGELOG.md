@@ -1,3 +1,6 @@
+*   `has_and_belongs_to_many` is now transparently implemented in terms of
+    `has_many :through`.  Behavior should remain the same, if not, it is a bug.
+
 *   `create_savepoint`, `rollback_to_savepoint` and `release_savepoint` accept
     a savepoint name.
 
