@@ -29,7 +29,7 @@ module ActiveRecord::Associations::Builder
       return if mixin.method_defined? :belongs_to_counter_cache_after_create
 
       mixin.class_eval do
-        def belongs_to_counter_cache_after_create(association, reflection)
+        def belongs_to_counter_cache_after_create(reflection)
           if record = send(reflection.name)
             cache_column = reflection.counter_cache_column
             record.class.increment_counter(cache_column, record.id)
@@ -37,7 +37,7 @@ module ActiveRecord::Associations::Builder
           end
         end
 
-        def belongs_to_counter_cache_before_destroy(association, reflection)
+        def belongs_to_counter_cache_before_destroy(reflection)
           foreign_key = reflection.foreign_key.to_sym
           unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
             record = send reflection.name
@@ -48,7 +48,7 @@ module ActiveRecord::Associations::Builder
           end
         end
 
-        def belongs_to_counter_cache_after_update(association, reflection)
+        def belongs_to_counter_cache_after_update(reflection)
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
@@ -72,18 +72,17 @@ module ActiveRecord::Associations::Builder
 
     def add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
-      association = self
 
       model.after_create lambda { |record|
-        record.belongs_to_counter_cache_after_create(association, reflection)
+        record.belongs_to_counter_cache_after_create(reflection)
       }
 
       model.before_destroy lambda { |record|
-        record.belongs_to_counter_cache_before_destroy(association, reflection)
+        record.belongs_to_counter_cache_before_destroy(reflection)
       }
 
       model.after_update lambda { |record|
-        record.belongs_to_counter_cache_after_update(association, reflection)
+        record.belongs_to_counter_cache_after_update(reflection)
       }
 
       klass = reflection.class_name.safe_constantize
