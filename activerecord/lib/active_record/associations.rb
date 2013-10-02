@@ -130,6 +130,7 @@ module ActiveRecord
       autoload :HasOne,              'active_record/associations/builder/has_one'
       autoload :HasMany,             'active_record/associations/builder/has_many'
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
+      autoload :HABTM, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
     eager_autoload do
@@ -1568,112 +1569,29 @@ module ActiveRecord
         has_and_belongs_to_many1(name, scope, options, &extension)
       end
 
-      class JoinTableResolver
-        KnownTable = Struct.new :join_table
-
-        class KnownClass
-          def initialize(rhs_class, lhs_class_name)
-            @rhs_class      = rhs_class
-            @lhs_class_name = lhs_class_name
-            @join_table     = nil
-          end
-
-          def join_table
-            @join_table ||= [@rhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
-          end
-
-          private
-          def klass; @lhs_class_name.constantize; end
-        end
-
-        def self.build(rhs_class, name, options)
-          if options[:join_table]
-            KnownTable.new options[:join_table]
-          else
-            class_name = options.fetch(:class_name) {
-              name.to_s.camelize.singularize
-            }
-            KnownClass.new rhs_class, class_name
-          end
-        end
-      end
-
-      def belongs_to_options(options)
-        rhs_options = {}
-
-        if options.key? :class_name
-          rhs_options[:foreign_key] = options[:class_name].foreign_key
-          rhs_options[:class_name] = options[:class_name]
-        end
-
-        if options.key? :association_foreign_key
-          rhs_options[:foreign_key] = options[:association_foreign_key]
-        end
-
-        rhs_options
-      end
-
       def has_and_belongs_to_many1(name, scope = nil, options = {}, &extension)
-        habtm = JoinTableResolver.build self, name, options
+        builder = Builder::HABTM.new name, self, options
 
-        join_model = Class.new(ActiveRecord::Base) {
-          class << self;
-            attr_accessor :class_resolver
-            attr_accessor :name
-            attr_accessor :table_name_resolver
-            attr_accessor :left_association_name
-            attr_accessor :right_association_name
-          end
-
-          def self.table_name
-            table_name_resolver.join_table
-          end
-
-          def self.compute_type(class_name)
-            class_resolver.compute_type class_name
-          end
-
-          def self.add_left_association(name, options)
-            self.left_association_name = name
-            belongs_to name, options
-          end
-
-          def self.add_right_association(name, options)
-            rhs_name = name.to_s.singularize.to_sym
-            self.right_association_name = rhs_name
-            belongs_to rhs_name, options
-          end
-        }
-
-        join_model.name                = "HABTM_#{name.to_s.camelize}"
-        join_model.table_name_resolver = habtm
-        join_model.class_resolver      = self
-
-        join_model.add_left_association :left_side, class: self
-        join_model.add_right_association name, belongs_to_options(options)
+        join_model = builder.through_model
 
         middle_name = [self.name.downcase.pluralize, name].join('_').gsub(/::/, '_').to_sym
 
-        middle_options = {}
-        middle_options[:class] = join_model
-        middle_options[:source] = join_model.left_association_name
-        if options.key? :foreign_key
-          middle_options[:foreign_key] = options[:foreign_key]
-        end
+        middle_options = builder.middle_options join_model
 
         hm_builder = Builder::HasMany.create_builder(self,
                                                      middle_name,
                                                      nil,
                                                      middle_options)
         middle_reflection = hm_builder.build self
+
         hm_builder.define_callbacks self, middle_reflection
 
-        Reflection.add_reflection self, middle_name, middle_reflection
+        Reflection.add_reflection self, middle_reflection.name, middle_reflection
 
         include Module.new {
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def destroy_associations
-            association(:#{middle_name}).delete_all(:delete_all)
+            association(:#{middle_reflection.name}).delete_all(:delete_all)
             association(:#{name}).reset
             super
           end
