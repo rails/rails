@@ -130,7 +130,6 @@ module ActiveRecord
       autoload :HasOne,              'active_record/associations/builder/has_one'
       autoload :HasMany,             'active_record/associations/builder/has_many'
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
-      autoload :HABTM, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
     eager_autoload do
@@ -1566,7 +1565,7 @@ module ActiveRecord
           scope   = nil
         end
 
-        builder = Builder::HABTM.new name, self, options
+        builder = Builder::HasAndBelongsToMany.new name, self, options
 
         join_model = builder.through_model
 
@@ -1590,9 +1589,7 @@ module ActiveRecord
         hm_options[:source] = join_model.right_reflection.name
 
         [:before_add, :after_add, :before_remove, :after_remove].each do |k|
-          if options.key? k
-            hm_options[k] = options[k]
-          end
+          hm_options[k] = options[k] if options.key? k
         end
 
         has_many name, scope, hm_options, &extension
