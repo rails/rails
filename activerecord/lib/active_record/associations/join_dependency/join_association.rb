@@ -29,7 +29,7 @@ module ActiveRecord
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
         delegate :alias_tracker, :to => :join_dependency
 
-        def initialize(reflection, join_dependency, parent = nil)
+        def initialize(reflection, join_dependency, parent)
           reflection.check_validity!
 
           if reflection.options[:polymorphic]
