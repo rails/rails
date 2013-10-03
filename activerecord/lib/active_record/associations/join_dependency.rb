@@ -123,9 +123,8 @@ module ActiveRecord
           associations.unshift(parent.reflection.name)
           parent = parent.parent
         end
-        ref = @associations
-        associations.each do |key|
-          ref = ref[key]
+        ref = associations.inject(@associations) do |cache,key|
+          cache[key]
         end
         ref[association.reflection.name] ||= {}
       end
