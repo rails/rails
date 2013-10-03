@@ -35,7 +35,7 @@ module ActiveRecord
         @reflections   = []
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
-        build(associations)
+        build(associations, join_parts.last, Arel::InnerJoin)
       end
 
       def graft(*associations)
@@ -130,7 +130,7 @@ module ActiveRecord
         ref[association.reflection.name] ||= {}
       end
 
-      def build(associations, parent = join_parts.last, join_type = Arel::InnerJoin)
+      def build(associations, parent, join_type)
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.intern] or
