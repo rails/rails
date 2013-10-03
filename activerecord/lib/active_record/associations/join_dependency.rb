@@ -174,6 +174,12 @@ module ActiveRecord
       end
 
       def build_join_association(reflection, parent)
+        reflection.check_validity!
+
+        if reflection.options[:polymorphic]
+          raise EagerLoadPolymorphicError.new(reflection)
+        end
+
         JoinAssociation.new(reflection, self, parent)
       end
 

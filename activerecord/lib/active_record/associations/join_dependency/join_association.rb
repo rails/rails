@@ -30,12 +30,6 @@ module ActiveRecord
         delegate :alias_tracker, :to => :join_dependency
 
         def initialize(reflection, join_dependency, parent)
-          reflection.check_validity!
-
-          if reflection.options[:polymorphic]
-            raise EagerLoadPolymorphicError.new(reflection)
-          end
-
           super(reflection.klass)
 
           @reflection      = reflection
