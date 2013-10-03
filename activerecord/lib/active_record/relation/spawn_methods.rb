@@ -151,7 +151,7 @@ module ActiveRecord
         values = other.joins_values
         return if values.blank?
 
-        if other.klass == relation.klass
+        if other.klass >= relation.klass
           relation.joins_values += values
         else
           joins_dependency, rest = values.partition do |join|
