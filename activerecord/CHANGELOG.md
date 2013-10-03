@@ -1,6 +1,6 @@
 ## unreleased ##
 
-*   Objects intiantiated using a null relationship will now retain the
+*   Objects instantiated using a null relationship will now retain the
     attributes of the where clause.
 
     Fixes:  #11676, #11675, #11376
