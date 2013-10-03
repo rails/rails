@@ -1,7 +1,6 @@
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
-      autoload :JoinPart,        'active_record/associations/join_dependency/join_part'
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
