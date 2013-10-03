@@ -313,8 +313,12 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
-end
 
+  def test_scope_inherited_properly
+    assert_nothing_raised { Company.of_first_firm }
+    assert_nothing_raised { Client.of_first_firm }
+  end
+end
 
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
   fixtures :companies
