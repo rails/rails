@@ -29,13 +29,13 @@ module ActiveRecord
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
         delegate :alias_tracker, :to => :join_dependency
 
-        def initialize(reflection, join_dependency, parent)
+        def initialize(reflection, join_dependency, parent, join_type)
           super(reflection.klass)
 
           @reflection      = reflection
           @join_dependency = join_dependency
           @parent          = parent
-          @join_type       = Arel::InnerJoin
+          @join_type       = join_type
           @aliased_prefix  = "t#{ join_dependency.join_parts.size }"
           @tables          = construct_tables.reverse
         end

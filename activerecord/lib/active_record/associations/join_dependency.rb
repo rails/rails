@@ -137,8 +137,7 @@ module ActiveRecord
           raise ConfigurationError, "Association named '#{ associations }' was not found on #{ parent.base_klass.name }; perhaps you misspelled it?"
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
-            join_association = build_join_association(reflection, parent)
-            join_association.join_type = join_type
+            join_association = build_join_association(reflection, parent, join_type)
             @join_parts << join_association
             cache_joined_association(join_association)
           end
@@ -173,14 +172,14 @@ module ActiveRecord
         end
       end
 
-      def build_join_association(reflection, parent)
+      def build_join_association(reflection, parent, join_type)
         reflection.check_validity!
 
         if reflection.options[:polymorphic]
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        JoinAssociation.new(reflection, self, parent)
+        JoinAssociation.new(reflection, self, parent, join_type)
       end
 
       def construct(parent, associations, join_parts, row)
