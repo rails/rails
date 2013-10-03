@@ -534,7 +534,7 @@ instance variable:
 
 ```ruby
 # setting a HTTP Header
-@request.headers["Accepts"] = "text/plain, text/html"
+@request.headers["Accept"] = "text/plain, text/html"
 get :index # simulate the request with custom header
 
 # setting a CGI variable
