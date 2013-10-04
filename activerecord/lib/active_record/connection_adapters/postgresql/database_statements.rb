@@ -134,35 +134,31 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
-          log(sql, name, binds) do
-            result = without_prepared_statement?(binds) ? exec_no_cache(sql, binds) :
-                                                          exec_cache(sql, binds)
+          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
+                                                        exec_cache(sql, name, binds)
 
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
-                warn "unknown OID: #{fname}(#{oid}) (#{sql})"
-                OID::Identity.new
-              }
-            end
-
-            ret = ActiveRecord::Result.new(fields, result.values, types)
-            result.clear
-            return ret
+          types = {}
+          fields = result.fields
+          fields.each_with_index do |fname, i|
+            ftype = result.ftype i
+            fmod  = result.fmod i
+            types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
+              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
+              OID::Identity.new
+            }
           end
+
+          ret = ActiveRecord::Result.new(fields, result.values, types)
+          result.clear
+          return ret
         end
 
         def exec_delete(sql, name = 'SQL', binds = [])
-          log(sql, name, binds) do
-            result = without_prepared_statement?(binds) ? exec_no_cache(sql, binds) :
-                                                          exec_cache(sql, binds)
-            affected = result.cmd_tuples
-            result.clear
-            affected
-          end
+          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
+                                                        exec_cache(sql, name, binds)
+          affected = result.cmd_tuples
+          result.clear
+          affected
         end
         alias :exec_update :exec_delete
 
