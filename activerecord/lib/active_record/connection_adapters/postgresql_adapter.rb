@@ -772,12 +772,10 @@ module ActiveRecord
         end
 
         def exec_cache(sql, name, binds)
-          stmt_key = prepare_statement(sql)
-
           log(sql, name, binds) do
             begin
-              # Clear the queue
-              @connection.get_last_result
+              stmt_key = prepare_statement(sql)
+
               @connection.send_query_prepared(stmt_key, binds.map { |col, val|
                 type_cast(val, col)
               })
@@ -816,6 +814,8 @@ module ActiveRecord
           unless @statements.key? sql_key
             nextkey = @statements.next_key
             @connection.prepare nextkey, sql
+            # Clear the queue
+            @connection.get_last_result
             @statements[sql_key] = nextkey
           end
           @statements[sql_key]
