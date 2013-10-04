@@ -121,12 +121,15 @@ end
 
 class SQLSubscriber
   attr_reader :logged
+  attr_reader :payloads
 
   def initialize
     @logged = []
+    @payloads = []
   end
 
   def start(name, id, payload)
+    @payloads << payload
     @logged << [payload[:sql], payload[:name], payload[:binds]]
   end
 

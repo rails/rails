@@ -774,7 +774,7 @@ module ActiveRecord
         def exec_cache(sql, name, binds)
           stmt_key = prepare_statement(sql)
 
-          log(sql, name, binds) do
+          log(sql, name, binds, stmt_key) do
             @connection.send_query_prepared(stmt_key, binds.map { |col, val|
               type_cast(val, col)
             })

@@ -424,13 +424,14 @@ module ActiveRecord
 
       protected
 
-      def log(sql, name = "SQL", binds = [])
+      def log(sql, name = "SQL", binds = [], statement_name = nil)
         @instrumenter.instrument(
           "sql.active_record",
-          :sql           => sql,
-          :name          => name,
-          :connection_id => object_id,
-          :binds         => binds) { yield }
+          :sql            => sql,
+          :name           => name,
+          :connection_id  => object_id,
+          :statement_name => statement_name,
+          :binds          => binds) { yield }
       rescue => e
         message = "#{e.class.name}: #{e.message}: #{sql}"
         @logger.error message if @logger
