@@ -119,21 +119,6 @@ class << Time
   end
 end
 
-module LogIntercepter
-  attr_accessor :logged, :intercepted
-  def self.extended(base)
-    base.logged = []
-  end
-  def log(sql, name = 'SQL', binds = [], &block)
-    if @intercepted
-      @logged << [sql, name, binds]
-      yield
-    else
-      super(sql, name,binds, &block)
-    end
-  end
-end
-
 class SQLSubscriber
   attr_reader :logged
 
