@@ -5,21 +5,6 @@ module ActiveRecord
     class NonExistentTable < ActiveRecord::Base
     end
 
-    class SQLSubscriber
-      attr_reader :logged
-
-      def initialize
-        @logged = []
-      end
-
-      def start(name, id, payload)
-        @logged << [payload[:sql], payload[:name], payload[:binds]]
-      end
-
-      def finish(name, id, payload)
-      end
-    end
-
     def setup
       super
       @subscriber = SQLSubscriber.new

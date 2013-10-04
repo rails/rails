@@ -3,14 +3,14 @@ require "cases/helper"
 class MysqlConnectionTest < ActiveRecord::TestCase
   def setup
     super
+    @subscriber = SQLSubscriber.new
+    ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     @connection = ActiveRecord::Base.connection
-    @connection.extend(LogIntercepter)
-    @connection.intercepted = true
   end
 
   def teardown
-    @connection.intercepted = false
-    @connection.logged = []
+    ActiveSupport::Notifications.unsubscribe(@subscriber)
+    super
   end
 
   def test_no_automatic_reconnection_after_timeout
@@ -72,14 +72,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_logs_name_show_variable
     @connection.show_variable 'foo'
-    assert_equal "SCHEMA", @connection.logged[0][1]
+    assert_equal "SCHEMA", @subscriber.logged[0][1]
   end
 
   def test_logs_name_rename_column_sql
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
-    @connection.logged = []
+    @subscriber.logged.clear
     @connection.send(:rename_column_sql, 'bar_baz', 'foo', 'foo2')
-    assert_equal "SCHEMA", @connection.logged[0][1]
+    assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end
