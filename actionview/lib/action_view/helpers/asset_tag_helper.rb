@@ -224,14 +224,14 @@ module ActionView
       #
       # ==== Examples
       #
-      #   image_tag('rails.png')
-      #   # => <img alt="Rails" src="/assets/rails.png" />
+      #   image_alt('rails.png')
+      #   # => Rails
       #
-      #   image_tag('hyphenated-file-name.png')
-      #   # => <img alt="Hyphenated file name" src="/assets/hyphenated-file-name.png" />
+      #   image_alt('hyphenated-file-name.png')
+      #   # => Hyphenated file name
       #
-      #   image_tag('underscored_file_name.png')
-      #   # => <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
+      #   image_alt('underscored_file_name.png')
+      #   # => Underscored file name
       def image_alt(src)
         File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').tr('-_', ' ').capitalize
       end
