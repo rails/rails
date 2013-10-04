@@ -1,23 +1,23 @@
 module DateAndTime
   module Calculations
     DAYS_INTO_WEEK = {
-      :monday    => 0,
-      :tuesday   => 1,
-      :wednesday => 2,
-      :thursday  => 3,
-      :friday    => 4,
-      :saturday  => 5,
-      :sunday    => 6
+      monday:    0,
+      tuesday:   1,
+      wednesday: 2,
+      thursday:  3,
+      friday:    4,
+      saturday:  5,
+      sunday:    6
     }
 
     # Returns a new date/time representing yesterday.
     def yesterday
-      advance(:days => -1)
+      advance(days: -1)
     end
 
     # Returns a new date/time representing tomorrow.
     def tomorrow
-      advance(:days => 1)
+      advance(days: 1)
     end
 
     # Returns true if the date/time is today.
@@ -37,48 +37,48 @@ module DateAndTime
 
     # Returns a new date/time the specified number of days ago.
     def days_ago(days)
-      advance(:days => -days)
+      advance(days: -days)
     end
 
     # Returns a new date/time the specified number of days in the future.
     def days_since(days)
-      advance(:days => days)
+      advance(days: days)
     end
 
     # Returns a new date/time the specified number of weeks ago.
     def weeks_ago(weeks)
-      advance(:weeks => -weeks)
+      advance(weeks: -weeks)
     end
 
     # Returns a new date/time the specified number of weeks in the future.
     def weeks_since(weeks)
-      advance(:weeks => weeks)
+      advance(weeks: weeks)
     end
 
     # Returns a new date/time the specified number of months ago.
     def months_ago(months)
-      advance(:months => -months)
+      advance(months: -months)
     end
 
     # Returns a new date/time the specified number of months in the future.
     def months_since(months)
-      advance(:months => months)
+      advance(months: months)
     end
 
     # Returns a new date/time the specified number of years ago.
     def years_ago(years)
-      advance(:years => -years)
+      advance(years: -years)
     end
 
     # Returns a new date/time the specified number of years in the future.
     def years_since(years)
-      advance(:years => years)
+      advance(years: years)
     end
 
     # Returns a new date/time at the start of the month.
     # DateTime objects will have a time set to 0:00.
     def beginning_of_month
-      first_hour(change(:day => 1))
+      first_hour(change(day: 1))
     end
     alias :at_beginning_of_month :beginning_of_month
 
@@ -87,7 +87,7 @@ module DateAndTime
     # DateTime objects will have a time set to 0:00.
     def beginning_of_quarter
       first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
-      beginning_of_month.change(:month => first_quarter_month)
+      beginning_of_month.change(month: first_quarter_month)
     end
     alias :at_beginning_of_quarter :beginning_of_quarter
 
@@ -96,7 +96,7 @@ module DateAndTime
     # DateTime objects will have a time set to 23:59:59.
     def end_of_quarter
       last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
-      beginning_of_month.change(:month => last_quarter_month).end_of_month
+      beginning_of_month.change(month: last_quarter_month).end_of_month
     end
     alias :at_end_of_quarter :end_of_quarter
 
@@ -104,7 +104,7 @@ module DateAndTime
     # Example: 1st January.
     # DateTime objects will have a time set to 0:00.
     def beginning_of_year
-      change(:month => 1).beginning_of_month
+      change(month: 1).beginning_of_month
     end
     alias :at_beginning_of_year :beginning_of_year
 
@@ -209,7 +209,7 @@ module DateAndTime
     # Returns a new date/time representing the end of the year.
     # DateTime objects will have a time set to 23:59:59.
     def end_of_year
-      change(:month => 12).end_of_month
+      change(month: 12).end_of_month
     end
     alias :at_end_of_year :end_of_year
 
