@@ -290,6 +290,19 @@ class InverseHasManyTests < ActiveRecord::TestCase
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.find(:first).secret_interests }
   end
+
+  def test_child_instance_should_point_to_parent_without_saving
+    man = Man.new
+    i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
+
+    man.interests << i
+    assert_not_nil i.man
+
+    i.man.name = "Charles"
+    assert_equal i.man.name, man.name
+
+    assert !man.persisted?
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
