@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module/delegation'
+require 'tempfile'
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -21,6 +22,40 @@ module Notifications
 
     def event(*args)
       ActiveSupport::Notifications::Event.new(*args)
+    end
+  end
+
+  class NotificationTypeTest < TestCase
+    MAX_FILESYSTEM_CHANGE_WAIT_TIME = 5
+
+    def test_listen_to_filesystem_path
+      filesystem_events = []
+
+      dir = Dir.mktmpdir
+      ActiveSupport::Notifications.publish_file_changes("test_filesystem_notification", dir)
+      ActiveSupport::Notifications.subscribe("test_filesystem_notification") { |*args| filesystem_events << [*args] }
+      assert_equal [], filesystem_events
+
+      # NOTE: This sleep is necessary because system time is only accurate to the second.
+      # Thus, if we create a file within 1 second of starting the listener, we might
+      # trick the system into thinking the file wasn't actually added
+      sleep(1)
+
+      tmpfile = Tempfile.new('some_file', dir)
+      tmpfile.write "testing document" 
+
+      start_time = Time.now
+      while filesystem_events.empty? && Time.now - start_time < MAX_FILESYSTEM_CHANGE_WAIT_TIME
+        sleep(0.05)
+      end
+      assert !filesystem_events.empty?, "Filesystem change was not detected."
+      changed_file_hash = filesystem_events[0][4]
+
+      assert_equal "test_filesystem_notification", filesystem_events[0][0], "Incorrect notifications group name."
+      assert_equal tmpfile.path, changed_file_hash[:path], "Incorrect path was detected for the filesystem change."
+      assert_equal :added, changed_file_hash[:type], "Incorrect type of filesystem change detected."
+    ensure
+      ActiveSupport::Notifications.unpublish_file_changes
     end
   end
 
