@@ -182,24 +182,24 @@ module ActiveRecord
       end
 
       def construct(parent, associations, join_parts, row)
-        case associations
-        when Symbol, String
-          name = associations.to_s
-
-          join_part = join_parts.detect { |j|
-            j.reflection.name.to_s == name &&
-              j.parent_table_name == parent.class.table_name }
-
-            raise(ConfigurationError, "No such association") unless join_part
-
-            join_parts.delete(join_part)
-            construct_association(parent, join_part, row)
-        when Hash
-          associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
-            association = construct(parent, association_name, join_parts, row)
-            construct(association, assoc, join_parts, row) if association
-          end
+        associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
+          association = construct_scalar(parent, association_name, join_parts, row)
+          construct(association, assoc, join_parts, row) if association
         end
+      end
+
+      def construct_scalar(parent, associations, join_parts, row)
+        name = associations.to_s
+
+        join_part = join_parts.detect { |j|
+          j.reflection.name.to_s == name &&
+            j.parent_table_name == parent.class.table_name
+        }
+
+        raise(ConfigurationError, "No such association") unless join_part
+
+        join_parts.delete(join_part)
+        construct_association(parent, join_part, row)
       end
 
       def construct_association(record, join_part, row)
