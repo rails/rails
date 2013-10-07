@@ -176,6 +176,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parse_with_two_digit_year
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.parse('13-12-31 19:00:00')
+    assert_equal [0,0,19,31,12,2013], twz.to_a[0,6]
+    assert_equal zone, twz.time_zone
+  end
+
   def test_parse_with_old_date
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     twz = zone.parse('1883-12-31 19:00:00')
