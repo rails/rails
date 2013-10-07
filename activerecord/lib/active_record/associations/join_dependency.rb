@@ -194,10 +194,6 @@ module ActiveRecord
 
             join_parts.delete(join_part)
             construct_association(parent, join_part, row)
-        when Array
-          associations.each do |association|
-            construct(parent, association, join_parts, row)
-          end
         when Hash
           associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
             association = construct(parent, association_name, join_parts, row)
