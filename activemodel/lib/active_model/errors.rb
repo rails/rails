@@ -366,13 +366,34 @@ module ActiveModel
 
     # Returns a full message for a given attribute.
     #
-    #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
+    #   person.errors.full_message(:name, 'is invalid') # => "name is invalid"
+    #
+    # Error messages are first looked up in <tt>activemodel.errors.models.MODEL.format</tt>,
+    # if it's not there, it's looked up in <tt>activemodel.errors.format</tt> and if
+    # that is not there also, it returns the translation of the default message
+    # (e.g. <tt>errors.format</tt>).
     def full_message(attribute, message)
       return message if attribute == :base
       attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-      I18n.t(:"errors.format", {
-        default:  "%{attribute} %{message}",
+
+      if @base.class.respond_to?(:i18n_scope)
+        defaults = @base.class.lookup_ancestors.map do |klass|
+          [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.format",
+            :"#{@base.class.i18n_scope}.errors.format"
+          ]
+        end
+      else
+        defaults = []
+      end
+
+      defaults << :"errors.format"
+      defaults.compact!
+      defaults.flatten!
+      key = defaults.first
+
+      I18n.t(key, {
+        default:  defaults,
         attribute: attr_name,
         message:   message
       })
@@ -403,25 +424,7 @@ module ActiveModel
     # * <tt>errors.attributes.title.blank</tt>
     # * <tt>errors.messages.blank</tt>
     def generate_message(attribute, type = :invalid, options = {})
-      type = options.delete(:message) if options[:message].is_a?(Symbol)
-
-      if @base.class.respond_to?(:i18n_scope)
-        defaults = @base.class.lookup_ancestors.map do |klass|
-          [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
-        end
-      else
-        defaults = []
-      end
-
-      defaults << options.delete(:message)
-      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}" if @base.class.respond_to?(:i18n_scope)
-      defaults << :"errors.attributes.#{attribute}.#{type}"
-      defaults << :"errors.messages.#{type}"
-
-      defaults.compact!
-      defaults.flatten!
-
+      defaults = default_i18n_scopes_for_messages(attribute, type, options)
       key = defaults.shift
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
@@ -445,6 +448,27 @@ module ActiveModel
       else
         message
       end
+    end
+
+    def default_i18n_scopes_for_messages(attribute, type, options)
+      type = options.delete(:message) if options[:message].is_a?(Symbol)
+      if @base.class.respond_to?(:i18n_scope)
+        result = @base.class.lookup_ancestors.map do |klass|
+          [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+        end
+      else
+        result = []
+      end
+
+      result << options.delete(:message)
+      result << :"#{@base.class.i18n_scope}.errors.messages.#{type}" if @base.class.respond_to?(:i18n_scope)
+      result << :"errors.attributes.#{attribute}.#{type}"
+      result << :"errors.messages.#{type}"
+
+      result.compact!
+      result.flatten!
+      result
     end
   end
 

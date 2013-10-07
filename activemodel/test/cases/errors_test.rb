@@ -300,4 +300,13 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.expects(:generate_message).with(:name, :blank, { message: 'custom' })
     person.errors.add_on_blank :name, message: 'custom'
   end
+
+  def test_use_custom_error_format_specific_for_model
+    I18n.backend.store_translations 'en', activemodel: { errors: { models: { :'errors_test/person' => { format: '%{message}' } } } }
+    person = Person.new
+    Person.expects(:i18n_scope).returns(:activemodel)
+    person.errors.add(:name, 'can not be blank')
+    assert_equal ['can not be blank'], person.errors.full_messages_for(:name)
+  end
+
 end
