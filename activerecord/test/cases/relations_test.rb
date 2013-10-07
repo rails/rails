@@ -471,6 +471,12 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_association_include
+    post = Post.includes(:comments).first
+    comment = post.comments.first
+    assert_equal post.comments.include?(comment), true
+  end
+
   def test_default_scope_with_conditions_string
     assert_equal Developer.where(name: 'David').map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
     assert_nil DeveloperCalledDavid.create!.name
