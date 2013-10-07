@@ -199,8 +199,6 @@ module ActiveRecord
             association = construct(parent, association_name, join_parts, row)
             construct(association, assoc, join_parts, row) if association
           end
-        else
-          raise ConfigurationError, associations.inspect
         end
       end
 
