@@ -1,3 +1,4 @@
+require File.expand_path('../../../load_paths', __FILE__)
 require 'active_model'
 
 class Person
