@@ -182,7 +182,8 @@ module ActiveRecord
       def build(associations, parent, join_type)
         associations.each do |name, right|
           reflection = find_reflection parent.base_klass, name
-          join_association = find_or_build_scalar reflection, parent, join_type
+          join_association = build_join_association reflection, parent, join_type
+          @join_parts << join_association
           build right, join_association, join_type
         end
       end
