@@ -1,3 +1,8 @@
+*   Fixed `stack level too deep` error when creating a children object on a parent callback.
+    This error was only happening when the inverse_of relation was set.
+
+    *arthurnn*
+
 *   `has_and_belongs_to_many` is now transparently implemented in terms of
     `has_many :through`.  Behavior should remain the same, if not, it is a bug.
 
