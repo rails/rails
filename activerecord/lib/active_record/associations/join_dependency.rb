@@ -62,10 +62,17 @@ module ActiveRecord
       end
 
       def graft(*associations)
-        associations.each do |association|
-          join_associations.detect { |a| association == a } ||
-            find_or_build_scalar(association.reflection.name, find_parent_part(association.parent) || join_base, association.join_type)
-        end
+        join_assocs = join_associations
+        base        = join_base
+
+        associations.reject { |association|
+          join_assocs.detect { |a| association == a }
+        }.each { |association|
+          name      = association.reflection.name
+          join_part = find_parent_part(association.parent) || base
+          type      = association.join_type
+          find_or_build_scalar name, join_part, type
+        }
         self
       end
 
