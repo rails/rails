@@ -4,7 +4,7 @@ module ActiveRecord
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
-      attr_reader :join_parts, :reflections, :alias_tracker, :base_klass
+      attr_reader :join_parts, :alias_tracker, :base_klass
 
       def self.make_tree(associations)
         hash = {}
@@ -55,7 +55,6 @@ module ActiveRecord
         @base_klass    = base
         @table_joins   = joins
         @join_parts    = [JoinBase.new(base)]
-        @reflections   = []
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
@@ -72,6 +71,10 @@ module ActiveRecord
 
       def join_associations
         join_parts.drop 1
+      end
+
+      def reflections
+        join_associations.map(&:reflection)
       end
 
       def join_relation(relation)
@@ -184,7 +187,6 @@ module ActiveRecord
       def find_or_build_scalar(name, parent, join_type)
         reflection = find_reflection parent.base_klass, name
         unless join_association = find_join_association(reflection, parent)
-          @reflections << reflection
           join_association = build_join_association(reflection, parent, join_type)
           @join_parts << join_association
         end
