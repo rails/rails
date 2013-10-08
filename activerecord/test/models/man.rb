@@ -7,4 +7,10 @@ class Man < ActiveRecord::Base
   has_one :dirty_face, :class_name => 'Face', :inverse_of => :dirty_man
   has_many :secret_interests, :class_name => 'Interest', :inverse_of => :secret_man
   has_one :mixed_case_monkey
+
+  attr_accessor :auto_create_face
+  before_create do
+    create_face! if auto_create_face
+  end
+
 end

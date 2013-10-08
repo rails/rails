@@ -1,3 +1,5 @@
+require 'active_support/per_thread_registry'
+
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -145,18 +147,37 @@ module ActiveRecord
 
       def define_non_cyclic_method(name, reflection, &block)
         define_method(name) do |*args|
-          result = true; @_already_called ||= {}
-          # Loop prevention for validation of associations
-          unless @_already_called[[name, reflection.name]]
+          result = true
+          unless NonCyclicMethodRegistry.already_called?(name, reflection.name)
             begin
-              @_already_called[[name, reflection.name]]=true
+              NonCyclicMethodRegistry.set(name, reflection.name)
               result = instance_eval(&block)
             ensure
-              @_already_called[[name, reflection.name]]=false
+              NonCyclicMethodRegistry.unset(name, reflection.name)
             end
           end
 
           result
+        end
+      end
+
+      class NonCyclicMethodRegistry # :nodoc:
+        extend ActiveSupport::PerThreadRegistry
+
+        def initialize
+          @already_called = {}
+        end
+
+        def already_called?(name, reflection)
+          @already_called[[name, reflection]]
+        end
+
+        def set(name, reflection)
+          @already_called[[name, reflection]] = true
+        end
+
+        def unset(name, reflection)
+          @already_called[[name, reflection]] = nil
         end
       end
 
