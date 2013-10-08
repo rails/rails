@@ -31,7 +31,6 @@ module ActiveRecord
         @base_klass    = base
         @table_joins   = joins
         @join_parts    = [JoinBase.new(base)]
-        @associations  = {}
         @reflections   = []
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
@@ -70,19 +69,26 @@ module ActiveRecord
         parents = {}
 
         type_caster = result_set.column_type primary_key
+        assoc = associations
 
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_base.instantiate(row_hash)
-          construct(parent, @associations, join_associations, row_hash, result_set)
+          construct(parent, assoc, join_associations, row_hash, result_set)
           parent
         }.uniq
 
-        remove_duplicate_results!(base_klass, records, @associations)
+        remove_duplicate_results!(base_klass, records, assoc)
         records
       end
 
       private
+
+      def associations
+        join_associations.each_with_object({}) do |assoc, tree|
+          cache_joined_association assoc, tree
+        end
+      end
 
       def find_parent_part(parent)
         join_parts.detect do |join_part|
@@ -125,14 +131,14 @@ module ActiveRecord
         end
       end
 
-      def cache_joined_association(association)
+      def cache_joined_association(association, tree)
         associations = []
         parent = association.parent
         while parent != join_base
           associations.unshift(parent.reflection.name)
           parent = parent.parent
         end
-        ref = associations.inject(@associations) do |cache,key|
+        ref = associations.inject(tree) do |cache,key|
           cache[key]
         end
         ref[association.reflection.name] ||= {}
@@ -147,7 +153,6 @@ module ActiveRecord
             @reflections << reflection
             join_association = build_join_association(reflection, parent, join_type)
             @join_parts << join_association
-            cache_joined_association(join_association)
           end
           join_association
         when Array
