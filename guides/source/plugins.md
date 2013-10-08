@@ -34,9 +34,15 @@ different rails applications using RubyGems and Bundler if desired.
 
 
 Rails ships with a `rails plugin new` command which creates a
- skeleton for developing any kind of Rails extension with the ability
- to run integration tests using a dummy Rails application. See usage
- and options by asking for help:
+skeleton for developing any kind of Rails extension with the ability
+to run integration tests using a dummy Rails application. Create your 
+plugin with the command:
+
+```bash
+$ rails plugin new yaffle
+```
+
+See usage and options by asking for help:
 
 ```bash
 $ rails plugin --help
