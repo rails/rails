@@ -134,29 +134,23 @@ module ActiveRecord
       end
 
       def remove_duplicate_results!(base, records, associations)
-        case associations
-        when Symbol
-          reflection = base.reflections[associations]
+        associations.each_key do |name|
+          reflection = base.reflections[name]
           remove_uniq_by_reflection(reflection, records)
-        when Hash
-          associations.each_key do |name|
-            reflection = base.reflections[name]
-            remove_uniq_by_reflection(reflection, records)
 
-            parent_records = []
-            records.each do |record|
-              if descendant = record.send(reflection.name)
-                if reflection.collection?
-                  parent_records.concat descendant.target.uniq
-                else
-                  parent_records << descendant
-                end
+          parent_records = []
+          records.each do |record|
+            if descendant = record.send(reflection.name)
+              if reflection.collection?
+                parent_records.concat descendant.target.uniq
+              else
+                parent_records << descendant
               end
             end
+          end
 
-            unless parent_records.empty?
-              remove_duplicate_results!(reflection.klass, parent_records, associations[name])
-            end
+          unless parent_records.empty?
+            remove_duplicate_results!(reflection.klass, parent_records, associations[name])
           end
         end
       end
