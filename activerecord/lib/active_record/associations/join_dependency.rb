@@ -176,7 +176,7 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        JoinAssociation.new(reflection, self, parent, join_type)
+        JoinAssociation.new(reflection, join_parts.length, parent, join_type, alias_tracker)
       end
 
       def construct(parent, associations, join_parts, row, rs)

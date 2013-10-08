@@ -9,11 +9,6 @@ module ActiveRecord
         # The reflection of the association represented
         attr_reader :reflection
 
-        # The JoinDependency object which this JoinAssociation exists within. This is mainly
-        # relevant for generating aliases which do not conflict with other joins which are
-        # part of the query.
-        attr_reader :join_dependency
-
         # A JoinBase instance representing the active record we are joining onto.
         # (So in Author.has_many :posts, the Author would be that base record.)
         attr_reader :parent
@@ -25,18 +20,18 @@ module ActiveRecord
         attr_reader :aliased_prefix
 
         attr_reader :tables
+        attr_reader :alias_tracker
 
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
-        delegate :alias_tracker, :to => :join_dependency
 
-        def initialize(reflection, join_dependency, parent, join_type)
+        def initialize(reflection, index, parent, join_type, alias_tracker)
           super(reflection.klass)
 
           @reflection      = reflection
-          @join_dependency = join_dependency
+          @alias_tracker   = alias_tracker
           @parent          = parent
           @join_type       = join_type
-          @aliased_prefix  = "t#{ join_dependency.join_parts.size }"
+          @aliased_prefix  = "t#{ index }"
           @tables          = construct_tables.reverse
         end
 
