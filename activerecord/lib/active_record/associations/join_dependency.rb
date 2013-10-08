@@ -135,7 +135,7 @@ module ActiveRecord
 
       def remove_duplicate_results!(base, records, associations)
         case associations
-        when Symbol, String
+        when Symbol
           reflection = base.reflections[associations]
           remove_uniq_by_reflection(reflection, records)
         when Hash
@@ -154,7 +154,9 @@ module ActiveRecord
               end
             end
 
-            remove_duplicate_results!(reflection.klass, parent_records, associations[name]) unless parent_records.empty?
+            unless parent_records.empty?
+              remove_duplicate_results!(reflection.klass, parent_records, associations[name])
+            end
           end
         end
       end
