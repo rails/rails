@@ -69,14 +69,16 @@ module ActiveRecord
         }.flatten
       end
 
-      def instantiate(rows)
+      def instantiate(result_set)
         primary_key = join_base.aliased_primary_key
         parents = {}
 
-        records = rows.map { |model|
-          primary_id = model[primary_key]
-          parent = parents[primary_id] ||= join_base.instantiate(model)
-          construct(parent, @associations, join_associations, model)
+        type_caster = result_set.column_type primary_key
+
+        records = result_set.map { |row_hash|
+          primary_id = type_caster.type_cast row_hash[primary_key]
+          parent = parents[primary_id] ||= join_base.instantiate(row_hash)
+          construct(parent, @associations, join_associations, row_hash, result_set)
           parent
         }.uniq
 
@@ -181,14 +183,14 @@ module ActiveRecord
         JoinAssociation.new(reflection, self, parent, join_type)
       end
 
-      def construct(parent, associations, join_parts, row)
+      def construct(parent, associations, join_parts, row, rs)
         associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
-          association = construct_scalar(parent, association_name, join_parts, row)
-          construct(association, assoc, join_parts, row) if association
+          association = construct_scalar(parent, association_name, join_parts, row, rs)
+          construct(association, assoc, join_parts, row, rs) if association
         end
       end
 
-      def construct_scalar(parent, associations, join_parts, row)
+      def construct_scalar(parent, associations, join_parts, row, rs)
         name = associations.to_s
 
         join_part = join_parts.detect { |j|
@@ -199,11 +201,14 @@ module ActiveRecord
         raise(ConfigurationError, "No such association") unless join_part
 
         join_parts.delete(join_part)
-        construct_association(parent, join_part, row)
+        construct_association(parent, join_part, row, rs)
       end
 
-      def construct_association(record, join_part, row)
-        return if record.id.to_s != join_part.parent.record_id(row).to_s
+      def construct_association(record, join_part, row, rs)
+        caster = rs.column_type(join_part.parent.aliased_primary_key)
+        row_id = caster.type_cast row[join_part.parent.aliased_primary_key]
+
+        return if record.id != row_id
 
         macro = join_part.reflection.macro
         if macro == :has_one

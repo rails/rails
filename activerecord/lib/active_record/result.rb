@@ -46,6 +46,10 @@ module ActiveRecord
       IDENTITY_TYPE
     end
 
+    def column_type(name)
+      @column_types[name] || identity_type
+    end
+
     def each
       if block_given?
         hash_rows.each { |row| yield row }
