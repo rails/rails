@@ -135,7 +135,7 @@ module ActiveRecord
 
       def remove_duplicate_results!(base, records, associations)
         associations.each_key do |name|
-          reflection = base.reflections[name]
+          reflection = base.reflect_on_association(name)
           remove_uniq_by_reflection(reflection, records)
 
           parent_records = []
