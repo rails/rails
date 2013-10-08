@@ -144,11 +144,15 @@ module ActiveRecord
         ref[association.reflection.name] ||= {}
       end
 
+      def find_reflection(klass, name)
+        klass.reflect_on_association(name.intern) or
+          raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
+      end
+
       def build(associations, parent, join_type)
         case associations
         when Symbol, String
-          reflection = parent.reflections[associations.intern] or
-          raise ConfigurationError, "Association named '#{ associations }' was not found on #{ parent.base_klass.name }; perhaps you misspelled it?"
+          reflection = find_reflection parent.base_klass, associations
           unless join_association = find_join_association(reflection, parent)
             @reflections << reflection
             join_association = build_join_association(reflection, parent, join_type)
