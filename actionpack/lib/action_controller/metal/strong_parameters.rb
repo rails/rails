@@ -283,10 +283,17 @@ module ActionController
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param not found: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
+    
     def fetch(key, *args)
-      convert_hashes_to_parameters(key, super)
-    rescue KeyError
-      raise ActionController::ParameterMissing.new(key)
+      super(key) do
+        if block_given?
+          yield
+        else
+          args.fetch(0) do
+            raise ActionController::ParameterMissing.new(key)
+          end
+        end
+      end
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
@@ -334,17 +341,13 @@ module ActionController
       def each_element(object)
         if object.is_a?(Array)
           object.map { |el| yield el }.compact
-        elsif fields_for_style?(object)
+        elsif object.is_a?(Hash) && object.keys.all? { |k| k =~ /\A-?\d+\z/ }
           hash = object.class.new
           object.each { |k,v| hash[k] = yield v }
           hash
         else
           yield object
         end
-      end
-
-      def fields_for_style?(object)
-        object.is_a?(Hash) && object.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
       end
 
       def unpermitted_parameters!(params)
@@ -425,7 +428,7 @@ module ActionController
 
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
-          next unless value
+          return unless value
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.

@@ -152,6 +152,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
+  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+    assert_equal nil, @params.fetch(:foo, nil)
+    assert_equal nil, @params.fetch(:foo) { nil }
+  end
+
   test "not permitted is sticky on accessors" do
     assert !@params.slice(:person).permitted?
     assert !@params[:person][:name].permitted?
