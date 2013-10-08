@@ -93,10 +93,6 @@ module ActiveRecord
         when Symbol, String
           reflection = base.reflections[associations]
           remove_uniq_by_reflection(reflection, records)
-        when Array
-          associations.each do |association|
-            remove_duplicate_results!(base, records, association)
-          end
         when Hash
           associations.each_key do |name|
             reflection = base.reflections[name]
