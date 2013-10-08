@@ -152,25 +152,29 @@ module ActiveRecord
       def build(associations, parent, join_type)
         case associations
         when Symbol, String
-          reflection = find_reflection parent.base_klass, associations
-          unless join_association = find_join_association(reflection, parent)
-            @reflections << reflection
-            join_association = build_join_association(reflection, parent, join_type)
-            @join_parts << join_association
-          end
-          join_association
+          find_or_build_scalar associations, parent, join_type
         when Array
           associations.each do |association|
             build(association, parent, join_type)
           end
         when Hash
           associations.each do |left, right|
-            join_association = build(left, parent, join_type)
+            join_association = find_or_build_scalar left, parent, join_type
             build(right, join_association, join_type)
           end
         else
           raise ConfigurationError, associations.inspect
         end
+      end
+
+      def find_or_build_scalar(name, parent, join_type)
+        reflection = find_reflection parent.base_klass, name
+        unless join_association = find_join_association(reflection, parent)
+          @reflections << reflection
+          join_association = build_join_association(reflection, parent, join_type)
+          @join_parts << join_association
+        end
+        join_association
       end
 
       def find_join_association(reflection, parent)
