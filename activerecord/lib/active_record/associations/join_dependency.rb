@@ -41,17 +41,13 @@ module ActiveRecord
       def graft(*associations)
         associations.each do |association|
           join_associations.detect {|a| association == a} ||
-            build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_type)
+            build(association.reflection.name, find_parent_part(association.parent) || join_base, association.join_type)
         end
         self
       end
 
       def join_associations
         join_parts.drop 1
-      end
-
-      def join_base
-        join_parts.first
       end
 
       def join_relation(relation)
@@ -86,7 +82,22 @@ module ActiveRecord
         records
       end
 
-      protected
+      private
+
+      def find_parent_part(parent)
+        join_parts.detect do |join_part|
+          case parent
+          when JoinBase
+            parent.base_klass == join_part.base_klass
+          else
+            parent == join_part
+          end
+        end
+      end
+
+      def join_base
+        join_parts.first
+      end
 
       def remove_duplicate_results!(base, records, associations)
         case associations
