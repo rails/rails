@@ -68,10 +68,9 @@ module ActiveRecord
         associations.reject { |association|
           join_assocs.detect { |a| association == a }
         }.each { |association|
-          name      = association.reflection.name
           join_part = find_parent_part(association.parent) || base
           type      = association.join_type
-          find_or_build_scalar name, join_part, type
+          find_or_build_scalar association.reflection, join_part, type
         }
         self
       end
@@ -181,14 +180,14 @@ module ActiveRecord
       end
 
       def build(associations, parent, join_type)
-        associations.each do |left, right|
-          join_association = find_or_build_scalar left, parent, join_type
+        associations.each do |name, right|
+          reflection = find_reflection parent.base_klass, name
+          join_association = find_or_build_scalar reflection, parent, join_type
           build right, join_association, join_type
         end
       end
 
-      def find_or_build_scalar(name, parent, join_type)
-        reflection = find_reflection parent.base_klass, name
+      def find_or_build_scalar(reflection, parent, join_type)
         unless join_association = find_join_association(reflection, parent)
           join_association = build_join_association(reflection, parent, join_type)
           @join_parts << join_association
