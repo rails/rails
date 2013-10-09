@@ -18,7 +18,7 @@ module ActiveRecord::Associations::Builder
       super
 
       if extension
-        @scope = wrap_scope @scope, extension
+        @scope = self.class.wrap_scope @scope, extension
       end
     end
 
@@ -80,7 +80,7 @@ module ActiveRecord::Associations::Builder
 
     private
 
-    def wrap_scope(scope, mod)
+    def self.wrap_scope(scope, mod)
       if scope
         proc { |owner| instance_exec(owner, &scope).extending(mod) }
       else
