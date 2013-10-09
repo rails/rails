@@ -783,7 +783,7 @@ end
 Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
-There is also an ability to pass custom exception to `:strict` option
+There is also an ability to pass custom exception to `:strict` option.
 
 ```ruby
 class Person < ActiveRecord::Base
