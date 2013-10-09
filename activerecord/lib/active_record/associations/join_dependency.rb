@@ -54,41 +54,15 @@ module ActiveRecord
       def initialize(base, associations, joins)
         @base_klass    = base
         @table_joins   = joins
-        @join_root    = Node.new JoinBase.new(base)
+        @join_root    = JoinBase.new(base)
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
         build tree, @join_root, Arel::InnerJoin
       end
 
-      class Node # :nodoc:
-        include Enumerable
-
-        attr_reader :join_part, :children
-
-        def initialize(join_part)
-          @join_part = join_part
-          @children  = []
-        end
-
-        def each
-          yield self
-          iter = lambda { |list|
-            list.each { |item|
-              yield item
-              iter.call item.children
-            }
-          }
-          iter.call children
-        end
-
-        def name
-          join_part.reflection.name
-        end
-      end
-
       def join_parts
-        @join_root.map(&:join_part)
+        @join_root.to_a
       end
 
       def graft(*associations)
@@ -148,8 +122,7 @@ module ActiveRecord
       private
 
       def find_parent_node(parent)
-        @join_root.find { |node|
-          join_part = node.join_part
+        @join_root.find { |join_part|
           case parent
           when JoinBase
             parent.base_klass == join_part.base_klass
@@ -160,7 +133,7 @@ module ActiveRecord
       end
 
       def join_base
-        @join_root.join_part
+        @join_root
       end
 
       def remove_duplicate_results!(base, records, associations)
@@ -190,21 +163,19 @@ module ActiveRecord
           raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
       end
 
-      def build(associations, root, join_type)
-        parent = root.join_part
+      def build(associations, parent, join_type)
         associations.each do |name, right|
           reflection = find_reflection parent.base_klass, name
           join_association = build_join_association reflection, parent, join_type
-          root.children << join_association
+          parent.children << join_association
           build right, join_association, join_type
         end
       end
 
-      def find_or_build_scalar(reflection, node, join_type)
-        parent = node.join_part
-        unless join_association = find_join_association(reflection, node.join_part)
+      def find_or_build_scalar(reflection, parent, join_type)
+        unless join_association = find_join_association(reflection, parent)
           join_association = build_join_association(reflection, parent, join_type)
-          node.children << join_association
+          parent.children << join_association
         end
         join_association
       end
@@ -228,13 +199,12 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        part = JoinAssociation.new(reflection, join_parts.length, parent, join_type, alias_tracker)
-        Node.new part
+        JoinAssociation.new(reflection, join_parts.length, parent, join_type, alias_tracker)
       end
 
       def construct(parent, nodes, row, rs)
         nodes.sort_by { |k| k.name }.each do |node|
-          association = construct_association(parent, node.join_part, row, rs)
+          association = construct_association(parent, node, row, rs)
           construct(association, node.children, row, rs) if association
         end
       end

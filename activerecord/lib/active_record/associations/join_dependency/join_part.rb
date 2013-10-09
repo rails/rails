@@ -8,10 +8,12 @@ module ActiveRecord
       # operations (for example a has_and_belongs_to_many JoinAssociation would result in
       # two; one for the join table and one for the target table).
       class JoinPart # :nodoc:
+        include Enumerable
+
         # The Active Record class which this join part is associated 'about'; for a JoinBase
         # this is the actual base model, for a JoinAssociation this is the target model of the
         # association.
-        attr_reader :base_klass
+        attr_reader :base_klass, :children
 
         delegate :table_name, :column_names, :primary_key, :arel_engine, :to => :base_klass
 
@@ -19,6 +21,22 @@ module ActiveRecord
           @base_klass = base_klass
           @cached_record = {}
           @column_names_with_alias = nil
+          @children = []
+        end
+
+        def name
+          reflection.name
+        end
+
+        def each
+          yield self
+          iter = lambda { |list|
+            list.each { |item|
+              yield item
+              iter.call item.children
+            }
+          }
+          iter.call children
         end
 
         def aliased_table
