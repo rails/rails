@@ -468,14 +468,24 @@ def initialize!(group=:default) #:nodoc:
 end
 ```
 
-As you can see, you can only initialize an app once. This is also where the initializers are run.
+As you can see, you can only initialize an app once. The initializers are run through
+the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`
 
-TODO: review this
+```ruby
+def run_initializers(group=:default, *args)
+  return if instance_variable_defined?(:@ran)
+  initializers.tsort_each do |initializer|
+    initializer.run(*args) if initializer.belongs_to?(group)
+  end
+  @ran = true
+end
+```
 
-The initializers code itself is tricky. What Rails is doing here is it
-traverses all the class ancestors looking for an `initializers` method,
-sorting them and running them. For example, the `Engine` class will make
-all the engines available by providing the `initializers` method.
+The run_initializers code itself is tricky. What Rails is doing here is
+traversing all the class ancestors looking for those that respond to an
+`initializers` method. It then sorts the ancestors by name, and runs them.
+For example, the `Engine` class will make all the engines available by
+providing an `initializers` method on them.
 
 The `Rails::Application` class, as defined in `railties/lib/rails/application.rb`
 defines `bootstrap`, `railtie`, and `finisher` initializers. The `bootstrap` initializers
