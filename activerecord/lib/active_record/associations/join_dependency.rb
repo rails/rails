@@ -4,7 +4,7 @@ module ActiveRecord
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
-      attr_reader :alias_tracker, :base_klass
+      attr_reader :alias_tracker, :base_klass, :join_root
 
       def self.make_tree(associations)
         hash = {}
@@ -61,17 +61,11 @@ module ActiveRecord
         build tree, @join_root, Arel::InnerJoin
       end
 
-      def join_parts
-        @join_root.to_a
-      end
-
       def graft(*associations)
-        join_assocs = join_associations
-
-        associations.reject { |association|
-          join_assocs.detect { |a| node_cmp association, a }
+        associations.reject { |join_node|
+          find_node join_node
         }.each { |join_node|
-          parent     = find_node(join_node.parent) || @join_root
+          parent     = find_node(join_node.parent) || join_root
           reflection = join_node.reflection
           type       = join_node.join_type
 
@@ -82,7 +76,7 @@ module ActiveRecord
       end
 
       def join_associations
-        join_parts.drop 1
+        join_root.drop 1
       end
 
       def reflections
@@ -96,7 +90,7 @@ module ActiveRecord
       end
 
       def columns
-        join_parts.collect { |join_part|
+        join_root.collect { |join_part|
           table = join_part.aliased_table
           join_part.column_names_with_alias.collect{ |column_name, aliased_name|
             table[column_name].as Arel.sql(aliased_name)
@@ -105,15 +99,15 @@ module ActiveRecord
       end
 
       def instantiate(result_set)
-        primary_key = join_base.aliased_primary_key
+        primary_key = join_root.aliased_primary_key
         parents = {}
 
         type_caster = result_set.column_type primary_key
-        assoc = @join_root.children
+        assoc = join_root.children
 
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
-          parent = parents[primary_id] ||= join_base.instantiate(row_hash)
+          parent = parents[primary_id] ||= join_root.instantiate(row_hash)
           construct(parent, assoc, row_hash, result_set)
           parent
         }.uniq
@@ -127,7 +121,7 @@ module ActiveRecord
       def find_node(target_node)
         stack = target_node.parents << target_node
 
-        left  = [@join_root]
+        left  = [join_root]
         right = stack.shift
 
         loop {
@@ -155,10 +149,6 @@ module ActiveRecord
           parent.reflection == join_part.reflection &&
             node_cmp(parent.parent, join_part.parent)
         end
-      end
-
-      def join_base
-        @join_root
       end
 
       def remove_duplicate_results!(base, records, associations)
@@ -215,7 +205,7 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        JoinAssociation.new(reflection, join_parts.length, parent, join_type, alias_tracker)
+        JoinAssociation.new(reflection, join_root.to_a.length, parent, join_type, alias_tracker)
       end
 
       def construct(parent, nodes, row, rs)
