@@ -71,10 +71,6 @@ module ActiveRecord
           @children  = []
         end
 
-        def association_hash
-          association_hash_iter children, {}
-        end
-
         def each
           yield self
           iter = lambda { |list|
@@ -86,13 +82,8 @@ module ActiveRecord
           iter.call children
         end
 
-        private
-        def association_hash_iter nodes, acc
-          nodes.each { |node|
-            h = acc[node.join_part.reflection.name] ||= {}
-            association_hash_iter node.children, h
-          }
-          acc
+        def name
+          join_part.reflection.name
         end
       end
 
@@ -141,7 +132,7 @@ module ActiveRecord
         parents = {}
 
         type_caster = result_set.column_type primary_key
-        assoc = associations
+        assoc = @join_parts.children
 
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
@@ -155,10 +146,6 @@ module ActiveRecord
       end
 
       private
-
-      def associations
-        @join_parts.association_hash
-      end
 
       def find_parent_node(parent)
         @join_parts.find { |node|
@@ -177,8 +164,8 @@ module ActiveRecord
       end
 
       def remove_duplicate_results!(base, records, associations)
-        associations.each_key do |name|
-          reflection = base.reflect_on_association(name)
+        associations.each do |node|
+          reflection = base.reflect_on_association(node.name)
           remove_uniq_by_reflection(reflection, records)
 
           parent_records = []
@@ -193,7 +180,7 @@ module ActiveRecord
           end
 
           unless parent_records.empty?
-            remove_duplicate_results!(reflection.klass, parent_records, associations[name])
+            remove_duplicate_results!(reflection.klass, parent_records, node.children)
           end
         end
       end
@@ -245,8 +232,10 @@ module ActiveRecord
         Node.new part
       end
 
-      def construct(parent, associations, join_parts, row, rs)
-        associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
+      def construct(parent, nodes, join_parts, row, rs)
+        nodes.sort_by { |k| k.name.to_s }.each do |node|
+          association_name = node.name
+          assoc            = node.children
           association = construct_scalar(parent, association_name, join_parts, row, rs)
           construct(association, assoc, join_parts, row, rs) if association
         end
