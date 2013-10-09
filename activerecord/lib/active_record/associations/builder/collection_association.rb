@@ -68,7 +68,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers(mixin)
+    def self.define_writers(mixin, name)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1

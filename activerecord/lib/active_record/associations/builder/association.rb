@@ -87,7 +87,7 @@ module ActiveRecord::Associations::Builder
     def define_accessors(model, reflection)
       mixin = model.generated_feature_methods
       self.class.define_readers(mixin, name)
-      define_writers(mixin)
+      self.class.define_writers(mixin, name)
     end
 
     def self.define_readers(mixin, name)
@@ -98,7 +98,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers(mixin)
+    def self.define_writers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association(:#{name}).writer(value)
