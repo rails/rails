@@ -4,7 +4,7 @@ module ActiveRecord::Associations::Builder
       :belongs_to
     end
 
-    def valid_options
+    def self.valid_options(options)
       super + [:foreign_type, :polymorphic, :touch]
     end
 

@@ -60,12 +60,12 @@ module ActiveRecord::Associations::Builder
       raise NotImplementedError
     end
 
-    def valid_options
+    def self.valid_options(options)
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
     def validate_options
-      options.assert_valid_keys(valid_options)
+      options.assert_valid_keys(self.class.valid_options(options))
     end
 
     def self.define_extensions(model, name)
