@@ -379,12 +379,13 @@ About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.0.0
+Rails version             4.1.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.0.0
-Action Pack version       4.0.0
-Action Mailer version     4.0.0
-Active Support version    4.0.0
+Active Record version     4.1.0
+Action Pack version       4.1.0
+Action View version       4.1.0
+Action Mailer version     4.1.0
+Active Support version    4.1.0
 Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
