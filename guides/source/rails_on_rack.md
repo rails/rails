@@ -225,9 +225,13 @@ config.middleware.delete "Rack::MethodOverride"
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
 
+ **`Rack::Sendfile`**
+
+* Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` option.
+
  **`ActionDispatch::Static`**
 
-* Used to serve static assets. Disabled if `config.serve_static_assets` is true.
+* Used to serve static assets. Disabled if `config.serve_static_assets` is `false`.
 
  **`Rack::Lock`**
 
