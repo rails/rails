@@ -401,7 +401,8 @@ module ActiveRecord
     end
 
     # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and no callbacks are executed.
+    # Please note that no validation is performed and only the +after_touch+
+    # callback is executed.
     # If an attribute name is passed, that attribute is updated along with
     # updated_at/on attributes.
     #
