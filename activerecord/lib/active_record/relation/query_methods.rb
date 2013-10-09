@@ -952,8 +952,7 @@ module ActiveRecord
 
       join_dependency.graft(*stashed_association_joins)
 
-      joins = join_dependency.join_associations.map!(&:join_constraints)
-      joins.flatten!
+      joins = join_dependency.join_constraints
 
       joins.each { |join| manager.from(join) }
 
