@@ -71,6 +71,10 @@ module ActiveRecord
           @children  = []
         end
 
+        def association_hash
+          association_hash_iter children, {}
+        end
+
         def each
           yield self
           iter = lambda { |list|
@@ -80,6 +84,15 @@ module ActiveRecord
             }
           }
           iter.call children
+        end
+
+        private
+        def association_hash_iter nodes, acc
+          nodes.each { |node|
+            h = acc[node.join_part.reflection.name] ||= {}
+            association_hash_iter node.children, h
+          }
+          acc
         end
       end
 
@@ -93,7 +106,7 @@ module ActiveRecord
         associations.reject { |association|
           join_assocs.detect { |a| association == a }
         }.each { |association|
-          join_node = find_parent_node(association.parent) || @join_part
+          join_node = find_parent_node(association.parent) || @join_parts
           type      = association.join_type
           find_or_build_scalar association.reflection, join_node, type
         }
@@ -144,9 +157,7 @@ module ActiveRecord
       private
 
       def associations
-        join_associations.each_with_object({}) do |assoc, tree|
-          cache_joined_association assoc, tree
-        end
+        @join_parts.association_hash
       end
 
       def find_parent_node(parent)
@@ -185,19 +196,6 @@ module ActiveRecord
             remove_duplicate_results!(reflection.klass, parent_records, associations[name])
           end
         end
-      end
-
-      def cache_joined_association(association, tree)
-        associations = []
-        parent = association.parent
-        while parent != join_base
-          associations.unshift(parent.reflection.name)
-          parent = parent.parent
-        end
-        ref = associations.inject(tree) do |cache,key|
-          cache[key]
-        end
-        ref[association.reflection.name] ||= {}
       end
 
       def find_reflection(klass, name)
