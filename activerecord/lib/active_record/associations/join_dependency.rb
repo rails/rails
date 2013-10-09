@@ -186,7 +186,7 @@ module ActiveRecord
       end
 
       def find_reflection(klass, name)
-        klass.reflect_on_association(name.intern) or
+        klass.reflect_on_association(name) or
           raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
       end
 
