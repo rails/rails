@@ -18,18 +18,15 @@ module ActiveRecord::Associations::Builder
 
     VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate]
 
-    attr_reader :name, :scope, :options
-
     def self.build(model, name, scope, options, &block)
-      builder = create_builder model, name, scope, options, &block
-      reflection = builder.build(model)
+      extension = define_extensions model, name, &block
+      reflection = create_reflection model, name, scope, options, extension
       define_accessors model, reflection
       define_callbacks model, reflection
-      builder.define_extensions model
       reflection
     end
 
-    def self.create_builder(model, name, scope, options, &block)
+    def self.create_reflection(model, name, scope, options, extension = nil)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       if scope.is_a?(Hash)
@@ -37,38 +34,44 @@ module ActiveRecord::Associations::Builder
         scope   = nil
       end
 
-      new(name, scope, options, &block)
-    end
+      validate_options(options)
 
-    def initialize(name, scope, options)
-      @name    = name
-      @scope   = scope
-      @options = options
+      scope = build_scope(scope, extension)
 
-      validate_options
-
-      if scope && scope.arity == 0
-        @scope = proc { instance_exec(&scope) }
-      end
-    end
-
-    def build(model)
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
-    def macro
+    def self.build_scope(scope, extension)
+      new_scope = scope
+
+      if scope && scope.arity == 0
+        new_scope = proc { instance_exec(&scope) }
+      end
+
+      if extension
+        new_scope = wrap_scope new_scope, extension
+      end
+
+      new_scope
+    end
+
+    def self.wrap_scope(scope, extension)
+      scope
+    end
+
+    def self.macro
       raise NotImplementedError
     end
 
-    def valid_options
+    def self.valid_options(options)
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
-    def validate_options
-      options.assert_valid_keys(valid_options)
+    def self.validate_options(options)
+      options.assert_valid_keys(valid_options(options))
     end
 
-    def define_extensions(model)
+    def self.define_extensions(model, name)
     end
 
     def self.define_callbacks(model, reflection)
@@ -110,8 +113,6 @@ module ActiveRecord::Associations::Builder
     def self.valid_dependent_options
       raise NotImplementedError
     end
-
-    private
 
     def self.add_before_destroy_callbacks(model, reflection)
       unless valid_dependent_options.include? reflection.options[:dependent]

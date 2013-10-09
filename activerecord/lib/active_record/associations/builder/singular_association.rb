@@ -2,7 +2,7 @@
 
 module ActiveRecord::Associations::Builder
   class SingularAssociation < Association #:nodoc:
-    def valid_options
+    def self.valid_options(options)
       super + [:remote, :dependent, :counter_cache, :primary_key, :inverse_of]
     end
 
