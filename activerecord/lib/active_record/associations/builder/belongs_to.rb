@@ -20,12 +20,12 @@ module ActiveRecord::Associations::Builder
 
     def define_accessors(mixin, reflection)
       super
-      add_counter_cache_methods mixin
+      self.class.add_counter_cache_methods mixin
     end
 
     private
 
-    def add_counter_cache_methods(mixin)
+    def self.add_counter_cache_methods(mixin)
       return if mixin.method_defined? :belongs_to_counter_cache_after_create
 
       mixin.class_eval do
