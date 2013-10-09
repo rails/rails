@@ -29,6 +29,9 @@ module ActiveRecord
           @children = []
         end
 
+        def join_constraints; []; end
+        def join_relation(rel); rel; end
+
         def name
           reflection.name
         end

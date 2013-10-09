@@ -76,17 +76,17 @@ module ActiveRecord
       end
 
       def reflections
-        join_root.drop(1).map(&:reflection)
+        join_root.drop(1).map!(&:reflection)
       end
 
       def join_relation(relation)
-        join_root.drop(1).inject(relation) do |rel,association|
+        join_root.inject(relation) do |rel,association|
           association.join_relation(rel)
         end
       end
 
       def join_constraints
-        join_root.drop(1).flat_map(&:join_constraints)
+        join_root.flat_map(&:join_constraints)
       end
 
       def columns
