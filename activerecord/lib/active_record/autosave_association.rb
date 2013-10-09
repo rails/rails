@@ -187,6 +187,8 @@ module ActiveRecord
         unless method_defined?(save_method)
           if collection
             before_save :before_save_collection_association
+            before_save :set_saving_flag
+            after_save :unset_saving_flag
 
             define_non_cyclic_method(save_method, reflection) { save_collection_association(reflection) }
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
@@ -194,6 +196,9 @@ module ActiveRecord
             after_update save_method
           else
             if reflection.macro == :has_one
+              before_save :set_saving_flag
+              after_save :unset_saving_flag
+
               define_method(save_method) { save_has_one_association(reflection) }
               # Configures two callbacks instead of a single after_save so that
               # the model may rely on their execution order relative to its
@@ -318,6 +323,14 @@ module ActiveRecord
       true
     end
 
+    def set_saving_flag
+      @_saving = true
+    end
+
+    def unset_saving_flag
+      @_saving = nil
+    end
+
     # Saves any new associated records, or all loaded autosave associations if
     # <tt>:autosave</tt> is enabled on the association.
     #
@@ -397,13 +410,17 @@ module ActiveRecord
       end
     end
 
+    def saving_record?(record)
+      record.instance_variable_defined?(:@_saving) && record.instance_variable_get(:@_saving)
+    end
+
     # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.
     #
     # In addition, it will destroy the association if it was marked for destruction.
     def save_belongs_to_association(reflection)
       association = association_instance_get(reflection.name)
       record      = association && association.load_target
-      if record && !record.destroyed?
+      if record && !record.destroyed? && !saving_record?(record)
         autosave = reflection.options[:autosave]
 
         if autosave && record.marked_for_destruction?
