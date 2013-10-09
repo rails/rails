@@ -1,6 +1,6 @@
 module ActiveRecord::Associations::Builder
   class HasMany < CollectionAssociation #:nodoc:
-    def macro
+    def self.macro
       :has_many
     end
 

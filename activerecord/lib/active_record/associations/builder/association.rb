@@ -53,10 +53,10 @@ module ActiveRecord::Associations::Builder
     end
 
     def build(model)
-      ActiveRecord::Reflection.create(macro, name, scope, options, model)
+      ActiveRecord::Reflection.create(self.class.macro, name, scope, options, model)
     end
 
-    def macro
+    def self.macro
       raise NotImplementedError
     end
 

@@ -1,6 +1,6 @@
 module ActiveRecord::Associations::Builder
   class HasOne < SingularAssociation #:nodoc:
-    def macro
+    def self.macro
       :has_one
     end
 
