@@ -34,6 +34,7 @@ module ActiveRecord
         alias :alias_suffix :parent_table_name
 
         def match?(other)
+          return true if self == other
           super && reflection == other.reflection
         end
 
