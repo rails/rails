@@ -12,8 +12,6 @@ module ActiveRecord::Associations::Builder
                :after_add, :before_remove, :after_remove, :extend]
     end
 
-    attr_reader :block_extension
-
     def initialize(name, scope, options, extension)
       super
 
