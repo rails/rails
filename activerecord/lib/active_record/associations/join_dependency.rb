@@ -173,7 +173,7 @@ module ActiveRecord
       end
 
       def join_base
-        @join_parts.first.join_part
+        @join_parts.join_part
       end
 
       def remove_duplicate_results!(base, records, associations)
