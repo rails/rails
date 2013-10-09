@@ -14,12 +14,11 @@ module ActiveRecord::Associations::Builder
 
     attr_reader :block_extension
 
-    def initialize(name, scope, options)
+    def initialize(name, scope, options, extension)
       super
-      @mod = nil
-      if block_given?
-        @mod = Module.new(&Proc.new)
-        @scope = wrap_scope @scope, @mod
+
+      if extension
+        @scope = wrap_scope @scope, extension
       end
     end
 
@@ -32,10 +31,11 @@ module ActiveRecord::Associations::Builder
       }
     end
 
-    def define_extensions(model)
-      if @mod
+    def self.define_extensions(model, name)
+      if block_given?
         extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
-        model.parent.const_set(extension_module_name, @mod)
+        extension = Module.new(&Proc.new)
+        model.parent.const_set(extension_module_name, extension)
       end
     end
 

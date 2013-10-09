@@ -21,15 +21,15 @@ module ActiveRecord::Associations::Builder
     attr_reader :name, :scope, :options
 
     def self.build(model, name, scope, options, &block)
-      builder = create_builder model, name, scope, options, &block
+      extension = define_extensions model, name, &block
+      builder = create_builder model, name, scope, options, extension
       reflection = builder.build(model)
       define_accessors model, reflection
       define_callbacks model, reflection
-      builder.define_extensions model
       reflection
     end
 
-    def self.create_builder(model, name, scope, options, &block)
+    def self.create_builder(model, name, scope, options, extension = nil)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       if scope.is_a?(Hash)
@@ -37,10 +37,10 @@ module ActiveRecord::Associations::Builder
         scope   = nil
       end
 
-      new(name, scope, options, &block)
+      new(name, scope, options, extension)
     end
 
-    def initialize(name, scope, options)
+    def initialize(name, scope, options, extension)
       @name    = name
       @scope   = scope
       @options = options
@@ -68,7 +68,7 @@ module ActiveRecord::Associations::Builder
       options.assert_valid_keys(valid_options)
     end
 
-    def define_extensions(model)
+    def self.define_extensions(model, name)
     end
 
     def self.define_callbacks(model, reflection)
