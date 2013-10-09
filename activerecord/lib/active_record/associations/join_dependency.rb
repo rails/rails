@@ -203,9 +203,7 @@ module ActiveRecord
       end
 
       def find_join_association(reflection, parent)
-        join_associations.detect { |j|
-          j.reflection == reflection && node_cmp(j.parent, parent)
-        }
+        parent.children.find { |j| j.reflection == reflection }
       end
 
       def remove_uniq_by_reflection(reflection, records)
