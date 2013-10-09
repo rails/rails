@@ -137,7 +137,7 @@ module ActiveRecord
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_base.instantiate(row_hash)
-          construct(parent, assoc, join_associations, row_hash, result_set)
+          construct(parent, assoc, row_hash, result_set)
           parent
         }.uniq
 
@@ -232,27 +232,26 @@ module ActiveRecord
         Node.new part
       end
 
-      def construct(parent, nodes, join_parts, row, rs)
+      def construct(parent, nodes, row, rs)
         nodes.sort_by { |k| k.name.to_s }.each do |node|
           association_name = node.name
           assoc            = node.children
-          association = construct_scalar(parent, association_name, join_parts, row, rs)
-          construct(association, assoc, join_parts, row, rs) if association
+          association = construct_scalar(parent, association_name, row, rs, nodes)
+          construct(association, assoc, row, rs) if association
         end
       end
 
-      def construct_scalar(parent, associations, join_parts, row, rs)
+      def construct_scalar(parent, associations, row, rs, nodes)
         name = associations.to_s
 
-        join_part = join_parts.detect { |j|
-          j.reflection.name.to_s == name &&
-            j.parent_table_name == parent.class.table_name
+        node = nodes.detect { |j|
+          j.name.to_s == name &&
+            j.join_part.parent_table_name == parent.class.table_name
         }
 
-        raise(ConfigurationError, "No such association") unless join_part
+        raise(ConfigurationError, "No such association") unless node
 
-        join_parts.delete(join_part)
-        construct_association(parent, join_part, row, rs)
+        construct_association(parent, node.join_part, row, rs)
       end
 
       def construct_association(record, join_part, row, rs)
