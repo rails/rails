@@ -48,10 +48,6 @@ module ActiveRecord
           Arel::Nodes::TableAlias.new table, aliased_table_name
         end
 
-        def ==(other)
-          raise NotImplementedError
-        end
-
         # An Arel::Table for the active_record
         def table
           raise NotImplementedError

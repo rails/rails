@@ -69,7 +69,7 @@ module ActiveRecord
         join_assocs = join_associations
 
         associations.reject { |association|
-          join_assocs.detect { |a| association == a }
+          join_assocs.detect { |a| node_cmp association, a }
         }.each { |association|
           join_node = find_parent_node(association.parent) || @join_root
           type      = association.join_type
@@ -122,14 +122,19 @@ module ActiveRecord
       private
 
       def find_parent_node(parent)
-        @join_root.find { |join_part|
-          case parent
-          when JoinBase
-            parent.base_klass == join_part.base_klass
-          else
-            parent == join_part
-          end
-        }
+        @join_root.find { |join_part| node_cmp parent, join_part }
+      end
+
+      def node_cmp(parent, join_part)
+        return unless parent.class == join_part.class
+
+        case parent
+        when JoinBase
+          parent.base_klass == join_part.base_klass
+        else
+          parent.reflection == join_part.reflection &&
+            node_cmp(parent.parent, join_part.parent)
+        end
       end
 
       def join_base
@@ -182,7 +187,7 @@ module ActiveRecord
 
       def find_join_association(reflection, parent)
         join_associations.detect { |j|
-          j.reflection == reflection && j.parent == parent
+          j.reflection == reflection && node_cmp(j.parent, parent)
         }
       end
 
