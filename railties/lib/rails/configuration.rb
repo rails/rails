@@ -59,6 +59,10 @@ module Rails
         @operations << [__method__, args, block]
       end
 
+      def unshift(*args, &block)
+        @operations << [__method__, args, block]
+      end
+
       def merge_into(other) #:nodoc:
         @operations.each do |operation, args, block|
           other.send(operation, *args, &block)

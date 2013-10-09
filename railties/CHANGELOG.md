@@ -1,3 +1,7 @@
+*   Expose MiddlewareStack#unshift to environment configuration.
+
+    *Ben Pickles*
+
 *   Include `web-console` into newly generated applications' Gemfile.
 
     *Genadi Samokovarov*
