@@ -54,11 +54,11 @@ module ActiveRecord
       def initialize(base, associations, joins)
         @base_klass    = base
         @table_joins   = joins
-        @join_parts    = Node.new JoinBase.new(base)
+        @join_root    = Node.new JoinBase.new(base)
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
-        build tree, @join_parts, Arel::InnerJoin
+        build tree, @join_root, Arel::InnerJoin
       end
 
       class Node # :nodoc:
@@ -88,7 +88,7 @@ module ActiveRecord
       end
 
       def join_parts
-        @join_parts.map(&:join_part)
+        @join_root.map(&:join_part)
       end
 
       def graft(*associations)
@@ -97,7 +97,7 @@ module ActiveRecord
         associations.reject { |association|
           join_assocs.detect { |a| association == a }
         }.each { |association|
-          join_node = find_parent_node(association.parent) || @join_parts
+          join_node = find_parent_node(association.parent) || @join_root
           type      = association.join_type
           find_or_build_scalar association.reflection, join_node, type
         }
@@ -132,7 +132,7 @@ module ActiveRecord
         parents = {}
 
         type_caster = result_set.column_type primary_key
-        assoc = @join_parts.children
+        assoc = @join_root.children
 
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
@@ -148,7 +148,7 @@ module ActiveRecord
       private
 
       def find_parent_node(parent)
-        @join_parts.find { |node|
+        @join_root.find { |node|
           join_part = node.join_part
           case parent
           when JoinBase
@@ -160,7 +160,7 @@ module ActiveRecord
       end
 
       def join_base
-        @join_parts.join_part
+        @join_root.join_part
       end
 
       def remove_duplicate_results!(base, records, associations)
