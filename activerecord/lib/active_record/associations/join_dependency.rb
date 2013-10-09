@@ -70,10 +70,13 @@ module ActiveRecord
 
         associations.reject { |association|
           join_assocs.detect { |a| node_cmp association, a }
-        }.each { |association|
-          join_node = find_node(association.parent) || @join_root
-          type      = association.join_type
-          find_or_build_scalar association.reflection, join_node, type
+        }.each { |join_node|
+          parent     = find_node(join_node.parent) || @join_root
+          reflection = join_node.reflection
+          type       = join_node.join_type
+
+          next if parent.children.find { |j| j.reflection == reflection }
+          build_scalar reflection, parent, type
         }
         self
       end
@@ -194,16 +197,9 @@ module ActiveRecord
         end
       end
 
-      def find_or_build_scalar(reflection, parent, join_type)
-        unless join_association = find_join_association(reflection, parent)
-          join_association = build_join_association(reflection, parent, join_type)
-          parent.children << join_association
-        end
-        join_association
-      end
-
-      def find_join_association(reflection, parent)
-        parent.children.find { |j| j.reflection == reflection }
+      def build_scalar(reflection, parent, join_type)
+        join_association = build_join_association(reflection, parent, join_type)
+        parent.children << join_association
       end
 
       def remove_uniq_by_reflection(reflection, records)
