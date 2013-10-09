@@ -144,6 +144,12 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.second
     end
 
+    test 'unshift middleware' do
+      add_to_config 'config.middleware.unshift Rack::Config'
+      boot!
+      assert_equal 'Rack::Config', middleware.first
+    end
+
     test "Rails.cache does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
