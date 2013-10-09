@@ -23,7 +23,7 @@ module ActiveRecord::Associations::Builder
     def self.build(model, name, scope, options, &block)
       builder = create_builder model, name, scope, options, &block
       reflection = builder.build(model)
-      builder.define_accessors model, reflection
+      define_accessors model, reflection
       define_callbacks model, reflection
       builder.define_extensions model
       reflection
@@ -84,11 +84,11 @@ module ActiveRecord::Associations::Builder
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
-    def define_accessors(model, reflection)
+    def self.define_accessors(model, reflection)
       mixin = model.generated_feature_methods
       name = reflection.name
-      self.class.define_readers(mixin, name)
-      self.class.define_writers(mixin, name)
+      define_readers(mixin, name)
+      define_writers(mixin, name)
     end
 
     def self.define_readers(mixin, name)

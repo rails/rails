@@ -18,9 +18,9 @@ module ActiveRecord::Associations::Builder
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
     end
 
-    def define_accessors(mixin, reflection)
+    def self.define_accessors(mixin, reflection)
       super
-      self.class.add_counter_cache_methods mixin
+      add_counter_cache_methods mixin
     end
 
     private

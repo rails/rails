@@ -6,9 +6,9 @@ module ActiveRecord::Associations::Builder
       super + [:remote, :dependent, :counter_cache, :primary_key, :inverse_of]
     end
 
-    def define_accessors(model, reflection)
+    def self.define_accessors(model, reflection)
       super
-      self.class.define_constructors(model.generated_feature_methods, reflection.name) if reflection.constructable?
+      define_constructors(model.generated_feature_methods, reflection.name) if reflection.constructable?
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
