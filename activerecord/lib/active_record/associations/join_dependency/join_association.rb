@@ -33,6 +33,10 @@ module ActiveRecord
         def parent_table_name; parent.table_name; end
         alias :alias_suffix :parent_table_name
 
+        def match?(other)
+          super && reflection == other.reflection
+        end
+
         def join_constraints
           joins         = []
           tables        = @tables.dup

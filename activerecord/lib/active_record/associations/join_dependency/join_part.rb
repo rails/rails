@@ -33,6 +33,20 @@ module ActiveRecord
           reflection.name
         end
 
+        def match?(other)
+          self.class == other.class
+        end
+
+        def parents
+          parents = []
+          node = parent
+          while node
+            parents.unshift node
+            node = node.parent
+          end
+          parents
+        end
+
         def each
           yield self
           iter = lambda { |list|

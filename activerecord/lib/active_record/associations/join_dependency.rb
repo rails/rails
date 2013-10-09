@@ -71,7 +71,7 @@ module ActiveRecord
         associations.reject { |association|
           join_assocs.detect { |a| node_cmp association, a }
         }.each { |association|
-          join_node = find_parent_node(association.parent) || @join_root
+          join_node = find_node(association.parent) || @join_root
           type      = association.join_type
           find_or_build_scalar association.reflection, join_node, type
         }
@@ -121,11 +121,28 @@ module ActiveRecord
 
       private
 
-      def find_parent_node(parent)
-        @join_root.find { |join_part| node_cmp parent, join_part }
+      def find_node(target_node)
+        stack = target_node.parents << target_node
+
+        left  = [@join_root]
+        right = stack.shift
+
+        loop {
+          match = left.find { |l| l.match? right }
+
+          if match
+            return match if stack.empty?
+
+            left  = match.children
+            right = stack.shift
+          else
+            return nil
+          end
+        }
       end
 
       def node_cmp(parent, join_part)
+        return true if parent == join_part
         return unless parent.class == join_part.class
 
         case parent

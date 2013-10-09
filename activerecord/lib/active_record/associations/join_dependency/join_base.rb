@@ -8,6 +8,11 @@ module ActiveRecord
           super(klass, nil)
         end
 
+        def match?(other)
+          return true if self == other
+          super && base_klass == other.base_klass
+        end
+
         def aliased_prefix
           "t0"
         end
