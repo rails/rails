@@ -244,10 +244,7 @@ module ActiveRecord
       def construct_scalar(parent, associations, row, rs, nodes)
         name = associations.to_s
 
-        node = nodes.detect { |j|
-          j.name.to_s == name &&
-            j.join_part.parent_table_name == parent.class.table_name
-        }
+        node = nodes.detect { |j| j.name.to_s == name }
 
         raise(ConfigurationError, "No such association") unless node
 
