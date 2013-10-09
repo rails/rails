@@ -42,14 +42,29 @@ module ActiveRecord::Associations::Builder
 
     def initialize(name, scope, options, extension)
       @name    = name
-      @scope   = scope
       @options = options
 
       self.class.validate_options(options)
 
+      @scope = self.class.build_scope(scope, extension)
+    end
+
+    def self.build_scope(scope, extension)
+      new_scope = scope
+
       if scope && scope.arity == 0
-        @scope = proc { instance_exec(&scope) }
+        new_scope = proc { instance_exec(&scope) }
       end
+
+      if extension
+        new_scope = wrap_scope new_scope, extension
+      end
+
+      new_scope
+    end
+
+    def self.wrap_scope(scope, extension)
+      scope
     end
 
     def build(model)

@@ -12,14 +12,6 @@ module ActiveRecord::Associations::Builder
                :after_add, :before_remove, :after_remove, :extend]
     end
 
-    def initialize(name, scope, options, extension)
-      super
-
-      if extension
-        @scope = self.class.wrap_scope @scope, extension
-      end
-    end
-
     def self.define_callbacks(model, reflection)
       super
       name    = reflection.name
