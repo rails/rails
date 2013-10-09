@@ -1,4 +1,4 @@
-# This class is inherited by the has_one and belongs_to association classes 
+# This class is inherited by the has_one and belongs_to association classes
 
 module ActiveRecord::Associations::Builder
   class SingularAssociation < Association #:nodoc:
