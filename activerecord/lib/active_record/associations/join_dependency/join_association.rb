@@ -9,10 +9,6 @@ module ActiveRecord
         # The reflection of the association represented
         attr_reader :reflection
 
-        # A JoinBase instance representing the active record we are joining onto.
-        # (So in Author.has_many :posts, the Author would be that base record.)
-        attr_reader :parent
-
         # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
         attr_accessor :join_type
 
@@ -25,11 +21,10 @@ module ActiveRecord
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
 
         def initialize(reflection, index, parent, join_type, alias_tracker)
-          super(reflection.klass)
+          super(reflection.klass, parent)
 
           @reflection      = reflection
           @alias_tracker   = alias_tracker
-          @parent          = parent
           @join_type       = join_type
           @aliased_prefix  = "t#{ index }"
           @tables          = construct_tables.reverse
@@ -38,10 +33,9 @@ module ActiveRecord
         def parent_table_name; parent.table_name; end
         alias :alias_suffix :parent_table_name
 
-        def ==(other)
-          other.class == self.class &&
-            other.reflection == reflection &&
-            other.parent == parent
+        def match?(other)
+          return true if self == other
+          super && reflection == other.reflection
         end
 
         def join_constraints

@@ -4,9 +4,13 @@ module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
       class JoinBase < JoinPart # :nodoc:
-        def ==(other)
-          other.class == self.class &&
-            other.base_klass == base_klass
+        def initialize(klass)
+          super(klass, nil)
+        end
+
+        def match?(other)
+          return true if self == other
+          super && base_klass == other.base_klass
         end
 
         def aliased_prefix

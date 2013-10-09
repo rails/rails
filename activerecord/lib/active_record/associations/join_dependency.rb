@@ -4,7 +4,7 @@ module ActiveRecord
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
-      attr_reader :join_parts, :alias_tracker, :base_klass
+      attr_reader :alias_tracker, :base_klass, :join_root
 
       def self.make_tree(associations)
         hash = {}
@@ -54,43 +54,43 @@ module ActiveRecord
       def initialize(base, associations, joins)
         @base_klass    = base
         @table_joins   = joins
-        @join_parts    = [JoinBase.new(base)]
+        @join_root    = JoinBase.new(base)
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
-        build tree, join_parts.last, Arel::InnerJoin
+        build tree, @join_root, Arel::InnerJoin
       end
 
       def graft(*associations)
-        join_assocs = join_associations
-        base        = join_base
+        associations.reject { |join_node|
+          find_node join_node
+        }.each { |join_node|
+          parent     = find_node(join_node.parent) || join_root
+          reflection = join_node.reflection
+          type       = join_node.join_type
 
-        associations.reject { |association|
-          join_assocs.detect { |a| association == a }
-        }.each { |association|
-          join_part = find_parent_part(association.parent) || base
-          type      = association.join_type
-          find_or_build_scalar association.reflection, join_part, type
+          next if parent.children.find { |j| j.reflection == reflection }
+          build_scalar reflection, parent, type
         }
         self
       end
 
-      def join_associations
-        join_parts.drop 1
-      end
-
       def reflections
-        join_associations.map(&:reflection)
+        join_root.drop(1).map!(&:reflection)
       end
 
       def join_relation(relation)
-        join_associations.inject(relation) do |rel,association|
+        join_root.inject(relation) do |rel,association|
           association.join_relation(rel)
         end
       end
 
+      def join_constraints
+        join_root.flat_map(&:join_constraints)
+      end
+
       def columns
-        join_parts.collect { |join_part|
+        join_root.collect { |join_part|
           table = join_part.aliased_table
           join_part.column_names_with_alias.collect{ |column_name, aliased_name|
             table[column_name].as Arel.sql(aliased_name)
@@ -99,16 +99,16 @@ module ActiveRecord
       end
 
       def instantiate(result_set)
-        primary_key = join_base.aliased_primary_key
+        primary_key = join_root.aliased_primary_key
         parents = {}
 
         type_caster = result_set.column_type primary_key
-        assoc = associations
+        assoc = join_root.children
 
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
-          parent = parents[primary_id] ||= join_base.instantiate(row_hash)
-          construct(parent, assoc, join_associations, row_hash, result_set)
+          parent = parents[primary_id] ||= join_root.instantiate(row_hash)
+          construct(parent, assoc, row_hash, result_set)
           parent
         }.uniq
 
@@ -118,30 +118,29 @@ module ActiveRecord
 
       private
 
-      def associations
-        join_associations.each_with_object({}) do |assoc, tree|
-          cache_joined_association assoc, tree
-        end
-      end
+      def find_node(target_node)
+        stack = target_node.parents << target_node
 
-      def find_parent_part(parent)
-        join_parts.detect do |join_part|
-          case parent
-          when JoinBase
-            parent.base_klass == join_part.base_klass
+        left  = [join_root]
+        right = stack.shift
+
+        loop {
+          match = left.find { |l| l.match? right }
+
+          if match
+            return match if stack.empty?
+
+            left  = match.children
+            right = stack.shift
           else
-            parent == join_part
+            return nil
           end
-        end
-      end
-
-      def join_base
-        join_parts.first
+        }
       end
 
       def remove_duplicate_results!(base, records, associations)
-        associations.each_key do |name|
-          reflection = base.reflect_on_association(name)
+        associations.each do |node|
+          reflection = base.reflect_on_association(node.name)
           remove_uniq_by_reflection(reflection, records)
 
           parent_records = []
@@ -156,26 +155,13 @@ module ActiveRecord
           end
 
           unless parent_records.empty?
-            remove_duplicate_results!(reflection.klass, parent_records, associations[name])
+            remove_duplicate_results!(reflection.klass, parent_records, node.children)
           end
         end
       end
 
-      def cache_joined_association(association, tree)
-        associations = []
-        parent = association.parent
-        while parent != join_base
-          associations.unshift(parent.reflection.name)
-          parent = parent.parent
-        end
-        ref = associations.inject(tree) do |cache,key|
-          cache[key]
-        end
-        ref[association.reflection.name] ||= {}
-      end
-
       def find_reflection(klass, name)
-        klass.reflect_on_association(name.intern) or
+        klass.reflect_on_association(name) or
           raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
       end
 
@@ -183,23 +169,14 @@ module ActiveRecord
         associations.each do |name, right|
           reflection = find_reflection parent.base_klass, name
           join_association = build_join_association reflection, parent, join_type
-          @join_parts << join_association
+          parent.children << join_association
           build right, join_association, join_type
         end
       end
 
-      def find_or_build_scalar(reflection, parent, join_type)
-        unless join_association = find_join_association(reflection, parent)
-          join_association = build_join_association(reflection, parent, join_type)
-          @join_parts << join_association
-        end
-        join_association
-      end
-
-      def find_join_association(reflection, parent)
-        join_associations.detect { |j|
-          j.reflection == reflection && j.parent == parent
-        }
+      def build_scalar(reflection, parent, join_type)
+        join_association = build_join_association(reflection, parent, join_type)
+        parent.children << join_association
       end
 
       def remove_uniq_by_reflection(reflection, records)
@@ -215,28 +192,14 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        JoinAssociation.new(reflection, join_parts.length, parent, join_type, alias_tracker)
+        JoinAssociation.new(reflection, join_root.to_a.length, parent, join_type, alias_tracker)
       end
 
-      def construct(parent, associations, join_parts, row, rs)
-        associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
-          association = construct_scalar(parent, association_name, join_parts, row, rs)
-          construct(association, assoc, join_parts, row, rs) if association
+      def construct(parent, nodes, row, rs)
+        nodes.sort_by { |k| k.name }.each do |node|
+          association = construct_association(parent, node, row, rs)
+          construct(association, node.children, row, rs) if association
         end
-      end
-
-      def construct_scalar(parent, associations, join_parts, row, rs)
-        name = associations.to_s
-
-        join_part = join_parts.detect { |j|
-          j.reflection.name.to_s == name &&
-            j.parent_table_name == parent.class.table_name
-        }
-
-        raise(ConfigurationError, "No such association") unless join_part
-
-        join_parts.delete(join_part)
-        construct_association(parent, join_part, row, rs)
       end
 
       def construct_association(record, join_part, row, rs)
