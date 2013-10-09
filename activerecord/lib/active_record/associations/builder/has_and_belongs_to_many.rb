@@ -84,11 +84,11 @@ module ActiveRecord::Associations::Builder
       middle_name = [lhs_model.name.downcase.pluralize,
                      association_name].join('_').gsub(/::/, '_').to_sym
       middle_options = middle_options join_model
-      hm_builder = HasMany.create_builder(lhs_model,
-                                          middle_name,
-                                          nil,
-                                          middle_options)
-      hm_builder.build lhs_model
+
+      HasMany.create_reflection(lhs_model,
+                                middle_name,
+                                nil,
+                                middle_options)
     end
 
     private
