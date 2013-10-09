@@ -8,7 +8,7 @@ module ActiveRecord::Associations::Builder
 
     def define_accessors(model, reflection)
       super
-      self.class.define_constructors(model.generated_feature_methods, name) if reflection.constructable?
+      self.class.define_constructors(model.generated_feature_methods, reflection.name) if reflection.constructable?
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
