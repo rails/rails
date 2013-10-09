@@ -234,14 +234,9 @@ module ActiveRecord
 
       def construct(parent, nodes, row, rs)
         nodes.sort_by { |k| k.name }.each do |node|
-          assoc            = node.children
-          association = construct_scalar(parent, row, rs, node)
-          construct(association, assoc, row, rs) if association
+          association = construct_association(parent, node.join_part, row, rs)
+          construct(association, node.children, row, rs) if association
         end
-      end
-
-      def construct_scalar(parent, row, rs, node)
-        construct_association(parent, node.join_part, row, rs)
       end
 
       def construct_association(record, join_part, row, rs)
