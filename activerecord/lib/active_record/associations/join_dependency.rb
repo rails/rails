@@ -233,7 +233,7 @@ module ActiveRecord
       end
 
       def construct(parent, nodes, row, rs)
-        nodes.sort_by { |k| k.name.to_s }.each do |node|
+        nodes.sort_by { |k| k.name }.each do |node|
           association_name = node.name
           assoc            = node.children
           association = construct_scalar(parent, association_name, row, rs, nodes)
@@ -241,10 +241,8 @@ module ActiveRecord
         end
       end
 
-      def construct_scalar(parent, associations, row, rs, nodes)
-        name = associations.to_s
-
-        node = nodes.detect { |j| j.name.to_s == name }
+      def construct_scalar(parent, name, row, rs, nodes)
+        node = nodes.detect { |j| j.name == name }
 
         raise(ConfigurationError, "No such association") unless node
 
