@@ -4,6 +4,10 @@ module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
       class JoinBase < JoinPart # :nodoc:
+        def initialize(klass)
+          super(klass, nil)
+        end
+
         def ==(other)
           other.class == self.class &&
             other.base_klass == base_klass
