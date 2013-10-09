@@ -45,7 +45,7 @@ module ActiveRecord::Associations::Builder
       @scope   = scope
       @options = options
 
-      validate_options
+      self.class.validate_options(options)
 
       if scope && scope.arity == 0
         @scope = proc { instance_exec(&scope) }
@@ -64,8 +64,8 @@ module ActiveRecord::Associations::Builder
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
-    def validate_options
-      options.assert_valid_keys(self.class.valid_options(options))
+    def self.validate_options(options)
+      options.assert_valid_keys(valid_options(options))
     end
 
     def self.define_extensions(model, name)
