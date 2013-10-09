@@ -84,14 +84,13 @@ module ActiveRecord::Associations::Builder
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
-
     def define_accessors(model, reflection)
       mixin = model.generated_feature_methods
-      define_readers(mixin)
+      self.class.define_readers(mixin, name)
       define_writers(mixin)
     end
 
-    def define_readers(mixin)
+    def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}(*args)
           association(:#{name}).reader(*args)
