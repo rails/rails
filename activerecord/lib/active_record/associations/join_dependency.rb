@@ -138,19 +138,6 @@ module ActiveRecord
         }
       end
 
-      def node_cmp(parent, join_part)
-        return true if parent == join_part
-        return unless parent.class == join_part.class
-
-        case parent
-        when JoinBase
-          parent.base_klass == join_part.base_klass
-        else
-          parent.reflection == join_part.reflection &&
-            node_cmp(parent.parent, join_part.parent)
-        end
-      end
-
       def remove_duplicate_results!(base, records, associations)
         associations.each do |node|
           reflection = base.reflect_on_association(node.name)
