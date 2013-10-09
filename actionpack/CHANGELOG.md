@@ -1,3 +1,12 @@
+*   Fixing repond_with working directly on the options hash
+    This fixes an issue where the respond_with worked directly with the given
+    options hash, so that if a user relied on it after calling respond_with,
+    the hash wouldn't be the same.
+
+    Fixes #12029
+
+    *bluehotdog*
+
 *   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
     attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.
 

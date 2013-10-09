@@ -65,7 +65,17 @@ class RespondWithController < ActionController::Base
     respond_with(resource, :responder => responder)
   end
 
+  def respond_with_additional_params
+    @params = RespondWithController.params
+    respond_with({:result => resource}, @params)
+  end
+
 protected
+  def self.params
+    {
+        :foo => 'bar'
+    }
+  end
 
   def resource
     Customer.new("david", request.delete? ? nil : 13)
@@ -143,6 +153,11 @@ class RespondWithControllerTest < ActionController::TestCase
     Mime::Type.unregister(:iphone)
     Mime::Type.unregister(:touch)
     Mime::Type.unregister(:mobile)
+  end
+
+  def test_respond_with_shouldnt_modify_original_hash
+    get :respond_with_additional_params
+    assert_equal RespondWithController.params, assigns(:params)
   end
 
   def test_using_resource
