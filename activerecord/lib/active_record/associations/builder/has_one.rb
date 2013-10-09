@@ -14,8 +14,6 @@ module ActiveRecord::Associations::Builder
       [:destroy, :delete, :nullify, :restrict_with_error, :restrict_with_exception]
     end
 
-    private
-
     def self.add_before_destroy_callbacks(model, reflection)
       super unless reflection.options[:through]
     end

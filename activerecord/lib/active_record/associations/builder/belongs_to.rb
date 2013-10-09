@@ -23,8 +23,6 @@ module ActiveRecord::Associations::Builder
       add_counter_cache_methods mixin
     end
 
-    private
-
     def self.add_counter_cache_methods(mixin)
       return if mixin.method_defined? :belongs_to_counter_cache_after_create
 

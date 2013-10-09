@@ -68,8 +68,6 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    private
-
     def self.wrap_scope(scope, mod)
       if scope
         proc { |owner| instance_exec(owner, &scope).extending(mod) }

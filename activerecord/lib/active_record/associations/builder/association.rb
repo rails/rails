@@ -114,8 +114,6 @@ module ActiveRecord::Associations::Builder
       raise NotImplementedError
     end
 
-    private
-
     def self.add_before_destroy_callbacks(model, reflection)
       unless valid_dependent_options.include? reflection.options[:dependent]
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{reflection.options[:dependent]}"
