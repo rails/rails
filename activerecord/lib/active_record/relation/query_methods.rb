@@ -951,7 +951,7 @@ module ActiveRecord
       )
 
       stashed_association_joins.each do |dep|
-        join_dependency.graft dep.outer_joins
+        join_dependency.merge_outer_joins! dep
       end
 
       joins = join_dependency.join_constraints

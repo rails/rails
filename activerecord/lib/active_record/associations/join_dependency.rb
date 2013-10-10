@@ -85,6 +85,20 @@ module ActiveRecord
         nodes
       end
 
+      def merge_outer_joins!(other)
+        left  = join_root
+        right = other.join_root
+
+        if left.match? right
+          merge_node left, right
+        else
+          # If the roots aren't the same, then deep copy the RHS to the LHS
+          left.children.concat right.children.map { |node|
+            deep_copy left, node
+          }
+        end
+      end
+
       def join_constraints
         join_root.flat_map(&:join_constraints)
       end
@@ -117,6 +131,22 @@ module ActiveRecord
       end
 
       private
+
+      def merge_node(left, right)
+        intersection, missing = right.children.map { |node1|
+          [left.children.find { |node2| node1.match? node2 }, node1]
+        }.partition(&:first)
+
+        intersection.each { |l,r| merge_node l, r }
+
+        left.children.concat missing.map { |_,node| deep_copy left, node }
+      end
+
+      def deep_copy(parent, node)
+        dup = build_join_association(node.reflection, parent, Arel::OuterJoin)
+        dup.children.concat node.children.map { |n| deep_copy dup, n }
+        dup
+      end
 
       def find_node(target_node)
         stack = target_node.parents << target_node
