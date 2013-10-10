@@ -80,7 +80,7 @@ module ActiveRecord
       end
 
       def join_constraints
-        join_root.children.flat_map { |c| c.flat_map(&:join_constraints) }
+        make_joins join_root
       end
 
       def columns
@@ -110,6 +110,12 @@ module ActiveRecord
       end
 
       private
+
+      def make_joins(node)
+        node.children.flat_map { |child|
+          child.join_constraints(node).concat make_joins(child)
+        }
+      end
 
       def merge_node(left, right)
         intersection, missing = right.children.map { |node1|
