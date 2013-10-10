@@ -31,6 +31,14 @@ module TestGenerationPrefix
             get "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
             get "/conflicting_url", :to => "inside_engine_generating#conflicting"
             get "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
+
+            get "/relative_path_redirect", :to => redirect("foo")
+            get "/relative_option_redirect", :to => redirect(:path => "foo")
+            get "/relative_custom_redirect", :to => redirect { |params, request| "foo" }
+
+            get "/absolute_path_redirect", :to => redirect("/foo")
+            get "/absolute_option_redirect", :to => redirect(:path => "/foo")
+            get "/absolute_custom_redirect", :to => redirect { |params, request| "/foo" }
           end
 
           routes
@@ -182,6 +190,48 @@ module TestGenerationPrefix
       assert_equal "engine", last_response.body
     end
 
+    test "[ENGINE] relative path redirect uses SCRIPT_NAME from request" do
+      get "/awesome/blog/relative_path_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/awesome/blog/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/awesome/blog/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] relative option redirect uses SCRIPT_NAME from request" do
+      get "/awesome/blog/relative_option_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/awesome/blog/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/awesome/blog/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] relative custom redirect uses SCRIPT_NAME from request" do
+      get "/awesome/blog/relative_custom_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/awesome/blog/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/awesome/blog/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] absolute path redirect doesn't use SCRIPT_NAME from request" do
+      get "/awesome/blog/absolute_path_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] absolute option redirect doesn't use SCRIPT_NAME from request" do
+      get "/awesome/blog/absolute_option_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] absolute custom redirect doesn't use SCRIPT_NAME from request" do
+      get "/awesome/blog/absolute_custom_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
     # Inside Application
     test "[APP] generating engine's route includes prefix" do
       get "/generate"
@@ -281,6 +331,14 @@ module TestGenerationPrefix
           routes = ActionDispatch::Routing::RouteSet.new
           routes.draw do
             get "/posts/:id", :to => "posts#show", :as => :post
+
+            get "/relative_path_redirect", :to => redirect("foo")
+            get "/relative_option_redirect", :to => redirect(:path => "foo")
+            get "/relative_custom_redirect", :to => redirect { |params, request| "foo" }
+
+            get "/absolute_path_redirect", :to => redirect("/foo")
+            get "/absolute_option_redirect", :to => redirect(:path => "/foo")
+            get "/absolute_custom_redirect", :to => redirect { |params, request| "/foo" }
           end
 
           routes
@@ -330,6 +388,48 @@ module TestGenerationPrefix
     test "generating path inside engine" do
       get "/posts/1"
       assert_equal "/posts/1", last_response.body
+    end
+
+    test "[ENGINE] relative path redirect uses SCRIPT_NAME from request" do
+      get "/relative_path_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] relative option redirect uses SCRIPT_NAME from request" do
+      get "/relative_option_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] relative custom redirect uses SCRIPT_NAME from request" do
+      get "/relative_custom_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] absolute path redirect doesn't use SCRIPT_NAME from request" do
+      get "/absolute_path_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] absolute option redirect doesn't use SCRIPT_NAME from request" do
+      get "/absolute_option_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+    end
+
+    test "[ENGINE] absolute custom redirect doesn't use SCRIPT_NAME from request" do
+      get "/absolute_custom_redirect"
+      assert_equal 301, last_response.status
+      assert_equal "http://example.org/foo", last_response.headers["Location"]
+      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
     end
   end
 end

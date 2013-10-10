@@ -1,5 +1,23 @@
 ## unreleased ##
 
+*   Respect `SCRIPT_NAME` when using `redirect` with a relative path
+
+    Example:
+        # application routes.rb
+        mount BlogEngine => '/blog'
+
+        # engine routes.rb
+        get '/admin' => redirect('admin/dashboard')
+
+    This now redirects to the path `/blog/admin/dashboard`, whereas before it would've
+    generated an invalid url because there would be no slash between the host name and
+    the path. It also allows redirects to work where the application is deployed to a
+    subdirectory of a website.
+
+    Fixes #7977
+
+    *Andrew White*
+
 *   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
     attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.
 

@@ -30,6 +30,10 @@ module ActionDispatch
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
+        if relative_path?(uri.path)
+          uri.path = "#{req.script_name}/#{uri.path}"
+        end
+
         body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
@@ -48,6 +52,11 @@ module ActionDispatch
       def inspect
         "redirect(#{status})"
       end
+
+      private
+        def relative_path?(path)
+          path && !path.empty? && path[0] != '/'
+        end
     end
 
     class PathRedirect < Redirect
@@ -81,6 +90,11 @@ module ActionDispatch
           url_options[:path] = (url_options[:path] % escape_path(params))
         end
 
+        if relative_path?(url_options[:path])
+          url_options[:path] = "/#{url_options[:path]}"
+          url_options[:script_name] = request.script_name
+        end
+
         ActionDispatch::Http::URL.url_for url_options
       end
 
@@ -103,6 +117,10 @@ module ActionDispatch
       # You can also use interpolation in the supplied redirect argument:
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
+      #
+      # Note that if you return a path without a leading slash then the url is prefixed with the
+      # current SCRIPT_NAME environment variable. This is typically '/' but may be different in
+      # a mounted engine or where the application is deployed to a subdirectory of a website.
       #
       # Alternatively you can use one of the other syntaxes:
       #
