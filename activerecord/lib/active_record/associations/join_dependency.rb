@@ -186,14 +186,14 @@ module ActiveRecord
 
       def construct(ar_parent, parent, row, rs)
         parent.children.each do |node|
-          association = construct_association(ar_parent, node, row, rs)
+          association = construct_association(ar_parent, parent, node, row, rs)
           construct(association, node, row, rs) if association
         end
       end
 
-      def construct_association(record, join_part, row, rs)
-        caster = rs.column_type(join_part.parent.aliased_primary_key)
-        row_id = caster.type_cast row[join_part.parent.aliased_primary_key]
+      def construct_association(record, parent, join_part, row, rs)
+        caster = rs.column_type(parent.aliased_primary_key)
+        row_id = caster.type_cast row[parent.aliased_primary_key]
 
         return if record.id != row_id
 
