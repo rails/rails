@@ -950,7 +950,7 @@ module ActiveRecord
         join_list
       )
 
-      join_dependency.graft(*stashed_association_joins)
+      join_dependency.graft(stashed_association_joins)
 
       joins = join_dependency.join_constraints
 

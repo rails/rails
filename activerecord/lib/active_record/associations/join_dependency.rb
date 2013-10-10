@@ -61,7 +61,7 @@ module ActiveRecord
         build tree, @join_root, Arel::InnerJoin
       end
 
-      def graft(*associations)
+      def graft(associations)
         associations.reject { |join_node|
           find_node join_node
         }.each { |join_node|
