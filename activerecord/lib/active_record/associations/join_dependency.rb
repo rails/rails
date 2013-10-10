@@ -79,10 +79,10 @@ module ActiveRecord
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_relation(relation)
+      def outer_joins
         nodes = join_root.drop 1
         nodes.each { |n| n.join_type = Arel::OuterJoin }
-        relation.joins(nodes)
+        nodes
       end
 
       def join_constraints

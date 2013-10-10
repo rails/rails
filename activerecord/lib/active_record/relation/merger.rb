@@ -94,7 +94,7 @@ module ActiveRecord
                                                                            [])
           relation.joins! rest
 
-          @relation = join_dependency.join_relation(relation)
+          @relation = relation.joins join_dependency
         end
       end
 

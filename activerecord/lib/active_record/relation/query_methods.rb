@@ -928,7 +928,7 @@ module ActiveRecord
           :string_join
         when Hash, Symbol, Array
           :association_join
-        when ActiveRecord::Associations::JoinDependency::JoinAssociation
+        when ActiveRecord::Associations::JoinDependency
           :stashed_join
         when Arel::Nodes::Join
           :join_node
@@ -950,7 +950,9 @@ module ActiveRecord
         join_list
       )
 
-      join_dependency.graft(stashed_association_joins)
+      stashed_association_joins.each do |dep|
+        join_dependency.graft dep.outer_joins
+      end
 
       joins = join_dependency.join_constraints
 
