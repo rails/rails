@@ -1,3 +1,21 @@
+*   Respect `SCRIPT_NAME` when using `redirect` with a relative path
+
+    Example:
+        # application routes.rb
+        mount BlogEngine => '/blog'
+
+        # engine routes.rb
+        get '/admin' => redirect('admin/dashboard')
+
+    This now redirects to the path `/blog/admin/dashboard`, whereas before it would've
+    generated an invalid url because there would be no slash between the host name and
+    the path. It also allows redirects to work where the application is deployed to a
+    subdirectory of a website.
+
+    Fixes #7977
+
+    *Andrew White*
+
 *   Fixing repond_with working directly on the options hash
     This fixes an issue where the respond_with worked directly with the given
     options hash, so that if a user relied on it after calling respond_with,
