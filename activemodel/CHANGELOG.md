@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
+
+    *T.J. Schuck*
+
 *   `inclusion` / `exclusion` validations with ranges will only use the faster
     `Range#cover` for numerical ranges, and the more accurate `Range#include?`
     for non-numerical ones.
