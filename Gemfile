@@ -15,6 +15,8 @@ gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'arel', github: 'rails/arel', branch: 'master'
+gem 'rails-dom-testing', github: 'kaspth/rails-dom-testing'
+gem 'rails-html-sanitizer', github: 'rafaelfranca/rails-html-sanitizer'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
 
