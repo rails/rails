@@ -186,7 +186,7 @@ module ActiveRecord
       end
 
       def construct(parent, nodes, row, rs)
-        nodes.sort_by { |k| k.name }.each do |node|
+        nodes.each do |node|
           association = construct_association(parent, node, row, rs)
           construct(association, node.children, row, rs) if association
         end
