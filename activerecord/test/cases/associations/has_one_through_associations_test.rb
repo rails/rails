@@ -315,4 +315,11 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_with_custom_select_on_join_model_default_scope
     assert_equal clubs(:boring_club), members(:groucho).selected_club
   end
+
+  def test_saving_record_does_not_save_has_one_through_has_one_association
+    Club.before_save lambda { self.name='callback' }
+    @member.club
+    @member.save
+    assert_not_equal 'callback', @member.club.name
+  end
 end

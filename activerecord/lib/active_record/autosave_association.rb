@@ -384,7 +384,7 @@ module ActiveRecord
           record.destroy
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-          if autosave != false && (new_record? || record.new_record? || record[reflection.foreign_key] != key || autosave)
+          if autosave != false && (new_record? || record.new_record? || (record[reflection.foreign_key] != key && !reflection.through_reflection) || autosave)
             unless reflection.through_reflection
               record[reflection.foreign_key] = key
             end
