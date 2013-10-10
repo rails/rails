@@ -86,6 +86,9 @@ module ActiveRecord
           end
         end
 
+        # assign new store attribute and create new hash to ensure that each class in the hierarchy
+        # has its own hash of stored attributes.
+        self.stored_attributes = {} if self.stored_attributes.blank?
         self.stored_attributes[store_attribute] ||= []
         self.stored_attributes[store_attribute] |= keys
       end
