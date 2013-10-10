@@ -97,16 +97,15 @@ module ActiveRecord
         parents = {}
 
         type_caster = result_set.column_type primary_key
-        assoc = join_root.children
 
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_root.instantiate(row_hash)
-          construct(parent, assoc, row_hash, result_set)
+          construct(parent, join_root, row_hash, result_set)
           parent
         }.uniq
 
-        remove_duplicate_results!(base_klass, records, assoc)
+        remove_duplicate_results!(base_klass, records, join_root.children)
         records
       end
 
@@ -185,10 +184,10 @@ module ActiveRecord
         JoinAssociation.new(reflection, join_root.to_a.length, parent, join_type, alias_tracker)
       end
 
-      def construct(parent, nodes, row, rs)
-        nodes.each do |node|
-          association = construct_association(parent, node, row, rs)
-          construct(association, node.children, row, rs) if association
+      def construct(ar_parent, parent, row, rs)
+        parent.children.each do |node|
+          association = construct_association(ar_parent, node, row, rs)
+          construct(association, node, row, rs) if association
         end
       end
 
