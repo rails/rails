@@ -40,16 +40,6 @@ module ActiveRecord
           self.class == other.class
         end
 
-        def parents
-          parents = []
-          node = parent
-          while node
-            parents.unshift node
-            node = node.parent
-          end
-          parents
-        end
-
         def each(&block)
           yield self
           children.each { |child| child.each(&block) }

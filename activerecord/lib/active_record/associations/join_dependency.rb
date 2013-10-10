@@ -61,28 +61,8 @@ module ActiveRecord
         build tree, @join_root, Arel::InnerJoin
       end
 
-      def graft(associations)
-        associations.reject { |join_node|
-          find_node join_node
-        }.each { |join_node|
-          parent     = find_node(join_node.parent) || join_root
-          reflection = join_node.reflection
-          type       = join_node.join_type
-
-          next if parent.children.find { |j| j.reflection == reflection }
-          build_scalar reflection, parent, type
-        }
-        self
-      end
-
       def reflections
         join_root.drop(1).map!(&:reflection)
-      end
-
-      def outer_joins
-        nodes = join_root.drop 1
-        nodes.each { |n| n.join_type = Arel::OuterJoin }
-        nodes
       end
 
       def merge_outer_joins!(other)
@@ -146,26 +126,6 @@ module ActiveRecord
         dup = build_join_association(node.reflection, parent, Arel::OuterJoin)
         dup.children.concat node.children.map { |n| deep_copy dup, n }
         dup
-      end
-
-      def find_node(target_node)
-        stack = target_node.parents << target_node
-
-        left  = [join_root]
-        right = stack.shift
-
-        loop {
-          match = left.find { |l| l.match? right }
-
-          if match
-            return match if stack.empty?
-
-            left  = match.children
-            right = stack.shift
-          else
-            return nil
-          end
-        }
       end
 
       def remove_duplicate_results!(base, records, associations)
