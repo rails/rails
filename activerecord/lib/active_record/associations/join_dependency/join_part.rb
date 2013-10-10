@@ -50,15 +50,9 @@ module ActiveRecord
           parents
         end
 
-        def each
+        def each(&block)
           yield self
-          iter = lambda { |list|
-            list.each { |item|
-              yield item
-              iter.call item.children
-            }
-          }
-          iter.call children
+          children.each { |child| child.each(&block) }
         end
 
         def aliased_table
