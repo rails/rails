@@ -80,7 +80,7 @@ module ActiveRecord
       end
 
       def join_constraints
-        join_root.flat_map(&:join_constraints)
+        join_root.children.flat_map { |c| c.flat_map(&:join_constraints) }
       end
 
       def columns
