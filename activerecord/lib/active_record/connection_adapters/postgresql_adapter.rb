@@ -148,6 +148,10 @@ module ActiveRecord
         @oid_type.type_cast value
       end
 
+      def accessor
+        @oid_type.accessor
+      end
+
       private
 
         def has_default_function?(default_value, default)

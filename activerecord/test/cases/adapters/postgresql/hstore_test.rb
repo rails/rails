@@ -7,6 +7,8 @@ require 'active_record/connection_adapters/postgresql_adapter'
 class PostgresqlHstoreTest < ActiveRecord::TestCase
   class Hstore < ActiveRecord::Base
     self.table_name = 'hstores'
+
+    store_accessor :settings, :language, :timezone
   end
 
   def setup
@@ -26,6 +28,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     @connection.transaction do
       @connection.create_table('hstores') do |t|
         t.hstore 'tags', :default => ''
+        t.hstore 'settings'
       end
     end
     @column = Hstore.columns.find { |c| c.name == 'tags' }
@@ -88,6 +91,24 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     assert_equal({}, @column.type_cast(""))
     assert_equal({'key'=>nil}, @column.type_cast('key => NULL'))
     assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast(%q(c=>"}", "\"a\""=>"b \"a b")))
+  end
+
+  def test_with_store_accessors
+    x = Hstore.new(language: "fr", timezone: "GMT")
+    assert_equal "fr", x.language
+    assert_equal "GMT", x.timezone
+
+    x.save!
+    x = Hstore.first
+    assert_equal "fr", x.language
+    assert_equal "GMT", x.timezone
+
+    x.language = "de"
+    x.save!
+
+    x = Hstore.first
+    assert_equal "de", x.language
+    assert_equal "GMT", x.timezone
   end
 
   def test_gen1
