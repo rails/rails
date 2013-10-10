@@ -80,9 +80,9 @@ module ActiveRecord
       end
 
       def join_relation(relation)
-        join_root.inject(relation) do |rel,association|
-          association.join_relation(rel)
-        end
+        nodes = join_root.drop 1
+        nodes.each { |n| n.join_type = Arel::OuterJoin }
+        relation.joins(nodes)
       end
 
       def join_constraints

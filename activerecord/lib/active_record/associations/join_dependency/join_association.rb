@@ -125,11 +125,6 @@ module ActiveRecord
           constraint
         end
 
-        def join_relation(joining_relation)
-          self.join_type = Arel::OuterJoin
-          joining_relation.joins(self)
-        end
-
         def table
           tables.last
         end
