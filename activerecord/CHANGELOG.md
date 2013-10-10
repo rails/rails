@@ -1,3 +1,9 @@
+*   Fix bug where `ActiveRecord::Store` used a global `Hash` to keep track of
+    all registered `stored_attributes`. Now every subclass of
+    `ActiveRecord::Base` has it's own `Hash`.
+
+    *Yves Senn*
+
 *   `change_column_default` allows `[]` as argument to `change_column_default`.
 
     Fixes #11586.

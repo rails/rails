@@ -183,4 +183,16 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal dumped, second_dump
     assert_equal @john, YAML.load(second_dump)
   end
+
+  test "stored_attributes are tracked per class" do
+    first_model = Class.new(ActiveRecord::Base) do
+      store_accessor :data, :color
+    end
+    second_model = Class.new(ActiveRecord::Base) do
+      store_accessor :data, :width, :height
+    end
+
+    assert_equal [:color], first_model.stored_attributes[:data]
+    assert_equal [:width, :height], second_model.stored_attributes[:data]
+  end
 end
