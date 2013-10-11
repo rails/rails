@@ -220,17 +220,16 @@ module ActiveRecord
       end
 
       def construct_association(record, join_part, row)
-        macro = join_part.reflection.macro
-        if macro == :has_one || macro == :belongs_to
-          return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
-          association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
-          set_target_and_inverse(join_part, association, record)
-        else
+        if join_part.reflection.collection?
           association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
           other = record.association(join_part.reflection.name)
           other.loaded!
           other.target.push(association) if association
           other.set_inverse_instance(association)
+        else
+          return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
+          association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
+          set_target_and_inverse(join_part, association, record)
         end
         association
       end
