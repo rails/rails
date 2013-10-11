@@ -20,12 +20,13 @@ require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
-require 'action_view/testing/assertions'
 require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
 require 'action_controller/caching'
+
+require 'rails-dom-testing'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
@@ -106,7 +107,7 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
-    include ActionView::Assertions
+    include Rails::Dom::Testing::Assertions
   end
 end
 
