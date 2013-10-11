@@ -10,10 +10,6 @@ module ActiveRecord
       class JoinPart # :nodoc:
         include Enumerable
 
-        # A JoinBase instance representing the active record we are joining onto.
-        # (So in Author.has_many :posts, the Author would be that base record.)
-        attr_reader :parent
-
         # The Active Record class which this join part is associated 'about'; for a JoinBase
         # this is the actual base model, for a JoinAssociation this is the target model of the
         # association.
@@ -21,9 +17,8 @@ module ActiveRecord
 
         delegate :table_name, :column_names, :primary_key, :arel_engine, :to => :base_klass
 
-        def initialize(base_klass, parent)
+        def initialize(base_klass)
           @base_klass = base_klass
-          @parent = parent
           @cached_record = {}
           @column_names_with_alias = nil
           @children = []

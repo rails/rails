@@ -117,6 +117,21 @@ module ActiveRecord
         }
       end
 
+      def construct_tables!(parent, node)
+        node.tables = node.reflection.chain.map { |reflection|
+          alias_tracker.aliased_table_for(
+            reflection.table_name,
+            table_alias_for(reflection, parent, reflection != node.reflection)
+          )
+        }.reverse
+      end
+
+      def table_alias_for(reflection, parent, join)
+        name = "#{reflection.plural_name}_#{parent.table_name}"
+        name << "_join" if join
+        name
+      end
+
       def merge_node(left, right)
         intersection, missing = right.children.map { |node1|
           [left.children.find { |node2| node1.match? node2 }, node1]
@@ -187,7 +202,9 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        JoinAssociation.new(reflection, join_root.to_a.length, parent, join_type, alias_tracker)
+        node = JoinAssociation.new(reflection, join_root.to_a.length, join_type)
+        construct_tables!(parent, node)
+        node
       end
 
       def construct(ar_parent, parent, row, rs)

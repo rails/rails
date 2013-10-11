@@ -15,23 +15,18 @@ module ActiveRecord
         # These implement abstract methods from the superclass
         attr_reader :aliased_prefix
 
-        attr_reader :tables
-        attr_reader :alias_tracker
+        attr_accessor :tables
 
         delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
 
-        def initialize(reflection, index, parent, join_type, alias_tracker)
-          super(reflection.klass, parent)
+        def initialize(reflection, index, join_type)
+          super(reflection.klass)
 
           @reflection      = reflection
-          @alias_tracker   = alias_tracker
           @join_type       = join_type
           @aliased_prefix  = "t#{ index }"
-          @tables          = construct_tables.reverse
+          @tables          = nil
         end
-
-        def parent_table_name; parent.table_name; end
-        alias :alias_suffix :parent_table_name
 
         def match?(other)
           return true if self == other
