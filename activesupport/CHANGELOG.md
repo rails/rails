@@ -1,10 +1,3 @@
-*   Add `flatten` and `flatten!` methods to Duration objects.
-
-    Example:
-         Date.today + (1.month + 1.month).flatten == Date.today + 2.months
-
-    *Ionatan Wiznia*
-
 *   `require_dependency` accepts objects that respond to `to_path`, in
     particular `Pathname` instances.
 

@@ -81,18 +81,6 @@ module ActiveSupport
       to_i
     end
 
-    # Flattens all the +parts+ of the duration, and returns a
-    # new duration object.
-    def flatten
-      Duration.new(@value, flatten_parts)
-    end
-
-    # Flattens all the +parts+ of this duration.
-    def flatten!
-      @parts = flatten_parts
-      self
-    end
-
     protected
 
       def sum(sign, time = ::Time.current) #:nodoc:
@@ -107,14 +95,6 @@ module ActiveSupport
             raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
           end
         end
-      end
-
-      def flatten_parts
-        @parts.inject({}) do |result, (name, value)|
-          result[name] ||= 0
-          result[name] += value
-          result
-        end.to_a
       end
 
     private
