@@ -3699,6 +3699,21 @@ Time.utc(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 
+When addinng or substracting durations, the resulting duration will be equivalent to subsequent calls to since or advance, so:
+
+```ruby
+Date.new(2013,1,28) + 1.month + 1.month
+# => Thu, 28 Mar 2013
+```
+
+If you want to add durations and then use them as just one call to since or advance, you can use the flatten or flatten! method:
+
+```ruby
+Date.new(2013,1,31) + (1.month + 1.month).flatten
+# => Sun, 31 Mar 2013
+```
+
+
 Extensions to `File`
 --------------------
 
