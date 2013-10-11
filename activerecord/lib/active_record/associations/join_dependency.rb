@@ -221,23 +221,16 @@ module ActiveRecord
 
       def construct_association(record, join_part, row)
         macro = join_part.reflection.macro
-        if macro == :has_one
+        if macro == :has_one || macro == :belongs_to
           return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
           association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
           set_target_and_inverse(join_part, association, record)
         else
           association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
-          case macro
-          when :has_many
-            other = record.association(join_part.reflection.name)
-            other.loaded!
-            other.target.push(association) if association
-            other.set_inverse_instance(association)
-          when :belongs_to
-            set_target_and_inverse(join_part, association, record)
-          else
-            raise ConfigurationError, "unknown macro: #{join_part.reflection.macro}"
-          end
+          other = record.association(join_part.reflection.name)
+          other.loaded!
+          other.target.push(association) if association
+          other.set_inverse_instance(association)
         end
         association
       end
