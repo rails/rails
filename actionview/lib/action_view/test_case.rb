@@ -3,6 +3,8 @@ require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
 
+require 'rails-dom-testing'
+
 module ActionView
   # = Action View Test Case
   class TestCase < ActiveSupport::TestCase
@@ -34,7 +36,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include ActionDispatch::Assertions, ActionDispatch::TestProcess
-      include ActionView::Assertions
+      include Rails::Dom::Testing::Assertions
       include ActionController::TemplateAssertions
       include ActionView::Context
 
