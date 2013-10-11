@@ -3,6 +3,7 @@ require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
 
+require 'loofah'
 require 'rails-dom-testing'
 
 module ActionView
@@ -154,11 +155,10 @@ module ActionView
 
     private
 
-      # Support the selector assertions
-      #
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      def response_from_page
-        Loofah.document(@rendered.blank? ? @output_buffer : @rendered).root
+      def document_root_element
+        @html_document ||= Loofah.document(@rendered.blank? ? @output_buffer : @rendered)
+        @html_document.root
       end
 
       def say_no_to_protect_against_forgery!
@@ -239,7 +239,8 @@ module ActionView
         :@test_passed,
         :@view,
         :@view_context_class,
-        :@_subscribers
+        :@_subscribers,
+        :@html_document
       ]
 
       def _user_defined_ivars
