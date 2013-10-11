@@ -53,7 +53,6 @@ module ActiveRecord
       #
       def initialize(base, associations, joins)
         @base_klass    = base
-        @table_joins   = joins
         @join_root    = JoinBase.new(base)
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
@@ -215,10 +214,11 @@ module ActiveRecord
       end
 
       def construct_association(record, parent, join_part, row, rs)
-        caster = rs.column_type(parent.aliased_primary_key)
-        row_id = caster.type_cast row[parent.aliased_primary_key]
+        primary_key = parent.aliased_primary_key
+        type_caster = rs.column_type primary_key
+        primary_id  = type_caster.type_cast row[parent.aliased_primary_key]
 
-        return if record.id != row_id
+        return if record.id != primary_id
 
         macro = join_part.reflection.macro
         if macro == :has_one
