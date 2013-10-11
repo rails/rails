@@ -207,19 +207,19 @@ module ActiveRecord
       end
 
       def construct(ar_parent, parent, row, rs)
+        primary_key = parent.aliased_primary_key
+        type_caster = rs.column_type primary_key
+
         parent.children.each do |node|
-          association = construct_association(ar_parent, parent, node, row, rs)
-          construct(association, node, row, rs) if association
+          primary_id = type_caster.type_cast row[primary_key]
+          if ar_parent.id == primary_id
+            association = construct_association(ar_parent, node, row)
+            construct(association, node, row, rs) if association
+          end
         end
       end
 
-      def construct_association(record, parent, join_part, row, rs)
-        primary_key = parent.aliased_primary_key
-        type_caster = rs.column_type primary_key
-        primary_id  = type_caster.type_cast row[parent.aliased_primary_key]
-
-        return if record.id != primary_id
-
+      def construct_association(record, join_part, row)
         macro = join_part.reflection.macro
         if macro == :has_one
           return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
