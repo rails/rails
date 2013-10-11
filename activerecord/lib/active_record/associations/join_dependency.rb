@@ -149,7 +149,7 @@ module ActiveRecord
 
       def remove_duplicate_results!(base, records, associations)
         associations.each do |node|
-          reflection = base.reflect_on_association(node.name)
+          reflection = node.reflection
           remove_uniq_by_reflection(reflection, records)
 
           parent_records = []
@@ -189,7 +189,7 @@ module ActiveRecord
       end
 
       def remove_uniq_by_reflection(reflection, records)
-        if reflection && reflection.collection?
+        if reflection.collection?
           records.each { |record| record.send(reflection.name).target.uniq! }
         end
       end
