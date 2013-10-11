@@ -189,12 +189,22 @@ module ActionDispatch
     end
 
     # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
-    # (case-insensitive). All major JavaScript libraries send this header with
-    # every Ajax request.
+    # (case-insensitive) or if HTTP_ORIGIN is present. All major JavaScript 
+    # libraries send X-Requested-With header with every Ajax request except
+    # jQuery for CORS requests. That is why we assume CORS requests are
+    # Ajax requests too.
+
     def xml_http_request?
-      @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
+      @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i || cors?
     end
     alias :xhr? :xml_http_request?
+
+    def cors?
+      return false unless @env['HTTP_ORIGIN']
+
+      uri = URI.parse @env['HTTP_ORIGIN']
+      uri.host != @env['HTTP_HOST'] || uri.scheme != @env['rack.url_scheme'] || uri.port != @env['HTTP_PORT'].to_i
+    end
 
     def ip
       @ip ||= super
@@ -306,7 +316,7 @@ module ActionDispatch
     end
 
     private
-
+    
     def check_method(name)
       HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
       name

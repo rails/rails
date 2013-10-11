@@ -122,6 +122,13 @@
 
     *Piotr Niełacny*
 
+*   Make CORS requests considered as Ajax requests.
+
+    This fixes a problem where HTML page was returned instead of JSON
+    response because the CORS request was not considered as Ajax.
+
+    *Yvan Barthelemy*
+
 *   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind body input stream on
     parsing json params.
 
