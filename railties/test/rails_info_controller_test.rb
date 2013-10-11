@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'rails-dom-testing'
 
 module ActionController
   class Base
@@ -8,6 +9,8 @@ end
 
 class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
+
+  include Rails::Dom::Testing::Assertions::SelectorAssertions
 
   def setup
     Rails.application.routes.draw do
