@@ -105,14 +105,13 @@ module ActiveRecord
           }
         }
 
-        records = result_set.map { |row_hash|
+        result_set.each { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_root.instantiate(row_hash)
           construct(parent, join_root, row_hash, result_set, seen)
-          parent
-        }.uniq
+        }
 
-        records
+        parents.values
       end
 
       private
