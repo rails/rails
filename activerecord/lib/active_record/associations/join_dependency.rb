@@ -167,11 +167,6 @@ module ActiveRecord
         end
       end
 
-      def build_scalar(reflection, parent, join_type)
-        join_association = build_join_association(reflection, parent, join_type)
-        parent.children << join_association
-      end
-
       def build_join_association(reflection, parent, join_type)
         reflection.check_validity!
 
