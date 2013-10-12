@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/try'
-require 'action_view/helpers/sanitize_helper/sanitizers'
+require 'active_support/deprecation'
+require 'rails-html-sanitizer'
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -121,7 +122,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
         def sanitized_protocol_separator
-          white_list_sanitizer.protocol_separator
+          ActiveSupport::Deprecation.warn('protocol_separator has been deprecated and has no effect.')
         end
 
         def sanitized_uri_attributes
@@ -129,7 +130,7 @@ module ActionView
         end
 
         def sanitized_bad_tags
-          white_list_sanitizer.bad_tags
+          ActiveSupport::Deprecation.warn('bad_tags has been deprecated and has no effect. You can still affect the tags being sanitized using Rails::Html::WhiteListSanitizer.bad_tags= which changes the allowed_tags.')
         end
 
         def sanitized_allowed_tags
@@ -156,7 +157,7 @@ module ActionView
           white_list_sanitizer.allowed_protocols
         end
 
-        # Gets the ActionView::FullSanitizer instance used by +strip_tags+. Replace with
+        # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -164,10 +165,10 @@ module ActionView
         #   end
         #
         def full_sanitizer
-          @full_sanitizer ||= ActionView::FullSanitizer.new
+          @full_sanitizer ||= Rails::Html::FullSanitizer.new
         end
 
-        # Gets the ActionView::LinkSanitizer instance used by +strip_links+.
+        # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -175,10 +176,10 @@ module ActionView
         #   end
         #
         def link_sanitizer
-          @link_sanitizer ||= ActionView::LinkSanitizer.new
+          @link_sanitizer ||= Rails::Html::LinkSanitizer.new
         end
 
-        # Gets the ActionView::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
+        # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -186,12 +187,12 @@ module ActionView
         #   end
         #
         def white_list_sanitizer
-          @white_list_sanitizer ||= ActionView::WhiteListSanitizer.new
+          @white_list_sanitizer ||= Rails::Html::WhiteListSanitizer.new
         end
 
 
         def sanitized_protocol_separator=(value)
-          ActionView::WhiteListSanitizer.protocol_separator = value
+          ActiveSupport::Deprecation.warn('protocol_separator= has been deprecated and has no effect.')
         end
 
         # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
@@ -201,7 +202,7 @@ module ActionView
         #   end
         #
         def sanitized_uri_attributes=(attributes)
-          ActionView::WhiteListSanitizer.update_uri_attributes(attributes)
+          Rails::Html::WhiteListSanitizer.update_uri_attributes(attributes)
         end
 
         # Adds to the Set of 'bad' tags for the +sanitize+ helper.
@@ -211,7 +212,7 @@ module ActionView
         #   end
         #
         def sanitized_bad_tags=(attributes)
-          ActionView::WhiteListSanitizer.bad_tags = attributes
+          Rails::Html::WhiteListSanitizer.bad_tags = attributes
         end
 
         # Adds to the Set of allowed tags for the +sanitize+ helper.
@@ -221,7 +222,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_tags=(attributes)
-          ActionView::WhiteListSanitizer.update_allowed_tags(attributes)
+          Rails::Html::WhiteListSanitizer.update_allowed_tags(attributes)
         end
 
         # Adds to the Set of allowed HTML attributes for the +sanitize+ helper.
@@ -231,7 +232,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_attributes=(attributes)
-          ActionView::WhiteListSanitizer.update_allowed_attributes(attributes)
+          Rails::Html::WhiteListSanitizer.update_allowed_attributes(attributes)
         end
 
         # Adds to the Set of allowed CSS properties for the #sanitize and +sanitize_css+ helpers.
@@ -241,7 +242,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_css_properties=(attributes)
-          ActionView::WhiteListSanitizer.update_allowed_css_properties(attributes)
+          Rails::Html::WhiteListSanitizer.update_allowed_css_properties(attributes)
         end
 
         # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
@@ -251,7 +252,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_css_keywords=(attributes)
-          ActionView::WhiteListSanitizer.update_allowed_css_keywords(attributes)
+          Rails::Html::WhiteListSanitizer.update_allowed_css_keywords(attributes)
         end
 
         # Adds to the Set of allowed shorthand CSS properties for the +sanitize+ and +sanitize_css+ helpers.
@@ -261,7 +262,7 @@ module ActionView
         #   end
         #
         def sanitized_shorthand_css_properties=(attributes)
-          ActionView::WhiteListSanitizer.update_shorthand_css_properties(attributes)
+          Rails::Html::WhiteListSanitizer.update_shorthand_css_properties(attributes)
         end
 
         # Adds to the Set of allowed protocols for the +sanitize+ helper.
@@ -271,7 +272,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_protocols=(attributes)
-          ActionView::WhiteListSanitizer.update_allowed_protocols(attributes)
+          Rails::Html::WhiteListSanitizer.update_allowed_protocols(attributes)
         end
       end
     end
