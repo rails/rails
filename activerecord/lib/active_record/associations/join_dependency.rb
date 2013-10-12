@@ -92,9 +92,9 @@ module ActiveRecord
       end
 
       def instantiate(result_set)
-        primary_key = join_root.aliased_primary_key
         parents = {}
 
+        primary_key = join_root.aliased_primary_key
         type_caster = result_set.column_type primary_key
 
         seen = Hash.new { |h,parent_klass|
@@ -185,35 +185,31 @@ module ActiveRecord
       end
 
       def construct(ar_parent, parent, row, rs, seen)
-        primary_key = parent.aliased_primary_key
-        type_caster = rs.column_type primary_key
+        primary_id  = ar_parent.id
 
         parent.children.each do |node|
-          primary_id = type_caster.type_cast row[primary_key]
-          if ar_parent.id == primary_id
-            if node.reflection.collection?
-              other = ar_parent.association(node.reflection.name)
-              other.loaded!
-            else
-              if ar_parent.association_cache.key?(node.reflection.name)
-                model = ar_parent.association(node.reflection.name).target
-                construct(model, node, row, rs, seen)
-                next
-              end
-            end
-
-            id = row[node.aliased_primary_key]
-            next if id.nil?
-
-            model = seen[parent.base_klass][primary_id][node.base_klass][id]
-
-            if model
+          if node.reflection.collection?
+            other = ar_parent.association(node.reflection.name)
+            other.loaded!
+          else
+            if ar_parent.association_cache.key?(node.reflection.name)
+              model = ar_parent.association(node.reflection.name).target
               construct(model, node, row, rs, seen)
-            else
-              model = construct_model(ar_parent, node, row)
-              seen[parent.base_klass][primary_id][node.base_klass][id] = model
-              construct(model, node, row, rs, seen)
+              next
             end
+          end
+
+          id = row[node.aliased_primary_key]
+          next if id.nil?
+
+          model = seen[parent.base_klass][primary_id][node.base_klass][id]
+
+          if model
+            construct(model, node, row, rs, seen)
+          else
+            model = construct_model(ar_parent, node, row)
+            seen[parent.base_klass][primary_id][node.base_klass][id] = model
+            construct(model, node, row, rs, seen)
           end
         end
       end
