@@ -1,3 +1,9 @@
+*   For missed association exception message
+    which is raised in `ActiveRecord::Associations::Preloader` class
+    added owner record class name in order to simplify to find problem code.
+
+    *Paul Nikitochkin*
+
 *   `has_and_belongs_to_many` is now transparently implemented in terms of
     `has_many :through`.  Behavior should remain the same, if not, it is a bug.
 
