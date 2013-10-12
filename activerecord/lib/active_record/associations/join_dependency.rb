@@ -230,7 +230,7 @@ module ActiveRecord
         if join_part.reflection.collection?
           model = join_part.instantiate(row)
           other = record.association(join_part.reflection.name)
-          other.target.push(model) if model
+          other.target.push(model)
           other.set_inverse_instance(model)
         else
           return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
