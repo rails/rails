@@ -216,6 +216,12 @@ module ActiveRecord
             if node.reflection.collection?
               other = ar_parent.association(node.reflection.name)
               other.loaded!
+            else
+              if ar_parent.association_cache.key?(node.reflection.name)
+                model = ar_parent.association(node.reflection.name).target
+                construct(model, node, row, rs)
+                next
+              end
             end
 
             next if row[node.aliased_primary_key].nil?
@@ -226,19 +232,17 @@ module ActiveRecord
         end
       end
 
-      def construct_model(record, join_part, row)
-        if join_part.reflection.collection?
-          model = join_part.instantiate(row)
-          other = record.association(join_part.reflection.name)
+      def construct_model(record, node, row)
+        model = node.instantiate(row)
+        other = record.association(node.reflection.name)
+
+        if node.reflection.collection?
           other.target.push(model)
-          other.set_inverse_instance(model)
         else
-          return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
-          model = join_part.instantiate(row)
-          other = record.association(join_part.reflection.name)
           other.target = model
-          other.set_inverse_instance(model)
         end
+
+        other.set_inverse_instance(model)
         model
       end
     end
