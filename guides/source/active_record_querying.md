@@ -1332,16 +1332,16 @@ If you want to find both by name and locked, you can chain these finders togethe
 Find or Build a New Object
 --------------------------
 
-It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.
+It's common that you need to find a record or create it if it doesn't exist. You can do that with the `first_or_create` and `first_or_create!` methods.
 
-### `find_or_create_by`
+### `first_or_create`
 
-The `find_or_create_by` method checks whether a record with the attributes exists. If it doesn't, then `create` is called. Let's see an example.
+The `first_or_create` method checks whether a record with the attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
 Suppose you want to find a client named 'Andy', and if there's none, create one. You can do so by running:
 
 ```ruby
-Client.find_or_create_by(first_name: 'Andy')
+Client.where(first_name: 'Andy').first_or_create
 # => #<Client id: 1, first_name: "Andy", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 ```
 
@@ -1354,7 +1354,7 @@ INSERT INTO clients (created_at, first_name, locked, orders_count, updated_at) V
 COMMIT
 ```
 
-`find_or_create_by` returns either the record that already exists or the new record. In our case, we didn't already have a client named Andy so the record is created and returned.
+`first_or_create` returns either the record that already exists or the new record. In our case, we didn't already have a client named Andy so the record is created and returned.
 
 The new record might not be saved to the database; that depends on whether validations passed or not (just like `create`).
 
@@ -1366,13 +1366,13 @@ exist, create a client named "Andy" which is not locked.
 We can achieve this in two ways. The first is to use `create_with`:
 
 ```ruby
-Client.create_with(locked: false).find_or_create_by(first_name: 'Andy')
+Client.where(first_name: 'Andy').create_with(locked: false).first_or_create
 ```
 
 The second way is using a block:
 
 ```ruby
-Client.find_or_create_by(first_name: 'Andy') do |c|
+Client.where(first_name: 'Andy').first_or_create do |c|
   c.locked = false
 end
 ```
@@ -1380,9 +1380,9 @@ end
 The block will only be executed if the client is being created. The
 second time we run this code, the block will be ignored.
 
-### `find_or_create_by!`
+### `first_or_create!`
 
-You can also use `find_or_create_by!` to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
+You can also use `first_or_create!` to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
 
 ```ruby
 validates :orders_count, presence: true
@@ -1391,20 +1391,20 @@ validates :orders_count, presence: true
 to your `Client` model. If you try to create a new `Client` without passing an `orders_count`, the record will be invalid and an exception will be raised:
 
 ```ruby
-Client.find_or_create_by!(first_name: 'Andy')
+Client.where(first_name: 'Andy').first_or_create!
 # => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
-### `find_or_initialize_by`
+### `first_or_initialize`
 
-The `find_or_initialize_by` method will work just like
-`find_or_create_by` but it will call `new` instead of `create`. This
+The `first_or_initialize` method will work just like
+`first_or_create` but it will call `new` instead of `create`. This
 means that a new model instance will be created in memory but won't be
-saved to the database. Continuing with the `find_or_create_by` example, we
+saved to the database. Continuing with the `first_or_create` example, we
 now want the client named 'Nick':
 
 ```ruby
-nick = Client.find_or_initialize_by(first_name: 'Nick')
+nick = Client.where(first_name: 'Nick').first_or_initialize
 # => <Client id: nil, first_name: "Nick", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 
 nick.persisted?
