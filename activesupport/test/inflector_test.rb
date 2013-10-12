@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 require 'active_support/inflector'
 
@@ -29,6 +30,14 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_pluralize_empty_string
     assert_equal "", ActiveSupport::Inflector.pluralize("")
+  end
+
+  def test_pluralize_for_words_with_non_ascii_characters
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable "猫"
+    end
+    assert_equal "猫", ActiveSupport::Inflector.pluralize("猫")
+    ActiveSupport::Inflector.inflections.uncountables.pop
   end
 
   ActiveSupport::Inflector.inflections.uncountable.each do |word|

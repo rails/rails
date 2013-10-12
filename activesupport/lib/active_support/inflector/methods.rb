@@ -372,7 +372,7 @@ module ActiveSupport
     def apply_inflections(word, rules)
       result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
+      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\p{Word}+\Z/])
         result
       else
         rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
