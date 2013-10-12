@@ -684,13 +684,8 @@ module ActionController
       private
 
       def document_root_element
-        @html_document ||= if @response.content_type =~ /xml$/
-          Loofah.xml_document(@response.body)
-        else
-          Loofah.document(@response.body)
-        end.root
+        html_document.root
       end
-
 
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
