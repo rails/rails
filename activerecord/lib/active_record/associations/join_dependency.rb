@@ -97,14 +97,21 @@ module ActiveRecord
 
         type_caster = result_set.column_type primary_key
 
+        seen = Hash.new { |h,parent_klass|
+          h[parent_klass] = Hash.new { |i,parent_id|
+            i[parent_id] = Hash.new { |j,child_klass|
+              j[child_klass] = {}
+            }
+          }
+        }
+
         records = result_set.map { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_root.instantiate(row_hash)
-          construct(parent, join_root, row_hash, result_set)
+          construct(parent, join_root, row_hash, result_set, seen)
           parent
         }.uniq
 
-        remove_duplicate_results!(base_klass, records, join_root.children)
         records
       end
 
@@ -147,28 +154,6 @@ module ActiveRecord
         dup
       end
 
-      def remove_duplicate_results!(base, records, associations)
-        associations.each do |node|
-          reflection = node.reflection
-          remove_uniq_by_reflection(reflection, records)
-
-          parent_records = []
-          records.each do |record|
-            if descendant = record.send(reflection.name)
-              if reflection.collection?
-                parent_records.concat descendant.target.uniq
-              else
-                parent_records << descendant
-              end
-            end
-          end
-
-          unless parent_records.empty?
-            remove_duplicate_results!(reflection.klass, parent_records, node.children)
-          end
-        end
-      end
-
       def find_reflection(klass, name)
         klass.reflect_on_association(name) or
           raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
@@ -188,12 +173,6 @@ module ActiveRecord
         parent.children << join_association
       end
 
-      def remove_uniq_by_reflection(reflection, records)
-        if reflection.collection?
-          records.each { |record| record.send(reflection.name).target.uniq! }
-        end
-      end
-
       def build_join_association(reflection, parent, join_type)
         reflection.check_validity!
 
@@ -206,7 +185,7 @@ module ActiveRecord
         node
       end
 
-      def construct(ar_parent, parent, row, rs)
+      def construct(ar_parent, parent, row, rs, seen)
         primary_key = parent.aliased_primary_key
         type_caster = rs.column_type primary_key
 
@@ -219,15 +198,23 @@ module ActiveRecord
             else
               if ar_parent.association_cache.key?(node.reflection.name)
                 model = ar_parent.association(node.reflection.name).target
-                construct(model, node, row, rs)
+                construct(model, node, row, rs, seen)
                 next
               end
             end
 
-            next if row[node.aliased_primary_key].nil?
+            id = row[node.aliased_primary_key]
+            next if id.nil?
 
-            model = construct_model(ar_parent, node, row)
-            construct(model, node, row, rs)
+            model = seen[parent.base_klass][primary_id][node.base_klass][id]
+
+            if model
+              construct(model, node, row, rs, seen)
+            else
+              model = construct_model(ar_parent, node, row)
+              seen[parent.base_klass][primary_id][node.base_klass][id] = model
+              construct(model, node, row, rs, seen)
+            end
           end
         end
       end
