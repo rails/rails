@@ -213,31 +213,33 @@ module ActiveRecord
         parent.children.each do |node|
           primary_id = type_caster.type_cast row[primary_key]
           if ar_parent.id == primary_id
+            if node.reflection.collection?
+              other = ar_parent.association(node.reflection.name)
+              other.loaded!
+            end
+
+            next if row[node.aliased_primary_key].nil?
+
             model = construct_model(ar_parent, node, row)
-            construct(model, node, row, rs) if model
+            construct(model, node, row, rs)
           end
         end
       end
 
       def construct_model(record, join_part, row)
         if join_part.reflection.collection?
-          model = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
+          model = join_part.instantiate(row)
           other = record.association(join_part.reflection.name)
-          other.loaded!
           other.target.push(model) if model
           other.set_inverse_instance(model)
         else
           return record.association(join_part.reflection.name).target if record.association_cache.key?(join_part.reflection.name)
-          model = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
-          set_target_and_inverse(join_part, model, record)
+          model = join_part.instantiate(row)
+          other = record.association(join_part.reflection.name)
+          other.target = model
+          other.set_inverse_instance(model)
         end
         model
-      end
-
-      def set_target_and_inverse(join_part, model, record)
-        other = record.association(join_part.reflection.name)
-        other.target = model
-        other.set_inverse_instance(model)
       end
     end
   end
