@@ -1,3 +1,8 @@
+*   Fix the underscore inflection of acronyms directly after module names, as in
+    `"API::RESTful".underscore => "api/restful"`
+
+    *Alexandros Giouzenis*
+
 *   Fix `slice!` deleting the default value of the hash.
 
     *Antonio Santos*
