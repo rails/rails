@@ -199,6 +199,12 @@
 
     *Yves Senn*
 
+*   Fixes bug when using includes combined with select, the select statement was overwritten.
+
+    Fixes #11773
+
+    *Edo Balvers*
+
 *   Load fixtures from linked folders.
 
     *Kassio Borges*
