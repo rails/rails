@@ -634,6 +634,11 @@ class RelationTest < ActiveRecord::TestCase
       relation = Author.where(:id => Author.where(:id => david.id))
       assert_equal [david], relation.to_a
     }
+
+    assert_queries(1) {
+      relation = Author.where('id in (?)', Author.where(id: david).select(:id))
+      assert_equal [david], relation.to_a
+    }
   end
 
   def test_find_all_using_where_with_relation_and_alternate_primary_key

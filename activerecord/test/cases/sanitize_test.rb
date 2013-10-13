@@ -31,4 +31,10 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper"])
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper".mb_chars])
   end
+
+  def test_sanitize_sql_array_handles_relations
+    assert_match(/\(\bselect\b.*?\bwhere\b.*?\)/i,
+      Binary.send(:sanitize_sql_array, ["id in (?)", Binary.where(id: 1)]),
+      "should sanitize `Relation` as subquery")
+  end
 end
