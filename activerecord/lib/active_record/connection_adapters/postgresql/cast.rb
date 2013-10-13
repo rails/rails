@@ -35,11 +35,11 @@ module ActiveRecord
           end
         end
 
-        def hstore_to_string(object)
+        def hstore_to_string(object, array_member = false)
           if Hash === object
             object.map { |k,v|
               "#{escape_hstore(k)}=>#{escape_hstore(v)}"
-            }.join ','
+            }.join(',').tap { |s| s.replace escape_hstore(s) if array_member }
           else
             object
           end
@@ -49,7 +49,7 @@ module ActiveRecord
           if string.nil?
             nil
           elsif String === string
-            Hash[string.scan(HstorePair).map { |k,v|
+            HashWithIndifferentAccess[string.scan(HstorePair).map { |k,v|
               v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
               k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
               [k,v]

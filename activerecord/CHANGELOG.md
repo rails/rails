@@ -1,3 +1,10 @@
+*   Perform necessary deeper encoding when hstore is inside an array, and return the
+    hstores as HashWithIndifferentAccess to be consistent with other forms.
+
+    Fixes: #11135
+
+    *Josh Goodall*
+
 *   `has_and_belongs_to_many` is now transparently implemented in terms of
     `has_many :through`.  Behavior should remain the same, if not, it is a bug.
 
