@@ -141,10 +141,11 @@ module ActiveRecord
 
       def records_by_reflection(association)
         records.group_by do |record|
-          reflection = record.class.reflections[association]
+          record_class = record.class
+          reflection = record_class.reflections[association]
 
           unless reflection
-            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found on #{record.class.name}; " \
+            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found on #{record_class.name}; " \
                                                     "perhaps you misspelled it?"
           end
 
