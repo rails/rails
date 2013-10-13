@@ -23,9 +23,13 @@ class AMLogSubscriberTest < ActionMailer::TestCase
 
   def test_deliver_is_notified
     BaseMailer.welcome.deliver
+
     wait
+
     assert_equal(1, @logger.logged(:info).size)
     assert_match(/Sent mail to system@test.lindsaar.net/, @logger.logged(:info).first)
+    assert_match(/Views: ([\d.]+)ms/, @logger.logged(:info).first)
+
     assert_equal(1, @logger.logged(:debug).size)
     assert_match(/Welcome/, @logger.logged(:debug).first)
   end

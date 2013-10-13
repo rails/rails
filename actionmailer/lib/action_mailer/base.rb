@@ -387,6 +387,14 @@ module ActionMailer
       parts_order:  [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
 
+    cattr_accessor :view_runtime
+
+    def render(*args)
+      render_output = nil
+      self.class.view_runtime = Benchmark.ms { render_output = super }
+      render_output
+    end
+
     class << self
       # Register one or more Observers which will be notified when mail is delivered.
       def register_observers(*observers)
@@ -467,8 +475,16 @@ module ActionMailer
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           set_payload_for_mail(payload, mail)
-          yield # Let Mail do the delivery actions
+          result = yield # Let Mail do the delivery actions
+          payload[:view_runtime] = view_runtime
+          result
         end
+      end
+
+      def log_deliver(payload)
+        messages, view_runtime = [], payload[:view_runtime]
+        messages << ("Views: %.1fms" % view_runtime.to_f) if view_runtime
+        messages
       end
 
       def respond_to?(method, include_private = false) #:nodoc:

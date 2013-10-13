@@ -7,9 +7,17 @@ module ActionMailer
     # An email was delivered.
     def deliver(event)
       return unless logger.info?
-      recipients = Array(event.payload[:to]).join(', ')
-      info("\nSent mail to #{recipients} (#{event.duration.round(1)}ms)")
-      debug(event.payload[:mail])
+
+      payload   = event.payload
+      additions = ActionMailer::Base.log_deliver(payload)
+
+      recipients = Array(payload[:to]).join(', ')
+
+      message = "\nSent mail to #{recipients} in #{event.duration.round(1)}ms"
+      message << " (#{additions.join(' | ')})" unless additions.blank?
+
+      info(message)
+      debug(payload[:mail])
     end
 
     # An email was received.
