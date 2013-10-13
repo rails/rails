@@ -1490,8 +1490,8 @@ So first, we'll wire up the Post show template
   </p>
 <% end %>
 
-<%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %>
+<%= link_to 'Back', posts_path %>
+| <%= link_to 'Edit', edit_post_path(@post) %>
 ```
 
 This adds a form on the `Post` show page that creates a new comment by
