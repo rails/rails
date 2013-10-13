@@ -455,7 +455,7 @@ module ActionView
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
-        extras = %w{ cc bcc body subject }.map { |item|
+        extras = %w{ cc bcc body subject }.map! { |item|
           option = html_options.delete(item) || next
           "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
