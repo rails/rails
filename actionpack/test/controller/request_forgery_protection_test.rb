@@ -386,7 +386,7 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    SecureRandom.stubs(:base64).returns(@token + '<=?') # '<="?"'
+    SecureRandom.stubs(:base64).returns(@token + '<=?')
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
     assert_select 'meta[name=?]', 'csrf-token'
