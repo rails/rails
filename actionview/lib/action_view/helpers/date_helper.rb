@@ -531,7 +531,7 @@ module ActionView
       #   my_date = Time.now + 2.days
       #
       #   # Generates a select field for days that defaults to the day for the date in my_date.
-      #   select_day(my_time)
+      #   select_day(my_date)
       #
       #   # Generates a select field for days that defaults to the number given.
       #   select_day(5)
@@ -541,7 +541,7 @@ module ActionView
       #
       #   # Generates a select field for days that defaults to the day for the date in my_date
       #   # that is named 'due' rather than 'day'.
-      #   select_day(my_time, field_name: 'due')
+      #   select_day(my_date, field_name: 'due')
       #
       #   # Generates a select field for days with a custom prompt. Use <tt>prompt: true</tt> for a
       #   # generic prompt.
