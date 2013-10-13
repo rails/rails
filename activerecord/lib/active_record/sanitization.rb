@@ -132,7 +132,7 @@ module ActiveRecord
         end
       end
 
-      def replace_bind_variable(value, c = connection)
+      def replace_bind_variable(value, c = connection) #:nodoc:
         if ActiveRecord::Relation === value
           value.to_sql
         else
