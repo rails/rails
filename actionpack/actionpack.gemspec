@@ -20,9 +20,6 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency 'activesupport', version
-  s.add_dependency 'actionview',    version
-
-  s.add_dependency 'loofah',        '~> 1.2.1'
 
   s.add_dependency 'rack',      '~> 1.5.2'
   s.add_dependency 'rack-test', '~> 0.6.2'
