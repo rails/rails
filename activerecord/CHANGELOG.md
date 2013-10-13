@@ -1,5 +1,22 @@
 ## unreleased ##
 
+*   Generate subquery for `Relation` if it passed as array condition for `where` method
+
+    Example:
+        # Before
+        Blog.where('id in (?)', Blog.where(id: 1))
+        # =>  SELECT "blogs".* FROM "blogs"  WHERE "blogs"."id" = 1
+        # =>  SELECT "blogs".* FROM "blogs"  WHERE (id IN (1))
+
+        # After
+        Blog.where('id in (?)', Blog.where(id: 1).select(:id))
+        # =>  SELECT "blogs".* FROM "blogs"
+        #     WHERE "blogs"."id" IN (SELECT "blogs"."id" FROM "blogs"  WHERE "blogs"."id" = 1)
+
+    Fixes: #12415
+
+    *Paul Nikitochkin*
+
 *   For missed association exception message
     which is raised in `ActiveRecord::Associations::Preloader` class
     added owner record class name in order to simplify to find problem code.
