@@ -252,7 +252,7 @@ module ActiveRecord
     end
 
     def construct_join_dependency(joins = [])
-      including = (eager_load_values + includes_values).uniq
+      including = eager_load_values + includes_values
       ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
     end
 
