@@ -1,17 +1,7 @@
-*   Dom and Selector assertions has been moved to Action View.
-
-    Loofah replaces html-scanner in `DomAssertions`:
-    `assert_dom_equal`
-    `assert_dom_not_equal`
-
-    Also in `SelectorAssertions`:
-    `css_select`
-    `assert_select`
-    `assert_select_encoded`
-    `assert_select_email`
+*   Dom and Selector assertions has extracted to rails-dom-testing to better be used in both Action Pack and Action View.
 
     Note:
-    The substitution values syntax in `assert_select` has changed.
+    This also changes the substitution values syntax in `assert_select`.
 
     `assert_select "div#?", /\d+/`
     `assert_select "div:match('id', ?)", /\d+/`
@@ -19,6 +9,7 @@
     The attribute to match should be enclosed in quotes to avoid
     issues with Nokogiri's css selector syntax parsing.
     It is not necessary to do so with the question mark.
+    Calling `assert_select` with an invalid selector will emit a deprecation warning and skip the assertions.
 
     *Kasper Timm Hansen*
 
