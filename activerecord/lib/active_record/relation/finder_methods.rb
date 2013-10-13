@@ -201,7 +201,7 @@ module ActiveRecord
       conditions = conditions.id if Base === conditions
       return false if !conditions
 
-      relation = construct_relation_for_association_find(construct_join_dependency)
+      relation = apply_join_dependency(self, construct_join_dependency)
       return false if ActiveRecord::NullRelation === relation
 
       relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
