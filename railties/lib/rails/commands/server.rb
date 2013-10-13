@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
+require 'rails'
 
 module Rails
   class Server < ::Rack::Server
@@ -32,7 +33,7 @@ module Rails
 
         opt_parser.parse! args
 
-        options[:log_stdout] = options[:daemonize].blank? && options[:environment] == "development"
+        options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
         options[:server]     = args.shift
         options
       end
