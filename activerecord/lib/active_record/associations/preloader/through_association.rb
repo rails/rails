@@ -15,7 +15,7 @@ module ActiveRecord
                             through_reflection.name,
                             through_scope)
 
-          through_records = owners.map do |owner, h|
+          through_records = owners.map do |owner|
             association = owner.association through_reflection.name
 
             [owner, Array(association.reader)]
