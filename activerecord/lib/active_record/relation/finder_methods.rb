@@ -242,7 +242,8 @@ module ActiveRecord
 
     def find_with_associations
       join_dependency = construct_join_dependency
-      relation = construct_relation_for_association_find(join_dependency)
+      relation = except :select
+      relation = construct_relation_for_association_find(join_dependency, relation)
       if ActiveRecord::NullRelation === relation
         []
       else
@@ -260,8 +261,8 @@ module ActiveRecord
       apply_join_dependency(self, construct_join_dependency(arel.froms.first))
     end
 
-    def construct_relation_for_association_find(join_dependency)
-      relation = except(:select).select(join_dependency.columns)
+    def construct_relation_for_association_find(join_dependency, relation = self)
+      relation = relation.select(join_dependency.columns)
       apply_join_dependency(relation, join_dependency)
     end
 

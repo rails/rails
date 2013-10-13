@@ -508,7 +508,8 @@ module ActiveRecord
 
                     if eager_loading?
                       join_dependency = construct_join_dependency
-                      relation        = construct_relation_for_association_find(join_dependency)
+                      relation        = except :select
+                      relation        = construct_relation_for_association_find(join_dependency, relation)
                     end
 
                     ast   = relation.arel.ast
