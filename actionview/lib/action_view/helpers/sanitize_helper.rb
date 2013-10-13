@@ -122,7 +122,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
         def sanitized_protocol_separator
-          ActiveSupport::Deprecation.warn('protocol_separator has been deprecated and has no effect.')
+          ActiveSupport::Deprecation.warn('sanitized_protocol_separator is deprecated and has no effect.')
         end
 
         def sanitized_uri_attributes
@@ -130,7 +130,7 @@ module ActionView
         end
 
         def sanitized_bad_tags
-          ActiveSupport::Deprecation.warn('bad_tags has been deprecated and has no effect. You can still affect the tags being sanitized using Rails::Html::WhiteListSanitizer.bad_tags= which changes the allowed_tags.')
+          ActiveSupport::Deprecation.warn('sanitized_bad_tags is deprecated and has no effect. Affect the sanitized_allowed_tags  using sanitized_bad_tags= instead.')
         end
 
         def sanitized_allowed_tags
@@ -192,7 +192,7 @@ module ActionView
 
 
         def sanitized_protocol_separator=(value)
-          ActiveSupport::Deprecation.warn('protocol_separator= has been deprecated and has no effect.')
+          ActiveSupport::Deprecation.warn('sanitized_protocol_separator= is deprecated and has no effect.')
         end
 
         # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
