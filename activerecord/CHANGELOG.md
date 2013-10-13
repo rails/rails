@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   For missed association exception message
+    which is raised in `ActiveRecord::Associations::Preloader` class
+    added owner record class name in order to simplify to find problem code.
+
+    *Paul Nikitochkin*
+
 *   Fixes bug when using includes combined with select, the select statement was overwritten.
 
     Fixes #11773.

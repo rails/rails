@@ -144,7 +144,7 @@ module ActiveRecord
           reflection = record.class.reflections[association]
 
           unless reflection
-            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found; " \
+            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found on #{record.class.name}; " \
                                                     "perhaps you misspelled it?"
           end
 
