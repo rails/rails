@@ -476,6 +476,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Developer.where(name: 'David').map(&:id).sort, developers
   end
 
+  def test_includes_with_select
+    query = Post.select('comments_count AS ranking').order('ranking').includes(:comments)
+      .where(comments: { id: 1 })
+
+    assert_equal ['comments_count AS ranking'], query.select_values
+    assert_equal 1, query.to_a.size
+  end
+
   def test_loading_with_one_association
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }

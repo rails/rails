@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Fixes bug when using includes combined with select, the select statement was overwritten.
+
+    Fixes #11773.
+
+    *Edo Balvers*
+
 *   Objects instantiated using a null relationship will now retain the
     attributes of the where clause.
 
