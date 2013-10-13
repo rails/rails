@@ -27,26 +27,62 @@ class Rails::ServerTest < ActiveSupport::TestCase
   end
 
   def test_environment_with_rails_env
-    with_rails_env 'production' do
-      server = Rails::Server.new
-      assert_equal 'production', server.options[:environment]
+    with_rack_env nil do
+      with_rails_env 'production' do
+        server = Rails::Server.new
+        assert_equal 'production', server.options[:environment]
+      end
     end
   end
 
   def test_environment_with_rack_env
-    with_rack_env 'production' do
-      server = Rails::Server.new
-      assert_equal 'production', server.options[:environment]
+    with_rails_env nil do
+      with_rack_env 'production' do
+        server = Rails::Server.new
+        assert_equal 'production', server.options[:environment]
+      end
     end
   end
 
   def test_log_stdout
-    args    = ["-e", "development"]
-    options = Rails::Server::Options.new.parse!(args)
-    assert_equal true, options[:log_stdout]
+    with_rack_env nil do
+      with_rails_env nil do
+        args    = []
+        options = Rails::Server::Options.new.parse!(args)
+        assert_equal true, options[:log_stdout]
 
-    args    = ["-e", "production"]
-    options = Rails::Server::Options.new.parse!(args)
-    assert_equal false, options[:log_stdout]
+        args    = ["-e", "development"]
+        options = Rails::Server::Options.new.parse!(args)
+        assert_equal true, options[:log_stdout]
+
+        args    = ["-e", "production"]
+        options = Rails::Server::Options.new.parse!(args)
+        assert_equal false, options[:log_stdout]
+
+        with_rack_env 'development' do
+          args    = []
+          options = Rails::Server::Options.new.parse!(args)
+          assert_equal true, options[:log_stdout]
+        end
+
+        with_rack_env 'production' do
+          args    = []
+          options = Rails::Server::Options.new.parse!(args)
+          assert_equal false, options[:log_stdout]
+        end
+
+        with_rails_env 'development' do
+          args    = []
+          options = Rails::Server::Options.new.parse!(args)
+          assert_equal true, options[:log_stdout]
+        end
+
+        with_rails_env 'production' do
+          args    = []
+          options = Rails::Server::Options.new.parse!(args)
+          assert_equal false, options[:log_stdout]
+        end
+      end
+    end
   end
 end
