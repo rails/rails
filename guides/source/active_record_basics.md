@@ -116,7 +116,7 @@ to Active Record instances:
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html).
+  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
