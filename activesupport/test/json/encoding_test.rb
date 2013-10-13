@@ -166,6 +166,10 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal %({"b":2}), ActiveSupport::JSON.encode({'foo' => 'bar', :b => 2, :c => 3}, :except => ['foo', :c])
   end
 
+  def test_hash_should_allow_nil_filtering_with_exclude_nils
+    assert_equal %({"foo":"bar"}), ActiveSupport::JSON.encode({'foo' => 'bar', :b => nil}, :exclude_nils => true)
+  end
+
   def test_time_to_json_includes_local_offset
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true

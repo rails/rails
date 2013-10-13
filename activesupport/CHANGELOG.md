@@ -1,9 +1,23 @@
+*   `as_json` now accepts a `exclude_nils` option to skip nil attributes in the
+    resulting JSON output. This option peacefully coexists with the `except`
+    and `include` options.
+
+          hash = {foo: 'bar', baz: nil}
+
+          hash.to_json
+          => "{\"foo\":\"bar\",\"baz\":null}"
+
+          hash.to_json(:exclude_nils => true)
+          => "{\"foo\":\"bar\"}"
+
+    *Corey Ehmke*
+
 *   `require_dependency` accepts objects that respond to `to_path`, in
     particular `Pathname` instances.
 
     *Benjamin Fleischer*
 
-*   Disable the ability to iterate over Range of AS::TimeWithZone 
+*   Disable the ability to iterate over Range of AS::TimeWithZone
     due to significant performance issues.
 
     *Bogdan Gusiev*

@@ -284,14 +284,15 @@ end
 
 class Hash
   def as_json(options = nil) #:nodoc:
-    # create a subset of the hash by applying :only or :except
+    # create a subset of the hash by applying options
     subset = if options
+      hash = options[:exclude_nils] ?  self.reject{|key,value| value.nil?} : self
       if attrs = options[:only]
-        slice(*Array(attrs))
+        hash.slice(*Array(attrs))
       elsif attrs = options[:except]
-        except(*Array(attrs))
+        hash.except(*Array(attrs))
       else
-        self
+        hash
       end
     else
       self
