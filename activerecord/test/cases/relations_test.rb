@@ -295,7 +295,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_calculations_methods
     assert_no_queries do
       assert_equal 0, Developer.none.count
-      assert_equal 0, Developer.none.calculate(:count, nil, {})
+      assert_equal 0, Developer.none.calculate(:count, nil)
       assert_equal nil, Developer.none.calculate(:average, 'salary')
     end
   end

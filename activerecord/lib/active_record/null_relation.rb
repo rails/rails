@@ -50,7 +50,7 @@ module ActiveRecord
       0
     end
 
-    def calculate(_operation, _column_name, _options = {})
+    def calculate(_operation, _column_name)
       if _operation == :count
         0
       else
