@@ -244,11 +244,15 @@ module ActiveRecord
       join_dependency = construct_join_dependency
       relation = except :select
       relation = construct_relation_for_association_find(join_dependency, relation)
-      if ActiveRecord::NullRelation === relation
-        []
+      if block_given?
+        yield relation
       else
-        rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
-        join_dependency.instantiate(rows)
+        if ActiveRecord::NullRelation === relation
+          []
+        else
+          rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
+          join_dependency.instantiate(rows)
+        end
       end
     end
 

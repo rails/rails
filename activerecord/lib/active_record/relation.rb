@@ -507,9 +507,7 @@ module ActiveRecord
                     visitor    = connection.visitor
 
                     if eager_loading?
-                      join_dependency = construct_join_dependency
-                      relation        = except :select
-                      relation        = construct_relation_for_association_find(join_dependency, relation)
+                      find_with_associations { |rel| relation = rel }
                     end
 
                     ast   = relation.arel.ast
