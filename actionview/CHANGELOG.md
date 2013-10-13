@@ -13,8 +13,9 @@
 
     *Kasper Timm Hansen*
 
-*   Loofah replaces html-scanner in `sanitize_helper`
-
+*   The sanitizers in `sanitize_helper` have been extracted to rails-html-sanitizer. Loofah is used for sanitization instead of html-scanner.
+    
+    This means:
     `sanitize` can now take a `Loofah::Scrubber` for powerful scrubbing.
     [See some examples of scrubbers here](https://github.com/flavorjones/loofah#loofahscrubber)
 
