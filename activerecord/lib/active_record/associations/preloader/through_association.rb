@@ -35,6 +35,15 @@ module ActiveRecord
             }
           end
 
+          pl_indexes = preloaders.each_with_object({}) do |pl,hash|
+            i = 0
+            loaded_records = pl.preloaded_records
+            hash[pl] = loaded_records.each_with_object({}) { |r,indexes|
+                indexes[r] = i
+                i += 1
+            }
+          end
+
           through_records.each_with_object({}) { |(lhs,center),records_by_owner|
             pl_to_middle = center.group_by { |record| middle_to_pl[record] }
 
@@ -43,12 +52,7 @@ module ActiveRecord
                 r.send(source_reflection.name)
               }.compact
 
-              loaded_records = pl.preloaded_records
-              i = 0
-              record_index = loaded_records.each_with_object({}) { |r,indexes|
-                indexes[r] = i
-                i += 1
-              }
+              record_index = pl_indexes[pl]
               records = rhs_records.sort_by { |rhs| record_index[rhs] }
               @preloaded_records.concat rhs_records
               records
