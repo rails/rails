@@ -29,7 +29,7 @@ module ActiveRecord
                                          source_reflection.name,
                                          reflection_scope)
 
-          @preloaded_records.concat preloaders.flat_map(&:preloaded_records)
+          @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
           middle_to_pl = preloaders.each_with_object({}) do |pl,h|
             pl.owners.each { |middle|
@@ -37,13 +37,9 @@ module ActiveRecord
             }
           end
 
-          pl_indexes = preloaders.each_with_object({}) do |pl,hash|
-            i = 0
-            loaded_records = pl.preloaded_records
-            hash[pl] = loaded_records.each_with_object({}) { |r,indexes|
-                indexes[r] = i
-                i += 1
-            }
+          record_offset = {}
+          @preloaded_records.each_with_index do |record,i|
+            record_offset[record] = i
           end
 
           through_records.each_with_object({}) { |(lhs,center),records_by_owner|
@@ -54,8 +50,7 @@ module ActiveRecord
                 r.send(source_reflection.name)
               }.compact
 
-              record_index = pl_indexes[pl]
-              rhs_records.sort_by { |rhs| record_index[rhs] }
+              rhs_records.sort_by { |rhs| record_offset[rhs] }
             end
           }
         end
