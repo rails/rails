@@ -1,3 +1,7 @@
+*   Exit with non-zero status for failed database rake tasks.
+
+    *Jay Hayes*
+
 *   Remove deprecated method `ActiveRecord::Base.quoted_locking_column`.
 
     *Akshay Vishnoi*

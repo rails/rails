@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'pathname'
+require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
@@ -27,7 +28,9 @@ module ActiveRecord
 
       $stderr.expects(:puts).with("#{@database} already exists")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      assert_raises(ActiveRecord::Tasks::DatabaseAlreadyExists) do
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      end
     end
 
     def test_db_create_with_file_does_nothing
@@ -36,7 +39,9 @@ module ActiveRecord
 
       ActiveRecord::Base.expects(:establish_connection).never
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      assert_raises(ActiveRecord::Tasks::DatabaseAlreadyExists) do
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      end
     end
 
     def test_db_create_establishes_a_connection
@@ -52,7 +57,9 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      assert_raises(Exception) do
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      end
     end
   end
 
