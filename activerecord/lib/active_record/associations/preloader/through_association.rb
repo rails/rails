@@ -47,7 +47,9 @@ module ActiveRecord
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
               rhs_records = middles.flat_map { |r|
-                r.send(source_reflection.name)
+                association = r.association source_reflection.name
+
+                association.reader
               }.compact
 
               rhs_records.sort_by { |rhs| record_offset[rhs] }
