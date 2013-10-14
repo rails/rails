@@ -33,9 +33,9 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(parent)
+        def join_constraints(parent, tables)
           joins         = []
-          tables        = @tables.dup
+          tables        = tables.dup
 
           foreign_table = parent.table
           foreign_klass = parent.base_klass

@@ -119,7 +119,7 @@ module ActiveRecord
 
       def make_joins(node)
         node.children.flat_map { |child|
-          child.join_constraints(node).concat make_joins(child)
+          child.join_constraints(node, child.tables).concat make_joins(child)
         }
       end
 
