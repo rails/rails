@@ -18,6 +18,11 @@ require 'models/subscription'
 require 'models/tag'
 require 'models/sponsor'
 require 'models/edge'
+require 'models/hotel'
+require 'models/chef'
+require 'models/department'
+require 'models/cake_designer'
+require 'models/drink_designer'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -225,6 +230,17 @@ class ReflectionTest < ActiveRecord::TestCase
     ]
     actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
     assert_equal expected, actual
+  end
+
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case
+    @hotel = Hotel.create!
+    @department = @hotel.departments.create!
+    @department.chefs.create!(employable: CakeDesigner.create!)
+    @department.chefs.create!(employable: DrinkDesigner.create!)
+
+    assert_equal 1, @hotel.cake_designers.size
+    assert_equal 1, @hotel.drink_designers.size
+    assert_equal 2, @hotel.chefs.size
   end
 
   def test_nested?
