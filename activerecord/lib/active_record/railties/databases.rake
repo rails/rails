@@ -287,6 +287,7 @@ db_namespace = namespace :db do
       if ActiveRecord::Base.connection.supports_migrations?
         File.open(filename, "a") do |f|
           f.puts ActiveRecord::Base.connection.dump_schema_information
+          f.print "\n"
         end
       end
       db_namespace['structure:dump'].reenable
