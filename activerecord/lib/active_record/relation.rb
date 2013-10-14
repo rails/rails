@@ -244,8 +244,7 @@ module ActiveRecord
     def empty?
       return @records.empty? if loaded?
 
-      c = count(:all)
-      c.respond_to?(:zero?) ? c.zero? : c.empty?
+      limit_value == 0 ? true : !exists?
     end
 
     # Returns true if there are any records.
