@@ -1,5 +1,11 @@
 ## unreleased ##
 
+*   Prevent the inversed association from being reloaded on save.
+
+    Fixes #9499.
+
+    *Dmitry Polushkin*
+
 *   `Relation#order` quotes the column name if you pass a `Symbol`.
     Fixes #11870.
 
