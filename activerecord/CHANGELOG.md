@@ -1,5 +1,18 @@
 ## unreleased ##
 
+*   `scope_chain` should not be mutated for other reflections.
+
+    Currently `scope_chain` uses same array for building different
+    `scope_chain` for different associations. During processing
+    these arrays are sometimes mutated and because of in-place
+    mutation the changed `scope_chain` impacts other reflections.
+
+    Fix is to dup the value before adding to the `scope_chain`.
+
+    Fixes #3882.
+
+    *Neeraj Singh*
+
 *   Prevent the inversed association from being reloaded on save.
 
     Fixes #9499.
