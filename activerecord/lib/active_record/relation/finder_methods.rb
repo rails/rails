@@ -243,7 +243,9 @@ module ActiveRecord
     def find_with_associations
       join_dependency = construct_join_dependency
       relation = except :select
-      relation = construct_relation_for_association_find(join_dependency, relation)
+      relation = relation.select(join_dependency.columns)
+      relation = apply_join_dependency(relation, join_dependency)
+
       if block_given?
         yield relation
       else
@@ -263,11 +265,6 @@ module ActiveRecord
 
     def construct_relation_for_association_calculations
       apply_join_dependency(self, construct_join_dependency(arel.froms.first))
-    end
-
-    def construct_relation_for_association_find(join_dependency, relation = self)
-      relation = relation.select(join_dependency.columns)
-      apply_join_dependency(relation, join_dependency)
     end
 
     def apply_join_dependency(relation, join_dependency)
