@@ -1,17 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/class/attribute'
 
-class ClassAttributeTest < ActiveSupport::TestCase
-  def setup
-    @klass = Class.new { class_attribute :setting }
-    @sub = Class.new(@klass)
-  end
-
-  test 'defaults to nil' do
-    assert_nil @klass.setting
-    assert_nil @sub.setting
-  end
-
+module NonDefaultRelatedClassAttributeBehavior
   test 'inheritable' do
     @klass.setting = 1
     assert_equal 1, @sub.setting
@@ -88,4 +78,46 @@ class ClassAttributeTest < ActiveSupport::TestCase
     val = @klass.send(:setting=, 1)
     assert_equal 1, val
   end
+end
+
+class ClassAttributeTest < ActiveSupport::TestCase
+  def setup
+    @klass = Class.new { class_attribute :setting }
+    @sub = Class.new(@klass)
+  end
+
+  test 'defaults to nil' do
+    assert_nil @klass.setting
+    assert_nil @sub.setting
+  end
+
+  include NonDefaultRelatedClassAttributeBehavior
+end
+
+class ClassAttributeDefaultCallTest < ActiveSupport::TestCase
+  def setup
+    @klass = Class.new { class_attribute :setting, default_call: -> { 5 } }
+    @sub = Class.new(@klass)
+  end
+
+  test 'defaults to return value of calling default_call proc' do
+    assert_equal 5, @klass.setting
+    assert_equal 5, @sub.setting
+  end
+
+  include NonDefaultRelatedClassAttributeBehavior
+end
+
+class ClassAttributeDefaultTest < ActiveSupport::TestCase
+  def setup
+    @klass = Class.new { class_attribute :setting, default: 6 }
+    @sub = Class.new(@klass)
+  end
+
+  test 'defaults to return value of calling default_call proc' do
+    assert_equal 6, @klass.setting
+    assert_equal 6, @sub.setting
+  end
+
+  include NonDefaultRelatedClassAttributeBehavior
 end

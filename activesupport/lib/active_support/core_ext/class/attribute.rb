@@ -73,9 +73,11 @@ class Class
     instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
     instance_predicate = options.fetch(:instance_predicate, true)
+    default_call = options[:default_call]
+    default_val = options[:default]
 
     attrs.each do |name|
-      define_singleton_method(name) { nil }
+      default_call ? define_singleton_method(name, default_call) : define_singleton_method(name) { default_val }
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
       ivar = "@#{name}"
