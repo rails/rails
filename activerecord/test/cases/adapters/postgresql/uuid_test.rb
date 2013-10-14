@@ -24,7 +24,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     @connection.reconnect!
 
     @connection.transaction do
-      @connection.create_table('pg_uuids', id: :uuid) do |t|
+      @connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
         t.string 'name'
         t.uuid 'other_uuid', default: 'uuid_generate_v4()'
       end
@@ -60,7 +60,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   def test_schema_dumper_for_uuid_primary_key
     schema = StringIO.new
     ActiveRecord::SchemaDumper.dump(@connection, schema)
-    assert_match(/\bcreate_table "pg_uuids", id: :uuid\b/, schema.string)
+    assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
     assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
   end
 end
