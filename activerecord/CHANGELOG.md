@@ -1,3 +1,9 @@
+*   Prevent the inversed association from being reloaded on save.
+
+    Fixes #9499.
+
+    *Dmitry Polushkin*
+
 *   Generate subquery for `Relation` if it passed as array condition for `where`
     method.
 
