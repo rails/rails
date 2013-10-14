@@ -19,7 +19,6 @@ module ActiveRecord
 
         def initialize(base_klass)
           @base_klass = base_klass
-          @cached_record = {}
           @column_names_with_alias = nil
           @children = []
         end
@@ -90,12 +89,8 @@ module ActiveRecord
           hash
         end
 
-        def record_id(row)
-          row[aliased_primary_key]
-        end
-
         def instantiate(row)
-          @cached_record[record_id(row)] ||= base_klass.instantiate(extract_record(row))
+          base_klass.instantiate(extract_record(row))
         end
       end
     end

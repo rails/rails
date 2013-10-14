@@ -92,8 +92,6 @@ module ActiveRecord
       end
 
       def instantiate(result_set)
-        parents = {}
-
         primary_key = join_root.aliased_primary_key
         type_caster = result_set.column_type primary_key
 
@@ -105,10 +103,13 @@ module ActiveRecord
           }
         }
 
+        model_cache = Hash.new { |h,klass| h[klass] = {} }
+        parents = model_cache[join_root]
+
         result_set.each { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_root.instantiate(row_hash)
-          construct(parent, join_root, row_hash, result_set, seen)
+          construct(parent, join_root, row_hash, result_set, seen, model_cache)
         }
 
         parents.values
@@ -179,7 +180,7 @@ module ActiveRecord
         node
       end
 
-      def construct(ar_parent, parent, row, rs, seen)
+      def construct(ar_parent, parent, row, rs, seen, model_cache)
         primary_id  = ar_parent.id
 
         parent.children.each do |node|
@@ -189,7 +190,7 @@ module ActiveRecord
           else
             if ar_parent.association_cache.key?(node.reflection.name)
               model = ar_parent.association(node.reflection.name).target
-              construct(model, node, row, rs, seen)
+              construct(model, node, row, rs, seen, model_cache)
               next
             end
           end
@@ -200,17 +201,17 @@ module ActiveRecord
           model = seen[parent.base_klass][primary_id][node.base_klass][id]
 
           if model
-            construct(model, node, row, rs, seen)
+            construct(model, node, row, rs, seen, model_cache)
           else
-            model = construct_model(ar_parent, node, row)
+            model = construct_model(ar_parent, node, row, model_cache, id)
             seen[parent.base_klass][primary_id][node.base_klass][id] = model
-            construct(model, node, row, rs, seen)
+            construct(model, node, row, rs, seen, model_cache)
           end
         end
       end
 
-      def construct_model(record, node, row)
-        model = node.instantiate(row)
+      def construct_model(record, node, row, model_cache, id)
+        model = model_cache[node][id] ||= node.instantiate(row)
         other = record.association(node.reflection.name)
 
         if node.reflection.collection?
