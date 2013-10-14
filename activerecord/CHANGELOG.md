@@ -1,5 +1,18 @@
 ## unreleased ##
 
+*   `Relation#order` quotes the column name if you pass a `Symbol`.
+    Fixes #11870.
+
+    Example:
+
+        # Before
+        Post.order(:id).to_sql == '... ORDER BY "posts".id ASC'
+
+        # After
+        Post.order(:id).to_sql == '... ORDER BY "posts"."id" ASC'
+
+    *Yves Senn*
+
 *   Generate subquery for `Relation` if it passed as array condition for `where` method
 
     Example:

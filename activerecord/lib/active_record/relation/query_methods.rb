@@ -285,8 +285,10 @@ module ActiveRecord
       references!(references) if references.any?
 
       # if a symbol is given we prepend the quoted table name
-      args = args.map { |arg|
-        arg.is_a?(Symbol) ? "#{quoted_table_name}.#{arg} ASC" : arg
+      args = args.map! { |arg|
+        arg.is_a?(Symbol) ?
+          Arel::Nodes::Ascending.new(klass.arel_table[arg]) :
+          arg
       }
 
       self.order_values += args
