@@ -1,3 +1,7 @@
+*   Exit with non-zero status for failed database rake tasks.
+   
+    *Jay Hayes*
+
 *   Generate subquery for `Relation` if it passed as array condition for `where`
     method.
 

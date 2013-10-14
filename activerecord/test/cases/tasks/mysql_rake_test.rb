@@ -61,7 +61,9 @@ module ActiveRecord
         ActiveRecord::StatementInvalid.new("Can't create database 'dev'; database exists:")
       )
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      assert_raises(ActiveRecord::Tasks::DatabaseAlreadyExists) do
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
     end
   end
 
