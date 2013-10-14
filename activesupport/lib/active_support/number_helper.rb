@@ -108,7 +108,7 @@ module ActiveSupport
 
     DECIMAL_UNITS = { 0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
       -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }
-
+    INVERTED_DECIMAL_UNITS = DECIMAL_UNITS.invert
     STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
     # Formats a +number+ into a US phone number (e.g., (555)
@@ -561,8 +561,6 @@ module ActiveSupport
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
       options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
-      inverted_du = DECIMAL_UNITS.invert
-
       units = options.delete :units
       unit_exponents = case units
       when Hash
@@ -573,7 +571,7 @@ module ActiveSupport
         translate_number_value_with_default("human.decimal_units.units", :locale => options[:locale], :raise => true)
       else
         raise ArgumentError, ":units must be a Hash or String translation scope."
-      end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
+      end.keys.map!{|e_name| INVERTED_DECIMAL_UNITS[e_name] }.sort_by!{|e| -e}
 
       number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
       display_exponent = unit_exponents.find{ |e| number_exponent >= e } || 0
