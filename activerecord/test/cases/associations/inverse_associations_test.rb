@@ -603,6 +603,18 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
+  def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed
+    new_man = Man.new
+    face = Face.new
+    new_man.face = face
+
+    old_inversed_man = face.man
+    new_man.save!
+    new_inversed_man = face.man
+
+    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
+  end
+
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
     i = interests(:llama_wrangling)
     m = i.polymorphic_man
