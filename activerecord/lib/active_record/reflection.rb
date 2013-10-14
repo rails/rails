@@ -574,7 +574,7 @@ module ActiveRecord
           # Add to it the scope from this reflection (if any)
           scope_chain.first << scope if scope
 
-          through_scope_chain = through_reflection.scope_chain
+          through_scope_chain = through_reflection.scope_chain.map(&:dup)
 
           if options[:source_type]
             through_scope_chain.first <<
