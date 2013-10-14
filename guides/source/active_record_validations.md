@@ -438,8 +438,6 @@ provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
 
-The `size` helper is an alias for `length`.
-
 ### `numericality`
 
 This helper validates that your attributes have only numeric values. By
