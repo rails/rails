@@ -122,7 +122,6 @@ module ActiveRecord
       autoload :BelongsTo,           'active_record/associations/builder/belongs_to'
       autoload :HasOne,              'active_record/associations/builder/has_one'
       autoload :HasMany,             'active_record/associations/builder/has_many'
-      autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
     eager_autoload do
