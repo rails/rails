@@ -1,3 +1,9 @@
+*   Merge joins from association scopes when using .includes() or .joins()
+
+    Fixes #12492.
+
+    *Mike Campbell*
+
 *   Prevent the inversed association from being reloaded on save.
 
     Fixes #9499.

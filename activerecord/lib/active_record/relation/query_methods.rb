@@ -400,6 +400,9 @@ module ActiveRecord
     end
 
     def joins!(*args) # :nodoc:
+      args.reject!(&:blank?)
+      args.flatten!
+
       self.joins_values += args
       self
     end
