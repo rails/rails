@@ -29,6 +29,8 @@ module ActiveRecord
                                          source_reflection.name,
                                          reflection_scope)
 
+          @preloaded_records.concat preloaders.flat_map(&:preloaded_records)
+
           middle_to_pl = preloaders.each_with_object({}) do |pl,h|
             pl.owners.each { |middle|
               h[middle] = pl
@@ -53,9 +55,7 @@ module ActiveRecord
               }.compact
 
               record_index = pl_indexes[pl]
-              records = rhs_records.sort_by { |rhs| record_index[rhs] }
-              @preloaded_records.concat rhs_records
-              records
+              rhs_records.sort_by { |rhs| record_index[rhs] }
             end
           }
         end
