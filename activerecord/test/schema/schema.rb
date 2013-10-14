@@ -244,6 +244,10 @@ ActiveRecord::Schema.define do
     t.integer :breeder_id
     t.integer :dog_lover_id
   end
+  
+  create_table :doors, :force => true do |t|
+    t.integer :house_id
+  end
 
   create_table :edges, :force => true, :id => false do |t|
     t.column :source_id, :integer, :null => false
@@ -300,7 +304,10 @@ ActiveRecord::Schema.define do
   create_table :guids, :force => true do |t|
     t.column :key, :string
   end
-
+  
+  create_table :houses, :force => true do |t|
+  end
+  
   create_table :inept_wizards, :force => true do |t|
     t.column :name, :string, :null => false
     t.column :city, :string, :null => false
@@ -799,6 +806,9 @@ ActiveRecord::Schema.define do
     execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'id'})"
 
     execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (#{quote_column_name 'student_id'}) REFERENCES #{quote_table_name 'students'} (#{quote_column_name 'id'})"
+    
+    execute "ALTER TABLE doors ADD CONSTRAINT house_id_fk FOREIGN KEY (#{quote_column_name 'house_id'}) REFERENCES #{quote_table_name 'houses'} (#{quote_column_name 'id'})"
+
   end
 end
 
