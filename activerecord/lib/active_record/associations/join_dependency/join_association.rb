@@ -17,7 +17,7 @@ module ActiveRecord
 
         attr_accessor :tables
 
-        delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
+        delegate :chain, :to => :reflection
 
         def initialize(reflection, index, join_type)
           super(reflection.klass)
