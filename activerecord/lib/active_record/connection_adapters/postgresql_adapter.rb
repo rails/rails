@@ -59,7 +59,7 @@ module ActiveRecord
           super(name, default_value, sql_type, null)
         end
 
-        @default_function = default if !default_value && default && default =~ /.+\(.*\)/
+        @default_function = default if has_default_function?(default_value, default)
       end
 
       # :stopdoc:
@@ -149,6 +149,10 @@ module ActiveRecord
       end
 
       private
+
+        def has_default_function?(default_value, default)
+          !default_value && (%r{\w+(.*)} === default)
+        end
 
         def extract_limit(sql_type)
           case sql_type
