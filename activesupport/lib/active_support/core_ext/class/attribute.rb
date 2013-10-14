@@ -109,7 +109,9 @@ class Class
   end
 
   private
-  def singleton_class?
-    ancestors.first != self
-  end
+    unless respond_to?(:singleton_class?)
+      def singleton_class?
+        ancestors.first != self
+      end
+    end
 end
