@@ -41,29 +41,12 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        # The prefix to be used when aliasing columns in the active_record's table
-        def aliased_prefix
-          raise NotImplementedError
-        end
-
         # The alias for the active_record's table
         def aliased_table_name
           raise NotImplementedError
         end
 
-        # An array of [column_name, alias] pairs for the table
-        def column_names_with_alias
-          unless @column_names_with_alias
-            @column_names_with_alias = []
-
-            column_names.each_with_index do |column_name, i|
-              @column_names_with_alias << [column_name, "#{aliased_prefix}_r#{i}"]
-            end
-          end
-          @column_names_with_alias
-        end
-
-        def extract_record(row)
+        def extract_record(row, column_names_with_alias)
           # This code is performance critical as it is called per row.
           # see: https://github.com/rails/rails/pull/12185
           hash = {}
@@ -80,8 +63,8 @@ module ActiveRecord
           hash
         end
 
-        def instantiate(row)
-          base_klass.instantiate(extract_record(row))
+        def instantiate(row, aliases)
+          base_klass.instantiate(extract_record(row, aliases))
         end
       end
     end

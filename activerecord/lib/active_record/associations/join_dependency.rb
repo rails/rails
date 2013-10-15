@@ -90,10 +90,20 @@ module ActiveRecord
               i[column.name] = column.alias
             }
           }
+          @name_and_alias_cache = tables.each_with_object({}) { |table,h|
+            h[table.name] = table.columns.map { |column|
+              [column.name, column.alias]
+            }
+          }
         end
 
         def columns
           @tables.flat_map { |t| t.column_aliases }
+        end
+
+        # An array of [column_name, alias] pairs for the table
+        def column_aliases(table)
+          @name_and_alias_cache[table]
         end
 
         def column_alias(table, column)
@@ -128,18 +138,17 @@ module ActiveRecord
 
         seen = Hash.new { |h,parent_klass|
           h[parent_klass] = Hash.new { |i,parent_id|
-            i[parent_id] = Hash.new { |j,child_klass|
-              j[child_klass] = {}
-            }
+            i[parent_id] = Hash.new { |j,child_klass| j[child_klass] = {} }
           }
         }
 
         model_cache = Hash.new { |h,klass| h[klass] = {} }
         parents = model_cache[join_root]
+        column_aliases = aliases.column_aliases join_root.table
 
         result_set.each { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
-          parent = parents[primary_id] ||= join_root.instantiate(row_hash)
+          parent = parents[primary_id] ||= join_root.instantiate(row_hash, column_aliases)
           construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
         }
 
@@ -206,7 +215,7 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        node = JoinAssociation.new(reflection, join_root.to_a.length, join_type)
+        node = JoinAssociation.new(reflection, join_type)
         construct_tables!(parent, node)
         node
       end
@@ -235,15 +244,16 @@ module ActiveRecord
           if model
             construct(model, node, row, rs, seen, model_cache, aliases)
           else
-            model = construct_model(ar_parent, node, row, model_cache, id)
+            model = construct_model(ar_parent, node, row, model_cache, id, aliases)
             seen[parent.base_klass][primary_id][node.base_klass][id] = model
             construct(model, node, row, rs, seen, model_cache, aliases)
           end
         end
       end
 
-      def construct_model(record, node, row, model_cache, id)
-        model = model_cache[node][id] ||= node.instantiate(row)
+      def construct_model(record, node, row, model_cache, id, aliases)
+        model = model_cache[node][id] ||= node.instantiate(row,
+                                                           aliases.column_aliases(node.table))
         other = record.association(node.reflection.name)
 
         if node.reflection.collection?

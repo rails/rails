@@ -10,17 +10,13 @@ module ActiveRecord
         # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
         attr_accessor :join_type
 
-        # These implement abstract methods from the superclass
-        attr_reader :aliased_prefix
-
         attr_accessor :tables
 
-        def initialize(reflection, index, join_type)
+        def initialize(reflection, join_type)
           super(reflection.klass)
 
           @reflection      = reflection
           @join_type       = join_type
-          @aliased_prefix  = "t#{ index }"
           @tables          = nil
         end
 

@@ -9,10 +9,6 @@ module ActiveRecord
           super && base_klass == other.base_klass
         end
 
-        def aliased_prefix
-          "t0"
-        end
-
         def table
           Arel::Table.new(table_name, arel_engine)
         end
