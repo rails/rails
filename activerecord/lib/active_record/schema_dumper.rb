@@ -123,6 +123,7 @@ HEADER
               tbl.print %Q(, primary_key: "#{pk}")
             elsif pkcol.sql_type == 'uuid'
               tbl.print ", id: :uuid"
+              tbl.print %Q(, default: "#{pkcol.default_function}") if pkcol.default_function
             end
           else
             tbl.print ", id: false"

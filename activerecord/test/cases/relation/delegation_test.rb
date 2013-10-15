@@ -9,10 +9,11 @@ module ActiveRecord
     def assert_responds(target, method)
       assert target.respond_to?(method)
       assert_nothing_raised do
-        case target.to_a.method(method).arity
-        when 0
+        method_arity = target.to_a.method(method).arity
+
+        if method_arity.zero?
           target.send(method)
-        when -1
+        elsif method_arity < 0
           if method == :shuffle!
             target.send(method)
           else

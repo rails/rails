@@ -1,3 +1,47 @@
+*   `scope_chain` should not be mutated for other reflections.
+
+    Currently `scope_chain` uses same array for building different
+    `scope_chain` for different associations. During processing
+    these arrays are sometimes mutated and because of in-place
+    mutation the changed `scope_chain` impacts other reflections.
+
+    Fix is to dup the value before adding to the `scope_chain`.
+
+    Fixes #3882.
+
+    *Neeraj Singh*
+
+*   Prevent the inversed association from being reloaded on save.
+
+    Fixes #9499.
+
+    *Dmitry Polushkin*
+
+*   Generate subquery for `Relation` if it passed as array condition for `where`
+    method.
+
+    Example:
+
+        # Before
+        Blog.where('id in (?)', Blog.where(id: 1))
+        # =>  SELECT "blogs".* FROM "blogs"  WHERE "blogs"."id" = 1
+        # =>  SELECT "blogs".* FROM "blogs"  WHERE (id IN (1))
+
+        # After
+        Blog.where('id in (?)', Blog.where(id: 1).select(:id))
+        # =>  SELECT "blogs".* FROM "blogs"
+        #     WHERE "blogs"."id" IN (SELECT "blogs"."id" FROM "blogs"  WHERE "blogs"."id" = 1)
+
+    Fixes #12415.
+
+    *Paul Nikitochkin*
+
+*   For missed association exception message
+    which is raised in `ActiveRecord::Associations::Preloader` class
+    added owner record class name in order to simplify to find problem code.
+
+    *Paul Nikitochkin*
+
 *   `has_and_belongs_to_many` is now transparently implemented in terms of
     `has_many :through`.  Behavior should remain the same, if not, it is a bug.
 
@@ -198,6 +242,12 @@
 *   Fix multidimensional PG arrays containing non-string items.
 
     *Yves Senn*
+
+*   Fixes bug when using includes combined with select, the select statement was overwritten.
+
+    Fixes #11773
+
+    *Edo Balvers*
 
 *   Load fixtures from linked folders.
 
@@ -538,7 +588,7 @@
 
     *Neeraj Singh*
 
-*   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
+*   Fixture setup no longer depends on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
     *Yves Senn*

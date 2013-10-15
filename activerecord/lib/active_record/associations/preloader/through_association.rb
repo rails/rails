@@ -15,7 +15,7 @@ module ActiveRecord
                             through_reflection.name,
                             through_scope)
 
-          through_records = owners.map do |owner, h|
+          through_records = owners.map do |owner|
             association = owner.association through_reflection.name
 
             [owner, Array(association.reader)]
@@ -29,10 +29,17 @@ module ActiveRecord
                                          source_reflection.name,
                                          reflection_scope)
 
+          @preloaded_records = preloaders.flat_map(&:preloaded_records)
+
           middle_to_pl = preloaders.each_with_object({}) do |pl,h|
             pl.owners.each { |middle|
               h[middle] = pl
             }
+          end
+
+          record_offset = {}
+          @preloaded_records.each_with_index do |record,i|
+            record_offset[record] = i
           end
 
           through_records.each_with_object({}) { |(lhs,center),records_by_owner|
@@ -40,18 +47,12 @@ module ActiveRecord
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
               rhs_records = middles.flat_map { |r|
-                r.send(source_reflection.name)
+                association = r.association source_reflection.name
+
+                association.reader
               }.compact
 
-              loaded_records = pl.preloaded_records
-              i = 0
-              record_index = loaded_records.each_with_object({}) { |r,indexes|
-                indexes[r] = i
-                i += 1
-              }
-              records = rhs_records.sort_by { |rhs| record_index[rhs] }
-              @preloaded_records.concat rhs_records
-              records
+              rhs_records.sort_by { |rhs| record_offset[rhs] }
             end
           }
         end

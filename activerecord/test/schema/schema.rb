@@ -787,6 +787,22 @@ ActiveRecord::Schema.define do
     t.string 'from'
   end
 
+  create_table :hotels, force: true do |t|
+  end
+  create_table :departments, force: true do |t|
+    t.integer :hotel_id
+  end
+  create_table :cake_designers, force: true do |t|
+  end
+  create_table :drink_designers, force: true do |t|
+  end
+  create_table :chefs, force: true do |t|
+    t.integer :employable_id
+    t.string :employable_type
+    t.integer :department_id
+  end
+
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|

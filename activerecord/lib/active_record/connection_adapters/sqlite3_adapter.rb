@@ -55,6 +55,21 @@ module ActiveRecord
     class SQLite3Adapter < AbstractAdapter
       include Savepoints
 
+      NATIVE_DATABASE_TYPES = {
+        primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
+        string:       { name: "varchar", limit: 255 },
+        text:         { name: "text" },
+        integer:      { name: "integer" },
+        float:        { name: "float" },
+        decimal:      { name: "decimal" },
+        datetime:     { name: "datetime" },
+        timestamp:    { name: "datetime" },
+        time:         { name: "time" },
+        date:         { name: "date" },
+        binary:       { name: "blob" },
+        boolean:      { name: "boolean" }
+      }
+
       class Version
         include Comparable
 
@@ -183,11 +198,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true
-      def supports_autoincrement? #:nodoc:
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -200,20 +210,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => default_primary_key_type,
-          :string      => { :name => "varchar", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "integer" },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "blob" },
-          :boolean     => { :name => "boolean" }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
@@ -594,14 +591,6 @@ module ActiveRecord
 
         def sqlite_version
           @sqlite_version ||= SQLite3Adapter::Version.new(select_value('select sqlite_version(*)'))
-        end
-
-        def default_primary_key_type
-          if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
-          else
-            'INTEGER PRIMARY KEY NOT NULL'
-          end
         end
 
         def translate_exception(exception, message)

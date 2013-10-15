@@ -19,17 +19,16 @@ module ActiveRecord
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
-    def count(column_name = nil, options = {})
-      column_name, options = nil, column_name if column_name.is_a?(Hash)
-      calculate(:count, column_name, options)
+    def count(column_name = nil)
+      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
     # no row. See +calculate+ for examples with options.
     #
     #   Person.average(:age) # => 35.8
-    def average(column_name, options = {})
-      calculate(:average, column_name, options)
+    def average(column_name)
+      calculate(:average, column_name)
     end
 
     # Calculates the minimum value on a given column. The value is returned
@@ -37,8 +36,8 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.minimum(:age) # => 7
-    def minimum(column_name, options = {})
-      calculate(:minimum, column_name, options)
+    def minimum(column_name)
+      calculate(:minimum, column_name)
     end
 
     # Calculates the maximum value on a given column. The value is returned
@@ -46,8 +45,8 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.maximum(:age) # => 93
-    def maximum(column_name, options = {})
-      calculate(:maximum, column_name, options)
+    def maximum(column_name)
+      calculate(:maximum, column_name)
     end
 
     # Calculates the sum of values on a given column. The value is returned
@@ -90,15 +89,15 @@ module ActiveRecord
     #   Person.group(:last_name).having("min(age) > 17").minimum(:age)
     #
     #   Person.sum("2 * age")
-    def calculate(operation, column_name, options = {})
+    def calculate(operation, column_name)
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
         column_name = attribute_alias(column_name)
       end
 
       if has_include?(column_name)
-        construct_relation_for_association_calculations.calculate(operation, column_name, options)
+        construct_relation_for_association_calculations.calculate(operation, column_name)
       else
-        perform_calculation(operation, column_name, options)
+        perform_calculation(operation, column_name)
       end
     end
 
@@ -181,7 +180,7 @@ module ActiveRecord
       eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
     end
 
-    def perform_calculation(operation, column_name, options = {})
+    def perform_calculation(operation, column_name)
       operation = operation.to_s.downcase
 
       # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)

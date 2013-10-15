@@ -295,7 +295,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_calculations_methods
     assert_no_queries do
       assert_equal 0, Developer.none.count
-      assert_equal 0, Developer.none.calculate(:count, nil, {})
+      assert_equal 0, Developer.none.calculate(:count, nil)
       assert_equal nil, Developer.none.calculate(:average, 'salary')
     end
   end
@@ -486,6 +486,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Developer.where(name: 'David').map(&:id).sort, developers
   end
 
+  def test_includes_with_select
+    query = Post.select('comments_count AS ranking').order('ranking').includes(:comments)
+      .where(comments: { id: 1 })
+
+    assert_equal ['comments_count AS ranking'], query.select_values
+    assert_equal 1, query.to_a.size
+  end
+
   def test_loading_with_one_association
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }
@@ -624,6 +632,11 @@ class RelationTest < ActiveRecord::TestCase
     # assert_queries(2) {
     assert_queries(1) {
       relation = Author.where(:id => Author.where(:id => david.id))
+      assert_equal [david], relation.to_a
+    }
+
+    assert_queries(1) {
+      relation = Author.where('id in (?)', Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
     }
   end
