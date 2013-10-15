@@ -6,7 +6,7 @@ module ActiveRecord
       @records = []
     end
 
-    def pluck(_column_name)
+    def pluck(*column_names)
       []
     end
 

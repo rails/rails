@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         def table
-          Arel::Table.new(table_name, arel_engine)
+          base_klass.arel_table
         end
 
         def aliased_table_name

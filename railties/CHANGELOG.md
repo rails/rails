@@ -1,4 +1,4 @@
-*   Added `--model-name` scaffld\_controller\_generator option.
+*   Added `--model-name` option to `ScaffoldControllerGenerator`.
 
     *yalab*
 
