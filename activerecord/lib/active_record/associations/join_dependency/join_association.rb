@@ -25,7 +25,7 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(parent, tables)
+        def join_constraints(parent, tables, chain)
           joins         = []
           tables        = tables.dup
 
@@ -36,7 +36,7 @@ module ActiveRecord
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          reflection.chain.reverse_each do |reflection|
+          chain.reverse_each do |reflection|
             table = tables.shift
             klass = reflection.klass
 
