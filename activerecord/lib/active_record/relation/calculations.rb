@@ -298,7 +298,11 @@ module ActiveRecord
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
-        key_records = association.klass.base_class.find(key_ids)
+        if key_ids.any?
+          key_records = association.klass.base_class.find(key_ids)
+        else
+          key_records = []
+        end
         key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
