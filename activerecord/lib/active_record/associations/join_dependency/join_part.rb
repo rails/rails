@@ -36,10 +36,6 @@ module ActiveRecord
           children.each { |child| child.each(&block) }
         end
 
-        def aliased_table
-          Arel::Nodes::TableAlias.new table, aliased_table_name
-        end
-
         # An Arel::Table for the active_record
         def table
           raise NotImplementedError
