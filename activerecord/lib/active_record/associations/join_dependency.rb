@@ -58,9 +58,7 @@ module ActiveRecord
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
         build tree, @join_root, Arel::InnerJoin
-        @join_root.children.each do |child|
-          apply_tables! @join_root, child
-        end
+        apply_tables! @join_root
       end
 
       def reflections
@@ -79,9 +77,11 @@ module ActiveRecord
             deep_copy left, node
           }
         end
-        @join_root.children.each do |child|
-          apply_tables! @join_root, child
-        end
+        apply_tables! @join_root
+      end
+
+      def apply_tables!(node)
+        node.children.each { |child| construct_tables! node, child }
       end
 
       def join_constraints
@@ -171,14 +171,13 @@ module ActiveRecord
       end
 
       def construct_tables!(parent, node)
-        return if node.tables
-
         node.tables = node.reflection.chain.map { |reflection|
           alias_tracker.aliased_table_for(
             reflection.table_name,
             table_alias_for(reflection, parent, reflection != node.reflection)
           )
-        }
+        } unless node.tables
+        node.children.each { |child| construct_tables! node, child }
       end
 
       def table_alias_for(reflection, parent, join)
@@ -226,11 +225,6 @@ module ActiveRecord
 
         node = JoinAssociation.new(reflection, join_type)
         node
-      end
-
-      def apply_tables!(parent, node)
-        construct_tables!(parent, node)
-        node.children.each { |child| apply_tables! node, child }
       end
 
       def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
