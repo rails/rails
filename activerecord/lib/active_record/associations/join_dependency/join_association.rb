@@ -15,8 +15,6 @@ module ActiveRecord
 
         attr_accessor :tables
 
-        delegate :chain, :to => :reflection
-
         def initialize(reflection, index, join_type)
           super(reflection.klass)
 
@@ -42,7 +40,7 @@ module ActiveRecord
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          chain.reverse_each do |reflection|
+          reflection.chain.reverse_each do |reflection|
             table = tables.shift
             klass = reflection.klass
 
