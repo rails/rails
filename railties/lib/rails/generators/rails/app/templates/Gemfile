@@ -25,7 +25,7 @@ end
 # gem 'unicorn'
 
 # Use Capistrano for deployment
-# gem 'capistrano', group: :development
+# gem 'capistrano-rails', group: :development
 
 <% unless defined?(JRUBY_VERSION) -%>
 # Use debugger
