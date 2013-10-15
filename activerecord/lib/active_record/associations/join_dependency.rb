@@ -82,13 +82,26 @@ module ActiveRecord
         make_joins join_root
       end
 
-      def columns
-        join_root.collect { |join_part|
+      class Aliases
+        def initialize(tables)
+          @tables = tables
+        end
+
+        def columns
+          @tables.flat_map { |t| t.columns }
+        end
+
+        Table = Struct.new(:table, :columns)
+      end
+
+      def aliases
+        Aliases.new join_root.map { |join_part|
           table = join_part.aliased_table
-          join_part.column_names_with_alias.collect{ |column_name, aliased_name|
+          columns = join_part.column_names_with_alias.collect{ |column_name, aliased_name|
             table[column_name].as Arel.sql(aliased_name)
           }
-        }.flatten
+          Aliases::Table.new(table, columns)
+        }
       end
 
       def instantiate(result_set)

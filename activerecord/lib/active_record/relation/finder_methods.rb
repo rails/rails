@@ -243,7 +243,9 @@ module ActiveRecord
     def find_with_associations
       join_dependency = construct_join_dependency
       relation = except :select
-      relation = relation.select(join_dependency.columns)
+
+      aliases  = join_dependency.aliases
+      relation = relation.select aliases.columns
       relation = apply_join_dependency(relation, join_dependency)
 
       if block_given?
