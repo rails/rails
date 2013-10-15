@@ -92,12 +92,12 @@ module ActiveRecord
         def initialize(tables)
           @tables = tables
           @alias_cache = tables.each_with_object({}) { |table,h|
-            h[table.name] = table.columns.each_with_object({}) { |column,i|
+            h[table.node] = table.columns.each_with_object({}) { |column,i|
               i[column.name] = column.alias
             }
           }
           @name_and_alias_cache = tables.each_with_object({}) { |table,h|
-            h[table.name] = table.columns.map { |column|
+            h[table.node] = table.columns.map { |column|
               [column.name, column.alias]
             }
           }
@@ -108,17 +108,17 @@ module ActiveRecord
         end
 
         # An array of [column_name, alias] pairs for the table
-        def column_aliases(table)
-          @name_and_alias_cache[table]
+        def column_aliases(node)
+          @name_and_alias_cache[node]
         end
 
-        def column_alias(table, column)
-          @alias_cache[table][column]
+        def column_alias(node, column)
+          @alias_cache[node][column]
         end
 
-        class Table < Struct.new(:name, :alias, :columns)
+        class Table < Struct.new(:node, :columns)
           def table
-            Arel::Nodes::TableAlias.new name, self.alias
+            Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
           end
 
           def column_aliases
@@ -134,12 +134,12 @@ module ActiveRecord
           columns = join_part.column_names.each_with_index.map { |column_name,j|
             Aliases::Column.new column_name, "t#{i}_r#{j}"
           }
-          Aliases::Table.new(join_part.table, join_part.aliased_table_name, columns)
+          Aliases::Table.new(join_part, columns)
         }
       end
 
       def instantiate(result_set, aliases)
-        primary_key = aliases.column_alias(join_root.table, join_root.primary_key)
+        primary_key = aliases.column_alias(join_root, join_root.primary_key)
         type_caster = result_set.column_type primary_key
 
         seen = Hash.new { |h,parent_klass|
@@ -150,7 +150,7 @@ module ActiveRecord
 
         model_cache = Hash.new { |h,klass| h[klass] = {} }
         parents = model_cache[join_root]
-        column_aliases = aliases.column_aliases join_root.table
+        column_aliases = aliases.column_aliases join_root
 
         result_set.each { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
@@ -242,7 +242,7 @@ module ActiveRecord
             end
           end
 
-          key = aliases.column_alias(node.table, node.primary_key)
+          key = aliases.column_alias(node, node.primary_key)
           id = row[key]
           next if id.nil?
 
@@ -260,7 +260,7 @@ module ActiveRecord
 
       def construct_model(record, node, row, model_cache, id, aliases)
         model = model_cache[node][id] ||= node.instantiate(row,
-                                                           aliases.column_aliases(node.table))
+                                                           aliases.column_aliases(node))
         other = record.association(node.reflection.name)
 
         if node.reflection.collection?
