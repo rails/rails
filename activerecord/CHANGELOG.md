@@ -1,3 +1,10 @@
+*   `NullRelation#pluck` takes a list of columns
+
+    The method signature in `NullRelation` was updated to mimic that in
+    `Calculations`.
+
+    *Derek Prior*
+
 *   `scope_chain` should not be mutated for other reflections.
 
     Currently `scope_chain` uses same array for building different
