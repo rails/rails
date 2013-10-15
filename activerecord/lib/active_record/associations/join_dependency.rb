@@ -91,14 +91,19 @@ module ActiveRecord
           @tables.flat_map { |t| t.columns }
         end
 
-        Table = Struct.new(:table, :columns)
+        class Table < Struct.new(:table, :columns)
+          def columns
+            super.map { |column| table[column.name].as Arel.sql column.alias }
+          end
+        end
+        Column = Struct.new(:name, :alias)
       end
 
       def aliases
-        Aliases.new join_root.map { |join_part|
+        Aliases.new join_root.each_with_index.map { |join_part,i|
           table = join_part.aliased_table
-          columns = join_part.column_names_with_alias.collect{ |column_name, aliased_name|
-            table[column_name].as Arel.sql(aliased_name)
+          columns = join_part.column_names.each_with_index.map { |column_name,j|
+            Aliases::Column.new column_name, "t#{i}_r#{j}"
           }
           Aliases::Table.new(table, columns)
         }
