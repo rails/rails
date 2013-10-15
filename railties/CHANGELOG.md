@@ -1,3 +1,7 @@
+*   Added `--model-name` scaffld\_controller\_generator option.
+
+    *yalab*
+
 *   Expose MiddlewareStack#unshift to environment configuration.
 
     *Ben Pickles*
