@@ -19,6 +19,7 @@ module Arel
     it 'handles limit properly' do
       table = Table.new(:users)
       um = Arel::UpdateManager.new Table.engine
+      um.key = 'id'
       um.take 10
       um.table table
       um.set [[table[:name], nil]]

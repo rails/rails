@@ -90,7 +90,7 @@ module Arel
             warn(<<-eowarn) if $VERBOSE
 (#{caller.first}) Using UpdateManager without setting UpdateManager#key is
 deprecated and support will be removed in Arel 4.0.0.  Please set the primary
-key on UpdateManager using UpdateManager#key=
+key on UpdateManager using UpdateManager#key= '#{key.inspect}'
             eowarn
             key = o.relation.primary_key
           end
