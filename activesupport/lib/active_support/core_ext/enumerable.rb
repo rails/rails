@@ -28,26 +28,6 @@ module Enumerable
     end
   end
 
-  # Iterates over a collection, passing the current element *and* the
-  # +memo+ to the block. Handy for building up hashes or
-  # reducing collections down to one object. Examples:
-  #
-  #   %w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase } #=> {'foo' => 'FOO', 'bar' => 'BAR'}
-  #
-  # *Note* that you can't use immutable objects like numbers, true or false as
-  # the memo. You would think the following returns 120, but since the memo is
-  # never changed, it does not.
-  #
-  #   (1..5).each_with_object(1) { |value, memo| memo *= value } # => 1
-  #
-  def each_with_object(memo, &block)
-    memo.tap do |m|
-      each do |element|
-        block.call(element, m)
-      end
-    end
-  end unless [].respond_to?(:each_with_object)
-
   # Convert an enumerable to a hash. Examples:
   #
   #   people.index_by(&:login)
@@ -68,15 +48,6 @@ module Enumerable
     size = block_given? ? select(&block).size : self.size
     size > 1
   end
-
-  # Returns true if none of the elements match the given block.
-  #
-  #   success = responses.none? {|r| r.status / 100 == 5 }
-  #
-  # This is a builtin method in Ruby 1.8.7 and later.
-  def none?(&block)
-    !any?(&block)
-  end unless [].respond_to?(:none?)
 
   
   # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
