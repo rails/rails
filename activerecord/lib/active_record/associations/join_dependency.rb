@@ -85,10 +85,19 @@ module ActiveRecord
       class Aliases
         def initialize(tables)
           @tables = tables
+          @alias_cache = tables.each_with_object({}) { |table,h|
+            h[table.name] = table.columns.each_with_object({}) { |column,i|
+              i[column.name] = column.alias
+            }
+          }
         end
 
         def columns
-          @tables.flat_map { |t| t.columns }
+          @tables.flat_map { |t| t.column_aliases }
+        end
+
+        def column_alias(table, column)
+          @alias_cache[table][column]
         end
 
         class Table < Struct.new(:name, :alias, :columns)
@@ -96,9 +105,9 @@ module ActiveRecord
             Arel::Nodes::TableAlias.new name, self.alias
           end
 
-          def columns
+          def column_aliases
             t = table
-            super.map { |column| t[column.name].as Arel.sql column.alias }
+            columns.map { |column| t[column.name].as Arel.sql column.alias }
           end
         end
         Column = Struct.new(:name, :alias)
@@ -113,8 +122,8 @@ module ActiveRecord
         }
       end
 
-      def instantiate(result_set)
-        primary_key = join_root.aliased_primary_key
+      def instantiate(result_set, aliases)
+        primary_key = aliases.column_alias(join_root.table, join_root.primary_key)
         type_caster = result_set.column_type primary_key
 
         seen = Hash.new { |h,parent_klass|
@@ -131,7 +140,7 @@ module ActiveRecord
         result_set.each { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
           parent = parents[primary_id] ||= join_root.instantiate(row_hash)
-          construct(parent, join_root, row_hash, result_set, seen, model_cache)
+          construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
         }
 
         parents.values
@@ -202,7 +211,7 @@ module ActiveRecord
         node
       end
 
-      def construct(ar_parent, parent, row, rs, seen, model_cache)
+      def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
         primary_id  = ar_parent.id
 
         parent.children.each do |node|
@@ -212,22 +221,23 @@ module ActiveRecord
           else
             if ar_parent.association_cache.key?(node.reflection.name)
               model = ar_parent.association(node.reflection.name).target
-              construct(model, node, row, rs, seen, model_cache)
+              construct(model, node, row, rs, seen, model_cache, aliases)
               next
             end
           end
 
-          id = row[node.aliased_primary_key]
+          key = aliases.column_alias(node.table, node.primary_key)
+          id = row[key]
           next if id.nil?
 
           model = seen[parent.base_klass][primary_id][node.base_klass][id]
 
           if model
-            construct(model, node, row, rs, seen, model_cache)
+            construct(model, node, row, rs, seen, model_cache, aliases)
           else
             model = construct_model(ar_parent, node, row, model_cache, id)
             seen[parent.base_klass][primary_id][node.base_klass][id] = model
-            construct(model, node, row, rs, seen, model_cache)
+            construct(model, node, row, rs, seen, model_cache, aliases)
           end
         end
       end

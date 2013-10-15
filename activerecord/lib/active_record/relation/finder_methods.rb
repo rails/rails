@@ -255,7 +255,7 @@ module ActiveRecord
           []
         else
           rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
-          join_dependency.instantiate(rows)
+          join_dependency.instantiate(rows, aliases)
         end
       end
     end

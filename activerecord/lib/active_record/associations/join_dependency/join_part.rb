@@ -51,11 +51,6 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        # The alias for the primary key of the active_record's table
-        def aliased_primary_key
-          "#{aliased_prefix}_r0"
-        end
-
         # An array of [column_name, alias] pairs for the table
         def column_names_with_alias
           unless @column_names_with_alias
