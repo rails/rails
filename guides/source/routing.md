@@ -813,7 +813,7 @@ You can also use root inside namespaces and scopes as well. For example:
 
 ```ruby
 namespace :admin do
-  root to: "admin#index"
+  root to: "admin#index", as: :admin_root
 end
 
 root to: "home#index"
