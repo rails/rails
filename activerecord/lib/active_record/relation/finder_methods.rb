@@ -261,7 +261,7 @@ module ActiveRecord
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:select).select(join_dependency.columns + select_values)
+      relation = select(join_dependency.columns)
       apply_join_dependency(relation, join_dependency)
     end
 
