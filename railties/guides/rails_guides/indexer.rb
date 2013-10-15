@@ -20,7 +20,7 @@ module RailsGuides
     def process(string, current_level=3, counters=[1])
       s = StringScanner.new(string)
 
-      level_hash = ActiveSupport::OrderedHash.new
+      level_hash = {}
 
       while !s.eos?
         re = %r{^h(\d)(?:\((#.*?)\))?\s*\.\s*(.*)$}

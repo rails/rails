@@ -261,7 +261,7 @@ module ActiveRecord
             key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
           end
 
-          calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
+          calculated_data.inject({}) do |all, row|
             key   = group_aliases.map{|group_alias| type_cast_calculated_value(row[group_alias], group_columns[group_alias])}
             key   = key.first if key.size == 1
             key   = key_records[key] if associated

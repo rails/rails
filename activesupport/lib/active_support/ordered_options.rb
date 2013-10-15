@@ -1,5 +1,5 @@
 module ActiveSupport #:nodoc:
-  class OrderedOptions < OrderedHash #:nodoc:
+  class OrderedOptions < Hash #:nodoc:
     def []=(key, value)
       super(key.to_sym, value)
     end

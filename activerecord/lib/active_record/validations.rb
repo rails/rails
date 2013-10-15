@@ -295,7 +295,7 @@ module ActiveRecord
 
     # Removes all errors that have been added.
     def clear
-      @errors = ActiveSupport::OrderedHash.new
+      @errors = {}
     end
 
     # Returns the total number of errors added. Two errors added to the same attribute will be counted as such.

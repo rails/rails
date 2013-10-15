@@ -34,7 +34,7 @@ module Rails
 
       def initialize(app)
         @app = app
-        @metals = ActiveSupport::OrderedHash.new
+        @metals = {}
         self.class.metals.each { |app| @metals[app] = true }
         freeze
       end
