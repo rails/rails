@@ -27,7 +27,7 @@ module ActiveRecord
 
         def join_constraints(parent, tables, chain)
           joins         = []
-          tables        = tables.dup
+          tables        = tables.reverse
 
           foreign_table = parent.table
           foreign_klass = parent.base_klass
@@ -113,7 +113,7 @@ module ActiveRecord
         end
 
         def table
-          tables.last
+          tables.first
         end
 
         def aliased_table_name

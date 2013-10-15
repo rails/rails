@@ -170,7 +170,7 @@ module ActiveRecord
             reflection.table_name,
             table_alias_for(reflection, parent, reflection != node.reflection)
           )
-        }.reverse
+        }
       end
 
       def table_alias_for(reflection, parent, join)
