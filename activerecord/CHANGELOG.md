@@ -1,10 +1,4 @@
 ## unreleased ##
-*   Move .set_inverse_instance call to association.build_record method. Everytime a new record is build
-    using the association, we need to try to set the inverse_of relation.
-
-    Fixes #10371.
-
-    *arthurnn*
 
 *   When calling the method .find_or_initialize_by_* from a collection_proxy
     it should set the inverse_of relation even when the entry was found on the db.
