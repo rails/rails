@@ -90,6 +90,13 @@
 
 ## Rails 4.1.0 (April 8, 2014) ##
 
+*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
+    given. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
+    objects which respond to `#to_hash`, even if those objects are not Hashes
+    directly.
+
+    *Peter Jaros*
+
 *   Added `Object#presence_in` to simplify value whitelisting.
 
     Before:
