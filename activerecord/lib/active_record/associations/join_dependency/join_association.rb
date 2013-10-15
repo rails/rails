@@ -4,8 +4,6 @@ module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
       class JoinAssociation < JoinPart # :nodoc:
-        include JoinHelper
-
         # The reflection of the association represented
         attr_reader :reflection
 
@@ -83,7 +81,7 @@ module ActiveRecord
               constraint = constraint.and rel.arel.constraints
             end
 
-            joins << join(table, constraint)
+            joins << table.create_join(table, table.create_on(constraint), join_type)
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table, foreign_klass = table, klass
