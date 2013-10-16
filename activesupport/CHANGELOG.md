@@ -22,14 +22,14 @@
 
     You can do this:
 
-      class JokeSubscriber < ActiveSupport::Subscriber
-        # This is much easier to read!
-        attach_to "active_record"
+        class JokeSubscriber < ActiveSupport::Subscriber
+          # This is much easier to read!
+          attach_to "active_record"
 
-        def sql(event)
-          puts "A rabbi and a priest walk into a bar..."
+          def sql(event)
+            puts "A rabbi and a priest walk into a bar..."
+          end
         end
-      end
 
     This should make it easier to read and understand these subscribers.
 

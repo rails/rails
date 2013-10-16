@@ -342,13 +342,13 @@
 *   Reset @column_defaults when assigning `locking_column`.
     We had a potential problem. For example:
 
-    class Post < ActiveRecord::Base
-      self.column_defaults  # if we call this unintentionally before setting locking_column ...
-      self.locking_column = 'my_locking_column'
-    end
+      class Post < ActiveRecord::Base
+        self.column_defaults  # if we call this unintentionally before setting locking_column ...
+        self.locking_column = 'my_locking_column'
+      end
 
-    Post.column_defaults["my_locking_column"]
-    => nil # expected value is 0 !
+      Post.column_defaults["my_locking_column"]
+      => nil # expected value is 0 !
 
     *kennyj*
 
