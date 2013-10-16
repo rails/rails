@@ -1173,7 +1173,7 @@ module ActionView
     # methods in the +FormHelper+ module. This class, however, allows you to
     # call methods with the model object you are building the form for.
     #
-    # You can create your own custom FormBuilder templates by subclasses this
+    # You can create your own custom FormBuilder templates by subclassing this
     # class. For example:
     #
     #   class MyFormBuilder < ActionView::Helpers::FormBuilder
