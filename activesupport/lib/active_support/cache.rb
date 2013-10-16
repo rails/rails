@@ -610,7 +610,13 @@ module ActiveSupport
         end
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
-        @expires_in = (@expires_in.is_a?(Proc) ? @expires_in.call(self) : @expires_in).to_f if @expires_in
+        if @expires_in
+          @expires_in = if @expires_in.is_a?(Proc)
+            @expires_in.call(self)
+          else
+            @expires_in
+          end.to_f
+        end
       end
 
       def value
