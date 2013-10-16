@@ -1,3 +1,7 @@
+*   Add support of Proc to `Cache#Entry` `:expires_in` option.
+
+    *MasterLambaster*
+
 *   `require_dependency` accepts objects that respond to `to_path`, in
     particular `Pathname` instances.
 

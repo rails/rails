@@ -219,7 +219,10 @@ module ActiveSupport
       #
       # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
       # All caches support auto-expiring content after a specified number of
-      # seconds. This value can be specified as an option to the constructor
+      # seconds. The expires_in can be either a static value or a Proc. If it
+      # is a Proc, it will be invoked when cache entry is created that you can
+      # use application logic to control expiration time.
+      # This value can be specified as an option to the constructor
       # (in which case all entries will be affected), or it can be supplied to
       # the +fetch+ or +write+ method to effect just one entry.
       #
