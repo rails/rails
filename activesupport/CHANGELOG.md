@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.15 (Oct 16, 2013) ##
 
 *   Fix ActiveSupport::Cache::FileStore#cleanup to no longer rely on missing each_key method.
 

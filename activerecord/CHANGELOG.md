@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.15 (Oct 16, 2013) ##
 
 *   When calling the method .find_or_initialize_by_* from a collection_proxy
     it should set the inverse_of relation even when the entry was found on the db.

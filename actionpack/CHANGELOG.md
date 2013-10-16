@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 3.2.15 (Oct 16, 2013) ##
 
 *   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
     attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.

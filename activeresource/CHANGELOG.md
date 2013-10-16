@@ -1,3 +1,7 @@
+## Rails 3.2.15 (Oct 16, 2013) ##
+
+* No changes.
+
 ## Rails 3.2.14 (Jul 22, 2013) ##
 
 *   Fixes an issue that ActiveResource models ignores ActiveResource::Base.include_root_in_json.
