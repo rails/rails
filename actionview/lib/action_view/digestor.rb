@@ -37,11 +37,11 @@ module ActionView
 
         digest = klass.new(name, format, finder, options).digest
         # Store the actual digest if config.cache_template_loading is true
-        @@cache[cache_key] = digest if ActionView::Resolver.caching?
+        @@cache[cache_key] = stored_digest = digest if ActionView::Resolver.caching?
         digest
       ensure
         # something went wrong or ActionView::Resolver.caching? is false, make sure not to corrupt the @@cache
-        @@cache.delete_pair(cache_key, false) if pre_stored && !digest 
+        @@cache.delete_pair(cache_key, false) if pre_stored && !stored_digest 
       end
     end
 
