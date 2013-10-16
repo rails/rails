@@ -1,3 +1,8 @@
+*   Ensure ActionView::Digestor.cache is correctly cleaned up when
+    combining recursive templates with ActionView::Resolver.caching = false
+    
+    *wyaeld*
+
 *   Fix `collection_check_boxes` generated hidden input to use the name attribute provided
     in the options hash.
 
