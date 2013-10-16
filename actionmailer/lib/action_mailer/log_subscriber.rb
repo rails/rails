@@ -19,6 +19,13 @@ module ActionMailer
       debug(event.payload[:mail])
     end
 
+    # An email was generated.
+    def process(event)
+      mailer = event.payload[:mailer]
+      action = event.payload[:action]
+      debug("\n#{mailer}##{action}: processed outbound mail in #{event.duration.round(1)}ms")
+    end
+
     # Use the logger configured for ActionMailer::Base
     def logger
       ActionMailer::Base.logger
