@@ -111,11 +111,7 @@ module ActiveRecord
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            if records == :all
-              scope = self.scope
-            else
-              scope = self.scope.where(reflection.klass.primary_key => records)
-            end
+            scope = (records == :all) ? self.scope : self.scope.where(reflection.klass.primary_key => records)
 
             if method == :delete_all
               update_counter(-scope.delete_all)
