@@ -21,6 +21,8 @@ module ActiveRecord
 
         delegate :table_name, :column_names, :primary_key, :to => :base_klass
 
+        ALIASED_PREFIX = '__t'
+
         def initialize(base_klass, parent)
           @base_klass = base_klass
           @parent = parent
@@ -92,7 +94,7 @@ module ActiveRecord
             index += 1
           end
 
-          hash
+          hash.merge(row.select{ |key, _| !key.start_with?(ALIASED_PREFIX) })
         end
 
         def record_id(row)
