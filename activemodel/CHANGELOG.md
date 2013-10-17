@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.1.rc1 (October 17, 2013) ##
 
 *   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
 
@@ -9,9 +9,11 @@
     for non-numerical ones.
 
     Fixes range validations like `:a..:f` that used to pass with values like `:be`.
-    Fixes #10593
+
+    Fixes #10593.
 
     *Charles Bergeron*
+
 
 ## Rails 4.0.0 (June 25, 2013) ##
 

@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.1.rc1 (October 17, 2013) ##
 
 *   Respect `SCRIPT_NAME` when using `redirect` with a relative path
 
@@ -14,20 +14,20 @@
     the path. It also allows redirects to work where the application is deployed to a
     subdirectory of a website.
 
-    Fixes #7977
+    Fixes #7977.
 
     *Andrew White*
 
 *   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
     attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.
 
-    Fixes #10844
+    Fixes #10844.
 
     *Tamir Duberstein*
 
 *   Strong parameters should permit nested number as key.
 
-    Fixes #12293
+    Fixes #12293.
 
     *kennyj*
 
@@ -46,14 +46,14 @@
 
 *   Fix an issue where router can't recognize downcased url encoding path.
 
-    Fixes #12269
+    Fixes #12269.
 
     *kennyj*
 
 *   Fix custom flash type definition. Misusage of the `_flash_types` class variable
     caused an error when reloading controllers with custom flash types.
 
-    Fixes #12057
+    Fixes #12057.
 
     *Ricardo de Cillo*
 

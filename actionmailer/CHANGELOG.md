@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.1.rc1 (October 17, 2013) ##
 
 *   Invoke mailer defaults as procs only if they are procs, do not convert
     with `to_proc`. That an object is convertible to a proc does not mean it's

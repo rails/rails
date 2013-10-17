@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.1.rc1 (October 17, 2013) ##
 
 *   `NullRelation#pluck` takes a list of columns
 
@@ -73,7 +73,7 @@
 *   Objects instantiated using a null relationship will now retain the
     attributes of the where clause.
 
-    Fixes:  #11676, #11675, #11376
+    Fixes #11676, #11675, #11376.
 
     *Paul Nikitochkin*, *Peter Brown*, *Nthalk*
 
@@ -115,7 +115,6 @@
 *   Allow Relation#from to accept other relations with bind values.
 
     *Ryan Wallace*
-
 
 *   Make `find_in_batches` and `find_each` work without a logger.
 
@@ -190,6 +189,8 @@
 
     This also affects order defined in `default_scope` or any kind of associations.
 
+    *Rafael Mendonça França*
+
 *   When using optimistic locking, `update` was not passing the column to `quote_value`
     to allow the connection adapter to properly determine how to quote the value. This was
     affecting certain databases that use specific column types.
@@ -222,7 +223,7 @@
 *   Remove extra select and update queries on `save`/`touch`/`destroy` Active Record model
     with belongs to reflection with option `touch: true`.
 
-    Fixes: #11288.
+    Fixes #11288.
 
     *Paul Nikitochkin*
 
@@ -265,7 +266,6 @@
     closed connection.
 
     *Yves Senn*
-
 
 *   Fix the `:primary_key` option for `has_many` associations.
 

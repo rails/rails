@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.1.rc1 (October 17, 2013) ##
 
 *   Disable the ability to iterate over Range of AS::TimeWithZone
     due to significant performance issues.
