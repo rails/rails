@@ -1,7 +1,7 @@
 module ActiveSupport
   # Returns the version of the currently loaded ActiveSupport as a Gem::Version
   def self.version
-    Gem::Version.new "4.0.0"
+    Gem::Version.new "4.0.1.rc1"
   end
 
   module VERSION #:nodoc:
