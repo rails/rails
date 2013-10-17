@@ -1,3 +1,9 @@
+*   If an alias was specified, it will be accessible from the resulting objects on joins
+
+    Saves the alias when querying with associations
+
+    *Edo Balvers*
+
 *   `NullRelation#pluck` takes a list of columns
 
     The method signature in `NullRelation` was updated to mimic that in

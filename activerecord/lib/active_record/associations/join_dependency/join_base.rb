@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def aliased_prefix
-          "t0"
+          "#{ALIASED_PREFIX}0"
         end
 
         def table

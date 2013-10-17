@@ -494,6 +494,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, query.to_a.size
   end
 
+  def test_additional_select_attributes_on_join
+    q = Comment.includes(:post).references(:posts).select("'foo' as foo").first
+    assert_equal 'foo', q.foo
+  end
+
   def test_loading_with_one_association
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }

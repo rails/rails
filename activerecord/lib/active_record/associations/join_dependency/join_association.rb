@@ -26,7 +26,7 @@ module ActiveRecord
           @reflection      = reflection
           @alias_tracker   = alias_tracker
           @join_type       = join_type
-          @aliased_prefix  = "t#{ index }"
+          @aliased_prefix  = "#{ALIASED_PREFIX}#{ index }"
           @tables          = construct_tables.reverse
         end
 
