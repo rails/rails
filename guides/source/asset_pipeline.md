@@ -503,7 +503,11 @@ NOTE. If you want to use multiple Sass files, you should generally use the [Sass
 rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import) instead
 of these Sprockets directives. Using Sprockets directives all Sass files exist
 within their own scope, making variables or mixins only available within the
-document they were defined in.
+document they were defined in. You can do file globbing as well using
+`@import "*"`, and `@import "**/*"` to add the whole tree equivalent to how
+`require_tree` works. Check the [sass-rails 
+documentation](https://github.com/rails/sass-rails#features) for more info and
+important caveats.
 
 You can have as many manifest files as you need. For example, the `admin.css`
 and `admin.js` manifest could contain the JS and CSS files that are used for the
