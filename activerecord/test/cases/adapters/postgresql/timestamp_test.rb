@@ -88,7 +88,7 @@ class TimestampTest < ActiveRecord::TestCase
     unless current_adapter?(:PostgreSQLAdapter)
       return skip("only tested on postgresql")
     end
-    date = Date.new(0) - 1.second
+    date = Date.new(0).yesterday
     Developer.create!(:name => "aaron", :updated_at => date)
     assert_equal date, Developer.find_by_name("aaron").updated_at
   end
