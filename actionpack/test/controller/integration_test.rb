@@ -117,6 +117,12 @@ class SessionTest < ActiveSupport::TestCase
     @session.head(path,params,headers)
   end
 
+  def test_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    @session.expects(:process).with(:options,path,params,headers)
+    @session.options(path,params,headers)
+  end
+
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
@@ -234,7 +240,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     @integration_session.stubs(:generic_url_rewriter)
     @integration_session.stubs(:process)
 
-    %w( get post head patch put delete ).each do |verb|
+    %w( get post head options patch put delete ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
   end
