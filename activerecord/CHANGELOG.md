@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   `rake db:structure:dump` no longer crashes when the port was specified as `Fixnum`.
+
+    *Kenta Okamoto*
+
 *   Fix a bug where rake db:structure:load crashed when the path contained
     spaces.
 

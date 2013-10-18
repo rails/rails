@@ -280,6 +280,15 @@ module ActiveRecord
 
       assert_match(/Could not dump the database structure/, warnings)
     end
+
+    def test_structure_dump_with_port_number
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--port", "10000", "--result-file", filename, "--no-data", "test-db").returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+        @configuration.merge('port' => 10000),
+        filename)
+    end
   end
 
   class MySQLStructureLoadTest < ActiveRecord::TestCase
