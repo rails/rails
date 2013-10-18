@@ -6,11 +6,11 @@ module ActiveRecord
   class SchemaMigration < ActiveRecord::Base
 
     def self.table_name
-      "#{Base.table_name_prefix}schema_migrations#{Base.table_name_suffix}"
+      "#{Base.table_name_prefix}#{Base.schema_migrations_table_name}#{Base.table_name_suffix}"
     end
 
     def self.index_name
-      "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
+      "#{Base.table_name_prefix}unique_#{Base.schema_migrations_table_name}#{Base.table_name_suffix}"
     end
 
     def self.create_table(limit=nil)
