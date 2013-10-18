@@ -7,11 +7,11 @@ module ActiveRecord
     class << self
 
       def table_name
-        "#{table_name_prefix}schema_migrations#{table_name_suffix}"
+        "#{table_name_prefix}#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
       end
 
       def index_name
-        "#{table_name_prefix}unique_schema_migrations#{table_name_suffix}"
+        "#{table_name_prefix}unique_#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
       end
 
       def table_exists?
