@@ -59,7 +59,7 @@ module ActiveRecord
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
         args.concat(["#{configuration['database']}"])
-        unless Kernel.system(*args)
+        unless Kernel.system(args.join(' '))
           $stderr.puts "Could not dump the database structure. "\
                        "Make sure `mysqldump` is in your PATH and check the command output for warnings."
         end
@@ -69,7 +69,7 @@ module ActiveRecord
         args = prepare_command_options('mysql')
         args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
-        Kernel.system(*args)
+        Kernel.system(args.join(' '))
       end
 
       private
