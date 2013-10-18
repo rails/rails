@@ -134,7 +134,9 @@ module ActiveRecord
 
       def replace_bind_variable(value, c = connection) #:nodoc:
         if ActiveRecord::Relation === value
-          value.to_sql
+          c.unprepared_statement do
+            value.to_sql
+          end
         else
           quote_bound_value(value, c)
         end
