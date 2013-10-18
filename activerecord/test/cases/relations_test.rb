@@ -628,6 +628,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation
     david = authors(:david)
+    davids_posts = david.posts.to_a
     # switching the lines below would succeed in current rails
     # assert_queries(2) {
     assert_queries(1) {
@@ -638,6 +639,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) {
       relation = Author.where('id in (?)', Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
+    }
+
+    assert_queries(1) {
+      # Subquery with bind values
+      relation = Post.where('id in (?)', david.posts.select(:id))
+      assert_equal davids_posts, relation.to_a
     }
   end
 

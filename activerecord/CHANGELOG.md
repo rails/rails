@@ -1,3 +1,12 @@
+*    Sub-query generated for `Relation` passed as array condition did not take in account
+     bind values and have invalid syntax.
+
+     Generate sub-query with inline bind values.
+
+     Fixes: #12586
+
+     *Paul Nikitochkin*
+
 *   `rake db:structure:dump` no longer crashes when the port was specified as `Fixnum`.
 
     *Kenta Okamoto*
