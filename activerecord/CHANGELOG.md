@@ -1,3 +1,7 @@
+*   Make `Relation#empty?` use `exists?` instead of `count`.
+
+    *Szymon Nowak*
+
 *   `rake db:structure:dump` no longer crashes when the port was specified as `Fixnum`.
 
     *Kenta Okamoto*
