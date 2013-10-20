@@ -511,11 +511,18 @@ module ActionMailer
       process(method_name, *args) if method_name
     end
 
-    def process(*args) #:nodoc:
-      lookup_context.skip_default_locale!
+    def process(method_name, *args) #:nodoc:
+      payload = {
+        :mailer => self.class.name,
+        :action => method_name
+      }
 
-      super
-      @_message = NullMail.new unless @_mail_was_called
+      ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
+        lookup_context.skip_default_locale!
+
+        super
+        @_message = NullMail.new unless @_mail_was_called
+      end
     end
 
     class NullMail #:nodoc:
