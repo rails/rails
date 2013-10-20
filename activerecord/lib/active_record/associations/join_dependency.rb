@@ -165,7 +165,8 @@ module ActiveRecord
 
       def make_joins(node)
         node.children.flat_map { |child|
-          child.join_constraints(node, child.tables, child.reflection.chain)
+          chain = child.reflection.chain
+          child.join_constraints(node, child.join_type, child.tables, chain)
             .concat make_joins(child)
         }
       end

@@ -25,7 +25,7 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(parent, tables, chain)
+        def join_constraints(parent, join_type, tables, chain)
           joins         = []
           tables        = tables.reverse
 
