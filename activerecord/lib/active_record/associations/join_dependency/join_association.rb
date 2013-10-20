@@ -25,7 +25,7 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, tables, scope_chain, chain)
+        def join_constraints(foreign_table, foreign_klass, node, join_type, tables, scope_chain, chain)
           joins         = []
           tables        = tables.reverse
 
@@ -52,7 +52,7 @@ module ActiveRecord
               if item.is_a?(Relation)
                 item
               else
-                ActiveRecord::Relation.create(klass, table).instance_exec(self, &item)
+                ActiveRecord::Relation.create(klass, table).instance_exec(node, &item)
               end
             end
 
