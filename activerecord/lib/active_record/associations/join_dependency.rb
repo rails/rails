@@ -168,7 +168,7 @@ module ActiveRecord
           chain = child.reflection.chain
           foreign_table = node.table
           foreign_klass = node.base_klass
-          child.join_constraints(foreign_table, foreign_klass, child.join_type, child.tables, chain)
+          child.join_constraints(foreign_table, foreign_klass, child.join_type, child.tables, child.reflection.scope_chain, chain)
             .concat make_joins(child)
         }
       end
