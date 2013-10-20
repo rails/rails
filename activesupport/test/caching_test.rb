@@ -1024,4 +1024,11 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal "hello", entry.value
     assert_equal true, entry.expired?
   end
+
+  def test_accepts_proc_for_expires_in_option
+    now = Time.now
+    Time.stubs(:now).returns(now)
+    entry = ActiveSupport::Cache::Entry.new("value", :expires_in => Proc.new { 60 })
+    assert_equal now.to_f+60, entry.expires_at
+  end
 end
