@@ -25,12 +25,9 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(parent, join_type, tables, chain)
+        def join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
           joins         = []
           tables        = tables.reverse
-
-          foreign_table = parent.table
-          foreign_klass = parent.base_klass
 
           scope_chain_iter = reflection.scope_chain.reverse_each
 
