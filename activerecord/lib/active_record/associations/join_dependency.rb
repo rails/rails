@@ -84,7 +84,8 @@ module ActiveRecord
         node.children.each { |child| construct_tables! node, child }
       end
 
-      def join_constraints
+      def join_constraints(outer_joins)
+        outer_joins.each { |oj| merge_outer_joins! oj }
         make_joins join_root
       end
 

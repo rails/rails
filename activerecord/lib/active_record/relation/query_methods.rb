@@ -950,11 +950,7 @@ module ActiveRecord
         join_list
       )
 
-      stashed_association_joins.each do |dep|
-        join_dependency.merge_outer_joins! dep
-      end
-
-      joins = join_dependency.join_constraints
+      joins = join_dependency.join_constraints stashed_association_joins
 
       joins.each { |join| manager.from(join) }
 
