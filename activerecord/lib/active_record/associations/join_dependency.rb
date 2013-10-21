@@ -4,6 +4,47 @@ module ActiveRecord
       autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
       autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
+      class Aliases # :nodoc:
+        def initialize(tables)
+          @tables = tables
+          @alias_cache = tables.each_with_object({}) { |table,h|
+            h[table.node] = table.columns.each_with_object({}) { |column,i|
+              i[column.name] = column.alias
+            }
+          }
+          @name_and_alias_cache = tables.each_with_object({}) { |table,h|
+            h[table.node] = table.columns.map { |column|
+              [column.name, column.alias]
+            }
+          }
+        end
+
+        def columns
+          @tables.flat_map { |t| t.column_aliases }
+        end
+
+        # An array of [column_name, alias] pairs for the table
+        def column_aliases(node)
+          @name_and_alias_cache[node]
+        end
+
+        def column_alias(node, column)
+          @alias_cache[node][column]
+        end
+
+        class Table < Struct.new(:node, :columns)
+          def table
+            Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
+          end
+
+          def column_aliases
+            t = table
+            columns.map { |column| t[column.name].as Arel.sql column.alias }
+          end
+        end
+        Column = Struct.new(:name, :alias)
+      end
+
       attr_reader :alias_tracker, :base_klass, :join_root
 
       def self.make_tree(associations)
@@ -73,51 +114,10 @@ module ActiveRecord
             walk join_root, oj.join_root
           else
             oj.join_root.children.flat_map { |child|
-              make_outer_joins(join_root, child)
+              make_outer_joins join_root, child
             }
           end
         }
-      end
-
-      class Aliases
-        def initialize(tables)
-          @tables = tables
-          @alias_cache = tables.each_with_object({}) { |table,h|
-            h[table.node] = table.columns.each_with_object({}) { |column,i|
-              i[column.name] = column.alias
-            }
-          }
-          @name_and_alias_cache = tables.each_with_object({}) { |table,h|
-            h[table.node] = table.columns.map { |column|
-              [column.name, column.alias]
-            }
-          }
-        end
-
-        def columns
-          @tables.flat_map { |t| t.column_aliases }
-        end
-
-        # An array of [column_name, alias] pairs for the table
-        def column_aliases(node)
-          @name_and_alias_cache[node]
-        end
-
-        def column_alias(node, column)
-          @alias_cache[node][column]
-        end
-
-        class Table < Struct.new(:node, :columns)
-          def table
-            Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
-          end
-
-          def column_aliases
-            t = table
-            columns.map { |column| t[column.name].as Arel.sql column.alias }
-          end
-        end
-        Column = Struct.new(:name, :alias)
       end
 
       def aliases
