@@ -11,6 +11,7 @@ require 'models/project'
 require 'models/developer'
 require 'models/customer'
 require 'models/toy'
+require 'models/matey'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -858,6 +859,12 @@ class FinderTest < ActiveRecord::TestCase
     end
   ensure
     Toy.reset_primary_key
+  end
+
+  def test_find_without_primary_key
+    assert_raises(ActiveRecord::UnknownPrimaryKey) do
+      Matey.find(1)
+    end
   end
 
   def test_finder_with_offset_string

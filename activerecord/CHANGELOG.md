@@ -1,3 +1,7 @@
+*   Raise an exception when model without primary key calls `.find_with_ids`.
+
+    *Shimpei Makimoto*
+
 *   Make `Relation#empty?` use `exists?` instead of `count`.
 
     *Szymon Nowak*
