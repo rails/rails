@@ -58,41 +58,22 @@ module ActiveRecord
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
         build tree, @join_root, Arel::InnerJoin
-        apply_tables! @join_root
+        @join_root.children.each { |child| construct_tables! @join_root, child }
       end
 
       def reflections
         join_root.drop(1).map!(&:reflection)
       end
 
-      def merge_outer_joins!(other)
-        left  = join_root
-        right = other.join_root
-
-        if left.match? right
-          merge_node left, right
-        else
-          # If the roots aren't the same, then deep copy the RHS to the LHS
-          left.children.concat right.children.map { |node|
-            deep_copy left, node
-          }
-        end
-        apply_tables! @join_root
-      end
-
-      def apply_tables!(node)
-        node.children.each { |child| construct_tables! node, child }
-      end
-
       def join_constraints(outer_joins)
-        joins = make_joins join_root
+        joins = make_inner_joins join_root
 
         joins.concat outer_joins.flat_map { |oj|
           if join_root.match? oj.join_root
             walk join_root, oj.join_root
           else
             oj.join_root.children.flat_map { |child|
-              make_the_joins(join_root, child)
+              make_outer_joins(join_root, child)
             }
           end
         }
@@ -173,24 +154,25 @@ module ActiveRecord
 
       private
 
-      def make_the_joins(parent, child)
+      def make_constraints(parent, child, tables, join_type)
         chain         = child.reflection.chain
         foreign_table = parent.table
         foreign_klass = parent.base_klass
-        tables        = table_aliases_for(parent, child)
-        join_type     = Arel::OuterJoin
-
-        joins = child.join_constraints(foreign_table, foreign_klass, child, join_type, tables, child.reflection.scope_chain, chain)
-        joins.concat child.children.flat_map { |c| make_the_joins(child, c) }
+        child.join_constraints(foreign_table, foreign_klass, child, join_type, tables, child.reflection.scope_chain, chain)
       end
 
-      def make_joins(node)
-        node.children.flat_map { |child|
-          chain = child.reflection.chain
-          foreign_table = node.table
-          foreign_klass = node.base_klass
-          child.join_constraints(foreign_table, foreign_klass, child, child.join_type, child.tables, child.reflection.scope_chain, chain)
-            .concat make_joins(child)
+      def make_outer_joins(parent, child)
+        tables    = table_aliases_for(parent, child)
+        join_type = Arel::OuterJoin
+        joins     = make_constraints parent, child, tables, join_type
+
+        joins.concat child.children.flat_map { |c| make_outer_joins(child, c) }
+      end
+
+      def make_inner_joins(parent)
+        parent.children.flat_map { |child|
+          joins = make_constraints(parent, child, child.tables, Arel::InnerJoin)
+          joins.concat make_inner_joins(child)
         }
       end
 
@@ -204,7 +186,7 @@ module ActiveRecord
       end
 
       def construct_tables!(parent, node)
-        node.tables = table_aliases_for(parent, node) unless node.tables
+        node.tables = table_aliases_for(parent, node)
         node.children.each { |child| construct_tables! node, child }
       end
 
@@ -219,27 +201,8 @@ module ActiveRecord
           [left.children.find { |node2| node1.match? node2 }, node1]
         }.partition(&:first)
 
-        ojs = missing.flat_map { |_,n|
-          make_the_joins left, n
-        }
-
+        ojs = missing.flat_map { |_,n| make_outer_joins left, n }
         intersection.flat_map { |l,r| walk l, r }.concat ojs
-      end
-
-      def merge_node(left, right)
-        intersection, missing = right.children.map { |node1|
-          [left.children.find { |node2| node1.match? node2 }, node1]
-        }.partition(&:first)
-
-        intersection.each { |l,r| merge_node l, r }
-
-        left.children.concat missing.map { |_,node| deep_copy left, node }
-      end
-
-      def deep_copy(parent, node)
-        dup = build_join_association(node.reflection, parent, Arel::OuterJoin)
-        dup.children.concat node.children.map { |n| deep_copy dup, n }
-        dup
       end
 
       def find_reflection(klass, name)
@@ -263,8 +226,7 @@ module ActiveRecord
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        node = JoinAssociation.new(reflection, join_type)
-        node
+        JoinAssociation.new(reflection, join_type)
       end
 
       def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
