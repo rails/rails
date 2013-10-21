@@ -66,7 +66,9 @@ module ActiveRecord
       end
 
       def join_constraints(outer_joins)
-        joins = make_inner_joins join_root
+        joins = join_root.children.flat_map { |child|
+          make_inner_joins join_root, child
+        }
 
         joins.concat outer_joins.flat_map { |oj|
           if join_root.match? oj.join_root
@@ -169,11 +171,12 @@ module ActiveRecord
         joins.concat child.children.flat_map { |c| make_outer_joins(child, c) }
       end
 
-      def make_inner_joins(parent)
-        parent.children.flat_map { |child|
-          joins = make_constraints(parent, child, child.tables, Arel::InnerJoin)
-          joins.concat make_inner_joins(child)
-        }
+      def make_inner_joins(parent, child)
+        tables    = child.tables
+        join_type = Arel::InnerJoin
+        joins     = make_constraints parent, child, tables, join_type
+
+        joins.concat child.children.flat_map { |c| make_inner_joins(child, c) }
       end
 
       def table_aliases_for(parent, node)
