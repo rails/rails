@@ -1,16 +1,17 @@
 require "cases/helper"
 require 'models/binary'
+require 'models/author'
+require 'models/post'
 
 class SanitizeTest < ActiveRecord::TestCase
   def setup
   end
 
   def test_sanitize_sql_hash_handles_associations
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-      expected_value = "`adorable_animals`.`name` = 'Bambi'"
-    else
-      expected_value =  "\"adorable_animals\".\"name\" = 'Bambi'"
-    end
+    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
+    quoted_column_name = ActiveRecord::Base.connection.quote_column_name("name")
+    quoted_table_name = ActiveRecord::Base.connection.quote_table_name("adorable_animals")
+    expected_value = "#{quoted_table_name}.#{quoted_column_name} = #{quoted_bambi}"
 
     assert_equal expected_value, Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
   end
@@ -34,8 +35,15 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_sanitize_sql_array_handles_relations
-    assert_match(/\(\bselect\b.*?\bwhere\b.*?\)/i,
-      Binary.send(:sanitize_sql_array, ["id in (?)", Binary.where(id: 1)]),
-      "should sanitize `Relation` as subquery")
+    david = Author.create!(name: 'David')
+    david_posts = david.posts.select(:id)
+
+    sub_query_pattern = /\(\bselect\b.*?\bwhere\b.*?\)/i
+
+    select_author_sql = Post.send(:sanitize_sql_array, ['id in (?)', david_posts])
+    assert_match(sub_query_pattern, select_author_sql, 'should sanitize `Relation` as subquery for bind variables')
+
+    select_author_sql = Post.send(:sanitize_sql_array, ['id in (:post_ids)', post_ids: david_posts])
+    assert_match(sub_query_pattern, select_author_sql, 'should sanitize `Relation` as subquery for named bind variables')
   end
 end

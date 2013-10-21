@@ -625,6 +625,31 @@ class RelationTest < ActiveRecord::TestCase
       relation = Author.where('id in (?)', Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
     }
+
+    assert_queries(1) do
+      relation = Author.where('id in (:author_ids)', author_ids: Author.where(id: david).select(:id))
+      assert_equal [david], relation.to_a
+    end
+  end
+
+  def test_find_all_using_where_with_relation_with_bound_values
+    david = authors(:david)
+    davids_posts = david.posts.to_a
+
+    assert_queries(1) do
+      relation = Post.where(id: david.posts.select(:id))
+      assert_equal davids_posts, relation.to_a
+    end
+
+    assert_queries(1) do
+      relation = Post.where('id in (?)', david.posts.select(:id))
+      assert_equal davids_posts, relation.to_a, 'should process Relation as bind variables'
+    end
+
+    assert_queries(1) do
+      relation = Post.where('id in (:post_ids)', post_ids: david.posts.select(:id))
+      assert_equal davids_posts, relation.to_a, 'should process Relation as named bind variables'
+    end
   end
 
   def test_find_all_using_where_with_relation_and_alternate_primary_key
