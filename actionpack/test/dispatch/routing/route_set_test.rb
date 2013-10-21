@@ -30,10 +30,12 @@ module ActionDispatch
         draw do
           get 'foo', to: SimpleApp.new('foo#index')
           get 'bar', to: SimpleApp.new('bar#index')
+          get 'foo-bar', to: SimpleApp.new('bar#index')
         end
 
         assert_equal '/foo', url_helpers.foo_path
         assert_equal '/bar', url_helpers.bar_path
+        assert_equal '/foo-bar', url_helpers.foo_bar_path
       end
 
       test "url helpers are updated when route is updated" do

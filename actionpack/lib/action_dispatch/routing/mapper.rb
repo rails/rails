@@ -1440,7 +1440,7 @@ module ActionDispatch
           path = path_for_action(action, options.delete(:path))
           action = action.to_s.dup
 
-          if action =~ /^[\w\/]+$/
+          if action =~ /^[\w\-\/]+$/
             options[:action] ||= action unless action.include?("/")
           else
             action = nil
@@ -1636,6 +1636,7 @@ module ActionDispatch
             when :root
               [name_prefix, collection_name, prefix]
             else
+              prefix.gsub!(/\-/, '_') if prefix.is_a?(String)
               [name_prefix, member_name, prefix]
             end
 
