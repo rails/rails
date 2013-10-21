@@ -57,7 +57,7 @@ module ActiveRecord
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
-        build tree, @join_root, Arel::InnerJoin
+        build tree, @join_root
         @join_root.children.each { |child| construct_tables! @join_root, child }
       end
 
@@ -213,23 +213,23 @@ module ActiveRecord
           raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
       end
 
-      def build(associations, parent, join_type)
+      def build(associations, parent)
         associations.each do |name, right|
           reflection = find_reflection parent.base_klass, name
-          join_association = build_join_association reflection, parent, join_type
+          join_association = build_join_association reflection
           parent.children << join_association
-          build right, join_association, join_type
+          build right, join_association
         end
       end
 
-      def build_join_association(reflection, parent, join_type)
+      def build_join_association(reflection)
         reflection.check_validity!
 
         if reflection.options[:polymorphic]
           raise EagerLoadPolymorphicError.new(reflection)
         end
 
-        JoinAssociation.new(reflection, join_type)
+        JoinAssociation.new(reflection)
       end
 
       def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)

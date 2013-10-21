@@ -7,16 +7,12 @@ module ActiveRecord
         # The reflection of the association represented
         attr_reader :reflection
 
-        # What type of join will be generated, either Arel::InnerJoin (default) or Arel::OuterJoin
-        attr_accessor :join_type
-
         attr_accessor :tables
 
-        def initialize(reflection, join_type)
+        def initialize(reflection)
           super(reflection.klass)
 
           @reflection      = reflection
-          @join_type       = join_type
           @tables          = nil
         end
 
