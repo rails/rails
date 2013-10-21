@@ -1,3 +1,37 @@
+*    Sub-query generated for `Relation` passed as array condition did not take in account
+     bind values and have invalid syntax.
+
+     Generate sub-query with inline bind values.
+
+     Fixes: #12586
+
+     *Paul Nikitochkin*
+
+*   Fix a bug where rake db:structure:load crashed when the path contained
+    spaces.
+
+    *Kevin Mook*
+
+*   `ActiveRecord::QueryMethods#unscope` unscopes negative equality
+
+    Allows you to call `#unscope` on a relation with negative equality 
+    operators, i.e. `Arel::Nodes::NotIn` and `Arel::Nodes::NotEqual` that have
+    been generated through the use of `where.not`.
+
+    *Eric Hankins*
+
+*   Raise an exception when model without primary key calls `.find_with_ids`.
+
+    *Shimpei Makimoto*
+
+*   Make `Relation#empty?` use `exists?` instead of `count`.
+
+    *Szymon Nowak*
+
+*   `rake db:structure:dump` no longer crashes when the port was specified as `Fixnum`.
+
+    *Kenta Okamoto*
+
 *   `NullRelation#pluck` takes a list of columns
 
     The method signature in `NullRelation` was updated to mimic that in

@@ -511,11 +511,18 @@ module ActionMailer
       process(method_name, *args) if method_name
     end
 
-    def process(*args) #:nodoc:
-      lookup_context.skip_default_locale!
+    def process(method_name, *args) #:nodoc:
+      payload = {
+        :mailer => self.class.name,
+        :action => method_name
+      }
 
-      super
-      @_message = NullMail.new unless @_mail_was_called
+      ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
+        lookup_context.skip_default_locale!
+
+        super
+        @_message = NullMail.new unless @_mail_was_called
+      end
     end
 
     class NullMail #:nodoc:
@@ -685,9 +692,9 @@ module ActionMailer
       content_type = headers[:content_type]
 
       # Call all the procs (if any)
-      class_default = self.class.default
-      default_values = class_default.merge(class_default) do |k,v|
-        v.is_a?(Proc) ? instance_eval(&v) : v
+      default_values = {}
+      self.class.default.each do |k,v|
+        default_values[k] = v.is_a?(Proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults

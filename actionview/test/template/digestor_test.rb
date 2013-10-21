@@ -217,6 +217,31 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Resolver.caching = resolver_before
   end
 
+  def test_digest_cache_cleanup_with_recursion
+    first_digest = digest("level/_recursion")
+    second_digest = digest("level/_recursion")
+
+    assert first_digest
+
+    # If the cache is cleaned up correctly, subsequent digests should return the same
+    assert_equal first_digest, second_digest
+  end
+
+  def test_digest_cache_cleanup_with_recursion_and_template_caching_off
+    resolver_before = ActionView::Resolver.caching
+    ActionView::Resolver.caching = false
+
+    first_digest = digest("level/_recursion")
+    second_digest = digest("level/_recursion")
+
+    assert first_digest
+
+    # If the cache is cleaned up correctly, subsequent digests should return the same
+    assert_equal first_digest, second_digest
+  ensure
+    ActionView::Resolver.caching = resolver_before
+  end
+
   private
     def assert_logged(message)
       old_logger = ActionView::Base.logger

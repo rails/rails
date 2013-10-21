@@ -503,7 +503,11 @@ NOTE. If you want to use multiple Sass files, you should generally use the [Sass
 rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import) instead
 of these Sprockets directives. Using Sprockets directives all Sass files exist
 within their own scope, making variables or mixins only available within the
-document they were defined in.
+document they were defined in. You can do file globbing as well using
+`@import "*"`, and `@import "**/*"` to add the whole tree equivalent to how
+`require_tree` works. Check the [sass-rails 
+documentation](https://github.com/rails/sass-rails#features) for more info and
+important caveats.
 
 You can have as many manifest files as you need. For example, the `admin.css`
 and `admin.js` manifest could contain the JS and CSS files that are used for the
@@ -1040,17 +1044,22 @@ Making Your Library or Gem a Pre-Processor
 As Sprockets uses [Tilt](https://github.com/rtomayko/tilt) as a generic
 interface to different templating engines, your gem should just implement the
 Tilt template protocol. Normally, you would subclass `Tilt::Template` and
-reimplement `evaluate` method to return final output. Template source is stored
-at `@code`. Have a look at
+reimplement the `prepare` method, which initializes your template, and the
+`evaluate` method, which returns the processed source. The original source is
+stored in `data`. Have a look at
 [`Tilt::Template`](https://github.com/rtomayko/tilt/blob/master/lib/tilt/template.rb)
 sources to learn more.
 
 ```ruby
 module BangBang
   class Template < ::Tilt::Template
+    def prepare
+      # Do any initialization here
+    end
+
     # Adds a "!" to original template.
     def evaluate(scope, locals, &block)
-      "#{@code}!"
+      "#{data}!"
     end
   end
 end

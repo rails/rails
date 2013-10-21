@@ -122,17 +122,25 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_with_where_attributes
-    expected = Developer.order('salary DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.where(name: 'David').unscope(where: :name).collect { |dev| dev.name }
+    expected = Developer.order('salary DESC').collect(&:name)
+    received = DeveloperOrderedBySalary.where(name: 'David').unscope(where: :name).collect(&:name)
     assert_equal expected, received
 
-    expected_2 = Developer.order('salary DESC').collect { |dev| dev.name }
-    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({:where => :name}, :select).collect { |dev| dev.name }
+    expected_2 = Developer.order('salary DESC').collect(&:name)
+    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({:where => :name}, :select).collect(&:name)
     assert_equal expected_2, received_2
 
-    expected_3 = Developer.order('salary DESC').collect { |dev| dev.name }
-    received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect { |dev| dev.name }
+    expected_3 = Developer.order('salary DESC').collect(&:name)
+    received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect(&:name)
     assert_equal expected_3, received_3
+
+    expected_4 = Developer.order('salary DESC').collect(&:name)
+    received_4 = DeveloperOrderedBySalary.where.not("name" => "Jamis").unscope(where: :name).collect(&:name)
+    assert_equal expected_4, received_4
+
+    expected_5 = Developer.order('salary DESC').collect(&:name)
+    received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
+    assert_equal expected_5, received_5
   end
 
   def test_unscope_multiple_where_clauses

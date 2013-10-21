@@ -718,7 +718,7 @@ The `belongs_to` association creates a one-to-one match with another model. In d
 
 #### Methods Added by `belongs_to`
 
-When you declare a `belongs_to` association, the declaring class automatically gains four methods related to the association:
+When you declare a `belongs_to` association, the declaring class automatically gains five methods related to the association:
 
 * `association(force_reload = false)`
 * `association=(associate)`
@@ -1022,7 +1022,7 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 #### Methods Added by `has_one`
 
-When you declare a `has_one` association, the declaring class automatically gains four methods related to the association:
+When you declare a `has_one` association, the declaring class automatically gains five methods related to the association:
 
 * `association(force_reload = false)`
 * `association=(associate)`
@@ -1140,10 +1140,10 @@ Controls what happens to the associated object when its owner is destroyed:
 * `:restrict_with_exception` causes an exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
 
-It's necessary not to set or leave `:nullify` option for those associations 
-that have `NOT NULL` database constraints. If you don't set `dependent` to 
-destroy such associations you won't be able to change the associated object 
-because initial associated object foreign key will be set to unallowed `NULL` 
+It's necessary not to set or leave `:nullify` option for those associations
+that have `NOT NULL` database constraints. If you don't set `dependent` to
+destroy such associations you won't be able to change the associated object
+because initial associated object foreign key will be set to unallowed `NULL`
 value.
 
 ##### `:foreign_key`
@@ -1289,7 +1289,7 @@ The `has_many` association creates a one-to-many relationship with another model
 
 #### Methods Added by `has_many`
 
-When you declare a `has_many` association, the declaring class automatically gains 13 methods related to the association:
+When you declare a `has_many` association, the declaring class automatically gains 16 methods related to the association:
 
 * `collection(force_reload = false)`
 * `collection<<(object, ...)`
@@ -1778,7 +1778,7 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 #### Methods Added by `has_and_belongs_to_many`
 
-When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 13 methods related to the association:
+When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 16 methods related to the association:
 
 * `collection(force_reload = false)`
 * `collection<<(object, ...)`
