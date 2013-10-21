@@ -231,6 +231,13 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
+
+    def test_structure_load_accepts_path_with_spaces
+      filename = "awesome file.sql"
+      Kernel.expects(:system).with("psql -q -f awesome\\ file.sql my-app-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+    end
   end
 
 end
