@@ -1044,17 +1044,22 @@ Making Your Library or Gem a Pre-Processor
 As Sprockets uses [Tilt](https://github.com/rtomayko/tilt) as a generic
 interface to different templating engines, your gem should just implement the
 Tilt template protocol. Normally, you would subclass `Tilt::Template` and
-reimplement `evaluate` method to return final output. Template source is stored
-at `@code`. Have a look at
+reimplement the `prepare` method, which initializes your template, and the
+`evaluate` method, which returns the processed source. The original source is
+stored in `data`. Have a look at
 [`Tilt::Template`](https://github.com/rtomayko/tilt/blob/master/lib/tilt/template.rb)
 sources to learn more.
 
 ```ruby
 module BangBang
   class Template < ::Tilt::Template
+    def prepare
+      # Do any initialization here
+    end
+
     # Adds a "!" to original template.
     def evaluate(scope, locals, &block)
-      "#{@code}!"
+      "#{data}!"
     end
   end
 end
