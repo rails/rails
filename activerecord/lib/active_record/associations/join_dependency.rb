@@ -85,22 +85,17 @@ module ActiveRecord
       end
 
       def join_constraints(outer_joins)
-        if outer_joins.any?
-          oj = outer_joins.first
+        joins = make_joins join_root
 
+        joins.concat outer_joins.flat_map { |oj|
           if join_root.match? oj.join_root
-            joins = make_joins join_root
-            joins + walk(join_root, oj.join_root)
+            walk join_root, oj.join_root
           else
-            make_joins(join_root) + outer_joins.flat_map { |join|
-              join.join_root.children.flat_map { |child|
-                make_the_joins(join_root, child)
-              }
+            oj.join_root.children.flat_map { |child|
+              make_the_joins(join_root, child)
             }
           end
-        else
-          make_joins join_root
-        end
+        }
       end
 
       class Aliases
