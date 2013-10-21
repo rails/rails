@@ -151,7 +151,7 @@ module ActiveRecord
       private
 
         def has_default_function?(default_value, default)
-          !default_value && (%r{\w+(.*)} === default)
+          !default_value && (%r{\w+\(.*\)} === default)
         end
 
         def extract_limit(sql_type)
