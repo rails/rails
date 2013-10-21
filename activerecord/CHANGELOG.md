@@ -1,5 +1,13 @@
 ## unreleased ##
 
+*   `ActiveRecord::QueryMethods#unscope` unscopes negative equality
+
+    Allows you to call `#unscope` on a relation with negative equality
+    operators, i.e. `Arel::Nodes::NotIn` and `Arel::Nodes::NotEqual` that have
+    been generated through the use of `where.not`.
+
+    *Eric Hankins*
+
 *   `NullRelation#pluck` takes a list of columns
 
     The method signature in `NullRelation` was updated to mimic that in
