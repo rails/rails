@@ -1,5 +1,10 @@
 ## unreleased ##
 
+*   Fix a bug where rake db:structure:load crashed when the path contained
+    spaces.
+
+    *Kevin Mook*
+
 *   `ActiveRecord::QueryMethods#unscope` unscopes negative equality
 
     Allows you to call `#unscope` on a relation with negative equality
