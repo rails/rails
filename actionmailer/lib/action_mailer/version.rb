@@ -1,7 +1,7 @@
 module ActionMailer
   # Returns the version of the currently loaded ActionMailer as a Gem::Version
   def self.version
-    Gem::Version.new "4.0.1.rc1"
+    Gem::Version.new "4.0.1.rc2"
   end
 
   module VERSION #:nodoc:
