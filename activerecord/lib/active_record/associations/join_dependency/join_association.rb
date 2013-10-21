@@ -9,8 +9,8 @@ module ActiveRecord
 
         attr_accessor :tables
 
-        def initialize(reflection)
-          super(reflection.klass)
+        def initialize(reflection, children)
+          super(reflection.klass, children)
 
           @reflection      = reflection
           @tables          = nil

@@ -17,10 +17,10 @@ module ActiveRecord
 
         delegate :table_name, :column_names, :primary_key, :to => :base_klass
 
-        def initialize(base_klass)
+        def initialize(base_klass, children)
           @base_klass = base_klass
           @column_names_with_alias = nil
-          @children = []
+          @children = children
         end
 
         def name
