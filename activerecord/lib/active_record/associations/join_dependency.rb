@@ -89,8 +89,8 @@ module ActiveRecord
           oj = outer_joins.first
 
           if join_root.match? oj.join_root
-            outer_joins.each { |oj| merge_outer_joins! oj }
-            make_joins join_root
+            joins = make_joins join_root
+            joins + walk(join_root, oj.join_root)
           else
             make_joins(join_root) + outer_joins.flat_map { |join|
               join.join_root.children.flat_map { |child|
@@ -217,6 +217,18 @@ module ActiveRecord
         name = "#{reflection.plural_name}_#{parent.table_name}"
         name << "_join" if join
         name
+      end
+
+      def walk(left, right)
+        intersection, missing = right.children.map { |node1|
+          [left.children.find { |node2| node1.match? node2 }, node1]
+        }.partition(&:first)
+
+        ojs = missing.flat_map { |_,n|
+          make_the_joins left, n
+        }
+
+        intersection.flat_map { |l,r| walk l, r }.concat ojs
       end
 
       def merge_node(left, right)
