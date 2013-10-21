@@ -133,11 +133,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected_3 = Developer.order('salary DESC').collect(&:name)
     received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect(&:name)
     assert_equal expected_3, received_3
-    
+
     expected_4 = Developer.order('salary DESC').collect(&:name)
     received_4 = DeveloperOrderedBySalary.where.not("name" => "Jamis").unscope(where: :name).collect(&:name)
     assert_equal expected_4, received_4
-    
+
     expected_5 = Developer.order('salary DESC').collect(&:name)
     received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
     assert_equal expected_5, received_5
