@@ -692,9 +692,9 @@ module ActionMailer
       content_type = headers[:content_type]
 
       # Call all the procs (if any)
-      class_default = self.class.default
-      default_values = class_default.merge(class_default) do |k,v|
-        v.is_a?(Proc) ? instance_eval(&v) : v
+      default_values = {}
+      self.class.default.each do |k,v|
+        default_values[k] = v.is_a?(Proc) ? instance_eval(&v) : v
       end
 
       # Handle defaults
