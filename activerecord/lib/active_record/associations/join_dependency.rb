@@ -85,8 +85,22 @@ module ActiveRecord
       end
 
       def join_constraints(outer_joins)
-        outer_joins.each { |oj| merge_outer_joins! oj }
-        make_joins join_root
+        if outer_joins.any?
+          oj = outer_joins.first
+
+          if join_root.match? oj.join_root
+            outer_joins.each { |oj| merge_outer_joins! oj }
+            make_joins join_root
+          else
+            make_joins(join_root) + outer_joins.flat_map { |join|
+              join.join_root.children.flat_map { |child|
+                make_the_joins(join_root, child)
+              }
+            }
+          end
+        else
+          make_joins join_root
+        end
       end
 
       class Aliases
@@ -164,6 +178,17 @@ module ActiveRecord
 
       private
 
+      def make_the_joins(parent, child)
+        chain         = child.reflection.chain
+        foreign_table = parent.table
+        foreign_klass = parent.base_klass
+        tables        = table_aliases_for(parent, child)
+        join_type     = Arel::OuterJoin
+
+        joins = child.join_constraints(foreign_table, foreign_klass, child, join_type, tables, child.reflection.scope_chain, chain)
+        joins.concat child.children.flat_map { |c| make_the_joins(child, c) }
+      end
+
       def make_joins(node)
         node.children.flat_map { |child|
           chain = child.reflection.chain
@@ -174,13 +199,17 @@ module ActiveRecord
         }
       end
 
-      def construct_tables!(parent, node)
-        node.tables = node.reflection.chain.map { |reflection|
+      def table_aliases_for(parent, node)
+        node.reflection.chain.map { |reflection|
           alias_tracker.aliased_table_for(
             reflection.table_name,
             table_alias_for(reflection, parent, reflection != node.reflection)
           )
-        } unless node.tables
+        }
+      end
+
+      def construct_tables!(parent, node)
+        node.tables = table_aliases_for(parent, node) unless node.tables
         node.children.each { |child| construct_tables! node, child }
       end
 
