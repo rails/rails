@@ -52,7 +52,6 @@ module ActiveRecord
       #    joins #=>  []
       #
       def initialize(base, associations, joins)
-        @base_klass    = base
         @join_root    = JoinBase.new(base)
         @alias_tracker = AliasTracker.new(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
