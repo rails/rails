@@ -1,4 +1,5 @@
-*   ActionController#translate supports symbols.
+*   ActionController#translate supports symbols as shortcuts.
+    When shortcut is given it also lookups without action name.
 
     *Max Melentiev*
 

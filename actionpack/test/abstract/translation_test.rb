@@ -19,10 +19,12 @@ module AbstractController
                 index: {
                   foo: 'bar',
                 },
+                no_action: 'no_action_tr',
               },
             },
           },
         })
+        @controller.stubs(action_name: :index)
       end
 
       def test_action_controller_base_responds_to_translate
@@ -42,13 +44,15 @@ module AbstractController
       end
 
       def test_lazy_lookup
-        @controller.stubs(action_name: :index)
         assert_equal 'bar', @controller.t('.foo')
       end
 
       def test_lazy_lookup_with_symbol
-        @controller.stubs(action_name: :index)
         assert_equal 'bar', @controller.t(:'.foo')
+      end
+
+      def test_lazy_lookup_fallback
+        assert_equal 'no_action_tr', @controller.t(:'.no_action')
       end
 
       def test_default_translation

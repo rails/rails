@@ -10,7 +10,11 @@ module AbstractController
     # simple framework for scoping them consistently.
     def translate(key, options = {})
       if key.to_s.first == '.'
-        key = "#{ controller_path.tr('/', '.') }.#{ action_name }#{ key }"
+        path = controller_path.tr('/', '.')
+        defaults = [:"#{path}#{key}"]
+        defaults << options[:default] if options[:default]
+        options[:default] = defaults
+        key = "#{path}.#{action_name}#{key}"
       end
       I18n.translate(key, options)
     end
