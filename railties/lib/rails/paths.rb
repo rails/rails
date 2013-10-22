@@ -124,8 +124,9 @@ module Rails
       end
 
       def children
-        keys = @root.keys.select { |k| k.include?(@current) }
-        keys.delete(@current)
+        keys = @root.keys.find_all { |k|
+          k.start_with?(@current) && k != @current
+        }
         @root.values_at(*keys.sort)
       end
 
