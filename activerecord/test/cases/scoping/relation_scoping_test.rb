@@ -206,6 +206,25 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_merge_order_hash
+    merge_sql = Comment.where(type: "Comment").joins(:post).
+                        merge(Post.ranked_by_comments_hash).to_sql
+    assert_match '"posts"."comments_count" DESC', merge_sql
+
+    merge_results = Comment.where(type: "Comment").joins(:post).
+                            merge(Post.ranked_by_comments_hash).
+                            order("comments.id")
+    c1 = Comment.joins(:post).find(1)
+    c2 = Comment.joins(:post).find(2)
+    c8 = Comment.joins(:post).find(8)
+    c9 = Comment.joins(:post).find(9)
+    assert_equal merge_results.size, 4
+    assert_equal merge_results.first, c8
+    assert_equal merge_results.limit(2).last, c9
+    assert_equal merge_results.limit(3).last, c1
+    assert_equal merge_results.last, c2
+  end
+
   def test_replace_options
     Developer.where(:name => 'David').scoping do
       Developer.unscoped do

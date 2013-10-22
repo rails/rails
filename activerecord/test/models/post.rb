@@ -19,6 +19,7 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
+  scope :ranked_by_comments_hash, -> { order(comments_count: :desc) }
 
   scope :limit_by, lambda {|l| limit(l) }
 
@@ -39,6 +40,8 @@ class Post < ActiveRecord::Base
 
   scope :with_comments, -> { preload(:comments) }
   scope :with_tags, -> { preload(:taggings) }
+
+  scope :comment, -> { order(type: :desc) }
 
   has_many   :comments do
     def find_most_recent

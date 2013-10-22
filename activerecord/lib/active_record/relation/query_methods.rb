@@ -1012,7 +1012,7 @@ module ActiveRecord
         when Symbol
           table[order].asc
         when Hash
-          order.map { |field, dir| table[field].send(dir) }
+          order.values[0] == :asc ? table[order].asc : table[order].desc
         else
           order
         end
@@ -1037,9 +1037,24 @@ module ActiveRecord
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
-      # if a symbol is given we prepend the quoted table name
+      # if a symbol or hash is given we prepend the quoted table name
       order_args.map! do |arg|
-        arg.is_a?(Symbol) ? Arel::Nodes::Ascending.new(klass.arel_table[arg]) : arg
+        if arg.is_a?(Symbol)
+          prepend_table_sort(arg, :asc)
+        elsif arg.is_a?(Hash)
+          prepend_table_sort(arg.keys[0], arg.values[0])
+        else
+          arg
+        end
+      end
+    end
+
+    def prepend_table_sort(field, direction)
+      case direction
+      when :asc
+        Arel::Nodes::Ascending.new(klass.arel_table[field])
+      when :desc
+        Arel::Nodes::Descending.new(klass.arel_table[field])
       end
     end
 
