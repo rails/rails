@@ -1,3 +1,15 @@
+== 4.0.1 / 2013-10-22
+
+* Enhancements
+
+  * Cache visitor dispatch on a per-visitor basis
+  * Improve performance of #uniq across a large number of nodes
+
+* Bug Fixes
+
+  * Make visitors threadsafe by removing @last_column
+  * Support `columns_for_distinct` with Oracle adapter
+
 == 2.2.1 / 2011-09-15
 
 * Enhancements

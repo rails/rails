@@ -121,6 +121,7 @@ test/test_table.rb
 test/test_update_manager.rb
 test/visitors/test_bind_visitor.rb
 test/visitors/test_depth_first.rb
+test/visitors/test_dispatch_contamination.rb
 test/visitors/test_dot.rb
 test/visitors/test_ibm_db.rb
 test/visitors/test_informix.rb
