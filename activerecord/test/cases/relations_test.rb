@@ -634,21 +634,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_with_bound_values
     david = authors(:david)
-    davids_posts = david.posts.to_a
+    davids_posts = david.posts.order(:id).to_a
 
     assert_queries(1) do
       relation = Post.where(id: david.posts.select(:id))
-      assert_equal davids_posts, relation.to_a
+      assert_equal davids_posts, relation.order(:id).to_a
     end
 
     assert_queries(1) do
       relation = Post.where('id in (?)', david.posts.select(:id))
-      assert_equal davids_posts, relation.to_a, 'should process Relation as bind variables'
+      assert_equal davids_posts, relation.order(:id).to_a, 'should process Relation as bind variables'
     end
 
     assert_queries(1) do
       relation = Post.where('id in (:post_ids)', post_ids: david.posts.select(:id))
-      assert_equal davids_posts, relation.to_a, 'should process Relation as named bind variables'
+      assert_equal davids_posts, relation.order(:id).to_a, 'should process Relation as named bind variables'
     end
   end
 
