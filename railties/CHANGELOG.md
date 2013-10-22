@@ -1,3 +1,11 @@
+*   Make the application name snake cased when it contains spaces
+
+    The application name is used to fill the `database.yml` and
+    `session_store.rb` files ; previously, if the provided name
+    contained whitespaces, it led to unexpected names in these files.
+
+    *Robin Dupret*
+
 *   Added `--model-name` option to `ScaffoldControllerGenerator`.
 
     *yalab*

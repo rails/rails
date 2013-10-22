@@ -367,6 +367,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/run  bundle install/, output)
   end
 
+  def test_application_name_with_spaces
+    path = File.join(destination_root, "foo bar".shellescape)
+
+    # This also applies to MySQL apps but not with SQLite
+    run_generator [path, "-d", 'postgresql']
+
+    assert_file "foo bar/config/database.yml", /database: foo_bar_development/
+    assert_file "foo bar/config/initializers/session_store.rb", /key: '_foo_bar/
+  end
+
 protected
 
   def action(*args, &block)
