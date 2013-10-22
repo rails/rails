@@ -1,3 +1,18 @@
+*   Create a whitelist of delegable methods to `Array`.
+
+    Currently `Relation` directly delegates methods to `Array`. With this change,
+    only the methods present in this whitelist will be delegated.
+
+    The whitelist contains:
+
+        #&, #+, #[], #all?, #collect, #detect, #each, #each_cons, #each_with_index,
+        #flat_map, #group_by, #include?, #length, #map, #none?, :one?, #reverse, #sample,
+        #second, #sort, #sort_by, #to_ary, #to_set, #to_xml, #to_yaml
+
+    To use any other method, instead first call `#to_a` on the association.
+
+    *Lauro Caetano*
+
 *   Use the right column to type cast grouped calculations with custom expressions.
 
     Fixes #13230.
@@ -448,12 +463,6 @@
     Fixes #11963.
 
     *Paul Nikitochkin*
-
-*   Deprecate the delegation of Array bang methods for associations.
-    To use them, instead first call `#to_a` on the association to access the
-    array to be acted on.
-
-    *Ben Woosley*
 
 *   `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed
     query to fetch results rather than loading the entire collection.
