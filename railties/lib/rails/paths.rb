@@ -81,29 +81,29 @@ module Rails
       end
 
       def autoload_once
-        filter_by(:autoload_once?)
+        filter_by { |p| p.autoload_once? }
       end
 
       def eager_load
-        filter_by(:eager_load?)
+        filter_by { |p| p.eager_load? }
       end
 
       def autoload_paths
-        filter_by(:autoload?)
+        filter_by { |p| p.autoload? }
       end
 
       def load_paths
-        filter_by(:load_path?)
+        filter_by { |p| p.load_path? }
       end
 
     protected
 
-      def filter_by(constraint)
+      def filter_by
         all = []
         all_paths.each do |path|
-          if path.send(constraint)
+          if yield(path)
             paths  = path.existent
-            paths -= path.children.map { |p| p.send(constraint) ? [] : p.existent }.flatten
+            paths -= path.children.map { |p| yield(p) ? [] : p.existent }.flatten
             all.concat(paths)
           end
         end
