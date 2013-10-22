@@ -1,11 +1,11 @@
-*   Add :unless_nil option to 'Cache#write' method, to avoid creating cache
-    entries for nil values.
+*   Add :if and :unless options to ActiveSupport::Cache::Store to allow conditional
+    writing of cache entries.
 
     Example:
 
         # From inside a fetch block, skip caching of a nil value, so subsequent
         # calls can invoke the block again, until it returns a value.
-        foo = Rails.cache.fetch('foo', :unless_nil => true) do
+        foo = Rails.cache.fetch('foo', :unless => lambda {|foo| foo.nil? }) do
           BarService.find_by_name('foo')
         end
 

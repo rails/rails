@@ -8,6 +8,7 @@ require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/conditional_options'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -19,7 +20,7 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :if, :unless]
 
     module Strategy
       autoload :LocalCache, 'active_support/cache/strategy/local_cache'
@@ -271,6 +272,19 @@ module ActiveSupport
       #   # sleep 10 # First thread extend the life of cache by another 10 seconds
       #   # cache.fetch('foo') => "new value 1"
       #
+      # Setting <tt>:if</tt> or <tt>:unless</tt> options allows a cache entry to
+      # be conditionally stored based on a boolean value, expression or proc.
+      # For example, from inside a fetch block, skip caching of a nil value, so
+      # subsequent calls can invoke the block again, until it returns a value.
+      #
+      #   BarService.find_by_name('foo') # nil
+      #
+      #   Rails.cache.fetch('foo', :unless => lambda {|foo| foo.nil? }) do
+      #     BarService.find_by_name('foo')
+      #   end
+      #
+      #   Rails.cache.read('foo') # nil
+      #
       # Other options will be handled by the specific cache store implementation.
       # Internally, #fetch calls #read_entry, and calls #write_entry on a cache
       # miss. +options+ will be passed to the #read and #write calls.
@@ -385,7 +399,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
-        return if value.nil? && options[:unless_nil]
+        return if ConditionalOptions.new(options).fail?(value)
 
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
