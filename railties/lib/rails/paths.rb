@@ -96,7 +96,7 @@ module Rails
         filter_by { |p| p.load_path? }
       end
 
-    protected
+    private
 
       def filter_by(&block)
         all_paths.find_all(&block).flat_map { |path|
