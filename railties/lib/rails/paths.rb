@@ -98,17 +98,11 @@ module Rails
 
     protected
 
-      def filter_by
-        all = []
-        all_paths.each do |path|
-          if yield(path)
-            paths  = path.existent
-            paths -= path.children.map { |p| yield(p) ? [] : p.existent }.flatten
-            all.concat(paths)
-          end
-        end
-        all.uniq!
-        all
+      def filter_by(&block)
+        all_paths.find_all(&block).flat_map { |path|
+          paths = path.existent
+          paths - path.children.map { |p| yield(p) ? [] : p.existent }.flatten
+        }.uniq
       end
     end
 
