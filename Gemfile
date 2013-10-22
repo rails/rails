@@ -7,6 +7,7 @@ gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.1.2'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
+gem 'arel', github: 'rails/arel'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
