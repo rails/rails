@@ -405,11 +405,10 @@ JavaScript and stylesheet.
 * `image-url("rails.png")` becomes `url(/assets/rails.png)`
 * `image-path("rails.png")` becomes `"/assets/rails.png"`.
 
-The more generic form can also be used but the asset path and class must both be
-specified:
+The more generic form can also be used:
 
-* `asset-url("rails.png", image)` becomes `url(/assets/rails.png)`
-* `asset-path("rails.png", image)` becomes `"/assets/rails.png"`
+* `asset-url("rails.png")` becomes `url(/assets/rails.png)`
+* `asset-path("rails.png")` becomes `"/assets/rails.png"`
 
 #### JavaScript/CoffeeScript and ERB
 
