@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'builder/blankslate'
-
 module Builder
 
   # Generic error for builder
@@ -9,7 +7,7 @@ module Builder
 
   # XmlBase is a base class for building XML builders.  See
   # Builder::XmlMarkup and Builder::XmlEvents for examples.
-  class XmlBase < BlankSlate
+  class XmlBase < BasicObject
 
     # Create an XML markup builder.
     #
@@ -37,10 +35,10 @@ module Builder
     def method_missing(sym, *args, &block)
       text = nil
       attrs = nil
-      sym = "#{sym}:#{args.shift}" if args.first.kind_of?(Symbol)
+      sym = "#{sym}:#{args.shift}" if args.first.kind_of?(::Symbol)
       args.each do |arg|
         case arg
-        when Hash
+        when ::Hash
           attrs ||= {}
           attrs.merge!(arg)
         else
@@ -50,7 +48,7 @@ module Builder
       end
       if block
         unless text.nil?
-          raise ArgumentError, "XmlMarkup cannot mix a text argument with a block"
+          raise ::ArgumentError, "XmlMarkup cannot mix a text argument with a block"
         end
         _indent
         _start_tag(sym, attrs)
