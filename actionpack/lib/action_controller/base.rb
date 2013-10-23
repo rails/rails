@@ -1273,8 +1273,7 @@ module ActionController #:nodoc:
       end
 
       def initialize_template_class(response)
-        response.template = ActionView::Base.new(self.class.view_paths, {}, self)
-        response.template.helpers.send :include, self.class.master_helper_module
+        response.template = self.class.master_helper_class.new(self.class.view_paths, {}, self)
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
