@@ -203,24 +203,10 @@ module ActionView #:nodoc:
       ActionView::PathSet.new(Array(value))
     end
 
-    attr_reader :helpers
-
-    class ProxyModule < Module
-      def initialize(receiver)
-        @receiver = receiver
-      end
-
-      def include(*args)
-        super(*args)
-        @receiver.extend(*args)
-      end
-    end
-
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
-      @helpers = ProxyModule.new(self)
       self.view_paths = view_paths
 
       @_first_render = nil
