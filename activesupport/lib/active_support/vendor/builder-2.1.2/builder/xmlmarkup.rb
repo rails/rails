@@ -210,9 +210,9 @@ module Builder
       @target << "<!#{inst}"
       args.each do |arg|
         case arg
-        when String
+        when ::String
           @target << %{ "#{arg}"} # " WART
-        when Symbol
+        when ::Symbol
           @target << " #{arg}"
         end
       end
@@ -309,7 +309,7 @@ module Builder
 
     def _attr_value(value)
       case value
-      when Symbol
+      when ::Symbol
         value.to_s
       else
         _escape_quote(value.to_s)
