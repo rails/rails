@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'cases/helper'
+require 'active_support/all'
 
 require 'models/topic'
 require 'models/person'
@@ -18,6 +19,27 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert Topic.new("title" => "aaa", "content" => "abc").valid?
     assert Topic.new("title" => "abc", "content" => "abc").valid?
     assert Topic.new("title" => "bbb", "content" => "abc").valid?
+  end
+
+  def test_validates_inclusion_of_time_range
+    Topic.validates_inclusion_of(:created_at, in: 1.year.ago..Time.now)
+    assert Topic.new(title: 'aaa', created_at: 2.years.ago).invalid?
+    assert Topic.new(title: 'aaa', created_at: 3.months.ago).valid?
+    assert Topic.new(title: 'aaa', created_at: 37.weeks.from_now).invalid?
+  end
+
+  def test_validates_inclusion_of_date_range
+    Topic.validates_inclusion_of(:created_at, in: 1.year.until(Date.today)..Date.today)
+    assert Topic.new(title: 'aaa', created_at: 2.years.until(Date.today)).invalid?
+    assert Topic.new(title: 'aaa', created_at: 3.months.until(Date.today)).valid?
+    assert Topic.new(title: 'aaa', created_at: 37.weeks.since(Date.today)).invalid?
+  end
+
+  def test_validates_inclusion_of_date_time_range
+    Topic.validates_inclusion_of(:created_at, in: 1.year.until(DateTime.current)..DateTime.current)
+    assert Topic.new(title: 'aaa', created_at: 2.years.until(DateTime.current)).invalid?
+    assert Topic.new(title: 'aaa', created_at: 3.months.until(DateTime.current)).valid?
+    assert Topic.new(title: 'aaa', created_at: 37.weeks.since(DateTime.current)).invalid?
   end
 
   def test_validates_inclusion_of
