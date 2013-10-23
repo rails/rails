@@ -69,6 +69,22 @@ module ActionController #:nodoc:
     #   N/A | Carolina Railhaws Training Workshop
     #
     module ClassMethods
+      # To avoid extending an instance of ActionView::Base with the master_helper_module
+      # every single time we render a view, we're caching a class that has
+      # master_helper_module already included that we can just instantiate.
+      def master_helper_class
+        return @master_helper_class if @master_helper_class
+
+        @master_helper_class = Class.new(ActionView::Base).tap do |klass|
+          klass.send(:include, master_helper_module)
+        end
+      end
+
+      def master_helper_module=(mod)
+        write_inheritable_attribute(:master_helper_module, mod)
+        @master_helper_class = nil
+      end
+
       # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules
       # available to the templates.
@@ -182,8 +198,7 @@ module ActionController #:nodoc:
       # Provides a proxy to access helpers methods from outside the view.
       def helpers
         unless @helper_proxy
-          @helper_proxy = ActionView::Base.new
-          @helper_proxy.extend master_helper_module
+          @helper_proxy = master_helper_class.new
         else
           @helper_proxy
         end
