@@ -116,8 +116,7 @@ module ActionView
       end
 
       def _view
-        view = ActionView::Base.new(ActionController::Base.view_paths, _assigns, @controller)
-        view.helpers.include master_helper_module
+        view = self.class.master_helper_class.new(ActionController::Base.view_paths, _assigns, @controller)
         view.output_buffer = self.output_buffer
         view
       end
