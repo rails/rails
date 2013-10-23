@@ -18,7 +18,7 @@ module ActionDispatch
           path = "/#{path}"
           path.squeeze!('/')
           path.sub!(%r{/+\Z}, '')
-          path.gsub!(/(%[a-f0-9]{2}+)/) { $1.upcase }
+          path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
           path = '/' if path == ''
           path
         end
