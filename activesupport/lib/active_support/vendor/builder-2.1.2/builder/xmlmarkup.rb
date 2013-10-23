@@ -195,7 +195,7 @@ module Builder
     end
 
     def comment!(comment_text)
-      _ensure_no_block block_given?
+      _ensure_no_block ::Kernel.block_given?
       _special("<!-- ", " -->", comment_text, nil)
     end
 
@@ -216,7 +216,7 @@ module Builder
           @target << " #{arg}"
         end
       end
-      if block_given?
+      if ::Kernel.block_given?
         @target << " ["
         _newline
         _nested_structures(block)
@@ -236,7 +236,7 @@ module Builder
     #        #=> <?aaa bbb="ccc"?>
     #
     def instruct!(directive_tag=:xml, attrs={})
-      _ensure_no_block block_given?
+      _ensure_no_block ::Kernel.block_given?
       if directive_tag == :xml
         a = { :version=>"1.0", :encoding=>"UTF-8" }
         attrs = a.merge attrs
@@ -257,7 +257,7 @@ module Builder
     #        #=> <![CDATA[text to be included in cdata]]>
     #
     def cdata!(text)
-      _ensure_no_block block_given?
+      _ensure_no_block ::Kernel.block_given?
       _special("<![CDATA[", "]]>", text, nil)
     end
 
