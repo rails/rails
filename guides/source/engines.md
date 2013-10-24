@@ -1,4 +1,4 @@
-Getting Started with Engines
+Getting Started wiith Engines
 ============================
 
 In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface.
@@ -598,7 +598,7 @@ By outputting `@post.author` using the `<%=` tag, the `to_s` method will be call
 
 ```
 #<User:0x00000100ccb3b0>
-```
+```i
 
 This is undesirable and it would be much better to have the user's name there. To do this, add a `to_s` method to the `User` class within the application:
 
@@ -611,7 +611,7 @@ end
 Now instead of the ugly Ruby object output the author's name will be displayed.
 
 #### Using a controller provided by the application
-
+i
 Because Rails controllers generally share code for things like authentication and accessing session variables, by default they inherit from `ApplicationController`. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped `ApplicationController`. This namespace prevents code collisions, but often engine controllers should access methods in the main application's `ApplicationController`. An easy way to provide this access is to change the engine's scoped `ApplicationController` to inherit from the main application's `ApplicationController`. For our Blorgh engine this would be done by changing `app/controllers/blorgh/application_controller.rb` to look like:
 
 ```ruby
@@ -702,7 +702,7 @@ an application. Same goes for if you want to use a standard initializer.
 
 For locales, simply place the locale files in the `config/locales` directory, just like you would in an application.
 
-Testing an engine
+Testing an enginie
 -----------------
 
 When an engine is generated there is a smaller dummy application created inside it at `test/dummy`. This application is used as a mounting point for the engine to make testing the engine extremely simple. You may extend this application by generating controllers, models or views from within the directory, and then use those to test your engine.
@@ -725,7 +725,7 @@ get :index, use_route: :blorgh
 
 This tells the application that you still want to perform a `GET` request to the `index` action of this controller, just that you want to use the engine's route to get there, rather than the application.
 
-Improving engine functionality
+Improving enginie functionality
 ------------------------------
 
 This section explains how to add and/or override engine MVC functionality in the main Rails application.
@@ -746,7 +746,7 @@ Here is some sample code to do this:
 
 ```ruby
 # lib/blorgh/engine.rb
-module Blorgh
+module Blorghi
   class Engine < ::Rails::Engine
     isolate_namespace Blorgh
 
@@ -763,12 +763,12 @@ This doesn't apply to just Decorators, but anything that you add in an engine
 that isn't referenced by your main application.
 
 #### Implementing Decorator Pattern Using Class#class_eval
-
+i
 **Adding** `Post#time_since_created`,
 
 ```ruby
 # MyApp/app/decorators/models/blorgh/post_decorator.rb
-
+i
 Blorgh::Post.class_eval do
   def time_since_created
     Time.current - created_at
@@ -778,7 +778,7 @@ end
 
 ```ruby
 # Blorgh/app/models/post.rb
-
+i
 class Post < ActiveRecord::Base
   has_many :comments
 end
@@ -789,7 +789,7 @@ end
 
 ```ruby
 # MyApp/app/decorators/models/blorgh/post_decorator.rb
-
+i
 Blorgh::Post.class_eval do
   def summary
     "#{title} - #{truncate(text)}"
@@ -799,7 +799,7 @@ end
 
 ```ruby
 # Blorgh/app/models/post.rb
-
+i
 class Post < ActiveRecord::Base
   has_many :comments
   def summary
@@ -809,14 +809,14 @@ end
 ```
 
 #### Implementing Decorator Pattern Using ActiveSupport::Concern
-
+i
 Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html). ActiveSupport::Concern manages load order of interlinked dependent modules and classes at run time allowing you to significantly modularize your code.
 
 **Adding** `Post#time_since_created` and **Overriding** `Post#summary`
 
 ```ruby
 # MyApp/app/models/blorgh/post.rb
-
+i
 class Blorgh::Post < ActiveRecord::Base
   include Blorgh::Concerns::Models::Post
 
@@ -832,7 +832,7 @@ end
 
 ```ruby
 # Blorgh/app/models/post.rb
-
+i
 class Post < ActiveRecord::Base
   include Blorgh::Concerns::Models::Post
 end
@@ -875,7 +875,7 @@ end
 
 When Rails looks for a view to render, it will first look in the `app/views` directory of the application. If it cannot find the view there, then it will check in the `app/views` directories of all engines which have this directory.
 
-In the `blorgh` engine, there is a currently a file at `app/views/blorgh/posts/index.html.erb`. When the engine is asked to render the view for `Blorgh::PostsController`'s `index` action, it will first see if it can find it at `app/views/blorgh/posts/index.html.erb` within the application and then if it cannot it will look inside the engine.
+When the application is asked to render the view for `Blorgh::PostsController`'s index action, it will look the path `app/views/blorgh/posts/index.html.erb`, first within the application. If it cannot find it, it will look inside the engine.
 
 You can override this view in the application by simply creating a new file at `app/views/blorgh/posts/index.html.erb`. Then you can completely change what this view would normally output.
 
