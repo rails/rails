@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*    Allow any version of BCrypt when using `has_secury_password`.
+
+     *Mike Perham*
+
 *   Assign inet/cidr attribute with `nil` value for invalid address.
 
     Example:
