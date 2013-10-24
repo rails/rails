@@ -604,7 +604,10 @@ module ActiveRecord
       def add_reference(table_name, ref_name, options = {})
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
-        add_column(table_name, "#{ref_name}_id", :integer, options)
+        foreign_key_type = if table_exists?(ref_name.to_s.pluralize)
+          columns(ref_name.to_s.pluralize).detect{ |col| col.name == Base.get_primary_key(ref_name) }.type
+        end
+        add_column(table_name, "#{ref_name}_id", foreign_key_type || :integer, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
         add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
       end

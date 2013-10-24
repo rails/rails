@@ -255,7 +255,10 @@ module ActiveRecord
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
         args.each do |col|
-          column("#{col}_id", :integer, options)
+          foreign_key_type = if Base.connection.table_exists?(col.to_s.pluralize)
+            Base.connection.columns(col.to_s.pluralize).detect{ |col| col.name == Base.get_primary_key(col) }.type
+          end
+          column("#{col}_id", foreign_key_type || :integer, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
         end
