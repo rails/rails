@@ -18,7 +18,6 @@ module ActionView #:nodoc:
     autoload :RecordIdentificationHelper, 'action_view/helpers/record_identification_helper'
     autoload :RecordTagHelper, 'action_view/helpers/record_tag_helper'
     autoload :SanitizeHelper, 'action_view/helpers/sanitize_helper'
-    autoload :ScriptaculousHelper, 'action_view/helpers/scriptaculous_helper'
     autoload :TagHelper, 'action_view/helpers/tag_helper'
     autoload :TextHelper, 'action_view/helpers/text_helper'
     autoload :TranslationHelper, 'action_view/helpers/translation_helper'
@@ -50,7 +49,6 @@ module ActionView #:nodoc:
     include RecordIdentificationHelper
     include RecordTagHelper
     include SanitizeHelper
-    include ScriptaculousHelper
     include TagHelper
     include TextHelper
     include TranslationHelper
