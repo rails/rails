@@ -1,2 +1,0 @@
-page.remove 'person'
-page.visual_effect :highlight, "project-#{@project_id}"
