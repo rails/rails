@@ -1244,28 +1244,6 @@ class FormHelperTest < ActionView::TestCase
 
   end
 
-  # Perhaps this test should be moved to prototype helper tests.
-  def test_remote_form_for_with_labelled_builder
-    failed_pre_200
-
-    self.extend ActionView::Helpers::PrototypeHelper
-
-     remote_form_for(:post, @post, :builder => LabelledFormBuilder) do |f|
-       concat f.text_field(:title)
-       concat f.text_area(:body)
-       concat f.check_box(:secret)
-     end
-
-     expected =
-       %(<form action="http://www.example.com" onsubmit="new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" method="post">) +
-       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
-       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
-       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>" +
-       "</form>"
-
-     assert_dom_equal expected, output_buffer
-  end
-
   def test_fields_for_with_labelled_builder
     fields_for(:post, @post, :builder => LabelledFormBuilder) do |f|
       concat f.text_field(:title)
@@ -1410,17 +1388,6 @@ class FormHelperTest < ActionView::TestCase
 
     expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0;display:inline\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, output_buffer
-  end
-
-  def test_remote_form_for_with_html_options_adds_options_to_form_tag
-    failed_pre_200
-
-    self.extend ActionView::Helpers::PrototypeHelper
-
-    remote_form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
-    expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\" onsubmit=\"new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"></form>"
-
-    assert_dom_equal expected, output_buffer
   end
 
   protected
