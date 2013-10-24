@@ -5,7 +5,7 @@ require 'models/task'
 class DateTimeTest < ActiveRecord::TestCase
   def test_saves_both_date_and_time
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+      with_timezone_config default: :utc do
         time_values = [1807, 2, 10, 15, 30, 45]
         # create DateTime value with local time zone offset
         local_offset = Rational(Time.local(*time_values).utc_offset, 86400)

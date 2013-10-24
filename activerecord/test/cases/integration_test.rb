@@ -23,17 +23,12 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_for_existing_record_is_not_timezone_dependent
-    ActiveRecord::Base.time_zone_aware_attributes = true
-
-    Time.zone = 'UTC'
     utc_key = Developer.first.cache_key
 
-    Time.zone = 'EST'
-    est_key = Developer.first.cache_key
-
-    assert_equal utc_key, est_key
-  ensure
-    Time.zone = 'UTC'
+    with_timezone_config zone: "EST" do
+      est_key = Developer.first.cache_key
+      assert_equal utc_key, est_key
+    end
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at

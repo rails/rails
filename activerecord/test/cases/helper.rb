@@ -49,11 +49,55 @@ ensure
   old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
 end
 
-def with_active_record_default_timezone(zone)
-  old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
+def with_timezone_config(cfg)
+  verify_default_timezone_config
+
+  old_default_zone = ActiveRecord::Base.default_timezone
+  old_awareness = ActiveRecord::Base.time_zone_aware_attributes
+  old_zone = Time.zone
+
+  if cfg.has_key?(:default)
+    ActiveRecord::Base.default_timezone = cfg[:default]
+  end
+  if cfg.has_key?(:aware_attributes)
+    ActiveRecord::Base.time_zone_aware_attributes = cfg[:aware_attributes]
+  end
+  if cfg.has_key?(:zone)
+    Time.zone = cfg[:zone]
+  end
   yield
 ensure
-  ActiveRecord::Base.default_timezone = old_zone
+  ActiveRecord::Base.default_timezone = old_default_zone
+  ActiveRecord::Base.time_zone_aware_attributes = old_awareness
+  Time.zone = old_zone
+end
+
+# This method makes sure that tests don't leak global state related to time zones.
+EXPECTED_ZONE = nil
+EXPECTED_DEFAULT_TIMEZONE = :utc
+EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
+def verify_default_timezone_config
+  if Time.zone != EXPECTED_ZONE
+    raise <<-MSG
+    Global state `Time.zone` was leaked.
+      Expected: #{EXPECTED_ZONE}
+      Got: #{Time.zone}
+    MSG
+  end
+  if ActiveRecord::Base.default_timezone != EXPECTED_DEFAULT_TIMEZONE
+    raise <<-MSG
+    Global state `ActiveRecord::Base.default_timezone` was leaked.
+      Expected: #{EXPECTED_DEFAULT_TIMEZONE}
+      Got: #{ActiveRecord::Base.default_timezone}
+    MSG
+  end
+  if ActiveRecord::Base.time_zone_aware_attributes != EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES
+    raise <<-MSG
+    Global state `ActiveRecord::Base.time_zone_aware_attributes` was leaked.
+      Expected: #{EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES}
+      Got: #{ActiveRecord::Base.time_zone_aware_attributes}
+    MSG
+  end
 end
 
 unless ENV['FIXTURE_DEBUG']
