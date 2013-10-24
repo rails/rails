@@ -722,15 +722,4 @@ CACHED
 
     assert_equal "  <p>Builder</p>\n", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
   end
-
-  def test_js_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "js"
-    assert_response :success
-    expected_body = %(title = "Hey";\n$("element_1").visualEffect("highlight");\n) +
-      %($("element_2").visualEffect("highlight");\nfooter = "Bye";)
-    assert_equal expected_body, @response.body
-
-    assert_equal ['$("element_1").visualEffect("highlight");', '$("element_2").visualEffect("highlight");'],
-      @store.read('views/test.host/functional_caching/formatted_fragment_cached')
-  end
 end

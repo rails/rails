@@ -1027,11 +1027,6 @@ class RenderTest < ActionController::TestCase
     assert_equal "application/atomsvc+xml", @response.content_type
   end
 
-  def test_render_with_default_from_accept_header
-    xhr :get, :greeting
-    assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
-  end
-
   def test_layout_test_with_different_layout
     get :layout_test_with_different_layout
     assert_equal "<html>Hello world!</html>", @response.body
@@ -1135,28 +1130,6 @@ class RenderTest < ActionController::TestCase
   def test_template_with_locals
     get :render_with_explicit_template_with_locals
     assert_equal "The secret is area51\n", @response.body
-  end
-
-  def test_update_page
-    get :update_page
-    assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers['Content-Type']
-    assert_equal 2, @response.body.split($/).length
-  end
-
-  def test_update_page_with_instance_variables
-    get :update_page_with_instance_variables
-    assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers["Content-Type"]
-    assert_match /balance/, @response.body
-    assert_match /\$37/, @response.body
-  end
-
-  def test_update_page_with_view_method
-    get :update_page_with_view_method
-    assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers["Content-Type"]
-    assert_match /2 people/, @response.body
   end
 
   def test_yield_content_for
@@ -1287,11 +1260,6 @@ class RenderTest < ActionController::TestCase
   def test_should_render_js_partial
     xhr :get, :partial, :format => 'js'
     assert_equal 'partial js', @response.body
-  end
-
-  def test_should_render_with_alternate_default_render
-    xhr :get, :render_alternate_default
-    assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 
   def test_partial_only_with_layout
