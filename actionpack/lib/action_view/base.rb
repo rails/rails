@@ -270,8 +270,6 @@ module ActionView #:nodoc:
         elsif options[:text]
           options[:text]
         end
-      when :update
-        update_page(&block)
       else
         render_partial(:partial => options, :locals => local_assigns)
       end

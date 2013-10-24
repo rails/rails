@@ -89,12 +89,6 @@ module RenderTestCases
     assert_equal "test/template.erb", @view.render(:file => "test/template.erb")
   end
 
-  def test_render_update
-    # TODO: You should not have to stub out template because template is self!
-    @view.instance_variable_set(:@template, @view)
-    assert_equal 'alert("Hello, World!");', @view.render(:update) { |page| page.alert('Hello, World!') }
-  end
-
   def test_render_partial_from_default
     assert_equal "only partial", @view.render("test/partial_only")
   end

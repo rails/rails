@@ -221,12 +221,6 @@ class TestController < ActionController::Base
     render :text => "hello world", :status => 404
   end
 
-  def render_custom_code_rjs
-    render :update, :status => 404 do |page|
-      page.replace :foo, :partial => 'partial'
-    end
-  end
-
   def render_text_with_nil
     render :text => nil
   end
@@ -448,30 +442,6 @@ class TestController < ActionController::Base
     render :template => "test/hello_world_from_rxml.builder"
   end
 
-  module RenderTestHelper
-    def rjs_helper_method_from_module
-      page.visual_effect :highlight
-    end
-  end
-
-  helper RenderTestHelper
-  helper do
-    def rjs_helper_method(value)
-      page.visual_effect :highlight, value
-    end
-  end
-
-  def enum_rjs_test
-    render :update do |page|
-      page.select('.product').each do |value|
-        page.rjs_helper_method_from_module
-        page.rjs_helper_method(value)
-        page.sortable(value, :url => { :action => "order" })
-        page.draggable(value)
-      end
-    end
-  end
-
   def delete_with_js
     @project_id = 4
   end
@@ -484,28 +454,6 @@ class TestController < ActionController::Base
   def render_js_with_explicit_action_template
     @project_id = 4
     render :action => 'delete_with_js'
-  end
-
-  def update_page
-    render :update do |page|
-      page.replace_html 'balance', '$37,000,000.00'
-      page.visual_effect :highlight, 'balance'
-    end
-  end
-
-  def update_page_with_instance_variables
-    @money = '$37,000,000.00'
-    @div_id = 'balance'
-    render :update do |page|
-      page.replace_html @div_id, @money
-      page.visual_effect :highlight, @div_id
-    end
-  end
-
-  def update_page_with_view_method
-    render :update do |page|
-      page.replace_html 'person', pluralize(2, 'person')
-    end
   end
 
   def action_talk_to_layout
@@ -585,33 +533,8 @@ class TestController < ActionController::Base
     render :partial => 'partial.html.erb'
   end
 
-  def partial_as_rjs
-    render :update do |page|
-      page.replace :foo, :partial => 'partial'
-    end
-  end
-
-  def respond_to_partial_as_rjs
-    respond_to do |format|
-      format.js do
-        render :update do |page|
-          page.replace :foo, :partial => 'partial'
-        end
-      end
-    end
-  end
-
   def partial
     render :partial => 'partial'
-  end
-
-  def render_alternate_default
-    # For this test, the method "default_render" is overridden:
-    @alternate_default_render = lambda do
-      render :update do |page|
-        page.replace :foo, :partial => 'partial'
-      end
-    end
   end
 
   def partial_only_with_layout
@@ -944,12 +867,6 @@ class RenderTest < ActionController::TestCase
     assert_equal 'hello world', @response.body
   end
 
-  def test_render_custom_code_rjs
-    get :render_custom_code_rjs
-    assert_response 404
-    assert_equal %(Element.replace("foo", "partial html");), @response.body
-  end
-
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
@@ -1023,20 +940,6 @@ class RenderTest < ActionController::TestCase
     assert_equal "<test>\n  <hello/>\n</test>\n", @response.body
   end
 
-  def test_enum_rjs_test
-    ActiveSupport::SecureRandom.stubs(:base64).returns("asdf")
-    get :enum_rjs_test
-    body = %{
-      $$(".product").each(function(value, index) {
-      new Effect.Highlight(element,{});
-      new Effect.Highlight(value,{});
-      Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value) + '&authenticity_token=' + encodeURIComponent('asdf')})}});
-      new Draggable(value, {});
-      });
-    }.gsub(/^      /, '').strip
-    assert_equal body, @response.body
-  end
-
   def test_layout_rendering
     get :layout_test
     assert_equal "<html>Hello world!</html>", @response.body
@@ -1083,24 +986,6 @@ class RenderTest < ActionController::TestCase
     assert_equal "Goodbye, Local David", @response.body
   end
 
-  def test_render_in_an_rjs_template_should_pick_html_templates_when_available
-    [:js, "js"].each do |format|
-      assert_nothing_raised do
-        get :render_implicit_html_template, :format => format
-        assert_equal %(document.write("Hello world\\n");), @response.body
-      end
-    end
-  end
-
-  def test_explicitly_rendering_an_html_template_with_implicit_html_template_renders_should_be_possible_from_an_rjs_template
-    [:js, "js"].each do |format|
-      assert_nothing_raised do
-        get :render_explicit_html_template, :format => format
-        assert_equal %(document.write("Hello world\\n");), @response.body
-      end
-    end
-  end
-
   def test_should_implicitly_render_html_template_from_xhr_request
     xhr :get, :render_implicit_html_template_from_xhr_request
     assert_equal "XHR!\nHello HTML!", @response.body
@@ -1145,21 +1030,6 @@ class RenderTest < ActionController::TestCase
   def test_render_with_default_from_accept_header
     xhr :get, :greeting
     assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
-  end
-
-  def test_render_rjs_with_default
-    get :delete_with_js
-    assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body
-  end
-
-  def test_render_rjs_template_explicitly
-    get :render_js_with_explicit_template
-    assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body
-  end
-
-  def test_rendering_rjs_action_explicitly
-    get :render_js_with_explicit_action_template
-    assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_layout_test_with_different_layout
@@ -1412,16 +1282,6 @@ class RenderTest < ActionController::TestCase
   def test_should_render_html_partial_with_dot
     get :partial_dot_html
     assert_equal 'partial html', @response.body
-  end
-
-  def test_should_render_html_formatted_partial_with_rjs
-    xhr :get, :partial_as_rjs
-    assert_equal %(Element.replace("foo", "partial html");), @response.body
-  end
-
-  def test_should_render_html_formatted_partial_with_rjs_and_js_format
-    xhr :get, :respond_to_partial_as_rjs
-    assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 
   def test_should_render_js_partial
