@@ -627,6 +627,7 @@ ActiveRecord::Schema.define do
 
   create_table :students, :force => true do |t|
     t.string :name
+    t.integer :record_id
   end
 
   create_table :subscribers, :force => true, :id => false do |t|
