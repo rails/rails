@@ -1,6 +1,22 @@
+*   pass app config to controller helper proxy
+
+    Example:
+    
+        # config/application.rb
+        config.asset_host = 'http://mycdn.com'
+        
+        # Somewhere else
+        ActionController::Base.helpers.asset_path('fallback.png')
+        # => http://mycdn.com/assets/fallback.png
+        
+    Fixes #10051
+    
+    *Tima Maslyuchenko*
+    
 *   Respect `SCRIPT_NAME` when using `redirect` with a relative path
 
     Example:
+    
         # application routes.rb
         mount BlogEngine => '/blog'
 
