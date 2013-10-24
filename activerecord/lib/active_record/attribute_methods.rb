@@ -161,12 +161,9 @@ module ActiveRecord
     # If we haven't generated any methods yet, generate them, then
     # see if we've created the method we're looking for.
     def method_missing(method, *args, &block) # :nodoc:
-      if self.class.define_attribute_methods
-        if respond_to_without_attributes?(method)
-          send(method, *args, &block)
-        else
-          super
-        end
+      self.class.define_attribute_methods
+      if respond_to_without_attributes?(method)
+        send(method, *args, &block)
       else
         super
       end
