@@ -44,7 +44,6 @@ module ActiveModel
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
         begin
-          gem 'bcrypt-ruby', '~> 3.1.2'
           require 'bcrypt'
         rescue LoadError
           $stderr.puts "You don't have bcrypt-ruby installed in your application. Please add it to your Gemfile and run bundle install"
