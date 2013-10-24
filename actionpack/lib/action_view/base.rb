@@ -175,13 +175,6 @@ module ActionView #:nodoc:
       delegate :logger, :to => 'ActionController::Base'
     end
 
-    @@debug_rjs = false
-    ##
-    # :singleton-method:
-    # Specify whether RJS responses should be wrapped in a try/catch block
-    # that alert()s the caught exception (and then re-raises it).
-    cattr_accessor :debug_rjs
-
     # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
     # Automatically reloading templates are not thread safe and should only be used in development mode.
     @@cache_template_loading = nil

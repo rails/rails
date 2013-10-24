@@ -98,7 +98,7 @@ module ActionView #:nodoc:
     include Renderable
 
     # Templates that are exempt from layouts
-    @@exempt_from_layout = Set.new([/\.rjs$/])
+    @@exempt_from_layout = Set.new
 
     # Don't render layouts for templates with the given extensions.
     def self.exempt_from_layout(*extensions)
