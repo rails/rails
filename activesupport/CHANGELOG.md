@@ -1,5 +1,9 @@
 ## unreleased ##
 
+*   Fix `slice!` deleting the default value of the hash.
+
+    *Antonio Santos*
+
 *   Disable the ability to iterate over Range of AS::TimeWithZone
     due to significant performance issues.
 
