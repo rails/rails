@@ -1,3 +1,9 @@
+*   Save `has_one` association when primary key is manually set.
+
+    Fixes #12302
+
+    *Lauro Caetano*
+
 *   Make `Relation#empty?` use `exists?` instead of `count`.
 
     *Szymon Nowak*
