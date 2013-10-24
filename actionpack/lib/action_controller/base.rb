@@ -964,13 +964,6 @@ module ActionController #:nodoc:
               render_for_text(@template.render(options), options[:status])
             end
 
-          elsif options[:update]
-            @template.send(:_evaluate_assigns_and_ivars)
-
-            generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
-            response.content_type = Mime::JS
-            render_for_text(generator.to_s, options[:status])
-
           elsif options[:nothing]
             render_for_text(nil, options[:status])
 
