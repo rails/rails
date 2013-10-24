@@ -12,6 +12,7 @@ require 'models/tag'
 require 'models/tagging'
 require 'models/person'
 require 'models/reader'
+require 'models/student'
 require 'models/parrot'
 require 'models/ship_part'
 require 'models/ship'
@@ -84,6 +85,11 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
       Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
     end
+  end
+
+  def test_save_model_with_association_named_record
+    student = Student.create!(:name => "John Doe")
+    assert student.persisted?
   end
 
   def test_should_construct_new_finder_sql_after_create
