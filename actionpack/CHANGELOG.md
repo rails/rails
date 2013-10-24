@@ -1,22 +1,21 @@
-*   pass app config to controller helper proxy
+*   Make assets helpers work in the controllers like it works in the views.
 
     Example:
-    
+
         # config/application.rb
         config.asset_host = 'http://mycdn.com'
-        
-        # Somewhere else
+
         ActionController::Base.helpers.asset_path('fallback.png')
         # => http://mycdn.com/assets/fallback.png
-        
-    Fixes #10051
-    
+
+    Fixes #10051.
+
     *Tima Maslyuchenko*
-    
+
 *   Respect `SCRIPT_NAME` when using `redirect` with a relative path
 
     Example:
-    
+
         # application routes.rb
         mount BlogEngine => '/blog'
 
@@ -28,7 +27,7 @@
     the path. It also allows redirects to work where the application is deployed to a
     subdirectory of a website.
 
-    Fixes #7977
+    Fixes #7977.
 
     *Andrew White*
 
