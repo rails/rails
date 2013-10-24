@@ -1,3 +1,8 @@
+*   Add `params` option to `button_to` form helper, which renders the given hash
+    as hidden form fields.
+
+    *Andy Waite*
+
 *   Make assets helpers work in the controllers like it works in the views.
 
     Example:
