@@ -1,5 +1,8 @@
 require 'active_model/forbidden_attributes_protection'
 
+#require 'mutex'
+$assign_attributes_mutex = Mutex.new
+
 module ActiveRecord
   module AttributeAssignment
     extend ActiveSupport::Concern
@@ -12,6 +15,7 @@ module ActiveRecord
     # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
     # exception is raised.
     def assign_attributes(new_attributes)
+      $assign_attributes_mutex.synchronize do
       if !new_attributes.respond_to?(:stringify_keys)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
       end
@@ -35,6 +39,7 @@ module ActiveRecord
 
       assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
+      end
     end
 
     alias attributes= assign_attributes
