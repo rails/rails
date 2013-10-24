@@ -1,5 +1,4 @@
 require 'action_view/helpers/tag_helper'
-require 'action_view/helpers/prototype_helper'
 
 module ActionView
   module Helpers
