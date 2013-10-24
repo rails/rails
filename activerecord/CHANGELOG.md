@@ -1,3 +1,7 @@
+*    Allow any version of BCrypt when using `has_secury_password`.
+
+     *Mike Perham*
+
 *    Sub-query generated for `Relation` passed as array condition did not take in account
      bind values and have invalid syntax.
 
