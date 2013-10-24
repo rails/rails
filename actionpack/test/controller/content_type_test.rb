@@ -30,9 +30,6 @@ class ContentTypeController < ActionController::Base
   def render_default_for_rxml
   end
 
-  def render_default_for_rjs
-  end
-
   def render_change_for_rxml
     response.content_type = Mime::HTML
     render :action => "render_default_for_rxml"
@@ -120,12 +117,6 @@ class ContentTypeTest < ActionController::TestCase
   def test_default_for_rxml
     get :render_default_for_rxml
     assert_equal Mime::XML, @response.content_type
-    assert_equal "utf-8", @response.charset
-  end
-
-  def test_default_for_rjs
-    xhr :post, :render_default_for_rjs
-    assert_equal Mime::JS, @response.content_type
     assert_equal "utf-8", @response.charset
   end
 
