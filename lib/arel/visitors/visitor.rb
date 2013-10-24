@@ -9,8 +9,8 @@ module Arel
 
       DISPATCH = Hash.new do |hash, visitor_class|
         hash[visitor_class] =
-          Hash.new do |hash, node_class|
-            hash[node_class] = "visit_#{(node_class.name || '').gsub('::', '_')}"
+          Hash.new do |method_hash, node_class|
+            method_hash[node_class] = "visit_#{(node_class.name || '').gsub('::', '_')}"
           end
       end
 
