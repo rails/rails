@@ -1,3 +1,18 @@
+*   Type cast json values on write, so that the value is consistent
+    with reading from the database.
+
+    Example:
+
+        x = JsonDataType.new tags: {"string" => "foo", :symbol => :bar}
+
+        # Before:
+        x.tags # => {"string" => "foo", :symbol => :bar}
+
+        # After:
+        x.tags # => {"string" => "foo", "symbol" => "bar"}
+
+    *Severin Schoepke*
+
 *   `ActiveRecord::Store` works together with PG `hstore` columns.
     Fixes #12452.
 

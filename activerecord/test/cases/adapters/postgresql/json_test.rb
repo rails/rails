@@ -49,6 +49,13 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     JsonDataType.reset_column_information
   end
 
+  def test_cast_value_on_write
+    x = JsonDataType.new payload: {"string" => "foo", :symbol => :bar}
+    assert_equal({"string" => "foo", "symbol" => "bar"}, x.payload)
+    x.save
+    assert_equal({"string" => "foo", "symbol" => "bar"}, x.reload.payload)
+  end
+
   def test_type_cast_json
     assert @column
 
