@@ -77,6 +77,7 @@ module ActiveRecord
     # those classes. Objects of AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       attr_reader :active_record
+      attr_accessor :cached_extend_class
 
       def initialize(macro, name, options, active_record)
         @macro, @name, @options, @active_record = macro, name, options, active_record

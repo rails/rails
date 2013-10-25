@@ -51,14 +51,16 @@ module ActiveRecord
       instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id)$|^__|^respond_to_missing|proxy_/ }
 
       def self.new(owner, reflection)
-        klass = if reflection.options[:extend]
-                  reflection.instance_variable_get(:@_extend_class) ||
-                    reflection.instance_variable_set(:@_extend_class, Class.new(self) do
-                      include *reflection.options[:extend]
-                    end)
-                else
-                  self
-                end
+        klass =
+          reflection.cached_extend_class ||=
+            if reflection.options[:extend]
+              const_name = "AR_CACHED_EXTEND_CLASS_#{reflection.name}_#{reflection.options[:extend].join("_")}"
+              reflection.active_record.const_set(const_name, Class.new(self) do
+                include *reflection.options[:extend]
+              end)
+            else
+              self
+            end
 
         proxy = klass.allocate
         proxy.send(:initialize, owner, reflection)
