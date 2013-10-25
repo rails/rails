@@ -120,8 +120,11 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,::1'
     assert_equal nil, request.remote_ip
 
-    request = stub_request 'HTTP_X_FORWARDED_FOR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::'
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::, fc01::, fdff'
     assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'FE00::, FDFF::'
+    assert_equal 'FE00::', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'not_ip_address'
     assert_equal nil, request.remote_ip
