@@ -86,6 +86,9 @@ module ActiveRecord
           end
         end
 
+        # assign new store attribute and create new hash to ensure that each class in the hierarchy
+        # has its own hash of stored attributes.
+        self.stored_attributes = {} if self.stored_attributes.blank?
         self.stored_attributes[store_attribute] ||= []
         self.stored_attributes[store_attribute] |= keys
       end
@@ -101,26 +104,58 @@ module ActiveRecord
 
     protected
       def read_store_attribute(store_attribute, key)
-        attribute = initialize_store_attribute(store_attribute)
-        attribute[key]
+        accessor = store_accessor_for(store_attribute)
+        accessor.read(self, store_attribute, key)
       end
 
       def write_store_attribute(store_attribute, key, value)
-        attribute = initialize_store_attribute(store_attribute)
-        if value != attribute[key]
-          send :"#{store_attribute}_will_change!"
-          attribute[key] = value
-        end
+        accessor = store_accessor_for(store_attribute)
+        accessor.write(self, store_attribute, key, value)
       end
 
     private
-      def initialize_store_attribute(store_attribute)
-        attribute = send(store_attribute)
-        unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
-          attribute = IndifferentCoder.as_indifferent_hash(attribute)
-          send :"#{store_attribute}=", attribute
+      def store_accessor_for(store_attribute)
+        @column_types[store_attribute.to_s].accessor
+      end
+
+      class HashAccessor
+        def self.read(object, attribute, key)
+          prepare(object, attribute)
+          object.public_send(attribute)[key]
         end
-        attribute
+
+        def self.write(object, attribute, key, value)
+          prepare(object, attribute)
+          if value != read(object, attribute, key)
+            object.public_send :"#{attribute}_will_change!"
+            object.public_send(attribute)[key] = value
+          end
+        end
+
+        def self.prepare(object, attribute)
+          object.public_send :"#{attribute}=", {} unless object.send(attribute)
+        end
+      end
+
+      class StringKeyedHashAccessor < HashAccessor
+        def self.read(object, attribute, key)
+          super object, attribute, key.to_s
+        end
+
+        def self.write(object, attribute, key, value)
+          super object, attribute, key.to_s, value
+        end
+      end
+
+      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor
+        def self.prepare(object, store_attribute)
+          attribute = object.send(store_attribute)
+          unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
+            attribute = IndifferentCoder.as_indifferent_hash(attribute)
+            object.send :"#{store_attribute}=", attribute
+          end
+          attribute
+        end
       end
 
     class IndifferentCoder # :nodoc:
@@ -138,7 +173,7 @@ module ActiveRecord
       end
 
       def load(yaml)
-        self.class.as_indifferent_hash @coder.load(yaml)
+        self.class.as_indifferent_hash(@coder.load(yaml))
       end
 
       def self.as_indifferent_hash(obj)

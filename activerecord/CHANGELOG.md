@@ -1,3 +1,14 @@
+*   `ActiveRecord::Store` works together with PG `hstore` columns.
+    Fixes #12452.
+
+    *Yves Senn*
+
+*   Fix bug where `ActiveRecord::Store` used a global `Hash` to keep track of
+    all registered `stored_attributes`. Now every subclass of
+    `ActiveRecord::Base` has it's own `Hash`.
+
+    *Yves Senn*
+
 *   Save `has_one` association when primary key is manually set.
 
     Fixes #12302.

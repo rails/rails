@@ -66,6 +66,10 @@ module ActiveRecord
         def type
           @column.type
         end
+
+        def accessor
+          ActiveRecord::Store::IndifferentHashAccessor
+        end
       end
 
       class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
