@@ -112,13 +112,11 @@ module ActiveRecord
       end
 
       def test_string_to_time_with_timezone
-        old = ActiveRecord::Base.default_timezone
         [:utc, :local].each do |zone|
-          ActiveRecord::Base.default_timezone = zone
-          assert_equal Time.utc(2013, 9, 4, 0, 0, 0), Column.string_to_time("Wed, 04 Sep 2013 03:00:00 EAT")
+          with_timezone_config default: zone do
+            assert_equal Time.utc(2013, 9, 4, 0, 0, 0), Column.string_to_time("Wed, 04 Sep 2013 03:00:00 EAT")
+          end
         end
-      rescue
-        ActiveRecord::Base.default_timezone = old
       end
     end
   end
