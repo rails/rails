@@ -161,21 +161,17 @@ end
 
 class DefaultXmlSerializationTimezoneTest < ActiveRecord::TestCase
   def test_should_serialize_datetime_with_timezone
-    timezone, Time.zone = Time.zone, "Pacific Time (US & Canada)"
-
-    toy = Toy.create(:name => 'Mickey', :updated_at => Time.utc(2006, 8, 1))
-    assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
-  ensure
-    Time.zone = timezone
+    with_timezone_config zone: "Pacific Time (US & Canada)" do
+      toy = Toy.create(:name => 'Mickey', :updated_at => Time.utc(2006, 8, 1))
+      assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
+    end
   end
 
   def test_should_serialize_datetime_with_timezone_reloaded
-    timezone, Time.zone = Time.zone, "Pacific Time (US & Canada)"
-
-    toy = Toy.create(:name => 'Minnie', :updated_at => Time.utc(2006, 8, 1)).reload
-    assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
-  ensure
-    Time.zone = timezone
+    with_timezone_config zone: "Pacific Time (US & Canada)" do
+      toy = Toy.create(:name => 'Minnie', :updated_at => Time.utc(2006, 8, 1)).reload
+      assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
+    end
   end
 end
 
