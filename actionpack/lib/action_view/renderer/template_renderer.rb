@@ -10,6 +10,8 @@ module ActionView
       template = determine_template(options)
       context  = @lookup_context
 
+      context.formats = template.formats | context.formats
+
       unless context.rendered_format
         context.formats = template.formats unless template.formats.empty?
         context.rendered_format = context.formats.first
