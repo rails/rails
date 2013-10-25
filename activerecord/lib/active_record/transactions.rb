@@ -220,8 +220,8 @@ module ActiveRecord
       #   after_commit :do_bar, on: :update
       #   after_commit :do_baz, on: :destroy
       #
-      #   after_commit :do_foo_bar, :on [:create, :update]
-      #   after_commit :do_bar_baz, :on [:update, :destroy]
+      #   after_commit :do_foo_bar, on: [:create, :update]
+      #   after_commit :do_bar_baz, on: [:update, :destroy]
       #
       # Note that transactional fixtures do not play well with this feature. Please
       # use the +test_after_commit+ gem to have these hooks fired in tests.
