@@ -18,8 +18,6 @@
 # Style Sheets (CSS).
 
 
-require 'builder/blankslate'
-
 module Builder
 
   # Create a Cascading Style Sheet (CSS) using Ruby.
@@ -89,7 +87,7 @@ module Builder
   #     background:       red;
   #   }
   #
-  class CSS < BlankSlate
+  class CSS < BasicObject
 
     # Create a CSS builder.
     #
@@ -155,7 +153,7 @@ module Builder
 
     def group!(*args, &block)
       args.each do |arg|
-        if arg.is_a?(Symbol)
+        if arg.is_a?(::Symbol)
           instance_eval(&@library[arg])
         else
           instance_eval(&arg)
@@ -169,7 +167,7 @@ module Builder
     end
 
     def method_missing(sym, *args, &block)
-      sym = "#{sym}:#{args.shift}" if args.first.kind_of?(Symbol)
+      sym = "#{sym}:#{args.shift}" if args.first.kind_of?(::Symbol)
       if block
         _start_container(sym, args.first)
         _css_block(block)
