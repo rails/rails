@@ -3,6 +3,15 @@ class Object
   def to_param
     to_s
   end
+
+  # Converts an object into a string suitable for use as a URL query string, using the given <tt>key</tt> as the
+  # param name.
+  #
+  # Note: This method is defined as a default implementation for all Objects for Hash#to_query to work.
+  def to_query(key)
+    require 'cgi' unless defined?(CGI) && defined?(CGI::escape)
+    "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
+  end
 end
 
 class NilClass
@@ -32,6 +41,15 @@ class Array
   def to_param
     collect { |e| e.to_param }.join '/'
   end
+
+  # Converts an array into a string suitable for use as a URL query string,
+  # using the given +key+ as the param name.
+  #
+  #   ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
+  def to_query(key)
+    prefix = "#{key}[]"
+    collect { |value| value.to_query(prefix) }.join '&'
+  end
 end
 
 class Hash
@@ -55,4 +73,6 @@ class Hash
       value.to_query(namespace ? "#{namespace}[#{key}]" : key)
     end.sort! * '&'
   end
+
+  alias_method :to_query, :to_param
 end

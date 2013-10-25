@@ -376,7 +376,7 @@ The method `Hash#to_query` accepts an optional namespace for the keys:
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
 ```
 
-NOTE: Defined in `active_support/core_ext/object/to_query.rb`.
+NOTE: Defined in `active_support/core_ext/object/to_param.rb`.
 
 ### `with_options`
 
