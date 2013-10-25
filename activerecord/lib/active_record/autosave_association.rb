@@ -384,7 +384,7 @@ module ActiveRecord
           record.destroy
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-          if autosave != false && (new_record? || record.new_record? || record[reflection.foreign_key] != key || autosave)
+          if autosave != false && (autosave || new_record? || record_changed?(reflection, record, key))
             unless reflection.through_reflection
               record[reflection.foreign_key] = key
             end
@@ -395,6 +395,11 @@ module ActiveRecord
           end
         end
       end
+    end
+
+    # If the record is new or it has changed, returns true.
+    def record_changed?(reflection, record, key)
+      record.new_record? || record[reflection.foreign_key] != key || record.attribute_changed?(reflection.foreign_key)
     end
 
     # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

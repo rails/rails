@@ -540,4 +540,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal 'new name', pirate.ship.reload.name
   end
 
+  def test_has_one_autosave_with_primary_key_manually_set
+    post = Post.create(id: 1234, title: "Some title", body: 'Some content')
+    author = Author.new(id: 33, name: 'Hank Moody')
+
+    author.post = post
+    author.save
+    author.reload
+
+    assert_not_nil author.post
+    assert_equal author.post, post
+  end
 end
