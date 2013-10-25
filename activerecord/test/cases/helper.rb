@@ -78,21 +78,24 @@ EXPECTED_DEFAULT_TIMEZONE = :utc
 EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
 def verify_default_timezone_config
   if Time.zone != EXPECTED_ZONE
-    raise <<-MSG
+    $stderr.puts <<-MSG
+\n#{self.to_s}
     Global state `Time.zone` was leaked.
       Expected: #{EXPECTED_ZONE}
       Got: #{Time.zone}
     MSG
   end
   if ActiveRecord::Base.default_timezone != EXPECTED_DEFAULT_TIMEZONE
-    raise <<-MSG
+    $stderr.puts <<-MSG
+\n#{self.to_s}
     Global state `ActiveRecord::Base.default_timezone` was leaked.
       Expected: #{EXPECTED_DEFAULT_TIMEZONE}
       Got: #{ActiveRecord::Base.default_timezone}
     MSG
   end
   if ActiveRecord::Base.time_zone_aware_attributes != EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES
-    raise <<-MSG
+    $stderr.puts <<-MSG
+\n#{self.to_s}
     Global state `ActiveRecord::Base.time_zone_aware_attributes` was leaked.
       Expected: #{EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES}
       Got: #{ActiveRecord::Base.time_zone_aware_attributes}
