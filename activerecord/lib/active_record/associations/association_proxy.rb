@@ -47,14 +47,27 @@ module ActiveRecord
     # instantiation of the actual post records.
     class AssociationProxy #:nodoc:
       alias_method :proxy_respond_to?, :respond_to?
-      alias_method :proxy_extend, :extend
       delegate :to_param, :to => :proxy_target
       instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id)$|^__|^respond_to_missing|proxy_/ }
+
+      def self.new(owner, reflection)
+        klass = if reflection.options[:extend]
+                  reflection.instance_variable_get(:@_extend_class) ||
+                    reflection.instance_variable_set(:@_extend_class, Class.new(self) do
+                      include *reflection.options[:extend]
+                    end)
+                else
+                  self
+                end
+
+        proxy = klass.allocate
+        proxy.send(:initialize, owner, reflection)
+        proxy
+      end
 
       def initialize(owner, reflection)
         @owner, @reflection = owner, reflection
         reflection.check_validity!
-        Array(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset
       end
 
