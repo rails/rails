@@ -1,3 +1,9 @@
+*   Save `has_one` association when primary key is manually set.
+
+    Fixes #12302.
+
+    *Lauro Caetano*
+
 *    Allow any version of BCrypt when using `has_secury_password`.
 
      *Mike Perham*
