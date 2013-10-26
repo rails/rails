@@ -1,3 +1,10 @@
+*   Move 'dependent: :destroy' handling for 'belongs_to'
+    from 'before_destroy' to 'after_destroy' callback chain
+
+    Fix #12380.
+
+    *Ivan Antropov*
+
 *   Fixed `ActiveRecord::Associations::CollectionAssociation#find`
     when using `has_many` association with `:inverse_of` and finding an array of one element,
     it should return an array of one element too.

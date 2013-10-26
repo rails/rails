@@ -831,3 +831,39 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal post.author_id, author2.id
   end
 end
+
+class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
+  def setup
+    ActiveRecord::Schema.define do
+      drop_table :authors, if_exists: true
+      drop_table :author_addresses, if_exists: true
+
+      create_table :author_addresses do |t|
+      end
+
+      exec_query  <<-eos
+        create table authors(
+          id int,
+          author_address_id int,
+          name varchar(255),
+          PRIMARY KEY (id),
+          FOREIGN KEY (author_address_id) REFERENCES author_addresses(id)
+        );
+      eos
+    end
+  end
+
+  def teardown
+    ActiveRecord::Schema.define do
+      drop_table :authors, if_exists: true
+      drop_table :author_addresses, if_exists: true
+    end
+  end
+
+  def test_destroy_linked_models
+    address = AuthorAddress.create!
+    author = Author.create! id: 1, name: "Author", author_address_id: address.id
+
+    author.destroy!
+  end
+end

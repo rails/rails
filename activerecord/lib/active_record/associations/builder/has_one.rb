@@ -20,8 +20,8 @@ module ActiveRecord::Associations::Builder
 
     private
 
-    def add_before_destroy_callbacks(model, name)
-      super unless options[:through]
-    end
+      def add_destroy_callbacks(model, name)
+        super unless options[:through]
+      end
   end
 end
