@@ -36,25 +36,33 @@ the request is dispatched to the `patients` controller's `show` action with `{ i
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs. If the route above is modified to be:
+You can generate URI paths or URLs by using the `:as` parameter to name a route. If the route above is modified to be:
 
 ```ruby
 get '/patients/:id', to: 'patients#show', as: 'patient'
 ```
 
-and your application contains this code in the controller:
+And your application contains a local variable declaration in a controller action:
 
 ```ruby
-@patient = Patient.find(17)
+@patient = Patient.find(17) #Typically this would not be hard coded, something like Patients.find(params[:id])
 ```
 
-and this in the corresponding view:
+Then in the view associated with that controller action you can generate the URI `/patients/17` by using `patient_path`. This can be used to generate an anchor with a link_to method:
 
 ```erb
 <%= link_to 'Patient Record', patient_path(@patient) %>
 ```
 
-then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
+Alternatively in the same view you could build the URL `http://example.com/patients/17` by using `patient_url`. This can be used to generate an anchor with a link_to method:
+
+```erb
+<%= link_to 'Patient Record', patient_url(@patient) %>
+```
+
+ There are advantages to using the router to generate your URIs: 
+ + It makes your code less brittle and more DRY, you can modify all references in your rails app just by modifying a route. 
+ + The code in your views is more readable and easy to understand. 
 
 Resource Routing: the Rails Default
 -----------------------------------
