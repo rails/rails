@@ -1,3 +1,7 @@
+*   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
+
+    *Jan Bernacki*
+
 *   Allow for the name of the schema_migrations table to be configured.
 
     *Jerad Phelps*
