@@ -172,7 +172,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       else
-        assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
+        assert_instance_of Fixnum, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       end
     end
   end

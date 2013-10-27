@@ -426,7 +426,7 @@ module ActiveRecord
           if result
             types = {}
             result.fetch_fields.each { |field|
-              if field.decimals > 0
+              if field.decimals > 0 && field.decimals != 31
                 types[field.name] = Fields::Decimal.new
               else
                 types[field.name] = Fields.find_type field
