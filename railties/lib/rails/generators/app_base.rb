@@ -220,7 +220,6 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
-        return [] if options[:skip_jbuilder]
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
         GemfileEntry.version('jbuilder', '~> 1.2', comment)
       end
