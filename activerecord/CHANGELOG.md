@@ -1,3 +1,7 @@
+*   Allow for the name of the schema_migrations table to be configured.
+
+    *Jerad Phelps*
+
 *   Do not add to scope includes values from through associations.
     Fixed bug when providing `includes` in through association scope, and fetching targets.
 
