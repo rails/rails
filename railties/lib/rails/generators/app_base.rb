@@ -136,22 +136,35 @@ module Rails
         options[value] ? '# ' : ''
       end
 
+      GemfileGem = Struct.new(:name, :comment, :version, :path, :github) do
+        def self.github(name, github)
+          new(name, nil, nil, nil, github)
+        end
+
+        def self.path(name, path)
+          new(name, nil, nil, path)
+        end
+
+        def padding(max_width)
+          ' ' * (max_width - name.length + 2)
+        end
+      end
+
       def rails_gemfile_entry
         if options.dev?
-          <<-GEMFILE.strip_heredoc
-            gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'arel',      github: 'rails/arel'
-          GEMFILE
+          [
+            GemfileGem.path('rails', Rails::Generators::RAILS_DEV_PATH),
+            GemfileGem.github('arel', 'rails/arel'),
+          ]
         elsif options.edge?
-          <<-GEMFILE.strip_heredoc
-            gem 'rails',     github: 'rails/rails'
-            gem 'arel',      github: 'rails/arel'
-          GEMFILE
+          [
+            GemfileGem.path('rails', 'rails/rails'),
+            GemfileGem.path('arel', 'rails/arel'),
+          ]
         else
-          <<-GEMFILE.strip_heredoc
-            # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-            gem 'rails', '#{Rails::VERSION::STRING}'
-          GEMFILE
+          [
+            GemfileGem.new('rails', "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'", Rails::VERSION::STRING)
+          ]
         end
       end
 

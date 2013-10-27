@@ -162,6 +162,10 @@ module Rails
         end
       end
 
+      def gemfile_gems
+        rails_gemfile_entry
+      end
+
       public_task :set_default_accessors!
       public_task :create_root
 

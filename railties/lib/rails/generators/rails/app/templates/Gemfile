@@ -1,6 +1,18 @@
 source 'https://rubygems.org'
 
-<%= rails_gemfile_entry -%>
+<% max_width = gemfile_gems.map { |g| g.name.length }.max -%>
+<% gemfile_gems.each do |gem| -%>
+<%= gem.comment -%>
+<% if gem.version -%>
+gem '<%= gem.name %>',<%= gem.padding(max_width) %>'<%= gem.version %>'
+<% elsif gem.path -%>
+gem '<%= gem.name %>',<%= gem.padding(max_width) %>path: '<%= gem.path %>'
+<% elsif gem.github -%>
+gem '<%= gem.name %>',<%= gem.padding(max_width) %>github: '<%= gem.github %>'
+<% else -%>
+gem '<%= gem.name %>'
+<% end -%>
+<% end -%>
 
 <%= database_gemfile_entry -%>
 
