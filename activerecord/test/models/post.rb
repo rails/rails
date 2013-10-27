@@ -65,6 +65,9 @@ class Post < ActiveRecord::Base
   has_many :author_favorites, :through => :author
   has_many :author_categorizations, :through => :author, :source => :categorizations
   has_many :author_addresses, :through => :author
+  has_many :author_address_extra_with_address,
+    through: :author_with_address,
+    source: :author_address_extra
 
   has_many :comments_with_interpolated_conditions,
     ->(p) { where "#{"#{p.aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome' },

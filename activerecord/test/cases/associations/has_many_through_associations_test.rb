@@ -1085,4 +1085,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     readers(:michael_authorless).update(first_post_id: 1)
     assert_equal [posts(:thinking)], person.reload.first_posts
   end
+
+  def test_has_many_through_with_includes_in_through_association_scope
+    posts(:welcome).author_address_extra_with_address.to_a
+  end
 end
