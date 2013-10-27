@@ -47,6 +47,9 @@ module Rails
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
+        class_option :skip_jbuilder,      type: :boolean, default: false,
+                                          desc: "Don't include jbuilder in the Gemfile"
+
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
@@ -229,6 +232,7 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
+        return [] if options[:skip_jbuilder]
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
         GemfileEntry.version('jbuilder', '~> 1.2', comment)
       end
