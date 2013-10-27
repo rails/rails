@@ -6,14 +6,12 @@ source 'https://rubygems.org'
 
 # <%= gem.comment %>
 <% end -%>
-<% if gem.version -%>
-gem '<%= gem.name %>',<%= gem.padding(max_width) %>'<%= gem.version %>'
-<% elsif gem.path -%>
-gem '<%= gem.name %>',<%= gem.padding(max_width) %>path: '<%= gem.path %>'
-<% elsif gem.github -%>
-gem '<%= gem.name %>',<%= gem.padding(max_width) %>github: '<%= gem.github %>'
-<% else -%>
-gem '<%= gem.name %>'
+gem '<%= gem.name %>'<% if gem.version -%>
+, '<%= gem.version %>'
+<% elsif gem.options.any? -%>
+,<%= gem.padding(max_width) %><%= gem.options.map { |k,v|
+  "#{k}: '#{v}'" }.join(', ') %>
+<% else %>
 <% end -%>
 <% end -%>
 
