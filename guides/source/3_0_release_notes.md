@@ -608,4 +608,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails 3. Kudos to all of them.
 
-Rails 3.0 Release Notes were compiled by [Mikel Lindsaar](http://lindsaar.net.)
+Rails 3.0 Release Notes were compiled by [Mikel Lindsaar](http://lindsaar.net).

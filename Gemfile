@@ -25,7 +25,7 @@ gem 'uglifier', '>= 1.3.0', require: false
 
 group :doc do
   gem 'sdoc', '~> 0.4.0'
-  gem 'redcarpet', '~> 2.2.2', platforms: :ruby
+  gem 'redcarpet', '~> 3.1.0', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb'
 end

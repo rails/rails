@@ -594,7 +594,7 @@ The internals of the various <code>rake gem</code> tasks have been substantially
 * Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding `--with-dispatchers` when you run the `rails` command, or add them later with `rake rails:update:generate_dispatchers`).
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
-* `script/server` now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.
+* `script/server` now accepts a `--path` argument to mount a Rails application from a specific path.
 * If any configured gems are missing, the gem rake tasks will skip loading much of the environment. This should solve many of the "chicken-and-egg" problems where rake gems:install couldn't run because gems were missing.
 * Gems are now unpacked exactly once. This fixes issues with gems (hoe, for instance) which are packed with read-only permissions on the files.
 
@@ -618,4 +618,4 @@ A few pieces of older code are deprecated in this release:
 Credits
 -------
 
-Release notes compiled by [Mike Gunderloy](http://afreshcup.com.) This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.
+Release notes compiled by [Mike Gunderloy](http://afreshcup.com). This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.
