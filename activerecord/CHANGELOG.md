@@ -1,5 +1,29 @@
 ## unreleased ##
 
+*   Do not add to scope includes values from through associations.
+    Fixed bug when providing `includes` in through association scope, and fetching targets.
+
+    Example:
+        class Vendor < ActiveRecord::Base
+          has_many :relationships, -> { includes(:user) }
+          has_many :users, through: :relationships
+        end
+
+        vendor = Vendor.first
+
+        # Before
+
+        vendor.users.to_a # => Raises exception: not found `:user` for `User`
+
+        # After
+
+        vendor.users.to_a # => No exception is raised
+
+
+    Fixes: #12242, #9517, #10240
+
+    *Paul Nikitochkin*
+
 *   Save `has_one` association when primary key is manually set.
 
     Fixes #12302.

@@ -89,17 +89,22 @@ module ActiveRecord
             scope = scope.joins(join(foreign_table, constraint))
           end
 
+          is_first_chain = i == 0
+          klass = is_first_chain ? self.klass : reflection.klass
+
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
           scope_chain[i].each do |scope_chain_item|
-            klass = i == 0 ? self.klass : reflection.klass
             item  = eval_scope(klass, scope_chain_item)
 
             if scope_chain_item == self.reflection.scope
               scope.merge! item.except(:where, :includes)
             end
 
-            scope.includes! item.includes_values
+            if is_first_chain
+              scope.includes! item.includes_values
+            end
+
             scope.where_values += item.where_values
             scope.order_values |= item.order_values
           end
