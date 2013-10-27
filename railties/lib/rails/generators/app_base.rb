@@ -122,7 +122,7 @@ module Rails
 
       def database_gemfile_entry
         return [] if options[:skip_active_record]
-        gem = GemfileGem.version gem_for_database, nil,
+        gem = GemfileEntry.version gem_for_database, nil,
                              "Use #{options[:database]} as the database for Active Record"
         return [gem]
       end
@@ -135,7 +135,7 @@ module Rails
         options[value] ? '# ' : ''
       end
 
-      class GemfileGem < Struct.new(:name, :comment, :version, :options, :commented_out)
+      class GemfileEntry < Struct.new(:name, :comment, :version, :options, :commented_out)
         def initialize(name, comment, version, options = {}, commented_out = false)
           super
         end
@@ -164,17 +164,17 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileGem.path('rails', Rails::Generators::RAILS_DEV_PATH),
-            GemfileGem.github('arel', 'rails/arel'),
+            GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
+            GemfileEntry.github('arel', 'rails/arel'),
           ]
         elsif options.edge?
           [
-            GemfileGem.path('rails', 'rails/rails'),
-            GemfileGem.path('arel', 'rails/arel'),
+            GemfileEntry.path('rails', 'rails/rails'),
+            GemfileEntry.path('arel', 'rails/arel'),
           ]
         else
           [
-            GemfileGem.new('rails', "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'", Rails::VERSION::STRING)
+            GemfileEntry.new('rails', "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'", Rails::VERSION::STRING)
           ]
         end
       end
@@ -211,17 +211,17 @@ module Rails
 
         gems = []
         gemfile = if options.dev? || options.edge?
-          gems << GemfileGem.github('sprockets-rails', 'rails/sprockets-rails',
+          gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails',
                                     'Use edge version of sprockets-rails')
-          gems << GemfileGem.github('sass-rails', 'rails/sass-rails',
+          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
                                     'Use SCSS for stylesheets')
         else
-          gems << GemfileGem.version('sass-rails',
+          gems << GemfileEntry.version('sass-rails',
                                      '~> 4.0.0.rc1',
                                      'Use SCSS for stylesheets')
         end
 
-        gems << GemfileGem.version('uglifier',
+        gems << GemfileEntry.version('uglifier',
                                    '>= 1.3.0',
                                    'Use Uglifier as compressor for JavaScript assets')
 
@@ -236,9 +236,9 @@ module Rails
       def coffee_gemfile_entry
         comment = 'Use CoffeeScript for .js.coffee assets and views'
         if options.dev? || options.edge?
-          GemfileGem.github 'coffee-rails', 'rails/coffee-rails', comment
+          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', comment
         else
-          GemfileGem.version 'coffee-rails', '~> 4.0.0', comment
+          GemfileEntry.version 'coffee-rails', '~> 4.0.0', comment
         end
       end
 
@@ -247,10 +247,10 @@ module Rails
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileGem.version("#{options[:javascript]}-rails", nil,
+          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
                                  "Use #{options[:javascript]} as the JavaScript library")
 
-          gems << GemfileGem.version("turbolinks", nil,
+          gems << GemfileEntry.version("turbolinks", nil,
             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
         end
       end
@@ -258,9 +258,9 @@ module Rails
       def javascript_runtime_gemfile_entry
         comment = 'See https://github.com/sstephenson/execjs#readme for more supported runtimes'
         runtime = if defined?(JRUBY_VERSION)
-          GemfileGem.version 'therubyrhino', comment, nil
+          GemfileEntry.version 'therubyrhino', comment, nil
         else
-          GemfileGem.new 'therubyracer', comment, nil, { :platforms => :ruby }, true
+          GemfileEntry.new 'therubyracer', comment, nil, { :platforms => :ruby }, true
         end
       end
 
