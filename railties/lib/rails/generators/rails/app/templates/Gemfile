@@ -10,21 +10,10 @@ gem '<%= gem.name %>'<% if gem.version -%>
 , '<%= gem.version %>'
 <% elsif gem.options.any? -%>
 ,<%= gem.padding(max_width) %><%= gem.options.map { |k,v|
-  "#{k}: '#{v}'" }.join(', ') %>
+  "#{k}: #{v.inspect}" }.join(', ') %>
 <% else %>
 <% end -%>
 <% end -%>
-
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-gem 'jbuilder', '~> 1.2'
-
-# Run `rails console` in the browser. Read more: https://github.com/rails/web-console
-gem 'web-console', group: :development
-
-group :doc do
-  # bundle exec rake doc:rails generates the API under doc/api.
-  gem 'sdoc', require: false
-end
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'

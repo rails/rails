@@ -122,9 +122,8 @@ module Rails
 
       def database_gemfile_entry
         return [] if options[:skip_active_record]
-        gem = GemfileEntry.version gem_for_database, nil,
+         GemfileEntry.version gem_for_database, nil,
                              "Use #{options[:database]} as the database for Active Record"
-        return [gem]
       end
 
       def include_all_railties?
@@ -163,19 +162,15 @@ module Rails
 
       def rails_gemfile_entry
         if options.dev?
-          [
-            GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
-            GemfileEntry.github('arel', 'rails/arel'),
-          ]
+          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
+           GemfileEntry.github('arel', 'rails/arel')]
         elsif options.edge?
-          [
-            GemfileEntry.path('rails', 'rails/rails'),
-            GemfileEntry.path('arel', 'rails/arel'),
-          ]
+          [GemfileEntry.path('rails', 'rails/rails'),
+           GemfileEntry.path('arel', 'rails/arel')]
         else
-          [
-            GemfileEntry.new('rails', "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'", Rails::VERSION::STRING)
-          ]
+          [GemfileEntry.version('rails',
+                            Rails::VERSION::STRING,
+                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
         end
       end
 
@@ -233,6 +228,21 @@ module Rails
         gems
       end
 
+      def jbuilder_gemfile_entry
+        comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
+        GemfileEntry.version('jbuilder', '~> 1.2', comment)
+      end
+
+      def webconsole_gemfile_entry
+        comment = 'Run `rails console` in the browser. Read more: https://github.com/rails/web-console'
+        GemfileEntry.new('web-console', comment, nil, group: :development)
+      end
+
+      def sdoc_gemfile_entry
+        comment = 'bundle exec rake doc:rails generates the API under doc/api.'
+        GemfileEntry.new('web-console', comment, nil, { :group => :doc, :require => false })
+      end
+
       def coffee_gemfile_entry
         comment = 'Use CoffeeScript for .js.coffee assets and views'
         if options.dev? || options.edge?
@@ -252,6 +262,7 @@ module Rails
 
           gems << GemfileEntry.version("turbolinks", nil,
             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+          gems
         end
       end
 

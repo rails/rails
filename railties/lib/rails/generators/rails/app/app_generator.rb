@@ -163,10 +163,14 @@ module Rails
       end
 
       def gemfile_gems
-        rails_gemfile_entry +
-          database_gemfile_entry +
-          assets_gemfile_entry +
-          javascript_gemfile_entry
+        @gemfile_gems ||= [
+          rails_gemfile_entry,
+          database_gemfile_entry,
+          assets_gemfile_entry,
+          javascript_gemfile_entry,
+          jbuilder_gemfile_entry,
+          webconsole_gemfile_entry,
+          sdoc_gemfile_entry].flatten
       end
 
       public_task :set_default_accessors!
