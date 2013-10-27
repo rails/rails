@@ -188,7 +188,7 @@ module ActionDispatch
               @path_parts.zip(args) do |part, arg|
                 parameterized_arg = arg.to_param
 
-                if parameterized_arg.nil? || parameterized_arg.empty?
+                if parameterized_arg.blank?
                   raise_generation_error(args)
                 end
 
@@ -210,7 +210,7 @@ module ActionDispatch
               @path_parts.zip(args) do |part, arg|
                 parameterized_arg = arg.to_param
 
-                if parameterized_arg.nil? || parameterized_arg.empty?
+                if parameterized_arg.blank?
                   missing_keys << part
                 end
 
