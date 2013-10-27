@@ -121,11 +121,9 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" :
-          <<-GEMFILE.strip_heredoc
-            # Use #{options[:database]} as the database for Active Record
-            gem '#{gem_for_database}'
-          GEMFILE
+        return [] if options[:skip_active_record]
+        gem = GemfileGem.new gem_for_database, "Use #{options[:database]} as the database for Active Record"
+        return [gem]
       end
 
       def include_all_railties?
