@@ -915,6 +915,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_includes_in_through_association_scope
-    posts(:welcome).author_address_extra_with_address.to_a
+    assert_not_empty posts(:welcome).author_address_extra_with_address
   end
 end
