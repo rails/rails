@@ -154,10 +154,6 @@ module Rails
           new(name, comment, nil, path: path)
         end
 
-        def github; options[:github]; end
-        def path; options[:path]; end
-        def platforms; options[:platforms]; end
-
         def padding(max_width)
           ' ' * (max_width - name.length + 2)
         end
