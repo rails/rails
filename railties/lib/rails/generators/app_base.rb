@@ -96,11 +96,9 @@ module Rails
       end
 
       def create_root
-        self.destination_root = File.expand_path(app_path, destination_root)
         valid_const?
 
         empty_directory '.'
-        set_default_accessors!
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
@@ -111,6 +109,7 @@ module Rails
       end
 
       def set_default_accessors!
+        self.destination_root = File.expand_path(app_path, destination_root)
         self.rails_template = case options[:template]
           when /^https?:\/\//
             options[:template]
