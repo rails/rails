@@ -1,3 +1,8 @@
+*   Replaced the presence check for parameterized_arg in route_set.rb from nil? || empty? to blank?
+    Besides being cleaner, it doesn't fail when the result of to_param does not respond_to empty?
+
+    *Herman verschooten*
+     
 *   Add `params` option to `button_to` form helper, which renders the given hash
     as hidden form fields.
 
