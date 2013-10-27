@@ -161,8 +161,8 @@ module Rails
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
            GemfileEntry.github('arel', 'rails/arel')]
         elsif options.edge?
-          [GemfileEntry.path('rails', 'rails/rails'),
-           GemfileEntry.path('arel', 'rails/arel')]
+          [GemfileEntry.github('rails', 'rails/rails'),
+           GemfileEntry.github('arel', 'rails/arel')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -201,7 +201,7 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
-        gemfile = if options.dev? || options.edge?
+        if options.dev? || options.edge?
           gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails',
                                     'Use edge version of sprockets-rails')
           gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
@@ -231,7 +231,7 @@ module Rails
 
       def sdoc_gemfile_entry
         comment = 'bundle exec rake doc:rails generates the API under doc/api.'
-        GemfileEntry.new('web-console', comment, nil, { :group => :doc, :require => false })
+        GemfileEntry.new('sdoc', comment, nil, { :group => :doc, :require => false })
       end
 
       def coffee_gemfile_entry
@@ -259,7 +259,7 @@ module Rails
 
       def javascript_runtime_gemfile_entry
         comment = 'See https://github.com/sstephenson/execjs#readme for more supported runtimes'
-        runtime = if defined?(JRUBY_VERSION)
+        if defined?(JRUBY_VERSION)
           GemfileEntry.version 'therubyrhino', comment, nil
         else
           GemfileEntry.new 'therubyracer', comment, nil, { :platforms => :ruby }, true

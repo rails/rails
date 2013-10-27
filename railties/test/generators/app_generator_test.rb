@@ -4,6 +4,7 @@ require 'generators/shared_generator_tests'
 
 DEFAULT_APP_FILES = %w(
   .gitignore
+  README.rdoc
   Gemfile
   Rakefile
   config.ru
@@ -254,7 +255,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "therubyrhino"
     else
-      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, platforms: :ruby$/
+      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, \s+platforms: :ruby$/
     end
   end
 
@@ -312,6 +313,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_web_console
+    run_generator
+    assert_file "Gemfile", /gem 'web-console', \s+group: :development/
+  end
+
+  def test_inclusion_of_jbuilder
+    run_generator
+    assert_file "Gemfile", /gem 'jbuilder'/
+  end
+
   def test_inclusion_of_debugger
     run_generator
     assert_file "Gemfile", /# gem 'debugger'/
@@ -319,7 +330,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_lazy_loaded_sdoc
     run_generator
-    assert_file 'Gemfile', /gem 'sdoc', require: false/
+    assert_file 'Gemfile', /gem 'sdoc', \s+group: :doc, require: false/
   end
 
   def test_template_from_dir_pwd
