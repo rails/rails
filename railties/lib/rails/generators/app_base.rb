@@ -206,13 +206,6 @@ module Rails
           gem 'uglifier', '>= 1.3.0'
         GEMFILE
 
-        if options[:skip_javascript]
-          gemfile += <<-GEMFILE
-            #{coffee_gemfile_entry}
-            #{javascript_runtime_gemfile_entry}
-          GEMFILE
-        end
-
         gemfile.gsub(/^[ \t]+/, '')
       end
 
