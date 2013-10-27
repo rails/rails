@@ -223,11 +223,6 @@ module Rails
                                    '>= 1.3.0',
                                    'Use Uglifier as compressor for JavaScript assets')
 
-        if options[:skip_javascript]
-          gems << coffee_gemfile_entry
-          gems << javascript_runtime_gemfile_entry
-        end
-
         gems
       end
 

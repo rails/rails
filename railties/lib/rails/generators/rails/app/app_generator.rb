@@ -129,7 +129,9 @@ module Rails
     end
 
     def vendor_javascripts
-      empty_directory_with_keep_file 'vendor/assets/javascripts'
+      unless options[:skip_javascript]
+        empty_directory_with_keep_file 'vendor/assets/javascripts'
+      end
     end
 
     def vendor_stylesheets
@@ -235,6 +237,12 @@ module Rails
 
       def finish_template
         build(:leftovers)
+      end
+
+      def delete_js_folder_skipping_javascript
+        if options[:skip_javascript]
+          remove_dir 'app/assets/javascripts'
+        end
       end
 
       public_task :apply_rails_template, :run_bundle
