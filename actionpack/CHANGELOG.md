@@ -1,3 +1,11 @@
+*   Don't let strong parameters mutate the given hash via `fetch`
+
+    Create a new instance if the given parameter is a `Hash` instead of
+    passing it to the `convert_hashes_to_parameters` method since it is
+    overriding its default value.
+
+    *Brendon Murphy*, *Doug Cole*
+
 *   Add `params` option to `button_to` form helper, which renders the given hash
     as hidden form fields.
 
