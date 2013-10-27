@@ -122,7 +122,8 @@ module Rails
 
       def database_gemfile_entry
         return [] if options[:skip_active_record]
-        gem = GemfileGem.new gem_for_database, "Use #{options[:database]} as the database for Active Record"
+        gem = GemfileGem.version gem_for_database, nil,
+                             "Use #{options[:database]} as the database for Active Record"
         return [gem]
       end
 
@@ -134,14 +135,26 @@ module Rails
         options[value] ? '# ' : ''
       end
 
-      GemfileGem = Struct.new(:name, :comment, :version, :path, :github) do
-        def self.github(name, github)
-          new(name, nil, nil, nil, github)
+      class GemfileGem < Struct.new(:name, :comment, :version, :options, :commented_out)
+        def initialize(name, comment, version, options = {}, commented_out = false)
+          super
         end
 
-        def self.path(name, path)
-          new(name, nil, nil, path)
+        def self.github(name, github, comment = nil)
+          new(name, comment, nil, github: github)
         end
+
+        def self.version(name, version, comment = nil)
+          new(name, comment, version)
+        end
+
+        def self.path(name, path, comment = nil)
+          new(name, comment, nil, path: path)
+        end
+
+        def github; options[:github]; end
+        def path; options[:path]; end
+        def platforms; options[:platforms]; end
 
         def padding(max_width)
           ' ' * (max_width - name.length + 2)
@@ -194,77 +207,61 @@ module Rails
       end
 
       def assets_gemfile_entry
-        return if options[:skip_sprockets]
+        return [] if options[:skip_sprockets]
 
+        gems = []
         gemfile = if options.dev? || options.edge?
-          <<-GEMFILE.strip_heredoc
-            # Use edge version of sprockets-rails
-            gem 'sprockets-rails', github: 'rails/sprockets-rails'
-
-            # Use SCSS for stylesheets
-            gem 'sass-rails', github: 'rails/sass-rails'
-          GEMFILE
+          gems << GemfileGem.github('sprockets-rails', 'rails/sprockets-rails',
+                                    'Use edge version of sprockets-rails')
+          gems << GemfileGem.github('sass-rails', 'rails/sass-rails',
+                                    'Use SCSS for stylesheets')
         else
-          <<-GEMFILE.strip_heredoc
-            # Use SCSS for stylesheets
-            gem 'sass-rails', '~> 4.0.0.rc1'
-          GEMFILE
+          gems << GemfileGem.version('sass-rails',
+                                     '~> 4.0.0.rc1',
+                                     'Use SCSS for stylesheets')
         end
 
-        gemfile += <<-GEMFILE.strip_heredoc
-
-          # Use Uglifier as compressor for JavaScript assets
-          gem 'uglifier', '>= 1.3.0'
-        GEMFILE
+        gems << GemfileGem.version('uglifier',
+                                   '>= 1.3.0',
+                                   'Use Uglifier as compressor for JavaScript assets')
 
         if options[:skip_javascript]
-          gemfile += <<-GEMFILE
-            #{coffee_gemfile_entry}
-            #{javascript_runtime_gemfile_entry}
-          GEMFILE
+          gems << coffee_gemfile_entry
+          gems << javascript_runtime_gemfile_entry
         end
 
-        gemfile.gsub(/^[ \t]+/, '')
+        gems
       end
 
       def coffee_gemfile_entry
+        comment = 'Use CoffeeScript for .js.coffee assets and views'
         if options.dev? || options.edge?
-          <<-GEMFILE
-            # Use CoffeeScript for .js.coffee assets and views
-            gem 'coffee-rails', github: 'rails/coffee-rails'
-          GEMFILE
+          GemfileGem.github 'coffee-rails', 'rails/coffee-rails', comment
         else
-          <<-GEMFILE
-            # Use CoffeeScript for .js.coffee assets and views
-            gem 'coffee-rails', '~> 4.0.0'
-          GEMFILE
+          GemfileGem.version 'coffee-rails', '~> 4.0.0', comment
         end
       end
 
       def javascript_gemfile_entry
-        unless options[:skip_javascript]
-          <<-GEMFILE.gsub(/^[ \t]+/, '')
-            #{coffee_gemfile_entry}
-            #{javascript_runtime_gemfile_entry}
-            # Use #{options[:javascript]} as the JavaScript library
-            gem '#{options[:javascript]}-rails'
+        if options[:skip_javascript]
+          []
+        else
+          gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
+          gems << GemfileGem.version("#{options[:javascript]}-rails", nil,
+                                 "Use #{options[:javascript]} as the JavaScript library")
 
-            # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
-            gem 'turbolinks'
-          GEMFILE
+          gems << GemfileGem.version("turbolinks", nil,
+            "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
         end
       end
 
       def javascript_runtime_gemfile_entry
+        comment = 'See https://github.com/sstephenson/execjs#readme for more supported runtimes'
         runtime = if defined?(JRUBY_VERSION)
-          "gem 'therubyrhino'"
+          GemfileGem.version 'therubyrhino', comment, nil
         else
-          "# gem 'therubyracer', platforms: :ruby"
+          GemfileGem.new 'therubyracer', comment, nil, { :platforms => :ruby }, true
         end
-        <<-GEMFILE
-          # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-          #{runtime}
-        GEMFILE
       end
 
       def bundle_command(command)

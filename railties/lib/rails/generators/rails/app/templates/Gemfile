@@ -17,9 +17,6 @@ gem '<%= gem.name %>'
 <% end -%>
 <% end -%>
 
-<%= assets_gemfile_entry %>
-<%= javascript_gemfile_entry -%>
-
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 1.2'
 

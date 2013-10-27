@@ -163,7 +163,10 @@ module Rails
       end
 
       def gemfile_gems
-        rails_gemfile_entry + database_gemfile_entry
+        rails_gemfile_entry +
+          database_gemfile_entry +
+          assets_gemfile_entry +
+          javascript_gemfile_entry
       end
 
       public_task :set_default_accessors!
