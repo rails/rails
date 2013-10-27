@@ -162,8 +162,8 @@ module Rails
         end
       end
 
-      def gemfile_gems
-        @gemfile_gems ||= [
+      def gemfile_entries
+        @gemfile_entries ||= [
           rails_gemfile_entry,
           database_gemfile_entry,
           assets_gemfile_entry,

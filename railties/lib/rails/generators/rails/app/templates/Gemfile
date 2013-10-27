@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-<% max_width = gemfile_gems.map { |g| g.name.length }.max -%>
+<% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
 <% gemfile_gems.each do |gem| -%>
 <% if gem.comment -%>
 
