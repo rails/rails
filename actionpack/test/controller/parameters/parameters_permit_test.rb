@@ -147,6 +147,12 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal :foo, e.param
   end
 
+  test "fetch with a default value of a hash does not mutate the object" do
+    params = ActionController::Parameters.new({})
+    params.fetch :foo, {}
+    assert_equal nil, params[:foo]
+  end
+
   test "fetch doesnt raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
