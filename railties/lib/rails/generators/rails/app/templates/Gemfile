@@ -1,12 +1,12 @@
 source 'https://rubygems.org'
 
 <% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
-<% gemfile_gems.each do |gem| -%>
+<% gemfile_entries.each do |gem| -%>
 <% if gem.comment -%>
 
 # <%= gem.comment %>
 <% end -%>
-gem '<%= gem.name %>'<% if gem.version -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<% if gem.version -%>
 , '<%= gem.version %>'
 <% elsif gem.options.any? -%>
 ,<%= gem.padding(max_width) %><%= gem.options.map { |k,v|
