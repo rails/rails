@@ -47,9 +47,6 @@ module Rails
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
-        class_option :skip_jbuilder,      type: :boolean, default: false,
-                                          desc: "Don't include jbuilder in the Gemfile"
-
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
