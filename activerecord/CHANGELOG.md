@@ -58,7 +58,7 @@
 
     *Lauro Caetano*
 
-*    Allow any version of BCrypt when using `has_secury_password`.
+*    Allow any version of BCrypt when using `has_secure_password`.
 
      *Mike Perham*
 
