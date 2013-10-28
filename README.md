@@ -30,9 +30,8 @@ are bundled together in Action Pack. You can read more about Action Pack in its
 The _View layer_ is composed of "templates" that are responsible for providing
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files).  
-Views are typically rendered to generate a controller response or to generate the body of an email.
-In Rails, View generation is handled by Action View.
+Ruby code (ERB files).  Views are typically rendered to generate a controller response 
+or to generate the body of an email.  In Rails, View generation is handled by Action View.
 You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Action Pack, and Action View can each be used independently outside Rails.
