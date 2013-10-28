@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/deprecation'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
@@ -59,15 +60,21 @@ module ActionController
   #   Person.first.update!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides two options that controls the top-level behavior of new instances:
+  # It provides two options that controls the top-level behavior of new
+  # instances:
   #
+  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when
+  #   parameters that are not explicitly permitted are found. The values can
+  #   be <tt>:log</tt> to write a message on the logger or <tt>:raise</tt> to
+  #   raise ActionController::UnpermittedParameters exception. The default 
+  #   value is <tt>:log</tt> in test and development environments, +false+
+  #   otherwise.
+  # * +always_permitted_parameters+ - An array of parameter names that will
+  #   never raise an UnpermittedParameters exception if present. The default
+  #   includes both 'controller' and 'action' because both are added by Rails
+  #   and should be of no concern.
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
-  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
-  #   that are not explicitly permitted are found. The values can be <tt>:log</tt> to
-  #   write a message on the logger or <tt>:raise</tt> to raise
-  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
-  #   in test and development environments, +false+ otherwise.
   #
   # Examples:
   #
@@ -97,12 +104,15 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
-    cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
+    cattr_accessor :always_permitted_parameters, instance_accessor: false
+    cattr_accessor :permit_all_parameters, instance_accessor: false
 
-    # Never raise an UnpermittedParameters exception because of these params
-    # are present. They are added by Rails and it's of no concern.
-    NEVER_UNPERMITTED_PARAMS = %w( controller action )
+    def self.const_missing(const_name)
+      super unless const_name == :NEVER_UNPERMITTED_PARAMS
+      ActiveSupport::Deprecation.warn "`ActionController::Parameters::NEVER_UNPERMITTED_PARAMS` has been deprecated. Use `ActionController::Parameters.always_permitted_parameters` instead."
+      self.always_permitted_parameters
+    end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -368,7 +378,7 @@ module ActionController
       end
 
       def unpermitted_keys(params)
-        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
+        self.keys - params.keys - self.always_permitted_parameters
       end
 
       #

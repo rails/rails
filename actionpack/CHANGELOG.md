@@ -1,3 +1,7 @@
+*   Make always permitted parameters configurable.
+
+    *Gary S. Weaver*
+
 *   Don't let strong parameters mutate the given hash via `fetch`
 
     Create a new instance if the given parameter is a `Hash` instead of
