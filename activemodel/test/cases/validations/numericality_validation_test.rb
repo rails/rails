@@ -92,11 +92,23 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!([-1, 1])
   end
 
+  def test_validates_numericality_with_odd_false
+    Topic.validates_numericality_of :approved, odd: false
+
+    valid!([-2, 2, -1, 1])
+  end
+
   def test_validates_numericality_with_even
     Topic.validates_numericality_of :approved, even: true
 
     invalid!([-1, 1], 'must be even')
     valid!([-2, 2])
+  end
+
+  def test_validates_numericality_with_even_false
+    Topic.validates_numericality_of :approved, even: false
+
+    valid!([-2, 2, -1, 1])
   end
 
   def test_validates_numericality_with_greater_than_less_than_and_even
