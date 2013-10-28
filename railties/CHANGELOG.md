@@ -1,3 +1,14 @@
+*   `BACKTRACE` environment variable to show unfiltered backtraces for
+    test failures.
+
+    Example:
+
+        `BACKTRACE=1 ruby -Itest ...`
+        # or with rake
+        `BAKCTRACE=1 bin/rake`
+
+    *Yves Senn*
+
 *   Removal of all javascript stuff (gems and files) when generating a new
     application using the `--skip-javascript` option.
 
