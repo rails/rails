@@ -771,6 +771,9 @@ As we did before, we need to add the `show` action in
 def show
   @post = Post.find(params[:id])
 end
+
+private
+  def post_params
 ```
 
 A couple of things to note. We use `Post.find` to find the post we're
