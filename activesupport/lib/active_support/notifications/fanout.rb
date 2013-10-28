@@ -108,7 +108,7 @@ module ActiveSupport
 
         class Timed < Evented
           def initialize(pattern, delegate)
-            @timestack = []
+            @timestack = Queue.new
             super
           end
 
