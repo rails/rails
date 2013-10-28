@@ -225,95 +225,95 @@ config.middleware.delete "Rack::MethodOverride"
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
 
- **`Rack::Sendfile`**
+**`Rack::Sendfile`**
 
 * Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` option.
 
- **`ActionDispatch::Static`**
+**`ActionDispatch::Static`**
 
 * Used to serve static assets. Disabled if `config.serve_static_assets` is `false`.
 
- **`Rack::Lock`**
+**`Rack::Lock`**
 
 * Sets `env["rack.multithread"]` flag to `false` and wraps the application within a Mutex.
 
- **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
+**`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 
 * Used for memory caching. This cache is not thread safe.
 
- **`Rack::Runtime`**
+**`Rack::Runtime`**
 
 * Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
 
- **`Rack::MethodOverride`**
+**`Rack::MethodOverride`**
 
 * Allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PUT and DELETE HTTP method types.
 
- **`ActionDispatch::RequestId`**
+**`ActionDispatch::RequestId`**
 
 * Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#uuid` method.
 
- **`Rails::Rack::Logger`**
+**`Rails::Rack::Logger`**
 
 * Notifies the logs that the request has began. After request is complete, flushes all the logs.
 
- **`ActionDispatch::ShowExceptions`**
+**`ActionDispatch::ShowExceptions`**
 
 * Rescues any exception returned by the application and calls an exceptions app that will wrap it in a format for the end user.
 
- **`ActionDispatch::DebugExceptions`**
+**`ActionDispatch::DebugExceptions`**
 
 * Responsible for logging exceptions and showing a debugging page in case the request is local.
 
- **`ActionDispatch::RemoteIp`**
+**`ActionDispatch::RemoteIp`**
 
 * Checks for IP spoofing attacks.
 
- **`ActionDispatch::Reloader`**
+**`ActionDispatch::Reloader`**
 
 * Provides prepare and cleanup callbacks, intended to assist with code reloading during development.
 
- **`ActionDispatch::Callbacks`**
+**`ActionDispatch::Callbacks`**
 
 * Runs the prepare callbacks before serving the request.
 
- **`ActiveRecord::Migration::CheckPending`**
+**`ActiveRecord::Migration::CheckPending`**
 
 * Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
 
- **`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
+**`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
 
 * Cleans active connections after each request, unless the `rack.test` key in the request environment is set to `true`.
 
- **`ActiveRecord::QueryCache`**
+**`ActiveRecord::QueryCache`**
 
 * Enables the Active Record query cache.
 
- **`ActionDispatch::Cookies`**
+**`ActionDispatch::Cookies`**
 
 * Sets cookies for the request.
 
- **`ActionDispatch::Session::CookieStore`**
+**`ActionDispatch::Session::CookieStore`**
 
 * Responsible for storing the session in cookies.
 
- **`ActionDispatch::Flash`**
+**`ActionDispatch::Flash`**
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
- **`ActionDispatch::ParamsParser`**
+**`ActionDispatch::ParamsParser`**
 
 * Parses out parameters from the request into `params`.
 
- **`ActionDispatch::Head`**
+**`ActionDispatch::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
 
- **`Rack::ConditionalGet`**
+**`Rack::ConditionalGet`**
 
 * Adds support for "Conditional `GET`" so that server responds with nothing if page wasn't changed.
 
- **`Rack::ETag`**
+**`Rack::ETag`**
 
 * Adds ETag header on all String bodies. ETags are used to validate cache.
 
