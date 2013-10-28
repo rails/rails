@@ -247,12 +247,30 @@ module ActiveRecord
       limit_value == 0 ? true : !exists?
     end
 
+    # Returns true if there are no records.
+    def none?
+      if block_given?
+        to_a.none? { |*block_args| yield(*block_args) }
+      else
+        empty?
+      end
+    end
+
     # Returns true if there are any records.
     def any?
       if block_given?
         to_a.any? { |*block_args| yield(*block_args) }
       else
         !empty?
+      end
+    end
+
+    # Returns true if there is exactly one record.
+    def one?
+      if block_given?
+        to_a.one? { |*block_args| yield(*block_args) }
+      else
+        limit_value ? to_a.one? : size == 1
       end
     end
 
