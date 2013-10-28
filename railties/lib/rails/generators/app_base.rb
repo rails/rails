@@ -122,8 +122,8 @@ module Rails
 
       def database_gemfile_entry
         return [] if options[:skip_active_record]
-         GemfileEntry.version gem_for_database, nil,
-                             "Use #{options[:database]} as the database for Active Record"
+        GemfileEntry.version gem_for_database, nil,
+                            "Use #{options[:database]} as the database for Active Record"
       end
 
       def include_all_railties?
