@@ -559,7 +559,7 @@ module ActiveRecord
       def set_field_encoding field_name
         field_name.force_encoding(client_encoding)
         if internal_enc = Encoding.default_internal
-          field_name = field_name.encoding(internal_enc)
+          field_name = field_name.encode!(internal_enc)
         end
         field_name
       end
