@@ -1,3 +1,21 @@
+*   Add `alias_antonym` as a quick way to define methods that return the
+    opposite of some other method, so you can do this:
+
+    class ParityChecker
+      class << self
+        def even?(n)
+          n % 2 == 0
+        end
+
+        alias_antonym :odd?, :even?
+      end
+    end
+
+    ParityChecker.even?(5) # => false
+    ParityChecker.odd?(5) # => true
+
+    *Ulysse Carion*
+    
 *   Fix `slice!` deleting the default value of the hash.
 
     *Antonio Santos*

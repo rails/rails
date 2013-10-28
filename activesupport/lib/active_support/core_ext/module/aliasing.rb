@@ -66,4 +66,26 @@ class Module
       def #{new_name}=(v); self.#{old_name} = v; end  # def subject=(v); self.title = v; end
     STR
   end
+
+  # Allows you to define "antonym" or "opposite" methods, which
+  # simply return the negated value of what's returned by another
+  # method.
+  #
+  #   class ParityChecker
+  #     class << self
+  #       def even?(n)
+  #         n % 2 == 0
+  #       end
+  #
+  #       alias_antonym :odd?, :even?
+  #     end
+  #   end
+  #
+  #   ParityChecker.even?(5) # => false
+  #   ParityChecker.odd?(5) # => true
+  def alias_antonym(new_name, old_name)
+    define_method(new_name) do |*args|
+      !send(old_name, *args)
+    end
+  end
 end

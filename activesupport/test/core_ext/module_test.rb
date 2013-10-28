@@ -492,3 +492,25 @@ class MethodAliasingTest < ActiveSupport::TestCase
     assert FooClassWithBarMethod.public_method_defined?(:duck)
   end
 end
+
+class ParityChecker
+  class << self
+    def even?(n)
+      n % 2 == 0
+    end
+
+    alias_antonym :odd?, :even?
+  end
+end
+
+class AliasAntonymTest < ActiveSupport::TestCase
+  test "alias_antonym defines a new opposite method" do
+    assert_respond_to ParityChecker, :odd?
+
+    assert ParityChecker.even?(4)
+    assert_not ParityChecker.odd?(4)
+
+    assert_not ParityChecker.even?(5)
+    assert ParityChecker.odd?(5)
+  end
+end
