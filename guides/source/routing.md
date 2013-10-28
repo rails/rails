@@ -45,7 +45,7 @@ get '/patients/:id', to: 'patients#show', as: 'patient'
 And your application contains a local variable declaration in a controller action:
 
 ```ruby
-@patient = Patient.find(17) #Typically this would not be hard coded, something like Patients.find(params[:id])
+@patient = Patient.find(17) 
 ```
 
 Then in the view associated with that controller action you can generate the URI `/patients/17` by using `patient_path`. This can be used to generate an anchor with a link_to method:
