@@ -53,40 +53,50 @@ module ActiveRecord
       end
 
       def test_quoted_time_utc
-        with_timezone_config default: :utc do
-          t = Time.now
-          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
-        end
+        before = ActiveRecord::Base.default_timezone
+        ActiveRecord::Base.default_timezone = :utc
+        t = Time.now
+        assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+      ensure
+        ActiveRecord::Base.default_timezone = before
       end
 
       def test_quoted_time_local
-        with_timezone_config default: :local do
-          t = Time.now
-          assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
-        end
+        before = ActiveRecord::Base.default_timezone
+        ActiveRecord::Base.default_timezone = :local
+        t = Time.now
+        assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
+      ensure
+        ActiveRecord::Base.default_timezone = before
       end
 
       def test_quoted_time_crazy
-        with_timezone_config default: :asdfasdf do
-          t = Time.now
-          assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
-        end
+        before = ActiveRecord::Base.default_timezone
+        ActiveRecord::Base.default_timezone = :asdfasdf
+        t = Time.now
+        assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
+      ensure
+        ActiveRecord::Base.default_timezone = before
       end
 
       def test_quoted_datetime_utc
-        with_timezone_config default: :utc do
-          t = DateTime.now
-          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
-        end
+        before = ActiveRecord::Base.default_timezone
+        ActiveRecord::Base.default_timezone = :utc
+        t = DateTime.now
+        assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+      ensure
+        ActiveRecord::Base.default_timezone = before
       end
 
       ###
       # DateTime doesn't define getlocal, so make sure it does nothing
       def test_quoted_datetime_local
-        with_timezone_config default: :local do
-          t = DateTime.now
-          assert_equal t.to_s(:db), @quoter.quoted_date(t)
-        end
+        before = ActiveRecord::Base.default_timezone
+        ActiveRecord::Base.default_timezone = :local
+        t = DateTime.now
+        assert_equal t.to_s(:db), @quoter.quoted_date(t)
+      ensure
+        ActiveRecord::Base.default_timezone = before
       end
 
       def test_quote_with_quoted_id

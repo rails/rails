@@ -77,6 +77,12 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def setup
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    ActiveRecord::Base.default_timezone = :local
+    Time.zone = nil
+  end
+
   def test_generated_methods_modules
     modules = Computer.ancestors
     assert modules.include?(Computer::GeneratedFeatureMethods)
@@ -227,7 +233,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
     with_env_tz 'America/New_York' do
-      with_timezone_config default: :utc do
+      with_active_record_default_timezone :utc do
         time = Time.local(2000)
         topic = Topic.create('written_on' => time)
         saved_time = Topic.find(topic.id).reload.written_on
@@ -240,7 +246,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
     with_env_tz 'America/New_York' do
-      with_timezone_config default: :utc do
+      with_active_record_default_timezone :utc do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
@@ -255,20 +261,18 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_preserving_time_objects_with_utc_time_conversion_to_default_timezone_local
     with_env_tz 'America/New_York' do
-      with_timezone_config default: :local do
-        time = Time.utc(2000)
-        topic = Topic.create('written_on' => time)
-        saved_time = Topic.find(topic.id).reload.written_on
-        assert_equal time, saved_time
-        assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
-        assert_equal [0, 0, 19, 31, 12, 1999, 5, 365, false, "EST"], saved_time.to_a
-      end
+      time = Time.utc(2000)
+      topic = Topic.create('written_on' => time)
+      saved_time = Topic.find(topic.id).reload.written_on
+      assert_equal time, saved_time
+      assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
+      assert_equal [0, 0, 19, 31, 12, 1999, 5, 365, false, "EST"], saved_time.to_a
     end
   end
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
     with_env_tz 'America/New_York' do
-      with_timezone_config default: :local do
+      with_active_record_default_timezone :local do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
@@ -488,25 +492,25 @@ class BasicsTest < ActiveRecord::TestCase
   # Oracle, and Sybase do not have a TIME datatype.
   unless current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_utc_as_time_zone
-      with_timezone_config default: :utc do
-        attributes = { "bonus_time" => "5:42:00AM" }
-        topic = Topic.find(1)
-        topic.attributes = attributes
-        assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-      end
+      Topic.default_timezone = :utc
+      attributes = { "bonus_time" => "5:42:00AM" }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+      Topic.default_timezone = :local
     end
 
     def test_utc_as_time_zone_and_new
-      with_timezone_config default: :utc do
-        attributes = { "bonus_time(1i)"=>"2000",
-          "bonus_time(2i)"=>"1",
-          "bonus_time(3i)"=>"1",
-          "bonus_time(4i)"=>"10",
-          "bonus_time(5i)"=>"35",
-          "bonus_time(6i)"=>"50" }
-        topic = Topic.new(attributes)
-        assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
-      end
+      Topic.default_timezone = :utc
+      attributes = { "bonus_time(1i)"=>"2000",
+                     "bonus_time(2i)"=>"1",
+                     "bonus_time(3i)"=>"1",
+                     "bonus_time(4i)"=>"10",
+                     "bonus_time(5i)"=>"35",
+                     "bonus_time(6i)"=>"50" }
+      topic = Topic.new(attributes)
+      assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
+      Topic.default_timezone = :local
     end
   end
 
@@ -629,14 +633,12 @@ class BasicsTest < ActiveRecord::TestCase
     # Oracle, and Sybase do not have a TIME datatype.
     return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
 
-    with_timezone_config default: :local do
-      attributes = {
-        "bonus_time" => "5:42:00AM"
-      }
-      topic = Topic.find(1)
-      topic.attributes = attributes
-      assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
-    end
+    attributes = {
+      "bonus_time" => "5:42:00AM"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
   def test_attributes_on_dummy_time_with_invalid_time
@@ -824,18 +826,19 @@ class BasicsTest < ActiveRecord::TestCase
   # TODO: extend defaults tests to other databases!
   if current_adapter?(:PostgreSQLAdapter)
     def test_default
-      with_timezone_config default: :local do
-        default = Default.new
+      tz = Default.default_timezone
+      Default.default_timezone = :local
+      default = Default.new
+      Default.default_timezone = tz
 
-        # fixed dates / times
-        assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
+      # fixed dates / times
+      assert_equal Date.new(2004, 1, 1), default.fixed_date
+      assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
 
-        # char types
-        assert_equal 'Y', default.char1
-        assert_equal 'a varchar field', default.char2
-        assert_equal 'a text field', default.char3
-      end
+      # char types
+      assert_equal 'Y', default.char1
+      assert_equal 'a varchar field', default.char2
+      assert_equal 'a text field', default.char3
     end
 
     class Geometric < ActiveRecord::Base; end

@@ -589,28 +589,38 @@ _SQL
   end
 
   def test_timestamp_with_zone_values_with_rails_time_zone_support
-    with_timezone_config default: :utc, aware_attributes: true do
-      @connection.reconnect!
+    old_tz         = ActiveRecord::Base.time_zone_aware_attributes
+    old_default_tz = ActiveRecord::Base.default_timezone
 
-      @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-      assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
-      assert_instance_of Time, @first_timestamp_with_zone.time
-    end
+    ActiveRecord::Base.time_zone_aware_attributes = true
+    ActiveRecord::Base.default_timezone = :utc
+
+    @connection.reconnect!
+
+    @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
+    assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
+    ActiveRecord::Base.default_timezone = old_default_tz
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
     @connection.reconnect!
   end
 
   def test_timestamp_with_zone_values_without_rails_time_zone_support
-    with_timezone_config default: :local, aware_attributes: false do
-      @connection.reconnect!
-      # make sure to use a non-UTC time zone
-      @connection.execute("SET time zone 'America/Jamaica'", 'SCHEMA')
+    old_tz         = ActiveRecord::Base.time_zone_aware_attributes
+    old_default_tz = ActiveRecord::Base.default_timezone
 
-      @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-      assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
-      assert_instance_of Time, @first_timestamp_with_zone.time
-    end
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    ActiveRecord::Base.default_timezone = :local
+
+    @connection.reconnect!
+
+    @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
+    assert_equal Time.local(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+    assert_instance_of Time, @first_timestamp_with_zone.time
   ensure
+    ActiveRecord::Base.default_timezone = old_default_tz
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
     @connection.reconnect!
   end
 end
