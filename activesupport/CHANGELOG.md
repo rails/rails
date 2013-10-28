@@ -1,3 +1,7 @@
+*   Support :unless_exist in FileStore
+
+    *Michael Grosser*
+
 *   Fix `slice!` deleting the default value of the hash.
 
     *Antonio Santos*

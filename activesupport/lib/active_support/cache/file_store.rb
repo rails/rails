@@ -97,6 +97,7 @@ module ActiveSupport
 
         def write_entry(key, entry, options)
           file_name = key_file_path(key)
+          return false if options[:unless_exist] && File.exist?(file_name)
           ensure_cache_path(File.dirname(file_name))
           File.atomic_write(file_name, cache_path) {|f| Marshal.dump(entry, f)}
           true
