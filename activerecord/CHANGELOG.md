@@ -1,3 +1,9 @@
+*   Fix code typo in `MysqlAdapter` when `Encoding.default_internal` is set.
+
+    Fixes #12647.
+
+    *Yves Senn*
+
 *   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
 
     *Jan Bernacki*

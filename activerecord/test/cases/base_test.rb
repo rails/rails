@@ -604,8 +604,23 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_unicode_column_name
+    Weird.reset_column_information
     weird = Weird.create(:なまえ => 'たこ焼き仮面')
     assert_equal 'たこ焼き仮面', weird.なまえ
+  end
+
+  def test_respect_internal_encoding
+    if current_adapter?(:PostgreSQLAdapter)
+      skip 'pg does not respect internal encoding and always returns utf8'
+    end
+    old_default_internal = Encoding.default_internal
+    silence_warnings { Encoding.default_internal = "EUC-JP" }
+
+    Weird.reset_column_information
+
+    assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
+  ensure
+    silence_warnings { Encoding.default_internal = old_default_internal }
   end
 
   def test_non_valid_identifier_column_name
