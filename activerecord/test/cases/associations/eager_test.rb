@@ -4,6 +4,7 @@ require 'models/tagging'
 require 'models/tag'
 require 'models/comment'
 require 'models/author'
+require 'models/essay'
 require 'models/category'
 require 'models/company'
 require 'models/person'
@@ -24,7 +25,7 @@ require 'models/categorization'
 require 'models/sponsor'
 
 class EagerAssociationTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
+  fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
@@ -1184,5 +1185,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     author = Author.includes(:posts).references(:posts).reorder(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
+  end
+  
+  test "preloading with a polymorphic association and using the existential predicate" do
+    assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
+    
+    assert_nothing_raised do
+      authors(:david).essays.includes(:writer).any?
+    end
   end
 end
