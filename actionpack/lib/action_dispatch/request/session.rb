@@ -127,6 +127,18 @@ module ActionDispatch
         @delegate.delete key.to_s
       end
 
+      def fetch(key, default=nil)
+        if self.key?(key)
+          self[key]
+        elsif default
+          self[key] = default
+        elsif block_given?
+          self[key] = yield(key)
+        else
+          raise KeyError
+        end
+      end
+
       def inspect
         if loaded?
           super

@@ -1,3 +1,15 @@
+*   Add `session#fetch` method
+
+    fetch behaves like [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch).  
+    It returns a value from the hash for the given key.
+    If the key can’t be found, there are several options:
+
+      * With no other arguments, it will raise an KeyError exception.
+      * If a default value is given, then that will be returned.
+      * If the optional code block is specified, then that will be run and its result returned.
+
+    *Damien Mathieu*
+
 *   Don't let strong parameters mutate the given hash via `fetch`
 
     Create a new instance if the given parameter is a `Hash` instead of
