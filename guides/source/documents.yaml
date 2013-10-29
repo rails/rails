@@ -32,12 +32,6 @@
       name: Active Record Query Interface
       url: active_record_querying.html
       description: This guide covers the database query interface provided by Active Record.
-
-    -
-      name: Active Model Basics
-      url: active_model_basics.html
-      description: This guide will get you started using model classes, and non-Active Record models.
-      work_in_progress: true
 -
   name: Views
   documents:
