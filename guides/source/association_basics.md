@@ -2197,11 +2197,11 @@ module FindRecentExtension
 end
 
 class Customer < ActiveRecord::Base
-  has_many :orders, -> { extending FindRecentExtension }
+  has_many :orders, -> { include FindRecentExtension }
 end
 
 class Supplier < ActiveRecord::Base
-  has_many :deliveries, -> { extending FindRecentExtension }
+  has_many :deliveries, -> { include FindRecentExtension }
 end
 ```
 
