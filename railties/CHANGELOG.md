@@ -1,3 +1,7 @@
+*   Support for Pathnames in eager load paths.
+
+    *Mike Pack*
+
 *   Fixed missing line and shadow on service pages(404, 422, 500).
 
     *Dmitry Korotkov*
