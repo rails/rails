@@ -114,7 +114,7 @@ module ActionView
       #   cdata_section("hello]]>world")
       #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        splitted = content.gsub(']]>', ']]]]><![CDATA[>')
+        splitted = content.to_s.gsub(']]>', ']]]]><![CDATA[>')
         "<![CDATA[#{splitted}]]>".html_safe
       end
 
