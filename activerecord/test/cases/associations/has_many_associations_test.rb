@@ -785,10 +785,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     clients = companies(:first_firm).clients_of_firm.to_a
     assert_equal 2, clients.count
-    deleted = companies(:first_firm).clients_of_firm.delete_all
-    assert_equal clients.sort_by(&:id), deleted.sort_by(&:id)
-    assert_equal 0, companies(:first_firm).clients_of_firm.size
-    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+
+    assert_difference "Client.count", -(clients.count) do
+      companies(:first_firm).clients_of_firm.delete_all
+    end
   end
 
   def test_delete_all_with_not_yet_loaded_association_collection
