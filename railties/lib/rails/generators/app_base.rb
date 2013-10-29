@@ -83,6 +83,17 @@ module Rails
 
     protected
 
+      def gemfile_entries
+        @gemfile_entries ||= [
+          rails_gemfile_entry,
+          database_gemfile_entry,
+          assets_gemfile_entry,
+          javascript_gemfile_entry,
+          jbuilder_gemfile_entry,
+          webconsole_gemfile_entry,
+          sdoc_gemfile_entry].flatten
+      end
+
       def builder
         @builder ||= begin
           builder_class = get_builder_class

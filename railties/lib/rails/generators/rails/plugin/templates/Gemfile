@@ -23,7 +23,20 @@ end
 <% if options.dev? || options.edge? -%>
 # Your gem is dependent on dev or edge Rails. Once you can lock this
 # dependency down to a specific version, move it to your gemspec.
-<%= rails_gemfile_entry -%>
+<% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
+<% gemfile_entries.each do |gem| -%>
+<% if gem.comment -%>
+
+# <%= gem.comment %>
+<% end -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<% if gem.version -%>
+, '<%= gem.version %>'
+<% elsif gem.options.any? -%>
+,<%= gem.padding(max_width) %><%= gem.options.map { |k,v|
+  "#{k}: #{v.inspect}" }.join(', ') %>
+<% else %>
+<% end -%>
+<% end -%>
 
 <% end -%>
 # To use debugger
