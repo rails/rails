@@ -4,7 +4,7 @@ require 'rails/test_unit/sub_test_task'
 
 task default: :test
 
-desc 'Runs test:units, test:functionals, test:integration together'
+desc 'Runs test:units, test:functionals, test:generators, test:integration together'
 task :test do
   Rails::TestTask.test_creator(Rake.application.top_level_tasks).invoke_rake_task
 end
