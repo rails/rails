@@ -30,7 +30,15 @@ module ActiveRecord
       true
     end
 
+    def none?
+      true
+    end
+
     def any?
+      false
+    end
+
+    def one?
       false
     end
 

@@ -1,3 +1,25 @@
+*   Use SQL COUNT and LIMIT 1 queries for `none?` and `one?` methods if no block or limit is given,
+    instead of loading the entire collection to memory.
+    This applies to relations (e.g. `User.all`) as well as associations (e.g. `account.users`)
+
+        # Before:
+
+        users.none?
+        # SELECT "users".* FROM "users"
+
+        users.one?
+        # SELECT "users".* FROM "users"
+
+        # After:
+
+        users.none?
+        # SELECT 1 AS one FROM "users" LIMIT 1
+
+        users.one?
+        # SELECT COUNT(*) FROM "users"
+
+    *Eugene Gilburg*
+
 *   Allow for the name of the schema_migrations table to be configured.
 
     *Jerad Phelps*

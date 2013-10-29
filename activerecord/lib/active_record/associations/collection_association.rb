@@ -301,7 +301,8 @@ module ActiveRecord
       end
 
       # Returns true if the collections is not empty.
-      # Equivalent to +!collection.empty?+.
+      # If block given, loads all records and checks for one or more matches.
+      # Otherwise, equivalent to +!collection.empty?+.
       def any?
         if block_given?
           load_target.any? { |*block_args| yield(*block_args) }
@@ -311,7 +312,8 @@ module ActiveRecord
       end
 
       # Returns true if the collection has more than 1 record.
-      # Equivalent to +collection.size > 1+.
+      # If block given, loads all records and checks for two or more matches.
+      # Otherwise, equivalent to +collection.size > 1+.
       def many?
         if block_given?
           load_target.many? { |*block_args| yield(*block_args) }
