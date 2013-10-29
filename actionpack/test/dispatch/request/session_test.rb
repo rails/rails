@@ -61,6 +61,19 @@ module ActionDispatch
         assert_equal([], s.values)
       end
 
+      def test_fetch
+        session = Session.create(store, {}, {})
+        session['one'] = '1'
+
+        assert_equal '1', session.fetch(:one)
+        assert_equal '2', session.fetch(:two, '2')
+        assert_equal 'three', session.fetch(:three) {|el| el.to_s }
+
+        assert_raise KeyError do
+          session.fetch(:four)
+        end
+      end
+
       private
       def store
         Class.new {
