@@ -9,10 +9,10 @@ module ActiveRecord
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
-              def #{method_name}(*)                         # def update_with_query_dirty(*)
-                clear_query_cache if @query_cache_enabled   #   clear_query_cache if @query_cache_enabled
-                super                                       #   super
-              end                                           # end
+              def #{method_name}(*)
+                clear_query_cache if @query_cache_enabled
+                super
+              end
             end_code
           end
         end
