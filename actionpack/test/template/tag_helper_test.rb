@@ -96,6 +96,10 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
 
+  def test_cdata_section_with_string_conversion
+    assert_equal "<![CDATA[]]>", cdata_section(nil)
+  end
+
   def test_cdata_section_splitted
     assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]>", cdata_section("hello]]>world")
     assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]]]><![CDATA[>again]]>", cdata_section("hello]]>world]]>again")
