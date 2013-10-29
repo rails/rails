@@ -107,6 +107,8 @@ module ActiveSupport
         end
 
         class Timed < Evented
+          include Mutex_m
+
           def initialize(pattern, delegate)
             @timestack = Queue.new
             super
@@ -117,12 +119,16 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            @timestack.push Time.now
+            synchronize do
+              @timestack.push Time.now
+            end
           end
 
           def finish(name, id, payload)
-            started = @timestack.pop
-            @delegate.call(name, started, Time.now, id, payload)
+            synchronize do
+              started = @timestack.pop
+              @delegate.call(name, started, Time.now, id, payload)
+            end
           end
         end
 
