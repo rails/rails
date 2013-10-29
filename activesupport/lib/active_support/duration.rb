@@ -17,6 +17,7 @@ module ActiveSupport
     # Adds another Duration or a Numeric to this Duration. Numeric values
     # are treated as seconds.
     def +(other)
+      return other if other.is_a?(::DateTime::Infinity)
       if Duration === other
         Duration.new(value + other.value, @parts + other.parts)
       else

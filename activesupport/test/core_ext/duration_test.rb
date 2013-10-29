@@ -133,6 +133,11 @@ class DurationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_changes_to_infinity
+    assert_equal(DateTime::INFINITY, 2.month + DateTime::INFINITY)
+    assert_equal(-DateTime::INFINITY, 2.month - DateTime::INFINITY)
+  end
+
   def test_delegation_with_block_works
     counter = 0
     assert_nothing_raised do
