@@ -1186,10 +1186,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = Author.includes(:posts).references(:posts).reorder(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
   end
-  
+
   test "preloading with a polymorphic association and using the existential predicate" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
-    
+
     assert_nothing_raised do
       authors(:david).essays.includes(:writer).any?
     end
