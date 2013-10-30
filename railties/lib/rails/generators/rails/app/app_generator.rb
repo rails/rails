@@ -350,15 +350,16 @@ module Rails
           if argv.find { |arg| arg == '--no-rc' }
             argv.reject { |arg| arg == '--no-rc' }
           else
-            insert_railsrc_into_argv!(argv, railsrc(argv))
+            railsrc(argv) { |argv, rc| insert_railsrc_into_argv!(argv, rc) }
           end
         end
 
         def railsrc(argv)
           if (customrc = argv.index{ |x| x.include?("--rc=") })
-            File.expand_path(argv.delete_at(customrc).gsub(/--rc=/, ""))
+            fname = File.expand_path(argv[customrc].gsub(/--rc=/, ""))
+            yield(argv.take(customrc) + argv.drop(customrc + 1), fname)
           else
-            self.class.default_rc_file
+            yield argv, self.class.default_rc_file
           end
         end
 
