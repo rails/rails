@@ -5,7 +5,11 @@ require 'tempfile'
 
 module Rails
   module Generators
-    class ARGVScrubberTest < ActiveSupport::TestCase
+    class ARGVScrubberTest < ActiveSupport::TestCase # :nodoc:
+      # Future people who read this... These tests are just to surround the
+      # current behavior of the ARGVScrubber, they do not mean that the class
+      # *must* act this way, I just want to prevent regressions.
+
       def test_version
         ['-v', '--version'].each do |str|
           scrubber = ARGVScrubber.new [str]
