@@ -430,13 +430,18 @@ $ git push origin branch_name
 
 ### Issue a Pull Request
 
-Navigate to the Rails repository you just pushed to (e.g. https://github.com/your-user-name/rails) and press "Pull Request" in the upper right hand corner.
+Navigate to the Rails repository you just pushed to (e.g.
+https://github.com/your-user-name/rails) and click on "Pull Requests" seen in
+the right panel. On the next page, press "New pull request" in the upper right
+hand corner.
 
-Write your branch name in the branch field (this is filled with "master" by default) and press "Update Commit Range".
+Click on "Edit", if you need to change the branches being compared (it compares
+"master" by default) and press "Click to create a pull request for this
+comparison".
 
-Ensure the changesets you introduced are included in the "Commits" tab. Ensure that the "Files Changed" incorporate all of your changes.
-
-Fill in some details about your potential patch including a meaningful title. When finished, press "Send pull request". The Rails core team will be notified about your submission.
+Ensure the changesets you introduced are included. Fill in some details about
+your potential patch including a meaningful title. When finished, press "Send
+pull request". The Rails core team will be notified about your submission.
 
 ### Get some Feedback
 
