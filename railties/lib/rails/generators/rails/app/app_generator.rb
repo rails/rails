@@ -312,19 +312,17 @@ module Rails
     # This class should be called before the AppGenerator is required and started
     # since it configures and mutates ARGV correctly.
     class ARGVScrubber # :nodoc
-      attr_reader :argv
-
       def initialize(argv = ARGV)
         @argv = argv.dup
       end
 
       def prepare!
-        handle_version_request!(argv.first)
-        unless handle_invalid_command!(argv.first)
-          argv.shift
-          handle_rails_rc!
+        handle_version_request!(@argv.first)
+        unless handle_invalid_command!(@argv.first, @argv)
+          @argv.shift
+          handle_rails_rc!(@argv)
         end
-        argv
+        @argv
       end
 
       def self.default_rc_file
@@ -341,19 +339,19 @@ module Rails
           end
         end
 
-        def handle_invalid_command!(argument)
+        def handle_invalid_command!(argument, argv)
           if argument != "new"
             argv[0] = "--help"
           end
         end
 
-        def handle_rails_rc!
+        def handle_rails_rc!(argv)
           unless argv.delete("--no-rc")
-            insert_railsrc_into_argv!(railsrc)
+            insert_railsrc_into_argv!(argv, railsrc(argv))
           end
         end
 
-        def railsrc
+        def railsrc(argv)
           if (customrc = argv.index{ |x| x.include?("--rc=") })
             File.expand_path(argv.delete_at(customrc).gsub(/--rc=/, ""))
           else
@@ -361,7 +359,7 @@ module Rails
           end
         end
 
-        def insert_railsrc_into_argv!(railsrc)
+        def insert_railsrc_into_argv!(argv, railsrc)
           if File.exist?(railsrc)
             extra_args_string = File.read(railsrc)
             extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
