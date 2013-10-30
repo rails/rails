@@ -75,6 +75,22 @@ module Rails
         file.unlink
       end
 
+      def test_rc_whitespace_separated
+        file = Tempfile.new 'myrcfile'
+        file.puts '--hello --world'
+        file.flush
+
+        message = nil
+        scrubber = Class.new(ARGVScrubber) {
+          define_method(:puts) { |msg| message = msg }
+        }.new ['new', "--rc=#{file.path}"]
+        args = scrubber.prepare!
+        assert_equal ['--hello', '--world'], args
+      ensure
+        file.close
+        file.unlink
+      end
+
       def test_new_rc_option
         file = Tempfile.new 'myrcfile'
         file.puts '--hello-world'
