@@ -347,10 +347,12 @@ module Rails
         end
 
         def handle_rails_rc!(argv)
-          unless argv.delete("--no-rc")
+          if argv.find { |arg| arg == '--no-rc' }
+            argv.reject { |arg| arg == '--no-rc' }
+          else
             insert_railsrc_into_argv!(argv, railsrc(argv))
+            argv
           end
-          argv
         end
 
         def railsrc(argv)
