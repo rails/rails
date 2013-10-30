@@ -147,7 +147,6 @@ module Rails
       initialize_framework_logging
 
       initialize_dependency_mechanism
-      initialize_whiny_nils
 
       initialize_time_zone
       initialize_i18n
@@ -543,12 +542,6 @@ Run `rake gems:install` to install the missing gems.
       ActiveSupport::Dependencies.mechanism = configuration.cache_classes ? :require : :load
     end
 
-    # Loads support for "whiny nil" (noisy warnings when methods are invoked
-    # on +nil+ values) if Configuration#whiny_nils is true.
-    def initialize_whiny_nils
-      require('active_support/whiny_nil') if configuration.whiny_nils
-    end
-
     # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     def initialize_time_zone
@@ -752,10 +745,6 @@ Run `rake gems:install` to install the missing gems.
     # The root of the application's views. (Defaults to <tt>app/views</tt>.)
     attr_accessor :view_path
 
-    # Set to +true+ if you want to be warned (noisily) when you try to invoke
-    # any method of +nil+. Set to +false+ for the standard Ruby behavior.
-    attr_accessor :whiny_nils
-
     # The list of plugins to load. If this is set to <tt>nil</tt>, all plugins will
     # be loaded. If this is set to <tt>[]</tt>, no plugins will be loaded. Otherwise,
     # plugins will be loaded in the order specified.
@@ -870,7 +859,6 @@ Run `rake gems:install` to install the missing gems.
       self.preload_frameworks           = default_preload_frameworks
       self.cache_classes                = default_cache_classes
       self.dependency_loading           = default_dependency_loading
-      self.whiny_nils                   = default_whiny_nils
       self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
       self.plugin_locators              = default_plugin_locators
@@ -1065,10 +1053,6 @@ Run `rake gems:install` to install the missing gems.
 
       def default_cache_classes
         true
-      end
-
-      def default_whiny_nils
-        false
       end
 
       def default_plugins
