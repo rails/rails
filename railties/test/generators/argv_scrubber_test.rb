@@ -21,6 +21,13 @@ module Rails
         end
       end
 
+      def test_default_help
+        argv = ['zomg', 'how', 'are', 'you']
+        scrubber = ARGVScrubber.new argv
+        args = scrubber.prepare!
+        assert_equal ['--help'] + argv.drop(1), args
+      end
+
       def test_prepare_returns_args
         scrubber = ARGVScrubber.new ['hi mom']
         args = scrubber.prepare!
