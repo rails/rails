@@ -98,10 +98,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%()) }
   end
 
-  def test_cannot_force_json_unmarshalling
-    encodeded = %q({"json_class":"TestJSONDecoding::Foo"})
-    decodeded = {"json_class"=>"TestJSONDecoding::Foo"}
-    assert_equal decodeded, ActiveSupport::JSON.decode(encodeded, create_additions: true)
+  def test_cannot_pass_unsupported_options
+    assert_raise(ArgumentError) { ActiveSupport::JSON.decode("", create_additions: true) }
   end
 end
 

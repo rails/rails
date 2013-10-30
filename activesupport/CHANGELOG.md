@@ -1,3 +1,7 @@
+*   Calling ActiveSupport::JSON.decode with unsupported options now raises an error.
+
+    *Godfrey Chan*
+
 *   Support :unless_exist in FileStore
 
     *Michael Grosser*
