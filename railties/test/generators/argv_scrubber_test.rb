@@ -40,7 +40,6 @@ module Rails
           end
         }.new ['new']
         args = scrubber.prepare!
-        assert_nil args.first
         assert_equal [], args
       end
 
@@ -57,7 +56,6 @@ module Rails
           define_method(:puts) { |msg| message = msg }
         }.new ['new']
         args = scrubber.prepare!
-        assert_nil args.first
         assert_equal [nil, '--hello-world'], args
         assert_match 'hello-world', message
         assert_match file.path, message
