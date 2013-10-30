@@ -1,3 +1,7 @@
+*   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions
+
+    *Shimpei Makimoto*
+
 *   Fix `simple_format` escapes own output when passing `sanitize: true`
 
     *Paul Seidemann*
