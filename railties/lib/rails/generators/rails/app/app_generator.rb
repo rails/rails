@@ -327,6 +327,10 @@ module Rails
         argv
       end
 
+      def self.default_rc_file
+        File.join(File.expand_path('~'), '.railsrc')
+      end
+
       private
 
         def handle_version_request!(argument)
@@ -353,7 +357,7 @@ module Rails
           if (customrc = argv.index{ |x| x.include?("--rc=") })
             File.expand_path(argv.delete_at(customrc).gsub(/--rc=/, ""))
           else
-            File.join(File.expand_path("~"), '.railsrc')
+            self.class.default_rc_file
           end
         end
 
