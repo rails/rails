@@ -14,7 +14,14 @@ module ActiveSupport
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
       def decode(json, options = {})
-        data = ::JSON.parse(json, options.merge(create_additions: false, quirks_mode: true))
+        if options.present?
+          raise ArgumentError, "In Rails 4.1, ActiveSupport::JSON.decode no longer " \
+            "accepts an options hash for MultiJSON. MultiJSON reached its end of life " \
+            "and has been removed."
+        end
+
+        data = ::JSON.parse(json, quirks_mode: true)
+
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
