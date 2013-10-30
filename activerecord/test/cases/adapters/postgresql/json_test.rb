@@ -121,4 +121,13 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     x = JsonDataType.first
     assert_equal "640×1136", x.resolution
   end
+
+  def test_save_with_store
+    JsonDataType.store :settings, accessors: [:url, :extension]
+
+    x = JsonDataType.new
+    x.url = 'kitten'
+    x.extension = 'jpg'
+    x.save!
+  end
 end
