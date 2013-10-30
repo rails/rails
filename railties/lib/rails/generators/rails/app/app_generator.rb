@@ -311,7 +311,7 @@ module Rails
     #
     # This class should be called before the AppGenerator is required and started
     # since it configures and mutates ARGV correctly.
-    class AppPreparer # :nodoc
+    class ARGVScrubber # :nodoc
       attr_reader :argv
 
       def initialize(argv = ARGV)
@@ -329,7 +329,7 @@ module Rails
       private
 
         def handle_version_request!(argument)
-          if ['--version', '-v'].include?(argv.first)
+          if ['--version', '-v'].include?(argument)
             require 'rails/version'
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)

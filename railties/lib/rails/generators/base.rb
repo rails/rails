@@ -7,6 +7,7 @@ rescue LoadError
   exit
 end
 
+require 'rails/generators'
 require 'rails/generators/actions'
 
 module Rails

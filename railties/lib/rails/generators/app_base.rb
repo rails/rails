@@ -5,6 +5,7 @@ require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
 require 'open-uri'
 require 'uri'
+require 'rails/generators/base'
 
 module Rails
   module Generators
