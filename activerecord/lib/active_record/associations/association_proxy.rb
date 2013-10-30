@@ -54,7 +54,7 @@ module ActiveRecord
         klass =
           reflection.cached_extend_class ||=
             if reflection.options[:extend]
-              const_name = "AR_CACHED_EXTEND_CLASS_#{reflection.name}_#{reflection.options[:extend].join("_")}"
+              const_name = "AR_CACHED_EXTEND_CLASS_#{reflection.name}_#{reflection.options[:extend].join("_").gsub("::","_")}"
               reflection.active_record.const_set(const_name, Class.new(self) do
                 include *reflection.options[:extend]
               end)
