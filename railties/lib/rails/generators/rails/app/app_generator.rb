@@ -324,6 +324,7 @@ module Rails
           argv.shift
           handle_rails_rc!
         end
+        argv
       end
 
       private
