@@ -318,11 +318,10 @@ module Rails
 
       def prepare!
         handle_version_request!(@argv.first)
-        unless handle_invalid_command!(@argv.first, @argv)
+        handle_invalid_command!(@argv.first, @argv) do
           @argv.shift
           handle_rails_rc!(@argv)
         end
-        @argv
       end
 
       def self.default_rc_file
@@ -340,8 +339,10 @@ module Rails
         end
 
         def handle_invalid_command!(argument, argv)
-          if argument != "new"
-            argv[0] = "--help"
+          if argument == "new"
+            yield
+          else
+            ['--help'] + argv.drop(1)
           end
         end
 
@@ -349,6 +350,7 @@ module Rails
           unless argv.delete("--no-rc")
             insert_railsrc_into_argv!(argv, railsrc(argv))
           end
+          argv
         end
 
         def railsrc(argv)
