@@ -1,3 +1,7 @@
+*   Fix generating a path for engine inside a resources block (#8533)
+
+    *Piotr Sarnacki*
+
 *   Add Mime::Type.register "text/vcard", :vcf to the default list of mime types
 
     *DHH*
