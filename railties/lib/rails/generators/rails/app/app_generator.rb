@@ -313,7 +313,7 @@ module Rails
     # since it configures and mutates ARGV correctly.
     class ARGVScrubber # :nodoc
       def initialize(argv = ARGV)
-        @argv = argv.dup
+        @argv = argv
       end
 
       def prepare!
