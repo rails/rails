@@ -363,8 +363,7 @@ module Rails
         end
 
         def read_rc_file(railsrc)
-          extra_args_string = File.read(railsrc)
-          extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
+          extra_args = File.readlines(railsrc).flat_map(&:split)
           puts "Using #{extra_args.join(" ")} from #{railsrc}"
           extra_args
         end
