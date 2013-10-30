@@ -319,8 +319,7 @@ module Rails
       def prepare!
         handle_version_request!(@argv.first)
         handle_invalid_command!(@argv.first, @argv) do
-          @argv.shift
-          handle_rails_rc!(@argv)
+          handle_rails_rc!(@argv.drop(1))
         end
       end
 
