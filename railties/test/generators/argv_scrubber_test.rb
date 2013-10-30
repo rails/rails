@@ -84,17 +84,16 @@ module Rails
 
       def test_new_rc_option_and_custom_options
         file = Tempfile.new 'myrcfile'
-        file.puts '--hello-world'
+        file.puts '--hello'
+        file.puts '--world'
         file.flush
 
-        message = nil
         scrubber = Class.new(ARGVScrubber) {
-          define_method(:puts) { |msg| message = msg }
-        }.new ['new', '--tender', '--love', "--rc=#{file.path}"]
+          define_method(:puts) { |msg| }
+        }.new ['new', 'tenderapp', '--love', "--rc=#{file.path}"]
+
         args = scrubber.prepare!
-        assert_equal ['--tender', '--hello-world', '--love'], args
-        assert_match 'hello-world', message
-        assert_match file.path, message
+        assert_equal ["tenderapp", "--hello", "--world", "--love"], args
       ensure
         file.close
         file.unlink
