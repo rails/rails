@@ -315,7 +315,7 @@ module Rails
       attr_reader :argv
 
       def initialize(argv = ARGV)
-        @argv = argv
+        @argv = argv.dup
       end
 
       def prepare!

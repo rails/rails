@@ -13,5 +13,5 @@ module Rails
   end
 end
 
-Rails::Generators::ARGVScrubber.new(ARGV).prepare!
-Rails::Generators::AppGenerator.start
+args = Rails::Generators::ARGVScrubber.new(ARGV).prepare!
+Rails::Generators::AppGenerator.start args
