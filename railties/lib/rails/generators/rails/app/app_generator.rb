@@ -351,7 +351,6 @@ module Rails
             argv.reject { |arg| arg == '--no-rc' }
           else
             insert_railsrc_into_argv!(argv, railsrc(argv))
-            argv
           end
         end
 
@@ -368,7 +367,9 @@ module Rails
             extra_args_string = File.read(railsrc)
             extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
             puts "Using #{extra_args.join(" ")} from #{railsrc}"
-            argv.insert(1, *extra_args)
+            [argv.first] + extra_args + argv.drop(1)
+          else
+            argv
           end
         end
     end
