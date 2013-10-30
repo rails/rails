@@ -1,3 +1,8 @@
+*   Add extension for DateTime::Infinity and DateTime::INFINITY constant
+    to facilitate its usage in comparison and range operations.
+
+    *Serj Krasnov*
+
 *   Support :unless_exist in FileStore
 
     *Michael Grosser*

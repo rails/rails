@@ -347,6 +347,32 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 500000000, DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).nsec
   end
 
+  def test_infinity_comparison
+    assert_equal(1, DateTime::INFINITY <=> DateTime.civil(2018, 1, 1, 0, 0, 0))
+    assert_equal(-1, -DateTime::INFINITY <=> DateTime.civil(2018, 1, 1, 0, 0, 0))
+    assert_equal(-1, DateTime.civil(2018, 1, 1, 0, 0, 0) <=> DateTime::INFINITY )
+    assert_equal(1, DateTime.civil(2018, 1, 1, 0, 0, 0) <=> -DateTime::INFINITY)
+    assert_equal(1, DateTime::INFINITY <=> Time.utc(2018, 1, 1, 0, 0, 1))
+    assert_equal(-1, -DateTime::INFINITY <=> Time.utc(2018, 1, 1, 0, 0, 1))
+    assert_equal(-1, Time.utc(2018, 1, 1, 0, 0, 1) <=> DateTime::INFINITY)
+    assert_equal(1, Time.utc(2018, 1, 1, 0, 0, 1) <=> -DateTime::INFINITY)
+    assert_equal(1, DateTime::INFINITY <=> Date.new(2018, 1, 1))
+    assert_equal(-1, -DateTime::INFINITY <=> Date.new(2018, 1, 1))
+    assert_equal(-1, Date.new(2018, 1, 1) <=> DateTime::INFINITY)
+    assert_equal(1, Date.new(2018, 1, 1) <=> -DateTime::INFINITY)
+  end
+
+  def test_infinity_ranges
+    assert_equal true, ( Date.new(2018, 1, 1) .. DateTime::INFINITY ).include?(Date.new(2018, 1, 2))
+    assert_equal false, ( Date.new(2018, 1, 1) .. DateTime::INFINITY ).include?(Date.new(2017, 12, 1))
+    assert_equal true, ( -DateTime::INFINITY .. Time.utc(2018, 1, 1, 0, 0, 1)).include?(Time.utc(2018, 1, 1, 0, 0, 1))
+    assert_equal false, ( -DateTime::INFINITY .. Time.utc(2018, 1, 1, 0, 0, 1)).include?(Time.utc(2018, 1, 1, 0, 0, 2))
+  end
+
+  def test_infinity_modification
+    assert_equal(DateTime::INFINITY, DateTime::INFINITY - 1.day)
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

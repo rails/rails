@@ -117,7 +117,13 @@ module ActiveRecord
           end
 
           def infinity(options = {})
-            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+            sign = options[:negative] ? -1 : 1
+
+            if [:time, :date].include?(@subtype)
+              ::DateTime::Infinity.new(sign)
+            else
+              ::Float::INFINITY * (sign)
+            end
           end
 
           def infinity?(value)

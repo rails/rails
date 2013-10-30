@@ -1,3 +1,7 @@
+*   Initialize time/date ranges for Postgresql using DateTime::Infinity
+
+    *Serj Krasnov*
+
 *   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
 
     *Jan Bernacki*
