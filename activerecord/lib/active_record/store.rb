@@ -15,6 +15,10 @@ module ActiveRecord
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
+  # With PostgreSQL, the +store+ feature is not supported for field types such as Hstore
+  # or JSON because it would add an extra layer of serialization and this is not needed. 
+  # Rely on +store_accessor+ instead.
+  #
   # Examples:
   #
   #   class User < ActiveRecord::Base
