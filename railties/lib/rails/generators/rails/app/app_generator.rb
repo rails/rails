@@ -362,15 +362,17 @@ module Rails
           end
         end
 
+        def read_rc_file(railsrc)
+          return [] unless File.exists?(railsrc)
+          extra_args_string = File.read(railsrc)
+          extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
+          puts "Using #{extra_args.join(" ")} from #{railsrc}"
+          extra_args
+        end
+
         def insert_railsrc_into_argv!(argv, railsrc)
-          if File.exist?(railsrc)
-            extra_args_string = File.read(railsrc)
-            extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
-            puts "Using #{extra_args.join(" ")} from #{railsrc}"
-            [argv.first] + extra_args + argv.drop(1)
-          else
-            argv
-          end
+          extra_args = read_rc_file railsrc
+          argv.take(1) + extra_args + argv.drop(1)
         end
     end
   end

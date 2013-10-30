@@ -67,7 +67,7 @@ module Rails
           define_method(:puts) { |msg| message = msg }
         }.new ['new']
         args = scrubber.prepare!
-        assert_equal [nil, '--hello-world'], args
+        assert_equal ['--hello-world'], args
         assert_match 'hello-world', message
         assert_match file.path, message
       ensure
@@ -85,7 +85,7 @@ module Rails
           define_method(:puts) { |msg| message = msg }
         }.new ['new', "--rc=#{file.path}"]
         args = scrubber.prepare!
-        assert_equal [nil, '--hello-world'], args
+        assert_equal ['--hello-world'], args
         assert_match 'hello-world', message
         assert_match file.path, message
       ensure
