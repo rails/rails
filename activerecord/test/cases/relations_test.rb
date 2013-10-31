@@ -1284,6 +1284,54 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
 
+  def test_update_all_with_limit
+    comments = Comment.where(post_id: comments(:greetings).post.id).limit(1)
+    assert_equal 1, comments.update_all(body: comments(:more_greetings).body)
+  end
+
+  def test_update_all_with_limit_and_order
+    post = Post.create(title: 'title', body: 'body')
+    bar_comment = Comment.create(post_id: post.id, body: 'bar')
+    foo_comment = Comment.create(post_id: post.id, body: 'foo')
+
+    all_comments = Comment.where(post_id: post.id).order(:body)
+    comments     = all_comments.limit(1)
+
+    assert_equal 1, comments.update_all(body: 'new')
+    assert_equal 1, Comment.where(body: 'bar').count
+    assert_equal 1, Comment.where(body: 'new').count
+    assert_equal 'new', bar_comment.reload.body
+    assert_equal 'foo', foo_comment.reload.body
+  end
+
+  def test_update_all_with_offset
+    post = Post.create(title: 'title', body: 'body')
+    Comment.create(post_id: post.id, body: 'bar')
+    Comment.create(post_id: post.id, body: 'foo')
+
+    all_comments = Comment.where(post_id: post.id)
+    comments     = all_comments.offset(1)
+
+    assert_equal 1, comments.update_all(body: 'new')
+    assert_equal 1, Comment.where(body: 'bar').count
+    assert_equal 1, Comment.where(body: 'new').count
+  end
+
+  def test_update_all_with_offset_and_order
+    post = Post.create(title: 'title', body: 'body')
+    bar_comment = Comment.create(post_id: post.id, body: 'bar')
+    foo_comment = Comment.create(post_id: post.id, body: 'foo')
+
+    all_comments = Comment.where(post_id: post.id).order(:body)
+    comments     = all_comments.offset(1)
+
+    assert_equal 1, comments.update_all(body: 'new')
+    assert_equal 1, Comment.where(body: 'bar').count
+    assert_equal 1, Comment.where(body: 'new').count
+    assert_equal 'bar', bar_comment.reload.body
+    assert_equal 'new', foo_comment.reload.body
+  end
+
   def test_update_all_with_blank_argument
     assert_raises(ArgumentError) { Comment.update_all({}) }
   end
