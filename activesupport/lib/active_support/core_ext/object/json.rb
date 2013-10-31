@@ -1,5 +1,6 @@
 # Hack to load json gem first so we can overwrite its to_json.
 require 'json'
+require 'bigdecimal'
 
 # The JSON gem adds a few modules to Ruby core classes containing :to_json definition, overwriting
 # their default behavior. That said, we need to define the basic to_json method in all of them,

@@ -3,7 +3,6 @@
 require 'active_support/core_ext/object/json'
 require 'active_support/core_ext/module/delegation'
 
-require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
