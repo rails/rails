@@ -77,13 +77,25 @@ module Rails
       end
 
       def initialize(*args)
-        @original_wd = Dir.pwd
-        @gem_filter = lambda { |gem| true }
+        @original_wd   = Dir.pwd
+        @gem_filter    = lambda { |gem| true }
+        @extra_entries = []
         super
         convert_database_option_for_jruby
       end
 
     protected
+
+      def gemfile_entry(name, version = nil, github: nil, path: nil)
+        if github
+          @extra_entries << GemfileEntry.github(name, github)
+        elsif path
+          @extra_entries << GemfileEntry.path(name, path)
+        else
+          @extra_entries << GemfileEntry.version(name, version)
+        end
+        self
+      end
 
       def gemfile_entries
         [ rails_gemfile_entry,
@@ -92,7 +104,8 @@ module Rails
           javascript_gemfile_entry,
           jbuilder_gemfile_entry,
           webconsole_gemfile_entry,
-          sdoc_gemfile_entry].flatten.find_all(&@gem_filter)
+          sdoc_gemfile_entry,
+          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
       def add_gem_entry_filter
