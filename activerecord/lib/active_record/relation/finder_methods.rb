@@ -285,7 +285,7 @@ module ActiveRecord
 
     def limited_ids_for(relation)
       values = @klass.connection.columns_for_distinct(
-        "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
+        "#{quoted_table_name}.#{quoted_primary_key}", relation.arel.orders)
 
       relation = relation.except(:select).select(values).distinct!
 

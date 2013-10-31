@@ -35,15 +35,7 @@ module ActiveRecord
       assert relation.order!('name ASC').equal?(relation)
       assert_equal ['name ASC'], relation.order_values
     end
-
-    test '#order! with symbol prepends the table name' do
-      assert relation.order!(:name).equal?(relation)
-      node = relation.order_values.first
-      assert node.ascending?
-      assert_equal :name, node.expr.name
-      assert_equal "posts", node.expr.relation.name
-    end
-
+    
     test '#order! on non-string does not attempt regexp match for references' do
       obj = Object.new
       obj.expects(:=~).never
@@ -95,15 +87,6 @@ module ActiveRecord
       assert relation.reorder!('bar').equal?(relation)
       assert_equal ['bar'], relation.order_values
       assert relation.reordering_value
-    end
-
-    test '#reorder! with symbol prepends the table name' do
-      assert relation.reorder!(:name).equal?(relation)
-      node = relation.order_values.first
-
-      assert node.ascending?
-      assert_equal :name, node.expr.name
-      assert_equal "posts", node.expr.relation.name
     end
 
     test 'reverse_order!' do
