@@ -37,7 +37,7 @@
 
     *Paul Nikitochkin*
 
-*   Only cache template digests if `config.cache_template_loading` id true.
+*   Only cache template digests if `config.cache_template_loading` is true.
 
     *Josh Lauer*, *Justin Ridgewell*
 
