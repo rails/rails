@@ -108,7 +108,6 @@ module Rails
       end
 
       def create_root
-        set_default_accessors!
         valid_const?
 
         empty_directory '.'
