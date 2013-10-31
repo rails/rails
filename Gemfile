@@ -63,11 +63,18 @@ end
 
 platforms :jruby do
   gem 'json'
-  gem 'activerecord-jdbcsqlite3-adapter', '>= 1.3.0'
-
-  group :db do
-    gem 'activerecord-jdbcmysql-adapter', '>= 1.3.0'
-    gem 'activerecord-jdbcpostgresql-adapter', '>= 1.3.0'
+  if ENV['AR_JDBC']
+    gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+    group :db do
+      gem 'activerecord-jdbcmysql-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+      gem 'activerecord-jdbcpostgresql-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+    end
+  else
+    gem 'activerecord-jdbcsqlite3-adapter', '>= 1.3.0'
+    group :db do
+      gem 'activerecord-jdbcmysql-adapter', '>= 1.3.0'
+      gem 'activerecord-jdbcpostgresql-adapter', '>= 1.3.0'
+    end
   end
 end
 
