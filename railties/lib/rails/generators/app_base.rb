@@ -78,6 +78,7 @@ module Rails
 
       def initialize(*args)
         @original_wd = Dir.pwd
+        @gem_filter = lambda { |gem| true }
         super
         convert_database_option_for_jruby
       end
@@ -85,14 +86,19 @@ module Rails
     protected
 
       def gemfile_entries
-        @gemfile_entries ||= [
-          rails_gemfile_entry,
+        [ rails_gemfile_entry,
           database_gemfile_entry,
           assets_gemfile_entry,
           javascript_gemfile_entry,
           jbuilder_gemfile_entry,
           webconsole_gemfile_entry,
-          sdoc_gemfile_entry].flatten
+          sdoc_gemfile_entry].flatten.find_all(&@gem_filter)
+      end
+
+      def add_gem_entry_filter
+        @gem_filter = lambda { |next_filter,entry|
+          yield(entry) && next_filter.call(entry)
+        }.curry[@gem_filter]
       end
 
       def builder
