@@ -90,7 +90,7 @@ module Rails
       # Loads and returns the configuration of the database.
       def database_configuration
         yaml = paths["config/database"].first
-        if File.exists?(yaml)
+        if File.exist?(yaml)
           require "erb"
           YAML.load ERB.new(IO.read(yaml)).result
         elsif ENV['DATABASE_URL']
