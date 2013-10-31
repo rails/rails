@@ -19,6 +19,11 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal %w(content), Topic.serialized_attributes.keys
   end
 
+  def test_active_model_dirty_serialized_attribute
+    topic = Topic.new
+    assert !topic.content_changed?
+  end
+
   def test_serialized_attribute
     Topic.serialize("content", MyObject)
 
