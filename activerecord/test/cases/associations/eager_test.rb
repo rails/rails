@@ -1179,12 +1179,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
-  test "works in combination with order(:symbol) and reorder(:symbol)" do
+  test "works in combination with order(:symbol), order(key: direction), reorder(:symbol) and reorder(key: direction)" do
     author = Author.includes(:posts).references(:posts).order(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
+    
+    author = Author.includes(:posts).references(:posts).order(name: :asc).find_by('posts.title IS NOT NULL')
+    assert_equal authors(:bob), author
+    
+    author = Author.includes(:posts).references(:posts).order(name: :desc).find_by('posts.title IS NOT NULL')
+    assert_equal authors(:mary), author
 
     author = Author.includes(:posts).references(:posts).reorder(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
+    
+    author = Author.includes(:posts).references(:posts).reorder(name: :asc).find_by('posts.title IS NOT NULL')
+    assert_equal authors(:bob), author
+    
+    author = Author.includes(:posts).references(:posts).reorder(name: :desc).find_by('posts.title IS NOT NULL')
+    assert_equal authors(:mary), author
   end
 
   test "preloading with a polymorphic association and using the existential predicate" do

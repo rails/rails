@@ -23,6 +23,10 @@ module ActiveRecord
     def relation
       @relation ||= Relation.new FakeKlass.new('posts'), :b
     end
+    
+    def relation_with_arel
+      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table
+    end
 
     (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order]).each do |method|
       test "##{method}!" do
@@ -35,7 +39,16 @@ module ActiveRecord
       assert relation.order!('name ASC').equal?(relation)
       assert_equal ['name ASC'], relation.order_values
     end
-    
+
+    test '#order! with symbol prepends the table name' do
+      assert relation_with_arel.order!(:name).equal?(relation_with_arel)
+      node = relation_with_arel.arel.orders.first
+      
+      assert node.ascending?
+      assert_equal :name, node.expr.name
+      assert_equal "posts", node.expr.relation.name
+    end
+
     test '#order! on non-string does not attempt regexp match for references' do
       obj = Object.new
       obj.expects(:=~).never
@@ -87,6 +100,15 @@ module ActiveRecord
       assert relation.reorder!('bar').equal?(relation)
       assert_equal ['bar'], relation.order_values
       assert relation.reordering_value
+    end
+
+    test '#reorder! with symbol prepends the table name' do
+      assert relation_with_arel.reorder!(:name).equal?(relation_with_arel)
+      node = relation_with_arel.arel.orders.first
+
+      assert node.ascending?
+      assert_equal :name, node.expr.name
+      assert_equal "posts", node.expr.relation.name
     end
 
     test 'reverse_order!' do
