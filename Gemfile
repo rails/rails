@@ -78,6 +78,12 @@ platforms :jruby do
   end
 end
 
+platforms :rbx do
+  gem 'psych'
+  gem 'rubysl-mathn'
+  gem 'rubysl-matrix'
+end
+
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED']
   platforms :ruby do
