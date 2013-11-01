@@ -8,7 +8,6 @@ rescue LoadError
 end
 
 require 'rails/generators'
-require 'rails/generators/actions'
 
 module Rails
   module Generators
