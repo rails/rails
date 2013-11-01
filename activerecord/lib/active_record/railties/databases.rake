@@ -271,7 +271,7 @@ db_namespace = namespace :db do
       desc 'Clear a db/schema_cache.dump file.'
       task :clear => [:environment, :load_config] do
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
-        FileUtils.rm(filename) if File.exists?(filename)
+        FileUtils.rm(filename) if File.exist?(filename)
       end
     end
 
