@@ -206,7 +206,7 @@ module ActiveRecord
       @connection.expects(:schema_search_path).returns("foo")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      assert File.exists?(filename)
+      assert File.exist?(filename)
     ensure
       FileUtils.rm(filename)
     end
