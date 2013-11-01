@@ -349,7 +349,7 @@ module Rails
           if argv.find { |arg| arg == '--no-rc' }
             argv.reject { |arg| arg == '--no-rc' }
           else
-            railsrc(argv) { |argv, rc| insert_railsrc_into_argv!(argv, rc) }
+            railsrc(argv) { |rc_argv, rc| insert_railsrc_into_argv!(rc_argv, rc) }
           end
         end
 
