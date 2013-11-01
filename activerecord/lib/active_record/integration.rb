@@ -13,6 +13,24 @@ module ActiveRecord
       self.cache_timestamp_format = :nsec
     end
 
+    module ClassMethods
+      # Returns a cache key for the ActiveRecord class based
+      # based on count and maximum value of update timestamp columns
+      # (e.g. Cookie based caching with expiration )
+      #
+      #   Product.cache_key     # => "products/0" (empty, has updated timestamp columns or not)
+      #   Product.cache_key     # => "products/1" (not empty but has no updated timestamp columns)
+      #   Person.cache_key     # => "people/1-20071224150000" (not empty and has updated timestamp columns)
+      def cache_key
+        if timestamp = max_updated_column_timestamp
+          timestamp = timestamp.utc.to_s(cache_timestamp_format)
+          "#{self.model_name.cache_key}/all/#{self.count}-#{timestamp}"
+        else
+          "#{self.model_name.cache_key}/all/#{self.count}"
+        end
+      end
+    end
+
     # Returns a String, which Action Pack uses for constructing an URL to this
     # object. The default implementation returns this record's id as a String,
     # or nil if this record's unsaved.
