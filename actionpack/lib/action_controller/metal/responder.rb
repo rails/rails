@@ -140,7 +140,7 @@ module ActionController #:nodoc:
     undef_method(:to_json) if method_defined?(:to_json)
     undef_method(:to_yaml) if method_defined?(:to_yaml)
 
-    # Initializes a new responder an invoke the proper format. If the format is
+    # Initializes a new responder and invokes the proper format. If the format is
     # not defined, call to_format.
     #
     def self.call(*args)
