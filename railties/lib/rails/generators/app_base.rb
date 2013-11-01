@@ -6,6 +6,7 @@ require 'rbconfig'
 require 'open-uri'
 require 'uri'
 require 'rails/generators/base'
+require 'active_support/core_ext/array/extract_options'
 
 module Rails
   module Generators
@@ -86,7 +87,12 @@ module Rails
 
     protected
 
-      def gemfile_entry(name, version = nil, github: nil, path: nil)
+      def gemfile_entry(name, *args)
+        options = args.extract_options!
+        version = args.first
+        github = options[:github]
+        path   = options[:path]
+
         if github
           @extra_entries << GemfileEntry.github(name, github)
         elsif path
