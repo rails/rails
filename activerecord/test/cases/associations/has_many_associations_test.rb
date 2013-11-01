@@ -782,12 +782,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_delete_all
     force_signal37_to_load_all_clients_of_firm
-    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    clients = companies(:first_firm).clients_of_firm.to_a
+    companies(:first_firm).dependent_clients_of_firm.create("name" => "Another Client")
+    clients = companies(:first_firm).dependent_clients_of_firm.to_a
     assert_equal 2, clients.count
 
     assert_difference "Client.count", -(clients.count) do
-      companies(:first_firm).clients_of_firm.delete_all
+      companies(:first_firm).dependent_clients_of_firm.delete_all
     end
   end
 
