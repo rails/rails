@@ -171,21 +171,21 @@ module Rails
         options[value] ? '# ' : ''
       end
 
-      class GemfileEntry < Struct.new(:name, :comment, :version, :options, :commented_out)
-        def initialize(name, comment, version, options = {}, commented_out = false)
+      class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
+        def initialize(name, version, comment, options = {}, commented_out = false)
           super
         end
 
         def self.github(name, github, comment = nil)
-          new(name, comment, nil, github: github)
+          new(name, nil, comment, github: github)
         end
 
         def self.version(name, version, comment = nil)
-          new(name, comment, version)
+          new(name, version, comment)
         end
 
         def self.path(name, path, comment = nil)
-          new(name, comment, nil, path: path)
+          new(name, nil, comment, path: path)
         end
 
         def padding(max_width)
@@ -263,12 +263,12 @@ module Rails
 
       def webconsole_gemfile_entry
         comment = 'Run `rails console` in the browser. Read more: https://github.com/rails/web-console'
-        GemfileEntry.new('web-console', comment, nil, group: :development)
+        GemfileEntry.new('web-console', nil, comment, group: :development)
       end
 
       def sdoc_gemfile_entry
         comment = 'bundle exec rake doc:rails generates the API under doc/api.'
-        GemfileEntry.new('sdoc', comment, nil, { :group => :doc, :require => false })
+        GemfileEntry.new('sdoc', nil, comment, { group: :doc, require: false })
       end
 
       def coffee_gemfile_entry
@@ -297,9 +297,9 @@ module Rails
       def javascript_runtime_gemfile_entry
         comment = 'See https://github.com/sstephenson/execjs#readme for more supported runtimes'
         if defined?(JRUBY_VERSION)
-          GemfileEntry.version 'therubyrhino', comment, nil
+          GemfileEntry.version 'therubyrhino', nil,comment
         else
-          GemfileEntry.new 'therubyracer', comment, nil, { :platforms => :ruby }, true
+          GemfileEntry.new 'therubyracer', nil, comment, { platforms: :ruby }, true
         end
       end
 
