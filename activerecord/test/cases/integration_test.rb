@@ -81,4 +81,21 @@ class IntegrationTest < ActiveRecord::TestCase
     dev.touch
     assert_not_equal key, dev.cache_key
   end
+
+  def test_cache_key_without_timestamp_for_new_record
+    dev = Developer.new
+    assert_match(/\/new$/, dev.cache_key_without_timestamp)
+  end
+
+  def test_cache_key_without_timestamp_for_existing_record_with_nil_updated_timestamps
+    dev = Developer.first
+    dev.update_columns(updated_at: nil, updated_on: nil)
+    assert_match(/\/#{dev.id}$/, dev.cache_key_without_timestamp)
+  end
+
+  def test_cache_key_without_timestamp_for_existing_record_with_updated_timestamps
+    dev = Developer.first
+    dev.touch
+    assert_match(/\/#{dev.id}$/, dev.cache_key_without_timestamp)
+  end
 end
