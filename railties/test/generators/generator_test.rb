@@ -6,7 +6,7 @@ module Rails
   module Generators
     class GeneratorTest < ActiveSupport::TestCase
       def make_builder_class
-        klass = Class.new(AppBase) do
+        Class.new(AppBase) do
           add_shared_options_for "application"
 
           # include a module to get around thor's method_added hook
