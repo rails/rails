@@ -101,11 +101,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_do_not_call_callbacks_for_delete_all
-    bulb_count = Bulb.count
     car = Car.create(:name => 'honda')
     car.funky_bulbs.create!
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
-    assert_equal bulb_count + 1, Bulb.count, "bulbs should have been deleted using :nullify strategey"
+    assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategey"
   end
 
   def test_building_the_associated_object_with_implicit_sti_base_class
@@ -864,7 +863,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.dependent_clients_of_firm.size
     assert_equal 1, Client.find_by_id(client_id).client_of
 
-    # :nullify is called on each client
+    # :delete_all is called on each client since the dependent options is :destroy
     firm.dependent_clients_of_firm.clear
 
     assert_equal 0, firm.dependent_clients_of_firm.size
@@ -872,7 +871,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is dependent.
-    assert_nil Client.find_by_id(client_id).client_of
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_delete_all_with_option_delete_all

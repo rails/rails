@@ -151,7 +151,7 @@ module ActiveRecord
 
       # Removes all records from the association without calling callbacks
       # on the associated records. It honors the `:dependent` option. However
-      # if the `:dependent` value is `:destroy` then in that case the default
+      # if the `:dependent` value is `:destroy` then in that case the `:delete_all`
       # deletion strategy for the association is applied.
       #
       # You can force a particular deletion strategy by passing a parameter.
@@ -170,9 +170,7 @@ module ActiveRecord
         dependent = if dependent.present?
                       dependent
                     elsif options[:dependent] == :destroy
-                      # since delete_all should not invoke callbacks so use the default deletion strategy
-                      # for :destroy
-                      reflection.is_a?(ActiveRecord::Reflection::ThroughReflection) ? :delete_all : :nullify
+                      :delete_all
                     else
                       options[:dependent]
                     end
