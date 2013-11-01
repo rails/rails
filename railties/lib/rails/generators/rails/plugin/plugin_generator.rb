@@ -184,6 +184,7 @@ task default: :test
         end
       end
 
+      public_task :set_default_accessors!
       public_task :create_root
 
       def create_root_files
