@@ -1,8 +1,9 @@
-## unreleased ##
-
 *   Fix `slice!` deleting the default value of the hash.
 
     *Antonio Santos*
+
+
+## Rails 4.0.1 (November 01, 2013) ##
 
 *   Disable the ability to iterate over Range of AS::TimeWithZone
     due to significant performance issues.

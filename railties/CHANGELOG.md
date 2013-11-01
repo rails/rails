@@ -1,4 +1,4 @@
-## unreleased ##
+## Rails 4.0.1 (November 01, 2013) ##
 
 *   Fix the event name of action_dispatch requests.
 
@@ -19,6 +19,7 @@
 *   Omit turbolinks configuration completely on skip_javascript generator option.
 
     *Nikita Fedyashev*
+
 
 ## Rails 4.0.0 (June 25, 2013) ##
 
