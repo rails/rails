@@ -429,7 +429,11 @@ module ActiveRecord
       # optimistic locking) won't get written unless they get marked as changed
       self.class.columns.each do |c|
         attr, orig_value = c.name, c.default
-        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+        new_value = @attributes[attr]
+        # if the attribute is marked with `serialize`, need to compare the unserialized value to the original value
+        new_value = new_value.unserialized_value if new_value.is_a?(ActiveRecord::AttributeMethods::Serialization::Attribute)
+
+        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, new_value)
       end
     end
 

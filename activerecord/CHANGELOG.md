@@ -1,3 +1,24 @@
+*   Use unserialized value of an serialized attribute when comparing to the original
+    value during the initialization of the `changed_attributes` hash.
+
+    Example:
+        class User < ActiveRecord::Base
+          serialize :name
+        end
+
+        user = User.new
+
+        # Before
+        user.changes # => {"name"=>[nil, nil]}
+
+        # After
+        user.changes # => {}
+
+
+    Fixes #12505
+
+    *Ben Atkins*
+
 *   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
 
     *Jan Bernacki*
