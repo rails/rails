@@ -1,4 +1,4 @@
-unless File.exists?('Gemfile')
+unless File.exist?('Gemfile')
   File.write('Gemfile', <<-GEMFILE)
     source 'https://rubygems.org'
     gem 'rails', github: 'rails/rails'
