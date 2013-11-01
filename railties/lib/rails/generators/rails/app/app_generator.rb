@@ -349,7 +349,7 @@ module Rails
           if argv.find { |arg| arg == '--no-rc' }
             argv.reject { |arg| arg == '--no-rc' }
           else
-            railsrc(argv) { |argv, rc| insert_railsrc_into_argv!(argv, rc) }
+            railsrc(argv) { |rc_argv, rc| insert_railsrc_into_argv!(rc_argv, rc) }
           end
         end
 
@@ -369,7 +369,7 @@ module Rails
         end
 
         def insert_railsrc_into_argv!(argv, railsrc)
-          return argv unless File.exists?(railsrc)
+          return argv unless File.exist?(railsrc)
           extra_args = read_rc_file railsrc
           argv.take(1) + extra_args + argv.drop(1)
         end

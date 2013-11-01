@@ -30,7 +30,7 @@ gem 'dalli', '>= 2.2.1'
 
 # Add your own local bundler stuff
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
-instance_eval File.read local_gemfile if File.exists? local_gemfile
+instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   platforms :mri_19 do
