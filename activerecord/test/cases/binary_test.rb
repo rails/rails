@@ -46,7 +46,7 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
       end
     end
 
-    def test_upate_all_binary
+    def test_update_all_binary
       Binary.create!
 
       data = File.read(ASSETS_ROOT + "/#{FIXTURES.first}")
