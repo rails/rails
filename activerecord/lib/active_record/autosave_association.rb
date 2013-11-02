@@ -377,14 +377,15 @@ module ActiveRecord
       def save_has_one_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
+
         if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
             record.destroy
-          else
+          elsif autosave != false
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-            if autosave != false && (autosave || new_record? || record_changed?(reflection, record, key))
+            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
 
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
