@@ -3,9 +3,10 @@ require 'models/company'
 require 'models/developer'
 require 'models/car'
 require 'models/bulb'
+require 'models/owner'
 
 class IntegrationTest < ActiveRecord::TestCase
-  fixtures :companies, :developers
+  fixtures :companies, :developers, :owners
 
   def test_to_param_should_return_string
     assert_kind_of String, Client.first.to_param
@@ -80,5 +81,10 @@ class IntegrationTest < ActiveRecord::TestCase
     key = dev.cache_key
     dev.touch
     assert_not_equal key, dev.cache_key
+  end
+  
+  def test_named_timestamps_for_cache_key
+    owner = owners(:blackbeard)
+    assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:number)}", owner.cache_key(:updated_at, :happy_at)
   end
 end
