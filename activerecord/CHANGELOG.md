@@ -1,3 +1,28 @@
+*  Added ActiveRecord::Base#enum for declaring enum attributes where the values map to integers in the database, but can be queried by name. 
+
+   Example:
+    	class Conversation < ActiveRecord::Base
+    	  enum status: %i( active archived )
+    	end
+    	
+    	Conversation::STATUS # => { active: 0, archived: 1 }
+    	
+    	# conversation.update! status: 0
+    	conversation.active!
+    	conversation.active? # => true
+    	conversation.status  # => :active
+    	
+    	# conversation.update! status: 1
+    	conversation.archived!
+    	conversation.archived? # => true
+    	conversation.status    # => :archived
+    	
+    	# conversation.update! status: 1
+    	conversation.status = :archived
+
+	*DHH*
+
+
 *   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
 
     *Jan Bernacki*

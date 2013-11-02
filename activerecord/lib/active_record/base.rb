@@ -291,6 +291,7 @@ module ActiveRecord #:nodoc:
     extend Translation
     extend DynamicMatchers
     extend Explain
+    extend Enum
     extend Delegation::DelegateCache
 
     include Persistence
