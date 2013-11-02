@@ -10,26 +10,14 @@ module ActionController
   #   params = ActionController::Parameters.new(a: {})
   #   params.fetch(:b)
   #   # => ActionController::ParameterMissing: param not found: b
+  #   params.require(:a)
+  #   # => ActionController::ParameterMissing: param not found: a
   class ParameterMissing < KeyError
     attr_reader :param # :nodoc:
 
     def initialize(param) # :nodoc:
       @param = param
       super("param not found: #{param}")
-    end
-  end
-
-  # Raised when a required parameter value is empty.
-  #
-  #   params = ActionController::Parameters.new(a: {})
-  #   params.require(:a)
-  #   # => ActionController::EmptyParameter: value is empty for required key: a
-  class EmptyParameter < IndexError
-    attr_reader :param
-
-    def initialize(param)
-      @param = param
-      super("value is empty for required key: #{param}")
     end
   end
 
@@ -169,22 +157,20 @@ module ActionController
       self
     end
 
-    # Ensures that a parameter is present. If it's present and not empty,
-    # returns the parameter at the given +key+, if it's empty raises
-    # an <tt>ActionController::EmptyParameter</tt> error, otherwise
-    # raises an <tt>ActionController::ParameterMissing</tt> error.
+    # Ensures that a parameter is present. If it's present, returns
+    # the parameter at the given +key+, otherwise raises an
+    # <tt>ActionController::ParameterMissing</tt> error.
     #
     #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
     #   # => {"name"=>"Francesco"}
     #
-    #   ActionController::Parameters.new(person: {}).require(:person)
-    #   # => ActionController::EmptyParameter: value is empty for required key: person
+    #   ActionController::Parameters.new(person: nil).require(:person)
+    #   # => ActionController::ParameterMissing: param not found: person
     #
-    #   ActionController::Parameters.new(name: {}).require(:person)
+    #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
     def require(key)
-      raise(ActionController::ParameterMissing.new(key)) unless self.key?(key)
-      self[key].presence || raise(ActionController::EmptyParameter.new(key))
+      self[key].presence || raise(ParameterMissing.new(key))
     end
 
     # Alias of #require.

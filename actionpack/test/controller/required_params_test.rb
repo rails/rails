@@ -5,11 +5,6 @@ class BooksController < ActionController::Base
     params.require(:book).require(:name)
     head :ok
   end
-
-  def update
-    params.require(:book)
-    head :ok
-  end
 end
 
 class ActionControllerRequiredParamsTest < ActionController::TestCase
@@ -22,20 +17,6 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
 
     assert_raise ActionController::ParameterMissing do
       post :create, { book: { title: "Mjallo!" } }
-    end
-  end
-
-  test "empty required parameters will raise an exception" do
-    assert_raise ActionController::EmptyParameter do
-      put :update, {book: {}}
-    end
-
-    assert_raise ActionController::EmptyParameter do
-      put :update, {book: ''}
-    end
-
-    assert_raise ActionController::EmptyParameter do
-      put :update, {book: nil}
     end
   end
 
