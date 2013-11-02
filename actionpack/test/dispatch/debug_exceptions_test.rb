@@ -43,6 +43,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::UrlGenerationError, "No route matches"
       when "/parameter_missing"
         raise ActionController::ParameterMissing, :missing_param_key
+      when "/required_key_empty_value"
+        raise ActionController::EmptyParameter, :empty_param_key
       else
         raise "puke!"
       end
@@ -126,6 +128,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/parameter_missing", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 400
     assert_match(/ActionController::ParameterMissing/, body)
+
+    get "/required_key_empty_value", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 400
+    assert_match(/ActionController::EmptyParameter/, body)
   end
 
   test "rescue with text error for xhr request" do
