@@ -18,6 +18,10 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal :proposed, @book.status
   end
 
+  test "find via scope" do
+    assert_equal @book, Book.proposed.first
+  end
+
   test "update by declaration" do
     @book.written!
     assert @book.written?
