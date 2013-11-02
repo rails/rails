@@ -5,7 +5,7 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :books
 
   setup do
-    @book = Book.create! name: 'REMOTE'
+    @book = books(:awdr)
   end
 
   test "query state by predicate" do
