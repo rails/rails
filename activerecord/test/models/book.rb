@@ -6,6 +6,6 @@ class Book < ActiveRecord::Base
 
   has_many :subscriptions
   has_many :subscribers, through: :subscriptions
-  
-  enum status: %i( proposed written published )
+
+  enum status: [:proposed, :written, :published]
 end

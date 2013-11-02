@@ -2,7 +2,7 @@ module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database, but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: %i( active archived )
+  #     enum status: [:active, :archived]
   #   end
   #
   #   Conversation::STATUS # => { active: 0, archived: 1 }
@@ -11,21 +11,21 @@ module ActiveRecord
   #   conversation.active!
   #   conversation.active? # => true
   #   conversation.status  # => :active
-  #   
+  #
   #   # conversation.update! status: 1
   #   conversation.archived!
   #   conversation.archived? # => true
   #   conversation.status    # => :archived
-  #   
+  #
   #   # conversation.update! status: 1
   #   conversation.status = :archived
   #
   # You can set the default value from the database declaration, like:
   #
-  #   create_table :conversation do
+  #   create_table :conversations do |t|
   #     t.column :status, :integer, default: 0
   #   end
-  # 
+  #
   # Good practice is to let the first declared status be the default.
   module Enum
     def enum(definitions)
