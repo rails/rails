@@ -1,3 +1,11 @@
+*   `ActiveRecord::QueryMethods#order` now supports hashes for ordering
+    query by attributes of the related table(s).
+
+    This allows us to write `User.order(comments: { body: :asc })`
+    instead of `User.order("comments.body ASC")`.
+
+    *Anton Kalyaev*
+
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
     Fixes #10613.

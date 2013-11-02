@@ -298,6 +298,9 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #
+    #   User.joins(:posts).order(posts: { published_at: :asc })
+    #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id" ORDER BY "posts"."published_at" ASC
     def order(*args)
       check_if_method_has_arguments!(:order, args)
       spawn.order!(*args)
@@ -1043,9 +1046,17 @@ module ActiveRecord
       args.each do |arg|
         next unless arg.is_a?(Hash)
         arg.each do |_key, value|
-          raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
-                               "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
+          validate_order_value(value)
         end
+      end
+    end
+
+    def validate_order_value(value)
+      if value.is_a?(Hash)
+        value.each { |_k, v| validate_order_value(v) }
+      else
+        raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
+                             "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
       end
     end
 
@@ -1057,6 +1068,10 @@ module ActiveRecord
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
+      order_args.grep(Hash) do |arg|
+        references!(PredicateBuilder.references(arg))
+      end
+
       # if a symbol is given we prepend the quoted table name
       order_args.map! do |arg|
         case arg
@@ -1064,14 +1079,23 @@ module ActiveRecord
           arg = klass.attribute_alias(arg) if klass.attribute_alias?(arg)
           table[arg].asc
         when Hash
-          arg.map { |field, dir|
-            field = klass.attribute_alias(field) if klass.attribute_alias?(field)
-            table[field].send(dir.downcase)
-          }
+          preprocess_order_hash_arg(arg, table)
         else
           arg
         end
       end.flatten!
+    end
+
+    def preprocess_order_hash_arg(arg, default_table)
+      arg.map { |field, dir|
+        if dir.is_a?(Hash)
+          nested_table = Arel::Table.new(field, default_table.engine)
+          preprocess_order_hash_arg(dir, nested_table)
+        else
+          field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+          default_table[field].send(dir.downcase)
+        end
+      }
     end
 
     # Checks to make sure that the arguments are not blank. Note that if some
