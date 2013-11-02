@@ -17,7 +17,7 @@ module ActionController
 
     def initialize(param) # :nodoc:
       @param = param
-      super("param not found: #{param}")
+      super("param is missing or the value is empty: #{param}")
     end
   end
 
