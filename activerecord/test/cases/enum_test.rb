@@ -5,7 +5,7 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :books
 
   setup do
-    @book = Book.create! name: 'REMOTE'
+    @book = books(:awdr)
   end
 
   test "query state by predicate" do
@@ -13,7 +13,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_not @book.written?
     assert_not @book.published?
   end
-  
+
   test "query state with symbol" do
     assert_equal :proposed, @book.status
   end
@@ -22,12 +22,12 @@ class StoreTest < ActiveRecord::TestCase
     @book.written!
     assert @book.written?
   end
-  
+
   test "update by setter" do
     @book.update! status: :written
     assert @book.written?
   end
-  
+
   test "constant" do
     assert_equal 0, Book::STATUS[:proposed]
     assert_equal 1, Book::STATUS[:written]

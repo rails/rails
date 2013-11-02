@@ -15,8 +15,7 @@ module ActionDispatch
       'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
       'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
       'ActionController::BadRequest'               => :bad_request,
-      'ActionController::ParameterMissing'         => :bad_request,
-      'ActionController::EmptyParameter'           => :bad_request
+      'ActionController::ParameterMissing'         => :bad_request
     )
 
     cattr_accessor :rescue_templates
