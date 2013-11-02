@@ -237,6 +237,7 @@ module Rails
 
       public_task :run_bundle
       public_task :replay_template
+      public_task :generate_spring_binstubs
 
     protected
 
