@@ -47,11 +47,23 @@ module Rails
 
     def root
       application && application.config.root
+    end    
+
+    #
+    #   Rails.env :staging, :development do
+    #     # do something for these environments
+    #   end
+    #
+    #   Rails.env.development?
+    def env(*environments, &block)
+      if block_given?
+        yield if environments.map(&:to_s).include?(env.to_s)
+      else
+        @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
+      end
     end
 
-    def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
-    end
+    alias_method :environment, :env
 
     def env=(environment)
       @_env = ActiveSupport::StringInquirer.new(environment)
