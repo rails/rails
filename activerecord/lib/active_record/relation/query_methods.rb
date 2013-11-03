@@ -550,6 +550,18 @@ module ActiveRecord
       end
     end
 
+    # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
+    #
+    #   Post.where(trashed: true).where(trashed: false)                       #=> WHERE `trashed` = 1 AND `trashed` = 0
+    #   Post.where(trashed: true).rewhere(trashed: false)                     #=> WHERE `trashed` = 0
+    #   Post.where(active: true).where(trashed: true).rewhere(trashed: false) #=> WHERE `active` = 1 AND `trashed` = 0
+    #
+    # This is short-hand for unscope(where: conditions.keys).where(conditions). Note that unlike reorder, we're only unscoping
+    # the named conditions -- not the entire where statement.
+    def rewhere(conditions)
+      unscope(where: conditions.keys).where(conditions)
+    end
+
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.
     #

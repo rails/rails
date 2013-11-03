@@ -2,6 +2,16 @@
 
     *Jon Leighton*
 
+*   Added ActiveRecord::QueryMethods#rewhere which will overwrite an existing, named where condition.
+
+	Examples:
+		
+    	Post.where(trashed: true).where(trashed: false)                       #=> WHERE `trashed` = 1 AND `trashed` = 0
+    	Post.where(trashed: true).rewhere(trashed: false)                     #=> WHERE `trashed` = 0
+    	Post.where(active: true).where(trashed: true).rewhere(trashed: false) #=> WHERE `active` = 1 AND `trashed` = 0
+
+	*DHH*
+
 *   Extend ActiveRecord::Base#cache_key to take an optional list of timestamp attributes of which the highest will be used.
 
     Example:
