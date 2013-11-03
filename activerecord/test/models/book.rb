@@ -8,4 +8,5 @@ class Book < ActiveRecord::Base
   has_many :subscribers, through: :subscriptions
 
   enum status: [:proposed, :written, :published]
+  enum read_status: {unread: 0, reading: 2, read: 3}
 end

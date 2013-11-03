@@ -3,6 +3,9 @@ module ActiveRecord
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [:active, :archived]
+  #
+  #     # same but with explicit mapping
+  #     enum status: {active: 0, archived: 1}
   #   end
   #
   #   Conversation::STATUS # => { active: 0, archived: 1 }
@@ -41,7 +44,8 @@ module ActiveRecord
         # def direction() DIRECTION.key self[:direction] end
         class_eval "def #{name}() #{const_name}.key self[:#{name}] end"
 
-        values.each_with_index do |value, i|
+        pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+        pairs.each do |value, i|
           # DIRECTION[:incoming] = 0
           const_get(const_name)[value] = i
 
