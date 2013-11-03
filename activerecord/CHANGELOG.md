@@ -262,18 +262,6 @@
 
     *kennyj*
 
-*   ActiveRecord::Base#<=> has been removed.  Primary keys may not be in order,
-    or even be numbers, so sorting by id doesn't make sense.  Please use `sort_by`
-    and specify the attribute you wish to sort with.  For example, change:
-
-      Post.all.to_a.sort
-
-    to:
-
-      Post.all.to_a.sort_by(&:id)
-
-    *Aaron Patterson*
-
 *   Fix: joins association, with defined in the scope block constraints by using several
     where constraints and at least of them is not `Arel::Nodes::Equality`,
     generates invalid SQL expression.

@@ -554,6 +554,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
 
+  def test_comparison
+    topic_1 = Topic.create!
+    topic_2 = Topic.create!
+
+    assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
+  end
+
   def test_create_without_prepared_statement
     topic = Topic.connection.unprepared_statement do
       Topic.create(:title => 'foo')
