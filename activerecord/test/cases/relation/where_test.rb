@@ -24,6 +24,10 @@ module ActiveRecord
       }
     end
 
+    def test_rewhere_on_root
+      assert_equal posts(:welcome), Post.rewhere(title: 'Welcome to the weblog').first
+    end
+
     def test_belongs_to_shallow_where
       author = Author.new
       author.id = 1
