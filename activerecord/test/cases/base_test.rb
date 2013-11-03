@@ -554,11 +554,17 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
 
-  def test_comparison
+  def test_successful_comparison_of_like_class_records
     topic_1 = Topic.create!
     topic_2 = Topic.create!
 
     assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
+  end
+
+  def test_failed_comparison_of_unlike_class_records
+    assert_raises ArgumentError do
+      [ topics(:first), posts(:welcome) ].sort
+    end
   end
 
   def test_create_without_prepared_statement
