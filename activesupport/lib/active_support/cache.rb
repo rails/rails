@@ -12,10 +12,10 @@ require 'active_support/core_ext/string/inflections'
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore, 'active_support/cache/file_store'
-    autoload :MemoryStore, 'active_support/cache/memory_store'
+    autoload :FileStore,     'active_support/cache/file_store'
+    autoload :MemoryStore,   'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :NullStore, 'active_support/cache/null_store'
+    autoload :NullStore,     'active_support/cache/null_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -88,25 +88,24 @@ module ActiveSupport
       end
 
       private
+        def retrieve_cache_key(key)
+          case
+          when key.respond_to?(:cache_key) then key.cache_key
+          when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
+          when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
+          else                                  key.to_param
+          end.to_s
+        end
 
-      def retrieve_cache_key(key)
-        case
-        when key.respond_to?(:cache_key) then key.cache_key
-        when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
-        when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
-        else                                  key.to_param
-        end.to_s
-      end
-
-      # Obtains the specified cache store class, given the name of the +store+.
-      # Raises an error when the store class cannot be found.
-      def retrieve_store_class(store)
-        require "active_support/cache/#{store}"
-      rescue LoadError => e
-        raise "Could not find cache store adapter for #{store} (#{e})"
-      else
-        ActiveSupport::Cache.const_get(store.to_s.camelize)
-      end
+        # Obtains the specified cache store class, given the name of the +store+.
+        # Raises an error when the store class cannot be found.
+        def retrieve_store_class(store)
+          require "active_support/cache/#{store}"
+        rescue LoadError => e
+          raise "Could not find cache store adapter for #{store} (#{e})"
+        else
+          ActiveSupport::Cache.const_get(store.to_s.camelize)
+        end
     end
 
     # An abstract cache store class. There are multiple cache store
@@ -153,7 +152,6 @@ module ActiveSupport
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
-
       cattr_accessor :logger, :instance_writer => true
 
       attr_reader :silence, :options
@@ -385,6 +383,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
+
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
           write_entry(namespaced_key(name, options), entry, options)
@@ -396,6 +395,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
+
         instrument(:delete, name) do
           delete_entry(namespaced_key(name, options), options)
         end
@@ -406,6 +406,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
+
         instrument(:exist?, name) do
           entry = read_entry(namespaced_key(name, options), options)
           (entry && !entry.expired?) || false
@@ -585,6 +586,7 @@ module ActiveSupport
           result = instrument(:generate, name, options) do |payload|
             yield(name)
           end
+
           write(name, result, options)
           result
         end
@@ -608,6 +610,7 @@ module ActiveSupport
         else
           @value = value
         end
+
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
@@ -658,6 +661,7 @@ module ActiveSupport
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
         convert_version_4beta1_entry! if defined?(@v)
+
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
           if @value.is_a?(String)
             @value = @value.dup
@@ -672,8 +676,10 @@ module ActiveSupport
           if value && options[:compress]
             compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
             serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
+
             return true if serialized_value_size >= compress_threshold
           end
+
           false
         end
 
@@ -696,10 +702,12 @@ module ActiveSupport
             @value = @v
             remove_instance_variable(:@v)
           end
+
           if defined?(@c)
             @compressed = @c
             remove_instance_variable(:@c)
           end
+
           if defined?(@x) && @x
             @created_at ||= Time.now.to_f
             @expires_in = @x - @created_at
