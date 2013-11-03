@@ -2,10 +2,7 @@ module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database, but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [:active, :archived]
-  #
-  #     # same but with explicit mapping
-  #     enum status: {active: 0, archived: 1}
+  #     enum status: [ :active, :archived ]
   #   end
   #
   #   Conversation::STATUS # => { active: 0, archived: 1 }
@@ -30,6 +27,12 @@ module ActiveRecord
   #   end
   #
   # Good practice is to let the first declared status be the default.
+  #
+  # Finally, it's also possible to explicitly map the relation between attribute and database integer:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: { active: 0, archived: 1 }
+  #   end
   module Enum
     def enum(definitions)
       definitions.each do |name, values|
