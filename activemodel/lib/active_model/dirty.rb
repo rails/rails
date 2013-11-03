@@ -96,11 +96,11 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+      attribute_method_suffix '_changed?', '_previously_changed?', '_change', '_previous_change', '_will_change!', '_was', '_previously_was'
       attribute_method_affix prefix: 'reset_', suffix: '!'
     end
 
-    # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.
+    # Returns +true+ if any attributes have unsaved changes, +false+ otherwise.
     #
     #   person.changed? # => false
     #   person.name = 'bob'
@@ -109,13 +109,33 @@ module ActiveModel
       changed_attributes.present?
     end
 
-    # Returns an array with the name of the attributes with unsaved changes.
+    # Returns +true+ if any attributes have previously saved changes, +false+ otherwise.
+    #
+    #   person.changed?            # => true
+    #   person.save
+    #   person.changed?            # => false
+    #   person.previously_changed? # => true
+    def previously_changed?
+      previous_changes.present?
+    end
+
+    # Returns an array of attribute names with unsaved changes.
     #
     #   person.changed # => []
     #   person.name = 'bob'
     #   person.changed # => ["name"]
     def changed
       changed_attributes.keys
+    end
+
+    # Returns an array of attribute names with previously saved changes.
+    #
+    #   person.changed            # => ["name"]
+    #   person.save
+    #   person.changed            # => []
+    #   person.previously_changed # => ["name"]
+    def previously_changed
+      previous_changes.keys
     end
 
     # Returns a hash of changed attributes indicating their original
@@ -153,9 +173,19 @@ module ActiveModel
       changed_attributes.include?(attr)
     end
 
+    # Handle <tt>*_previously_changed?</tt> for +method_missing+.
+    def attribute_previously_changed?(attr)
+      previous_changes.include?(attr)
+    end
+
     # Handle <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr)
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+    end
+
+    # Handle <tt>*_previously_was</tt> for +method_missing+.
+    def attribute_previously_was(attr)
+      attribute_previously_changed?(attr) ? previous_changes[attr].first : __send__(attr)
     end
 
     private
@@ -175,6 +205,11 @@ module ActiveModel
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+      end
+
+      # Handle <tt>*_previous_change</tt> for +method_missing+.
+      def attribute_previous_change(attr)
+        previous_changes[attr] if attribute_previously_changed?(attr)
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
